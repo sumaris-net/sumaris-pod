@@ -9,8 +9,9 @@ import {
 } from "@angular/core";
 import {PlatformService} from "../../core/services/platform.service";
 import {AggregationTypeFilter, ExtractionFilter} from "../services/extraction.service";
-import {BehaviorSubject, Observable, Subject} from "rxjs";
+import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {
+  arraySize,
   isNil,
   isNilOrBlank, isNotEmptyArray,
   isNotNil,
@@ -28,14 +29,17 @@ import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
 import {CRS, LayerGroup} from 'leaflet';
 import {Feature} from "geojson";
-import {map, throttleTime} from "rxjs/operators";
+import {map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {ModalController} from "@ionic/angular";
 import {AggregationTypeSelectModal} from "./aggregation-type-select.modal";
 import {AccountService} from "../../core/services/account.service";
 import {FormFieldDefinition, FormFieldType} from "../../shared/form/field.model";
 
 
-const SPACE_STRATA_COLUMNS: string[] = ['area', 'rect', 'statistical_rectangle', 'square'];
+const SPACE_STRATA_COLUMNS: string[] = [
+  /* FIXME: there is no Area geometry, in DB, so ignore this column for now
+    'area',*/
+  'rect', 'statistical_rectangle', 'square'];
 const TIME_STRATA_COLUMNS: string[] = ['year', 'quarter', 'month'];
 
 @Component({
@@ -111,9 +115,8 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
   $details = new Subject<{ title: string; properties: { name: string; value: string }[]; }>();
   $stats = new Subject<{ title: string; properties: { name: string; value: string }[] }>();
   $years = new BehaviorSubject<number[]>(undefined);
-  $quickYears = new Subject<number[]>();
 
-
+  animation: Subscription;
 
   @ViewChild(MatExpansionPanel) filterExpansionPanel: MatExpansionPanel;
 
@@ -126,7 +129,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
   }
 
   get hasData(): boolean {
-    return this.ready && !this.loading && this.data && this.data.total > 0;
+    return this.ready && this.data && this.data.total > 0;
   }
 
   get legendStartColor(): string {
@@ -284,14 +287,17 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
           || c.columnName.endsWith('_weight')));
     this.$techColumns.next(techColumns);
 
-    const spaceColumns = columns.filter(c => SPACE_STRATA_COLUMNS.includes(c.columnName));
+    const spaceColumns = columns.filter(c => SPACE_STRATA_COLUMNS.includes(c.columnName)
+      && isNotEmptyArray(c.values));
     this.$spaceColumns.next(spaceColumns);
 
     const timeColumns = columns.filter(c => TIME_STRATA_COLUMNS.includes(c.columnName));
     this.$timeColumns.next(timeColumns);
 
     const excludedFilterColumns = spaceColumns.concat(timeColumns);
-    const filterColumns = columns.filter(c => !excludedFilterColumns.includes(c));
+    const filterColumns = columns.filter(c => !excludedFilterColumns.includes(c) &&
+      // Exclude string column if only one value
+      (c.type !== 'string' || arraySize(c.values) > 1));
     this.$columns.next(filterColumns);
 
     this.$columnValueDefinitions.next(filterColumns.map(c => this.getColumnDefinition(c)));
@@ -299,8 +305,6 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     const yearColumn = (columns || []).find(c => c.columnName === 'year');
     const years = (yearColumn && yearColumn.values || []).map(s => parseInt(s));
     this.$years.next(years);
-
-    this.updateQuickYears(years);
   }
 
   protected async tryLoadByYearIterations(
@@ -443,29 +447,18 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
 
   }
 
-  async setYear(event: UIEvent, value) {
-    if (event.defaultPrevented) return; // skip
-    event.preventDefault();
-    event.stopPropagation();
+  setYear(event: UIEvent, value) {
+    if (event && event.defaultPrevented) return; // skip
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
 
     if (this.year == value) return; // same: skip
 
     this.form.get('year').setValue(value);
 
-    this.updateQuickYears();
-
     this.onRefresh.emit();
-  }
-
-  protected updateQuickYears(years?: number[]) {
-    years = years || this.$years.getValue();
-    const year = this.year || years && years[years.length - 1];
-
-    if (!year) return;
-    this.$quickYears.next((years || [year]).reduce((res, item, index) => {
-      // TODO: review this
-      return (+item < year - 3 || +item > year + 3) ? res : res.concat(+item);
-    }, []));
   }
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {
@@ -557,6 +550,36 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
         this.filterExpansionPanel.open();
         //this.openSelectTypeModal();
       }
+    }
+  }
+
+  toggleAnimation(event?: UIEvent) {
+    if (event && event.defaultPrevented) return;
+    // Avoid to expand the filter section
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (this.animation) {
+      this.animation.unsubscribe();
+      this.animation = null;
+    }
+    else {
+      const years = this.$years.getValue();
+      console.info("[extraction-map] Starting animation...");
+      this.animation = isNotEmptyArray(years) && Observable.timer(500, 500)
+        .pipe(
+          tap(index => {
+            const year = years[index % arraySize(years)];
+            console.info("[extraction-map] Rendering animation for year {" + year + "}...");
+            this.setYear(null, year);
+          })
+        )
+        .subscribe();
+
+      this.animation.add(() => {
+        console.info("[extraction-map] Animation stopped");
+      });
     }
   }
 
@@ -667,20 +690,14 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
       this.$columnValueDefinitionsByIndex[index] = subject;
     }
     else {
-      const existingDefinition = subject.getValue();
-      if (existingDefinition) {
-        subject.next(definition);
-      }
-      else {
-        subject.next(definition);
-      }
-      this.markForCheck();
+      subject.next(definition);
+      //this.markForCheck();
     }
     return subject;
   }
 
   protected getColumnDefinition(column: ExtractionColumn): FormFieldDefinition {
-    if (isNotEmptyArray(column.values)) {
+    if (column.type === 'string' && isNotEmptyArray(column.values)) {
       return {
         key: column.columnName,
         label: column.name,

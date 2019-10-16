@@ -791,6 +791,8 @@
     "MAP": {
       "BTN_SELECT_TYPE": "Liste des cartes",
       "BTN_EDIT": "Editer",
+      "BTN_ANIMATION_PLAY": "Lancer l'animation",
+      "BTN_ANIMATION_PAUSE": "Stopper l'animation",
       "FILTER": "Filtrage",
       "YEAR": "Année",
       "SPACE": "Géométrie",

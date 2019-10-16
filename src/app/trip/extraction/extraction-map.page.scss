@@ -9,7 +9,6 @@ ion-card.filter {
     background: var(--background);
   }
 
-
   .mat-form-field.operator {
     min-width: 40px;
     max-width: 50px;
@@ -23,6 +22,9 @@ ion-card.filter {
     background: var(--background);
     min-width: 150px;
 
+    mat-expansion-panel-header {
+      padding-left: 0 !important;
+    }
   }
 
 }
@@ -127,6 +129,6 @@ ion-card.details {
 }
 
 mat-action-row[no-padding] {
-  padding: 0!important;
+  padding: 0 !important;
 }
 

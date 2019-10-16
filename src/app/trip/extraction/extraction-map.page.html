@@ -17,12 +17,13 @@
 </app-toolbar>
 
 
-<!-- options menu
-<mat-menu #optionmenu="matMenu">
-  <button mat-menu-item (click)="openSelectTypeModal($event)">
-    <ion-label translate>EXTRACTION.MAP.BTN_SELECT_TYPE</ion-label>
+<!-- options menu -->
+<mat-menu #yearMenu="matMenu">
+  <button mat-menu-item *ngFor="let item of $years | async"
+          (click)="setYear(null, item)">
+    <ion-label>{{item}}</ion-label>
   </button>
-</mat-menu>-->
+</mat-menu>
 
 <ion-content>
 
@@ -31,46 +32,27 @@
     <ion-card-content no-padding>
 
       <mat-expansion-panel #filterExpansionPanel color="transparent" no-padding>
-        <mat-expansion-panel-header no-padding color="transparent">
+        <mat-expansion-panel-header color="transparent">
           <mat-panel-title>
             <ion-label>
-              <ion-card-title>
+              <!-- animation buttons -->
+              <div *ngIf="hasData && !filterExpansionPanel.expanded">
 
-                <ion-label [hidden]="!hasData || filterExpansionPanel.expanded">
-                  <ion-text color="medium" translate>EXTRACTION.MAP.YEAR</ion-text>&nbsp;
+                <div *ngTemplateOutlet="animationButtons"></div>
 
-                  <button mat-stroked-button
-                          *ngFor="let item of $quickYears | async"
-                          [color]="item===year ? 'primary' : ''"
-                          (click)="setYear($event, item)">
-                    <ion-spinner style="vertical-align: middle;" name="dots"
-                                 *ngIf="loading && item === year"></ion-spinner>
-                    <span *ngIf="!loading || item !== year">{{item}}</span>
-                  </button>
+                <!-- year -->
+                <button mat-stroked-button
+                        [matMenuTriggerFor]="yearMenu"
+                        (click)="$event.stopPropagation()">
+                  <ion-text color="medium" translate>EXTRACTION.MAP.YEAR</ion-text>
+                  <ion-text>&nbsp;{{year}}</ion-text>
+                </button>
+              </div>
 
-                  <!-- short cut for sheets
-                  <ng-template [ngIf]="$sheetNames | async as items" >
-                    <ng-template [ngIf]="items.length == 1">
-                      <ion-button mat-button *ngFor="let item of items"
-                                  (click)="onSheetChange(item)"
-                                  [color]="(item === sheetName) ? 'primary' : 'medium'">
-                        <ion-label>{{getI18nSheetName(item)}}</ion-label>
-                        <mat-icon slot="end" *ngIf="hasFilterCriteria(item)">filter_list</mat-icon>
-                      </ion-button>
-                    </ng-template>
-                  </ng-template>-->
-                </ion-label>
-
-                <!-- Loading spinner
-                &nbsp;<ion-spinner style="vertical-align: middle;" name="dots" *ngIf="loading" [@fadeInOutAnimation]></ion-spinner>-->
-
-              </ion-card-title>
-
-              <!-- no data -->
-              <ion-card-subtitle *ngIf="!loading">
+              <!-- no data or panel expanded -->
+              <ion-card-subtitle  padding-left>
+                <ion-label *ngIf="filterExpansionPanel.expanded"><span translate>EXTRACTION.FILTER.TITLE</span>&nbsp;</ion-label>
                 <ion-label color="danger" *ngIf="!hasData" translate>COMMON.NO_RESULT</ion-label>
-                <ion-label *ngIf="hasData && filterExpansionPanel.expanded" translate>EXTRACTION.FILTER.TITLE
-                </ion-label>
               </ion-card-subtitle>
 
             </ion-label>
@@ -175,8 +157,15 @@
         </div>
 
         <mat-action-row no-padding>
+          <!-- animation buttons -->
+          <div *ngTemplateOutlet="animationButtons"></div>
+
+          <span class="toolbar-spacer"></span>
+
           <button mat-button
-                  (click)="onRefresh.emit($event)"><span translate>COMMON.BTN_APPLY</span></button>
+                  (click)="onRefresh.emit($event)">
+            <ion-text translate>COMMON.BTN_APPLY</ion-text>
+          </button>
         </mat-action-row>
       </mat-expansion-panel>
 
@@ -381,3 +370,23 @@
 
 
 </ion-content>
+
+<ng-template #animationButtons>
+  <ng-container *ngIf="$years|async as years">
+    <!-- play button -->
+    <button mat-icon-button
+            *ngIf="!animation && years.length > 1"
+            (click)="toggleAnimation($event)"
+            [title]="'EXTRACTION.MAP.BTN_ANIMATION_PLAY'|translate">
+      <mat-icon>play_arrow</mat-icon>
+    </button>
+
+    <!-- pause button -->
+    <button mat-icon-button
+            *ngIf="animation"
+            (click)="toggleAnimation($event)"
+            [title]="'EXTRACTION.MAP.BTN_ANIMATION_PAUSE'|translate">
+      <mat-icon>pause</mat-icon>
+    </button>
+  </ng-container>
+</ng-template>

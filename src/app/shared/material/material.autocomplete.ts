@@ -19,7 +19,7 @@ import {SuggestFn, SuggestionDataService} from "../services/data-service.class";
 import {
   changeCaseToUnderscore,
   focusInput,
-  getPropertyByPath,
+  getPropertyByPath, isNil,
   isNilOrBlank, isNotNilOrBlank,
   joinPropertiesPath,
   selectInputContent,
@@ -170,10 +170,15 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     }
 
     if (value instanceof Observable) {
-      this._itemsSubscription = this._subscription.add(value.subscribe(items => this._itemsSubject.next(items)));
+
+      this._itemsSubscription = this._subscription.add(
+        value.subscribe(v => this._itemsSubject.next(v))
+      );
     }
     else {
-      this._itemsSubject.next(value as any[]);
+      if (value !== this._itemsSubject.getValue()) {
+        this._itemsSubject.next(value as any[]);
+      }
     }
   }
 
@@ -239,7 +244,9 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     // Configuration from config object
     if (this.config) {
       this.suggestFn = this.suggestFn || this.config.suggestFn;
-      this.items = this.items || this.config.items;
+      if (isNil(this._itemsSubject.getValue()) && this.config.items) {
+        this.items = this.config.items;
+      }
       this.filter = this.filter || this.config.filter;
       this.displayAttributes = this.displayAttributes || this.config.attributes;
       this.displayColumnSizes = this.displayColumnSizes || this.config.columnSizes;
