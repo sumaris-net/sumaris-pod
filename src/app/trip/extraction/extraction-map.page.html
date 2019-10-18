@@ -1,23 +1,26 @@
 <app-toolbar [title]="$title | async" color="primary">
 
-  <!--  <div slot="start">-->
-  <!--    <ion-button mat-button (click)="openSelectTypeModal($event)">-->
-  <!--      <ion-icon slot="start" name="create"></ion-icon>-->
-  <!--      <ion-label translate>EXTRACTION.MAP.BTN_EDIT</ion-label>-->
-  <!--    </ion-button>-->
-  <!--  </div>-->
-
   <ion-button mat-button (click)="openSelectTypeModal($event)">
     <ion-label translate>EXTRACTION.MAP.BTN_SELECT_TYPE</ion-label>
     <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
   </ion-button>
-  <!--  <ion-button mat-icon-button [matMenuTriggerFor]="optionmenu">-->
-  <!--    <mat-icon slot="start">more_vert</mat-icon>-->
-  <!--  </ion-button>-->
+    <ion-button mat-icon-button
+                *ngIf="canEdit"
+                [matMenuTriggerFor]="optionMenu">
+      <mat-icon slot="start">more_vert</mat-icon>
+    </ion-button>
 </app-toolbar>
 
 
 <!-- options menu -->
+<mat-menu #optionMenu="matMenu">
+  <button mat-menu-item [routerLink]="'/extraction/aggregation/' + type?.id">
+    <mat-icon>edit</mat-icon>
+    <ion-label translate>COMMON.BTN_EDIT</ion-label>
+  </button>
+</mat-menu>
+
+<!-- years menu -->
 <mat-menu #yearMenu="matMenu">
   <button mat-menu-item *ngFor="let item of $years | async"
           (click)="setYear(null, item)">
@@ -28,10 +31,10 @@
 <ion-content>
 
   <!-- -->
-  <ion-card color="light" class="bottom-left filter">
+  <ion-card color="light" class="bottom-left filter" [class.expanded]="filterExpansionPanel.expanded">
     <ion-card-content no-padding>
 
-      <mat-expansion-panel #filterExpansionPanel color="transparent" no-padding>
+      <mat-expansion-panel #filterExpansionPanel color="transparent" no-padding [hidden]="!type">
         <mat-expansion-panel-header color="transparent">
           <mat-panel-title>
             <ion-label>
@@ -52,107 +55,79 @@
               <!-- no data or panel expanded -->
               <ion-card-subtitle  padding-left>
                 <ion-label *ngIf="filterExpansionPanel.expanded"><span translate>EXTRACTION.FILTER.TITLE</span>&nbsp;</ion-label>
-                <ion-label color="danger" *ngIf="!hasData" translate>COMMON.NO_RESULT</ion-label>
+                <ion-label color="danger" *ngIf="!hasData && !form.dirty" translate>COMMON.NO_RESULT</ion-label>
               </ion-card-subtitle>
 
             </ion-label>
           </mat-panel-title>
         </mat-expansion-panel-header>
 
-        <div>
+        <div [hidden]="!filterExpansionPanel.expanded">
           <nav mat-tab-nav-bar>
-            <a mat-tab-link *ngFor="let item of $sheetNames | async"
-               (click)="onSheetChange(item)"
+            <a mat-tab-link *ngFor="let item of criteriaForm.$sheetNames | async"
+               (click)="setSheetName(item)"
                [active]="item === sheetName">
-              <ion-text>{{getI18nSheetName(item)}}</ion-text>
-              <mat-icon *ngIf="hasFilterCriteria(item)">filter_list</mat-icon>
+              <ion-text>{{criteriaForm.getI18nSheetName(item)}}</ion-text>
+              <mat-icon *ngIf="criteriaForm.hasFilterCriteria(item)">filter_list</mat-icon>
             </a>
           </nav>
 
-          <form [formGroup]="form" padding>
+          <form [formGroup]="form" class="form-container" padding>
 
-            <ion-row no-padding>
-              <!-- year -->
-              <mat-form-field>
-                <mat-select formControlName="year" [placeholder]=" 'EXTRACTION.MAP.YEAR'|translate">
-                  <mat-option *ngFor="let item of $years | async" [value]="item">{{item}}</mat-option>
-                </mat-select>
-              </mat-form-field>
+            <ion-grid *ngIf="form.controls.strata as strataForm">
+              <ion-row [formGroup]="strataForm">
+                <!-- year -->
+                <ion-col size="4" no-padding *ngIf="form.get('year') as yearControl">
+                  <mat-form-field>
+                    <mat-select [formControl]="yearControl" [placeholder]="'EXTRACTION.MAP.YEAR'|translate">
+                      <mat-option *ngFor="let item of $years | async" [value]="item">{{item}}</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="yearControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+                  </mat-form-field>
+                </ion-col>
 
-              <div formGroupName="strata">
                 <!-- space -->
-                <mat-form-field>
-                  <mat-select formControlName="space" [placeholder]=" 'EXTRACTION.MAP.SPACE'|translate">
-                    <mat-option *ngFor="let column of $spaceColumns | async" [value]="column.columnName">
-                      {{getI18nColumnName(column.name)}}
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
+                <ion-col size="4" no-padding *ngIf="strataForm.get('spaceColumnName') as spaceControl">
+                  <mat-form-field>
+                    <mat-select [formControl]="spaceControl" [placeholder]="'EXTRACTION.MAP.SPACE'|translate">
+                      <mat-option *ngFor="let column of $spaceColumns | async"
+                                  [value]="column.columnName">{{column.name}}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </ion-col>
 
-                <!-- tech -->
-                <mat-form-field>
-                  <mat-select formControlName="tech" [placeholder]=" 'EXTRACTION.MAP.AGG_VALUE'|translate">
-                    <mat-option *ngFor="let column of $techColumns | async"
-                                [value]="column.columnName">{{column.name}}</mat-option>
-                  </mat-select>
-                </mat-form-field>
-              </div>
-            </ion-row>
+                <!-- agg -->
+                <ion-col size="4" no-padding *ngIf="strataForm.get('aggColumnName') as aggControl">
+                  <mat-form-field>
+                    <mat-select [formControl]="aggControl"
+                                [placeholder]="'EXTRACTION.MAP.AGG_VALUE'|translate"
+                                required>
+                      <mat-option *ngFor="let column of $aggColumns | async"
+                                  [value]="column.columnName">{{column.name}}</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="aggControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
 
-            <form [formGroup]="form.controls.sheets" (ngSubmit)="onRefresh.emit()" *ngIf="sheetCriteriaForm && sheetName as sheet">
-              <div [formArrayName]="sheet">
-                <ng-container *ngFor="let criterionForm of sheetCriteriaForm.controls; let i=index">
-                  <ion-row no-padding [formGroupName]="i">
-                    <!-- column name -->
-                    <mat-form-field>
-                      <mat-select formControlName="name"
-                                  [placeholder]="'EXTRACTION.FILTER.CRITERION_NAME'|translate"
-                                  (selectionChange)="updateCriterionValueDefinition(i, $event.value, true)">
-                        <mat-option *ngFor="let column of $columns | async"
-                                    [value]="column.columnName">{{column.name}}</mat-option>
-                      </mat-select>
-                    </mat-form-field>
+                  </mat-form-field>
+                </ion-col>
 
-                    <!-- operator -->
-                    <mat-form-field class="operator">
-                      <mat-select formControlName="operator">
-                        <mat-option *ngFor="let operator of operators" [value]="operator.symbol">{{ (operator.name ||
-                          operator.symbol) | translate }}
-                        </mat-option>
-                      </mat-select>
-                    </mat-form-field>
+                <!-- tech
+                <ion-col no-padding *ngIf="strataForm.get('techColumnName') as techControl">
+                  <mat-form-field>
+                    <mat-select [formControl]="techControl" [placeholder]="'EXTRACTION.MAP.TECH_VALUE'|translate">
+                      <mat-option *ngFor="let column of $techColumns | async"
+                                  [value]="column.columnName">{{column.name}}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </ion-col>-->
+              </ion-row>
+            </ion-grid>
 
-                    <!-- value -->
-                    <app-form-field *ngIf="getCriterionValueDefinition(i) | async as definition"
-                      [placeholder]="(criterionForm.controls.operator.value === 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE' || 'EXTRACTION.FILTER.CRITERION_VALUE') |translate"
-                      [formControl]="criterionForm.controls.value"
-                      [definition]="definition">
-                    </app-form-field>
-
-                    <!-- second value (for between operator) -->
-                    <mat-form-field *ngIf="criterionForm.controls.operator.value === 'BETWEEN'">
-                      <input matInput autocomplete="off"
-                             [placeholder]=" 'EXTRACTION.FILTER.CRITERION_END_VALUE'|translate"
-                             formControlName="endValue">
-                    </mat-form-field>
-
-                    <button type="button" mat-icon-button color="light" [disabled]="loading"
-                            [title]="'COMMON.BTN_DELETE'|translate"
-                            (click)="removeFilterCriterion($event, i)">
-                      <mat-icon>close</mat-icon>
-                    </button>
-
-                    <button type="button" mat-icon-button color="light" [disabled]="loading"
-                            *ngIf="i == criteriaForm?.length-1"
-                            [title]="'EXTRACTION.FILTER.BTN_ADD_CRITERION'|translate"
-                            (click)="addFilterCriterion()">
-                      <mat-icon>add</mat-icon>
-                    </button>
-                  </ion-row>
-                </ng-container>
-              </div>
-            </form>
-
+            <!-- filter criteria -->
+            <app-extraction-criteria-form #criteriaForm
+                                          showSheetsTab="false"
+                                          [columns]="$criteriaColumns|async"
+                                          (onRefresh)="onRefresh.emit($event)">
+            </app-extraction-criteria-form>
           </form>
         </div>
 
@@ -162,10 +137,12 @@
 
           <span class="toolbar-spacer"></span>
 
-          <button mat-button
+          <ion-button mat-button
+                  [color]="'tertiary'"
+                  [fill]="dirty ? 'solid' : 'clear'"
                   (click)="onRefresh.emit($event)">
             <ion-text translate>COMMON.BTN_APPLY</ion-text>
-          </button>
+          </ion-button>
         </mat-action-row>
       </mat-expansion-panel>
 
@@ -221,7 +198,7 @@
       <ion-col size="auto" no-padding align-self-end >
 
         <!-- Legend card -->
-        <ion-card color="light" class="legend" *ngIf="data.total && techStrata" @fadeInAnimation>
+        <ion-card color="light" class="legend" *ngIf="showLegend" @fadeInAnimation>
           <ion-card-header>
             <ion-card-subtitle>
               <ion-label>

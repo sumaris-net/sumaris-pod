@@ -66,9 +66,12 @@ import {BatchGroupForm} from "./batch/batch-group.form";
 import {BatchGroupModal} from "./batch/batch-group.modal";
 import {SubBatchModal} from "./batch/sub-batch.modal";
 import {FullscreenOverlayContainer, OverlayContainer} from "@angular/cdk/overlay";
-import {ExtractionTypeValidatorService} from "./services/validator/extraction-type.validator";
+import {AggregationTypeValidatorService} from "./services/validator/aggregation-type.validator";
 import {AggregationTypePage} from "./extraction/aggregation-type.page";
 import {ReferentialModule} from "../referential/referential.module";
+import {AggregationTypeForm} from "./extraction/aggregation-type.form";
+import {ExtractionCriteriaValidatorService} from "./services/validator/extraction-criterion.validator";
+import {ExtractionCriteriaForm} from "./extraction/extraction-criteria.form";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -121,7 +124,9 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       ExtractionDataPage,
       ExtractionMapPage,
       AggregationTypeSelectModal,
-      AggregationTypePage
+      AggregationTypeForm,
+      AggregationTypePage,
+      ExtractionCriteriaForm
     ],
     exports: [
       TripsPage,
@@ -194,7 +199,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       SubSampleValidatorService,
       ExtractionService,
       {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
-      ExtractionTypeValidatorService
+      AggregationTypeValidatorService,
+      ExtractionCriteriaValidatorService
     ]
 })
 export class TripModule {

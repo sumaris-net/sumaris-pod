@@ -59,7 +59,6 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
         this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
 
         const landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
-        console.log('TODO check program: ', landingEditor)
         this.landingEditor = (landingEditor === 'landing' || landingEditor === 'control') ? landingEditor : 'landing';
       });
   }

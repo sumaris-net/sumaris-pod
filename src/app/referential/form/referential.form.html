@@ -39,11 +39,13 @@
 
     <!-- Name -->
     <ion-row>
-      <mat-form-field>
-        <input matInput [placeholder]="'REFERENTIAL.NAME'|translate" formControlName="name"
-               autocomplete="off" required>
-        <mat-error *ngIf="form.controls.name.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      </mat-form-field>
+      <ion-col>
+        <mat-form-field>
+          <input matInput [placeholder]="'REFERENTIAL.NAME'|translate" formControlName="name"
+                 autocomplete="off" required>
+          <mat-error *ngIf="form.controls.name.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
     </ion-row>
 
     <ion-row>

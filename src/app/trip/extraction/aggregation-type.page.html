@@ -30,33 +30,12 @@
   <ion-grid no-padding>
     <ion-row no-padding padding-top>
       <ion-col>
-        <!-- base form -->
-        <app-referential-form #referentialForm
-                              [form]="form"
-                              [showError]="false"
-                              [debug]="debug"
-                              (onSubmit)="save($event)">
-          <ion-row>
-            <ion-col>
-              <mat-form-field floatLabel="never">
-                <!-- fake input -->
-                <input matInput hidden>
-                <ion-label>&nbsp;</ion-label>
+        <!-- form -->
 
-                <!-- checkbox, when compact -->
-                <mat-checkbox matPrefix
-                              [formControl]="form.controls.isSpatial"
-                              labelPosition="after">
-                  <ion-text translate>EXTRACTION.AGGREGATION.EDIT.IS_SPATIAL</ion-text>
-                </mat-checkbox>
-              </mat-form-field>
-            </ion-col>
+        <app-aggregation-type-form #typeForm [showError]="false">
 
-            <ion-col>
+        </app-aggregation-type-form>
 
-            </ion-col>
-          </ion-row>
-        </app-referential-form>
       </ion-col>
 
       <ion-col no-padding size="12" size-xl="3">

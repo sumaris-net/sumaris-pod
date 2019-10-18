@@ -1,0 +1,73 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit.emit($event)"
+      *ngIf="sheetCriteriaForm; let criteriaForm"
+      class="form-container">
+  <ion-grid [formArrayName]="sheetName">
+    <ng-container *ngFor="let criterionForm of criteriaForm.controls; let i=index">
+      <ion-row [formGroupName]="i">
+
+        <!-- column name -->
+        <ion-col no-padding>
+          <mat-form-field>
+            <mat-select formControlName="name"
+                        [placeholder]="'EXTRACTION.FILTER.CRITERION_NAME'|translate"
+                        (selectionChange)="updateCriterionValueDefinition(i, $event.value, true)">
+              <mat-option *ngFor="let column of $columns | async"
+                          [value]="column.columnName">{{column.name}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ion-col>
+
+        <!-- operator -->
+        <ion-col no-padding size="auto">
+          <mat-form-field class="operator">
+            <mat-select formControlName="operator">
+              <mat-option *ngFor="let operator of operators" [value]="operator.symbol">{{ (operator.name ||
+                operator.symbol) | translate }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ion-col>
+
+        <!-- value -->
+        <ion-col no-padding [class.has-two-fields]="criterionForm.controls.operator.value === 'BETWEEN'">
+          <ng-container *ngIf="getCriterionValueDefinition(i) | async as definition; else fakeDisabledField">
+
+            <app-form-field [placeholder]="(criterionForm.controls.operator.value === 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE' || 'EXTRACTION.FILTER.CRITERION_VALUE') |translate"
+                            [formControl]="criterionForm.controls.value"
+                            [definition]="definition">
+            </app-form-field>
+
+            <!-- second value (for between operator) -->
+            <app-form-field *ngIf="criterionForm.controls.operator.value === 'BETWEEN'"
+                            [placeholder]=" 'EXTRACTION.FILTER.CRITERION_END_VALUE'|translate"
+                            [formControl]="criterionForm.controls.endValue"
+                            [definition]="definition"
+                            (keyup.enter)="doSubmit($event)">
+            </app-form-field>
+          </ng-container>
+        </ion-col>
+
+        <ion-col no-padding size="2" align-self-center>
+          <button type="button" mat-icon-button color="light" [disabled]="disabled"
+                  [title]="'COMMON.BTN_DELETE'|translate"
+                  (click)="removeFilterCriterion($event, i)">
+            <mat-icon>close</mat-icon>
+          </button>
+
+          <button type="button" mat-icon-button color="light" [disabled]="disabled"
+                  *ngIf="i == criteriaForm?.length-1"
+                  [title]="'EXTRACTION.FILTER.BTN_ADD_CRITERION'|translate"
+                  (click)="addFilterCriterion()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </ion-col>
+      </ion-row>
+    </ng-container>
+  </ion-grid>
+</form>
+
+<ng-template #fakeDisabledField>
+  <mat-form-field>
+    <input matInput [disabled]="true" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_VALUE'|translate">
+  </mat-form-field>
+</ng-template>

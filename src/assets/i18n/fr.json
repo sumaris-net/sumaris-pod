@@ -761,6 +761,17 @@
       "EDIT": {
         "TITLE": "Aggregation {{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
+        "STRATA": {
+          "TIME_COLUMN": "Temporelle",
+          "SPACE_COLUMN": "Spatiale",
+          "AGG_COLUMN": "Graphique",
+          "AGG_FUNCTION": "Function d'aggrégation",
+          "TECH_COLUMN": "Technique"
+        },
+        "AGG_FUNCTION": {
+          "SUM": "Somme",
+          "AVG": "Moyenne"
+        },
         "STATUS_ENUM": {
           "PUBLIC": "Visibilité: publique",
           "PRIVATE": "Visibilité: privé",
@@ -777,8 +788,8 @@
       "STATISTICAL_RECTANGLE": "Rectangle statistique"
     },
     "FILTER": {
-      "TITLE": "Critères de filtrage :",
-      "CRITERION_NAME": "Colonne",
+      "TITLE": "Filtrer les données :",
+      "CRITERION_NAME": "Critère de filtre",
       "CRITERION_VALUE": "Valeur",
       "CRITERION_START_VALUE": "Début",
       "CRITERION_END_VALUE": "Fin",
@@ -797,6 +808,7 @@
       "YEAR": "Année",
       "SPACE": "Géométrie",
       "AGG_VALUE": "Valeur représentée",
+      "TECH_VALUE": "Répartition",
       "QUARTER": "Trimestre",
       "DETAILS": "Détails",
       "STATS": "Statistiques",

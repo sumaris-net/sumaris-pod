@@ -1,12 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  OnInit,
-  ViewChild
-} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {isNil, isNotNil} from '../../shared/shared.module';
 import {TableDataSource} from "angular4-material-table";
@@ -17,32 +9,35 @@ import {
   ExtractionRow,
   ExtractionType
 } from "../services/extraction.model";
-import {FormBuilder, Validators} from "@angular/forms";
 import {MatExpansionPanel, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
-import {ModalController} from "@ionic/angular";
+import {AlertController, ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {ExtractionForm} from "./extraction-filter.form";
-import {LocalSettingsService} from "../../core/core.module";
-import {delay, filter, map} from "rxjs/operators";
-import {firstNotNilPromise} from "../../shared/observables";
+import {AccountService, LocalSettingsService} from "../../core/core.module";
+import {delay, map} from "rxjs/operators";
+import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
+import {ExtractionAbstractPage} from "./extraction-abstract.page";
+import {ActivatedRoute, Router} from "@angular/router";
+import {TranslateService} from "@ngx-translate/core";
+import {ExtractionService} from "../services/extraction.service";
+import {FormBuilder} from "@angular/forms";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Component({
-  selector: 'app-extraction-rows',
+  selector: 'app-extraction-data-page',
   templateUrl: './extraction-data.page.html',
   styleUrls: ['./extraction-data.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionDataPage extends ExtractionForm<ExtractionType> implements OnInit {
+export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> implements OnInit {
 
   data: ExtractionResult;
   $title = new Subject<string>();
-  columns: string[];
+  sortedColumns: ExtractionColumn[];
   displayedColumns: string[];
   $columns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   dataSource: TableDataSource<ExtractionRow>;
@@ -59,19 +54,19 @@ export class ExtractionDataPage extends ExtractionForm<ExtractionType> implement
   @ViewChild(MatExpansionPanel) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    injector: Injector,
-    protected formBuilder: FormBuilder,
+    protected route: ActivatedRoute,
+    protected router: Router,
+    protected alertCtrl: AlertController,
+    protected translate: TranslateService,
     protected location: Location,
-    protected settings: LocalSettingsService,
     protected modalCtrl: ModalController,
+    protected accountService: AccountService,
+    protected service: ExtractionService,
+    protected settings: LocalSettingsService,
+    protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector,
-      formBuilder.group({
-        'type': [null, Validators.required],
-        'sheetName': [null],
-        'sheets': formBuilder.group({})
-      }));
+    super(route, router, alertCtrl, translate, accountService, service, settings, formBuilder);
 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
@@ -98,75 +93,27 @@ export class ExtractionDataPage extends ExtractionForm<ExtractionType> implement
     )
       .subscribe(() => {
         if (this.loading || isNil(this.type)) return; // avoid multiple load
-        return this.load(this.type);
+        return this.loadData();
       });
-  }
-
-  protected watchTypes(): Observable<ExtractionType[]> {
-    return this.service.watchTypes()
-      .pipe(
-        map(types => {
-          // Compute name, if need
-          types.forEach(t => t.name = t.name || this.getI18nTypeName(t));
-          // Sort by name
-          types.sort((t1, t2) => t1.name > t2.name ? 1 : (t1.name < t2.name ? -1 : 0) );
-
-          return types;
-        })
-      );
-  }
-
-  protected fromObject(json: any): ExtractionType {
-    return ExtractionType.fromObject(json);
-  }
-
-  protected async load(type?: ExtractionType) {
-
-    this.loading = true;
-    this.markForCheck();
-    this.type = type || this.form.get('type').value;
-    if (!this.type.category || !this.type.label) return; // skip
-
-    this.settingsId = this.generateTableId();
-    this.error = null;
-    console.debug(`[extraction-table] Loading ${this.type.category} ${this.type.label}`);
-
-    const filter = this.getFilterValue();
-    this.disable();
-
-    try {
-      // Load rows
-      const data = await this.service.loadRows(this.type,
-        this.paginator && this.paginator.pageIndex * this.paginator.pageSize,
-        this.paginator && this.paginator.pageSize || DEFAULT_PAGE_SIZE,
-        this.sort && this.sort.active,
-        this.sort && this.sort.direction,
-        filter
-      );
-
-      // Update the view
-      await this.updateView(data);
-    } catch (err) {
-      console.error(err);
-      this.error = err && err.message || err;
-      this.loading = false;
-      this.enable();
-      this.markAsDirty();
-    }
   }
 
   async updateView(data: ExtractionResult) {
 
     this.data = data;
 
-    // Update columns
-    this.columns = data.columns.slice()
-    // Sort by rankOder
-      .sort((col1, col2) => col1.rankOrder - col2.rankOrder)
-      .map(col => col.name);
-    this.displayedColumns = this.columns
+    // Translate names
+    this.translateColumns(data.columns);
+
+    // Sort columns, by rankOrder
+    this.sortedColumns = data.columns.slice()
+      // Sort by rankOder
+      .sort((col1, col2) => col1.rankOrder - col2.rankOrder);
+
+    this.displayedColumns = this.sortedColumns
+      .map(column => column.columnName)
       .filter(columnName => columnName !== "id"); // Remove id
-    this.$columns.next(data.columns);
+
+    this.$columns.next(data.columns); // WARN: must keep the original column order
 
     // Update rows
     this.dataSource.updateDatasource(data.rows || []);
@@ -183,31 +130,44 @@ export class ExtractionDataPage extends ExtractionForm<ExtractionType> implement
     });
   }
 
-  async setType(type: ExtractionType<ExtractionType<any>>, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<void> {
-    await super.setType(type, opts);
+  async setType(type: ExtractionType, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<boolean> {
+    const changed = await super.setType(type, opts);
 
-    this.canAggregate = this.type && !this.type.isSpatial && this.accountService.isSupervisor();
+    if (changed) {
+
+      this.canAggregate = this.type && !this.type.isSpatial && this.accountService.isSupervisor();
+
+      // Close the filter panel
+      if (this.filterExpansionPanel && this.filterExpansionPanel.expanded) {
+        this.filterExpansionPanel.close();
+      }
+    }
+
+    return changed;
+
   }
 
-  onSheetChange(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
+  setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
     opts = opts || {emitEvent: !this.loading};
 
     // Reset sort and paginator
-    if (opts.emitEvent !== false && isNotNil(sheetName) && this.sheetName !== sheetName) {
+    const resetPaginator = (opts.emitEvent !== false && isNotNil(sheetName) && this.sheetName !== sheetName);
+
+    super.setSheetName(sheetName, opts);
+
+    if (resetPaginator) {
       this.sort.active = undefined;
       this.paginator.pageIndex = 0;
     }
-
-    super.onSheetChange(sheetName, opts);
   }
 
-  public async openSelectColumnsModal(event: any): Promise<any> {
-    const columns = this.columns
-      .map((name, index) => {
+  async openSelectColumnsModal(event: any): Promise<any> {
+    const columns = this.sortedColumns
+      .map((column) => {
         return {
-          name,
-          label: this.getI18nColumnName(name),
-          visible: this.displayedColumns.indexOf(name) !== -1
+          name: column.columnName,
+          label: column.name,
+          visible: this.displayedColumns.indexOf(column.columnName) !== -1
         };
       });
 
@@ -230,20 +190,9 @@ export class ExtractionDataPage extends ExtractionForm<ExtractionType> implement
     return modal.present();
   }
 
-
-  public resetFilterCriteria() {
-
-    // Close the filter panel
-    if (this.filterExpansionPanel && this.filterExpansionPanel.expanded) {
-      this.filterExpansionPanel.close();
-    }
-
-    super.resetFilterCriteria();
-  }
-
-  public onCellValueClick($event: MouseEvent, column: ExtractionColumn, value: string) {
-    const hasChanged = this.addFilterCriterion({
-      name: column.name,
+  onCellValueClick($event: MouseEvent, column: ExtractionColumn, value: string) {
+    const hasChanged = this.criteriaForm.addFilterCriterion({
+      name: column.columnName,
       operator: DEFAULT_CRITERION_OPERATOR,
       value: value,
       sheetName: this.sheetName
@@ -362,6 +311,66 @@ export class ExtractionDataPage extends ExtractionForm<ExtractionType> implement
     // open the aggregation type
     await this.router.navigateByUrl(`/extraction/aggregation/${type.id}`);
 
+  }
+
+  /* -- protected method -- */
+
+  protected watchTypes(): Observable<ExtractionType[]> {
+    return this.service.watchTypes()
+      .pipe(
+        map(types => {
+          // Compute name, if need
+          types.forEach(t => t.name = t.name || this.getI18nTypeName(t));
+          // Sort by name
+          types.sort((t1, t2) => t1.name > t2.name ? 1 : (t1.name < t2.name ? -1 : 0) );
+
+          return types;
+        })
+      );
+  }
+
+  protected async loadData() {
+
+    if (!this.type || !this.type.category || !this.type.label) return; // skip
+
+    this.settingsId = this.generateTableId();
+    this.error = null;
+    console.debug(`[extraction-table] Loading ${this.type.category} ${this.type.label}`);
+
+    this.loading = true;
+
+    const filter = this.getFilterValue();
+
+    this.disable();
+    this.markForCheck();
+
+    try {
+      // Load rows
+      const data = await this.service.loadRows(this.type,
+        this.paginator && this.paginator.pageIndex * this.paginator.pageSize,
+        this.paginator && this.paginator.pageSize || DEFAULT_PAGE_SIZE,
+        this.sort && this.sort.active,
+        this.sort && this.sort.direction,
+        filter
+      );
+
+      // Update the view
+      await this.updateView(data);
+    } catch (err) {
+      console.error(err);
+      this.error = err && err.message || err;
+      this.loading = false;
+      this.enable();
+      this.form.markAsDirty();
+    }
+  }
+
+  protected fromObject(json: any): ExtractionType {
+    return ExtractionType.fromObject(json);
+  }
+
+  protected isEquals(t1: ExtractionType, t2: ExtractionType): boolean {
+    return ExtractionType.equals(t1, t2);
   }
 
   /* -- private method -- */

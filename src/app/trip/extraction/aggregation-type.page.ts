@@ -3,13 +3,13 @@ import {
   AccountService,
   AppEditorPage,
   AppFormUtils,
-  EntityUtils,
+  EntityUtils, FormArrayHelper,
   isNil,
-  LocalSettingsService, StatusIds
+  LocalSettingsService, Person, StatusIds
 } from "../../core/core.module";
-import {AggregationType} from "../services/extraction.model";
-import {AbstractControl, FormGroup} from "@angular/forms";
-import {ExtractionTypeValidatorService} from "../services/validator/extraction-type.validator";
+import {AggregationStrata, AggregationType, ExtractionColumn, ExtractionUtils} from "../services/extraction.model";
+import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {ExtractionService} from "../services/extraction.service";
 import {ReferentialForm, StatusValue} from "../../referential/form/referential.form";
 import {Router} from "@angular/router";
@@ -17,26 +17,51 @@ import {ValidatorService} from "angular4-material-table";
 import {ProgramValidatorService} from "../../referential/services/validator/program.validator";
 import {Program} from "../../referential/services/model";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
+import {BehaviorSubject} from "rxjs";
+import {arraySize} from "../../shared/functions";
+import {AggregationTypeForm} from "./aggregation-type.form";
 
 @Component({
   selector: 'app-aggregation-type-page',
   templateUrl: './aggregation-type.page.html',
   providers: [
-    {provide: ValidatorService, useExisting: ExtractionTypeValidatorService}
+    {provide: ValidatorService, useExisting: AggregationTypeValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AggregationTypePage extends AppEditorPage<AggregationType> implements OnInit {
 
-  form: FormGroup;
+  $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $spaceColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  aggFunctions = [
+    {
+      value: 'SUM',
+      name: 'EXTRACTION.AGGREGATION.EDIT.AGG_FUNCTION.SUM'
+    },
+    {
+      value: 'AVG',
+      name: 'EXTRACTION.AGGREGATION.EDIT.AGG_FUNCTION.AVG'
+    }
+  ];
 
-  @ViewChild('referentialForm') referentialForm: ReferentialForm;
+  stratumHelper: FormArrayHelper<AggregationStrata>;
+
+  stratumFormArray: FormArray;
+
+  @ViewChild('typeForm') typeForm: AggregationTypeForm;
+
+  get form(): FormGroup {
+    return this.typeForm.form;
+  }
 
   constructor(protected injector: Injector,
               protected router: Router,
+              protected formBuilder: FormBuilder,
               protected extractionService: ExtractionService,
               protected accountService: AccountService,
-              protected validatorService: ExtractionTypeValidatorService,
+              protected validatorService: AggregationTypeValidatorService,
               protected settings: LocalSettingsService) {
     super(injector,
       AggregationType,
@@ -46,37 +71,11 @@ export class AggregationTypePage extends AppEditorPage<AggregationType> implemen
         save: (type, options) => extractionService.saveAggregation(type),
         listenChanges: (id, options) => undefined
       });
-    this.form = validatorService.getFormGroup();
     this.idAttribute = 'aggregationTypeId';
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
     super.ngOnInit();
-
-    // Set entity name (required for referential form validator)
-    this.referentialForm.entityName = 'AggregationType';
-
-    this.referentialForm.statusList = [
-      {
-        id: StatusIds.ENABLE,
-        icon: 'eye',
-        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.PUBLIC'
-      },
-      {
-        id: StatusIds.TEMPORARY,
-        icon: 'eye-off',
-        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.PRIVATE'
-      },
-      {
-        id: StatusIds.DISABLE,
-        icon: 'close',
-        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.DISABLE'
-      }
-    ];
-
-  }
-
-  close(event: UIEvent) {
 
   }
 
@@ -94,8 +93,9 @@ export class AggregationTypePage extends AppEditorPage<AggregationType> implemen
   protected setValue(data: AggregationType) {
 
     const json = data.asObject();
+
     // Apply data to form
-    this.form.patchValue(json, {emitEvent: false});
+    this.typeForm.value = json;
   }
 
   protected async getValue(): Promise<AggregationType> {
@@ -122,7 +122,7 @@ export class AggregationTypePage extends AppEditorPage<AggregationType> implemen
   }
 
   protected registerFormsAndTables() {
-    this.registerForm(this.referentialForm)
+    this.registerForm(this.typeForm);
   }
 
   protected canUserWrite(data: AggregationType): boolean {
@@ -137,6 +137,20 @@ export class AggregationTypePage extends AppEditorPage<AggregationType> implemen
   protected async onEntityLoaded(data: AggregationType, options?: EditorDataServiceLoadOptions): Promise<void> {
     super.onEntityLoaded(data, options);
 
+    // If spatial, load columns
+    if (data.isSpatial) {
+      const columns = await this.extractionService.loadColumns(data);
+
+      const map = ExtractionUtils.dispatchColumns(columns);
+      console.debug('[aggregation-type] Columns repartition:', map);
+
+      this.$timeColumns.next(map.timeColumns);
+      this.$spaceColumns.next(map.spaceColumns);
+      this.$aggColumns.next(map.aggColumns);
+      this.$techColumns.next(map.techColumns);
+    }
+
+    // Define default back link
     this.defaultBackHref = '/extraction?category=product&label=' + data.label;
   }
 

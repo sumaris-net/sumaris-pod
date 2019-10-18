@@ -9,7 +9,7 @@ import {
   isNil,
   isNotNil,
   Person,
-  StatusIds
+  StatusIds, TableDataService
 } from "../../core/core.module";
 import {map} from "rxjs/operators";
 
@@ -18,9 +18,9 @@ import {AccountService} from "../../core/services/account.service";
 import {
   AggregationStrata,
   AggregationType,
-  ExtractionColumn,
+  ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion,
   ExtractionResult,
-  ExtractionType
+  ExtractionType, StrataAreaType, StrataTimeType
 } from "./extraction.model";
 import {FetchPolicy} from "apollo-client";
 import {isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
@@ -55,10 +55,17 @@ export const ExtractionFragments = {
     comments
     isSpatial
     statusId
-    strata {
-      space
-      time
-      tech
+    stratum {
+      id
+      label
+      name
+      updateDate
+      isDefault
+      sheetName
+      spaceColumnName
+      timeColumnName
+      aggColumnName
+      techColumnName
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -69,23 +76,33 @@ export const ExtractionFragments = {
   }
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
-  `
+  `,
+  column: gql`fragment ExtractionColumnFragment on ExtractionProductColumnVO {
+    label
+    name
+    columnName
+    type
+    description
+    rankOrder
+  }`
 }
 
-export declare class ExtractionFilter {
-  searchText?: string;
-  criteria?: ExtractionFilterCriterion[];
-  sheetName?: string;
+export declare interface CustomAggregationStrata {
+  spaceColumnName: StrataAreaType;
+  timeColumnName: StrataTimeType;
+  techColumnName?: string;
+  aggColumnName?: string;
+  aggFunction?: string;
 }
-
-export declare class ExtractionFilterCriterion {
-  sheetName?: string;
-  name?: string;
-  operator: string;
-  value?: string;
-  values?: string[];
-  endValue?: string;
-}
+//
+// export declare class ExtractionFilterCriterion {
+//   sheetName?: string;
+//   name?: string;
+//   operator: string;
+//   value?: string;
+//   values?: string[];
+//   endValue?: string;
+// }
 
 const LoadTypes: any = gql`
   query ExtractionTypes{
@@ -100,29 +117,23 @@ const LoadRowsQuery: any = gql`
   query ExtractionRows($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     extractionRows(type: $type, filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       columns {
-        name
-        type
-        description
-        rankOrder
+        ...ExtractionColumnFragment
       }
       rows
       total
     }
   }
+  ${ExtractionFragments.column}
 `;
 
 const LoadAggregationColumnsQuery: any = gql`
   query AggregationColumns($type: AggregationTypeVOInput, $sheet: String){
     aggregationColumns(type: $type, sheet: $sheet){
-      label
-      name
-      columnName
-      type
-      description
-      rankOrder
+      ...ExtractionColumnFragment
       values
     }
   }
+  ${ExtractionFragments.column}
 `;
 
 
@@ -253,6 +264,7 @@ export class ExtractionService extends BaseDataService {
    * @param sortDirection
    * @param filter
    */
+
   async loadRows(
     type: ExtractionType,
     offset: number,
@@ -421,7 +433,7 @@ export class ExtractionService extends BaseDataService {
    * Load aggregation as GeoJson
    */
   async loadAggregationGeoJson(type: AggregationType,
-                               strata: AggregationStrata,
+                               strata: CustomAggregationStrata,
                                offset: number,
                                size: number,
                                sortBy?: string,
@@ -486,8 +498,13 @@ export class ExtractionService extends BaseDataService {
             }
             break;
           case 'BETWEEN':
-            if (isNotNil(trimEmptyToNull(criterion.endValue))) {
-              criterion.values = [criterion.value.trim(), criterion.endValue.trim()];
+            if (isNotNilOrBlank(criterion.endValue)) {
+              if (typeof criterion.value === 'string') {
+                criterion.values = [criterion.value.trim(), criterion.endValue.trim()];
+              }
+              else {
+                criterion.values = [criterion.value, criterion.endValue];
+              }
             }
             delete criterion.value;
             break;
@@ -516,8 +533,6 @@ export class ExtractionService extends BaseDataService {
     this.fillDefaultProperties(entity);
 
     const json = entity.asObject(false/*minify*/);
-
-    console.log(json)
 
     const isNew = isNil(sourceType.id);
 

@@ -5,6 +5,7 @@ div[leaflet] {
 }
 
 ion-card.filter {
+
   ion-item {
     background: var(--background);
   }
@@ -23,10 +24,14 @@ ion-card.filter {
     min-width: 150px;
 
     mat-expansion-panel-header {
-      padding-left: 0 !important;
+      padding-left: 6px !important;
     }
-  }
 
+  }
+}
+ion-card.filter.expanded {
+  max-height: inherit;
+  max-width: 720px;
 }
 
 ion-card.legend {
