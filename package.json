@@ -1,7 +1,7 @@
 {
   "name": "sumaris-app",
   "description": "SUMARiS app",
-  "version": "0.17.6",
+  "version": "0.18.0",
   "author": "contact@e-is.pro",
   "scripts": {
     "ng": "ng",
