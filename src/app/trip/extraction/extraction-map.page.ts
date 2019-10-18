@@ -310,6 +310,14 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       const years = (yearColumn && yearColumn.values || []).map(s => parseInt(s));
       this.$years.next(years);
 
+      // Apply default strata
+      const defaultStrata = (this.type.stratum || []).find(s => s.isDefault || s.label === 'default');
+      if (defaultStrata) {
+        this.form.patchValue({
+          strata: defaultStrata
+        }, opts);
+      }
+
     }
     return changed;
   }

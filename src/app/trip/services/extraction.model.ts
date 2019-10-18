@@ -4,6 +4,7 @@ import {Department, Entity, Person} from "../../core/services/model";
 import {isNotNil, IWithRecorderDepartmentEntity, IWithRecorderPersonEntity, toDateISOString} from "./model/base.model";
 import {arraySize, isNotEmptyArray, toBoolean} from "../../shared/functions";
 import {Validators} from "@angular/forms";
+import {Moment} from "moment";
 
 export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>> extends Entity<T> {
 
@@ -72,7 +73,10 @@ export class ExtractionResult {
 
 
 export class ExtractionColumn {
+  id: number;
+  creationDate: Moment;
   index?: number;
+  label: string;
   name: string;
   columnName: string;
   type: string;
@@ -103,6 +107,7 @@ export class AggregationType extends ExtractionType<AggregationType>
   description: string;
   recorderPerson: Person;
   stratum: AggregationStrata[];
+  columns: ExtractionColumn[];
 
   constructor() {
     super();
@@ -134,6 +139,12 @@ export class AggregationType extends ExtractionType<AggregationType>
 
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(minify) || undefined;
     target.stratum = this.stratum && this.stratum.map(s => s.asObject(minify)) || undefined;
+    target.columns = this.columns && this.columns.map((c: any) => {
+      const json = Object.assign({}, c);
+      delete json.index;
+      delete json.__typename;
+      return json;
+    }) || undefined;
     return target;
   }
 }

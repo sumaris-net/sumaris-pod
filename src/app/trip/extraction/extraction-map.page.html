@@ -63,14 +63,16 @@
         </mat-expansion-panel-header>
 
         <div [hidden]="!filterExpansionPanel.expanded">
-          <nav mat-tab-nav-bar>
-            <a mat-tab-link *ngFor="let item of criteriaForm.$sheetNames | async"
-               (click)="setSheetName(item)"
-               [active]="item === sheetName">
-              <ion-text>{{criteriaForm.getI18nSheetName(item)}}</ion-text>
-              <mat-icon *ngIf="criteriaForm.hasFilterCriteria(item)">filter_list</mat-icon>
-            </a>
-          </nav>
+          <ng-container *ngIf="type?.sheetNames as sheetNames">
+            <nav mat-tab-nav-bar *ngIf="sheetNames.length > 1">
+              <a mat-tab-link *ngFor="let item of sheetNames"
+                 (click)="setSheetName(item)"
+                 [active]="item === sheetName">
+                <ion-text>{{getI18nSheetName(item)}}</ion-text>
+                <mat-icon *ngIf="hasFilterCriteria(item)">filter_list</mat-icon>
+              </a>
+            </nav>
+          </ng-container>
 
           <form [formGroup]="form" class="form-container" padding>
 

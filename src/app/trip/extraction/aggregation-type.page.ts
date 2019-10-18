@@ -27,26 +27,10 @@ import {AggregationTypeForm} from "./aggregation-type.form";
 })
 export class AggregationTypePage extends AppEditorPage<AggregationType> implements OnInit {
 
-  $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $spaceColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  aggFunctions = [
-    {
-      value: 'SUM',
-      name: 'EXTRACTION.AGGREGATION.EDIT.AGG_FUNCTION.SUM'
-    },
-    {
-      value: 'AVG',
-      name: 'EXTRACTION.AGGREGATION.EDIT.AGG_FUNCTION.AVG'
-    }
-  ];
-
-  stratumHelper: FormArrayHelper<AggregationStrata>;
-
-  stratumFormArray: FormArray;
+  columns: ExtractionColumn[];
 
   @ViewChild('typeForm') typeForm: AggregationTypeForm;
+
 
   get form(): FormGroup {
     return this.typeForm.form;
@@ -100,6 +84,9 @@ export class AggregationTypePage extends AppEditorPage<AggregationType> implemen
     // Re add label, because missing when field disable
     data.label = this.form.get('label').value;
 
+    // Re add columns
+    data.columns = this.columns;
+
     return data;
   }
 
@@ -135,15 +122,15 @@ export class AggregationTypePage extends AppEditorPage<AggregationType> implemen
 
     // If spatial, load columns
     if (data.isSpatial) {
-      const columns = await this.extractionService.loadColumns(data);
+      this.columns = await this.extractionService.loadColumns(data) || [];
 
-      const map = ExtractionUtils.dispatchColumns(columns);
+      const map = ExtractionUtils.dispatchColumns(this.columns);
       console.debug('[aggregation-type] Columns repartition:', map);
 
-      this.$timeColumns.next(map.timeColumns);
-      this.$spaceColumns.next(map.spaceColumns);
-      this.$aggColumns.next(map.aggColumns);
-      this.$techColumns.next(map.techColumns);
+      this.typeForm.$timeColumns.next(map.timeColumns);
+      this.typeForm.$spaceColumns.next(map.spaceColumns);
+      this.typeForm.$aggColumns.next(map.aggColumns);
+      this.typeForm.$techColumns.next(map.techColumns);
     }
 
     // Define default back link
