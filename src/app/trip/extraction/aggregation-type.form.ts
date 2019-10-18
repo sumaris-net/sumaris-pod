@@ -1,28 +1,13 @@
-import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {
-  AccountService,
-  AppEditorPage, AppForm,
-  AppFormUtils,
-  EntityUtils, FormArrayHelper,
-  isNil,
-  LocalSettingsService, Person, StatusIds
-} from "../../core/core.module";
-import {AggregationStrata, AggregationType, ExtractionColumn, ExtractionUtils} from "../services/extraction.model";
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {ChangeDetectionStrategy, Component, Input, OnInit, ViewChild} from "@angular/core";
+import {AppForm, EntityUtils, FormArrayHelper, LocalSettingsService, StatusIds} from "../../core/core.module";
+import {AggregationStrata, AggregationType, ExtractionColumn} from "../services/extraction.model";
+import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
-import {ExtractionService} from "../services/extraction.service";
-import {ReferentialForm, StatusValue} from "../../referential/form/referential.form";
-import {Router} from "@angular/router";
-import {ValidatorService} from "angular4-material-table";
-import {ProgramValidatorService} from "../../referential/services/validator/program.validator";
-import {Program} from "../../referential/services/model";
-import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
+import {ReferentialForm} from "../../referential/form/referential.form";
 import {BehaviorSubject} from "rxjs";
 import {arraySize} from "../../shared/functions";
-import {ExtractionCriteriaForm} from "./extraction-criteria.form";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
-import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 
 @Component({
   selector: 'app-aggregation-type-form',

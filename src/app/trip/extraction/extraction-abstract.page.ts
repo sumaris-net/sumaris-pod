@@ -9,7 +9,7 @@ import {
   ExtractionUtils
 } from "../services/extraction.model";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {filter, mergeMap} from "rxjs/operators";
+import {mergeMap} from "rxjs/operators";
 import {AccountService, AppTabPage, LocalSettingsService} from "../../core/core.module";
 import {firstNotNilPromise} from "../../shared/observables";
 import {ExtractionCriteriaForm} from "./extraction-criteria.form";

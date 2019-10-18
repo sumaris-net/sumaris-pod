@@ -17,7 +17,7 @@ import {AlertController, ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {AccountService, LocalSettingsService} from "../../core/core.module";
 import {delay, map} from "rxjs/operators";
-import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
+import {firstNotNilPromise} from "../../shared/observables";
 import {ExtractionAbstractPage} from "./extraction-abstract.page";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";

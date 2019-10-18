@@ -1,27 +1,12 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnInit,
-  Output
-} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from '@ngx-translate/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {DateFormatPipe, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean} from '../../shared/shared.module';
-import {
-  AggregationType,
-  ExtractionColumn,
-  ExtractionFilter,
-  ExtractionFilterCriterion,
-  ExtractionType
-} from "../services/extraction.model";
+import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean} from '../../shared/shared.module';
+import {ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from "../services/extraction.model";
 import {ExtractionService} from "../services/extraction.service";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {debounceTime, distinctUntilChanged, filter, first, map, tap} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, map} from "rxjs/operators";
 import {AccountService, AppForm, LocalSettingsService} from "../../core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
@@ -342,7 +327,6 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     }
     else {
       subject.next(definition);
-      //this.markForCheck();
     }
     return subject;
   }
