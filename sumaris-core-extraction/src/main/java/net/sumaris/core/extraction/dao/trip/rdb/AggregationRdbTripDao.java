@@ -22,14 +22,19 @@ public interface AggregationRdbTripDao<C extends AggregationRdbTripContextVO, F 
     String HL_SHEET_NAME = ExtractionRdbTripDao.HL_SHEET_NAME;
     String CA_SHEET_NAME = ExtractionRdbTripDao.CA_SHEET_NAME;
 
-
+    // Time columns
     String COLUMN_YEAR  = ProductRdbStation.COLUMN_YEAR;
     String COLUMN_QUARTER = "quarter";
     String COLUMN_MONTH = "month";
 
+    // Space columns
     String COLUMN_AREA = ProductRdbStation.COLUMN_AREA;
     String COLUMN_STATISTICAL_RECTANGLE = ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE;
     String COLUMN_SQUARE = "square";
+
+    // Agg columns
+    String COLUMN_TRIP_COUNT = "trip_count";
+    String COLUMN_STATION_COUNT = "station_count";
 
     ImmutableMap<String, String> COLUMN_ALIAS = ImmutableMap.<String, String>builder()
         .put("rect", COLUMN_STATISTICAL_RECTANGLE)

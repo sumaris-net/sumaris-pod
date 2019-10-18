@@ -27,7 +27,9 @@ import com.google.common.collect.Lists;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.junit.Assert;
@@ -75,9 +77,13 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
     @Test
     public void save() {
         ExtractionProductVO source = new ExtractionProductVO();
-        source.setLabel("test");
-        source.setName("Test product");
+        source.setLabel("rdb-" + System.currentTimeMillis());
+        source.setName("Test RDB product");
         source.setStatusId(StatusEnum.ENABLE.getId());
+
+        DepartmentVO dep = new DepartmentVO();
+        dep.setId(dbResource.getFixtures().getDepartmentId(0));
+        source.setRecorderDepartment(dep);
 
         List<ExtractionProductTableVO> tables = Lists.newArrayList();
         // TR
@@ -122,8 +128,17 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
             table.setTableName("P01_RDB_STATION");
             tables.add(table);
         }
-
         source.setTables(tables);
+
+        // Stratum
+        List<ExtractionProductStrataVO> stratum = Lists.newArrayList();
+        {
+            ExtractionProductStrataVO strata = new ExtractionProductStrataVO();
+            strata.setLabel("default");
+            strata.setSheetName("TR");
+            stratum.add(strata);
+        }
+        source.setStratum(stratum);
 
         // Save
         ExtractionProductVO target = dao.save(source);
@@ -135,6 +150,9 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
         Assert.assertNotNull(reloadTarget);
         Assert.assertNotNull(reloadTarget.getId());
 
+        // Check stratum
+        Assert.assertNotNull(reloadTarget.getStratum());
+        Assert.assertEquals(1, reloadTarget.getStratum().size());
     }
 
 }

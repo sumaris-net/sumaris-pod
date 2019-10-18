@@ -27,6 +27,7 @@ import io.leangen.graphql.annotations.GraphQLEnvironment;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.vo.AggregationResultVO;
 import net.sumaris.core.extraction.vo.AggregationStrataVO;
@@ -105,16 +106,16 @@ public class AggregationGraphQLService {
         filter = filter == null ? new ExtractionFilterVO() : filter;
 
         // Fill default values for strata
-        if (strata.getSpace() == null) {
-            strata.setSpace("square");
+        if (strata.getSpaceColumnName() == null) {
+            strata.setSpaceColumnName(AggregationRdbTripDao.COLUMN_SQUARE);
         }
-        if (strata.getTime() == null){
-            strata.setTime("year");
+        if (strata.getTimeColumnName() == null){
+            strata.setTimeColumnName(AggregationRdbTripDao.COLUMN_YEAR);
         }
 
         return GeoJsonExtractions.toFeatureCollection(
                 getAggregationRows(type, filter, strata, offset, size, sort, direction),
-                strata.getSpace()
+                strata.getSpaceColumnName()
         );
     }
 
@@ -153,7 +154,8 @@ public class AggregationGraphQLService {
                 .withTables(fields.contains(AggregationTypeVO.PROPERTY_SHEET_NAMES))
                 // Columns not need
                 .withColumns(false)
-                // TODO Strata
+                // Stratum
+                .withStratum(fields.contains(AggregationTypeVO.PROPERTY_STRATUM))
 
                 .build();
     }

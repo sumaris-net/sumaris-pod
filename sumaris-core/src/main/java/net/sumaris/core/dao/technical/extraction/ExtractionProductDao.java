@@ -1,16 +1,15 @@
 package net.sumaris.core.dao.technical.extraction;
 
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
-import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 

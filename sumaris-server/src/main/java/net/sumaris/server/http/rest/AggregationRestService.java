@@ -27,6 +27,7 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLContext;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.referential.location.Locations;
+import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.service.ExtractionService;
 import net.sumaris.core.extraction.vo.*;
@@ -60,30 +61,34 @@ public class AggregationRestService {
                                                @PathVariable(name = "space") String spaceStrata,
                                                @PathParam(value = "offset") Integer offsetParam,
                                                @PathParam(value = "size") Integer sizeParam,
-                                               @PathParam(value = "value") String valueParam) {
+                                               @PathParam(value = "time") String timeStrata,
+                                               @PathParam(value = "agg") String aggStrata,
+                                               @PathParam(value = "q") String filterQuery) {
 
         AggregationTypeVO type = new AggregationTypeVO();
         type.setLabel(typeLabel);
 
         ExtractionFilterVO filter = null;
+        // TODO parse filter from filterQuery
 
         int offset = offsetParam != null ? offsetParam.intValue() : 0;
         int size = sizeParam != null ? sizeParam.intValue() : 100;
-
-        AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setSpace(StringUtils.isNotBlank(spaceStrata) ? spaceStrata : "square");
-        strata.setTech(StringUtils.isNotBlank(valueParam) ? valueParam : "station_count");
-
         // Limit to 1000 rows
         if (size > 1000) size = 1000;
 
-        return GeoJsonExtractions.toFeatureCollection(aggregationService.executeAndRead(
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setTimeColumnName(StringUtils.isNotBlank(timeStrata) ? timeStrata : AggregationRdbTripDao.COLUMN_YEAR);
+        strata.setSpaceColumnName(StringUtils.isNotBlank(spaceStrata) ? spaceStrata : AggregationRdbTripDao.COLUMN_SQUARE);
+        strata.setAggColumnName(StringUtils.isNotBlank(aggStrata) ? aggStrata : AggregationRdbTripDao.COLUMN_STATION_COUNT);
+        strata.setTechColumnName(null);
+
+        return GeoJsonExtractions.toFeatureCollection(aggregationService.read(
                 type,
                 filter,
                 strata,
                 offset, size,
                 null, null),
-                strata.getSpace());
+                strata.getSpaceColumnName());
     }
 
 

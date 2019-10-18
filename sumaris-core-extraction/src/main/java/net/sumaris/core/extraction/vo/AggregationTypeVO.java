@@ -3,10 +3,9 @@ package net.sumaris.core.extraction.vo;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductStrataVO;
 
 import java.util.Date;
 import java.util.List;
@@ -19,13 +18,7 @@ import java.util.List;
 public class AggregationTypeVO extends ExtractionTypeVO implements
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
-    @Data
-    @FieldDefaults(level = AccessLevel.PRIVATE)
-    public class Strata {
-        List<String> space;
-        List<String> time;
-        List<String> tech;
-    }
+    public static final String PROPERTY_STRATUM  = "stratum";
 
     String description;
     String comments;
@@ -33,5 +26,5 @@ public class AggregationTypeVO extends ExtractionTypeVO implements
 
     PersonVO recorderPerson;
 
-    Strata strata;
+    List<ExtractionProductStrataVO> stratum;
 }

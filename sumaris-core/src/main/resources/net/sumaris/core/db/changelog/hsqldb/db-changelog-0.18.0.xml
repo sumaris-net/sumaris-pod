@@ -36,6 +36,75 @@
     </addColumn>
   </changeSet>
 
+  <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-9">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="EXTRACTION_PRODUCT_STRATA_SEQ"/></not>
+    </preConditions>
+    <createSequence sequenceName="EXTRACTION_PRODUCT_STRATA_SEQ"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-10">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="extraction_product_strata"/></not>
+    </preConditions>
+    <createTable tableName="extraction_product_strata">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="extraction_product_strataPK"/>
+      </column>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="is_default" type="BOOLEAN"/>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)"/>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="agg_extraction_column_fk" type="INT"/>
+      <column name="extraction_product_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="space_extraction_column_fk" type="INT"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="extraction_table_fk" type="INT"/>
+      <column name="tech_extraction_column_fk" type="INT"/>
+      <column name="time_extraction_column_fk" type="INT"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-16" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="extraction_product_strata" constraintName="FK1vgwpln43sjo2ym1hbo0k0ogj" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-18" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="extraction_product_fk" baseTableName="extraction_product_strata" constraintName="FKarr0by1e3el89dtjjqm94ekg9" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="extraction_product" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-20" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="space_extraction_column_fk" baseTableName="extraction_product_strata" constraintName="FKenejd2xqes3yquklaqn9huj9u" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="extraction_product_column" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-21" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="tech_extraction_column_fk" baseTableName="extraction_product_strata" constraintName="FKjliqdswld6yk8acb4idji56s5" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="extraction_product_column" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-22" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="agg_extraction_column_fk" baseTableName="extraction_product_strata" constraintName="FKjtyy482nkeeaebs3735w4tgj" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="extraction_product_column" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-23" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="extraction_table_fk" baseTableName="extraction_product_strata" constraintName="FKnpw5c5dnsciuxxqw5vx1jn05i" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="extraction_product_table" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-25" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="time_extraction_column_fk" baseTableName="extraction_product_strata" constraintName="FKpno1ysdwcjr22o00lp0ek57q3" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="extraction_product_column" validate="true"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-26">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product_strata" columnName="agg_function"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product_strata">
+      <column name="agg_function" type="varchar(30)"/>
+    </addColumn>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
@@ -46,6 +115,7 @@
       <column name="LABEL">0.18.0</column>
       <column name="DESCRIPTION">
         - Add column EXTRACTION_PRODUCT_COLUMN.TYPE
+        - Add table EXTRACTION_PRODUCT_STRATA
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>

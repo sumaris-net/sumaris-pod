@@ -33,6 +33,7 @@ public class ProductFetchOptions {
             .withRecorderDepartment(false)
             .withRecorderPerson(false)
             .withTables(true)
+            .withStratum(true)
             .withColumns(false)
             .withColumnValues(false)
             .build();
@@ -40,6 +41,7 @@ public class ProductFetchOptions {
             .withRecorderDepartment(true)
             .withRecorderPerson(true)
             .withTables(true)
+            .withStratum(true)
             .withColumns(false)
             .withColumnValues(false)
             .build();
@@ -47,15 +49,20 @@ public class ProductFetchOptions {
             .withRecorderDepartment(false)
             .withRecorderPerson(false)
             .withTables(true)
+            .withStratum(true)
             .withColumns(false)
             .withColumnValues(false)
             .build();
-    public static ProductFetchOptions NO_COLUMNS = builder().withColumns(false).withColumnValues(false).build();
+    public static ProductFetchOptions NO_COLUMNS = builder()
+            .withColumns(false)
+            .withColumnValues(false)
+            .build();
 
     private boolean withRecorderDepartment = true;
     private boolean withRecorderPerson = true;
     private boolean withTables = true;
     private boolean withColumns = false;
     private boolean withColumnValues = false;
+    private boolean withStratum = false;
 
 }
