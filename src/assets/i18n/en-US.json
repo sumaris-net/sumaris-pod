@@ -77,6 +77,9 @@
       "NEXT_PAGE":"Next page",
       "PREVIOUS_PAGE":"Previous page",
       "OF": "sur"
+    },
+    "TABLE": {
+      "FILTERED_PARENTHESIS": "(filtered)"
     }
   },
   "CONFIGURATION": {
@@ -716,7 +719,30 @@
     "BTN_UNPUBLISH": "Make private",
     "TYPE": "Extraction type",
     "AGGREGATION": {
-      "NEW_NAME": "New aggregation / {{name}}"
+      "NEW_NAME": "New aggregation / {{name}}",
+      "NEW": {
+        "TITLE": "New aggregation"
+      },
+      "EDIT": {
+        "TITLE": "Aggregation {{name}}",
+        "IS_SPATIAL": "Spatial aggregation?",
+        "STRATA": {
+          "TIME_COLUMN": "Temporal",
+          "SPACE_COLUMN": "Geometry",
+          "AGG_COLUMN": "Agg column",
+          "AGG_FUNCTION": "Agg function",
+          "TECH_COLUMN": "Technical"
+        },
+        "AGG_FUNCTION": {
+          "SUM": "Sum",
+          "AVG": "Average"
+        },
+        "STATUS_ENUM": {
+          "PUBLIC": "Visibility: public",
+          "PRIVATE": "Visibility: private",
+          "DISABLE": "Disabling"
+        }
+      }
     },
     "COMMON": {
       "VESSEL_FLAG_COUNTRY": "Vessel country flag",
@@ -741,10 +767,13 @@
     "MAP": {
       "BTN_SELECT_TYPE": "Map list",
       "BTN_EDIT": "Edit",
+      "BTN_ANIMATION_PLAY": "Play animation",
+      "BTN_ANIMATION_PAUSE": "Stop animation",
       "FILTER": "Filter",
       "YEAR": "Year",
       "SPACE": "Geomtery",
       "AGG_VALUE": "Plotted value",
+      "TECH_VALUE": "Technical",
       "QUARTER": "Quarter",
       "DETAILS": "Details",
       "STATS": "Statistics",
@@ -752,12 +781,12 @@
       "LEGEND_FORM": {
         "TITLE": "Parameter",
         "OPACITY_PLACEHOLDER": "Opacity (%)",
-        "MIN": "Min :",
-        "MAX": "Max :"
+        "MIN": "Min:",
+        "MAX": "Max:"
       },
       "SELECT_MODAL": {
-        "TITLE": "Liste des cartes",
-        "HELP": "Voici la liste des cartes disponibles :"
+        "TITLE": "Map list",
+        "HELP": "Here is the list of available maps:"
       }
     },
     "SHEET": {
@@ -785,7 +814,7 @@
     },
     "LIVE": {
       "RDB": {
-        "TITLE": "Raw data (ICES RDB v1.3)",
+        "TITLE": "Raw data (RDB v1.3)",
         "SHEET": {
           "TR": "Trips (TR)",
           "HH": "Fishing stations (HH)",

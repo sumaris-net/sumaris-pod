@@ -762,10 +762,10 @@
         "TITLE": "Aggregation {{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
         "STRATA": {
-          "TIME_COLUMN": "Temporelle",
-          "SPACE_COLUMN": "Spatiale",
-          "AGG_COLUMN": "Graphique",
-          "AGG_FUNCTION": "Function d'aggrégation",
+          "TIME_COLUMN": "Temps",
+          "SPACE_COLUMN": "Geometrie",
+          "AGG_COLUMN": "Cumul",
+          "AGG_FUNCTION": "Fonction cumul",
           "TECH_COLUMN": "Technique"
         },
         "AGG_FUNCTION": {
@@ -808,7 +808,7 @@
       "YEAR": "Année",
       "SPACE": "Géométrie",
       "AGG_VALUE": "Valeur représentée",
-      "TECH_VALUE": "Répartition",
+      "TECH_VALUE": "Technique",
       "QUARTER": "Trimestre",
       "DETAILS": "Détails",
       "STATS": "Statistiques",
