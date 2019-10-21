@@ -33,11 +33,11 @@ export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Component({
   selector: 'app-extraction-table',
-  templateUrl: './output-extraction-page.component.html',
-  styleUrls: ['./output-extraction-page.component.scss'],
+  templateUrl: './extraction-table-page.component.html',
+  styleUrls: ['./extraction-table-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OutputExtractionPage extends OutputFilterForm<ExtractionType> implements OnInit {
+export class ExtractionTablePage extends ExtractionForm<ExtractionType> implements OnInit {
 
   data: ExtractionResult;
   $title = new Subject<string>();

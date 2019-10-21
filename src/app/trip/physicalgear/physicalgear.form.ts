@@ -4,7 +4,8 @@ import {isNotNil, PhysicalGear} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Subject} from 'rxjs';
-import {distinctUntilChanged, filter} from 'rxjs/operators';
+import {distinctUntilChanged, filter, mergeMap, tap} from 'rxjs/operators';
+import {LocalSettingsService, PlatformService} from '../../core/core.module';
 import {
   AcquisitionLevelCodes,
   EntityUtils,
@@ -16,11 +17,9 @@ import {
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormBuilder} from "@angular/forms";
-import {selectInputContent} from "../../shared/functions";
+import {selectInputContent} from "../../core/form/form.utils";
 import {suggestFromArray} from "../../shared/functions";
 import {InputElement} from "../../shared/material/focusable";
-import {PlatformService} from "../../core/services/platform.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-physical-gear-form',

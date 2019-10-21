@@ -17,7 +17,9 @@ import {LocalSettingsService} from "../core/services/local-settings.service";
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
-export abstract class OutputFilterForm<T extends ExtractionType | AggregationType> extends AppForm<any> implements OnInit {
+export abstract class ExtractionForm<T extends ExtractionType | AggregationType> extends AppForm<any> implements OnInit {
+
+  // protected routePath = 'extraction';
 
   protected dateAdapter: DateAdapter<Moment>;
   protected formBuilder: FormBuilder;
@@ -400,7 +402,7 @@ export abstract class OutputFilterForm<T extends ExtractionType | AggregationTyp
 
   }
 
-  public getI18nTypeName(type?: T, self?: OutputFilterForm<T>): string {
+  public getI18nTypeName(type?: T, self?: ExtractionForm<T>): string {
     self = self || this;
     if (isNil(type)) return undefined;
     const key = `EXTRACTION.${type.category}.${type.format}.TITLE`.toUpperCase();
@@ -418,7 +420,7 @@ export abstract class OutputFilterForm<T extends ExtractionType | AggregationTyp
     return message;
   }
 
-  public getI18nSheetName(sheetName?: string, self?: OutputFilterForm<T>): string {
+  public getI18nSheetName(sheetName?: string, self?: ExtractionForm<T>): string {
     self = self || this;
     const type = self.type;
     sheetName = sheetName || this.sheetName;
@@ -438,7 +440,7 @@ export abstract class OutputFilterForm<T extends ExtractionType | AggregationTyp
     return sheetName.replace(/[_-]+/g, " ").toUpperCase();
   }
 
-  public getI18nColumnName(columnName: string, self?: OutputFilterForm<T>): string {
+  public getI18nColumnName(columnName: string, self?: ExtractionForm<T>): string {
     self = self || this;
     const type = self.form.controls['type'].value;
     let key = `EXTRACTION.TABLE.${type.category.toUpperCase()}.${columnName.toUpperCase()}`;

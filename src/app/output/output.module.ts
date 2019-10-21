@@ -1,17 +1,17 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {OutputExtractionPage} from "./output-extraction-page.component";
-import {OutputMapPage} from "./output-map-page.component";
-import {OutputSelectTypeModal} from "./output-list-modal.component";
+import {ExtractionTablePage} from "./extraction-table-page.component";
+import {ExtractionMapPage} from "./extraction-map-page.component";
+import {ExtractionSelectTypeModal} from "./extraction-list-modal.component";
 import {CoreModule} from "../core/core.module";
 import {OutputRoutingModule} from "./output-routing.module";
 import {LeafletModule} from "@asymmetrik/ngx-leaflet";
 
 @NgModule({
   declarations: [
-    OutputExtractionPage,
-    OutputMapPage,
-    OutputSelectTypeModal
+    ExtractionTablePage,
+    ExtractionMapPage,
+    ExtractionSelectTypeModal
   ],
   imports: [
     CommonModule,
@@ -20,11 +20,11 @@ import {LeafletModule} from "@asymmetrik/ngx-leaflet";
     OutputRoutingModule
   ],
   entryComponents: [
-    OutputSelectTypeModal
+    ExtractionSelectTypeModal
   ],
   exports: [
-    OutputExtractionPage,
-    OutputMapPage
+    ExtractionTablePage,
+    ExtractionMapPage
   ]
 })
 export class OutputModule {

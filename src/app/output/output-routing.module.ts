@@ -1,29 +1,40 @@
 import {RouterModule, Routes} from "@angular/router";
 import {AuthGuardService} from "../core/services/auth-guard.service";
 import {NgModule} from "@angular/core";
-import {OutputExtractionPage} from "./output-extraction-page.component";
-import {OutputMapPage} from "./output-map-page.component";
+import {ExtractionTablePage} from "./extraction-table-page.component";
+import {ExtractionMapPage} from "./extraction-map-page.component";
 
 const routes: Routes = [
   {
-    path: 'data',
-    pathMatch: 'full',
-    component: OutputExtractionPage,
+    path: '',
     canActivate: [AuthGuardService],
-    runGuardsAndResolvers: 'pathParamsChange',
-    data: {
-      profile: 'SUPERVISOR'
-    }
+    children: [
+      {
+        path: 'data',
+        pathMatch: 'full',
+        component: ExtractionTablePage,
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          profile: 'SUPERVISOR'
+        }
+      }
+    ]
   },
+
   {
     path: 'map',
-    pathMatch: 'full',
-    component: OutputMapPage,
     canActivate: [AuthGuardService],
-    runGuardsAndResolvers: 'pathParamsChange',
-    data: {
-      profile: 'USER'
-    }
+    children: [
+      {
+        path: '',
+        //pathMatch: 'full',
+        component: ExtractionMapPage,
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          profile: 'USER'
+        }
+      }
+    ]
   },
 ];
 
@@ -31,5 +42,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class OutputRoutingModule {
-}
+export class OutputRoutingModule { }

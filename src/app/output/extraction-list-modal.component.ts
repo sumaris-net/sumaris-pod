@@ -8,11 +8,11 @@ import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'app-map-select-modal',
-  templateUrl: './output-list-modal.component.html',
+  templateUrl: './extraction-list-modal.component.html',
   //styleUrls: ['./extraction-list-modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OutputSelectTypeModal implements OnInit {
+export class ExtractionSelectTypeModal implements OnInit {
 
   loading = true;
   $types: Observable<AggregationType[]>;
