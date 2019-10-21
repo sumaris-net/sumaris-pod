@@ -24,19 +24,16 @@ package net.sumaris.core.dao.referential.location;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.IDataEntity;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.PhysicalGear;
-import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.referential.*;
-import net.sumaris.core.model.referential.location.LocationAssociation;
-import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.ValidityStatus;
+import net.sumaris.core.model.referential.ValidityStatusEnum;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationAssociation;
 import net.sumaris.core.model.referential.location.LocationLevel;
-import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -218,6 +215,11 @@ public class LocationDaoImpl extends HibernateDaoSupport implements LocationDao 
         entity.setUpdateDate(newUpdateDate);
 
         getEntityManager().persist(entity);
+    }
+
+    @Override
+    public Location get(int id) {
+        return load(Location.class, id);
     }
 
     /* -- protected methods -- */

@@ -47,7 +47,7 @@ public class Batch implements IDataEntity<Integer> {
     public static final String PROPERTY_HASH = "hash";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "BATCH_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "BATCH_SEQ")
     @SequenceGenerator(name = "BATCH_SEQ", sequenceName="BATCH_SEQ")
     private Integer id;
 

@@ -50,7 +50,7 @@ public class Sale implements IRootDataEntity<Integer>,
     public static final String PROPERTY_OBSERVED_LOCATION = "observedLocation";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SALE_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SALE_SEQ")
     @SequenceGenerator(name = "SALE_SEQ", sequenceName = "SALE_SEQ")
     private Integer id;
 

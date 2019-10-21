@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.16.0.xml">
+
+  <!-- Add PATH to IMAGE_ATTACHMENT and set CONTENT nullable-->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-1">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="IMAGE_ATTACHMENT" columnName="PATH"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="IMAGE_ATTACHMENT">
+      <column name="PATH" type="varchar(255)"/>
+    </addColumn>
+    <dropNotNullConstraint tableName="IMAGE_ATTACHMENT" columnName="CONTENT"/>
+  </changeSet>
+
+  <!-- rename GEAR_LEVEL to GEAR_CLASSIFICATION -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-2a">
+    <preConditions onFail="MARK_RAN">
+      <foreignKeyConstraintExists foreignKeyName="GEAR_GEAR_LEVEL_FKC"/>
+    </preConditions>
+    <dropForeignKeyConstraint baseTableName="GEAR" constraintName="GEAR_GEAR_LEVEL_FKC"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-2b">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="GEAR_LEVEL"/>
+    </preConditions>
+    <renameTable oldTableName="GEAR_LEVEL" newTableName="GEAR_CLASSIFICATION"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-2c">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="GEAR" columnName="GEAR_LEVEL_FK"/>
+    </preConditions>
+    <renameColumn tableName="GEAR" oldColumnName="GEAR_LEVEL_FK" newColumnName="GEAR_CLASSIFICATION_FK"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-2d">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists foreignKeyName="GEAR_GEAR_CLASSIFICATION_FKC"/>
+      </not>
+    </preConditions>
+    <addForeignKeyConstraint baseTableName="GEAR" baseColumnNames="GEAR_CLASSIFICATION_FK"
+                             constraintName="GEAR_GEAR_CLASSIFICATION_FKC"
+                             referencedTableName="GEAR_CLASSIFICATION" referencedColumnNames="ID"/>
+  </changeSet>
+
+  <!-- Add LOCATION_CLASSIFICATION -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-3a">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="LOCATION_CLASSIFICATION"/>
+      </not>
+    </preConditions>
+    <createTable tableName="LOCATION_CLASSIFICATION">
+      <column name="ID" type="INTEGER">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="STATUS_FK" type="INTEGER">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CREATION_DATE" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="UPDATE_DATE" type="TIMESTAMP"/>
+      <column name="LABEL" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="NAME" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="DESCRIPTION" type="VARCHAR(255)"/>
+      <column name="COMMENTS" type="VARCHAR(2000)"/>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="LOCATION_CLASSIFICATION" baseColumnNames="STATUS_FK"
+                             constraintName="LOCATION_CLASSIFICATION_STATUS_FKC"
+                             referencedTableName="STATUS" referencedColumnNames="ID"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-3b">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="LOCATION_LEVEL" columnName="LOCATION_CLASSIFICATION_FK"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="LOCATION_LEVEL">
+      <column name="LOCATION_CLASSIFICATION_FK" type="INTEGER"/> <!-- TODO can not set nullable="false" now, need a patch -->
+    </addColumn>
+    <addForeignKeyConstraint baseTableName="LOCATION_LEVEL" baseColumnNames="LOCATION_CLASSIFICATION_FK"
+                             constraintName="LOCATION_LEVEL_LOCATION_CLASSIFICATION_FKC"
+                             referencedTableName="LOCATION_CLASSIFICATION" referencedColumnNames="ID"/>
+  </changeSet>
+
+  <!-- Add TAXON_GROUP_TYPE_FK on PROGRAM -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-4a">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="PROGRAM" columnName="TAXON_GROUP_TYPE_FK"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="PROGRAM">
+      <column name="TAXON_GROUP_TYPE_FK" type="INTEGER"/>
+    </addColumn>
+    <addForeignKeyConstraint baseTableName="PROGRAM" baseColumnNames="TAXON_GROUP_TYPE_FK"
+                             constraintName="PROGRAM_TAXON_GROUP_TYPE_FKC"
+                             referencedTableName="TAXON_GROUP_TYPE" referencedColumnNames="ID"/>
+    <update tableName="PROGRAM">
+      <column name="TAXON_GROUP_TYPE_FK">2</column>
+    </update>
+    <addNotNullConstraint tableName="PROGRAM" columnName="TAXON_GROUP_TYPE_FK"/>
+  </changeSet>
+
+  <!-- Add GEAR_CLASSIFICATION_FK on PROGRAM -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-5a">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="PROGRAM" columnName="GEAR_CLASSIFICATION_FK"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="PROGRAM">
+      <column name="GEAR_CLASSIFICATION_FK" type="INTEGER"/>
+    </addColumn>
+    <addForeignKeyConstraint baseTableName="PROGRAM" baseColumnNames="GEAR_CLASSIFICATION_FK"
+                             constraintName="PROGRAM_GEAR_CLASSIFICATION_FKC"
+                             referencedTableName="GEAR_CLASSIFICATION" referencedColumnNames="ID"/>
+    <update tableName="PROGRAM">
+      <column name="GEAR_CLASSIFICATION_FK">1</column>
+    </update>
+    <addNotNullConstraint tableName="PROGRAM" columnName="GEAR_CLASSIFICATION_FK"/>
+  </changeSet>
+
+  <!-- create missing sequences -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-1">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="ACQUISITION_LEVEL_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="ACQUISITION_LEVEL_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-2">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="PMFM_STRATEGY_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="PMFM_STRATEGY_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-3">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="STRATEGY_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="STRATEGY_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-4">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="DEPARTMENT_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="DEPARTMENT_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-5">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="PERSON_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="PERSON_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-6">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="USER_SETTINGS_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="USER_SETTINGS_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-7">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="USER_TOKEN_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="USER_TOKEN_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-8">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="FILE_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="FILE_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-9">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="FILE_LINE_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="FILE_LINE_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-10">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="FILE_STATUS_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="FILE_STATUS_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-11">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="OBJECT_TYPE_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="OBJECT_TYPE_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-12">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="QUALITY_FLAG_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="QUALITY_FLAG_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-13">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="SALE_TYPE_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="SALE_TYPE_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-14">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="STATUS_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="STATUS_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-15">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="VALIDITY_STATUS_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="VALIDITY_STATUS_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-16">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="VESSEL_TYPE_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="VESSEL_TYPE_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-17">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="GEAR_CLASSIFICATION_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="GEAR_CLASSIFICATION_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-18">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="FRACTION_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="FRACTION_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-19">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="MATRIX_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="MATRIX_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-20">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="METHOD_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="METHOD_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-21">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="PARAMETER_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="PARAMETER_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-22">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="PMFM_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="PMFM_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-23">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="UNIT_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="UNIT_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-24">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="TAXON_GROUP_TYPE_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="TAXON_GROUP_TYPE_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-25">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="TAXONOMIC_LEVEL_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="TAXONOMIC_LEVEL_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-26">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="TRANSCRIBING_ITEM_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="TRANSCRIBING_ITEM_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-27">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="TRANSCRIBING_ITEM_TYPE_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="TRANSCRIBING_ITEM_TYPE_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-28">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="TRANSCRIBING_SYSTEM_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="TRANSCRIBING_SYSTEM_SEQ"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-6-29">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="USER_EVENT_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="USER_EVENT_SEQ"/>
+  </changeSet>
+
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-7">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="PRODUCT" columnName="BATCH_FK"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="PRODUCT">
+      <column name="BATCH_FK" type="INTEGER"/>
+    </addColumn>
+  </changeSet>
+
+
+  <!--TODO : passer les RANK_ORDER à nullable=true sur les tables *_MEASUREMENT -->
+
+<!--  TODO : create tables APPLIED_STRATEGY, APPLIED_PERIOD, PMFM_APPLIED_STRATEGY, VESSEL_REGISTRATION_PERIOD, VESSEL_OWNER, VESSEL_OWNER_PERIOD -->
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <!--TODO--><where>LABEL='0.16.0'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <!--TODO--><column name="LABEL">0.16.0</column>
+      <column name="DESCRIPTION">
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

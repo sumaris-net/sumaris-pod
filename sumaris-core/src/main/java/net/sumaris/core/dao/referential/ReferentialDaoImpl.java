@@ -28,17 +28,16 @@ import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.gear.GearLevel;
+import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.grouping.Grouping;
 import net.sumaris.core.model.referential.grouping.GroupingClassification;
 import net.sumaris.core.model.referential.grouping.GroupingLevel;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.pmfm.*;
@@ -86,8 +85,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     Department.class,
                     Location.class,
                     LocationLevel.class,
+                    LocationClassification.class,
                     Gear.class,
-                    GearLevel.class,
+                    GearClassification.class,
                     UserProfile.class,
                     SaleType.class,
                     VesselType.class,
@@ -177,6 +177,10 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         result.put(GroupingLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(GroupingLevel.class, GroupingLevel.PROPERTY_GROUPING_CLASSIFICAION));
         result.put(Grouping.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Grouping.class, Grouping.PROPERTY_GROUPING_LEVEL));
         result.put(ExtractionProductTable.class.getSimpleName(), BeanUtils.getPropertyDescriptor(ExtractionProductTable.class, ExtractionProductTable.PROPERTY_PRODUCT));
+        result.put(LocationLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(LocationLevel.class, LocationLevel.PROPERTY_CLASSIFICATION));
+        result.put(Gear.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Gear.class, Gear.PROPERTY_GEAR_CLASSIFICATION));
+        result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.PROPERTY_GEAR_CLASSIFICATION));
+        result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.PROPERTY_TAXON_GROUP_TYPE));
 
         return result;
     }

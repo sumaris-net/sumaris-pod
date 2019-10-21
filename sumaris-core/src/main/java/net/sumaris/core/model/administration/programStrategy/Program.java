@@ -25,6 +25,8 @@ package net.sumaris.core.model.administration.programStrategy;
 import lombok.Data;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.gear.GearClassification;
+import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
@@ -39,9 +41,11 @@ import java.util.Objects;
 public class Program implements IItemReferentialEntity {
 
     public static final String PROPERTY_PROPERTIES = "properties";
+    public static final String PROPERTY_TAXON_GROUP_TYPE = "taxonGroupType";
+    public static final String PROPERTY_GEAR_CLASSIFICATION = "gearClassification";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "PROGRAM_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_SEQ")
     @SequenceGenerator(name = "PROGRAM_SEQ", sequenceName="PROGRAM_SEQ")
     private Integer id;
 
@@ -75,6 +79,14 @@ public class Program implements IItemReferentialEntity {
     @OneToMany(fetch = FetchType.EAGER, targetEntity = ProgramProperty.class, mappedBy = ProgramProperty.PROPERTY_PROGRAM)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ProgramProperty> properties = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonGroupType.class)
+    @JoinColumn(name = "taxon_group_type_fk", nullable = false)
+    private TaxonGroupType taxonGroupType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "gear_classification_fk", nullable = false)
+    private GearClassification gearClassification;
 
     public int hashCode() {
         return Objects.hash(label);

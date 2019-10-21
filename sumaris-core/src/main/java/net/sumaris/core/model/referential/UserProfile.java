@@ -37,7 +37,7 @@ import java.util.Set;
 public class UserProfile implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "USER_PROFILE_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "USER_PROFILE_SEQ")
     @SequenceGenerator(name = "USER_PROFILE_SEQ", sequenceName="USER_PROFILE_SEQ")
     private Integer id;
 

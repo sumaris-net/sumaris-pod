@@ -333,6 +333,12 @@ public class Daos {
         return jdbcUrl;
     }
 
+    public static String getDbms(String jdbcUrl) {
+        Preconditions.checkNotNull(jdbcUrl);
+        Preconditions.checkArgument(jdbcUrl.startsWith(JDBC_URL_PREFIX));
+        return jdbcUrl.substring(JDBC_URL_PREFIX.length(), jdbcUrl.indexOf(":", JDBC_URL_PREFIX.length()));
+    }
+
     /**
      * <p>isHsqlDatabase.</p>
      *

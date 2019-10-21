@@ -26,8 +26,6 @@ import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 
 import javax.persistence.*;
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
@@ -36,7 +34,8 @@ import java.util.Date;
 public class Status implements IUpdateDateEntityBean<Integer, Date> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "STATUS_SEQ")
+    @SequenceGenerator(name = "STATUS_SEQ", sequenceName="STATUS_SEQ")
     private Integer id;
 
     @Column(nullable = false)

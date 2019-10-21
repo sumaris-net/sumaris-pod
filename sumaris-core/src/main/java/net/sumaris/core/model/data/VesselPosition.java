@@ -39,7 +39,7 @@ public class VesselPosition implements IDataEntity<Integer> {
     public static final String PROPERTY_OPERATION = "operation";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "VESSEL_POSITION_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_POSITION_SEQ")
     @SequenceGenerator(name = "VESSEL_POSITION_SEQ", sequenceName="VESSEL_POSITION_SEQ")
     private Integer id;
 

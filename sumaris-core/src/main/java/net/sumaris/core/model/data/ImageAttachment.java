@@ -62,6 +62,9 @@ public class ImageAttachment implements IDataEntity<Integer>,
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
+    @Column()
+    private String path;
+
     @Column(name="control_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;

@@ -22,7 +22,6 @@ package net.sumaris.core.model.administration.user;
  * #L%
  */
 
-import com.google.common.collect.Sets;
 import lombok.Data;
 import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.IReferentialEntity;
@@ -31,7 +30,6 @@ import net.sumaris.core.model.referential.UserProfile;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
@@ -52,7 +50,8 @@ public class Person implements IReferentialEntity {
     public static final String PROPERTY_STATUS = "status";
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PERSON_SEQ")
+    @SequenceGenerator(name = "PERSON_SEQ", sequenceName="PERSON_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -35,7 +35,8 @@ import java.util.Date;
 public class TranscribingItem implements IItemReferentialEntity  {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "TRANSCRIBING_ITEM_SEQ")
+    @SequenceGenerator(name = "TRANSCRIBING_ITEM_SEQ", sequenceName="TRANSCRIBING_ITEM_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

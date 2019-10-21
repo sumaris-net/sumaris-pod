@@ -23,7 +23,6 @@ package net.sumaris.core.dao.referential.location;
  */
 
 import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.vo.referential.LocationVO;
 
 import java.util.List;
@@ -51,5 +50,5 @@ public interface LocationDao {
      */
     void updateLocationHierarchy();
 
-
+    Location get(int id);
 }

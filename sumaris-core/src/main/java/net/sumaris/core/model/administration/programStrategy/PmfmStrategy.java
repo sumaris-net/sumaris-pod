@@ -43,7 +43,8 @@ public class PmfmStrategy implements IEntity<Integer> {
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_STRATEGY_SEQ")
+    @SequenceGenerator(name = "PMFM_STRATEGY_SEQ", sequenceName="PMFM_STRATEGY_SEQ")
     private Integer id;
 
     @Column(name = "acquisition_number", nullable = false)

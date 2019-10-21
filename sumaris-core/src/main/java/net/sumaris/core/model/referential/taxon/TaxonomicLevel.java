@@ -101,7 +101,8 @@ import java.util.Date;
 public class TaxonomicLevel implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "TAXONOMIC_LEVEL_SEQ")
+    @SequenceGenerator(name = "TAXONOMIC_LEVEL_SEQ", sequenceName="TAXONOMIC_LEVEL_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

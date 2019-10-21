@@ -28,7 +28,6 @@ import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
@@ -37,8 +36,10 @@ import java.util.Date;
 @Cacheable
 public class LocationLevel implements Serializable, IItemReferentialEntity {
 
+    public static final String PROPERTY_CLASSIFICATION = "locationClassification";
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "LOCATION_LEVEL_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_LEVEL_SEQ")
     @SequenceGenerator(name = "LOCATION_LEVEL_SEQ", sequenceName="LOCATION_LEVEL_SEQ")
     private Integer id;
 
@@ -64,4 +65,9 @@ public class LocationLevel implements Serializable, IItemReferentialEntity {
 
     @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
     private String comments;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = LocationClassification.class)
+    @JoinColumn(name = "location_classification_fk")
+    private LocationClassification locationClassification;
+
 }

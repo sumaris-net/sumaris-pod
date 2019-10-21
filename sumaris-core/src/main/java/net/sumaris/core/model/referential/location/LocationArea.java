@@ -24,8 +24,6 @@ package net.sumaris.core.model.referential.location;
 
 import com.vividsolutions.jts.geom.Geometry;
 import lombok.Data;
-import net.sumaris.core.dao.technical.hibernate.spatial.GeometryStringType;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -47,7 +45,6 @@ public class LocationArea implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Type(type = GeometryStringType.TYPE)
     @Column(nullable = false)
     private Geometry position;
 }

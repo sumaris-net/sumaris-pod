@@ -25,13 +25,9 @@ package net.sumaris.core.model.administration.programStrategy;
 import lombok.Data;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 @Data
@@ -41,7 +37,8 @@ import java.util.Objects;
 public class AcquisitionLevel implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "ACQUISITION_LEVEL_SEQ")
+    @SequenceGenerator(name = "ACQUISITION_LEVEL_SEQ", sequenceName="ACQUISITION_LEVEL_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

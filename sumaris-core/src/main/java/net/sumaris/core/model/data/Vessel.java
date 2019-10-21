@@ -40,7 +40,7 @@ import java.util.List;
 public class Vessel implements IRootDataEntity<Integer> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "VESSEL_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_SEQ")
     @SequenceGenerator(name = "VESSEL_SEQ", sequenceName="VESSEL_SEQ")
     private Integer id;
 
@@ -93,5 +93,13 @@ public class Vessel implements IRootDataEntity<Integer> {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselFeatures.class, mappedBy = VesselFeatures.PROPERTY_VESSEL)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselFeatures> vesselFeatures = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselRegistrationPeriod.class, mappedBy = VesselRegistrationPeriod.PROPERTY_VESSEL)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<VesselRegistrationPeriod> vesselRegistrationPeriods = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselOwnerPeriod.class, mappedBy = VesselOwnerPeriod.PROPERTY_VESSEL)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<VesselOwnerPeriod> vesselOwnerPeriods = new ArrayList<>();
 
 }
