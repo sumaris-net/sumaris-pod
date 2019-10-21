@@ -96,7 +96,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
       injector.get(ValidatorService),
       {
         prependNewElements: false,
-        suppressErrors: false,
+        suppressErrors: environment.production,
         reservedStartColumns: SUB_SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SUB_SAMPLE_RESERVED_END_COLUMNS
       }

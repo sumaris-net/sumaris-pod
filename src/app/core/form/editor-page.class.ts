@@ -229,6 +229,47 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     }
   }
 
+  async delete(event): Promise<boolean> {
+    console.debug("[root-data-editor] Asking to delete...");
+    if (this.loading || this.saving) return false;
+
+    this.saving = true;
+    this.error = undefined;
+
+    // Get data
+    const data = await this.getValue();
+    const isNew = this.isNewData;
+
+    this.disable();
+
+    try {
+      if (!isNew) {
+        await this.dataService.delete(data);
+      }
+
+      this.onEntityDeleted(data);
+
+    } catch (err) {
+      console.error(err);
+      this.submitted = true;
+      this.error = err && err.message || err;
+      this.saving = false;
+      this.enable();
+      return false;
+    }
+
+    // Wait, then go back (wait is need in order to update back href is need)
+    setTimeout(() => {
+      // Go back
+      if (this.appToolbar && this.appToolbar.canGoBack) {
+        return this.appToolbar.goBack();
+      } else {
+        // Back to home
+        return this.router.navigateByUrl('/');
+      }
+    }, 500);
+  }
+
   /* -- protected methods to override -- */
 
   protected abstract registerFormsAndTables();
@@ -251,6 +292,10 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   protected async onEntityLoaded(data: T, options?: EditorDataServiceLoadOptions): Promise<void> {
+    // can be overwrite by subclasses
+  }
+
+  protected async onEntityDeleted(data: T): Promise<void> {
     // can be overwrite by subclasses
   }
 

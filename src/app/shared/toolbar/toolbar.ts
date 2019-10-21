@@ -4,17 +4,17 @@ import {
   Component,
   EventEmitter,
   Input,
-  OnDestroy,
   OnInit,
   Output,
   ViewChild
 } from '@angular/core';
-import {ProgressBarService} from '../services/progress-bar.service';
+import {ProgressBarService, ProgressMode} from '../services/progress-bar.service';
 import {Router} from "@angular/router";
-import {IonBackButton, IonRouterOutlet, IonSearchbar, Platform} from "@ionic/angular";
+import {IonBackButton, IonRouterOutlet, IonSearchbar} from "@ionic/angular";
 import {isNotNil, toBoolean} from "../functions";
-import {distinctUntilChanged, throttleTime} from "rxjs/operators";
-import {Subscription} from "rxjs";
+import {debounceTime, distinctUntilChanged, startWith} from "rxjs/operators";
+import {Observable} from "rxjs";
+import {ConnectionType} from "../../core/services/network.service";
 
 @Component({
   selector: 'app-toolbar',
@@ -22,9 +22,7 @@ import {Subscription} from "rxjs";
   styleUrls: ['./toolbar.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ToolbarComponent implements OnInit, OnDestroy {
-
-  private _subscription = new Subscription();
+export class ToolbarComponent implements OnInit {
 
   @Input()
   title = '';
@@ -56,9 +54,9 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   @Output()
   onSearch = new EventEmitter<CustomEvent>();
 
-  progressBarMode = 'none';
+  $progressBarMode: Observable<ProgressMode>;
 
-  showSearchBar: boolean;
+  showSearchBar = false;
 
   @ViewChild("backButton", { static: false }) backButton: IonBackButton;
 
@@ -67,36 +65,22 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   constructor(
     private progressBarService: ProgressBarService,
     private router: Router,
-    private routerOutlet: IonRouterOutlet,
-    private cd: ChangeDetectorRef
+    private routerOutlet: IonRouterOutlet
   ) {
+
+    // Listen progress bar service mode
+    this.$progressBarMode = this.progressBarService.onProgressChanged
+      .pipe(
+        startWith('none' as ProgressMode),
+        debounceTime(100), // wait 100ms, to group changes
+        distinctUntilChanged((mode1, mode2) => mode1 == mode2)
+      );
   }
 
   ngOnInit() {
     this.hasValidate = toBoolean(this.hasValidate, this.onValidate.observers.length > 0);
     this.canGoBack = toBoolean(this.canGoBack, this.routerOutlet.canGoBack() || isNotNil(this.defaultBackHref));
-
     this.hasSearch = toBoolean(this.hasSearch, this.onSearch.observers.length > 0);
-    this.showSearchBar = false;
-
-    // Listen progress bar service mode
-    this._subscription.add(this.progressBarService.onProgressChanged
-      .pipe(
-        distinctUntilChanged(),
-        throttleTime(100)
-      )
-      .subscribe((mode) => {
-        if (this.progressBarMode !== mode) {
-          //console.log("TODO: changing progress mode: " + mode);
-          //this.progressBarMode = 'query'; //mode;
-          this.progressBarMode = mode;
-          this.cd.detectChanges();
-        }
-      }));
-  }
-
-  ngOnDestroy(): void {
-    this._subscription.unsubscribe();
   }
 
   async toggleSearchBar() {

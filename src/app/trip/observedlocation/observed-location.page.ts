@@ -86,25 +86,20 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
 
   protected setValue(data: ObservedLocation) {
 
-    if (data && isNotNil(data.id)) {
-
+    const isNew = isNil(data.id);
+    if (!isNew) {
       // Propagate program to form
-      this.observedLocationForm.program = data.program.label;
-
-
-      // Propagate program to table
-      if (this.landingsTable) {
-        if (this.debug) console.debug("[observed-location] Sending program to landings table");
-        this.landingsTable.setParent(data);
-        this.landingsTable.program = data.program.label;
-
-        if (this.debug) console.debug("[observed-location] Settings landings table values", data.landings);
-        //this.landingsTable.value = data.landings || [];
-      }
+      this.programSubject.next(data.program.label);
     }
 
     // Set data to form
     this.observedLocationForm.value = data;
+
+    // Propagate parent to landings table
+    if (this.landingsTable && data) {
+      if (this.debug) console.debug("[observed-location] Sending program to landings table");
+      this.landingsTable.setParent(data);
+    }
   }
 
   protected async computeTitle(data: ObservedLocation): Promise<string> {

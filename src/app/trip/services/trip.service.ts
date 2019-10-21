@@ -1,9 +1,16 @@
 import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
-import {Observable} from "rxjs";
+import {Observable} from "rxjs-compat";
 import {EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
-import {EditorDataService, isNotNil, LoadResult, TableDataService, toBoolean} from "../../shared/shared.module";
-import {environment} from "../../core/core.module";
+import {
+  EditorDataService,
+  isNilOrBlank,
+  isNotNil,
+  LoadResult,
+  TableDataService,
+  toBoolean
+} from "../../shared/shared.module";
+import {environment, NetworkService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
@@ -15,7 +22,6 @@ import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {RootDataService} from "./root-data-service.class";
 import {DataRootEntityUtils} from "./model/base.model";
 import {reject} from "async";
-import {NetworkService} from "../../core/services/network.service";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -138,12 +144,20 @@ export const TripFragments = {
 };
 
 export class TripFilter {
-  startDate?: Date | Moment;
-  endDate?: Date | Moment;
+
+  static isEmpty(filter: TripFilter|any): boolean {
+    return !filter || (isNilOrBlank(filter.programLabel) && isNilOrBlank(filter.vesselId) && isNilOrBlank(filter.locationId)
+      && !filter.startDate && !filter.endDate
+      && isNil(filter.recorderDepartmentId));
+  }
+
   programLabel?: string;
   vesselId?: number;
-  recorderDepartmentId?: number;
   locationId?: number;
+  startDate?: Date | Moment;
+  endDate?: Date | Moment;
+  recorderDepartmentId?: number;
+
 }
 const LoadAllQuery: any = gql`
   query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TripFilterVOInput){

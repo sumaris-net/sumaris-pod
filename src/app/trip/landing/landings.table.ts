@@ -60,7 +60,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       injector.get(ValidatorService),
       {
         prependNewElements: false,
-        suppressErrors: false,
+        suppressErrors: environment.production,
         reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
         reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)

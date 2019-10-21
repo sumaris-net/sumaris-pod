@@ -1,0 +1,228 @@
+<app-toolbar [title]="$title | async" color="primary">
+</app-toolbar>
+
+<!-- Types menu -->
+<mat-menu #selectTypeMenu="matMenu" xPosition="after">
+  <button mat-menu-item [matMenuTriggerFor]="liveTypesMenu" translate>EXTRACTION.CATEGORY.LIVE</button>
+  <button mat-menu-item [matMenuTriggerFor]="productTypesMenu" translate>EXTRACTION.CATEGORY.PRODUCT</button>
+</mat-menu>
+
+<!-- Type = live sub menu -->
+<mat-menu #liveTypesMenu="matMenu" xPosition="after">
+  <ng-template matMenuContent>
+    <button mat-menu-item
+            *ngFor="let item of $typesMap.live | async"
+            (click)="setType(item)">
+      <ion-label>
+        <ion-icon name="eye-off" *ngIf="item.statusId===2"></ion-icon>&nbsp;
+        <span>{{item.name}}</span>
+      </ion-label>
+    </button>
+  </ng-template>
+</mat-menu>
+
+<!-- Type = product sub menu -->
+<mat-menu #productTypesMenu="matMenu" xPosition="after">
+  <ng-template matMenuContent>
+    <button mat-menu-item
+            *ngFor="let item of $typesMap.product | async"
+            (click)="setType(item)">
+      <ion-label>
+        <ion-icon name="eye-off" *ngIf="item.statusId===2"></ion-icon>&nbsp;
+        <span>{{item.name}}</span>
+      </ion-label>
+    </button>
+  </ng-template>
+</mat-menu>
+
+<!-- aggregate menu -->
+<mat-menu #aggregateMenu="matMenu" xPosition="before">
+  <button mat-menu-item *ngIf="!type?.isSpatial" (click)="aggregate()">
+    <ion-label translate>EXTRACTION.SPATIAL_AGGREGATION</ion-label>
+  </button>
+</mat-menu>
+
+<ion-content no-padding>
+
+  <mat-toolbar>
+    <mat-toolbar-row>
+      <ion-button color="secondary" *ngIf="type" [matMenuTriggerFor]="selectTypeMenu" class="select-type-button">
+        <div slot="start">
+          <ion-icon name="globe" *ngIf="type.isSpatial" ></ion-icon>
+          <ion-icon name="eye-off" *ngIf="type.statusId==2"></ion-icon>&nbsp;
+        </div>
+        <ion-label>{{type.name}}</ion-label>
+        <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+      </ion-button>
+
+      <button mat-icon-button color="light" [title]="'COMMON.BTN_REFRESH'|translate"
+              (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button mat-icon-button color="light" [title]="'COMMON.BTN_EDIT'|translate"
+              *ngIf="canEdit"
+              (click)="openAggregationType(type)">
+        <mat-icon>edit</mat-icon>
+      </button>
+      <button mat-icon-button *ngIf="canEdit && isAdmin" [title]="'COMMON.BTN_DELETE'|translate"
+              (click)="deleteAggregation()">
+        <mat-icon>delete</mat-icon>
+      </button>
+      <button mat-icon-button [title]="'EXTRACTION.BTN_DOWNLOAD_FILE'|translate" (click)="downloadAsFile()" download="true">
+        <mat-icon>get_app</mat-icon>
+      </button>
+      <button mat-icon-button [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
+        <mat-icon>filter_list</mat-icon>
+      </button>
+<!--      <button mat-icon-button-->
+<!--              *ngIf="type?.isSpatial"-->
+<!--              [title]="'EXTRACTION.BTN_OPEN_MAP'|translate" (click)="openMap()">-->
+<!--        <mat-icon>-->
+<!--          <ion-icon name="globe"></ion-icon>-->
+<!--        </mat-icon>-->
+<!--      </button>-->
+      <!--<button mat-icon-button color="secondary" [title]="'COMMON.BTN_SHOW_HELP'|translate" (click)="showHelpModal()">-->
+      <!--<mat-icon>help_outline</mat-icon>-->
+      <!--</button>-->
+
+      <!-- error -->
+      <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
+        <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+      </ion-item>
+
+      <span class="toolbar-spacer"></span>
+
+      <ion-button [matMenuTriggerFor]="aggregateMenu"
+                  color="light"
+                  *ngIf="!type?.isSpatial"
+                  [title]="'EXTRACTION.BTN_AGGREGATE_HELP'|translate">
+        <ion-label>{{'EXTRACTION.BTN_AGGREGATE'|translate}}</ion-label>
+        <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+      </ion-button>
+
+      <button mat-icon-button [title]=" 'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </mat-toolbar-row>
+  </mat-toolbar>
+
+  <ng-container *ngIf="type?.sheetNames as sheetNames">
+    <nav mat-tab-nav-bar *ngIf="sheetNames.length > 1">
+      <a mat-tab-link *ngFor="let item of sheetNames"
+         (click)="setSheetName(item)"
+         [active]="item === sheetName">
+        <ion-text>{{getI18nSheetName(item)}}</ion-text>
+        <mat-icon *ngIf="hasFilterCriteria(item)">filter_list</mat-icon>
+      </a>
+    </nav>
+  </ng-container>
+
+  <!-- search -->
+  <mat-expansion-panel #filterExpansionPanel >
+    <mat-expansion-panel-header>
+      <mat-panel-title hidden-xs hidden-sm hidden-mobile>
+        <ion-label>
+          <!-- Loading spinner -->
+          <ion-spinner [ngClass]="{'center':true}" *ngIf="loading && !filterExpansionPanel.expanded"></ion-spinner>
+          <ng-container *ngIf="!loading && !filterExpansionPanel.expanded">
+            <ion-text [color]="data?.total === 0 && 'danger'" *ngIf="data?.total === 0"><b>{{ 'COMMON.NO_RESULT' |
+              translate }}</b></ion-text>
+            <span *ngIf="data?.total > 0">
+              {{ 'COMMON.RESULT_COUNT' | translate: {count: (data?.total | numberFormat)} }}
+            </span>
+            <small>
+              {{(criteriaForm.hasFilterCriteria(sheetName) ? 'EXTRACTION.FILTER.WITH_FILTER_PARENTHESIS' :
+              'EXTRACTION.FILTER.NO_FILTER_PARENTHESIS' ) | translate}}
+            </small>
+          </ng-container>
+          <span *ngIf="filterExpansionPanel.expanded">
+            {{ 'EXTRACTION.FILTER.TITLE' | translate}}
+          </span>
+        </ion-label>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+
+    <app-extraction-criteria-form #criteriaForm
+                                  [showSheetsTab]="false"
+                                  [columns]="$columns|async"
+                                  (onSubmit)="onRefresh.emit($event)">
+    </app-extraction-criteria-form>
+
+    <mat-action-row>
+      <!-- Loading spinner -->
+      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+      <!-- Counter  -->
+      <ion-label [hidden]="loading || dirty" [color]="data?.total === 0 && 'danger'">
+        {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (data?.total |
+              numberFormat)} }}
+      </ion-label>
+
+      <div class="toolbar-spacer"></div>
+
+      <!-- Search button -->
+      <button mat-button [color]="dirty ? 'primary' : undefined"
+              (click)="onRefresh.emit(true)"
+              [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}
+      </button>
+    </mat-action-row>
+  </mat-expansion-panel>
+
+  <!-- error -->
+  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+
+  <mat-table [dataSource]="dataSource" [hidden]="!data?.total"
+             matSort
+             matSortDisableClear>
+
+    <!-- iterate on columns -->
+    <ng-container *ngFor="let column of $columns | async" matColumnDef="{{column.columnName}}">
+      <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="column.type=='date'">
+        <ion-label>{{ column.name }}</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="column.type=='date'"
+                [class.mat-cell-numeric]="column.type=='integer'">
+        <a ion-text (click)="onCellValueClick($event, column, row.currentData[column.index])"
+           color="dark"
+           [title]="row.currentData[column.index]">
+          {{row.currentData[column.index]}}
+        </a>
+      </mat-cell>
+    </ng-container>
+
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+  </mat-table>
+
+  <!-- Paginator  -->
+  <ion-row no-padding [hidden]="!data?.total">
+    <ion-col></ion-col>
+    <ion-col no-padding size="auto">
+      <mat-paginator [length]="data?.total" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200, 500]"
+                     showFirstLastButtons>
+      </mat-paginator>
+    </ion-col>
+  </ion-row>
+
+
+</ion-content>
+
+<!--<ion-footer hidden-xs hidden-sm hidden-mobile>-->
+<!--  <form-buttons-bar (onSave)="save($event)"-->
+<!--                    [disabled]="!dirty || loading"-->
+<!--                    (onCancel="cancel($event)"-->
+<!--                    [disabledCancel]="!dirty || loading">-->
+
+<!--    &lt;!&ndash; error &ndash;&gt;-->
+<!--    <ion-item *ngIf="error">-->
+<!--      <ion-icon color="danger" slot="start" name="alert"></ion-icon>-->
+<!--      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>-->
+<!--    </ion-item>-->
+
+<!--  </form-buttons-bar>-->
+<!--</ion-footer>-->

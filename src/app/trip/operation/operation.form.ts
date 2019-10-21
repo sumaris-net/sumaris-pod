@@ -83,13 +83,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       (this.platform.is('mobile') || this.platform.is('mobileweb'));
 
     // Combo: physicalGears
-    this.registerAutocompleteConfig('physicalGear', {
+    this.registerAutocompleteField('physicalGear', {
       suggestFn: (value, options) => this.suggestPhysicalGear(value, options),
       attributes: ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key))
     });
 
     // Taxon group combo
-    this.registerAutocompleteConfig('taxonGroup', {
+    this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value, options) => this.suggestTargetSpecies(value, options),
       showPanelOnFocus: true,
       showAllOnFocus: true

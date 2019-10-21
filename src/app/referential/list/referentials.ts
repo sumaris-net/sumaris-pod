@@ -1,8 +1,8 @@
 import {Component, OnDestroy, OnInit} from "@angular/core";
-import {BehaviorSubject, Observable, of} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AppTable, AppTableDataSource, isNil, isNotNil} from "../../core/core.module";
+import {AppTable, AppTableDataSource, environment, isNil, isNotNil, LocalSettingsService} from "../../core/core.module";
 import {ReferentialValidatorService} from "../services/referential.validator";
 import {ReferentialFilter, ReferentialService} from "../services/referential.service";
 import {Referential, ReferentialRef, StatusIds} from "../services/model";
@@ -13,8 +13,7 @@ import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {sort} from "../../shared/functions";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {sort} from "../../core/services/model";
 
 
 const DEFAULT_ENTITY_NAME = "Location";
@@ -87,7 +86,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
         prependNewElements: false,
-        suppressErrors: false,
+        suppressErrors: environment.production,
         serviceOptions: {
           saveOnlyDirtyRows: true
         }
@@ -134,7 +133,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // FOR DEV ONLY
     this.debug = true;
-  }
+  };
 
   ngOnInit() {
 
@@ -248,7 +247,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       fetchPolicy: 'network-only'
     });
 
-    this.levels = of(res);
+    this.levels = Observable.of(res);
     this.showLevelColumn = res && res.length > 0;
 
     return res;

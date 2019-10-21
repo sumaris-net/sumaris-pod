@@ -7,12 +7,11 @@ import {first} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 
 @Component({
-  selector: 'app-map-select-modal',
-  templateUrl: './extraction-list-modal.component.html',
-  //styleUrls: ['./extraction-list-modal.scss'],
+  selector: 'app-aggregation-type-select-modal',
+  templateUrl: './aggregation-type-select.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionSelectTypeModal implements OnInit {
+export class AggregationTypeSelectModal implements OnInit {
 
   loading = true;
   $types: Observable<AggregationType[]>;

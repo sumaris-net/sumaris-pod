@@ -1,6 +1,6 @@
 import * as moment from "moment";
 import {Moment} from "moment";
-import {asInputElement, isInputElement} from "./material/focusable";
+import {asInputElement, FocusableElement, isInputElement} from "./material/focusable";
 import {ElementRef} from "@angular/core";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
@@ -26,6 +26,12 @@ export function isNotEmptyArray<T>(obj: T[] | null | undefined): boolean {
 export function isEmptyArray<T>(obj: T[] | null | undefined): boolean {
   return obj === undefined || obj === null || !obj.length;
 }
+export function isNotNilString(obj: any | null | undefined): obj is string {
+  return obj !== undefined && obj !== null && typeof obj === 'string';
+}
+export function arraySize<T>(obj: T[] | null | undefined): number {
+  return isNotEmptyArray(obj) && obj.length || 0;
+}
 export function nullIfUndefined<T>(obj: T | null | undefined): T | null {
   return obj === undefined ? null : obj;
 }
@@ -44,7 +50,7 @@ export function toInt(obj: string | null | undefined): number | null {
 }
 export const toDateISOString = function (value): string | undefined {
   if (!value) return undefined;
-  if (typeof value == "string") {
+  if (typeof value === "string") {
     if (value.indexOf('+')) {
       value = fromDateISOString(value);
     }
@@ -52,7 +58,7 @@ export const toDateISOString = function (value): string | undefined {
       return value;
     }
   }
-  if (typeof value == "object" && value.toISOString) {
+  if (typeof value === "object" && value.toISOString) {
     return value.toISOString();
   }
   return moment(value).format(DATE_ISO_PATTERN) || undefined;
@@ -105,6 +111,23 @@ export function suggestFromArray<T=any>(items: T[], value: any, options?: {
 
   // If wildcard, search using startsWith
   return items.filter(v => keys.findIndex(key => startsWithUpperCase(getPropertyByPathAsString(v, key), value)) !== -1);
+}
+
+export function suggestFromStringArray(values: string[], value: any, options?: {
+  searchAttribute?: string
+  searchAttributes?: string[]
+}): string[] {
+  value = (typeof value === "string" && value !== '*') && value.toUpperCase() || undefined;
+  if (isNilOrBlank(value)) return values;
+
+  // If wildcard, search using regexp
+  if ((value as string).indexOf('*') !== -1) {
+    value = (value as string).replace('*', '.*');
+    return values.filter(v => matchUpperCase(v, value));
+  }
+
+  // If wildcard, search using startsWith
+  return values.filter(v => startsWithUpperCase(v, value));
 }
 
 export function joinPropertiesPath<T = any>(obj: T, properties: string[], separator?: string): string | undefined {
@@ -193,6 +216,7 @@ export function filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) 
 
 export function getPropertyByPath(obj: any, path: string): any {
   if (isNil(obj)) return undefined;
+  if (isNilOrBlank(path)) return obj;
   const i = path.indexOf('.');
   if (i === -1) {
     return obj[path];

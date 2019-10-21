@@ -586,6 +586,7 @@ export class Department extends Referential implements Cloneable<Department> {
 
   constructor() {
     super();
+    this.__typename = 'DepartmentVO';
   }
 
   clone(): Department {

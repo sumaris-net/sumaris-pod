@@ -5,10 +5,10 @@ div[leaflet] {
 }
 
 ion-card.filter {
+
   ion-item {
     background: var(--background);
   }
-
 
   .mat-form-field.operator {
     min-width: 40px;
@@ -23,8 +23,15 @@ ion-card.filter {
     background: var(--background);
     min-width: 150px;
 
-  }
+    mat-expansion-panel-header {
+      padding-left: 6px !important;
+    }
 
+  }
+}
+ion-card.filter.expanded {
+  max-height: inherit;
+  max-width: 720px;
 }
 
 ion-card.legend {
@@ -127,6 +134,6 @@ ion-card.details {
 }
 
 mat-action-row[no-padding] {
-  padding: 0!important;
+  padding: 0 !important;
 }
 

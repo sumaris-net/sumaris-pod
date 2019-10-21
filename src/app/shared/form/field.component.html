@@ -115,15 +115,14 @@
 
     <input matInput autocomplete="off"
            [formControl]="formControl"
-           [style.color]="'transparent'"
+           [style.color]="getColorContrast(formControl.value)"
            [style.background]="formControl.value"
            [colorPicker]="formControl.value"
-           [cpPosition]="'top'"
+           (colorPickerChange)="writeValue($event)"
            [cpSaveClickOutside]="true"
-           (colorPickerChange)="formControl.setValue($event)"
-           [cpOutputFormat]="'hex'"
-           [cpOKButton]="true"
-           [cpOKButtonText]="'COMMON.BTN_VALIDATE'|translate"
+           cpPosition="top"
+           cpOutputFormat="hex"
+           [cpOKButton]="false"
            [required]="required"/>
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   </mat-form-field>
@@ -149,8 +148,11 @@
                           [placeholder]="placeholder"
                           [floatLabel]="floatLabel"
                           [formControl]="formControl"
-                          [service]="definition.autocomplete?.service"
+                          [suggestFn]="definition.autocomplete?.suggestFn"
                           [filter]="definition.autocomplete?.filter"
+                          [items]="definition.autocomplete?.items"
+                          [displayColumnNames]="definition.autocomplete?.columnNames"
+                          [displayAttributes]="definition.autocomplete?.attributes"
                           [required]="required"
                           [displayWith]="getDisplayValueFn(definition)">
     <ng-content select="[matPrefix]"></ng-content>

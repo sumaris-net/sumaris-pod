@@ -118,7 +118,7 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
     json.properties = EntityUtils.getObjectAsArray(data.properties || {});
     this.propertiesFormHelper.resize(Math.max(json.properties.length, 1));
 
-    this.form.patchValue(json, {emitEvent: false});
+    this.setValue(json, {emitEvent: false});
     this.markAsPristine();
 
     this.partners.next(json.partners);
@@ -160,12 +160,12 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
   }
 
   getPropertyDefinition(index: number): FormFieldDefinition {
-    let option = this.propertyDefinitionsByIndex[index];
-    if (!option) {
-      option = this.updatePropertyDefinition(index);
-      this.propertyDefinitionsByIndex[index] = option;
+    let definition = this.propertyDefinitionsByIndex[index];
+    if (!definition) {
+      definition = this.updatePropertyDefinition(index);
+      this.propertyDefinitionsByIndex[index] = definition;
     }
-    return option;
+    return definition;
   }
 
   updatePropertyDefinition(index: number): FormFieldDefinition {

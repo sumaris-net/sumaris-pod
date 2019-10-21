@@ -1,28 +1,30 @@
 import { EventEmitter, Injectable } from '@angular/core';
 
+export declare type ProgressMode = 'determinate' | 'indeterminate' | 'buffer' | 'query' | 'none';
+
 @Injectable({providedIn: 'root'})
 export class ProgressBarService {
-    public onProgressChanged: EventEmitter<string> =  new EventEmitter();
+  private _requestsRunning = 0;
 
-    private requestsRunning = 0;
+  onProgressChanged = new EventEmitter<ProgressMode>();
 
-    public list(): number {
-        return this.requestsRunning;
+  list(): number {
+      return this._requestsRunning;
+  }
+
+  increase(): void {
+    this._requestsRunning++;
+    if (this._requestsRunning === 1) {
+        this.onProgressChanged.emit('query');
     }
+  }
 
-    public increase(): void {
-        this.requestsRunning++;
-        if (this.requestsRunning === 1) {
-            this.onProgressChanged.emit('query');
-        }
+  decrease(): void {
+    if (this._requestsRunning > 0) {
+        this._requestsRunning--;
     }
-
-    public decrease(): void {
-        if (this.requestsRunning > 0) {
-            this.requestsRunning--;
-            if (this.requestsRunning === 0) {
-                this.onProgressChanged.emit('none');
-            }
-        }
+    if (this._requestsRunning === 0) {
+      this.onProgressChanged.emit('none');
     }
+  }
 }

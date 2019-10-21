@@ -43,7 +43,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
       null, // No validator = no inline edition
       {
         prependNewElements: false,
-        suppressErrors: true,
+        suppressErrors: environment.production,
         reservedStartColumns: GEAR_RESERVED_START_COLUMNS,
         reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)

@@ -5,6 +5,12 @@ import {ReferentialValidatorService} from "../services/referential.validator";
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 
+export declare interface StatusValue {
+  id: number;
+  icon: string;
+  label: string;
+}
+
 @Component({
   selector: 'app-referential-form',
   templateUrl: './referential.form.html',
@@ -15,7 +21,7 @@ import {ValidatorService} from "angular4-material-table";
 })
 export class ReferentialForm extends AppForm<Referential> implements OnInit {
 
-  statusList: any[] = [
+  private _statusList: StatusValue[] = [
     {
       id: StatusIds.ENABLE,
       icon: 'checkmark',
@@ -32,10 +38,23 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
       label: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
     }
   ];
-  statusById: any;
+  statusById: { [id: number]: StatusValue; };
 
   @Input() showError = true;
   @Input() entityName;
+
+  @Input()
+  set statusList(values: StatusValue[]) {
+    this._statusList = values;
+
+    // Fill statusById
+    this.statusById = {};
+    this.statusList.forEach((status) => this.statusById[status.id] = status);
+  }
+
+  get statusList(): StatusValue[] {
+    return this._statusList;
+  }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -44,13 +63,16 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
   ) {
     super(dateAdapter, validatorService.getRowValidator());
 
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
   }
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Fill statusById
+    if (this._statusList && !this.statusById) {
+      this.statusById = {};
+      this._statusList.forEach((status) => this.statusById[status.id] = status);
+    }
   }
 
   protected markForCheck() {

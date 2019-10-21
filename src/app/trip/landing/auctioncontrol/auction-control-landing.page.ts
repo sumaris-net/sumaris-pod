@@ -84,6 +84,14 @@ export class AuctionControlLandingPage extends LandingPage implements OnInit {
     );
   }
 
+  protected async setValue(data: Landing): Promise<void> {
+    await super.setValue(data);
+
+    this.landingForm.showLocation = false;
+    this.landingForm.showDateTime = false;
+    this.landingForm.showObservers = false;
+  }
+
   // protected async getValue(): Promise<Landing> {
   //   const data = await super.getValue();
   //

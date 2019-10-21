@@ -262,9 +262,44 @@ const routes: Routes = [
   },
 
   {
-    path: 'output',
+    path: 'extraction',
     canActivate: [AuthGuardService],
-    loadChildren: () => import('./output/output.module').then(m => m.OutputModule)
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        component: ExtractionDataPage,
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          profile: 'SUPERVISOR'
+        }
+      },
+      {
+        path: 'aggregation/:aggregationTypeId',
+        component: AggregationTypePage,
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          profile: 'SUPERVISOR',
+          pathIdParam: 'aggregationTypeId'
+        }
+      }
+    ]
+  },
+
+  {
+    path: 'map',
+    canActivate: [AuthGuardService],
+    children: [
+      {
+        path: '',
+        //pathMatch: 'full',
+        component: ExtractionMapPage,
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          profile: 'USER'
+        }
+      }
+    ]
   },
 
   {

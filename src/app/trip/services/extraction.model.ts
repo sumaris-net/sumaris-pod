@@ -1,7 +1,10 @@
 /* -- Extraction -- */
 
 import {Department, Entity, Person} from "../../core/services/model";
-import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity, toDateISOString} from "./model/base.model";
+import {isNotNil, IWithRecorderDepartmentEntity, IWithRecorderPersonEntity, toDateISOString} from "./model/base.model";
+import {arraySize, isNotEmptyArray, toBoolean} from "../../shared/functions";
+import {Validators} from "@angular/forms";
+import {Moment} from "moment";
 
 export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>> extends Entity<T> {
 
@@ -16,7 +19,7 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
     return res;
   }
 
-  category: string;
+  category: 'product' | 'live';
   label: string;
   name?: string;
   sheetNames?: string[];
@@ -27,7 +30,7 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
 
   constructor() {
     super();
-    this.recorderDepartment = new Department();
+    this.recorderDepartment = null;
   }
 
   clone(): T {
@@ -47,7 +50,7 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
     this.sheetNames = source.sheetNames;
     this.statusId = source.statusId;
     this.isSpatial = source.isSpatial;
-    source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
+    this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     return this;
   }
 
@@ -70,7 +73,10 @@ export class ExtractionResult {
 
 
 export class ExtractionColumn {
+  id: number;
+  creationDate: Moment;
   index?: number;
+  label: string;
   name: string;
   columnName: string;
   type: string;
@@ -100,11 +106,8 @@ export class AggregationType extends ExtractionType<AggregationType>
 
   description: string;
   recorderPerson: Person;
-  strata: {
-    space: StrataAreaType[];
-    time: StrataTimeType[];
-    tech: string[];
-  };
+  stratum: AggregationStrata[];
+  columns: ExtractionColumn[];
 
   constructor() {
     super();
@@ -126,13 +129,7 @@ export class AggregationType extends ExtractionType<AggregationType>
     this.description = source.description;
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson) || null;
 
-    if (source.strata) {
-      this.strata = this.strata || {
-        space: source.space || [],
-        time: source.time || [],
-        tech: source.tech || [],
-      };
-    }
+    this.stratum = isNotEmptyArray(source.stratum) && source.stratum.map(AggregationStrata.fromObject) || [];
 
     return this;
   }
@@ -141,12 +138,178 @@ export class AggregationType extends ExtractionType<AggregationType>
     const target = super.asObject(minify);
 
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(minify) || undefined;
+    target.stratum = this.stratum && this.stratum.map(s => s.asObject(minify)) || undefined;
+    target.columns = this.columns && this.columns.map((c: any) => {
+      const json = Object.assign({}, c);
+      delete json.index;
+      delete json.__typename;
+      return json;
+    }) || undefined;
     return target;
   }
 }
 
-export class AggregationStrata {
-  space: StrataAreaType;
-  time: StrataTimeType;
-  tech: string;
+export class AggregationStrata extends Entity<AggregationStrata> {
+
+  static fromObject(source: any): AggregationStrata {
+    const res = new AggregationStrata();
+    res.fromObject(source);
+    return res;
+  }
+
+  label: string;
+  isDefault: boolean;
+  sheetName: string;
+
+  spaceColumnName: StrataAreaType;
+  timeColumnName: StrataTimeType;
+  techColumnName?: string;
+  aggColumnName?: string;
+  aggFunction?: string;
+
+  constructor() {
+    super();
+  }
+
+  copy(target: AggregationStrata): AggregationStrata {
+    target.fromObject(this);
+    return target;
+  }
+
+  clone(): AggregationStrata {
+    return this.copy(new AggregationStrata());
+  }
+
+  fromObject(source: any): AggregationStrata {
+    super.fromObject(source);
+    this.label = source.label;
+    this.sheetName = source.sheetName;
+    this.isDefault = isNotNil(source.isDefault) ? source.isDefault : ('default' === source.label);
+    this.spaceColumnName = source.spaceColumnName;
+    this.timeColumnName = source.timeColumnName;
+    this.techColumnName = source.techColumnName;
+    this.aggColumnName = source.aggColumnName;
+    this.aggFunction = source.aggFunction;
+    return this;
+  }
+
+  asObject(minify?: boolean): any {
+    const target = super.asObject(minify);
+    return target;
+  }
 }
+
+export declare class ExtractionFilter {
+  searchText?: string;
+  criteria?: ExtractionFilterCriterion[];
+  sheetName?: string;
+}
+
+export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion> {
+
+  static fromObject(source: any): ExtractionFilterCriterion {
+    const res = new ExtractionFilterCriterion();
+    res.fromObject(source);
+    return res;
+  }
+
+  name?: string;
+  operator: string;
+  value?: string;
+  values?: string[];
+  endValue?: string;
+  sheetName?: string;
+
+  constructor() {
+    super();
+  }
+
+  copy(target: ExtractionFilterCriterion): ExtractionFilterCriterion {
+    target.fromObject(this);
+    return target;
+  }
+
+  clone(): ExtractionFilterCriterion {
+    return this.copy(new ExtractionFilterCriterion());
+  }
+
+  fromObject(source: any): ExtractionFilterCriterion {
+    super.fromObject(source);
+    this.name = source.name;
+    this.operator = source.operator;
+    this.value = source.value;
+    this.endValue = source.endValue;
+    this.sheetName = source.sheetName;
+    return this;
+  }
+
+  asObject(minify?: boolean): any {
+    const target = super.asObject(minify);
+    return target;
+  }
+}
+
+export const SPACE_STRATA_COLUMNS: string[] = ['rect', 'statistical_rectangle', 'square', 'area'];
+export const TIME_STRATA_COLUMNS:   string[] = ['year', 'quarter', 'month'];
+
+export class ExtractionUtils {
+
+  static dispatchColumns(columns: ExtractionColumn[], opts?: {
+    excludeIfNoValue?: boolean
+  }): {
+    timeColumns: ExtractionColumn[];
+    spaceColumns: ExtractionColumn[];
+    aggColumns: ExtractionColumn[];
+    techColumns: ExtractionColumn[];
+    criteriaColumns: ExtractionColumn[];} {
+
+    const excludeIfNoValue = toBoolean(opts && opts.excludeIfNoValue, false);
+
+    const timeColumns = columns.filter(c => TIME_STRATA_COLUMNS.includes(c.columnName));
+    const spaceColumns = columns.filter(c => SPACE_STRATA_COLUMNS.includes(c.columnName)
+      // Exclude column if no value
+      && (!excludeIfNoValue || isNotEmptyArray(c.values)));
+
+    // Aggregation columns (numeric columns)
+    const aggColumns = columns.filter(c =>
+      (!c.type || c.type === 'integer' || c.type === 'double')
+      && (c.columnName.endsWith('_count')
+      || c.columnName.endsWith('_time')
+      || c.columnName.endsWith('_weight')));
+
+    const excludedFilterColumns = spaceColumns.concat(timeColumns);
+    const techColumns = columns.filter(c => !excludedFilterColumns.includes(c) && c.type === 'string');
+    const criteriaColumns = columns.filter(c => !excludedFilterColumns.includes(c)
+      // Exclude string column if only one value
+      && (c.type !== 'string' || !excludeIfNoValue || arraySize(c.values) > 1));
+
+    return {
+      timeColumns,
+      spaceColumns,
+      aggColumns,
+      techColumns,
+      criteriaColumns
+    };
+  }
+
+  static asQueryParams(type: ExtractionType|AggregationType, filter?: ExtractionFilter): any {
+    const queryParams: any = {
+      category: type && type.category,
+      label: type && type.label
+    };
+    if (filter.sheetName) {
+      queryParams.sheet = filter.sheetName;
+    }
+    if (isNotEmptyArray(filter.criteria)) {
+      queryParams.q = filter.criteria.reduce((res, criterion) => {
+        if (criterion.endValue) {
+          return res.concat(`${criterion.name}${criterion.operator}${criterion.value}:${criterion.endValue}`);
+        } else {
+          return res.concat(`${criterion.name}${criterion.operator}${criterion.value}`);
+        }
+      }, []).join(";");
+    }
+    return queryParams;
+  }
+}
+

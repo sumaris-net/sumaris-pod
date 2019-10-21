@@ -105,7 +105,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     }
 
     // Combo: programs
-    this.registerAutocompleteConfig('program', {
+    this.registerAutocompleteField('program', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Program'
@@ -121,10 +121,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
           pluck('label'),
           distinctUntilChanged()
         )
-      .subscribe(programLabel => this.program = programLabel));
+        .subscribe(programLabel => this.program = programLabel));
 
     // Combo location
-    this.registerAutocompleteConfig('location', {
+    this.registerAutocompleteField('location', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
@@ -134,7 +134,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
     // Combo: observers
     const profileLabels: UserProfileLabel[] = ['SUPERVISOR', 'USER', 'GUEST'];
-    this.registerAutocompleteConfig('person', {
+    this.registerAutocompleteField('person', {
       service: this.personService,
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
@@ -163,6 +163,13 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     super.setValue(value);
   }
 
+  addObserver() {
+    this.observersHelper.add();
+    if (!this.mobile) {
+      this.observerFocusIndex = this.observersHelper.size() - 1;
+    }
+  }
+
   enable(opts?: {
     onlySelf?: boolean;
     emitEvent?: boolean;
@@ -176,12 +183,6 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     }
   }
 
-  addObserver() {
-    this.observersHelper.add();
-    if (!this.mobile) {
-      this.observerFocusIndex = this.observersHelper.size() - 1;
-    }
-  }
 
   entityToString = entityToString;
   referentialToString = referentialToString;

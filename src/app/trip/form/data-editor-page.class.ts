@@ -1,7 +1,7 @@
 import {Injector, OnInit, ViewChild} from '@angular/core';
 
 import {EntityUtils, ReferentialRef} from '../../core/core.module';
-import {Subject} from 'rxjs';
+import {BehaviorSubject, Subject} from 'rxjs';
 import {isNil, isNotNil} from '../../shared/shared.module';
 import {DataRootEntity} from "../services/trip.model";
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
@@ -18,7 +18,7 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends E
 
   protected programService: ProgramService;
 
-  programSubject = new Subject<string>();
+  programSubject = new BehaviorSubject<string>(null);
   onProgramChanged = new Subject<Program>();
 
   @ViewChild('qualityForm', { static: true }) qualityForm: EntityQualityFormComponent;

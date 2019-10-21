@@ -29,6 +29,7 @@
 
             <!-- landing form-->
             <app-landing-form #landingForm
+                              [program]="programSubject|async"
                               [showError]="false"
                               [debug]="debug"
                               (onSubmit)="save($event)">

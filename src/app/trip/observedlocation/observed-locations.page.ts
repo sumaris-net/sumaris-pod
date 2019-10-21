@@ -1,6 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
+import {
+  AppTable,
+  environment,
+  LocalSettingsService,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from "../../core/core.module";
 import {
   LocationLevelIds,
   ObservedLocation,
@@ -22,7 +28,6 @@ import {Observable} from "rxjs";
 import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {qualityFlagToColor} from "../../referential/services/model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-observed-locations-page',
@@ -71,7 +76,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, null, {
         prependNewElements: false,
-        suppressErrors: false,
+        suppressErrors: environment.production,
         serviceOptions: {
           saveOnlyDirtyRows: true
         }

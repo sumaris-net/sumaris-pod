@@ -178,7 +178,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     this.isNew = toBoolean(this.isNew, false);
 
     // Parent combo
-    this.registerAutocompleteConfig('parent', {
+    this.registerAutocompleteField('parent', {
       suggestFn: (value: any, options?: any) => this.suggestParents(value, options),
       attributes: ['rankOrder'].concat(this._parentAttributes),
       showAllOnFocus: true
@@ -252,7 +252,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // Desktop
     else {
-      this.registerAutocompleteConfig('taxonName', {
+      this.registerAutocompleteField('taxonName', {
         suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
         showAllOnFocus: true
       });

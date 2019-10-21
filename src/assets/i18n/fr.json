@@ -77,6 +77,9 @@
       "NEXT_PAGE":"Page suivante",
       "PREVIOUS_PAGE":"Page précédente",
       "OF": "sur"
+    },
+    "TABLE": {
+      "FILTERED_PARENTHESIS": "(filtré)"
     }
   },
   "CONFIGURATION": {
@@ -305,7 +308,8 @@
         "PROGRAM": "Programme de collecte",
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période",
-        "LOCATION": "Port (départ ou retour)"
+        "LOCATION": "Port (départ ou retour)",
+        "VESSEL": "Navire"
       }
     },
     "ERROR": {
@@ -750,7 +754,30 @@
     "BTN_UNPUBLISH": "Rendre privé",
     "TYPE": "Type d'extraction",
     "AGGREGATION": {
-      "NEW_NAME": "Nouvelle aggregation / {{name}}"
+      "NEW_NAME": "Nouvelle aggregation / {{name}}",
+      "NEW": {
+        "TITLE": "Nouvelle aggregation"
+      },
+      "EDIT": {
+        "TITLE": "Aggregation {{name}}",
+        "IS_SPATIAL": "Aggregation spatiale ?",
+        "STRATA": {
+          "TIME_COLUMN": "Temps",
+          "SPACE_COLUMN": "Geometrie",
+          "AGG_COLUMN": "Cumul",
+          "AGG_FUNCTION": "Fonction cumul",
+          "TECH_COLUMN": "Technique"
+        },
+        "AGG_FUNCTION": {
+          "SUM": "Somme",
+          "AVG": "Moyenne"
+        },
+        "STATUS_ENUM": {
+          "PUBLIC": "Visibilité: publique",
+          "PRIVATE": "Visibilité: privé",
+          "DISABLE": "Obsolète"
+        }
+      }
     },
     "COMMON": {
       "VESSEL_FLAG_COUNTRY": "Pavillon",
@@ -761,8 +788,8 @@
       "STATISTICAL_RECTANGLE": "Rectangle statistique"
     },
     "FILTER": {
-      "TITLE": "Critères de filtrage :",
-      "CRITERION_NAME": "Colonne",
+      "TITLE": "Filtrer les données :",
+      "CRITERION_NAME": "Critère de filtre",
       "CRITERION_VALUE": "Valeur",
       "CRITERION_START_VALUE": "Début",
       "CRITERION_END_VALUE": "Fin",
@@ -775,10 +802,13 @@
     "MAP": {
       "BTN_SELECT_TYPE": "Liste des cartes",
       "BTN_EDIT": "Editer",
+      "BTN_ANIMATION_PLAY": "Lancer l'animation",
+      "BTN_ANIMATION_PAUSE": "Stopper l'animation",
       "FILTER": "Filtrage",
       "YEAR": "Année",
       "SPACE": "Géométrie",
       "AGG_VALUE": "Valeur représentée",
+      "TECH_VALUE": "Technique",
       "QUARTER": "Trimestre",
       "DETAILS": "Détails",
       "STATS": "Statistiques",

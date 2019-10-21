@@ -89,7 +89,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       injector.get(ValidatorService),
       {
         prependNewElements: false,
-        suppressErrors: true,
+        suppressErrors: environment.production,
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS
       }

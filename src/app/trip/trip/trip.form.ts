@@ -62,7 +62,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     this.usageMode = this.usageMode || this.settings.usageMode;
 
     // Combo: programs
-    this.registerAutocompleteConfig('program', {
+    this.registerAutocompleteField('program', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Program'
@@ -70,13 +70,13 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     });
 
     // Combo: vessels
-    this.registerAutocompleteConfig('vesselFeatures', {
+    this.registerAutocompleteField('vesselFeatures', {
       service: this.vesselService,
-      attributes: ['exteriorMarking', 'name', 'basePortLocation.label', 'basePortLocation.name']/*.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))*/
+      attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
     });
 
     // Combo location
-    this.registerAutocompleteConfig('location', {
+    this.registerAutocompleteField('location', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',

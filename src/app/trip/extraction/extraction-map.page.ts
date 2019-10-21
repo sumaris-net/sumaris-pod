@@ -1,44 +1,44 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Injector,
-  NgZone,
-  OnInit,
-  ViewChild
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit, ViewChild} from "@angular/core";
 import {PlatformService} from "../../core/services/platform.service";
-import {AggregationTypeFilter, ExtractionFilter} from "../services/extraction.service";
-import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {isNil, isNotNil, isNotNilOrBlank} from "../../shared/functions";
+import {AggregationTypeFilter, CustomAggregationStrata, ExtractionService} from "../services/extraction.service";
+import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
+import {arraySize, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {AggregationStrata, AggregationType, ExtractionColumn, ExtractionType} from "../services/extraction.model";
+import {
+  AggregationStrata,
+  AggregationType,
+  ExtractionColumn,
+  ExtractionFilter,
+  ExtractionFilterCriterion,
+  ExtractionUtils
+} from "../services/extraction.model";
 import {Location} from "@angular/common";
 import {MatExpansionPanel} from "@angular/material";
-import {ExtractionForm} from "./extraction-filter.form";
 import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
 import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
 import {CRS, LayerGroup} from 'leaflet';
 import {Feature} from "geojson";
-import {map, throttleTime} from "rxjs/operators";
-import {ModalController} from "@ionic/angular";
-import {ExtractionSelectTypeModal} from "./extraction-list-modal.component";
+import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
+import {AlertController, ModalController} from "@ionic/angular";
+import {AggregationTypeSelectModal} from "./aggregation-type-select.modal";
 import {AccountService} from "../../core/services/account.service";
+import {ExtractionAbstractPage} from "./extraction-abstract.page";
+import {ActivatedRoute, Router} from "@angular/router";
+import {TranslateService} from "@ngx-translate/core";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
+import {AppFormUtils} from "../../core/core.module";
 
-
-const SPACE_STRATA_COLUMNS: string[] = ['area', 'rect', 'statistical_rectangle', 'square'];
-const TIME_STRATA_COLUMNS: string[] = ['year', 'quarter', 'month'];
 
 @Component({
   selector: 'app-extraction-map-page',
-  templateUrl: './extraction-map-page.component.html',
-  styleUrls: ['./extraction-map-page.component.scss'],
+  templateUrl: './extraction-map.page.html',
+  styleUrls: ['./extraction-map.page.scss'],
   animations: [fadeInAnimation, fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionMapPage extends ExtractionForm<AggregationType> implements OnInit {
-
+export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> implements OnInit {
 
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -79,10 +79,10 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     min: 0,
     max: 0
   };
+  showLegend = false;
   legendForm: FormGroup;
   showLegendForm = false;
   columnNames = {};
-  showDetails = false;
   map: L.Map;
   typesFilter: AggregationTypeFilter;
 
@@ -92,21 +92,27 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
   $onOverFeature = new Subject<Feature>();
   $selectedFeature = new BehaviorSubject<Feature | undefined>(undefined);
 
-  $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $spaceColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $columns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $spaceColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+  $criteriaColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
+
 
   $details = new Subject<{ title: string; properties: { name: string; value: string }[]; }>();
   $stats = new Subject<{ title: string; properties: { name: string; value: string }[] }>();
   $years = new BehaviorSubject<number[]>(undefined);
-  $quickYears = new Subject<number[]>();
 
+  animation: Subscription;
 
   @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   get techStrata(): string {
-    return this.form.get('strata').get('tech').value;
+    return this.form.get('strata.techColumnName').value;
+  }
+
+  get aggStrata(): string {
+    return this.form.get('strata.aggColumnName').value;
   }
 
   get year(): number {
@@ -114,7 +120,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
   }
 
   get hasData(): boolean {
-    return this.ready && !this.loading && this.data && this.data.total > 0;
+    return this.ready && this.data && this.data.total > 0;
   }
 
   get legendStartColor(): string {
@@ -135,34 +141,44 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
       .patchValue(value, {emitEvent: false});
   }
 
+  get dirty(): boolean {
+    return this.form.dirty || this.criteriaForm.dirty;
+  }
 
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsPristine(opts);
+    this.form.markAsPristine(opts);
+  }
+
+  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsTouched(opts);
+    AppFormUtils.markAsTouched(this.form);
+  }
   constructor(
-    protected injector: Injector,
+    protected route: ActivatedRoute,
+    protected router: Router,
+    protected alertCtrl: AlertController,
+    protected translate: TranslateService,
+    protected location: Location,
+    protected modalCtrl: ModalController,
+    protected accountService: AccountService,
+    protected service: ExtractionService,
+    protected settings: LocalSettingsService,
     protected formBuilder: FormBuilder,
     protected platform: PlatformService,
-    protected location: Location,
-    protected accountService: AccountService,
-    protected modalCtrl: ModalController,
     protected zone: NgZone,
+    protected aggregationStrataValidator: AggregationTypeValidatorService,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector,
-      formBuilder.group({
-        type: [null, Validators.required],
-        sheetName: [null],
-        strata: formBuilder.group({
-          space: [null, Validators.required],
-          time: [null, Validators.required],
-          tech: [null, Validators.required]
-        }),
-        year: [null, Validators.required],
-        quarter: [null],
-        month: [null],
-        sheets: formBuilder.group({})
-      }));
+    super(route, router, alertCtrl, translate, accountService, service, settings, formBuilder);
 
-    this.routePath = 'map';
-    this._enable = true; // enable the form
+    // Add controls to form
+    this.form.addControl('strata', this.aggregationStrataValidator.getStrataFormGroup());
+    this.form.addControl('year', this.formBuilder.control(null, Validators.required));
+    this.form.addControl('month', this.formBuilder.control(null));
+    this.form.addControl('quarter', this.formBuilder.control(null));
+
+    this.enabled = true; // enable the form
 
     // If supervisor, allow to see all aggregations types
     this.typesFilter = {
@@ -170,7 +186,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
       isSpatial: true
     };
 
-    // TODO: get Settings preference ?
+    // TODO: restored from settings ?
     const legendStartColor = new Color([255, 255, 190], 1);
     const legendEndColor = new Color([150, 30, 30], 1);
     this.legendForm = formBuilder.group({
@@ -183,12 +199,6 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
 
     this.loading = false;
 
-  }
-
-  ngOnInit() {
-
-    super.ngOnInit();
-
     this.platform.ready().then(() => {
       setTimeout(async () => {
         this.ready = true;
@@ -196,29 +206,49 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
       }, 500);
     });
 
-    this.onRefresh
-      .subscribe(() => {
-        if (!this.ready || this.loading || isNil(this.type)) return; // avoid multiple load
-        console.debug('[extraction-map] Refreshing...');
-        return this.load(this.type);
-      });
+    this.registerSubscription(
+      this.onRefresh.pipe(
+        // avoid multiple load)
+        filter(() => this.ready && !this.loading && isNotNil(this.type)),
+        switchMap(() => {
+          if (!this.ready || this.loading || isNil(this.type)) return; // avoid multiple load
+          console.debug('[extraction-map] Refreshing...');
+          return this.loadData();
+        })
+      ).subscribe(() => this.markAsPristine())
+    );
+
+  }
+
+  ngOnInit() {
+    super.ngOnInit();
+
+    this.registerForm(this.criteriaForm);
 
     this.registerSubscription(
       this.$onOverFeature
         .pipe(
-          throttleTime(200)
-        )
-        .subscribe((feature) => this.openFeatureDetails(feature)));
+          throttleTime(200),
+          tap(feature => this.openFeatureDetails(feature))
+        ).subscribe());
+
+    this.registerSubscription(
+      this.criteriaForm.form.valueChanges
+        .pipe(
+          filter(() => this.ready && !this.loading),
+          debounceTime(250)
+        ).subscribe(() => this.markForCheck())
+    );
   }
 
-  onMapReady(map: L.Map) {
-    this.map = map;
+  onMapReady(leafletMap: L.Map) {
+    this.map = leafletMap;
     this.zone.run(() => {
       this.start.bind(this);
     });
   }
 
-  protected loadTypes(): Observable<AggregationType[]> {
+  protected watchTypes(): Observable<AggregationType[]> {
     return this.service.loadAggregationTypes(this.typesFilter)
       .pipe(
         map(types => {
@@ -247,44 +277,49 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     }
   }
 
-  async setType(type: AggregationType, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<void> {
-    await super.setType(type, opts);
+  async setType(type: AggregationType, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<boolean> {
+    const changed = await super.setType(type, opts);
 
-    // Update the title
-    const typeName = this.getI18nTypeName(this.type);
-    this.$title.next(typeName);
+    if (changed) {
+      // Update the title
+      const typeName = this.getI18nTypeName(this.type);
+      this.$title.next(typeName);
 
-    // Update filter columns
-    const columns = (await this.service.loadColumns(this.type, this.sheetName)) || [];
+      // Update filter columns
+      const columns = (await this.service.loadColumns(this.type, this.sheetName)) || [];
 
-    // Translate name
-    this.columnNames = columns.reduce((res, c) => {
-      // Make sure to translate name
-      c.name = c.name !== c.columnName ? c.name : this.getI18nColumnName(c.columnName);
-      res[c.columnName] = c.name;
-      return res;
-    }, {});
+      // Translate names
+      this.translateColumns(columns);
 
-    const techColumns = columns.filter(c => c.type && c.type !== 'string'
-      || c.columnName.endsWith('_count')
-      || c.columnName.endsWith('_time')
-      || c.columnName.endsWith('_weight'));
-    this.$techColumns.next(techColumns);
+      // Convert to a map, by column name
+      this.columnNames = columns.reduce((res, c) => {
+        res[c.columnName] = c.name;
+        return res;
+      }, {});
 
-    const spaceColumns = columns.filter(c => SPACE_STRATA_COLUMNS.includes(c.columnName));
-    this.$spaceColumns.next(spaceColumns);
+      const columnsMap = ExtractionUtils.dispatchColumns(columns, {excludeIfNoValue: true});
 
-    const timeColumns = columns.filter(c => TIME_STRATA_COLUMNS.includes(c.columnName));
-    this.$timeColumns.next(timeColumns);
+      this.$aggColumns.next(columnsMap.aggColumns);
+      this.$techColumns.next(columnsMap.techColumns);
+      this.$spaceColumns.next(columnsMap.spaceColumns);
+      this.$timeColumns.next(columnsMap.timeColumns);
+      this.$criteriaColumns.next(columnsMap.criteriaColumns);
 
-    const excludedFilterColumns = spaceColumns.concat(timeColumns);
-    this.$columns.next(columns.filter(c => !excludedFilterColumns.includes(c)));
 
-    const yearColumn = (columns || []).find(c => c.columnName === 'year');
-    const years = (yearColumn && yearColumn.values || []).map(s => parseInt(s));
-    this.$years.next(years);
+      const yearColumn = (columns || []).find(c => c.columnName === 'year');
+      const years = (yearColumn && yearColumn.values || []).map(s => parseInt(s));
+      this.$years.next(years);
 
-    this.updateQuickYears(years);
+      // Apply default strata
+      const defaultStrata = (this.type.stratum || []).find(s => s.isDefault || s.label === 'default');
+      if (defaultStrata) {
+        this.form.patchValue({
+          strata: defaultStrata
+        }, opts);
+      }
+
+    }
+    return changed;
   }
 
   protected async tryLoadByYearIterations(
@@ -296,6 +331,11 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     startYear = isNotNil(startYear) ? startYear : new Date().getFullYear();
     endYear = isNotNil(endYear) && endYear < startYear ? endYear : startYear - 3;
 
+    const strata: any = (type && type.stratum || []).find(s => s && s.isDefault) || {
+      spaceColumnName: 'square',
+      timeColumnName: 'year'
+    };
+
     let year = startYear;
     let hasData = false;
     do {
@@ -303,11 +343,11 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
 
       // Set default filter
       this.form.patchValue({
-        strata: {space: 'square', time: 'year'},
-        year: year--
+        year: year--,
+        strata
       });
 
-      await this.load(type);
+      await this.loadData();
 
       hasData = this.hasData;
     }
@@ -316,20 +356,19 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     return hasData;
   }
 
-  protected async load(type?: AggregationType) {
+  protected async loadData() {
     if (!this.ready) return;
-    if (!type && this.invalid) {
+    if (!this.type || !this.type.category || !this.type.label) {
       this.loading = false;
       return;
     }
 
-    this.type = type || this.form.get('type').value;
     this.loading = true;
     this.$details.next(); // hide details
     this.error = null;
 
-    const strata = this.form.get('strata').value;
-    const filter = this.getFilterValue();
+    const strata = this.getStrataValue();
+    const filter = this.getFilterValue(strata);
     this.disable();
 
     const now = Date.now();
@@ -344,7 +383,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
         onEachFeature: this.onEachFeature.bind(this)
       });
       let total = 0;
-      const techStrata = this.techStrata;
+      const aggColumnName = strata.aggColumnName;
       let maxValue = 0;
 
       while (hasMore) {
@@ -364,7 +403,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
 
           // Compute max value (need for legend)
           maxValue = geoJson.features
-            .map(feature => feature.properties[techStrata] as number)
+            .map(feature => feature.properties[aggColumnName] as number)
             .reduce((max, value) => Math.max(max, value), maxValue);
 
           offset += size;
@@ -387,7 +426,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
         // Create scale color (max 10 grades
         this.legendForm.get('max').setValue(Math.max(10, Math.round(maxValue + 0.5)), {emitEvent: false});
         const scale = this.createLegendScale();
-        layer.setStyle(this.getFeatureStyleFn(scale, techStrata));
+        layer.setStyle(this.getFeatureStyleFn(scale, aggColumnName));
 
         const typeName = this.$title.getValue();
 
@@ -420,36 +459,27 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     } catch (err) {
       console.error(err);
       this.error = err && err.message || err;
+      this.showLegend = false;
     } finally {
       this.loading = false;
+      this.showLegend = isNotNilOrBlank(strata.aggColumnName);
       this.enable();
     }
 
   }
 
-  async setYear(event: UIEvent, value) {
-    if (event.defaultPrevented) return; // skip
-    event.preventDefault();
-    event.stopPropagation();
+  setYear(event: UIEvent, value) {
+    if (event && event.defaultPrevented) return; // skip
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
 
-    if (this.year == value) return; // same: skip
+    if (this.year === value) return; // same: skip
 
     this.form.get('year').setValue(value);
 
-    this.updateQuickYears();
-
     this.onRefresh.emit();
-  }
-
-  protected updateQuickYears(years?: number[]) {
-    years = years || this.$years.getValue();
-    const year = this.year || years && years[years.length - 1];
-
-    if (!year) return;
-    this.$quickYears.next((years || [year]).reduce((res, item, index) => {
-      // TODO: review this
-      return (+item < year - 3 || +item > year + 3) ? res : res.concat(+item);
-    }, []));
   }
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {
@@ -459,16 +489,16 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
 
   protected openFeatureDetails(feature: Feature) {
     if (this.$selectedFeature.getValue() === feature) return; // skip if already selected
-    const strata = this.form.get('strata').value as AggregationStrata;
+    const strata = this.getStrataValue();
     const properties = Object.getOwnPropertyNames(feature.properties)
-      .filter(key => !strata.tech || key !== strata.tech)
+      .filter(key => !strata.aggColumnName || key !== strata.aggColumnName)
       .map(key => {
         return {
           name: this.columnNames[key],
           value: feature.properties[key]
         };
       });
-    const title = isNotNilOrBlank(strata.tech) ? `${this.columnNames[strata.tech]}: <b>${feature.properties[strata.tech]}</b>` : undefined;
+    const title = isNotNilOrBlank(strata.aggColumnName) ? `${this.columnNames[strata.aggColumnName]}: <b>${feature.properties[strata.aggColumnName]}</b>` : undefined;
 
     // Emit events
     this.$details.next({title, properties});
@@ -517,7 +547,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
       isSpatial: true
     };
     const modal = await this.modalCtrl.create({
-      component: ExtractionSelectTypeModal,
+      component: AggregationTypeSelectModal,
       componentProps: {
         filter: filter
       }, keyboardClose: true
@@ -543,6 +573,38 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
       }
     }
   }
+
+  toggleAnimation(event?: UIEvent) {
+    if (event && event.defaultPrevented) return;
+    // Avoid to expand the filter section
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    // Stop existing animation
+    if (this.animation) {
+      this.animation.unsubscribe();
+      this.animation = null;
+    }
+    else {
+      const years = this.$years.getValue();
+      console.info("[extraction-map] Starting animation...");
+      this.animation = isNotEmptyArray(years) && Observable.timer(500, 500)
+        .pipe(
+          tap(index => {
+            const year = years[index % arraySize(years)];
+            console.info("[extraction-map] Rendering animation for year {" + year + "}...");
+            this.setYear(null, year);
+          })
+        )
+        .subscribe();
+
+      this.animation.add(() => {
+        console.info("[extraction-map] Animation stopped");
+      });
+    }
+  }
+
 
   /* -- protected methods -- */
 
@@ -592,49 +654,47 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
   }
 
 
-  protected getFilterValue(): ExtractionFilter {
+  protected getFilterValue(strata?: CustomAggregationStrata): ExtractionFilter {
 
     const filter = super.getFilterValue();
 
-    const json = this.form.value;
-    const strata = json.strata as AggregationStrata;
-    const sheetName = this.sheetName;
-
+    strata = strata || this.getStrataValue();
     if (!strata) return filter;
 
+    const json = this.form.value;
+    const sheetName = this.sheetName;
+
     // Time strata = year
-    if (strata.time === 'year' && json.year > 0) {
-      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName});
+    if (strata.timeColumnName === 'year' && json.year > 0) {
+      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName} as ExtractionFilterCriterion);
     }
 
     // Time strata = quarter
-    else if (strata.time === 'quarter' && json.year > 0 && json.quarter > 0) {
-      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName});
-      filter.criteria.push({name: 'quarter', operator: '=', value: json.quarter, sheetName: sheetName});
+    else if (strata.timeColumnName === 'quarter' && json.year > 0 && json.quarter > 0) {
+      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName} as ExtractionFilterCriterion);
+      filter.criteria.push({name: 'quarter', operator: '=', value: json.quarter, sheetName: sheetName} as ExtractionFilterCriterion);
     }
 
     // Time strata = month
-    else if (strata.time === 'month' && json.year > 0 && json.month > 0) {
-      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName});
-      filter.criteria.push({name: 'month', operator: '=', value: json.month, sheetName: sheetName});
+    else if (strata.timeColumnName === 'month' && json.year > 0 && json.month > 0) {
+      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName} as ExtractionFilterCriterion);
+      filter.criteria.push({name: 'month', operator: '=', value: json.month, sheetName: sheetName} as ExtractionFilterCriterion);
     }
 
     return filter;
   }
 
-  public resetFilterCriteria() {
-
-    // Close the filter panel
-    if (this.filterExpansionPanel && this.filterExpansionPanel.expanded) {
-      this.filterExpansionPanel.close();
-    }
-
-    super.resetFilterCriteria();
+  protected isEquals(t1: AggregationType, t2: AggregationType): boolean {
+    return AggregationType.equals(t1, t2);
   }
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
-
+  protected getStrataValue(): CustomAggregationStrata {
+    const json = this.form.get('strata').value;
+    delete json.__typename;
+    return json as AggregationStrata;
+  }
 }

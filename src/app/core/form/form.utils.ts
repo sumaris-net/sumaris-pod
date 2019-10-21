@@ -1,9 +1,16 @@
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from "@angular/forms";
-import {isNil, nullIfUndefined, selectInputContent, toBoolean, filterNumberInput} from "../../shared/functions";
+import {
+  isNil,
+  nullIfUndefined,
+  selectInputContent,
+  toBoolean,
+  filterNumberInput,
+  toDateISOString
+} from "../../shared/shared.module";
 import {DATE_ISO_PATTERN} from "../../shared/constants";
 import {isMoment} from "moment";
 import {Entity} from "../services/model";
-import {Observable, timer} from "rxjs";
+import {Observable} from "rxjs";
 import {filter, first, tap} from "rxjs/operators";
 import {AppForm} from "./form.class";
 
@@ -103,7 +110,7 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
     }
     // Date
     else if (isMoment(source[key])) {
-      value[key] = source[key].format(DATE_ISO_PATTERN);
+      value[key] = toDateISOString(source[key]);
     }
     // Any other control: replace undefined by null value
     else {
@@ -325,7 +332,7 @@ export function waitWhilePending<T extends {pending: boolean; }>(form: T, opts?:
 }): Promise<any> {
   const period = opts && opts.checkPeriod || 300;
   if (!form.pending) return;
-  return timer(period, period)
+  return Observable.timer(period, period)
     .pipe(
       // For DEBUG :
       //  tap(() => console.log("Waiting async validator...", form)),
@@ -334,7 +341,7 @@ export function waitWhilePending<T extends {pending: boolean; }>(form: T, opts?:
     ).toPromise();
 }
 
-export class FormArrayHelper<T = Entity<any>> {
+export class FormArrayHelper<T = Entity<T>> {
 
   private readonly arrayControl: FormArray;
   private allowEmptyArray: boolean;

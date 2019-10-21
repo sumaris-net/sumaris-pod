@@ -86,7 +86,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
     // Combo: gears
-    this.registerAutocompleteConfig('gear', {
+    this.registerAutocompleteField('gear', {
       suggestFn: async (value, options) => suggestFromArray<ReferentialRef>(this._gears, value, options),
       showAllOnFocus: false
     });
