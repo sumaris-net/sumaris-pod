@@ -36,6 +36,7 @@ public class ExtractionProductVO implements IReferentialVO,
     private Integer parentId;
 
     private List<ExtractionProductTableVO> tables;
+    private List<ExtractionProductStrataVO> stratum;
 
     public List<String> getTableNames() {
         if (tables == null) return null;

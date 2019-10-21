@@ -15,7 +15,7 @@ public class AggregationResultVO extends ExtractionResultVO {
 
     List<String> spaceStrata;
     List<String> timeStrata;
-    List<String> techStrata;
+    List<String> aggStrata;
 
     public AggregationResultVO() {
         super();

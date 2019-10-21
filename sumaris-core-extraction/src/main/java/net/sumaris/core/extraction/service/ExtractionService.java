@@ -1,16 +1,14 @@
 package net.sumaris.core.extraction.service;
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.extraction.vo.ExtractionContextVO;
-import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.ExtractionResultVO;
-import net.sumaris.core.extraction.vo.ExtractionTypeVO;
-import net.sumaris.core.extraction.vo.ExtractionRawFormatEnum;
+import net.sumaris.core.extraction.vo.*;
+import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -22,14 +20,14 @@ import java.util.List;
 public interface ExtractionService {
 
     @Transactional(readOnly = true)
-    List<ExtractionTypeVO> getAllExtractionTypes();
+    List<ExtractionTypeVO> findByFilter(@Nullable ExtractionTypeFilterVO filter);
 
     @Transactional
-    ExtractionContextVO execute(ExtractionTypeVO type, ExtractionFilterVO filter);
+    ExtractionContextVO execute(ExtractionTypeVO type, @Nullable ExtractionFilterVO filter);
 
     @Transactional
     ExtractionResultVO read(ExtractionContextVO context,
-                            ExtractionFilterVO filter,
+                            @Nullable ExtractionFilterVO filter,
                             int offset,
                             int size,
                             String sort,
@@ -37,7 +35,7 @@ public interface ExtractionService {
 
     @Transactional
     ExtractionResultVO executeAndRead(ExtractionTypeVO type,
-                                      ExtractionFilterVO filter,
+                                      @Nullable ExtractionFilterVO filter,
                                       int offset,
                                       int size,
                                       String sort,

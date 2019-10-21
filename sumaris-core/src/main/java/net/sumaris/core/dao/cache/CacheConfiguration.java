@@ -145,13 +145,13 @@ public class CacheConfiguration {
     }
 
     @Bean
-    public EhCacheFactoryBean productsByStatusCache() {
-        return Caches.createEternalHeapCache(ehcache(), CacheNames.PRODUCTS_BY_STATUS, 100);
+    public EhCacheFactoryBean productsCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PRODUCTS, 100);
     }
 
     @Bean
-    public EhCacheFactoryBean productsCache() {
-        return Caches.createEternalHeapCache(ehcache(), CacheNames.PRODUCTS, 100);
+    public EhCacheFactoryBean productsByFilterCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PRODUCTS_BY_FILTER, 100);
     }
 
     @Bean

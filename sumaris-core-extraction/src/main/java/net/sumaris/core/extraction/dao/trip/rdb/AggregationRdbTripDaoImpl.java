@@ -3,7 +3,6 @@ package net.sumaris.core.extraction.dao.trip.rdb;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -21,7 +20,6 @@ import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import org.apache.commons.collections4.SetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +32,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -63,8 +60,8 @@ public class AggregationRdbTripDaoImpl<
 
     private static List<String> SPACE_STRATA = ImmutableList.of("area", "rect", "square");
     private static List<String> TIME_STRATA = ImmutableList.of("year", "quarter", "month");
-    private static Map<String, List<String>> TECH_STRATA_BY_SHEETNAME = ImmutableMap.<String, List<String>>builder()
-            .put(HH_SHEET_NAME, ImmutableList.of("trip_count"))
+    private static Map<String, List<String>> AGG_STRATA_BY_SHEETNAME = ImmutableMap.<String, List<String>>builder()
+            .put(HH_SHEET_NAME, ImmutableList.of(COLUMN_TRIP_COUNT, COLUMN_STATION_COUNT))
             .build();
 
 
@@ -135,11 +132,11 @@ public class AggregationRdbTripDaoImpl<
         Preconditions.checkNotNull(strata);
 
         Set<String> groupByColumnNames = Sets.newLinkedHashSet();
-        Map<String, ExtractionTableDao.SQLAggregatedFunction> techColumns = Maps.newHashMap();
+        Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = Maps.newHashMap();
 
         // Process space strata
         {
-            String spaceStrata = strata.getSpace() != null ? strata.getSpace().toLowerCase() : COLUMN_AREA;
+            String spaceStrata = strata.getSpaceColumnName() != null ? strata.getSpaceColumnName().toLowerCase() : COLUMN_AREA;
 
             // Replace alias
             if (COLUMN_ALIAS.containsKey(spaceStrata)) spaceStrata = COLUMN_ALIAS.get(spaceStrata);
@@ -157,7 +154,7 @@ public class AggregationRdbTripDaoImpl<
 
         // Time strata
         {
-            String timeStrata = strata.getTime() != null ? strata.getTime().toLowerCase() : COLUMN_YEAR;
+            String timeStrata = strata.getTimeColumnName() != null ? strata.getTimeColumnName().toLowerCase() : COLUMN_YEAR;
             switch (timeStrata) {
                 case COLUMN_MONTH:
                     groupByColumnNames.add(COLUMN_MONTH);
@@ -169,25 +166,24 @@ public class AggregationRdbTripDaoImpl<
             }
         }
 
-        // Tech strata
+        // Agg strata
         {
-            String techStrata = strata.getTech() != null ? strata.getTech().toLowerCase() : "trip_count";
-            ExtractionTableDao.SQLAggregatedFunction function = strata.getTechFunction() != null ?
-                    ExtractionTableDao.SQLAggregatedFunction.valueOf(strata.getTechFunction().toUpperCase()) :
+            String aggStrata = strata.getAggColumnName() != null ? strata.getAggColumnName().toLowerCase() : COLUMN_STATION_COUNT;
+            ExtractionTableDao.SQLAggregatedFunction function = strata.getAggFunction() != null ?
+                    ExtractionTableDao.SQLAggregatedFunction.valueOf(strata.getAggFunction().toUpperCase()) :
                     ExtractionTableDao.SQLAggregatedFunction.SUM;
-            techColumns.put(techStrata, function);
+            aggColumns.put(aggStrata, function);
         }
 
-        ExtractionResultVO rows = extractionTableDao.getTableGroupByRows(tableName, filter, groupByColumnNames, techColumns,
+        ExtractionResultVO rows = extractionTableDao.getTableGroupByRows(tableName, filter, groupByColumnNames, aggColumns,
                 offset, size, sortAttribute, direction);
 
         AggregationResultVO result = new AggregationResultVO(rows);
 
-        // TODO: filter is NULL values ?
         result.setSpaceStrata(SPACE_STRATA);
         result.setTimeStrata(TIME_STRATA);
         if (filter.getSheetName() != null) {
-            result.setTechStrata(TECH_STRATA_BY_SHEETNAME.get(filter.getSheetName()));
+            result.setAggStrata(AGG_STRATA_BY_SHEETNAME.get(filter.getSheetName()));
         }
 
         return result;

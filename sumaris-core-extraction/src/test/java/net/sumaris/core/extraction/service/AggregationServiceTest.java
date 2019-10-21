@@ -37,9 +37,10 @@ public class AggregationServiceTest extends AbstractServiceTest {
         type.setLabel(ExtractionRawFormatEnum.RDB.name());
 
         AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setSpace("area");
-        strata.setTime("year");
-        strata.setTech("station_count");
+        strata.setSpaceColumnName("area");
+        strata.setTimeColumnName("year");
+        strata.setAggColumnName("station_count");
+        strata.setTechColumnName("vessel_count");
 
         ExtractionFilterVO filter = new ExtractionFilterVO();
         filter.setSheetName("HH");
@@ -50,7 +51,8 @@ public class AggregationServiceTest extends AbstractServiceTest {
         Preconditions.checkArgument(result.getRows().size() > 0);
 
         // FIXME
-        //Preconditions.checkNotNull(result.getTotal() > 0);
+        Preconditions.checkNotNull(result.getTotal());
+        Preconditions.checkArgument(result.getTotal().intValue() > 0);
 
     }
 
@@ -65,9 +67,10 @@ public class AggregationServiceTest extends AbstractServiceTest {
         filter.setSheetName("HH");
 
         AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setSpace(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
-        strata.setTime(ProductRdbStation.COLUMN_YEAR);
-        strata.setTech("station_count");
+        strata.setSpaceColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
+        strata.setAggColumnName("station_count");
+        strata.setTechColumnName("vessel_count");
 
         ExtractionResultVO result = service.executeAndRead(type, filter, strata, 0, 100, null, null);
         Preconditions.checkNotNull(result);
@@ -131,7 +134,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         filter.setCriteria(ImmutableList.of(criterion));
 
         AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setSpace("area");
+        strata.setSpaceColumnName("area");
         AggregationResultVO result = service.read(type, filter, strata, 0,100, null, null);
 
         Assert.assertNotNull(result);

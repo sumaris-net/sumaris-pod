@@ -11,25 +11,26 @@ import net.sumaris.core.extraction.utils.ExtractionBeans;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -54,24 +55,21 @@ public class AggregationServiceImpl implements AggregationService {
     private ExtractionTableDao extractionTableDao;
 
     @Override
-    public List<AggregationTypeVO> findAllTypes(AggregationTypeFilterVO filter, ProductFetchOptions fetchOptions) {
-        List<Integer> statusIds = filter.getStatusIds();
-        if (CollectionUtils.isEmpty(statusIds) && filter.getStatusId() != null) {
-            statusIds = ImmutableList.of(filter.getStatusId());
-        }
-        return ListUtils.emptyIfNull(extractionProductDao.findAllByStatus(statusIds, fetchOptions))
+    public List<AggregationTypeVO> findByFilter(AggregationTypeFilterVO filter, ProductFetchOptions fetchOptions) {
+
+        final AggregationTypeFilterVO notNullFilter = filter != null ? filter : new AggregationTypeFilterVO();
+
+        return ListUtils.emptyIfNull(getProductAggregationTypes(notNullFilter, fetchOptions))
                 .stream()
-                .filter(t -> filter.getIsSpatial() == null || Objects.equals(filter.getIsSpatial(), t.getIsSpatial()))
-                .map(this::toAggregationType)
+                .filter(t -> notNullFilter.getIsSpatial() == null || Objects.equals(notNullFilter.getIsSpatial(), t.getIsSpatial()))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<AggregationTypeVO> getAllAggregationTypes(ProductFetchOptions fetchOptions) {
-        return ImmutableList.<AggregationTypeVO>builder()
-                .addAll(getProductAggregationTypes(fetchOptions))
-                .addAll(getLiveAggregationTypes())
-                .build();
+    public AggregationTypeVO get(int id, ProductFetchOptions fetchOptions) {
+        ExtractionProductVO result = extractionProductDao.get(id, fetchOptions)
+                .orElseThrow(() -> new DataRetrievalFailureException(String.format("Unknown aggregation type {%s}", id)));
+        return toAggregationType(result);
     }
 
     @Override
@@ -182,35 +180,52 @@ public class AggregationServiceImpl implements AggregationService {
         // Load the product
         ExtractionProductVO target = null;
         if (type.getId() != null) {
-            target = extractionProductDao.get(type.getId(), ProductFetchOptions.MINIMAL)
+            target = extractionProductDao.get(type.getId(), ProductFetchOptions.FOR_UPDATE)
                     .orElse(null);
         }
 
-        if (target == null) {
+        boolean isNew = target == null;
+        if (isNew) {
             target = new ExtractionProductVO();
             target.setLabel(type.getLabel());
         }
 
-        // Prepare a executable type (with label=format)
-        AggregationTypeVO executableType = new AggregationTypeVO();
-        executableType.setLabel(type.getFormat());
-        executableType.setCategory(type.getCategory());
+        // Applying a new execution
+        if (isNew || filter != null) {
 
-        // Execute the aggregation
-        AggregationContextVO context = execute(executableType, filter);
+            // Prepare a executable type (with label=format)
+            AggregationTypeVO executableType = new AggregationTypeVO();
+            executableType.setLabel(type.getFormat());
+            executableType.setCategory(type.getCategory());
 
-        // Update product tables, using the aggregation result
-        toProductVO(context, target);
+            // Execute the aggregation
+            AggregationContextVO context = execute(executableType, filter);
 
-        // Copy some properties from the given type
-        target.setId(type.getId());
-        target.setName(type.getName());
-        target.setUpdateDate(type.getUpdateDate());
-        target.setDescription(type.getDescription());
-        target.setStatusId(type.getStatusId());
-        target.setRecorderDepartment(type.getRecorderDepartment());
-        target.setRecorderPerson(type.getRecorderPerson());
-        target.setTables(toProductTableVO(context));
+            // Update product tables, using the aggregation result
+            toProductVO(context, target);
+
+            // Copy some properties from the given type
+            target.setName(type.getName());
+            target.setUpdateDate(type.getUpdateDate());
+            target.setDescription(type.getDescription());
+            target.setStatusId(type.getStatusId());
+            target.setRecorderDepartment(type.getRecorderDepartment());
+            target.setRecorderPerson(type.getRecorderPerson());
+            target.setStratum(type.getStratum());
+        }
+
+        // Aggregation already exists, and not new execution need: just save it
+        else {
+            Preconditions.checkArgument(StringUtils.equalsIgnoreCase(target.getLabel(), type.getLabel()), "Cannot update the label of an existing product");
+            target.setName(type.getName());
+            target.setUpdateDate(type.getUpdateDate());
+            target.setDescription(type.getDescription());
+            target.setComments(type.getComments());
+            target.setStatusId(type.getStatusId());
+            target.setUpdateDate(type.getUpdateDate());
+            target.setIsSpatial(type.getIsSpatial());
+            target.setStratum(type.getStratum());
+        }
 
         // Save the product
         target = extractionProductDao.save(target);
@@ -257,8 +272,25 @@ public class AggregationServiceImpl implements AggregationService {
 
     /* -- protected -- */
 
+    protected List<AggregationTypeVO> getAllAggregationTypes(ProductFetchOptions fetchOptions) {
+        return ImmutableList.<AggregationTypeVO>builder()
+                .addAll(getProductAggregationTypes(fetchOptions))
+                .addAll(getLiveAggregationTypes())
+                .build();
+    }
     protected List<AggregationTypeVO> getProductAggregationTypes(ProductFetchOptions fetchOptions) {
-        return ListUtils.emptyIfNull(extractionProductDao.getAll(fetchOptions))
+        return getProductAggregationTypes(null, fetchOptions);
+    }
+
+    protected List<AggregationTypeVO> getProductAggregationTypes(@Nullable AggregationTypeFilterVO filter, ProductFetchOptions fetchOptions) {
+        filter = filter != null ? filter : new AggregationTypeFilterVO();
+
+        // Exclude types with a DISABLE status, by default
+        if (ArrayUtils.isEmpty(filter.getStatusIds())) {
+            filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()});
+        }
+
+        return ListUtils.emptyIfNull(extractionProductDao.findByFilter(filter, fetchOptions))
                 .stream()
                 .map(this::toAggregationType)
                 .collect(Collectors.toList());
@@ -293,6 +325,7 @@ public class AggregationServiceImpl implements AggregationService {
         switch (format) {
             case RDB:
             case COST:
+            case FREE:
             case SURVIVAL_TEST:
                 return aggregationRdbTripDao.aggregate(source, filter);
             default:
@@ -306,19 +339,24 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     protected AggregationTypeVO toAggregationType(ExtractionProductVO source) {
-        AggregationTypeVO type = new AggregationTypeVO();
+        AggregationTypeVO target = new AggregationTypeVO();
 
-        Beans.copyProperties(source, type);
+        Beans.copyProperties(source, target);
 
         // Change label and category to lowercase (better for UI client)
-        type.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
-        type.setLabel(source.getLabel().toLowerCase());
+        target.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
+        target.setLabel(source.getLabel().toLowerCase());
 
         Collection<String> sheetNames = source.getSheetNames();
         if (CollectionUtils.isNotEmpty(sheetNames)) {
-            type.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
+            target.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
         }
-        return type;
+
+        if (CollectionUtils.isNotEmpty(source.getStratum())) {
+            target.setStratum(source.getStratum());
+        }
+
+        return target;
     }
 
 
@@ -326,9 +364,9 @@ public class AggregationServiceImpl implements AggregationService {
 
         target.setLabel(source.getLabel().toUpperCase() + "-" + source.getId());
         target.setName(String.format("Aggregation #%s", source.getId()));
+        target.setIsSpatial(source.isSpatial());
 
         target.setTables(toProductTableVO(source));
-        target.setIsSpatial(source.isSpatial());
     }
 
     protected List<ExtractionProductTableVO> toProductTableVO(AggregationContextVO source) {

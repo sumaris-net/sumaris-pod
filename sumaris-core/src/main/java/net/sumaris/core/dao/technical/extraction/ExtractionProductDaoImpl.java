@@ -7,35 +7,27 @@ import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
-import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionProduct;
-import net.sumaris.core.model.technical.extraction.ExtractionProductColumn;
-import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
-import net.sumaris.core.model.technical.extraction.ExtractionProductValue;
+import net.sumaris.core.model.technical.extraction.*;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.ExtractionBeans;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,23 +52,26 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
     @Autowired
     private PersonDao personDao;
 
-    @Autowired
-    private SumarisDatabaseMetadata databaseMetaData;
-
     @Override
-    public List<ExtractionProductVO> findAllByStatus(List<Integer> statusIds, ProductFetchOptions fetchOptions) {
-        Preconditions.checkNotNull(statusIds);
-        Preconditions.checkArgument(statusIds.size() > 0);
-        return getEntityManager().createQuery("from ExtractionProduct p where p.status.id IN (:statusIds)", ExtractionProduct.class)
-                .setParameter("statusIds", statusIds)
-                .getResultStream()
-                .map(p -> toProductVO(p, fetchOptions))
-                .collect(Collectors.toList());
-    }
+    public List<ExtractionProductVO> findByFilter(ExtractionProductFilterVO filter, ProductFetchOptions fetchOptions) {
+        Preconditions.checkNotNull(filter);
+        Preconditions.checkArgument(ArrayUtils.isNotEmpty(filter.getStatusIds()));
 
-    @Override
-    public List<ExtractionProductVO> getAll(ProductFetchOptions fetchOptions) {
-        return getEntityManager().createQuery("from ExtractionProduct p where p.status.id!=0", ExtractionProduct.class)
+        StringBuilder hqlQuery = new StringBuilder();
+        hqlQuery.append("from ExtractionProduct p where p.status.id IN (:statusIds)");
+
+        if (filter.getDepartmentId() != null) {
+            hqlQuery.append(" and p.recorderDepartment.id = :departmentId");
+        }
+
+        TypedQuery<ExtractionProduct> query = getEntityManager().createQuery(hqlQuery.toString(), ExtractionProduct.class)
+                .setParameter("statusIds", ImmutableList.copyOf(filter.getStatusIds()));
+
+        if (filter.getDepartmentId() != null) {
+            query.setParameter("departmentId", filter.getDepartmentId());
+        }
+
+        return query
                 .getResultStream()
                 .map(p -> toProductVO(p, fetchOptions))
                 .collect(Collectors.toList());
@@ -85,7 +80,8 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
     @Override
     public ExtractionProductVO getByLabel(String label, ProductFetchOptions fetchOptions) {
         Preconditions.checkNotNull(label);
-        return toProductVO(getEntityManager().createQuery("from ExtractionProduct p where p.label=:label", ExtractionProduct.class)
+
+        return toProductVO(getEntityManager().createQuery("from ExtractionProduct p where upper(p.label) =:label", ExtractionProduct.class)
                         .setParameter("label", label.toUpperCase())
                         .getSingleResult(),
                 fetchOptions);
@@ -129,7 +125,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
                 .setParameter(productIdParam, id)
                 .setParameter(tableLabelParam, tableLabel)
                 .getResultStream()
-                .map(c -> toColumnVO(c, null))
+                .map(c -> toColumnVO(c, null /*with values*/))
                 .collect(Collectors.toList());
     }
 
@@ -152,7 +148,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         }
 
         // VO -> Entity
-        productVOToEntity(source, entity, true);
+        productVOToEntity(source, entity, true/*IMPORTANT: recorder person/department can be null*/);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -177,8 +173,17 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         // Save tables
         saveProductTables(source.getTables(), source.getId(), newUpdateDate);
 
+        getSession().flush();
+        getSession().clear();
+
+        // Save stratum
+        saveProductStratum(source.getStratum(), source.getId(), newUpdateDate);
+
         // Final merge
-        //entityManager.merge(entity);
+        entityManager.merge(entity);
+
+        getSession().flush();
+        getSession().clear();
 
         return source;
     }
@@ -219,8 +224,6 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
             }
         }
 
-
-
         // Recorder person
         DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
 
@@ -240,7 +243,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
             if (parent.getTables() != null) {
                 List<ExtractionProductTable> toRemove = ImmutableList.copyOf(parent.getTables());
                 parent.getTables().clear();
-                toRemove.stream().forEach(em::remove);
+                toRemove.forEach(em::remove);
             }
         } else {
             Map<String, ExtractionProductTable> existingItems = Beans.splitByProperty(
@@ -273,21 +276,103 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
                         }
 
                         source.setUpdateDate(updateDate);
+
+                        if (isNew) parent.getTables().add(target);
                     });
 
             getSession().flush();
 
             // Save each columns
+            // Important: Skip if not columns, because UI editor not sent columns at all.
+            boolean hasColumns = sources.stream().anyMatch(source -> source != null && source.getColumns() != null);
+            if (hasColumns) {
+                sources.stream()
+                        .filter(Objects::nonNull)
+                        .forEach(source -> saveProductTableColumns(source.getColumns(), source.getId(), updateDate));
+                getSession().flush();
+            }
+
+            // Remove old tables
+            if (MapUtils.isNotEmpty(existingItems)) {
+                parent.getTables().removeAll(existingItems.values());
+                existingItems.values().forEach(em::remove);
+            }
+
+        }
+    }
+
+    protected void saveProductStratum(List<ExtractionProductStrataVO> sources, int productId, Timestamp updateDate) {
+        ExtractionProduct parent = get(ExtractionProduct.class, productId);
+
+        final EntityManager em = getEntityManager();
+        if (CollectionUtils.isEmpty(sources)) {
+            if (parent.getStratum() != null) {
+                List<ExtractionProductStrata> toRemove = ImmutableList.copyOf(parent.getStratum());
+                parent.getStratum().clear();
+                toRemove.forEach(em::remove);
+            }
+        } else {
+            Map<String, ExtractionProductStrata> existingItems = Beans.splitByProperty(parent.getStratum(), ExtractionProductStrata.PROPERTY_LABEL);
+            Map<String, ExtractionProductTable> existingTables = Beans.splitByProperty(parent.getTables(), ExtractionProductTable.PROPERTY_LABEL);
+            final Status enableStatus = load(Status.class, StatusEnum.ENABLE.getId());
+            if (parent.getStratum() == null) {
+                parent.setStratum(Lists.newArrayList());
+            }
+
+            // Save each table
             sources.stream()
                     .filter(Objects::nonNull)
-                    .forEach(source -> saveProductTableColumns(source.getColumns(), source.getId(), updateDate));
+                    .forEach(source -> {
+                        ExtractionProductStrata target = existingItems.remove(source.getLabel());
+                        boolean isNew = (target == null);
+                        if (isNew) {
+                            target = new ExtractionProductStrata();
+                            Beans.copyProperties(source, target);
+                        }
+                        else {
+                            target.setName(source.getName());
+                            target.setIsDefault(source.getIsDefault());
+                        }
+                        target.setProduct(parent);
+                        target.setStatus(source.getStatusId() != null ? load(Status.class, source.getStatusId()) : enableStatus);
+                        target.setUpdateDate(updateDate);
+
+                        // Link to table (find by sheet anem, or get as singleton)
+                        ExtractionProductTable table = StringUtils.isNotBlank(source.getSheetName())
+                                ? existingTables.get(source.getSheetName())
+                                : (existingTables.size() == 1 ? existingTables.values().iterator().next() : null);
+                        if (table != null) {
+                            target.setTable(table);
+                            target.setTimeColumn(findColumnByName(table, source.getTimeColumnName()));
+                            target.setSpaceColumn(findColumnByName(table, source.getSpaceColumnName()));
+                            target.setAggColumn(findColumnByName(table, source.getAggColumnName()));
+                            target.setTechColumn(findColumnByName(table, source.getTechColumnName()));
+                        }
+                        else {
+                            target.setTable(null);
+                            target.setTimeColumn(null);
+                            target.setSpaceColumn(null);
+                            target.setAggColumn(null);
+                            target.setTechColumn(null);
+                        }
+
+                        if (isNew) {
+                            target.setCreationDate(updateDate);
+                            em.persist(target);
+                            source.setId(target.getId());
+                        } else {
+                            em.merge(target);
+                        }
+
+                        source.setUpdateDate(updateDate);
+                    });
 
             getSession().flush();
 
             // Remove old tables
             if (MapUtils.isNotEmpty(existingItems)) {
-                parent.getTables().removeAll(existingItems.values());
-                existingItems.values().stream().forEach(em::remove);
+                parent.getStratum().removeAll(existingItems.values());
+                existingItems.values().forEach(em::remove);
             }
 
         }
@@ -303,7 +388,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
             if (parent.getColumns() != null) {
                 List<ExtractionProductColumn> toRemove = ImmutableList.copyOf(parent.getColumns());
                 parent.getColumns().clear();
-                toRemove.stream().forEach(em::remove);
+                toRemove.forEach(em::remove);
             }
         } else {
             Map<String, ExtractionProductColumn> existingItems = Beans.splitByProperty(
@@ -332,10 +417,12 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
                         } else {
                             em.merge(target);
                         }
+
+                        if (isNew) parent.getColumns().add(target);
                     });
 
             getSession().flush();
-            getSession().clear();
+            //getSession().clear();
 
             // Save column values
             sources.stream()
@@ -343,16 +430,16 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
                     .forEach(source -> saveProductTableValues(source.getValues(), source.getId()));
 
             getSession().flush();
-            getSession().clear();
+            //getSession().clear();
 
             // Remove old tables
             if (MapUtils.isNotEmpty(existingItems)) {
                 parent.getColumns().removeAll(existingItems.values());
-                existingItems.values().stream().forEach(em::remove);
+                existingItems.values().forEach(em::remove);
             }
 
             getSession().flush();
-            getSession().clear();
+            //getSession().clear();
         }
     }
 
@@ -364,7 +451,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
             if (parent.getValues() != null) {
                 List<ExtractionProductValue> toRemove = ImmutableList.copyOf(parent.getValues());
                 parent.getValues().clear();
-                toRemove.stream().forEach(em::remove);
+                toRemove.forEach(em::remove);
             }
         } else {
             Map<String, ExtractionProductValue> existingItems = Beans.splitByProperty(
@@ -390,15 +477,17 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
                         } else {
                             em.merge(target);
                         }
+
+                        if (isNew) parent.getValues().add(target);
                     });
 
             getSession().flush();
-            getSession().clear();
+            //getSession().clear();
 
             // Remove old values
             if (MapUtils.isNotEmpty(existingItems)) {
                 parent.getValues().removeAll(existingItems.values());
-                existingItems.values().stream().forEach(em::remove);
+                existingItems.values().forEach(em::remove);
             }
 
         }
@@ -407,7 +496,6 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
     protected ExtractionProductVO toProductVO(ExtractionProduct source, ProductFetchOptions fetchOptions) {
         ExtractionProductVO target = new ExtractionProductVO();
         Beans.copyProperties(source, target);
-
 
         // Status
         if (source.getStatus() != null) {
@@ -424,17 +512,25 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
             }
         }
 
+        // Stratum
+        if (fetchOptions == null || fetchOptions.isWithStratum()) {
+            if (CollectionUtils.isNotEmpty(source.getStratum())) {
+                List<ExtractionProductStrataVO> stratum = source.getStratum().stream()
+                        .map(t -> toProductStrataVO(t))
+                        .collect(Collectors.toList());
+                target.setStratum(stratum);
+            }
+        }
+
         // Recorder department and person
         if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) {
             target.setRecorderDepartment(departmentDao.toDepartmentVO(source.getRecorderDepartment()));
         }
-
         if (fetchOptions == null || fetchOptions.isWithRecorderPerson()) {
             target.setRecorderPerson(personDao.toPersonVO(source.getRecorderPerson()));
         }
 
         return target;
-
     }
 
     protected ExtractionProductTableVO toProductTableVO(ExtractionProductTable source, ProductFetchOptions fetchOptions) {
@@ -455,9 +551,46 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         if (fetchOptions == null || fetchOptions.isWithColumns()) {
             if (CollectionUtils.isNotEmpty(source.getColumns())) {
                 target.setColumns(source.getColumns().stream()
-                .map(c -> toColumnVO(c, fetchOptions))
-                .collect(Collectors.toList()));
+                        .map(c -> toColumnVO(c, fetchOptions))
+                        .collect(Collectors.toList()));
             }
+        }
+
+        return target;
+
+    }
+
+    protected ExtractionProductStrataVO toProductStrataVO(ExtractionProductStrata source) {
+        ExtractionProductStrataVO target = new ExtractionProductStrataVO();
+        Beans.copyProperties(source, target);
+
+        // parent
+        if (source.getProduct() != null) {
+            target.setProductId(source.getProduct().getId());
+        }
+
+        // Status
+        if (source.getStatus() != null) {
+            target.setStatusId(source.getStatus().getId());
+        }
+
+        // table name
+        if (source.getTable() != null) {
+            target.setSheetName(source.getTable().getLabel());
+        }
+
+        // Column names
+        if (source.getTimeColumn() != null) {
+            target.setTimeColumnName(source.getTimeColumn().getColumnName());
+        }
+        if (source.getSpaceColumn() != null) {
+            target.setSpaceColumnName(source.getSpaceColumn().getColumnName());
+        }
+        if (source.getTechColumn() != null) {
+            target.setTechColumnName(source.getTechColumn().getColumnName());
+        }
+        if (source.getAggColumn() != null) {
+            target.setAggColumnName(source.getAggColumn().getColumnName());
         }
 
         return target;
@@ -481,5 +614,11 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         return target;
     }
 
+    protected ExtractionProductColumn findColumnByName(ExtractionProductTable table, String columnName) {
+        if (StringUtils.isBlank(columnName)) return null;
+        return table.getColumns().stream()
+                .filter(c -> columnName.equalsIgnoreCase(c.getColumnName()))
+                .findFirst().orElse(null);
+    }
 
 }
