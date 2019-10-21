@@ -24,11 +24,9 @@ import {ReferentialModule} from "../referential/referential.module";
     SoftwarePage
   ],
   providers: [
+    // PersonService,
     PersonValidatorService
   ]
 })
 export class AdminModule {
-  constructor() {
-    console.debug('[admin] Starting module ...');
-  }
 }

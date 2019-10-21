@@ -16,7 +16,7 @@ import {
   ExtractionResult,
   ExtractionRow,
   ExtractionType
-} from "../trip/services/extraction.model";
+} from "../services/extraction.model";
 import {FormBuilder, Validators} from "@angular/forms";
 import {MatExpansionPanel, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs";
@@ -81,8 +81,8 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
     this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
     merge(
-      this.sort && this.sort.sortChange || EMPTY,
-      this.paginator && this.paginator.page || EMPTY,
+      this.sort && this.sort.sortChange || EventEmitter.empty(),
+      this.paginator && this.paginator.page || EventEmitter.empty(),
       this.onRefresh
     )
       .subscribe(() => {

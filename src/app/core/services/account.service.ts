@@ -229,6 +229,8 @@ export class AccountService extends BaseDataService {
       }
     });
 
+    console.debug('::: AccountService constructor');
+
     // For DEV only
     this._debug = !environment.production;
   }

@@ -2,24 +2,24 @@ import {EventEmitter, Injector, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from '@ngx-translate/core';
 import {Observable} from 'rxjs';
-import {DateFormatPipe, isNil, isNotNil} from '../shared/shared.module';
-import {AggregationType, ExtractionType} from "../trip/services/extraction.model";
-import {ExtractionFilter, ExtractionFilterCriterion, ExtractionService} from "../trip/services/extraction.service";
+import {DateFormatPipe, isNil, isNotNil} from '../../shared/shared.module';
+import {AggregationType, ExtractionType} from "../services/extraction.model";
+import {ExtractionFilter, ExtractionFilterCriterion, ExtractionService} from "../services/extraction.service";
 import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {trimEmptyToNull} from "../shared/functions";
+import {trimEmptyToNull} from "../../shared/functions";
 import {first, map} from "rxjs/operators";
-import {AppForm} from "../core/core.module";
+import {AppForm} from "../../core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
-import {AccountService} from "../core/services/account.service";
-import {LocalSettingsService} from "../core/services/local-settings.service";
+import {AccountService} from "../../core/services/account.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 export abstract class ExtractionForm<T extends ExtractionType | AggregationType> extends AppForm<any> implements OnInit {
 
-  // protected routePath = 'extraction';
+  protected routePath = 'extraction';
 
   protected dateAdapter: DateAdapter<Moment>;
   protected formBuilder: FormBuilder;
