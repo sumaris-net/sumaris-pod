@@ -37,7 +37,7 @@ export const VesselFragments = {
     vesselId
     vesselTypeId
     basePortLocation {
-      ...ReferentialFragment
+      ...LocationFragment
     }
     recorderDepartment {
      ...LightDepartmentFragment
@@ -59,7 +59,7 @@ export const VesselFragments = {
     vesselId
     vesselTypeId
     basePortLocation {
-      ...ReferentialFragment
+      ...LocationFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -77,7 +77,7 @@ const LoadAllQuery: any = gql`
     }
   }
   ${VesselFragments.lightVessel}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
 `;
 const LoadQuery: any = gql`
@@ -87,7 +87,7 @@ const LoadQuery: any = gql`
     }
   }
   ${VesselFragments.vessel}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.lightPerson}
 `;
@@ -99,7 +99,7 @@ const SaveVessels: any = gql`
     }
   }
   ${VesselFragments.vessel}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.lightPerson}
 `;

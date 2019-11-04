@@ -32,9 +32,9 @@
 
   <!-- -->
   <ion-card color="light" class="bottom-left filter" [class.expanded]="filterExpansionPanel.expanded">
-    <ion-card-content no-padding>
+    <ion-card-content class="ion-no-padding">
 
-      <mat-expansion-panel #filterExpansionPanel color="transparent" no-padding [hidden]="!type">
+      <mat-expansion-panel #filterExpansionPanel color="transparent" class="ion-no-padding" [hidden]="!type">
         <mat-expansion-panel-header color="transparent">
           <mat-panel-title>
             <ion-label>
@@ -74,12 +74,12 @@
             </nav>
           </ng-container>
 
-          <form [formGroup]="form" class="form-container" padding>
+          <form [formGroup]="form" class="form-container ion-padding">
 
             <ion-grid *ngIf="form.controls.strata as strataForm">
               <ion-row [formGroup]="strataForm">
                 <!-- year -->
-                <ion-col size="4" no-padding *ngIf="form.get('year') as yearControl">
+                <ion-col size="4" class="ion-no-padding" *ngIf="form.get('year') as yearControl">
                   <mat-form-field>
                     <mat-select [formControl]="yearControl" [placeholder]="'EXTRACTION.MAP.YEAR'|translate">
                       <mat-option *ngFor="let item of $years | async" [value]="item">{{item}}</mat-option>
@@ -89,7 +89,7 @@
                 </ion-col>
 
                 <!-- space -->
-                <ion-col size="4" no-padding *ngIf="strataForm.get('spaceColumnName') as spaceControl">
+                <ion-col size="4" class="ion-no-padding" *ngIf="strataForm.get('spaceColumnName') as spaceControl">
                   <mat-form-field>
                     <mat-select [formControl]="spaceControl" [placeholder]="'EXTRACTION.MAP.SPACE'|translate">
                       <mat-option *ngFor="let column of $spaceColumns | async"
@@ -99,7 +99,7 @@
                 </ion-col>
 
                 <!-- agg -->
-                <ion-col size="4" no-padding *ngIf="strataForm.get('aggColumnName') as aggControl">
+                <ion-col size="4" class="ion-no-padding" *ngIf="strataForm.get('aggColumnName') as aggControl">
                   <mat-form-field>
                     <mat-select [formControl]="aggControl"
                                 [placeholder]="'EXTRACTION.MAP.AGG_VALUE'|translate"
@@ -133,7 +133,7 @@
           </form>
         </div>
 
-        <mat-action-row no-padding>
+        <mat-action-row class="ion-no-padding">
           <!-- animation buttons -->
           <div *ngTemplateOutlet="animationButtons"></div>
 
@@ -157,7 +157,7 @@
     <ion-row>
       <ion-col></ion-col>
 
-      <ion-col align-self-end>
+      <ion-col class="ion-align-self-end">
 
         <!-- Details card -->
         <ion-card color="light" class="details ng-hide" *ngIf="$details | async as details" [@fadeInOutAnimation]>
@@ -183,7 +183,7 @@
           <ion-card-header>
             <ion-card-subtitle><span translate>EXTRACTION.MAP.STATS</span></ion-card-subtitle>
           </ion-card-header>
-          <ion-card-content no-padding>
+          <ion-card-content class="ion-no-padding">
             <p>
               <ng-container *ngFor="let item of stats.properties">
                 <ion-text color="primary100">{{getI18nColumnName(item.name)}}</ion-text>
@@ -197,7 +197,7 @@
 
       </ion-col>
 
-      <ion-col size="auto" no-padding align-self-end >
+      <ion-col size="auto" class="ion-no-padding ion-align-self-end">
 
         <!-- Legend card -->
         <ion-card color="light" class="legend" *ngIf="showLegend" @fadeInAnimation>
@@ -214,7 +214,7 @@
           <ion-card-content>
 
             <ion-row *ngFor="let item of $legendItems | async">
-              <ion-col no-padding style="max-width: 10px !important;"
+              <ion-col class="ion-no-padding" style="max-width: 10px !important;"
                        [ngStyle]="{'background-color': item.color}">
               </ion-col>
               <ion-col size="auto">
@@ -238,7 +238,7 @@
             </ion-card-subtitle>
           </ion-card-header>
 
-          <ion-card-content no-padding>
+          <ion-card-content class="ion-no-padding">
             <form [formGroup]="legendForm" class="form-container">
               <ion-grid>
 
@@ -324,7 +324,7 @@
                 </ion-row>
               </ion-grid>
 
-              <mat-action-row no-padding>
+              <mat-action-row class="ion-no-padding">
                 <button mat-button (click)="cancelLegendForm($event)"><span translate>COMMON.BTN_CANCEL</span></button>
                 <button mat-button (click)="applyLegendForm($event)"><span translate>COMMON.BTN_APPLY</span></button>
               </mat-action-row>

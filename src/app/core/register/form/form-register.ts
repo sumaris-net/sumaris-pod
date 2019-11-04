@@ -17,6 +17,8 @@ import {AccountValidatorService} from "../../services/account.validator";
 import {environment} from "../../../../environments/environment";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {mergeMap} from "rxjs/operators";
+import {LocalSettingsService} from "../../services/local-settings.service";
+import {MatAutocompleteConfigHolder} from "../../../shared/material/material.autocomplete";
 
 
 @Component({
@@ -28,6 +30,7 @@ export class RegisterForm implements OnInit {
 
   protected debug = false;
 
+  autocompleteHelper: MatAutocompleteConfigHolder;
   additionalFields: FormFieldDefinition[];
   form: FormGroup;
   forms: FormGroup[];
@@ -49,7 +52,8 @@ export class RegisterForm implements OnInit {
   constructor(
     private accountService: AccountService,
     private accountValidatorService: AccountValidatorService,
-    public formBuilder: FormBuilder
+    public formBuilder: FormBuilder,
+    protected settings?: LocalSettingsService
   ) {
 
 
@@ -72,6 +76,12 @@ export class RegisterForm implements OnInit {
       firstName: new FormControl(null, Validators.compose([Validators.required, Validators.minLength(2)]))
     };
 
+    // Prepare autocomplete settings
+    this.autocompleteHelper = new MatAutocompleteConfigHolder(settings && {
+      getUserAttributes: (a, b) => settings.getFieldDisplayAttributes(a, b)
+    });
+
+
     // Add additional fields to details form
     this.additionalFields = this.accountService.additionalFields
       // Keep only required fields
@@ -79,6 +89,11 @@ export class RegisterForm implements OnInit {
     this.additionalFields.forEach(field => {
       //if (this.debug) console.debug("[register-form] Add additional field {" + field.name + "} to form", field);
       formDetailDef[field.key] = new FormControl(null, this.accountValidatorService.getValidators(field));
+
+      if (field.type === "entity") {
+        field.autocomplete = this.autocompleteHelper.add(field.key, field.autocomplete);
+      }
+
     });
 
     this.forms.push(formBuilder.group(formDetailDef));

@@ -1,8 +1,8 @@
 import {Component, OnDestroy, OnInit} from "@angular/core";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject, Observable, of} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AppTable, AppTableDataSource, environment, isNil, isNotNil, LocalSettingsService} from "../../core/core.module";
+import {AppTable, AppTableDataSource, environment, isNil, isNotNil} from "../../core/core.module";
 import {ReferentialValidatorService} from "../services/referential.validator";
 import {ReferentialFilter, ReferentialService} from "../services/referential.service";
 import {Referential, ReferentialRef, StatusIds} from "../services/model";
@@ -14,6 +14,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {sort} from "../../core/services/model";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 
 const DEFAULT_ENTITY_NAME = "Location";
@@ -247,7 +248,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       fetchPolicy: 'network-only'
     });
 
-    this.levels = Observable.of(res);
+    this.levels = of(res);
     this.showLevelColumn = res && res.length > 0;
 
     return res;

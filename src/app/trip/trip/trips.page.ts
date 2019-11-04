@@ -1,14 +1,11 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {
-  AccountService,
   AppTable,
   AppTableDataSource,
   environment,
   isNil,
-  LocalSettingsService,
   personsToString,
-  PlatformService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../../core/core.module";
@@ -29,6 +26,9 @@ import {
 import {debounceTime, filter, tap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 import {SharedValidators} from "../../shared/validator/validators";
+import {PlatformService} from "../../core/services/platform.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {AccountService} from "../../core/services/account.service";
 
 @Component({
   selector: 'app-trips-page',

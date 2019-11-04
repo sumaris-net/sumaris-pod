@@ -12,7 +12,7 @@ import {
   referentialToString, vesselFeaturesToString, VesselFeatures, StatusIds
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
-import {FormArrayHelper, LocalSettingsService} from '../../core/core.module';
+import {FormArrayHelper} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {
@@ -39,6 +39,7 @@ import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormArray, FormBuilder, FormControl} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {UserProfileLabel} from "../../core/services/model";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-landing-form',

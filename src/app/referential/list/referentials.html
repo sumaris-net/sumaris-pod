@@ -58,7 +58,7 @@
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel color="primary">
-    <form class="form-container ion-padding no-padding-xs" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
+    <form class="form-container ion-padding" no-padding-xs [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
       <!-- search text -->
       <mat-form-field>

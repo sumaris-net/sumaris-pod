@@ -44,8 +44,8 @@ export class AppComponent {
 
     // Data extraction
     {title: 'MENU.EXTRACTION_DIVIDER', profile: 'SUPERVISOR'},
-    {title: 'MENU.TRIPS', path: '/extraction', icon: 'download', profile: 'SUPERVISOR'},
-    {title: 'MENU.MAP', path: '/map', icon: 'globe', profile: 'SUPERVISOR'},
+    {title: 'MENU.TRIPS', path: '/extraction/table', icon: 'download', profile: 'SUPERVISOR'},
+    {title: 'MENU.MAP', path: '/extraction/map', icon: 'globe', profile: 'SUPERVISOR'},
 
     // Referential
     {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},

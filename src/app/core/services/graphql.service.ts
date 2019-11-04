@@ -204,7 +204,7 @@ export class GraphqlService {
     error?: ServiceError
   }): Observable<T> {
 
-    return this.apollo.subscribe({
+    return this.apollo.subscribe<T>({
       query: opts.query,
       variables: opts.variables
     }, {
@@ -215,7 +215,7 @@ export class GraphqlService {
         map(({data, errors}) => {
           if (errors) {
             const error = errors[0];
-            if (error && error.code && error.message) {
+            if (error /*&& error.code*/ && error.message) {
               throw error;
             }
             console.error("[data-service] " + error.message);

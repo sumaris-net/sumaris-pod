@@ -13,7 +13,7 @@
 
     <!-- loader -->
     <ion-text *ngIf="loading"
-              slot="end" float-end padding-end>
+              slot="end" class="ion-float-end ion-padding-end">
       <ion-spinner></ion-spinner>
     </ion-text>
   </ion-toolbar>
@@ -42,9 +42,9 @@
 
       <!-- Peer is UP -->
       <ion-grid *ngIf="peer.reachable">
-        <ion-row no-padding>
-          <ion-col no-padding>
-            <ion-label text-wrap>
+        <ion-row class="ion-no-padding">
+          <ion-col class="ion-no-padding">
+            <ion-label class="ion-text-wrap">
               <ion-text color="dark">
                 <h3>{{peer.hostAndPort}}{{peer.path}}</h3>
               </ion-text>
@@ -53,7 +53,7 @@
               </ion-text>
             </ion-label>
           </ion-col>
-          <ion-col no-padding>
+          <ion-col class="ion-no-padding">
             <ion-label text-wrap text-center color="medium">
               <h3>{{peer.softwareName}}</h3>
               <h4><small>v{{peer.softwareVersion}}</small></h4>
@@ -84,7 +84,7 @@
 
   <ion-toolbar>
 
-    <ion-row no-padding nowrap>
+    <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
       <!-- buttons -->

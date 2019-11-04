@@ -2,6 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@an
 import {
   AppTable,
   AppTableDataSource,
+  environment
 } from "../../../core/core.module";
 import {Person, PRIORITIZED_USER_PROFILES, referentialToString, StatusIds} from "../../../core/services/model";
 import {PersonFilter, PersonService} from "../../services/person.service";

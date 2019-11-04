@@ -1,11 +1,9 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {
-  AccountService,
   AppEditorPage,
   EntityUtils,
   FormArrayHelper,
-  isNil,
-  LocalSettingsService
+  isNil
 } from "../../core/core.module";
 import {AggregationStrata, AggregationType, ExtractionColumn, ExtractionUtils} from "../services/extraction.model";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
@@ -16,6 +14,9 @@ import {ValidatorService} from "angular4-material-table";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {BehaviorSubject} from "rxjs";
 import {AggregationTypeForm} from "./aggregation-type.form";
+import {MatTable} from "@angular/material";
+import {AccountService} from "../../core/services/account.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-aggregation-type-page',
@@ -29,7 +30,7 @@ export class AggregationTypePage extends AppEditorPage<AggregationType> implemen
 
   columns: ExtractionColumn[];
 
-  @ViewChild('typeForm') typeForm: AggregationTypeForm;
+  @ViewChild('typeForm', {static: true}) typeForm: AggregationTypeForm;
 
 
   get form(): FormGroup {

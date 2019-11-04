@@ -3,7 +3,6 @@ import {ValidatorService} from "angular4-material-table";
 import {
   AppTable,
   environment,
-  LocalSettingsService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../../core/core.module";
@@ -28,6 +27,7 @@ import {Observable} from "rxjs";
 import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {qualityFlagToColor} from "../../referential/services/model";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-observed-locations-page',

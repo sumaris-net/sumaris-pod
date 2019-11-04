@@ -19,6 +19,9 @@ import {IonicRouteStrategy} from "@ionic/angular";
 import {ProgramPage} from "./referential/program/program.page";
 import {BatchGroupPage} from "./trip/batch/batch-group.page";
 import {AuthGuardService} from "./core/services/auth-guard.service";
+import {ExtractionMapPage} from "./trip/extraction/extraction-map.page";
+import {ExtractionDataPage} from "./trip/extraction/extraction-data.page";
+import {AggregationTypePage} from "./trip/extraction/aggregation-type.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -57,7 +60,7 @@ const routes: Routes = [
   {
     path: 'admin',
     canActivate: [AuthGuardService],
-    loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule) // Angular 8 syntax
+    loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
   },
 
   // Referential path
@@ -261,45 +264,11 @@ const routes: Routes = [
     ]
   },
 
+  // Extraction path
   {
     path: 'extraction',
     canActivate: [AuthGuardService],
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        component: ExtractionDataPage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          profile: 'SUPERVISOR'
-        }
-      },
-      {
-        path: 'aggregation/:aggregationTypeId',
-        component: AggregationTypePage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          profile: 'SUPERVISOR',
-          pathIdParam: 'aggregationTypeId'
-        }
-      }
-    ]
-  },
-
-  {
-    path: 'map',
-    canActivate: [AuthGuardService],
-    children: [
-      {
-        path: '',
-        //pathMatch: 'full',
-        component: ExtractionMapPage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          profile: 'USER'
-        }
-      }
-    ]
+    loadChildren: () => import('./trip/extraction/extraction.module').then(m => m.ExtractionModule)
   },
 
   {
