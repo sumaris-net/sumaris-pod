@@ -24,14 +24,13 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.VesselPosition;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselPositionVO;
 import org.apache.commons.collections4.MapUtils;
@@ -189,7 +188,7 @@ public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPosi
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // Recorder department
-        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         return target;

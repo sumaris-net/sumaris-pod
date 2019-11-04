@@ -23,6 +23,7 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import net.sumaris.core.model.referential.location.Location;
 
 import java.util.List;
 
@@ -34,4 +35,8 @@ public class LocationVO extends ReferentialVO {
     private List<LocationAssociationVO> parents;
 
     private List<LocationAssociationVO> children;
+
+    public LocationVO() {
+        this.setEntityName(Location.class.getSimpleName());
+    }
 }

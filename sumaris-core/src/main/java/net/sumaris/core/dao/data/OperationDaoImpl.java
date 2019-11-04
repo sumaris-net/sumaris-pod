@@ -224,7 +224,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
         }
 
         // Recorder department
-        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         return target;

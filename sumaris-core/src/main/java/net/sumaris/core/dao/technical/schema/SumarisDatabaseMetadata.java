@@ -86,8 +86,6 @@ public class SumarisDatabaseMetadata {
 
 	protected String sequenceSuffix;
 
-	protected boolean isQuoted = false;
-
 	protected String defaultUpdateDateColumnName;
 
 	@Autowired
@@ -148,9 +146,9 @@ public class SumarisDatabaseMetadata {
 
 	public QualifiedTableName getQualifiedTableName(String catalog, String schema, String tableName) {
 		return new QualifiedTableName(
-				new Identifier(catalog, isQuoted),
-				new Identifier(schema, isQuoted),
-				new Identifier(tableName, isQuoted));
+				Identifier.toIdentifier(catalog),
+				Identifier.toIdentifier(schema),
+				Identifier.toIdentifier(tableName));
 	}
 
 	public String getDefaultUpdateDateColumnName() {
@@ -293,8 +291,8 @@ public class SumarisDatabaseMetadata {
 			if (persistentClass != null) {
 				// Get the table mapping
 				Table table = persistentClass.getTable();
-				table.setCatalog(qualifiedTableName.getCatalogName().getText());
-				table.setSchema(qualifiedTableName.getSchemaName().getText());
+				table.setCatalog(qualifiedTableName.getCatalogName() != null ? qualifiedTableName.getCatalogName().getText() : null);
+				table.setSchema(qualifiedTableName.getSchemaName() != null ? qualifiedTableName.getSchemaName().getText() : null);
 				sumarisTableMetadata = new SumarisHibernateTableMetadata(table, this, jdbcMeta, persistentClass);
 			}
 

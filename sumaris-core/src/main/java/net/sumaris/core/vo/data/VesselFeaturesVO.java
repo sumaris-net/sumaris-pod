@@ -28,7 +28,7 @@ import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.LocationVO;
 
 import java.util.Date;
 import java.util.List;
@@ -49,7 +49,7 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
     private Double lengthOverAll;
     private Double grossTonnageGrt;
     private Double grossTonnageGt;
-    private ReferentialVO basePortLocation;
+    private LocationVO basePortLocation;
     private String comments;
     private ProgramVO program;
 

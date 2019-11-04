@@ -270,12 +270,15 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
     }
 
     @Override
-    public <T extends IReferentialVO, S extends IReferentialEntity> T toTypedVO(S source, Class<T> targetClazz) {
-        Preconditions.checkNotNull(source);
+    public <T extends IReferentialVO, S extends IReferentialEntity> Optional<T> toTypedVO(S source, Class<T> targetClazz) {
+
+        if (source == null)
+            return Optional.empty();
+
         try {
             T target = targetClazz.newInstance();
             Beans.copyProperties(source, target);
-            return target;
+            return Optional.of(target);
         }catch(IllegalAccessException | InstantiationException e) {
             throw new SumarisTechnicalException(e.getMessage(), e);
         }

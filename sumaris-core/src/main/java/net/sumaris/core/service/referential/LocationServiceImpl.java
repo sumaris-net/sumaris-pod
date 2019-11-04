@@ -8,16 +8,10 @@ import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ValidityStatusDao;
-import net.sumaris.core.dao.referential.location.LocationAreaDao;
-import net.sumaris.core.dao.referential.location.LocationDao;
-import net.sumaris.core.dao.referential.location.LocationLevelDao;
-import net.sumaris.core.dao.referential.location.Locations;
+import net.sumaris.core.dao.referential.location.*;
 import net.sumaris.core.model.referential.ValidityStatus;
 import net.sumaris.core.model.referential.ValidityStatusEnum;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.location.LocationArea;
-import net.sumaris.core.model.referential.location.LocationLevel;
-import net.sumaris.core.model.referential.location.LocationLevelEnum;
+import net.sumaris.core.model.referential.location.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -49,6 +43,9 @@ public class LocationServiceImpl implements LocationService{
 
     @Autowired
     protected LocationLevelDao locationLevelDao;
+
+    @Autowired
+    protected LocationClassificationDao locationClassificationDao;
 
     @Autowired
     protected ReferentialDao referentialDao;
@@ -463,6 +460,7 @@ public class LocationServiceImpl implements LocationService{
         Map<String, LocationLevel> result = Maps.newHashMap();
 
         Date creationDate = new Date();
+        LocationClassification defaultClassification = locationClassificationDao.getByLabel(LocationClassificationEnum.SEA.getLabel());
 
         for (String label: levels.keySet()) {
             String name = StringUtils.trimToNull(levels.get(label));
@@ -476,6 +474,7 @@ public class LocationServiceImpl implements LocationService{
                 locationLevel.setLabel(label);
                 locationLevel.setName(name);
                 locationLevel.setCreationDate(creationDate);
+                locationLevel.setLocationClassification(defaultClassification);
                 locationLevel = locationLevelDao.create(locationLevel);
             }
             result.put(label, locationLevel);

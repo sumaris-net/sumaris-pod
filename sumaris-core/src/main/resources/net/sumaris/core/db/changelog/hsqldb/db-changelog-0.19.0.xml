@@ -25,7 +25,7 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.16.0.xml">
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.19.0.xml">
 
   <!-- Add PATH to IMAGE_ATTACHMENT and set CONTENT nullable-->
   <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-1">
@@ -398,19 +398,186 @@
     </addColumn>
   </changeSet>
 
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-8">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="APPLIED_STRATEGY"/>
+      </not>
+    </preConditions>
+    <createTable tableName="APPLIED_STRATEGY">
+      <column name="ID" type="INTEGER">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="LOCATION_FK" type="INTEGER">
+        <constraints nullable="false"/>
+      </column>
+      <column name="STRATEGY_FK" type="INTEGER">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="APPLIED_STRATEGY" baseColumnNames="LOCATION_FK"
+                             constraintName="APPLIED_STRATEGY_LOCATION_FKC"
+                             referencedTableName="LOCATION" referencedColumnNames="ID"/>
+    <addForeignKeyConstraint baseTableName="APPLIED_STRATEGY" baseColumnNames="STRATEGY_FK"
+                             constraintName="APPLIED_STRATEGY_STRATEGY_FKC"
+                             referencedTableName="STRATEGY" referencedColumnNames="ID"/>
+  </changeSet>
 
-  <!--TODO : passer les RANK_ORDER à nullable=true sur les tables *_MEASUREMENT -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-9">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="APPLIED_PERIOD"/>
+      </not>
+    </preConditions>
+    <createTable tableName="APPLIED_PERIOD">
+      <column name="START_DATE" type="DATE">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="END_DATE" type="DATE">
+        <constraints nullable="false"/>
+      </column>
+      <column name="APPLIED_STRATEGY_FK" type="INTEGER">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="APPLIED_PERIOD" baseColumnNames="APPLIED_STRATEGY_FK"
+                             constraintName="APPLIED_PERIOD_APPLIED_STRATEGY_FKC"
+                             referencedTableName="APPLIED_STRATEGY" referencedColumnNames="ID"/>
+  </changeSet>
 
-<!--  TODO : create tables APPLIED_STRATEGY, APPLIED_PERIOD, PMFM_APPLIED_STRATEGY, VESSEL_REGISTRATION_PERIOD, VESSEL_OWNER, VESSEL_OWNER_PERIOD -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-10">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="PMFM_APPLIED_STRATEGY"/>
+      </not>
+    </preConditions>
+    <createTable tableName="PMFM_APPLIED_STRATEGY">
+      <column name="PMFM_FK" type="INTEGER">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="APPLIED_STRATEGY_FK" type="INTEGER">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="PMFM_APPLIED_STRATEGY" baseColumnNames="PMFM_FK"
+                             constraintName="PMFM_APPLIED_STRATEGY_PMFM_FKC"
+                             referencedTableName="PMFM" referencedColumnNames="ID"/>
+    <addForeignKeyConstraint baseTableName="PMFM_APPLIED_STRATEGY" baseColumnNames="APPLIED_STRATEGY_FK"
+                             constraintName="PMFM_APPLIED_STRATEGY_APPLIED_STRATEGY_FKC"
+                             referencedTableName="APPLIED_STRATEGY" referencedColumnNames="ID"/>
+  </changeSet>
+
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-11">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="VESSEL_REGISTRATION_PERIOD"/>
+      </not>
+    </preConditions>
+    <createTable tableName="VESSEL_REGISTRATION_PERIOD">
+      <column name="ID" type="INTEGER">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="START_DATE" type="DATE">
+        <constraints nullable="false"/>
+      </column>
+      <column name="END_DATE" type="DATE"/>
+      <column name="REGISTRATION_CODE" type="VARCHAR(40)"/>
+      <column name="INT_REGISTRATION_CODE" type="VARCHAR(40)"/>
+      <column name="RANK_ORDER" type="INTEGER">
+        <constraints nullable="false"/>
+      </column>
+      <column name="VESSEL_FK" type="INTEGER">
+        <constraints nullable="false"/>
+      </column>
+      <column name="REGISTRATION_LOCATION_FK" type="INTEGER">
+        <constraints nullable="false"/>
+      </column>
+      <column name="QUALITY_FLAG_FK" type="INTEGER">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="VESSEL_REGISTRATION_PERIOD" baseColumnNames="VESSEL_FK"
+                             constraintName="VESSEL_REGISTRATION_PERIOD_VESSEL_FKC"
+                             referencedTableName="VESSEL" referencedColumnNames="ID"/>
+    <addForeignKeyConstraint baseTableName="VESSEL_REGISTRATION_PERIOD" baseColumnNames="REGISTRATION_LOCATION_FK"
+                             constraintName="VESSEL_REGISTRATION_PERIOD_REGISTRATION_LOCATION_FKC"
+                             referencedTableName="LOCATION" referencedColumnNames="ID"/>
+    <addForeignKeyConstraint baseTableName="VESSEL_REGISTRATION_PERIOD" baseColumnNames="QUALITY_FLAG_FK"
+                             constraintName="VESSEL_REGISTRATION_PERIOD_QUALITY_FLAG_FKC"
+                             referencedTableName="QUALITY_FLAG" referencedColumnNames="ID"/>
+  </changeSet>
+
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-12">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="VESSEL_OWNER"/>
+      </not>
+    </preConditions>
+    <createTable tableName="VESSEL_OWNER">
+      <column name="ID" type="INTEGER">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="REGISTRATION_CODE" type="VARCHAR(40)"/>
+      <column name="LAST_NAME" type="VARCHAR(100)"/>
+      <column name="FIRST_NAME" type="VARCHAR(100)"/>
+      <column name="STREET" type="VARCHAR(255)"/>
+      <column name="ZIP_CODE" type="VARCHAR(255)"/>
+      <column name="CITY" type="VARCHAR(255)"/>
+      <column name="DATE_OF_BIRTH" type="DATE"/>
+      <column name="RETIREMENT_DATE" type="DATE"/>
+      <column name="ACTIVITY_START_DATE" type="DATE"/>
+      <column name="PHONE_NUMBER" type="VARCHAR(50)"/>
+      <column name="MOBILE_NUMBER" type="VARCHAR(50)"/>
+      <column name="FAX_NUMBER" type="VARCHAR(50)"/>
+      <column name="EMAIL" type="VARCHAR(255)"/>
+      <column name="UPDATE_DATE" type="TIMESTAMP"/>
+      <column name="COUNTRY_LOCATION_FK" type="INTEGER"/>
+      <column name="PROGRAM_FK" type="INTEGER">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="VESSEL_OWNER" baseColumnNames="PROGRAM_FK"
+                             constraintName="VESSEL_OWNER_PROGRAM_FKC"
+                             referencedTableName="PROGRAM" referencedColumnNames="ID"/>
+    <addForeignKeyConstraint baseTableName="VESSEL_OWNER" baseColumnNames="COUNTRY_LOCATION_FK"
+                             constraintName="VESSEL_OWNER_COUNTRY_LOCATION_FKC"
+                             referencedTableName="LOCATION" referencedColumnNames="ID"/>
+  </changeSet>
+
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-13">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="VESSEL_OWNER_PERIOD"/>
+      </not>
+    </preConditions>
+    <createTable tableName="VESSEL_OWNER_PERIOD">
+      <column name="VESSEL_OWNER_FK" type="INTEGER">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="VESSEL_FK" type="INTEGER">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="START_DATE" type="DATE">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="END_DATE" type="DATE"/>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="VESSEL_OWNER_PERIOD" baseColumnNames="VESSEL_OWNER_FK"
+                             constraintName="VESSEL_OWNER_PERIOD_VESSEL_OWNER_FKC"
+                             referencedTableName="VESSEL_OWNER" referencedColumnNames="ID"/>
+    <addForeignKeyConstraint baseTableName="VESSEL_OWNER_PERIOD" baseColumnNames="VESSEL_FK"
+                             constraintName="VESSEL_OWNER_PERIOD_VESSEL_FKC"
+                             referencedTableName="VESSEL" referencedColumnNames="ID"/>
+  </changeSet>
 
   <!-- update SYSTEM_VERSION -->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-200" runOnChange="true">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-500" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
-      <!--TODO--><where>LABEL='0.16.0'</where>
+      <where>LABEL='0.19.0'</where>
     </delete>
     <insert tableName="SYSTEM_VERSION">
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
-      <!--TODO--><column name="LABEL">0.16.0</column>
+      <column name="LABEL">0.19.0</column>
       <column name="DESCRIPTION">
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>

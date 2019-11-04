@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.referential;
+package net.sumaris.core.dao.referential.location;
 
 /*-
  * #%L
@@ -22,25 +22,15 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
-import lombok.Data;
-import net.sumaris.core.model.referential.location.LocationAssociation;
+import net.sumaris.core.model.referential.location.LocationClassification;
 
-import java.util.Date;
+public interface LocationClassificationDao {
 
-@Data
-public class LocationAssociationVO extends ReferentialVO {
 
-    String PROPERTY_UPDATE_DATE = "updateDate";
+    LocationClassification findByLabel(String label);
 
-    private Integer childId;
+    LocationClassification getByLabel(String label);
 
-    private Integer parentId;
+    LocationClassification create(LocationClassification classification);
 
-    private Double childSurfaceRatio;
-
-    private Date updateDate;
-
-    public LocationAssociationVO() {
-        this.setEntityName(LocationAssociation.class.getSimpleName());
-    }
 }

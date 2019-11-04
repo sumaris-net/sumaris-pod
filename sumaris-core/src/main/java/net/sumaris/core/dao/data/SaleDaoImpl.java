@@ -211,7 +211,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
             target.setQualityFlagId(source.getQualityFlag().getId());
 
             // Recorder department
-            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
+            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
             target.setRecorderDepartment(recorderDepartment);
 
             // Recorder person

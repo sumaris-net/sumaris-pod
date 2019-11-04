@@ -300,7 +300,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // Recorder department
-        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         // Entity Name

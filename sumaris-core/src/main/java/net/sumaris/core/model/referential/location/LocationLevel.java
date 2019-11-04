@@ -67,7 +67,7 @@ public class LocationLevel implements Serializable, IItemReferentialEntity {
     private String comments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = LocationClassification.class)
-    @JoinColumn(name = "location_classification_fk")
+    @JoinColumn(name = "location_classification_fk") // TODO should be not nullable
     private LocationClassification locationClassification;
 
 }
