@@ -14,7 +14,7 @@ fi
 DIRNAME=`pwd`
 
 ### Get current version (package.json)
-current=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?" package.json | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
+current=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
 if [[ "_$current" == "_" ]]; then
   echo "Unable to read the current version in 'package.json'. Please check version format is: x.y.z (x and y should be an integer)."
   exit 1;
@@ -135,7 +135,7 @@ git commit -m "v$2"
 git tag "v$2"
 git push
 if [[ $? -ne 0 ]]; then
-    exit 1
+  exit 1
 fi
 
 # Pause (if propagation is need between hosted git server and github)
@@ -155,5 +155,31 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-echo "RELEASE finished !"
+#echo "----------------------------------"
+#echo "- Building desktop artifacts..."
+#echo "----------------------------------"
+
+#git submodule init
+#git submodule sync
+#git submodule update --remote --merge
+
+#if [[ -d "$DIRNAME/platforms/desktop" ]]; then
+#  cd platforms/desktop
+
+#  # Build desktop assets
+#  ./release.sh $2
+#  if [[ $? -ne 0 ]]; then
+#      exit 1
+#  fi
+#else
+#  echo "WARN: platform/desktop not found -> Skipping desktop build!"
+#fi;
+
+# back to nodejs version 6
+#cd $DIRNAME
+#nvm use 10
+
+echo "**********************************"
+echo "* Build release succeed !"
+echo "**********************************"
 

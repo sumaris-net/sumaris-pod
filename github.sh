@@ -9,7 +9,7 @@ then
 fi
 
 ### Get version to release
-current=`grep -P "version\": \"\d+.\d+.\d+(\w*)" package.json | grep -oP "\d+.\d+.\d+(\w*)"`
+current=`grep -P "version\": \"\d+.\d+.\d+(\w*)" package.json | grep -m 1 -oP "\d+.\d+.\d+(\w*)"`
 if [[ "_$version" != "_" ]]; then
   echo "ERROR: Unable to read 'version' in the file 'package.json'."
   echo " - Make sure the file 'package.json' exists and is readable."
