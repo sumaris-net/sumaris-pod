@@ -32,8 +32,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.io.*;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -50,6 +52,9 @@ import java.util.*;
 public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements ExtractionCsvDao {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionCsvDaoImpl.class);
+
+    @Autowired
+    private DataSource dataSource;
 
     @Autowired
     public ExtractionCsvDaoImpl() {
@@ -91,7 +96,7 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
         PreparedStatement statement = null;
         ResultSet rs = null;
         try {
-            connection = Daos.createConnection(configuration.getConnectionProperties());
+            connection = DataSourceUtils.getConnection(dataSource);
             statement = Daos.prepareQuery(connection, query);
             rs = statement.executeQuery();
             csvResultSetExtractor.extractData(rs);
@@ -100,9 +105,8 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
         } finally {
             Daos.closeSilently(rs);
             Daos.closeSilently(statement);
-            Daos.closeSilently(connection);
+            DataSourceUtils.releaseConnection(connection, dataSource);
         }
-
     }
 
     private class CsvResultSetExtractor implements ResultSetExtractor<CSVWriter> {

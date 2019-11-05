@@ -613,7 +613,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         // TODO BL: remove this logs when issue #1452 solved !
         log.info(String.format("Will dump table %s using query: %s", tableName, query));
 
-        extractionCsvDao.dumpQueryToCSV(outputFile, query.toUpperCase(),
+        extractionCsvDao.dumpQueryToCSV(outputFile, query,
                 getAliasByColumnMap(columnNames),
                 null,
                 null,
