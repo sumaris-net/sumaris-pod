@@ -418,38 +418,8 @@ public class ExtractionServiceImpl implements ExtractionService {
         commitIfHsqldb();
         log.info(String.format("Dumping tables of extraction #%s to files...", context.getId()));
 
-        int retryCounter = 0;
-        while (true) {
-            try {
-                // Dump tables
-                return dumpTablesToFile(context, null /*no filter, because already applied*/);
-            }
-
-            // Workaround for issue #142: sleep 1s to wait end of table creation
-            catch (DataAccessResourceFailureException e) {
-                retryCounter++;
-                if (retryCounter > 3) throw e;
-                log.warn(String.format("Error while dumping tables of extraction #%s to files (issue #142) - Retrying in 1s (%s/3)... \n\tError:%s",
-                        context.getId(), retryCounter, e.getMessage()));
-
-                for (String table: context.getTableNames()) {
-                    try {
-                        long rowCount = extractionTableDao.getRowCount(table);
-                        log.info(String.format("Table %s has %s rows", table, rowCount));
-                    } catch(Throwable t) {
-                        // Continue
-                        log.warn(String.format("Table %s has ? rows - %s", table, t.getMessage()));
-                    }
-                }
-            }
-
-            // Sleeping 1s before retrying
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException ie) {
-                throw new SumarisTechnicalException(ie);
-            }
-        }
+        // Dump tables
+        return dumpTablesToFile(context, null /*no filter, because already applied*/);
     }
 
     protected ExtractionResultVO readProductRows(ExtractionProductVO product, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
@@ -609,9 +579,6 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
         String query = table.getSelectQuery(enableDistinct, columnNames, whereClause, null, null);
-
-        // TODO BL: remove this logs when issue #1452 solved !
-        log.info(String.format("Will dump table %s using query: %s", tableName, query));
 
         extractionCsvDao.dumpQueryToCSV(outputFile, query,
                 getAliasByColumnMap(columnNames),
