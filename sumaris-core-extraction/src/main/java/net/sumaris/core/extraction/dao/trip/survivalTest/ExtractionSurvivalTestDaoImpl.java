@@ -46,7 +46,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
         context.setReleaseTableName(String.format(RL_TABLE_NAME_PATTERN, context.getId()));
 
-        // Stop here
+        // Stop here, if sheet already filled
         if (sheetName != null && context.hasSheet(sheetName)) return context;
 
         // Survival test table
@@ -144,7 +144,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
 
     protected long createSurvivalTestTable(C context) {
 
-        log.info("Processing survival tests...");
+        log.debug(String.format("Extraction #%s > Creating survival tests table...", context.getId()));
         XMLQuery xmlQuery = createXMLQuery(context, "createSurvivalTestTable");
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("survivalTestTableName", context.getSurvivalTestTableName());
@@ -164,14 +164,14 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
                     ST_SHEET_NAME,
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
-            log.debug(String.format("Survival test table: %s rows inserted", count));
+            log.debug(String.format("Extraction #%s > Survival test table: %s rows inserted", context.getId(), count));
         }
         return count;
     }
 
     protected long createReleaseTable(C context) {
 
-        log.info("Processing releases...");
+        log.debug(String.format("Extraction #%s > Creating releases table...", context.getId()));
         XMLQuery xmlQuery = createXMLQuery(context, "createReleaseTable");
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("releaseTableName", context.getReleaseTableName());
@@ -191,7 +191,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
                     RL_SHEET_NAME,
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
-            log.debug(String.format("Release table: %s rows inserted", count));
+            log.debug(String.format("Extraction #%s > Release table: %s rows inserted", context.getId(), count));
         }
         return count;
     }

@@ -73,19 +73,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
     @Override
     public C execute(ExtractionFilterVO filter) {
-
         ExtractionTripFilterVO tripFilter = toTripFilterVO(filter);
-        if (log.isInfoEnabled()) {
-            log.info(String.format("Beginning extraction %s", filter == null ? "without filter" : "with filters:"));
-            if (filter != null) {
-                log.info(String.format("Program label: %s", tripFilter.getProgramLabel()));
-                log.info(String.format("  Location Id: %s", tripFilter.getLocationId()));
-                log.info(String.format("   Start date: %s", tripFilter.getStartDate()));
-                log.info(String.format("     End date: %s", tripFilter.getEndDate()));
-                log.info(String.format("    Vessel Id: %s", tripFilter.getVesselId()));
-                log.info(String.format("    RecDep Id: %s", tripFilter.getRecorderDepartmentId()));
-            }
-        }
 
         // Init context
         C context = createNewContext();
@@ -94,6 +82,23 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
         context.setFormatName(RDB_FORMAT);
         context.setFormatVersion(ExtractionRdbTripVersion.VERSION_1_3.getLabel());
         context.setId(System.currentTimeMillis());
+
+        if (log.isInfoEnabled()) {
+            StringBuilder filterInfo = new StringBuilder();
+            if (filter != null) {
+                filterInfo.append("with filter:")
+                        .append("\n - Program (label): ").append(tripFilter.getProgramLabel())
+                        .append("\n - Location (id): ").append(tripFilter.getLocationId())
+                        .append("\n - Start date: ").append(tripFilter.getStartDate())
+                        .append("\n - End date: ").append(tripFilter.getEndDate())
+                        .append("\n - Vessel (id): ").append(tripFilter.getVesselId())
+                        .append("\n - Recorder department (id): ").append(tripFilter.getRecorderDepartmentId());
+            }
+            else {
+                filterInfo.append("(without filter)");
+            }
+            log.info(String.format("Starting extraction #%s (raw data / trips)... %s", context.getId(), filterInfo.toString()));
+        }
 
         // Compute table names
         context.setTripTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));

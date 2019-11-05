@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -406,8 +407,30 @@ public class ExtractionServiceImpl implements ExtractionService {
         // Execute live extraction to temp tables
         ExtractionContextVO context = extractRawData(format, filter);
 
-        // Dump tables
-        return dumpTablesToFile(context, null /*no filter, because already applied*/);
+        log.info(String.format("Dumping tables of extraction #%s to files...", context.getId()));
+
+        int retryCounter = 0;
+        while (true) {
+            try {
+                // Dump tables
+                return dumpTablesToFile(context, null /*no filter, because already applied*/);
+            }
+
+            // Workaround for issue #142: sleep 1s to wait end of table creation
+            catch (DataAccessResourceFailureException e) {
+                retryCounter++;
+                if (retryCounter >= 3) throw e;
+                log.warn(String.format("Error while dumping tables of extraction #%s to files (issue #142) - Retrying in 1s (%s/3)... \n\tError:%s",
+                        context.getId(), retryCounter, e.getMessage()));
+            }
+
+            // Sleeping 1s before retrying
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ie) {
+                throw new SumarisTechnicalException(ie);
+            }
+        }
     }
 
     protected ExtractionResultVO readProductRows(ExtractionProductVO product, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
@@ -471,7 +494,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         // Dump table to CSV files
         log.debug("Creating extraction CSV files...");
 
-        String dateStr = Dates.formatDate(new Date(context.getId()), "yyyy-MM-dd-HHMM");
+        String dateStr = Dates.formatDate(new Date(context.getId()), "yyyy-MM-dd-HHmm");
         String basename = context.getLabel() + "-" + dateStr;
 
         final ExtractionFilterVO tableFilter = filter != null ? filter : new ExtractionFilterVO();
