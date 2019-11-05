@@ -199,13 +199,12 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
   }
 
   async downloadAsFile() {
-    if (this.loading) return;
+    if (this.loading || isNil(this.type)) return;
 
     this.loading = true;
-    const type = this.form.get('type').value;
 
     this.error = null;
-    console.debug(`[extraction-form] Downloading ${type.category} ${type.label}...`);
+    console.debug(`[extraction-form] Downloading ${this.type.category} ${this.type.label}...`);
 
     const filter = this.getFilterValue();
     delete filter.sheetName; // Force to download all sheets
@@ -214,7 +213,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
 
     try {
       // Download file
-      const file = await this.service.downloadFile(type, filter);
+      const file = await this.service.downloadFile(this.type, filter);
       if (isNotNil((file))) {
         window.open(file);
       }
