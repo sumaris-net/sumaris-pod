@@ -205,6 +205,14 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         return result;
     }
 
+    @Override
+    public long getRowCount(String tableName) {
+        Preconditions.checkNotNull(tableName);
+
+        String sql = String.format("SELECT COUNT(*) from %s", tableName);
+        return queryCount(sql);
+    }
+
     /* -- protected method -- */
 
     protected Number getRowCount(SumarisTableMetadata table, String whereClause) {

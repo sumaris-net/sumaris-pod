@@ -330,9 +330,7 @@ public class AggregationRdbTripDaoImpl<
     }
 
     protected long countFrom(String tableName) {
-        XMLQuery xmlQuery = createXMLQuery("countFrom");
-        xmlQuery.bind("tableName", tableName);
-        return queryCount(xmlQuery.getSQLQueryAsString());
+        return extractionTableDao.getRowCount(tableName);
     }
 
     protected String getQueryFullName(ExtractionContextVO context, String queryName) {

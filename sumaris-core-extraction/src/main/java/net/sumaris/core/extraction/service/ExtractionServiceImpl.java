@@ -11,6 +11,7 @@ import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.csv.ExtractionCsvDao;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
@@ -45,13 +46,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -65,22 +70,25 @@ public class ExtractionServiceImpl implements ExtractionService {
     private static final Logger log = LoggerFactory.getLogger(ExtractionServiceImpl.class);
 
     @Autowired
-    SumarisConfiguration configuration;
-
-    @Resource(name = "extractionRdbTripDao")
-    ExtractionRdbTripDao extractionRdbTripDao;
-
-    @Resource(name = "extractionCostTripDao")
-    ExtractionCostTripDao extractionCostTripDao;
-
-    @Resource(name = "extractionFreeTripDao")
-    ExtractionFreeTripDao extractionFreeTripDao;
-
-    @Resource(name = "extractionSurvivalTestDao")
-    ExtractionSurvivalTestDao extractionSurvivalTestDao;
+    protected SumarisConfiguration configuration;
 
     @Autowired
-    ExtractionProductDao extractionProductDao;
+    protected DataSource dataSource;
+
+    @Resource(name = "extractionRdbTripDao")
+    protected ExtractionRdbTripDao extractionRdbTripDao;
+
+    @Resource(name = "extractionCostTripDao")
+    protected ExtractionCostTripDao extractionCostTripDao;
+
+    @Resource(name = "extractionFreeTripDao")
+    protected ExtractionFreeTripDao extractionFreeTripDao;
+
+    @Resource(name = "extractionSurvivalTestDao")
+    protected ExtractionSurvivalTestDao extractionSurvivalTestDao;
+
+    @Autowired
+    protected ExtractionProductDao extractionProductDao;
 
     @Autowired
     protected ExtractionTableDao extractionTableDao;
@@ -407,6 +415,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         // Execute live extraction to temp tables
         ExtractionContextVO context = extractRawData(format, filter);
 
+        commitIfHsqldb();
         log.info(String.format("Dumping tables of extraction #%s to files...", context.getId()));
 
         int retryCounter = 0;
@@ -419,14 +428,24 @@ public class ExtractionServiceImpl implements ExtractionService {
             // Workaround for issue #142: sleep 1s to wait end of table creation
             catch (DataAccessResourceFailureException e) {
                 retryCounter++;
-                if (retryCounter >= 3) throw e;
+                if (retryCounter > 3) throw e;
                 log.warn(String.format("Error while dumping tables of extraction #%s to files (issue #142) - Retrying in 1s (%s/3)... \n\tError:%s",
                         context.getId(), retryCounter, e.getMessage()));
+
+                for (String table: context.getTableNames()) {
+                    try {
+                        long rowCount = extractionTableDao.getRowCount(table);
+                        log.info(String.format("Table %s has %s rows", table, rowCount));
+                    } catch(Throwable t) {
+                        // Continue
+                        log.warn(String.format("Table %s has ? rows - %s", table, t.getMessage()));
+                    }
+                }
             }
 
             // Sleeping 1s before retrying
             try {
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             } catch (InterruptedException ie) {
                 throw new SumarisTechnicalException(ie);
             }
@@ -714,7 +733,23 @@ public class ExtractionServiceImpl implements ExtractionService {
                 .collect(Collectors.toList()));
     }
 
-    protected String getNameBySheet(String format, String sheetname) {
-        return I18n.t(String.format("sumaris.extraction.%s.%s", format.toUpperCase(), sheetname.toUpperCase()));
+    protected String getNameBySheet(String format, String sheetName) {
+        return I18n.t(String.format("sumaris.extraction.%s.%s", format.toUpperCase(), sheetName.toUpperCase()));
+    }
+
+    protected void commitIfHsqldb() {
+        Connection conn = DataSourceUtils.getConnection(dataSource);
+        try {
+            if (Daos.isHsqlDatabase(conn) && DataSourceUtils.isConnectionTransactional(conn, dataSource)) {
+                try {
+                    conn.commit();
+                } catch (SQLException e) {
+                    log.warn("Cannot execute intermediate commit: " + e.getMessage(), e);
+                }
+            }
+        }
+        finally {
+            DataSourceUtils.releaseConnection(conn, dataSource);
+        }
     }
 }

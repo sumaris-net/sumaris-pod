@@ -25,6 +25,8 @@ public interface ExtractionTableDao {
 
     ExtractionResultVO getTable(String tableName);
 
+    long getRowCount(String tableName);
+
     List<ExtractionProductColumnVO> getColumns(String tableName);
 
     ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction);
