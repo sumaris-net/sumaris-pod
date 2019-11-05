@@ -205,7 +205,7 @@ public class SumarisTableMetadata {
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format(QUERY_SELECT_ALL,
 				(distinct ? "DISTINCT " : "") + createSelectParams(columnNames, tableAlias),
-				getName(),
+				tableName.render().toUpperCase(),
 				tableAlias));
 
 		// Where clause
@@ -316,7 +316,7 @@ public class SumarisTableMetadata {
 
 	public String getDeleteQuery(String whereClauseContent) {
 		String result = String.format(QUERY_DELETE,
-				getName().toUpperCase(),
+				tableName.render().toUpperCase(),
 				tableAlias,
 				whereClauseContent == null ? "1=1" : whereClauseContent);
 		return result;
@@ -421,7 +421,7 @@ public class SumarisTableMetadata {
 	protected String createSelectAllQuery() {
 		return String.format(QUERY_SELECT_ALL,
 				createSelectParams(tableAlias),
-				getName(),
+				tableName.render().toUpperCase(),
 				tableAlias);
 	}
 
@@ -440,9 +440,9 @@ public class SumarisTableMetadata {
 		}
 
 		String result = String.format(QUERY_INSERT,
-										getName(),
-										queryParams.substring(2),
-										valueParams.substring(2));
+				tableName.render().toUpperCase(),
+				queryParams.substring(2),
+				valueParams.substring(2));
 		return result;
 	}
 
@@ -556,7 +556,7 @@ public class SumarisTableMetadata {
 	protected String createSelectAllToUpdateQuery(SumarisDatabaseMetadata dbMeta) {
 		String query = String.format(QUERY_SELECT_ALL,
 				createSelectParams(tableAlias),
-				getName(),
+				tableName.render().toUpperCase(),
 				tableAlias);
 
 		// add a tripFilter on update date column
@@ -573,7 +573,7 @@ public class SumarisTableMetadata {
 
 	protected String createCountDataToUpdateQuery(SumarisDatabaseMetadata dbMeta) {
 		String query = String.format(QUERY_SELECT_COUNT_ALL,
-				getName(),
+				tableName.render().toUpperCase(),
 				tableAlias);
 
 		// add a tripFilter on update date column

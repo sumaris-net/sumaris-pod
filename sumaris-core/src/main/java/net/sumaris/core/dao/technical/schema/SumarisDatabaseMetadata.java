@@ -306,7 +306,7 @@ public class SumarisDatabaseMetadata {
 			// Add to cached (if not extraction)
 			// TODO: use include/exclude pattern, by configuration
 			String tableName = qualifiedTableName.getTableName().getText().toLowerCase();
-			if (!tableName.startsWith("EXT_") && tableName.startsWith("AGG_"))  {
+			if (!tableName.startsWith("ext_") && !tableName.startsWith("agg_"))  {
 				tables.put(fullTableName, sumarisTableMetadata);
 			}
 		}

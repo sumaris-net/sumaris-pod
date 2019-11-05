@@ -511,7 +511,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         if (CollectionUtils.isEmpty(context.getTableNames())) return null;
 
         // Dump table to CSV files
-        log.debug("Creating extraction CSV files...");
+        log.debug(String.format("Extraction #%s > Creating CSV files...", context.getId()));
 
         String dateStr = Dates.formatDate(new Date(context.getId()), "yyyy-MM-dd-HHmm");
         String basename = context.getLabel() + "-" + dateStr;
@@ -610,7 +610,10 @@ public class ExtractionServiceImpl implements ExtractionService {
         String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
         String query = table.getSelectQuery(enableDistinct, columnNames, whereClause, null, null);
 
-        extractionCsvDao.dumpQueryToCSV(outputFile, query,
+        // TODO BL: remove this logs when issue #1452 solved !
+        log.info(String.format("Will dump table %s using query: %s", tableName, query));
+
+        extractionCsvDao.dumpQueryToCSV(outputFile, query.toUpperCase(),
                 getAliasByColumnMap(columnNames),
                 null,
                 null,
