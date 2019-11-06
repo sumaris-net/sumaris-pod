@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {
   AppTable,
@@ -12,7 +12,7 @@ import {
 import {TripValidatorService} from "../services/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
 import {LocationLevelIds, ReferentialRef, Trip} from "../services/trip.model";
-import {ModalController} from "@ionic/angular";
+import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
@@ -48,6 +48,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   filterIsEmpty = true;
 
   constructor(
+    protected injector: Injector,
     protected route: ActivatedRoute,
     protected router: Router,
     protected platform: PlatformService,
@@ -59,6 +60,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected referentialRefService: ReferentialRefService,
     protected vesselService: VesselService,
     protected formBuilder: FormBuilder,
+    protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
