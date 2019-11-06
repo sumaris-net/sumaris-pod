@@ -92,11 +92,10 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
 
     private void queryAllowEmptyResultSet(String query, CsvResultSetExtractor csvResultSetExtractor) {
 
-        Connection connection = null;
+        Connection connection = DataSourceUtils.getConnection(dataSource);
         PreparedStatement statement = null;
         ResultSet rs = null;
         try {
-            connection = DataSourceUtils.getConnection(dataSource);
             statement = Daos.prepareQuery(connection, query);
             rs = statement.executeQuery();
             csvResultSetExtractor.extractData(rs);
