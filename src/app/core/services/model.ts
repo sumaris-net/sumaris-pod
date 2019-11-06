@@ -2,7 +2,7 @@ import {Moment} from "moment/moment";
 import {
   fromDateISOString,
   isNil,
-  isNilOrBlank,
+  isNilOrBlank, isNotEmptyArray,
   isNotNil,
   joinPropertiesPath,
   propertyComparator,
@@ -27,6 +27,30 @@ export const StatusIds = {
   DELETED: 3,
   ALL: 99
 };
+
+export declare interface StatusValue {
+  id: number;
+  icon: string;
+  label: string;
+}
+
+export const DefaultStatusList: StatusValue[] = [
+  {
+    id: StatusIds.ENABLE,
+    icon: 'checkmark',
+    label: 'REFERENTIAL.STATUS_ENUM.ENABLE'
+  },
+  {
+    id: StatusIds.DISABLE,
+    icon: 'close',
+    label: 'REFERENTIAL.STATUS_ENUM.DISABLE'
+  },
+  {
+    id: StatusIds.TEMPORARY,
+    icon: 'warning',
+    label: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
+  }
+];
 
 export const LocationLevelIds = {
   COUNTRY: 1,
@@ -140,6 +164,26 @@ export const ConfigOptions: FormFieldDefinitionMap = {
     key: 'sumaris.color.danger',
     label: 'CONFIGURATION.OPTIONS.COLORS.DANGER',
     type: 'color'
+  },
+  PROFILE_ADMIN_LABEL: {
+    key: 'sumaris.userProfile.ADMIN.label',
+    label: 'CONFIGURATION.OPTIONS.PROFILE.ADMIN',
+    type: 'string'
+  },
+  PROFILE_USER_LABEL: {
+    key: 'sumaris.userProfile.USER.label',
+    label: 'CONFIGURATION.OPTIONS.PROFILE.USER',
+    type: 'string'
+  },
+  PROFILE_SUPERVISOR_LABEL: {
+    key: 'sumaris.userProfile.SUPERVISOR.label',
+    label: 'CONFIGURATION.OPTIONS.PROFILE.SUPERVISOR',
+    type: 'string'
+  },
+  PROFILE_GUEST_LABEL: {
+    key: 'sumaris.userProfile.GUEST.label',
+    label: 'CONFIGURATION.OPTIONS.PROFILE.GUEST',
+    type: 'string'
   }
 };
 
@@ -474,7 +518,8 @@ export class Configuration extends Entity<Configuration> {
     if (minify) return {id: this.id}; // minify=keep id only
     const target: any = super.asObject();
     target.creationDate = toDateISOString(this.creationDate);
-    target.partners = (this.partners || []).map(p => p.asObject());
+    if (this.partners)
+      target.partners = (this.partners || []).map(p => p.asObject());
     target.properties = this.properties;
     return target;
   }
@@ -487,7 +532,8 @@ export class Configuration extends Entity<Configuration> {
     this.smallLogo = source.smallLogo;
     this.largeLogo = source.largeLogo;
     this.backgroundImages = source.backgroundImages;
-    this.partners = (source.partners || []).map(Department.fromObject);
+    if (source.partners)
+      this.partners = (source.partners || []).map(Department.fromObject);
     this.statusId = source.statusId;
 
     if (source.properties && source.properties instanceof Array) {

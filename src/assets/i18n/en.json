@@ -109,6 +109,12 @@
         "WARNING": "Theme > Warning color",
         "ACCENT": "Theme > Accent color",
         "DANGER": "Theme > Danger color"
+      },
+      "PROFILE": {
+        "ADMIN": "Label for Administrator profile",
+        "USER": "Label for User profile",
+        "SUPERVISOR": "Label for Supervisor profile",
+        "GUEST": "Label for Guest profile"
       }
     }
   },

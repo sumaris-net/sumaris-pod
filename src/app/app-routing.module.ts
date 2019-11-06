@@ -19,9 +19,6 @@ import {IonicRouteStrategy} from "@ionic/angular";
 import {ProgramPage} from "./referential/program/program.page";
 import {BatchGroupPage} from "./trip/batch/batch-group.page";
 import {AuthGuardService} from "./core/services/auth-guard.service";
-import {ExtractionMapPage} from "./trip/extraction/extraction-map.page";
-import {ExtractionDataPage} from "./trip/extraction/extraction-data.page";
-import {AggregationTypePage} from "./trip/extraction/aggregation-type.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
