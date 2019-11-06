@@ -109,6 +109,12 @@
         "WARNING": "Thème > Couleur avertissement",
         "ACCENT": "Thème > Couleur mise en avant",
         "DANGER": "Thème > Couleur danger"
+      },
+      "PROFILE": {
+        "ADMIN": "Libellé du profil Administrateur",
+        "USER": "Libellé du profil Utilisateur",
+        "SUPERVISOR": "Libellé du profil Superviseur",
+        "GUEST": "Libellé du profil Invité"
       }
     }
   },

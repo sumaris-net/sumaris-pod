@@ -834,6 +834,7 @@ type VesselFeaturesVO {
   validationDate: Date
   vesselId: Int
   vesselTypeId: Int
+  vesselStatusId: Int
 }
 
 type VesselPositionVO {
@@ -1502,6 +1503,7 @@ input VesselFeaturesVOInput {
   validationDate: Date
   vesselId: Int
   vesselTypeId: Int
+  vesselStatusId: Int
 }
 
 input VesselFilterVOInput {
@@ -1509,6 +1511,7 @@ input VesselFilterVOInput {
   searchText: String
   vesselFeaturesId: Int
   vesselId: Int
+  statusIds: [Int]
 }
 
 input VesselPositionVOInput {

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, OnInit} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {BehaviorSubject} from 'rxjs';
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {ConfigOptions, Configuration, Department, EntityUtils, StatusIds} from '../../core/services/model';
+import {ConfigOptions, Configuration, Department, EntityUtils, StatusIds, DefaultStatusList} from '../../core/services/model';
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
 import {AppFormUtils, FormArrayHelper} from "../../core/form/form.utils";
@@ -26,23 +26,7 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
   loading = true;
   partners = new BehaviorSubject<Department[]>(null);
   data: Configuration;
-  statusList: any[] = [
-    {
-      id: StatusIds.ENABLE,
-      icon: 'checkmark',
-      label: 'REFERENTIAL.STATUS_ENUM.ENABLE'
-    },
-    {
-      id: StatusIds.DISABLE,
-      icon: 'close',
-      label: 'REFERENTIAL.STATUS_ENUM.DISABLE'
-    },
-    {
-      id: StatusIds.TEMPORARY,
-      icon: 'warning',
-      label: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
-    }
-  ];
+  statusList = DefaultStatusList;
   statusById;
   propertyDefinitions: FormFieldDefinition[] = Object.getOwnPropertyNames(ConfigOptions).map(name => ConfigOptions[name]);
   propertyDefinitionsByKey: FormFieldDefinitionMap = {};

@@ -160,6 +160,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
 
   vesselId: number;
   vesselTypeId: number;
+  vesselStatusId: number;
   name: string;
   startDate: Date | Moment;
   endDate: Date | Moment;
@@ -215,6 +216,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.comments = source.comments || undefined;
     this.vesselId = source.vesselId;
     this.vesselTypeId = source.vesselTypeId;
+    this.vesselStatusId = source.vesselStatusId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.administrativePower = source.administrativePower || undefined;

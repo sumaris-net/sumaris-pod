@@ -4,12 +4,7 @@ import {Moment} from "moment";
 import {ReferentialValidatorService} from "../services/referential.validator";
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-
-export declare interface StatusValue {
-  id: number;
-  icon: string;
-  label: string;
-}
+import {DefaultStatusList, StatusValue} from "../../core/services/model";
 
 @Component({
   selector: 'app-referential-form',
@@ -21,23 +16,7 @@ export declare interface StatusValue {
 })
 export class ReferentialForm extends AppForm<Referential> implements OnInit {
 
-  private _statusList: StatusValue[] = [
-    {
-      id: StatusIds.ENABLE,
-      icon: 'checkmark',
-      label: 'REFERENTIAL.STATUS_ENUM.ENABLE'
-    },
-    {
-      id: StatusIds.DISABLE,
-      icon: 'close',
-      label: 'REFERENTIAL.STATUS_ENUM.DISABLE'
-    },
-    {
-      id: StatusIds.TEMPORARY,
-      icon: 'warning',
-      label: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
-    }
-  ];
+  private _statusList = DefaultStatusList;
   statusById: { [id: number]: StatusValue; };
 
   @Input() showError = true;

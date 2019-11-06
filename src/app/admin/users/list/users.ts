@@ -4,7 +4,7 @@ import {
   AppTableDataSource,
   environment
 } from "../../../core/core.module";
-import {Person, PRIORITIZED_USER_PROFILES, referentialToString, StatusIds} from "../../../core/services/model";
+import {Person, PRIORITIZED_USER_PROFILES, referentialToString, DefaultStatusList} from "../../../core/services/model";
 import {PersonFilter, PersonService} from "../../services/person.service";
 import {PersonValidatorService} from "../../services/person.validator";
 import {ModalController} from "@ionic/angular";
@@ -33,23 +33,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
   filterForm: FormGroup;
   profiles: string[] = PRIORITIZED_USER_PROFILES;
   additionalFields: FormFieldDefinition[];
-  statusList: any[] = [
-    {
-      id: StatusIds.ENABLE,
-      icon: 'checkmark',
-      label: 'REFERENTIAL.STATUS_ENUM.ENABLE'
-    },
-    {
-      id: StatusIds.DISABLE,
-      icon: 'close',
-      label: 'REFERENTIAL.STATUS_ENUM.DISABLE'
-    },
-    {
-      id: StatusIds.TEMPORARY,
-      icon: 'warning',
-      label: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
-    }
-  ];
+  statusList = DefaultStatusList;
   statusById;
   any;
 

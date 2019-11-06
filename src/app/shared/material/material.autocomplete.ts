@@ -315,7 +315,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         );
     }
 
-    else {
+    else if (this.formControl.enabled) {
       console.warn("Missing attribute 'suggestFn', 'items' or 'config' in <mat-autocomplete-field>", this);
     }
 

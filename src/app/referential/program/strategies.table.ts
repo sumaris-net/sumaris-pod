@@ -16,6 +16,7 @@ import {Location} from "@angular/common";
 import {isEmptyArray} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {DefaultStatusList} from "../../core/services/model";
 
 export declare interface StrategyFilter {
 }
@@ -35,23 +36,7 @@ export declare interface StrategyFilter {
 })
 export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implements OnInit, OnDestroy {
 
-  statusList: any[] = [
-    {
-      id: StatusIds.ENABLE,
-      icon: 'checkmark',
-      label: 'REFERENTIAL.STATUS_ENUM.ENABLE'
-    },
-    {
-      id: StatusIds.DISABLE,
-      icon: 'close',
-      label: 'REFERENTIAL.STATUS_ENUM.DISABLE'
-    },
-    {
-      id: StatusIds.TEMPORARY,
-      icon: 'warning',
-      label: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
-    }
-  ];
+  statusList = DefaultStatusList;
   statusById: any;
 
   @Input() canEdit = false;
