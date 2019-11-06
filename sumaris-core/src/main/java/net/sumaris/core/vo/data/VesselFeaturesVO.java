@@ -72,5 +72,6 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
     // From parent Entity
     private Integer vesselId;
     private Integer vesselTypeId;
+    private Integer vesselStatusId;
 
 }

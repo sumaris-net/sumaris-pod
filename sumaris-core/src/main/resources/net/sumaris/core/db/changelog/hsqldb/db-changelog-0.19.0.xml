@@ -570,6 +570,22 @@
                              referencedTableName="VESSEL" referencedColumnNames="ID"/>
   </changeSet>
 
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-14">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="VESSEL" columnName="STATUS_FK"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="VESSEL">
+      <column name="STATUS_FK" type="INTEGER" defaultValueNumeric="1">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+    <addForeignKeyConstraint baseTableName="VESSEL" baseColumnNames="STATUS_FK"
+                             constraintName="VESSEL_STATUS_FKC"
+                             referencedTableName="STATUS" referencedColumnNames="ID"/>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-500" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">

@@ -106,8 +106,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected void afterPropertiesSet() {
 
         // Make sure statistical rectangle exists (need by trip extraction)
-        // TODO : add config option to enable/disable this init
-        initRectangleLocations();
+        if (configuration.isInitStatisticalRectangles()) {
+            initRectangleLocations();
+        }
     }
 
     @Override

@@ -27,6 +27,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.VesselType;
 import org.hibernate.annotations.Cascade;
 
@@ -38,6 +39,8 @@ import java.util.List;
 @Data
 @Entity
 public class Vessel implements IRootDataEntity<Integer> {
+
+    public static final String PROPERTY_STATUS = "status";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_SEQ")
@@ -85,6 +88,10 @@ public class Vessel implements IRootDataEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = VesselType.class)
     @JoinColumn(name="vessel_type_fk", nullable = false)
     private VesselType vesselType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_fk", nullable = false)
+    private Status status;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
     @JoinColumn(name = "program_fk", nullable = false)

@@ -451,6 +451,11 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "_SEQ",
             String.class),
 
+    INIT_STATISTICAL_RECTANGLES(
+            "sumaris.persistence.init.statisticalRectangles",
+            n("sumaris.config.option.persistence.init.statisticalRectangles.description"),
+            Boolean.TRUE.toString(),
+            Boolean.class)
 
     ;
 

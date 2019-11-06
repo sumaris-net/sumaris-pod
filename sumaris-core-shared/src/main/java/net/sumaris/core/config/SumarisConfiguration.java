@@ -754,6 +754,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOption(SumarisConfigurationOption.CSV_SEPARATOR.getKey());
     }
 
+    public boolean isInitStatisticalRectangles() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.INIT_STATISTICAL_RECTANGLES.getKey());
+    }
+
     /* -- protected methods -- */
 
     /**
