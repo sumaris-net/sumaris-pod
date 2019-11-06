@@ -93,9 +93,8 @@ $candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-
 }
 
 .mat-option {
-  padding: unset !important;
-  padding-start: var(--padding-start, 16px);
-  padding-end: var(--padding-start, 16px);
-  padding-top: var(--padding-top, 0);
-  padding-bottom: var(--padding-bottom, 0);
+  padding-left: var(--padding-start, 16px) !important;
+  padding-right: var(--padding-end, 16px) !important;
+  padding-top: var(--padding-top, 0) !important;
+  padding-bottom: var(--padding-bottom, 0) !important;
 }
