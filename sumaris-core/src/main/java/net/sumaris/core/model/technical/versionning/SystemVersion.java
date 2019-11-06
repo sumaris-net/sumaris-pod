@@ -27,7 +27,6 @@ import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
@@ -36,7 +35,7 @@ import java.util.Date;
 public class SystemVersion implements IUpdateDateEntityBean<Integer, Date> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SYSTEM_VERSION_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SYSTEM_VERSION_SEQ")
     @SequenceGenerator(name = "SYSTEM_VERSION_SEQ", sequenceName="SYSTEM_VERSION_SEQ")
     private Integer id;
 

@@ -45,7 +45,7 @@ public class Operation implements IDataEntity<Integer> {
     public static final String PROPERTY_GEAR_USE_MEASUREMENTS = "gearUseMeasurements";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "OPERATION_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OPERATION_SEQ")
     @SequenceGenerator(name = "OPERATION_SEQ", sequenceName="OPERATION_SEQ")
     private Integer id;
 

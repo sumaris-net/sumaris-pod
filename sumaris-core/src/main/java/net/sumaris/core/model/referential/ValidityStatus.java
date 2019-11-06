@@ -39,7 +39,8 @@ import java.util.Date;
 public class ValidityStatus implements IUpdateDateEntityBean<Integer, Date> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VALIDITY_STATUS_SEQ")
+    @SequenceGenerator(name = "VALIDITY_STATUS_SEQ", sequenceName="VALIDITY_STATUS_SEQ")
     private Integer id;
 
     @Column(nullable = false)

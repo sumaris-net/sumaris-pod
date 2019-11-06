@@ -48,7 +48,8 @@ public class Fraction implements IItemReferentialEntity {
     public static final String PROPERTY_MATRIX = "matrix";
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "FRACTION_SEQ")
+    @SequenceGenerator(name = "FRACTION_SEQ", sequenceName="FRACTION_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

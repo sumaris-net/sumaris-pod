@@ -39,7 +39,7 @@ public class SampleMeasurement implements ISortedMeasurementEntity {
     public static final String PROPERTY_SAMPLE = "sample";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SAMPLE_MEASUREMENT_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLE_MEASUREMENT_SEQ")
     @SequenceGenerator(name = "SAMPLE_MEASUREMENT_SEQ", sequenceName="SAMPLE_MEASUREMENT_SEQ")
     private Integer id;
 
@@ -85,7 +85,7 @@ public class SampleMeasurement implements ISortedMeasurementEntity {
     @JoinColumn(name = "qualitative_value_fk")
     private QualitativeValue qualitativeValue;
 
-    @Column(name = "rank_order", nullable = false)
+    @Column(name = "rank_order")
     private Integer rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Pmfm.class)

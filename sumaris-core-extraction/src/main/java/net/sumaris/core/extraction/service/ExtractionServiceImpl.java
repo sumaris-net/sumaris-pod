@@ -114,9 +114,10 @@ public class ExtractionServiceImpl implements ExtractionService {
     @PostConstruct
     protected void afterPropertiesSet() {
 
-
         // Make sure statistical rectangle exists (need by trip extraction)
-        initRectangleLocations();
+        if (configuration.isInitStatisticalRectangles()) {
+            initRectangleLocations();
+        }
     }
 
     @Override

@@ -25,6 +25,7 @@ package net.sumaris.core.vo.filter;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class VesselFilterVO {
@@ -35,4 +36,6 @@ public class VesselFilterVO {
     private Integer vesselFeaturesId;
 
     private String searchText;
+
+    private List<Integer> statusIds;
 }

@@ -23,7 +23,6 @@ package net.sumaris.core.model.referential;
  */
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @lombok.Data
@@ -32,7 +31,8 @@ import java.util.Date;
 public class QualityFlag implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "QUALITY_FLAG_SEQ")
+    @SequenceGenerator(name = "QUALITY_FLAG_SEQ", sequenceName="QUALITY_FLAG_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

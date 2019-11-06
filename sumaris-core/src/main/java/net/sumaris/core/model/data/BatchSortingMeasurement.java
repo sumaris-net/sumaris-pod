@@ -40,7 +40,7 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
 
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SORTING_MEASUREMENT_B_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SORTING_MEASUREMENT_B_SEQ")
     @SequenceGenerator(name = "SORTING_MEASUREMENT_B_SEQ", sequenceName="SORTING_MEASUREMENT_B_SEQ")
     private Integer id;
 
@@ -86,7 +86,7 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
     @JoinColumn(name = "qualitative_value_fk")
     private QualitativeValue qualitativeValue;
 
-    @Column(name = "rank_order", nullable = false)
+    @Column(name = "rank_order")
     private Integer rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Pmfm.class)

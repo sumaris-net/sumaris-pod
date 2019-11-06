@@ -34,15 +34,13 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.dialect.Dialect;
-import org.hibernate.mapping.*;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
 import java.util.Collection;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -167,11 +165,11 @@ public class SumarisTableMetadata {
 	}
 
 	public String getSchema() {
-		return tableName.getSchemaName().getText();
+		return tableName.getSchemaName() != null ? tableName.getSchemaName().getText() : null;
 	}
 
 	public String getCatalog() {
-		return tableName.getCatalogName().getText();
+		return tableName.getCatalogName() != null ? tableName.getCatalogName().getText() : null;
 	}
 
 	/**

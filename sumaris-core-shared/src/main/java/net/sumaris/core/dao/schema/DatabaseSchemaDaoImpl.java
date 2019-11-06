@@ -145,7 +145,11 @@ public class DatabaseSchemaDaoImpl
     public void afterPropertiesSet() {
 
         // check database and server timezones conformity
-        checkTimezoneConformity();
+        try {
+            checkTimezoneConformity();
+        } catch (SQLException e) {
+            throw new SumarisTechnicalException("Could not check database timezone", e);
+        }
 
         if (log.isInfoEnabled()) {
             try {
@@ -687,14 +691,14 @@ public class DatabaseSchemaDaoImpl
      * Check server and database timezones conformity
      * Warn if offsets differs
      */
-    private void checkTimezoneConformity() {
+    private void checkTimezoneConformity() throws SQLException {
 
         // get server timezone
         TimeZone serverTimeZone = TimeZone.getDefault();
         log.info(I18n.t("sumaris.persistence.serverTimeZone", new Timestamp(new Date().getTime()), serverTimeZone.getID()));
 
         // get db timezone offset in time format ex: '1:00' for 1 hour offset
-        String dbOffsetAsString = (String) Daos.sqlUnique(dataSource,"CALL DATABASE_TIMEZONE()");
+        String dbOffsetAsString = (String) Daos.sqlUnique(dataSource, getTimezoneQuery(dataSource.getConnection()));
         log.info(I18n.t("sumaris.persistence.dbTimeZone", getDatabaseCurrentTimestamp(), dbOffsetAsString));
 
         // convert db time zone offset in raw offset in milliseconds
@@ -707,4 +711,13 @@ public class DatabaseSchemaDaoImpl
         }
     }
 
+    private String getTimezoneQuery(Connection connection) {
+        if (Daos.isHsqlDatabase(connection)) {
+            return "CALL DATABASE_TIMEZONE()";
+        }
+        if (Daos.isOracleDatabase(connection)) {
+            return "SELECT DBTIMEZONE FROM DUAL";
+        }
+        throw new SumarisTechnicalException("Could not determine database type");
+    }
 }

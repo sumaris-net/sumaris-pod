@@ -23,6 +23,7 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import net.sumaris.core.model.referential.location.LocationAssociation;
 
 import java.util.Date;
 
@@ -38,4 +39,8 @@ public class LocationAssociationVO extends ReferentialVO {
     private Double childSurfaceRatio;
 
     private Date updateDate;
+
+    public LocationAssociationVO() {
+        this.setEntityName(LocationAssociation.class.getSimpleName());
+    }
 }

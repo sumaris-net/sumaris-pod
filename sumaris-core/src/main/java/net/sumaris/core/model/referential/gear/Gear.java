@@ -37,7 +37,7 @@ import java.util.List;
 @Cacheable
 public class Gear implements IItemReferentialEntity {
 
-    public static final String PROPERTY_GEAR_LEVEL = "gearLevel";
+    public static final String PROPERTY_GEAR_CLASSIFICATION = "gearClassification";
     public static final String PROPERTY_PARENT = "parent";
     public static final String PROPERTY_CHILDREN = "children";
     public static final String PROPERTY_STRATEGIES = "strategies";
@@ -91,8 +91,8 @@ public class Gear implements IItemReferentialEntity {
     private Boolean isTowed;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gear_level_fk", nullable = false)
-    private GearLevel gearLevel;
+    @JoinColumn(name = "gear_classification_fk", nullable = false)
+    private GearClassification gearClassification;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_gear_fk")

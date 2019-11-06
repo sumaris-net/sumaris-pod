@@ -33,13 +33,12 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Root;
 import java.util.List;
-import java.util.function.BiFunction;
+import java.util.Optional;
 
 public interface ReferentialDao {
 
@@ -66,7 +65,7 @@ public interface ReferentialDao {
 
     <T extends IReferentialEntity> ReferentialVO toReferentialVO(T source);
 
-    <T extends IReferentialVO, S extends IReferentialEntity> T toTypedVO(S source, Class<T> targetClazz);
+    <T extends IReferentialVO, S extends IReferentialEntity> Optional<T> toTypedVO(S source, Class<T> targetClazz);
 
 
     @Caching(

@@ -31,7 +31,6 @@ import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.*;
-import net.sumaris.core.model.data.Sample;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -44,7 +43,6 @@ import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +81,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
                 if (program != null) {
                     programEnum.setId(program.getId());
                 } else {
+                    // TODO query by id and show program code/name
                     log.warn("Missing program with label=" + programEnum.name());
                 }
             } catch(Throwable t) {

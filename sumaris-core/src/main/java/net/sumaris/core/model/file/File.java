@@ -39,7 +39,8 @@ import java.util.List;
 public class File implements Serializable, IUpdateDateEntityBean<Integer, Date> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_SEQ")
+    @SequenceGenerator(name = "FILE_SEQ", sequenceName="FILE_SEQ")
     private Integer id;
 
     @Column(nullable = false)

@@ -40,7 +40,7 @@ public class PhysicalGearMeasurement implements ISortedMeasurementEntity {
     public static final String PROPERTY_PHYSICAL_GEAR = "physicalGear";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "PHYSICAL_GEAR_MEASUREMENT_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PHYSICAL_GEAR_MEASUREMENT_SEQ")
     @SequenceGenerator(name = "PHYSICAL_GEAR_MEASUREMENT_SEQ", sequenceName="PHYSICAL_GEAR_MEASUREMENT_SEQ")
     private Integer id;
 
@@ -86,7 +86,7 @@ public class PhysicalGearMeasurement implements ISortedMeasurementEntity {
     @JoinColumn(name = "qualitative_value_fk")
     private QualitativeValue qualitativeValue;
 
-    @Column(name = "rank_order", nullable = false)
+    @Column(name = "rank_order")
     private Integer rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Pmfm.class)

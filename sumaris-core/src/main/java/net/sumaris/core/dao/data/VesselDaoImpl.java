@@ -10,12 +10,12 @@ package net.sumaris.core.dao.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,20 +23,18 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.VesselType;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
@@ -53,6 +51,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -81,6 +80,8 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         CriteriaQuery<VesselFeatures> query = cb.createQuery(VesselFeatures.class);
         Root<VesselFeatures> root = query.from(VesselFeatures.class);
 
+        Join<VesselFeatures, Vessel> vesselJoin = root.join(VesselFeatures.PROPERTY_VESSEL, JoinType.INNER);
+
         query.select(root);
 
         // Apply sorting
@@ -94,24 +95,33 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             return toVesselFeaturesVOs(q.getResultList());
         }
 
+        List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds()) ?
+                null : filter.getStatusIds();
+
         // Apply tripFilter
         ParameterExpression<Date> dateParam = cb.parameter(Date.class);
         ParameterExpression<Integer> vesselIdParam = cb.parameter(Integer.class);
         ParameterExpression<Integer> vesselFeaturesIdParam = cb.parameter(Integer.class);
         ParameterExpression<String> searchNameParam = cb.parameter(String.class);
         ParameterExpression<String> searchExteriorMarkingParam = cb.parameter(String.class);
+        ParameterExpression<Boolean> hasStatusIdsParam = cb.parameter(Boolean.class);
+        ParameterExpression<Collection> statusIdsParam = cb.parameter(Collection.class);
 
         query.where(cb.and(
             // Filter: date
             cb.or(
-                cb.isNull(dateParam),
-                cb.not(
+                cb.and(
+                    cb.isNull(dateParam),
+                    cb.isNull(root.get(VesselFeatures.PROPERTY_END_DATE))
+                ),
+                cb.and(
+                    cb.isNotNull(dateParam),
                     cb.and(
                         cb.or(
                             cb.isNull(root.get(VesselFeatures.PROPERTY_END_DATE)),
-                            cb.lessThan(root.get(VesselFeatures.PROPERTY_END_DATE), dateParam)
+                            cb.greaterThan(root.get(VesselFeatures.PROPERTY_END_DATE), dateParam)
                         ),
-                        cb.greaterThan(root.get(VesselFeatures.PROPERTY_START_DATE), dateParam)
+                        cb.lessThan(root.get(VesselFeatures.PROPERTY_START_DATE), dateParam)
                     )
                 )
             ),
@@ -133,6 +143,12 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                     cb.isNull(searchNameParam),
                     cb.like(cb.lower(root.get(VesselFeatures.PROPERTY_NAME)), cb.lower(searchNameParam)),
                     cb.like(cb.lower(root.get(VesselFeatures.PROPERTY_EXTERIOR_MARKING)), cb.lower(searchExteriorMarkingParam))
+            ),
+
+            // Status
+            cb.or(
+                    cb.isFalse(hasStatusIdsParam),
+                    cb.in(vesselJoin.get(Vessel.PROPERTY_STATUS).get(IReferentialEntity.PROPERTY_ID)).value(statusIdsParam)
             )
         );
 
@@ -153,9 +169,12 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 .setParameter(vesselIdParam, filter.getVesselId())
                 .setParameter(searchExteriorMarkingParam, searchTextAsPrefix)
                 .setParameter(searchNameParam, searchTextAnyMatch)
+                .setParameter(hasStatusIdsParam, CollectionUtils.isNotEmpty(statusIds))
+                .setParameter(statusIdsParam, statusIds)
                 .setFirstResult(offset)
                 .setMaxResults(size);
-        return toVesselFeaturesVOs(q.getResultList());
+        List<VesselFeatures> result = q.getResultList();
+        return toVesselFeaturesVOs(result);
     }
 
     @Override
@@ -171,7 +190,10 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             filter.setDate(null);
             res = findByFilter(filter, 0, 1, VesselFeatures.PROPERTY_START_DATE, SortDirection.DESC);
             if (res.size() == 0) {
-                return null;
+                VesselFeaturesVO unknownVessel = new VesselFeaturesVO();
+                unknownVessel.setVesselId(vesselId);
+                unknownVessel.setName("unknown vessel " + vesselId);
+                return unknownVessel;
             }
         }
         return res.get(0);
@@ -282,6 +304,8 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         }
 
         target.setVesselId(source.getVessel().getId());
+        target.setVesselTypeId(source.getVessel().getVesselType().getId());
+        target.setVesselStatusId(source.getVessel().getStatus().getId());
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // base port location
@@ -289,7 +313,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         target.setBasePortLocation(departureLocation);
 
         // Recorder department
-        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         return target;
@@ -355,6 +379,16 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             }
             else {
                 target.setVesselType(load(VesselType.class, source.getVesselTypeId()));
+            }
+        }
+
+        // Vessel status
+        if (copyIfNull || source.getVesselStatusId() != null) {
+            if (source.getVesselStatusId() == null) {
+                target.setStatus(null);
+            }
+            else {
+                target.setStatus(load(Status.class, source.getVesselStatusId()));
             }
         }
 

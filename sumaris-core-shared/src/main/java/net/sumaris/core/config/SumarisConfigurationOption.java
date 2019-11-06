@@ -24,9 +24,7 @@ package net.sumaris.core.config;
  * #L%
  */
 
-
-
-import org.hibernate.dialect.HSQLDialect;
+import net.sumaris.core.dao.technical.hibernate.spatial.HSQLSpatialDialect;
 import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.version.Version;
 
@@ -191,7 +189,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     HIBERNATE_DIALECT(
             "spring.jpa.database-platform",
             n("sumaris.config.option.spring.jpa.database-platform.description"),
-            HSQLDialect.class.getName(),
+            HSQLSpatialDialect.class.getName(),
             Class.class),
 
     HIBERNATE_ENTITIES_PACKAGE(
@@ -453,6 +451,11 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "_SEQ",
             String.class),
 
+    INIT_STATISTICAL_RECTANGLES(
+            "sumaris.persistence.init.statisticalRectangles",
+            n("sumaris.config.option.persistence.init.statisticalRectangles.description"),
+            Boolean.TRUE.toString(),
+            Boolean.class)
 
     ;
 

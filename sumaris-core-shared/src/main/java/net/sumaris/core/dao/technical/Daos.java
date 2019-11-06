@@ -333,6 +333,12 @@ public class Daos {
         return jdbcUrl;
     }
 
+    public static String getDbms(String jdbcUrl) {
+        Preconditions.checkNotNull(jdbcUrl);
+        Preconditions.checkArgument(jdbcUrl.startsWith(JDBC_URL_PREFIX));
+        return jdbcUrl.substring(JDBC_URL_PREFIX.length(), jdbcUrl.indexOf(":", JDBC_URL_PREFIX.length()));
+    }
+
     /**
      * <p>isHsqlDatabase.</p>
      *
@@ -946,6 +952,22 @@ public class Daos {
     }
 
     /**
+     * <p>sqlUnique.</p>
+     *
+     * @param dataSource a {@link DataSource} object.
+     * @param sql        a {@link String} object.
+     * @return a {@link Object} object.
+     */
+    public static Object sqlUniqueTimestamp(DataSource dataSource, String sql) throws DataAccessResourceFailureException {
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try {
+            return sqlUnique(connection, sql, true);
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
+    }
+
+    /**
      * <p>sqlUniqueTyped.</p>
      *
      * @param dataSource a {@link DataSource} object.
@@ -966,6 +988,17 @@ public class Daos {
      * @return a {@link Object} object.
      */
     public static Object sqlUnique(Connection connection, String sql) {
+        return sqlUnique(connection, sql, false);
+    }
+
+    /**
+     * <p>sqlUnique.</p>
+     *
+     * @param connection a {@link Connection} object.
+     * @param sql        a {@link String} object.
+     * @return a {@link Object} object.
+     */
+    public static Object sqlUnique(Connection connection, String sql, boolean timestamp) {
         Statement stmt;
         try {
             stmt = connection.createStatement();
@@ -983,7 +1016,9 @@ public class Daos {
             if (!rs.next()) {
                 throw new DataRetrievalFailureException("Executed query return no row: " + sql);
             }
-            Object result = rs.getObject(1);
+            Object result = timestamp
+                    ? rs.getTimestamp(1)
+                    : rs.getObject(1);
             if (rs.next()) {
                 throw new DataRetrievalFailureException("Executed query has more than one row: " + sql);
             }

@@ -330,7 +330,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         // If full export
         if (allFields) {
             // Recorder department
-            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
+            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
             target.setRecorderDepartment(recorderDepartment);
 
             // Recorder person

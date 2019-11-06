@@ -29,7 +29,6 @@ import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.pmfm.Matrix;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import org.hibernate.annotations.Cascade;
 
@@ -46,6 +45,7 @@ public class Product implements IRootDataEntity<Integer> {
     public static final String PROPERTY_OPERATION = "operation";
     public static final String PROPERTY_LANDING = "landing";
     public static final String PROPERTY_SALE = "sale";
+    public static final String PROPERTY_BATCH = "batch";
 
     public static final String PROPERTY_SALE_TYPE = "saleType";
     public static final String PROPERTY_SORTING_MEASUREMENTS = "sortingMeasurements";
@@ -144,4 +144,8 @@ public class Product implements IRootDataEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "landing_fk")
     private Landing landing;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "batch_fk")
+    private Batch batch;
 }

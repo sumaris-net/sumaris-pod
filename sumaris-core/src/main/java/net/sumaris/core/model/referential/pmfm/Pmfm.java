@@ -27,7 +27,6 @@ import lombok.Data;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.gear.Gear;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -41,7 +40,8 @@ public class Pmfm implements IReferentialEntity {
     public static final String PROPERTY_LABEL = "label";
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")
+    @SequenceGenerator(name = "PMFM_SEQ", sequenceName="PMFM_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

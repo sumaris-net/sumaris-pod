@@ -36,7 +36,8 @@ import java.util.Date;
 public class FileStatus implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_STATUS_SEQ")
+    @SequenceGenerator(name = "FILE_STATUS_SEQ", sequenceName="FILE_STATUS_SEQ")
     private Integer id;
 
     @Column(nullable = false, length = LENGTH_LABEL)

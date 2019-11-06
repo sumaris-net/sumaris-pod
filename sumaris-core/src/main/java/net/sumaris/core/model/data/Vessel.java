@@ -27,6 +27,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.VesselType;
 import org.hibernate.annotations.Cascade;
 
@@ -39,8 +40,10 @@ import java.util.List;
 @Entity
 public class Vessel implements IRootDataEntity<Integer> {
 
+    public static final String PROPERTY_STATUS = "status";
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "VESSEL_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_SEQ")
     @SequenceGenerator(name = "VESSEL_SEQ", sequenceName="VESSEL_SEQ")
     private Integer id;
 
@@ -86,6 +89,10 @@ public class Vessel implements IRootDataEntity<Integer> {
     @JoinColumn(name="vessel_type_fk", nullable = false)
     private VesselType vesselType;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_fk", nullable = false)
+    private Status status;
+
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
@@ -93,5 +100,13 @@ public class Vessel implements IRootDataEntity<Integer> {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselFeatures.class, mappedBy = VesselFeatures.PROPERTY_VESSEL)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselFeatures> vesselFeatures = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselRegistrationPeriod.class, mappedBy = VesselRegistrationPeriod.PROPERTY_VESSEL)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<VesselRegistrationPeriod> vesselRegistrationPeriods = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselOwnerPeriod.class, mappedBy = VesselOwnerPeriod.PROPERTY_VESSEL)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<VesselOwnerPeriod> vesselOwnerPeriods = new ArrayList<>();
 
 }

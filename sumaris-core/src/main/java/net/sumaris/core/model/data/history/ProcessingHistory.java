@@ -47,7 +47,7 @@ public class ProcessingHistory implements IEntity<Integer> {
     public static final String PROPERTY_DATE = "date";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "PROCESSING_HISTORY_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_HISTORY_SEQ")
     @SequenceGenerator(name = "PROCESSING_HISTORY_SEQ", sequenceName="PROCESSING_HISTORY_SEQ")
     private Integer id;
 

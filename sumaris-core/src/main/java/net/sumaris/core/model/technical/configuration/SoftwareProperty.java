@@ -37,7 +37,7 @@ public class SoftwareProperty implements IItemReferentialEntity  {
     public static final String PROPERTY_SOFTWARE = "software";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SOFTWARE_PROPERTY_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SOFTWARE_PROPERTY_SEQ")
     @SequenceGenerator(name = "SOFTWARE_PROPERTY_SEQ", sequenceName="SOFTWARE_PROPERTY_SEQ")
     private Integer id;
 

@@ -24,16 +24,12 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
-import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.service.referential.PmfmService;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,7 +46,8 @@ public class Strategy implements IItemReferentialEntity {
 
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "STRATEGY_SEQ")
+    @SequenceGenerator(name = "STRATEGY_SEQ", sequenceName="STRATEGY_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -98,4 +95,9 @@ public class Strategy implements IItemReferentialEntity {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.PROPERTY_STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<TaxonGroupStrategy> taxonGroups = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = AppliedStrategy.class, mappedBy = AppliedStrategy.PROPERTY_STRATEGY)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<AppliedStrategy> appliedStrategies = new ArrayList<>();
+
 }

@@ -59,7 +59,8 @@ import java.util.Date;
 public class Method implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "METHOD_SEQ")
+    @SequenceGenerator(name = "METHOD_SEQ", sequenceName="METHOD_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

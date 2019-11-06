@@ -41,7 +41,7 @@ public class VesselUseMeasurement implements IMeasurementEntity {
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "VESSEL_USE_MEASUREMENT_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_USE_MEASUREMENT_SEQ")
     @SequenceGenerator(name = "VESSEL_USE_MEASUREMENT_SEQ", sequenceName="VESSEL_USE_MEASUREMENT_SEQ")
     private Integer id;
 
@@ -87,7 +87,7 @@ public class VesselUseMeasurement implements IMeasurementEntity {
     @JoinColumn(name = "qualitative_value_fk")
     private QualitativeValue qualitativeValue;
 
-    @Column(name = "rank_order", nullable = false)
+    @Column(name = "rank_order")
     private Integer rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Pmfm.class)

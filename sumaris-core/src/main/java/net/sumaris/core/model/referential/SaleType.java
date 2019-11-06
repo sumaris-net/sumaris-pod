@@ -25,7 +25,6 @@ package net.sumaris.core.model.referential;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
@@ -34,7 +33,8 @@ import java.util.Date;
 public class SaleType implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "SALE_TYPE_SEQ")
+    @SequenceGenerator(name = "SALE_TYPE_SEQ", sequenceName="SALE_TYPE_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

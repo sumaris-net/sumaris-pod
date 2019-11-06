@@ -33,7 +33,8 @@ import java.util.Date;
 public class ObjectType implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "OBJECT_TYPE_SEQ")
+    @SequenceGenerator(name = "OBJECT_TYPE_SEQ", sequenceName="OBJECT_TYPE_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

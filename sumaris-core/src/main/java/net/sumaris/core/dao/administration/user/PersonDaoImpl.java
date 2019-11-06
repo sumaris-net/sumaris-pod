@@ -25,6 +25,8 @@ package net.sumaris.core.dao.administration.user;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.data.ImageAttachmentDao;
+import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.technical.SoftwareDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
@@ -39,6 +41,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,11 +58,10 @@ import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.*;
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Repository("personDao")
@@ -76,6 +78,12 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
 
     @Autowired
     private ImageAttachmentDao imageAttachmentDao;
+
+    @Autowired
+    private SoftwareDao softwareDao;
+
+    @Autowired
+    private ReferentialDao referentialDao;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -108,9 +116,8 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         Collection<Integer> userProfileIds;
         if (ArrayUtils.isNotEmpty(filter.getUserProfiles())) {
             userProfileIds = Arrays.stream(filter.getUserProfiles())
-                    .map(label -> UserProfileEnum.valueOf(label))
-                    .filter(Objects::nonNull)
-                    .map(profile -> Integer.valueOf(profile.id))
+                    .map(UserProfileEnum::valueOf)
+                    .map(profile -> profile.id)
                     .collect(Collectors.toList());
         }
         else if (ArrayUtils.isNotEmpty(filter.getUserProfileIds())) {
@@ -385,7 +392,7 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         // Profiles (keep only label)
         if (CollectionUtils.isNotEmpty(source.getUserProfiles())) {
             List<String> profiles = source.getUserProfiles().stream()
-                    .map(UserProfile::getLabel)
+                    .map(profile -> getUserProfileLabelTranslationMap(true).getOrDefault(profile.getLabel(), profile.getLabel()))
                     .collect(Collectors.toList());
             target.setProfiles(profiles);
         }
@@ -451,9 +458,11 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
                 target.getUserProfiles().clear();
                 for (String profile: source.getProfiles()) {
                     if (StringUtils.isNotBlank(profile)) {
-                        UserProfileEnum profileEnum = UserProfileEnum.valueOf(profile);
-                        if (profileEnum != null) {
-                            UserProfile up = load(UserProfile.class, profileEnum.id);
+                        // translate the user profile label
+                        String translatedLabel = getUserProfileLabelTranslationMap(false).getOrDefault(profile, profile);
+                        if (StringUtils.isNotBlank(translatedLabel)) {
+                            ReferentialVO userProfileVO = referentialDao.findByUniqueLabel("UserProfile", translatedLabel);
+                            UserProfile up = load(UserProfile.class, userProfileVO.getId());
                             target.getUserProfiles().add(up);
                         }
                     }
@@ -505,5 +514,26 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
                 // Continue, to avoid transaction cancellation
             }
         });
+    }
+
+    /**
+     * Create a translate map from software properties 'sumaris.userProfile.<ENUM>.label' (<ENUM> is one of the UserProfileEnum name)
+     *
+     * @param toVO if true, the map key is the translated label, the value is the enum label; if false, it's inverted
+     * @return the translation map
+     */
+    private Map<String, String> getUserProfileLabelTranslationMap(boolean toVO) {
+        Map<String, String> translateMap = new HashMap<>();
+        Pattern pattern = Pattern.compile("sumaris.userProfile.(\\w+).label");
+        softwareDao.get(config.getAppName()).getProperties().forEach((key, value) -> {
+            Matcher matcher = pattern.matcher(key);
+            if (value != null && matcher.find()) {
+                if (toVO)
+                    translateMap.put(value, matcher.group(1));
+                else
+                    translateMap.put(matcher.group(1), value);
+            }
+        });
+        return translateMap;
     }
 }

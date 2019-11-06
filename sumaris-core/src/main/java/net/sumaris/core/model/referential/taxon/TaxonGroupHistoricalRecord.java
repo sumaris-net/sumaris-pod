@@ -24,14 +24,10 @@ package net.sumaris.core.model.referential.taxon;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.Status;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
 
 /**
  *  Permet de définir la date de début d'appartenance du taxon (de référence) au groupe de taxon.
@@ -44,7 +40,7 @@ import java.util.List;
 public class TaxonGroupHistoricalRecord implements IUpdateDateEntityBean<Integer, Date> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "TAXON_GROUP_HISTORICAL_REC_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_GROUP_HISTORICAL_REC_SEQ")
     @SequenceGenerator(name = "TAXON_GROUP_HISTORICAL_REC_SEQ", sequenceName="TAXON_GROUP_HISTORICAL_REC_SEQ")
     private Integer id;
 

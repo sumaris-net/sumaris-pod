@@ -40,7 +40,8 @@ import java.util.List;
 public class Parameter implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PARAMETER_SEQ")
+    @SequenceGenerator(name = "PARAMETER_SEQ", sequenceName="PARAMETER_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

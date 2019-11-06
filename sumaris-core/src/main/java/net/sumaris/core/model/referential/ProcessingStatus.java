@@ -41,7 +41,7 @@ import java.util.Date;
 public class ProcessingStatus implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "PROCESSING_STATUS_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_STATUS_SEQ")
     @SequenceGenerator(name = "PROCESSING_STATUS_SEQ", sequenceName="PROCESSING_STATUS_SEQ")
     private Integer id;
 

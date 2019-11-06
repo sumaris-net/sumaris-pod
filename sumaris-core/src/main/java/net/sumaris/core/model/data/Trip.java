@@ -71,7 +71,7 @@ public class Trip implements IRootDataEntity<Integer>,
     public static final String PROPERTY_VESSEL = "vessel";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "TRIP_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TRIP_SEQ")
     @SequenceGenerator(name = "TRIP_SEQ", sequenceName="TRIP_SEQ")
     private Integer id;
 

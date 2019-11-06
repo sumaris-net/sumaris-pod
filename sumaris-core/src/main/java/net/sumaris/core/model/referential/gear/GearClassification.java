@@ -24,21 +24,20 @@ package net.sumaris.core.model.referential.gear;
 
 import lombok.Data;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "gear_level")
+@Table(name = "gear_classification")
 @Cacheable
-public class GearLevel implements IItemReferentialEntity {
+public class GearClassification implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy= GenerationType.SEQUENCE, generator = "GEAR_CLASSIFICATION_SEQ")
+    @SequenceGenerator(name = "GEAR_CLASSIFICATION_SEQ", sequenceName="GEAR_CLASSIFICATION_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

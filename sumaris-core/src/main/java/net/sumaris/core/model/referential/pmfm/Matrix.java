@@ -27,7 +27,6 @@ import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -41,7 +40,8 @@ import java.util.Date;
 public class Matrix implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "MATRIX_SEQ")
+    @SequenceGenerator(name = "MATRIX_SEQ", sequenceName="MATRIX_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -27,7 +27,6 @@ import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -44,7 +43,8 @@ import java.util.Date;
 public class TaxonGroupType implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "TAXON_GROUP_TYPE_SEQ")
+    @SequenceGenerator(name = "TAXON_GROUP_TYPE_SEQ", sequenceName="TAXON_GROUP_TYPE_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

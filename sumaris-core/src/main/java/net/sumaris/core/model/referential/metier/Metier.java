@@ -23,13 +23,12 @@ package net.sumaris.core.model.referential.metier;
  */
 
 import lombok.Data;
-import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -44,7 +43,7 @@ public class Metier implements IItemReferentialEntity {
     public static final String PROPERTY_TAXON_GROUP = "taxonGroup";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "METIER_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "METIER_SEQ")
     @SequenceGenerator(name = "METIER_SEQ", sequenceName="METIER_SEQ")
     private Integer id;
 

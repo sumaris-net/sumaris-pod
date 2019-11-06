@@ -348,7 +348,7 @@ public abstract class HibernateDaoSupport {
         try {
             final Dialect dialect = Dialect.getDialect(SumarisConfiguration.getInstance().getConnectionProperties());
             final String sql = dialect.getCurrentTimestampSelectString();
-            Object r = Daos.sqlUnique(dataSource, sql);
+            Object r = Daos.sqlUniqueTimestamp(dataSource, sql);
             return Daos.toTimestampFromJdbcResult(r);
         }catch(DataAccessResourceFailureException | SQLException e) {
             throw new SumarisTechnicalException(e);

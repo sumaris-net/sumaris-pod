@@ -85,9 +85,9 @@
               LOGO_FK="18" LOCATION_FK="1"  STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
 
   <!-- Programs / strategies -->
-  <PROGRAM ID="0" LABEL="SIH" NAME="Common base program" DESCRIPTION="Program used for all common data (e.g. Vessel)" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
-  <PROGRAM ID="1" LABEL="SUMARiS" NAME="European shared database for management of skate stocks" DESCRIPTION="Web site: https://www.sumaris.net" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
-  <PROGRAM ID="2" LABEL="SANDBOX" NAME="Fake program, to test database tools" DESCRIPTION="Test site: https://test.sumaris.net" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
+  <PROGRAM ID="0" LABEL="SIH" NAME="Common base program" DESCRIPTION="Program used for all common data (e.g. Vessel)" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
+  <PROGRAM ID="1" LABEL="SUMARiS" NAME="European shared database for management of skate stocks" DESCRIPTION="Web site: https://www.sumaris.net" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
+  <PROGRAM ID="2" LABEL="SANDBOX" NAME="Fake program, to test database tools" DESCRIPTION="Test site: https://test.sumaris.net" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
 
   <PROGRAM_PROPERTY ID="1" STATUS_FK="1" PROGRAM_FK="1" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.batch.taxonName.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="2" STATUS_FK="1" PROGRAM_FK="1" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.batch.taxonGroup.enable" NAME="true"/>

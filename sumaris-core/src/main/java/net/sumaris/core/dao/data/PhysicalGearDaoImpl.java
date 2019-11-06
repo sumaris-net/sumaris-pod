@@ -199,7 +199,7 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
             target.setQualityFlagId(source.getQualityFlag().getId());
 
             // Recorder department
-            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
+            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
             target.setRecorderDepartment(recorderDepartment);
 
         }
