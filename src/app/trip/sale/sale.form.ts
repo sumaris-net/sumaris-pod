@@ -11,11 +11,12 @@ import {
   vesselFeaturesToString
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
-import {AppForm, LocalSettingsService} from '../../core/core.module';
+import {AppForm} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
-import {Observable} from 'rxjs';
-import {debounceTime, mergeMap, switchMap} from 'rxjs/operators';
+import {Observable, of} from 'rxjs';
+import {debounceTime, map, mergeMap, switchMap} from 'rxjs/operators';
 import {ReferentialRefService, VesselService} from '../../referential/referential.module';
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'form-sale',
@@ -36,7 +37,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
   @Input() showButtons: boolean = true;
 
   get empty(): any {
-    let value = this.value;
+    const value = this.value;
     return (!value.saleLocation || !value.saleLocation.id)
       && (!value.startDateTime)
       && (!value.endDateTime)
@@ -70,11 +71,11 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         .valueChanges
         .pipe(
           mergeMap(value => {
-            if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+            if (EntityUtils.isNotEmpty(value)) return of([value]);
             value = (typeof value === "string") && value || undefined;
             return this.vesselService.watchAll(0, 10, undefined, undefined,
               {searchText: value as string}
-            ).map(({data}) => data);
+            ).pipe(map(({data}) => data));
           }));
     } else {
       this.form.controls['vesselFeatures'].clearValidators();

@@ -13,7 +13,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {entityToString, isNil, isNotNil, PmfmStrategy, Referential} from "../services/trip.model";
-import {combineLatest, merge, Observable} from 'rxjs';
+import {combineLatest, merge, Observable, of} from 'rxjs';
 import {filter, map, takeUntil, tap, throttleTime} from 'rxjs/operators';
 import {EntityUtils, ReferentialRef, referentialToString} from '../../referential/referential.module';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
@@ -23,10 +23,10 @@ import {FloatLabelType, MatAutocomplete, MatSelect} from "@angular/material";
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
 import {focusInput, isNotEmptyArray, joinPropertiesPath, suggestFromArray, toBoolean} from "../../shared/functions";
-import {AppFormUtils, LocalSettingsService} from "../../core/core.module";
-import {sort} from "../../core/services/model";
+import {AppFormUtils} from "../../core/core.module";
+import {sort} from "../../shared/functions";
 import {asInputElement, InputElement} from "../../shared/material/focusable";
-import {markDirty} from "@angular/core/src/render3";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'mat-form-field-measurement-qv',
@@ -103,7 +103,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   @Output()
   onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
-  @ViewChild('matInput') matInput: ElementRef;
+  @ViewChild('matInput', { static: false }) matInput: ElementRef;
 
   constructor(
     private platform: PlatformService,
@@ -143,7 +143,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
     if (!this.mobile) {
       if (!this._sortedQualitativeValues.length) {
-        this.items = Observable.of([]);
+        this.items = of([]);
       } else {
         this.items = merge(
           this.onShowDropdown

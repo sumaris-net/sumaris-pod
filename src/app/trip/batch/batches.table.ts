@@ -9,7 +9,7 @@ import {
   OnInit,
   Output
 } from "@angular/core";
-import {Observable, Subject} from 'rxjs';
+import {Observable, of, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
@@ -296,7 +296,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
         map((res) => res.map((row) => row.currentData as Batch))
       ) :
       // else, create a copy
-      Observable.of((await this.dataSource.getRows()).map((row) => row.currentData as Batch));
+      of((await this.dataSource.getRows()).map((row) => row.currentData as Batch));
 
     const modal = await this.modalCtrl.create({
       component: SubBatchesModal,

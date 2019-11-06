@@ -3,7 +3,7 @@ import {HistoryPageReference, LocalSettings, Peer, UsageMode} from "./model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
-import {isNotNil, toBoolean} from "../../shared/shared.module";
+import {isNotNil, toBoolean} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {Subject} from "rxjs";
 import {getPropertyByPath, isNotNilOrBlank} from "../../shared/functions";
@@ -11,6 +11,7 @@ import {Platform} from "@ionic/angular";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import * as moment from "moment";
 import {debounceTime, filter, throttleTime} from "rxjs/operators";
+import {PlatformService} from "./platform.service";
 export const SETTINGS_STORAGE_KEY = "settings";
 export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
 
@@ -194,7 +195,7 @@ export class LocalSettingsService {
     const key = pageId.replace(/[/]/g, '__');
 
     this.data = this.data || {};
-    this.data.pages = this.data.pages || {}
+    this.data.pages = this.data.pages || {};
     if (propertyName) {
       this.data.pages[key] = this.data.pages[key] || {};
       this.data.pages[key][propertyName] = value;
@@ -210,7 +211,7 @@ export class LocalSettingsService {
   getFieldDisplayAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
     const value = this.data && this.data.properties &&  this.data.properties[`sumaris.field.${fieldName}.attributes`];
     // Nothing found in settings: return defaults
-    if (!value) return defaultAttributes || ['label','name'];
+    if (!value) return defaultAttributes || ['label', 'name'];
 
     return value.split(',');
   }

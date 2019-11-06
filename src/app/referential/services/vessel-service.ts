@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Observable} from "rxjs-compat";
-import {EntityUtils, Person, VesselFeatures} from "./model";
+import {Observable} from "rxjs";
+import {EntityUtils, isNotNil, Person, StatusIds, VesselFeatures} from "./model";
 import {LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {map} from "rxjs/operators";
@@ -18,6 +18,8 @@ export declare class VesselFilter {
   date?: Date | Moment;
   vesselId?: number;
   searchText?: string;
+  statusId?: number;
+  statusIds?: number[];
 }
 
 export const VesselFragments = {
@@ -36,8 +38,9 @@ export const VesselFragments = {
     comments
     vesselId
     vesselTypeId
+    vesselStatusId
     basePortLocation {
-      ...ReferentialFragment
+      ...LocationFragment
     }
     recorderDepartment {
      ...LightDepartmentFragment
@@ -58,8 +61,9 @@ export const VesselFragments = {
     comments
     vesselId
     vesselTypeId
+    vesselStatusId
     basePortLocation {
-      ...ReferentialFragment
+      ...LocationFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -77,7 +81,7 @@ const LoadAllQuery: any = gql`
     }
   }
   ${VesselFragments.lightVessel}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
 `;
 const LoadQuery: any = gql`
@@ -87,7 +91,7 @@ const LoadQuery: any = gql`
     }
   }
   ${VesselFragments.vessel}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.lightPerson}
 `;
@@ -99,7 +103,7 @@ const SaveVessels: any = gql`
     }
   }
   ${VesselFragments.vessel}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.lightPerson}
 `;
@@ -139,7 +143,12 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
       size: size || 100,
       sortBy: sortBy || 'exteriorMarking',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: {
+        date: filter.date,
+        vesselId: filter.vesselId,
+        searchText: filter.searchText,
+        statusIds: isNotNil(filter.statusId) ?  [filter.statusId] : filter.statusIds
+      }
     };
     const now = Date.now();
     if (this._debug) console.debug("[vessel-service] Getting vessels using options:", variables);
@@ -180,7 +189,12 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
       size: size || 100,
       sortBy: sortBy || 'exteriorMarking',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: {
+        date: filter.date,
+        vesselId: filter.vesselId,
+        searchText: filter.searchText,
+        statusIds: isNotNil(filter.statusId) ?  [filter.statusId] : filter.statusIds
+      }
     };
     console.debug("[vessel-service] Getting vessels using options:", variables);
     const res = await this.graphql.query<{ vessels: any[] }>({

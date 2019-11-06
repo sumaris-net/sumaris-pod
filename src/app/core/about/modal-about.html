@@ -13,14 +13,14 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content padding>
+<ion-content class="ion-padding">
 
   <ion-list no-line>
 
     <!-- Version info -->
     <ion-item>
       <ion-icon slot="start" name="none" item-start color="dark"></ion-icon>
-      <ion-label text-wrap>
+      <ion-label class="ion-text-wrap">
         <h2>
           {{'APP_NAME'|translate}}
           <span [innerHTML]="'ABOUT.VERSION'| translate: {version: appVersion}"></span>
@@ -60,7 +60,7 @@
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
   <ion-toolbar>
-    <ion-row no-padding nowrap>
+    <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
       <ion-col size="auto">
         <ion-button fill="solid" color="tertiary" (click)="cancel()">{{'COMMON.BTN_CLOSE'|translate}}</ion-button>

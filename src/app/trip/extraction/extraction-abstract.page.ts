@@ -10,7 +10,7 @@ import {
 } from "../services/extraction.model";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {mergeMap} from "rxjs/operators";
-import {AccountService, AppTabPage, LocalSettingsService} from "../../core/core.module";
+import {AppTabPage} from "../../core/core.module";
 import {firstNotNilPromise} from "../../shared/observables";
 import {ExtractionCriteriaForm} from "./extraction-criteria.form";
 import {TranslateService} from "@ngx-translate/core";
@@ -18,6 +18,9 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {ExtractionService} from "../services/extraction.service";
 import {AlertController} from "@ionic/angular";
 import {capitalizeFirstLetter} from "apollo-client/util/capitalizeFirstLetter";
+import {MatTable} from "@angular/material";
+import {AccountService} from "../../core/services/account.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -35,7 +38,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     showBackdrop: true
   };
 
-  @ViewChild('criteriaForm') criteriaForm: ExtractionCriteriaForm;
+  @ViewChild('criteriaForm', {static: true}) criteriaForm: ExtractionCriteriaForm;
 
   get sheetName(): string {
     return this.form.controls.sheetName.value;

@@ -6,7 +6,7 @@
       <ion-row [formGroupName]="i">
 
         <!-- column name -->
-        <ion-col no-padding>
+        <ion-col class="ion-no-padding">
           <mat-form-field>
             <mat-select formControlName="name"
                         [placeholder]="'EXTRACTION.FILTER.CRITERION_NAME'|translate"
@@ -18,7 +18,7 @@
         </ion-col>
 
         <!-- operator -->
-        <ion-col no-padding size="auto">
+        <ion-col class="ion-no-padding" size="auto">
           <mat-form-field class="operator">
             <mat-select formControlName="operator">
               <mat-option *ngFor="let operator of operators" [value]="operator.symbol">{{ (operator.name ||
@@ -29,7 +29,7 @@
         </ion-col>
 
         <!-- value -->
-        <ion-col no-padding [class.has-two-fields]="criterionForm.controls.operator.value === 'BETWEEN'">
+        <ion-col class="ion-no-padding" [class.has-two-fields]="criterionForm.controls.operator.value === 'BETWEEN'">
           <ng-container *ngIf="getCriterionValueDefinition(i) | async as definition; else fakeDisabledField">
 
             <app-form-field [placeholder]="(criterionForm.controls.operator.value === 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE' || 'EXTRACTION.FILTER.CRITERION_VALUE') |translate"
@@ -47,7 +47,7 @@
           </ng-container>
         </ion-col>
 
-        <ion-col no-padding size="2" align-self-center>
+        <ion-col class="ion-no-padding ion-align-self-center" size="2">
           <button type="button" mat-icon-button color="light" [disabled]="disabled"
                   [title]="'COMMON.BTN_DELETE'|translate"
                   (click)="removeFilterCriterion($event, i)">

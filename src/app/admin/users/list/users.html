@@ -3,9 +3,9 @@
              [hasValidate]="!loading && dirty" (onValidate)="save()">
 </app-toolbar>
 
-<ion-content no-padding>
+<ion-content class="ion-no-padding">
 
-  <mat-toolbar no-padding>
+  <mat-toolbar class="ion-no-padding">
 
     <button mat-icon-button
             hidden-xs hidden-sm
@@ -57,7 +57,7 @@
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel color="primary">
-    <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" padding>
+    <form class="form-container ion-padding" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
       <!-- search -->
       <mat-form-field>
         <input matInput [placeholder]="'USER.LIST.FILTER.SEARCH'|translate" formControlName="searchText">
@@ -264,9 +264,9 @@
   </mat-table>
 
   <!-- Paginator  -->
-  <ion-row no-padding>
+  <ion-row class="ion-no-padding">
     <ion-col></ion-col>
-    <ion-col no-padding size="auto">
+    <ion-col class="ion-no-padding" size="auto">
       <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
@@ -278,7 +278,7 @@
   <form-buttons-bar (onCancel)="onRefresh.emit()" (onSave)="save()" [disabled]="loading || !dirty"></form-buttons-bar>
 </ion-footer>
 
-<ion-fab vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile>
+<ion-fab slot="fixed" vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

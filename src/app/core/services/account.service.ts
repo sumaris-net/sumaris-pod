@@ -229,6 +229,8 @@ export class AccountService extends BaseDataService {
       }
     });
 
+    console.debug('::: AccountService constructor');
+
     // For DEV only
     this._debug = !environment.production;
   }
@@ -331,7 +333,7 @@ export class AccountService extends BaseDataService {
   public canUserWriteDataForDepartment(recorderDepartment: Referential | any): boolean {
     if (EntityUtils.isEmpty(recorderDepartment)) {
       console.warn("Unable to check if user has right: invalid recorderDepartment", recorderDepartment);
-      return false;
+      return this.isAdmin();
     }
 
     // Should be login, and status ENABLE

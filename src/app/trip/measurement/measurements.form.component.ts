@@ -12,13 +12,14 @@ import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
 import {BehaviorSubject} from 'rxjs';
 import {filter, throttleTime} from "rxjs/operators";
-import {AppForm, LocalSettingsService} from '../../core/core.module';
+import {AppForm} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {isNil, isNotNil} from '../../shared/shared.module';
 import {MeasurementType, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'form-measurements',

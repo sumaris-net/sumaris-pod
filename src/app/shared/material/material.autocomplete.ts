@@ -223,9 +223,9 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @Output('focus') onFocus = new EventEmitter<FocusEvent>();
 
-  @ViewChild('matInput') matInput: ElementRef;
+  @ViewChild('matInput', { static: true }) matInput: ElementRef;
 
-  @ViewChild('autoCombo') matAutocomplete: MatAutocomplete;
+  @ViewChild('autoCombo', { static: true }) matAutocomplete: MatAutocomplete;
 
   get value(): any {
     return this.formControl.value;
@@ -308,14 +308,14 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this.$items = updateEvents$
         .pipe(
           map(value => {
-            return suggestFromArray(this._itemsSubject.getValue(), value, searchOptions)
+            return suggestFromArray(this._itemsSubject.getValue(), value, searchOptions);
           }),
           // Store implicit value (will use it onBlur if not other value selected)
           tap(res =>  this.updateImplicitValue(res))
         );
     }
 
-    else {
+    else if (this.formControl.enabled) {
       console.warn("Missing attribute 'suggestFn', 'items' or 'config' in <mat-autocomplete-field>", this);
     }
 

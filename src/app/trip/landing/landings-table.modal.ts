@@ -13,7 +13,7 @@ import {Landing} from "../services/trip.model";
 })
 export class LandingsTablesModal implements OnInit {
 
-  @ViewChild('table') table: LandingsTable;
+  @ViewChild('table', { static: true }) table: LandingsTable;
 
   @Input() filter: LandingFilter = {};
   @Input() acquisitionLevel: AcquisitionLevelType;

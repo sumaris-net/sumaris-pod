@@ -1,13 +1,12 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Observable, Subject} from "rxjs";
+import {Observable, of, Subject} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {EntityUtils, isNil, isNotNil, IWithProgramEntity, PmfmStrategy, Program, StatusIds} from "./model";
 import {
-  AccountService,
   BaseDataService,
   environment, IReferentialRef,
-  LoadResult, NetworkService,
+  LoadResult,
   ReferentialRef,
   TableDataService
 } from "../../core/core.module";
@@ -20,6 +19,8 @@ import {isNilOrBlank, isNotEmptyArray, propertyComparator, suggestFromArray} fro
 import {CacheService} from "ionic-cache";
 import {ReferentialRefService} from "./referential-ref.service";
 import {firstNotNilPromise} from "../../shared/observables";
+import {AccountService} from "../../core/services/account.service";
+import {NetworkService} from "../../core/services/network.service";
 
 export declare class ProgramFilter {
   searchText?: string;
@@ -661,7 +662,7 @@ export class ProgramService extends BaseDataService
   listenChanges(id: number, options?: any): Observable<Program | undefined> {
     // TODO
     console.warn("TODO: implement listen changes on program");
-    return Observable.of();
+    return of();
   }
 
   canUserWrite(data: IWithProgramEntity<any>): boolean {

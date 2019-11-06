@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
 import {isNil, isNotNil} from '../../shared/shared.module';
 import {TableDataSource} from "angular4-material-table";
 import {
@@ -10,19 +10,19 @@ import {
   ExtractionType
 } from "../services/extraction.model";
 import {MatExpansionPanel, MatPaginator, MatSort, MatTable} from "@angular/material";
-import {merge} from "rxjs/observable/merge";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {AlertController, ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {AccountService, LocalSettingsService} from "../../core/core.module";
-import {delay, map} from "rxjs/operators";
+import {delay, first, map} from "rxjs/operators";
 import {firstNotNilPromise} from "../../shared/observables";
 import {ExtractionAbstractPage} from "./extraction-abstract.page";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";
 import {ExtractionService} from "../services/extraction.service";
 import {FormBuilder} from "@angular/forms";
+import {AccountService} from "../../core/services/account.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -48,10 +48,10 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
 
   $typesMap: { [category: string]: Observable<ExtractionType[]>};
 
-  @ViewChild(MatTable) table: MatSort;
-  @ViewChild(MatPaginator) paginator: MatPaginator;
-  @ViewChild(MatSort) sort: MatSort;
-  @ViewChild(MatExpansionPanel) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(MatTable, {static: true}) table: MatSort;
+  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
+  @ViewChild(MatSort, {static: true}) sort: MatSort;
+  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     protected route: ActivatedRoute,
@@ -87,8 +87,8 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
     merge(
-      this.sort && this.sort.sortChange || EventEmitter.empty(),
-      this.paginator && this.paginator.page || EventEmitter.empty(),
+      this.sort && this.sort.sortChange || EMPTY,
+      this.paginator && this.paginator.page || EMPTY,
       this.onRefresh
     )
       .subscribe(() => {
@@ -121,7 +121,7 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     // Update title
     await this.updateTitle();
 
-    this.dataSource.connect().first().subscribe(() => {
+    this.dataSource.connect().pipe(first()).subscribe(() => {
       this.loading = false;
       this.enable();
       this.markAsUntouched();

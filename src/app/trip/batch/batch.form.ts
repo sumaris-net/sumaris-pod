@@ -25,11 +25,12 @@ import {
 import {BehaviorSubject} from "rxjs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
-import {AppFormUtils, FormArrayHelper, PlatformService} from "../../core/core.module";
+import {AppFormUtils, FormArrayHelper} from "../../core/core.module";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {isNilOrBlank, isNotNilOrBlank, isNotNilOrNaN, toBoolean} from "../../shared/functions";
 import {BatchValidatorService} from "../services/batch.validator";
 import {firstNotNilPromise} from "../../shared/observables";
+import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'app-batch-form',

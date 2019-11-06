@@ -12,7 +12,7 @@ import {
   StatusIds
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
-import {FormArrayHelper, LocalSettingsService} from '../../core/core.module';
+import {FormArrayHelper} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {AcquisitionLevelCodes, ProgramService, ReferentialRefService} from '../../referential/referential.module';
@@ -22,6 +22,7 @@ import {MeasurementValuesForm} from "../measurement/measurement-values.form.clas
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {UserProfileLabel} from "../../core/services/model";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'form-observed-location',

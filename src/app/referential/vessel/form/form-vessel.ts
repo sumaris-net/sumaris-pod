@@ -5,8 +5,9 @@ import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
 import {debounceTime, switchMap} from 'rxjs/operators';
-import {AppForm, AppFormUtils, LocalSettingsService} from '../../../core/core.module';
+import {AppForm, AppFormUtils} from '../../../core/core.module';
 import {ReferentialRefService} from '../../services/referential-ref.service';
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
 
 
 @Component({

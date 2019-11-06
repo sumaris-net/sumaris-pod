@@ -6,7 +6,9 @@ import {
   Person
 } from "../../trip/services/model/base.model";
 import {Injector} from "@angular/core";
-import {AccountService, BaseDataService, GraphqlService} from "../../core/core.module";
+import {BaseDataService} from "../../core/core.module";
+import {AccountService} from "../../core/services/account.service";
+import {GraphqlService} from "../../core/services/graphql.service";
 
 export abstract class RootDataService<T extends DataRootEntity<T>, F = any> extends BaseDataService {
 

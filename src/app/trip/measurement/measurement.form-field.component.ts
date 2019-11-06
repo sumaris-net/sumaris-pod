@@ -78,7 +78,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
     return this.settings.settings.latLongFormat || 'DDMM';
   }
 
-  @ViewChild('matInput') matInput: ElementRef;
+  @ViewChild('matInput', { static: false }) matInput: ElementRef;
 
   constructor(
     protected settings: LocalSettingsService,

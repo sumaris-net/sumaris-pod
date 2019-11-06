@@ -39,11 +39,11 @@
 
   <!-- sub batch form -->
   <ion-grid >
-    <ion-row no-padding>
+    <ion-row class="ion-no-padding">
       <!-- form -->
-      <ion-col size="12" push="" size-md="4" push-md="8" size-lg="3" push-lg="9" padding>
+      <ion-col size="12" push="" size-md="4" push-md="8" size-lg="3" push-lg="9" class="ion-padding">
 
-        <ion-label color="primary" padding-bottom>
+        <ion-label color="primary" class="ion-padding-bottom">
           <span *ngIf="!editedRow" translate>TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS</span>
           <span *ngIf="editedRow" translate>TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS</span>
         </ion-label>
@@ -66,8 +66,7 @@
 
       <!-- table -->
       <ion-col size="12" pull="" size-md="8" pull-md="4" size-lg="9" pull-lg="3"
-               no-padding
-               class="table-container">
+               class="table-container ion-no-padding">
         <mat-table [dataSource]="dataSource" class="table-sub-batches" [trackBy]="trackByFn"
                    matSort matSortActive="id" matSortDirection="desc"
                    matSortDisableClear>
@@ -198,7 +197,7 @@
 
   <ion-toolbar>
 
-    <ion-row no-padding nowrap>
+    <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
       <!-- buttons -->

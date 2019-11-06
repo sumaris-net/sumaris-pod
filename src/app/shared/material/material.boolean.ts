@@ -83,12 +83,12 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
     }
   }
 
-  @ViewChild('yesButton') yesButton: MatRadioButton;
-  @ViewChild('noButton') noButton: MatRadioButton;
+  @ViewChild('yesButton', { static: false }) yesButton: MatRadioButton;
+  @ViewChild('noButton', { static: false }) noButton: MatRadioButton;
 
-  @ViewChild('checkboxButton') checkboxButton: MatCheckbox;
+  @ViewChild('checkboxButton', { static: false }) checkboxButton: MatCheckbox;
 
-  @ViewChild('fakeInput') fakeInput: ElementRef;
+  @ViewChild('fakeInput', { static: false }) fakeInput: ElementRef;
 
   constructor(
     private translate: TranslateService,

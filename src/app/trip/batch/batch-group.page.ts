@@ -3,7 +3,7 @@ import {isNil, isNotNilOrBlank} from '../../shared/shared.module';
 import {Batch} from "../services/trip.model";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {ModalController} from "@ionic/angular";
-import {BehaviorSubject, Observable, Subject} from "rxjs";
+import {BehaviorSubject, Observable, of, Subject} from "rxjs";
 import {AppEditorPage} from "../../core/form/editor-page.class";
 import {environment} from "../../../environments/environment";
 import {FormGroup} from "@angular/forms";
@@ -26,7 +26,7 @@ export class BatchGroupPage extends AppEditorPage<Batch, any> implements OnInit 
 
   acquisitionLevelSubject = new Subject<string>();
 
-  @ViewChild('form') batchGroupForm: BatchGroupForm;
+  @ViewChild('form', { static: true }) batchGroupForm: BatchGroupForm;
 
   constructor(
     injector: Injector,
@@ -56,7 +56,7 @@ export class BatchGroupPage extends AppEditorPage<Batch, any> implements OnInit 
           return batch;
         },
         delete: async (batch) => {},
-        listenChanges: (id) => {return Observable.of()},
+        listenChanges: (id) => {return of()},
         save: async (batch) => {return batch}
       });
 

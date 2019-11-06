@@ -13,7 +13,7 @@
 
     <!-- loader -->
     <ion-text *ngIf="loading"
-              slot="end" float-end padding-end>
+              slot="end" class="ion-float-end ion-padding-end">
       <ion-spinner></ion-spinner>
     </ion-text>
   </ion-toolbar>
@@ -24,7 +24,7 @@
   <ion-list>
 
     <ion-list-header>
-      <ion-label text-wrap>
+      <ion-label class="ion-text-wrap">
         <p translate>NETWORK.PEER.SELECT_MODAL.HELP</p>
       </ion-label>
     </ion-list-header>
@@ -38,13 +38,13 @@
       <ion-avatar slot="start" *ngIf="peer.reachable" >
         <ion-img [src]="peer.favicon || (peer.url + '/api/favicon')"></ion-img>
       </ion-avatar>
-      <ion-icon slot="start"  *ngIf="!peer.reachable" name="desktop" color="medium" text-center></ion-icon>
+      <ion-icon slot="start"  *ngIf="!peer.reachable" name="desktop" color="medium" class="ion-text-center"></ion-icon>
 
       <!-- Peer is UP -->
       <ion-grid *ngIf="peer.reachable">
-        <ion-row no-padding>
-          <ion-col no-padding>
-            <ion-label text-wrap>
+        <ion-row class="ion-no-padding">
+          <ion-col class="ion-no-padding">
+            <ion-label class="ion-text-wrap">
               <ion-text color="dark">
                 <h3>{{peer.hostAndPort}}{{peer.path}}</h3>
               </ion-text>
@@ -53,8 +53,8 @@
               </ion-text>
             </ion-label>
           </ion-col>
-          <ion-col no-padding>
-            <ion-label text-wrap text-center color="medium">
+          <ion-col class="ion-no-padding">
+            <ion-label class="ion-text-wrap ion-text-center" color="medium">
               <h3>{{peer.softwareName}}</h3>
               <h4><small>v{{peer.softwareVersion}}</small></h4>
             </ion-label>
@@ -63,7 +63,7 @@
       </ion-grid>
 
       <!-- Peer is DOWN -->
-      <ion-label text-wrap *ngIf="!peer.reachable">
+      <ion-label class="ion-text-wrap" *ngIf="!peer.reachable">
         <ion-text color="medium">
           <h3>{{peer.hostAndPort}}{{peer.path}}</h3>
         </ion-text>
@@ -84,7 +84,7 @@
 
   <ion-toolbar>
 
-    <ion-row no-padding nowrap>
+    <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
       <!-- buttons -->

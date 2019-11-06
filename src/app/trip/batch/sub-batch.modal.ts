@@ -1,13 +1,14 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppFormUtils, PlatformService} from "../../core/core.module";
+import {AppFormUtils} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
 import {toBoolean} from "../../shared/functions";
 import {SubBatchForm} from "./sub-batch.form";
+import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'app-sub-batch-modal',
@@ -49,7 +50,7 @@ export class SubBatchModal implements OnInit{
     this.data = value;
   }
 
-  @ViewChild('form') form: SubBatchForm;
+  @ViewChild('form', { static: true }) form: SubBatchForm;
 
   get dirty(): boolean {
     return this.form.dirty;

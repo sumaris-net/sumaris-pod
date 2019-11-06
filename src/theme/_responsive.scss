@@ -329,8 +329,8 @@ html.plt-mobile {
 // --------------------------------------------------
 // On small screen, align label on left
 @media screen and (max-width: $screen-sm-max) {
-  form ion-col>ion-label[float-center],
-  form ion-col>ion-label[float-end] {
+  form ion-col>ion-label.ion-float-center,
+  form ion-col>ion-label.ion-float-end {
     display: block;
     width: 100%;
     text-align: start !important;
@@ -345,8 +345,8 @@ html.plt-mobile {
 
 // On large screen, align label on right
 @media screen and (min-width: $screen-md) {
-  form ion-col > ion-label[float-center],
-  form ion-col > ion-label[float-end] {
+  form ion-col > ion-label.ion-float-center,
+  form ion-col > ion-label.ion-float-end {
     display: block;
     text-align: end !important;
     line-height: 37px;

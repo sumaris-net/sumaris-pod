@@ -21,11 +21,12 @@ import {UsageMode} from "../../core/services/model";
 import {AcquisitionLevelCodes, PmfmStrategy, PmfmUtils} from "../../referential/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
-import {AppForm, AppFormUtils, PlatformService} from "../../core/core.module";
+import {AppForm, AppFormUtils} from "../../core/core.module";
 import {BatchGroupValidatorService} from "../services/batch-groups.validator";
 import {BehaviorSubject} from "rxjs";
 import {BatchForm} from "./batch.form";
-import {filter, first} from "rxjs/operators";
+import {filter, first, takeWhile} from "rxjs/operators";
+import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'app-batch-group-form',
@@ -67,7 +68,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
   @Output()
   valueChanges: EventEmitter<any> = new EventEmitter<any>();
 
-  @ViewChild('batchForm') batchForm: BatchForm;
+  @ViewChild('batchForm', { static: true }) batchForm: BatchForm;
   @ViewChildren('childForm') childrenForms !: QueryList<BatchForm>;
 
   get isOnFieldMode(): boolean {
@@ -172,7 +173,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     // Listen form changes
     this.registerSubscription(
       this.batchForm.form.valueChanges
-        .takeWhile(() => !this.loading)
+        .pipe(takeWhile(() => !this.loading))
         .subscribe((_) => {
           if (!this.loading && this.valueChanges.observers.length) {
             this.valueChanges.emit(this.value);

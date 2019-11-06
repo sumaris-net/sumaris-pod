@@ -23,6 +23,7 @@ export class VesselValidatorService implements ValidatorService {
       'updateDate': [null],
       'creationDate': [null],
       'startDate': [null, Validators.required],
+      'endDate': [null],
       'name': ['', Validators.required],
       'exteriorMarking': ['', Validators.required],
       'administrativePower': ['', Validators.compose([Validators.min(0), SharedValidators.integer])],
@@ -30,7 +31,8 @@ export class VesselValidatorService implements ValidatorService {
       'grossTonnageGrt': ['', Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
       'grossTonnageGt': ['', Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
       'basePortLocation': ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      'comments': ['', Validators.maxLength(2000)]
+      'comments': ['', Validators.maxLength(2000)],
+      'vesselStatusId': [null, Validators.required],
     });
   }
 }

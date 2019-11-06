@@ -1,5 +1,4 @@
 import {NgModule} from "@angular/core";
-import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {
   MatAutocompleteModule, MatBadgeModule,
   MatButtonModule,
@@ -43,7 +42,6 @@ const modules: any[] = [
   MatSortModule,
   MatAutocompleteModule,
   MatPaginatorModule,
-  BrowserAnimationsModule,
   MatFormFieldModule,
   MatInputModule,
   CdkTableModule,

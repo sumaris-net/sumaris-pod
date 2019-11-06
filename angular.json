@@ -111,6 +111,17 @@
                 }
               ]
             },
+            "dev": {
+              "optimization": true,
+              "buildOptimizer": true,
+              "aot": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": true,
+              "extractLicenses": true,
+              "vendorChunk": false
+            },
             "ci": {
               "progress": false
             }

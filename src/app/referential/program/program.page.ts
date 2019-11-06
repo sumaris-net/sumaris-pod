@@ -2,7 +2,6 @@ import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} 
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {
-  AccountService,
   AppEditorPage,
   EntityUtils,
   environment,
@@ -18,6 +17,7 @@ import {StrategiesTable} from "./strategies.table";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 import {EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {MatTabChangeEvent} from "@angular/material";
+import {AccountService} from "../../core/services/account.service";
 
 @Component({
   selector: 'app-program',
@@ -38,8 +38,8 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   canEdit: boolean;
   form: FormGroup;
 
-  @ViewChild('referentialForm') referentialForm: ReferentialForm;
-  @ViewChild('strategiesTable') strategiesTable: StrategiesTable;
+  @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
+  @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
 
   get propertiesForm(): FormArray {
     return this.form.get('properties') as FormArray;

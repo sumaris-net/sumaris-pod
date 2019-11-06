@@ -1,4 +1,4 @@
-import {Observable, Subject, Subscription} from "rxjs";
+import {Observable, of, Subject, Subscription} from "rxjs";
 import {Apollo} from "apollo-angular";
 import {ApolloClient, ApolloQueryResult, FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";
@@ -204,7 +204,7 @@ export class GraphqlService {
     error?: ServiceError
   }): Observable<T> {
 
-    return this.apollo.subscribe({
+    return this.apollo.subscribe<T>({
       query: opts.query,
       variables: opts.variables
     }, {
@@ -215,7 +215,7 @@ export class GraphqlService {
         map(({data, errors}) => {
           if (errors) {
             const error = errors[0];
-            if (error && error.code && error.message) {
+            if (error /*&& error.code*/ && error.message) {
               throw error;
             }
             console.error("[data-service] " + error.message);
@@ -577,7 +577,7 @@ export class GraphqlService {
   }
 
   private onApolloError<T>(err: any): Observable<ApolloQueryResult<T>> {
-    return Observable.of(this.toApolloError(err));
+    return of(this.toApolloError(err));
   }
 
   private toApolloError<T>(err: any): ApolloQueryResult<T> {

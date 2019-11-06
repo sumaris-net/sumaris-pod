@@ -23,7 +23,7 @@
 </ion-header>
 
 
-<ion-content padding cdkTrapFocus>
+<ion-content cdkTrapFocus class="ion-padding">
 
   <app-batch-group-form #form
                   [debug]="debug"
@@ -40,7 +40,7 @@
   <ion-buttons visible-xs visible-sm visible-mobile margin-top >
 
     <!-- open individual modal -->
-    <ion-button mat-raised-button float-end
+    <ion-button mat-raised-button class="ion-float-end"
                 *ngIf="!!showSubBatchesCallback"
                 color="tertiary"
                 (click)="onShowSubBatchesButtonClick($event)" >
@@ -55,7 +55,7 @@
 
   <ion-toolbar>
 
-    <ion-row no-padding nowrap>
+    <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
       <!-- buttons -->

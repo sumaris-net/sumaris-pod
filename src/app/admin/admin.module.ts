@@ -1,35 +1,31 @@
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {CoreModule} from '../core/core.module';
-import {PersonService} from './services/person.service';
 import {PersonValidatorService} from './services/person.validator';
 import {UsersPage} from './users/list/users';
-import {RemoteConfigPage} from './config/config.component';
-import {CarouselComponent} from './config/carousel/carousel.component';
-
-export {
-  PersonService, PersonValidatorService, UsersPage
-};
+import {AdminRoutingModule} from "./admin-routing.module";
+import {SoftwarePage} from "../referential/software/software.page";
+import {ReferentialModule} from "../referential/referential.module";
 
 @NgModule({
   imports: [
     CommonModule,
-    CoreModule
+    CoreModule,
+    ReferentialModule,
+    AdminRoutingModule
   ],
   declarations: [
-    UsersPage,
-    RemoteConfigPage,
-    CarouselComponent
+    UsersPage
   ],
   exports: [
-    UsersPage,
-    RemoteConfigPage
+    UsersPage
   ],
-  entryComponents: [],
+  entryComponents: [
+    SoftwarePage
+  ],
   providers: [
-    PersonService,
-    PersonValidatorService,
-    CarouselComponent
+    // PersonService,
+    PersonValidatorService
   ]
 })
 export class AdminModule {

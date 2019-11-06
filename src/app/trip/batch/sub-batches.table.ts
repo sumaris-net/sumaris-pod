@@ -164,7 +164,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
   @Input() usageMode: UsageMode;
 
-  @ViewChild('form') form: SubBatchForm;
+  @ViewChild('form', { static: true }) form: SubBatchForm;
 
   constructor(
     protected injector: Injector,

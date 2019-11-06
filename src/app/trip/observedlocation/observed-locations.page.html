@@ -4,7 +4,7 @@
 </app-toolbar>
 
 
-<ion-content no-padding>
+<ion-content class="ion-no-padding">
   <mat-toolbar>
     <button mat-icon-button *ngIf="canEdit && !selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()"
             class="hidden-xs hidden-sm">
@@ -39,7 +39,7 @@
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel>
-    <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" padding class="no-padding-xs">
+    <form [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" class="form-container ion-padding" no-padding-xs>
 
       <!-- Program -->
       <mat-form-field style="min-width: 150px;">
@@ -53,7 +53,7 @@
           <ion-col translate>REFERENTIAL.NAME</ion-col>
         </ion-row>
 
-        <mat-option *ngFor="let item of programs | async" [value]="item" no-padding>
+        <mat-option *ngFor="let item of programs | async" [value]="item" class="ion-no-padding">
           <ion-row>
             <ion-col size="4" [innerHTML]="item.label | highlight: {search: filterForm.controls.program.value }"></ion-col>
             <ion-col [innerHTML]="item.name | highlight: {search: filterForm.controls.program.value }" [title]="item.name"></ion-col>
@@ -84,7 +84,7 @@
           <ion-col translate>REFERENTIAL.NAME</ion-col>
         </ion-row>
 
-        <mat-option *ngFor="let item of locations | async" [value]="item" no-padding>
+        <mat-option *ngFor="let item of locations | async" [value]="item" class="ion-no-padding">
           <ion-row>
             <ion-col size="3" [innerHTML]="item.label | highlight: {search: filterForm.controls.location.value }"></ion-col>
             <ion-col [innerHTML]="item.name | highlight: {search: filterForm.controls.location.value }"></ion-col>
@@ -205,9 +205,9 @@
              (onblur)="confirmAndAddRow($event,row)"></mat-row>
   </mat-table>
 
-  <ion-row no-padding>
+  <ion-row class="ion-no-padding">
     <ion-col></ion-col>
-    <ion-col no-padding size="auto">
+    <ion-col class="ion-no-padding" size="auto">
       <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
@@ -220,7 +220,7 @@
 </ion-footer>
 
 <!-- Add Button  -->
-<ion-fab vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile>
+<ion-fab slot="fixed" vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

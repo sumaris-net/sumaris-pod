@@ -5,7 +5,6 @@ import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Subject} from 'rxjs';
 import {distinctUntilChanged, filter, mergeMap, tap} from 'rxjs/operators';
-import {LocalSettingsService, PlatformService} from '../../core/core.module';
 import {
   AcquisitionLevelCodes,
   EntityUtils,
@@ -20,6 +19,8 @@ import {FormBuilder} from "@angular/forms";
 import {selectInputContent} from "../../core/form/form.utils";
 import {suggestFromArray} from "../../shared/functions";
 import {InputElement} from "../../shared/material/focusable";
+import {PlatformService} from "../../core/services/platform.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -43,7 +44,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     this.programSubject.next(value);
   }
 
-  @ViewChild("firstInput") firstInputField: InputElement;
+  @ViewChild("firstInput", { static: true }) firstInputField: InputElement;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,

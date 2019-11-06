@@ -6,7 +6,7 @@ import {Trip} from '../services/trip.model';
 import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment, NetworkService} from '../../core/core.module';
+import {environment} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
 import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
@@ -14,6 +14,7 @@ import * as moment from "moment";
 import {ProgramProperties} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
+import {NetworkService} from "../../core/services/network.service";
 
 @Component({
   selector: 'app-trip-page',
@@ -29,17 +30,17 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
   showGearTable = false;
   showOperationTable = false;
 
-  @ViewChild('tripForm') tripForm: TripForm;
+  @ViewChild('tripForm', { static: true }) tripForm: TripForm;
 
-  @ViewChild('saleForm') saleForm: SaleForm;
+  @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
 
-  @ViewChild('physicalGearTable') physicalGearTable: PhysicalGearTable;
+  @ViewChild('physicalGearTable', { static: true }) physicalGearTable: PhysicalGearTable;
 
-  @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
+  @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
 
-  @ViewChild('operationTable') operationTable: OperationTable;
+  @ViewChild('operationTable', { static: true }) operationTable: OperationTable;
 
-  @ViewChild('qualityForm') qualityForm: EntityQualityFormComponent;
+  @ViewChild('qualityForm', { static: true }) qualityForm: EntityQualityFormComponent;
 
   constructor(
     injector: Injector,

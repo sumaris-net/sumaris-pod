@@ -1,11 +1,11 @@
 import {Component, OnDestroy, OnInit} from "@angular/core";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject, Observable, of} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AppTable, AppTableDataSource, environment, isNil, isNotNil, LocalSettingsService} from "../../core/core.module";
+import {AppTable, AppTableDataSource, environment, isNil, isNotNil} from "../../core/core.module";
 import {ReferentialValidatorService} from "../services/referential.validator";
 import {ReferentialFilter, ReferentialService} from "../services/referential.service";
-import {Referential, ReferentialRef, StatusIds} from "../services/model";
+import {Referential, ReferentialRef} from "../services/model";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService} from '../../core/services/account.service';
@@ -13,7 +13,8 @@ import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {sort} from "../../core/services/model";
+import {sort, DefaultStatusList} from "../../core/services/model";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 
 const DEFAULT_ENTITY_NAME = "Location";
@@ -36,23 +37,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   $entity = new BehaviorSubject<{ id: string, label: string, level?: string, levelLabel?: string }>(undefined);
   $entities = new BehaviorSubject<{ id: string, label: string, level?: string, levelLabel?: string }[]>(undefined);
   levels: Observable<ReferentialRef[]>;
-  statusList: any[] = [
-    {
-      id: StatusIds.ENABLE,
-      icon: 'checkmark',
-      label: 'REFERENTIAL.STATUS_ENUM.ENABLE'
-    },
-    {
-      id: StatusIds.DISABLE,
-      icon: 'close',
-      label: 'REFERENTIAL.STATUS_ENUM.DISABLE'
-    },
-    {
-      id: StatusIds.TEMPORARY,
-      icon: 'warning',
-      label: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
-    }
-  ];
+  statusList = DefaultStatusList;
   statusById: any;
 
   canOpenDetail = false;
@@ -247,7 +232,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       fetchPolicy: 'network-only'
     });
 
-    this.levels = Observable.of(res);
+    this.levels = of(res);
     this.showLevelColumn = res && res.length > 0;
 
     return res;

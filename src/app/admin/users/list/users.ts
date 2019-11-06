@@ -2,11 +2,9 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@an
 import {
   AppTable,
   AppTableDataSource,
-  environment,
-  LocalSettingsService,
-  PlatformService
+  environment
 } from "../../../core/core.module";
-import {Person, PRIORITIZED_USER_PROFILES, referentialToString, StatusIds} from "../../../core/services/model";
+import {Person, PRIORITIZED_USER_PROFILES, referentialToString, DefaultStatusList} from "../../../core/services/model";
 import {PersonFilter, PersonService} from "../../services/person.service";
 import {PersonValidatorService} from "../../services/person.validator";
 import {ModalController} from "@ionic/angular";
@@ -17,6 +15,8 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
 import {ValidatorService} from "angular4-material-table";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
+import {PlatformService} from "../../../core/services/platform.service";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-users-table',
@@ -33,23 +33,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
   filterForm: FormGroup;
   profiles: string[] = PRIORITIZED_USER_PROFILES;
   additionalFields: FormFieldDefinition[];
-  statusList: any[] = [
-    {
-      id: StatusIds.ENABLE,
-      icon: 'checkmark',
-      label: 'REFERENTIAL.STATUS_ENUM.ENABLE'
-    },
-    {
-      id: StatusIds.DISABLE,
-      icon: 'close',
-      label: 'REFERENTIAL.STATUS_ENUM.DISABLE'
-    },
-    {
-      id: StatusIds.TEMPORARY,
-      icon: 'warning',
-      label: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
-    }
-  ];
+  statusList = DefaultStatusList;
   statusById;
   any;
 
@@ -103,9 +87,11 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
 
     this.additionalFields = this.accountService.additionalFields;
 
+    console.debug('::: UsersPage contructor');
+
     // For DEV only --
     //this.debug = !environment.production;
-  };
+  }
 
   ngOnInit() {
     super.ngOnInit();

@@ -10,14 +10,15 @@ import {
 } from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppFormUtils, PlatformService} from "../../core/core.module";
+import {AppFormUtils} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
-import {BehaviorSubject, Observable, Subscription} from "rxjs";
+import {BehaviorSubject, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
 import {BatchGroupForm} from "./batch-group.form";
 import {toBoolean} from "../../shared/functions";
-import {filter, first, throttleTime} from "rxjs/operators";
+import {throttleTime} from "rxjs/operators";
+import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -59,7 +60,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() showSubBatchesCallback: (batch) => void;
 
-  @ViewChild('form') form: BatchGroupForm;
+  @ViewChild('form', { static: true }) form: BatchGroupForm;
 
   get dirty(): boolean {
     return this.form.dirty;

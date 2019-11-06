@@ -4,7 +4,7 @@ import {EntityUtils, isNotNil, LocationLevelIds, PmfmIds} from "../../../referen
 import {LandingPage} from "../landing.page";
 import {LandingValidatorService} from "../../services/landing.validator";
 import {debounceTime, filter, map, mergeMap, switchMap} from "rxjs/operators";
-import {Observable} from "rxjs";
+import {from, Observable} from "rxjs";
 import {AppFormUtils} from "../../../core/core.module";
 import {Landing} from "../../services/model/landing.model";
 import {isNilOrBlank} from "../../../shared/functions";
@@ -40,7 +40,7 @@ export class AuctionControlLandingPage extends LandingPage implements OnInit {
           filter(isNotNil),
           mergeMap((taxonGroupPmfm) => {
             // Load program taxon groups
-            return Observable.fromPromise(this.programService.loadTaxonGroups(this.landingForm.program))
+            return from(this.programService.loadTaxonGroups(this.landingForm.program))
               .pipe(
                 switchMap(taxonGroups => {
 

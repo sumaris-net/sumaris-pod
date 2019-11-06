@@ -1,13 +1,14 @@
 import {ChangeDetectionStrategy, Component, Input, OnInit, ViewChild} from "@angular/core";
-import {AppForm, EntityUtils, FormArrayHelper, LocalSettingsService, StatusIds} from "../../core/core.module";
+import {AppForm, EntityUtils, FormArrayHelper, StatusIds} from "../../core/core.module";
 import {AggregationStrata, AggregationType, ExtractionColumn} from "../services/extraction.model";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../referential/form/referential.form";
 import {BehaviorSubject} from "rxjs";
 import {arraySize} from "../../shared/functions";
-import {DateAdapter} from "@angular/material";
+import {DateAdapter, MatTable} from "@angular/material";
 import {Moment} from "moment";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-aggregation-type-form',
@@ -39,7 +40,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
   @Input()
   showError = true;
 
-  @ViewChild('referentialForm') referentialForm: ReferentialForm;
+  @ViewChild('referentialForm', {static: true}) referentialForm: ReferentialForm;
 
   get value(): any {
     const json = this.form.value;

@@ -1,21 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {
-  AccountService,
   AppTable,
   AppTableDataSource,
   environment,
   isNil,
-  LocalSettingsService,
   personsToString,
-  PlatformService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../../core/core.module";
 import {TripValidatorService} from "../services/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
 import {LocationLevelIds, ReferentialRef, Trip} from "../services/trip.model";
-import {ModalController} from "@ionic/angular";
+import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
@@ -29,6 +26,9 @@ import {
 import {debounceTime, filter, tap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 import {SharedValidators} from "../../shared/validator/validators";
+import {PlatformService} from "../../core/services/platform.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {AccountService} from "../../core/services/account.service";
 
 @Component({
   selector: 'app-trips-page',
@@ -48,6 +48,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   filterIsEmpty = true;
 
   constructor(
+    protected injector: Injector,
     protected route: ActivatedRoute,
     protected router: Router,
     protected platform: PlatformService,
@@ -59,6 +60,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected referentialRefService: ReferentialRefService,
     protected vesselService: VesselService,
     protected formBuilder: FormBuilder,
+    protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {

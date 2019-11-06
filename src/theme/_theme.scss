@@ -91,3 +91,11 @@ $candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-
 .mat-progress-bar-buffer {
   //background-color: rgba(255, 255, 255, 0.1) !important;
 }
+
+.mat-option {
+  padding: unset !important;
+  padding-start: var(--padding-start, 16px);
+  padding-end: var(--padding-start, 16px);
+  padding-top: var(--padding-top, 0);
+  padding-bottom: var(--padding-bottom, 0);
+}

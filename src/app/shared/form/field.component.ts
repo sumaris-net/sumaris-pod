@@ -83,7 +83,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     return this.formControl.value;
   }
 
-  @ViewChild('matInput') matInput: ElementRef;
+  @ViewChild('matInput', { static: false }) matInput: ElementRef;
 
   constructor(
     protected translate: TranslateService,

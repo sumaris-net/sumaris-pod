@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit, ViewChild} from "@angular/core";
 import {PlatformService} from "../../core/services/platform.service";
 import {AggregationTypeFilter, CustomAggregationStrata, ExtractionService} from "../services/extraction.service";
-import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
+import {BehaviorSubject, Observable, Subject, Subscription, timer} from "rxjs";
 import {arraySize, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {
@@ -105,7 +105,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
 
   animation: Subscription;
 
-  @ViewChild(MatExpansionPanel) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   get techStrata(): string {
     return this.form.get('strata.techColumnName').value;
@@ -589,7 +589,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     else {
       const years = this.$years.getValue();
       console.info("[extraction-map] Starting animation...");
-      this.animation = isNotEmptyArray(years) && Observable.timer(500, 500)
+      this.animation = isNotEmptyArray(years) && timer(500, 500)
         .pipe(
           tap(index => {
             const year = years[index % arraySize(years)];

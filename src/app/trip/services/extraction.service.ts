@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Observable} from "rxjs-compat";
+import {Observable} from "rxjs";
 import {
   BaseDataService,
   Department,
