@@ -41,6 +41,7 @@ import java.util.List;
 public class Vessel implements IRootDataEntity<Integer> {
 
     public static final String PROPERTY_STATUS = "status";
+    public static final String PROPERTY_VESSEL_REGISTRATION_PERIODS = "vesselRegistrationPeriods";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_SEQ")
