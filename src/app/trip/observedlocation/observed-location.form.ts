@@ -14,7 +14,7 @@ import {
 import {Moment} from 'moment/moment';
 import {FormArrayHelper} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
-import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, pluck, tap} from 'rxjs/operators';
 import {AcquisitionLevelCodes, ProgramService, ReferentialRefService} from '../../referential/referential.module';
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {PersonService} from "../../admin/services/person.service";
@@ -119,7 +119,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
           debounceTime(250),
           filter(EntityUtils.isNotEmpty),
           pluck('label'),
-          distinctUntilChanged()
+          distinctUntilChanged(),
+          tap((p) => console.log("TODO: progrm changed: " + p))
         )
         .subscribe(programLabel => this.program = programLabel));
 
@@ -157,6 +158,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     // Propagate the program
     if (value.program && value.program.label) {
       this.program = value.program.label;
+    }
+    // New data: copy the program into json value
+    else if (isNil(value.id)){
+      value.program = this.form.get('program').value;
     }
 
     // Send value for form

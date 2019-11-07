@@ -103,14 +103,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   /* -- protected methods-- */
 
-
-
   vesselFeaturesToString = vesselFeaturesToString;
   referentialToString = referentialToString;
-
-  programToString(value: Referential) {
-    return referentialToString(value, ['label']);
-  }
 
   protected markForCheck() {
     this.cd.markForCheck();
