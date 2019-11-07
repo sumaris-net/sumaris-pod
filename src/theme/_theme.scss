@@ -93,8 +93,28 @@ $candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-
 }
 
 .mat-option {
-  padding-left: var(--padding-start, 16px) !important;
-  padding-right: var(--padding-end, 16px) !important;
   padding-top: var(--padding-top, 0) !important;
+  padding-right: var(--padding-end, 16px) !important;
   padding-bottom: var(--padding-bottom, 0) !important;
+  padding-left: var(--padding-start, 16px) !important;
+}
+
+.mat-action-row {
+  height: 46px;
+  padding-top: var(--padding-top, 16px) !important;
+  padding-right: var(--padding-end, 8px) !important;
+  padding-bottom: var(--padding-bottom, 16px) !important;
+  padding-left: var(--padding-start, 24px) !important;
+}
+
+.mat-action-row > ion-label.ion-padding,
+.mat-action-row > ion-label[padding] {
+  --padding-top: 4px;
+  --padding-end: 24px;
+  --padding-bottom: 4px;
+  --padding-start: 24px;
+  padding-top: var(--padding-top, 4px) !important;
+  padding-right: var(--padding-end, 24px) !important;
+  padding-bottom: var(--padding-bottom, 4px) !important;
+  padding-left: var(--padding-start, 24px) !important;
 }

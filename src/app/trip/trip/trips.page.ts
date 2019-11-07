@@ -144,11 +144,12 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
             endDate: json.endDate,
             locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
             vesselId:  json.vesselFeatures && typeof json.vesselFeatures === "object" && json.vesselFeatures.vesselId || undefined,
-          })),
-        debounceTime(1000)
+          }, {emitEvent: this.mobile || isNil(this.filter)})),
+        // Save filter in settings (after a debounce time)
+        debounceTime(1000),
+        tap(json => this.settings.savePageSetting(this.settingsId, json, 'filter'))
       )
-      // Save filter in settings
-      .subscribe((json) => this.settings.savePageSetting(this.settingsId, json, 'filter'));
+      .subscribe();
 
     this.onRefresh.subscribe(() => {
       this.filterForm.markAsUntouched();

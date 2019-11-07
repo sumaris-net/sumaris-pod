@@ -136,9 +136,11 @@
               'EXTRACTION.FILTER.NO_FILTER_PARENTHESIS' ) | translate}}
             </small>
           </ng-container>
-          <span *ngIf="filterExpansionPanel.expanded">
-            {{ 'EXTRACTION.FILTER.TITLE' | translate}}
-          </span>
+          <ion-card-subtitle *ngIf="filterExpansionPanel.expanded">
+            <ion-text color="primary100">
+              {{ 'EXTRACTION.FILTER.TITLE' | translate}}
+            </ion-text>
+          </ion-card-subtitle>
         </ion-label>
       </mat-panel-title>
     </mat-expansion-panel-header>
@@ -153,7 +155,8 @@
       <!-- Loading spinner -->
       <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
       <!-- Counter  -->
-      <ion-label [hidden]="loading || dirty" [color]="data?.total === 0 && 'danger'">
+      <ion-label [hidden]="loading || dirty" [color]="data?.total === 0 && 'danger'"
+        class="ion-padding">
         {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (data?.total |
               numberFormat)} }}
       </ion-label>
@@ -161,10 +164,18 @@
       <div class="toolbar-spacer"></div>
 
       <!-- Search button -->
-      <button mat-button [color]="dirty ? 'primary' : undefined"
-              (click)="onRefresh.emit(true)"
-              [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}
-      </button>
+      <ion-button mat-button
+                  [color]="dirty ? 'tertiary' : undefined"
+                  [fill]="dirty ? 'solid' : 'clear'"
+                  (click)="onRefresh.emit(true)"
+                  [disabled]="loading">
+        <ion-text translate>COMMON.BTN_APPLY</ion-text>
+      </ion-button>
+
+<!--      <button mat-button [color]="dirty ? 'primary' : undefined"-->
+<!--              (click)="onRefresh.emit(true)"-->
+<!--              [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}-->
+<!--      </button>-->
     </mat-action-row>
   </mat-expansion-panel>
 

@@ -22,8 +22,7 @@
       </ion-button>
 
       <ion-button [fill]="disabled? 'clear' : 'solid'" (click)="onSave.emit($event)" (keyup.enter)="onSave.emit($event)" color="danger" [disabled]="disabled">
-        <ion-icon slot="start" name="checkmark"></ion-icon>
-        <ion-label translate>COMMON.BTN_SAVE</ion-label>
+        <ion-label [innerHTML]="'COMMON.BTN_SAVE_WITH_SHORTCUT'|translate" [title]="'COMMON.BTN_SAVE_WITH_SHORTCUT_HELP'|translate"></ion-label>
       </ion-button>
     </ion-col>
   </ion-row>

@@ -54,7 +54,7 @@
 
               <!-- no data or panel expanded -->
               <ion-card-subtitle  padding-left>
-                <ion-label *ngIf="filterExpansionPanel.expanded"><span translate>EXTRACTION.FILTER.TITLE</span>&nbsp;</ion-label>
+                <ion-label *ngIf="filterExpansionPanel.expanded" color="primary100"><span translate>EXTRACTION.FILTER.TITLE</span>&nbsp;</ion-label>
                 <ion-label color="danger" *ngIf="!hasData && !form.dirty" translate>COMMON.NO_RESULT</ion-label>
               </ion-card-subtitle>
 
@@ -140,9 +140,9 @@
           <span class="toolbar-spacer"></span>
 
           <ion-button mat-button
-                  [color]="'tertiary'"
-                  [fill]="dirty ? 'solid' : 'clear'"
-                  (click)="onRefresh.emit($event)">
+                      [color]="dirty ? 'tertiary' : undefined"
+                      [fill]="dirty ? 'solid' : 'clear'"
+                      (click)="onRefresh.emit($event)">
             <ion-text translate>COMMON.BTN_APPLY</ion-text>
           </ion-button>
         </mat-action-row>

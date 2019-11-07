@@ -29,6 +29,7 @@
   </ion-text>
   <ion-text *ngIf="data.qualityFlag && data.qualityFlag.id">
     <br/>
+    <ion-icon name="ribbon" slot="start"></ion-icon>
     <span translate>QUALITY.QUALITY_FLAG</span>
     <span>
         <b>{{ data.qualityFlag.label }}</b>
@@ -38,9 +39,11 @@
 
 <p>
   <ion-button *ngIf="canControl" (click)="control($event)" expand="block" color="tertiary">
+    <ion-icon name="checkmark"></ion-icon>&nbsp;
     <ion-text translate>QUALITY.CONTROL</ion-text>
   </ion-button>
   <ion-button *ngIf="canValidate" (click)="validate($event)" expand="block" color="success">
+    <ion-icon name="checkmark-circle"></ion-icon>&nbsp;
     <ion-text translate>QUALITY.VALIDATE</ion-text>
   </ion-button>
   <ion-button *ngIf="canUnvalidate" (click)="unvalidate($event)" expand="block" color="danger">

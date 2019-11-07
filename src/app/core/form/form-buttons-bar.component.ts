@@ -1,12 +1,19 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {Component, Input, Output, EventEmitter, OnDestroy} from '@angular/core';
+import {Hotkeys} from "../../shared/hotkeys/hotkeys.service";
+import {Subscription} from "rxjs";
+import {filter} from "rxjs/operators";
+
+
 
 @Component({
     selector: 'form-buttons-bar',
     templateUrl: './form-buttons-bar.component.html',
-    host: { '(window:keydown)': 'hotkeys($event)' },
+    //host: { '(window:keydown)': 'onHotkeys($event)' },
     styleUrls: ['./form-buttons-bar.component.scss']
 })
-export class FormButtonsBarComponent {
+export class FormButtonsBarComponent implements OnDestroy{
+
+    private _subscription = new Subscription();
 
     @Input()
     disabled = false;
@@ -26,26 +33,28 @@ export class FormButtonsBarComponent {
     @Output()
     onBack: EventEmitter<Event> = new EventEmitter<Event>();
 
-    hotkeys(event: Event) {
+    constructor(private hotkeys: Hotkeys) {
 
-      if (event instanceof KeyboardEvent) {
-        if (event.repeat || event.defaultPrevented) return; // skip
+        this._subscription.add(
+            hotkeys.addShortcut({keys: 'control.s', description: 'COMMON.BTN_SAVE'})
+                .pipe(filter(e => !this.disabled))
+                .subscribe((event) => this.onSave.emit(event)));
 
-        // Ctrl+S
-        if (event.ctrlKey && event.key == 's') {
-            if (!this.disabled) this.onSave.emit(event);
-            event.preventDefault();
-        }
         // Ctrl+Z
-        else if (event.ctrlKey && event.key == 'z') {
-            if (!this.disabled && !this.disabledCancel) this.onCancel.emit(event);
-            event.preventDefault();
-        }
-        // esc
-        else if (event.key == 'Escape') {
-          this.onBack.emit(event);
-          event.preventDefault();
-        }
-      }
+        this._subscription.add(
+            hotkeys.addShortcut({keys: 'control.z', description: 'COMMON.BTN_RESET'})
+                .pipe(filter(e => !this.disabled && !this.disabledCancel))
+                .subscribe((event) => this.onCancel.emit(event))
+        );
+
+        // Escape
+        this._subscription.add(
+            hotkeys.addShortcut({keys: 'escape', description: 'COMMON.BTN_CLOSE', preventDefault: false})
+                .subscribe((event) => this.onBack.emit(event)));
     }
+
+    ngOnDestroy(): void {
+        this._subscription.unsubscribe();
+    }
+
 }

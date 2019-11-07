@@ -44,7 +44,7 @@
   </mat-toolbar>
 
   <!-- search -->
-  <mat-expansion-panel #filterExpansionPanel>
+  <mat-expansion-panel #filterExpansionPanel class="ion-no-padding">
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
       <ion-grid>
@@ -109,7 +109,8 @@
 
     <mat-action-row>
       <!-- Counter  -->
-      <ion-label [hidden]="($loading|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'">
+      <ion-label [hidden]="($loading|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'"
+                 class="ion-padding">
         {{ (resultsLength ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (resultsLength |
               numberFormat)} }}
       </ion-label>
@@ -117,10 +118,13 @@
       <div class="toolbar-spacer"></div>
 
       <!-- Search button -->
-      <button mat-button [color]="filterForm.dirty ? 'primary' : undefined" class="ion-padding"
-              (click)="onRefresh.emit()"
-              [disabled]="$loading|async">{{'COMMON.BTN_SEARCH'|translate}}
-      </button>
+      <ion-button mat-button
+                  *ngIf="!mobile"
+                  [color]="filterForm.dirty ? 'tertiary' : undefined"
+                  [fill]="filterForm.dirty ? 'solid' : 'clear'"
+                  (click)="onRefresh.emit()">
+        <ion-text translate>COMMON.BTN_SEARCH</ion-text>
+      </ion-button>
     </mat-action-row>
   </mat-expansion-panel>
 

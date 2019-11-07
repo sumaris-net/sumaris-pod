@@ -68,6 +68,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
   ngOnInit() {
     super.ngOnInit();
 
+    this.registerForm(this.criteriaForm);
+
     this.registerSubscription(
       this.translate.get('EXTRACTION.TYPE').subscribe(msg => {
         this.typesPopoverOptions.header = msg;

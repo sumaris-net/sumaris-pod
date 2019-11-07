@@ -22,7 +22,7 @@ import {
   MatTableModule,
   MatTabsModule,
   MatToolbarModule,
-  MatSlideToggleModule, MatRippleModule
+  MatSlideToggleModule, MatRippleModule, MatCommonModule
 } from "@angular/material";
 import {CdkTableModule} from "@angular/cdk/table";
 import {MatDatepickerModule} from '@angular/material/datepicker';
@@ -38,6 +38,7 @@ import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 export { fadeInAnimation, slideInOutAnimation, InputElement };
 
 const modules: any[] = [
+  MatCommonModule,
   MatTableModule,
   MatSortModule,
   MatAutocompleteModule,
@@ -65,7 +66,6 @@ const modules: any[] = [
   MatRadioModule,
   MatBadgeModule,
   MatSlideToggleModule,
-  MatDialogModule,
   A11yModule, // Used for focus trap
   OverlayModule,
   ScrollingModule,

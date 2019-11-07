@@ -58,6 +58,7 @@ import {AppFormField} from "./form/field.component";
 import {NumpadComponent} from "./numpad/numpad";
 import {AudioProvider} from "./audio/audio";
 import {CloseScrollStrategy, Overlay} from '@angular/cdk/overlay';
+import {Hotkeys, HotkeysModule} from "./hotkeys/hotkeys.module";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -75,7 +76,8 @@ export {
   fadeInAnimation, fadeInOutAnimation, changeCaseToUnderscore,
   DateFormatPipe, DateFromNowPipe,
   ToolbarComponent,
-  Color, ColorScale, InputElement
+  Color, ColorScale, InputElement,
+  Hotkeys,
 };
 
 @NgModule({
@@ -86,7 +88,8 @@ export {
     TextMaskModule,
     IonicModule,
     TranslateModule.forChild(),
-    ColorPickerModule
+    ColorPickerModule,
+    HotkeysModule
   ],
   declarations: [
     AutofocusDirective,
@@ -108,6 +111,7 @@ export {
     MaterialModule,
     ReactiveFormsModule,
     IonicModule,
+    HotkeysModule,
     AutofocusDirective,
     ToolbarComponent,
     NumpadComponent,
