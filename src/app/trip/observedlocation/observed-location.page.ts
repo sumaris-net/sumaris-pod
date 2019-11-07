@@ -13,6 +13,7 @@ import {ModalController} from "@ionic/angular";
 import {LandingsTablesModal} from "../landing/landings-table.modal";
 import {environment} from "../../core/core.module";
 import {HistoryPageReference} from "../../core/services/model";
+import {MatTabGroup} from "@angular/material";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -81,7 +82,9 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
   }
 
   protected async onEntityLoaded(data: ObservedLocation, options?: EditorDataServiceLoadOptions): Promise<void> {
-    // nothing to do
+    // Move to second tab
+    this.selectedTabIndex = 1;
+    this.tabGroup.realignInkBar();
   }
 
   protected setValue(data: ObservedLocation) {

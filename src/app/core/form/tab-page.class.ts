@@ -1,6 +1,6 @@
 import {OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
-import {MatTabChangeEvent} from "@angular/material";
+import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
 import {Entity} from '../services/model';
 import {AlertController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
@@ -30,6 +30,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     [key: string]: any
   };
 
+  @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
   @ViewChild(ToolbarComponent, { static: true }) appToolbar: ToolbarComponent;
   @ViewChild(FormButtonsBarComponent, { static: true }) formButtonsBar: FormButtonsBarComponent;
 
@@ -71,20 +72,19 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   }
 
   ngOnInit() {
-    // Listen route parameters
-
+    // Read route query parameters
     const queryParams = this.route.snapshot.queryParams;
 
     // Copy original queryParams, for reuse in onTabChange()
     this.queryParams = Object.assign({}, queryParams);
 
-    // Parse tab
+    // Parse tab param
     const tabIndex = queryParams["tab"];
     this.queryParams.tab = tabIndex && parseInt(tabIndex) || undefined;
-
     if (isNotNil(this.queryParams.tab)) {
       this.selectedTabIndex = this.queryParams.tab;
     }
+    if (this.tabGroup) this.tabGroup.realignInkBar();
 
     // Catch back click events
     if (this.appToolbar) {

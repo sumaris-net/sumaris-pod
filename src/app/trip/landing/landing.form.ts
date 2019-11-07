@@ -181,7 +181,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     value.observers = value.observers && value.observers.length ? value.observers : [null];
 
     // Resize observers array
-    this.observersHelper.resize(Math.min(1, value.observers.length));
+    this.observersHelper.resize(Math.max(1, value.observers.length));
 
     // Propagate the program
     if (value.program && value.program.label) {

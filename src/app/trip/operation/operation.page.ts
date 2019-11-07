@@ -67,7 +67,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   mobile: boolean;
   idAttribute: string; // TODO remove when inherit from class EditorPage
 
-  @ViewChild('matTabGroup', { static: true }) matTabGroup: MatTabGroup;
   @ViewChild('batchTabGroup', { static: true }) batchTabGroup: MatTabGroup;
   @ViewChild('sampleTabGroup', { static: true }) sampleTabGroup: MatTabGroup;
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
