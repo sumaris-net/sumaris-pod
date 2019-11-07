@@ -35,6 +35,7 @@ import java.util.Date;
 public class VesselRegistrationPeriod implements IWithVesselEntity<Integer, Vessel> {
 
     public static final String PROPERTY_VESSEL = "vessel";
+    public static final String PROPERTY_REGISTRATION_CODE = "registrationCode";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_REGISTRATION_PERIOD_SEQ")

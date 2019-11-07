@@ -45,6 +45,7 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
     private Integer id;
     private String name;
     private String exteriorMarking;
+    private String registrationCode;
     private Integer administrativePower;
     private Double lengthOverAll;
     private Double grossTonnageGrt;
