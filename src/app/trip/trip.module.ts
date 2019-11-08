@@ -50,8 +50,7 @@ import {LandingValidatorService} from "./services/landing.validator";
 import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
 import {LandingsTablesModal} from "./landing/landings-table.modal";
-import {AuctionControlSamplesTable} from "./sample/auctioncontrol/auction-control-samples.table";
-import {AuctionControlLandingPage} from "./landing/auctioncontrol/auction-control-landing.page";
+import {AuctionControlPage} from "./auctioncontrol/auction-control.page";
 import {SubBatchesModal} from "./batch/sub-batches.modal";
 import {SubBatchForm} from "./batch/sub-batch.form";
 import {PhysicalGearModal} from "./physicalgear/physicalgear.modal";
@@ -65,6 +64,8 @@ import {SubBatchModal} from "./batch/sub-batch.modal";
 import {FullscreenOverlayContainer, OverlayContainer} from "@angular/cdk/overlay";
 import {AggregationTypeValidatorService} from "./services/validator/aggregation-type.validator";
 import {ReferentialModule} from "../referential/referential.module";
+import {SampleForm} from "./sample/sample.form";
+import {SampleModal} from "./sample/sample.modal";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -110,9 +111,10 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       BatchGroupPage,
       BatchGroupForm,
       SubBatchModal,
+      SampleForm,
+      SampleModal,
       IndividualMonitoringSubSamplesTable,
-      AuctionControlLandingPage,
-      AuctionControlSamplesTable,
+      AuctionControlPage,
       EntityQualityFormComponent
     ],
     exports: [
@@ -133,11 +135,12 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       LandingForm,
       LandingPage,
       LandingsTablesModal,
-      AuctionControlLandingPage,
+      AuctionControlPage,
       BatchForm,
       BatchGroupPage,
       SubBatchForm,
-      SubBatchModal
+      SubBatchModal,
+      SampleForm
     ],
     entryComponents: [
       TripsPage,
@@ -150,12 +153,13 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       ObservedLocationsPage,
       LandingPage,
       LandingsTablesModal,
-      AuctionControlLandingPage,
+      AuctionControlPage,
       SubBatchesModal,
       BatchModal,
       BatchGroupModal,
       BatchGroupPage,
-      SubBatchModal
+      SubBatchModal,
+      SampleModal
     ],
     providers: [
       TripService,

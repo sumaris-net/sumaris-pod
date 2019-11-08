@@ -140,7 +140,10 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
     if (landing && landing.vesselFeatures) {
       const savedOrContinue = await this.saveIfDirtyAndConfirm();
       if (savedOrContinue) {
-        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselFeatures.vesselId}`);
+
+        const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
+
+        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselFeatures.vesselId}&rankOrder=${rankOrder}`);
       }
     }
 

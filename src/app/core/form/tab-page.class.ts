@@ -16,6 +16,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   private _forms: AppForm<any>[];
   private _tables: AppTable<any, any>[];
   private _subscription = new Subscription();
+  protected _enabled = false;
 
   debug = false;
   data: T;
@@ -23,7 +24,6 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   submitted = false;
   error: string;
   loading = true;
-  enabled = false;
   queryParams: {
     tab?: number;
     subtab?: number;
@@ -56,6 +56,14 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
   get pending(): boolean {
     return (this._forms && !!this._forms.find(form => form.pending)) || (this._tables && !!this._tables.find(table => table.pending));
+  }
+
+  get enabled(): boolean {
+    return this._enabled;
+  }
+
+  get disabled(): boolean {
+    return !this._enabled;
   }
 
   protected get tables(): AppTable<any, any>[] {
@@ -130,14 +138,14 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   }
 
   disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    this.enabled = false;
+    this._enabled = false;
     this._forms && this._forms.forEach(form => form.disable(opts));
     this._tables && this._tables.forEach(table => table.disable(opts));
     if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
   }
 
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    this.enabled = true;
+    this._enabled = true;
     this._forms && this._forms.forEach(form => form.enable(opts));
     this._tables && this._tables.forEach(table => table.enable(opts));
     if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();

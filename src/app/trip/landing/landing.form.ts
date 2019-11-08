@@ -40,6 +40,7 @@ import {FormArray, FormBuilder, FormControl} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 
 @Component({
   selector: 'app-landing-form',
@@ -61,6 +62,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() showLocation = true;
   @Input() showObservers = true;
   @Input() showComment = true;
+  @Input() showMeasurements = true;
   @Input() showError = true;
 
   @Input() showButtons = true;
@@ -226,6 +228,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       }
     });
     return modal.present();
+  }
+
+  public registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions<any>): MatAutocompleteFieldConfig<any> {
+    return super.registerAutocompleteField(fieldName, options);
   }
 
   /* -- protected method -- */

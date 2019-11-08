@@ -178,7 +178,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     this.form.addControl('month', this.formBuilder.control(null));
     this.form.addControl('quarter', this.formBuilder.control(null));
 
-    this.enabled = true; // enable the form
+    this._enabled = true; // enable the form
 
     // If supervisor, allow to see all aggregations types
     this.typesFilter = {

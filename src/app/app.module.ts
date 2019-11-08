@@ -25,7 +25,7 @@ import {Camera} from "@ionic-native/camera/ngx";
 import {CacheModule} from "ionic-cache";
 import {Network} from "@ionic-native/network/ngx";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
-import {APP_LOCAL_SETTINGS_OPTIONS, LocalSettingsService} from "./core/services/local-settings.service";
+import {APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
 import {LocalSettings} from "./core/services/model";
 import {ReferentialModule} from "./referential/referential.module";
 import {TripModule} from "./trip/trip.module";

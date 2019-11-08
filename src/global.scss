@@ -161,10 +161,14 @@ form.form-container {
 
   /* -- Computed field -- */
 
+  // Set color on computed field (if enable or disable)
   .computed mat-form-field,
   mat-form-field .computed,
-  mat-form-field.computed {
-    color: var(--ion-color-primary-tint);
+  mat-form-field.computed,
+  .computed mat-form-field .mat-input-element:disabled,
+  mat-form-field .computed .mat-input-element:disabled,
+  mat-form-field.computed .mat-input-element:disabled {
+    color: var(--ion-color-primary-tint) !important;
     font-style: italic;
   }
 
@@ -329,6 +333,10 @@ ion-popover.select-popover {
 // --------------------------------------------------
 mat-table {
 
+  .mat-header-cell.disabled {
+      color: var(--ion-color-medium, grey);
+  }
+
   .mat-header-cell > ion-label,
   .mat-header-cell button > ion-label {
     margin-top: 0;
@@ -391,6 +399,7 @@ mat-table {
       }
     }
 
+    .mat-cell.computed mat-form-field,
     .mat-cell-computed {
       color: var(--ion-color-primary-tint);
       font-style: italic;

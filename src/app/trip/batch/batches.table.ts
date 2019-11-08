@@ -9,12 +9,17 @@ import {
   OnInit,
   Output
 } from "@angular/core";
-import {Observable, of, Subject} from 'rxjs';
+import {of, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
 import {Batch, getPmfmName, Landing, Operation, PmfmStrategy, referentialToString} from "../services/trip.model";
-import {PmfmLabelPatterns, AcquisitionLevelCodes, PmfmUtils, ReferentialRefService} from "../../referential/referential.module";
+import {
+  AcquisitionLevelCodes,
+  PmfmLabelPatterns,
+  PmfmUtils,
+  ReferentialRefService
+} from "../../referential/referential.module";
 import {isNilOrBlank, isNotNil} from "../../shared/shared.module";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
@@ -22,7 +27,7 @@ import {UsageMode} from "../../core/services/model";
 import {SubBatchesModal} from "./sub-batches.modal";
 import {measurementValueToString} from "../services/model/measurement.model";
 import {BatchModal} from "./batch.modal";
-import {EntityStorage} from "../../core/services/local-entities-repository.service";
+import {EntityStorage} from "../../core/services/entities-storage.service";
 import {MatDialog} from '@angular/material/dialog';
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 

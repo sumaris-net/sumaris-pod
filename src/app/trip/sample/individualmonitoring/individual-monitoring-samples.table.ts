@@ -20,8 +20,6 @@ import {SubSamplesTable} from "../sub-samples.table";
 })
 export class IndividualMonitoringSubSamplesTable extends SubSamplesTable implements OnInit {
 
-  protected hasIsDeadPmfm = false;
-
   constructor(
     injector: Injector
   ) {
@@ -38,8 +36,8 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
         .subscribe(pmfms => {
 
           // Listening on column 'IS_DEAD' value changes
-          this.hasIsDeadPmfm = pmfms.findIndex(p => p.pmfmId === PmfmIds.IS_DEAD) !== -1;
-          if (this.hasIsDeadPmfm) {
+          const hasIsDeadPmfm = pmfms.findIndex(p => p.pmfmId === PmfmIds.IS_DEAD) !== -1;
+          if (hasIsDeadPmfm) {
             this.registerCellValueChanges('isDead', "measurementValues." + PmfmIds.IS_DEAD.toString())
               .subscribe((isDeadValue) => {
                 if (!this.editedRow) return; // Should never occur
@@ -75,21 +73,6 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
         }));
   }
 
-  /* -- protected methods -- */
-
-  protected startListenRow(row: TableElement<Sample>) {
-    super.startListenRow(row);
-
-    // Listening IS_DEAD cell
-    if (this.hasIsDeadPmfm) {
-      this.startCellValueChanges('isDead', row);
-    }
-  }
-
-  parentToString(parent: Sample) {
-    if (!parent) return null;
-    return parent.measurementValues && parent.measurementValues[PmfmIds.TAG_ID] || `#${parent.rankOrder}`;
-  }
 
 }
 

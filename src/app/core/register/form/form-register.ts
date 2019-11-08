@@ -126,8 +126,8 @@ export class RegisterForm implements OnInit {
     }
   }
 
-  public get value(): RegisterData {
-    let result: RegisterData = {
+  get value(): RegisterData {
+    const result: RegisterData = {
       username: this.form.value.emailStep.email,
       password: this.form.value.passwordStep.password,
       account: new Account()
@@ -138,35 +138,35 @@ export class RegisterForm implements OnInit {
     return result;
   }
 
-  public get valid(): boolean {
+  get valid(): boolean {
     return this.form.valid;
   }
 
-  public isEnd(): boolean {
-    return this.stepper.selectedIndex == 2;
+  isEnd(): boolean {
+    return this.stepper.selectedIndex === 2;
   }
 
-  public isBeginning(): boolean {
-    return this.stepper.selectedIndex == 0;
+  isBeginning(): boolean {
+    return this.stepper.selectedIndex === 0;
   }
 
-  public slidePrev() {
+  slidePrev() {
     return this.stepper.previous();
   }
 
-  public slideNext() {
+  slideNext() {
     return this.stepper.next();
   }
 
   equalsValidator(otherControlName: string): ValidatorFn {
     return function (c: AbstractControl): ValidationErrors | null {
-      if (c.parent && c.value != c.parent.value[otherControlName]) {
+      if (c.parent && c.value !== c.parent.value[otherControlName]) {
         return {
           "equals": true
         };
       }
       return null;
-    }
+    };
   }
 
   emailAvailability(accountService: AccountService): AsyncValidatorFn {

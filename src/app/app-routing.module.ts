@@ -13,7 +13,7 @@ import {ObservedLocationPage} from "./trip/observedlocation/observed-location.pa
 import {ObservedLocationsPage} from "./trip/observedlocation/observed-locations.page";
 import {SettingsPage} from "./core/settings/settings.page";
 import {LandingPage} from "./trip/landing/landing.page";
-import {AuctionControlLandingPage} from "./trip/landing/auctioncontrol/auction-control-landing.page";
+import {AuctionControlPage} from "./trip/auctioncontrol/auction-control.page";
 import {SubBatchesModal} from "./trip/batch/sub-batches.modal";
 import {IonicRouteStrategy} from "@ionic/angular";
 import {ProgramPage} from "./referential/program/program.page";
@@ -242,16 +242,16 @@ const routes: Routes = [
             ]
           },
           {
-            path: 'control/:landingId',
+            path: 'control/:controlId',
             runGuardsAndResolvers: 'pathParamsChange',
             data: {
-              pathIdParam: 'landingId'
+              pathIdParam: 'controlId'
             },
             children: [
               {
                 path: '',
                 pathMatch: 'full',
-                component: AuctionControlLandingPage,
+                component: AuctionControlPage,
                 runGuardsAndResolvers: 'pathParamsChange'
               }
             ]

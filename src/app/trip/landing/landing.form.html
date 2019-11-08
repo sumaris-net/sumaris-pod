@@ -50,7 +50,7 @@
     <!-- LOCATION + date/time-->
     <ion-row class="ion-no-padding" *ngIf="showLocation || showDateTime">
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label float-end translate>LANDING.LANDING</ion-label>
+        <ion-label class="ion-float-end" translate>LANDING.LANDING</ion-label>
       </ion-col>
       <!-- location -->
       <ion-col *ngIf="showLocation">
@@ -70,39 +70,41 @@
     </ion-row>
 
     <!-- Observers -->
-    <ion-row *ngFor="let observerForm of observersForm?.controls; let i=index">
-      <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label float-end *ngIf="!i" translate>OBSERVED_LOCATION.OBSERVERS</ion-label>
-      </ion-col>
-      <ion-col >
-        <mat-autocomplete-field [formControl]="observersHelper.at(i)"
-                                [placeholder]="('OBSERVED_LOCATION.OBSERVER_PLACEHOLDER'|translate) + (i+1)"
-                                [appAutofocus]="observerFocusIndex === i"
-                                [config]="autocompleteFields.person"
-                                [tabindex]="tabindex+10+i*3"
-                                [i18nPrefix]="'USER.'"
-                                [required]="i === 0">
-          <ion-icon matPrefix name="person"></ion-icon>
-        </mat-autocomplete-field>
-      </ion-col>
-      <ion-col size="auto" class="ion-align-self-center">
-        <button type="button" mat-icon-button [tabindex]="tabindex+10++i*3+1" [disabled]="disabled"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addObserver()">
-          <mat-icon>add</mat-icon>
-        </button>
-        <button type="button" mat-icon-button [tabindex]="tabindex+10++i*3+2" [disabled]="disabled"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="observersHelper.removeAt(i)">
-          <mat-icon>close</mat-icon>
-        </button>
-      </ion-col>
-    </ion-row>
+    <ng-container *ngIf="showObservers">
+      <ion-row *ngFor="let observerForm of observersForm?.controls; let i=index">
+        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+          <ion-label class="ion-float-end" *ngIf="!i" translate>OBSERVED_LOCATION.OBSERVERS</ion-label>
+        </ion-col>
+        <ion-col >
+          <mat-autocomplete-field [formControl]="observersHelper.at(i)"
+                                  [placeholder]="('OBSERVED_LOCATION.OBSERVER_PLACEHOLDER'|translate) + (i+1)"
+                                  [appAutofocus]="observerFocusIndex === i"
+                                  [config]="autocompleteFields.person"
+                                  [tabindex]="tabindex+10+i*3"
+                                  [i18nPrefix]="'USER.'"
+                                  [required]="i === 0">
+            <ion-icon matPrefix name="person"></ion-icon>
+          </mat-autocomplete-field>
+        </ion-col>
+        <ion-col size="auto" class="ion-align-self-center">
+          <button type="button" mat-icon-button [tabindex]="tabindex+10++i*3+1" [disabled]="disabled"
+                  [title]="'COMMON.BTN_ADD'|translate"
+                  (click)="addObserver()">
+            <mat-icon>add</mat-icon>
+          </button>
+          <button type="button" mat-icon-button [tabindex]="tabindex+10++i*3+2" [disabled]="disabled"
+                  [title]="'COMMON.BTN_DELETE'|translate"
+                  (click)="observersHelper.removeAt(i)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </ion-col>
+      </ion-row>
+    </ng-container>
 
     <!-- Measurements -->
-    <ion-row>
+    <ion-row *ngIf="showMeasurements">
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label float-end translate>LANDING.EDIT.OTHER_FEATURES</ion-label>
+        <ion-label class="ion-float-end" translate>LANDING.EDIT.OTHER_FEATURES</ion-label>
       </ion-col>
       <ion-col>
 

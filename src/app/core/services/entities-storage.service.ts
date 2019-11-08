@@ -1,9 +1,9 @@
-import {merge, Observable, Subject, Subscription, timer} from "rxjs";
+import {merge, Subject, Subscription, timer} from "rxjs";
 import {Injectable} from "@angular/core";
 import {Storage} from "@ionic/storage";
 import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
-import {filter, throttleTime} from "rxjs/operators";
+import {throttleTime} from "rxjs/operators";
 
 
 export const SEQUENCE_STORAGE_KEY = "sequence";

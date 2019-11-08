@@ -92,6 +92,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     }
   }
 
+  async getMaxRankOrder(): Promise<number> {
+    return super.getMaxRankOrder();
+  }
+
   referentialToString = referentialToString;
   vesselFeaturesToString = vesselFeaturesToString;
   personsToString = personsToString;

@@ -14,7 +14,7 @@ import {ConfigService} from "../../core/services/config.service";
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'app-remote-config-page',
+  selector: 'app-software-page',
   templateUrl: 'software.page.html',
   styleUrls: ['./software.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

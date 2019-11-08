@@ -81,7 +81,7 @@ export class BatchValidatorService implements ValidatorService {
         $errors.next(errors);
       });
 
-    // When unscribe, remove async validator
+    // When unsubscribe, remove async validator
     subscription.add(() => {
       $errors.next(null);
       $errors.complete();
@@ -93,7 +93,8 @@ export class BatchValidatorService implements ValidatorService {
 
   /**
    * Computing weight, samplingWeight or sampling ratio
-   * @param control
+   * @param form
+   * @param opts
    */
   static computeSamplingWeight(form: FormGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean; }): ValidationErrors | null {
     const sampleForm = form.get('children.0');
