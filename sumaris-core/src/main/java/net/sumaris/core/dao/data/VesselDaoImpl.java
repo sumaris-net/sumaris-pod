@@ -40,10 +40,12 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselRegistrationVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +54,6 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
-import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Date;
@@ -60,6 +61,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("DuplicatedCode")
 @Repository("vesselDao")
 public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
@@ -86,16 +88,13 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         Join<VesselFeatures, Vessel> vesselJoin = root.join(VesselFeatures.PROPERTY_VESSEL, JoinType.INNER);
         Join<Vessel, VesselRegistrationPeriod> vrpJoin = vesselJoin.join(Vessel.PROPERTY_VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
 
-        query.multiselect(root, vrpJoin.get(VesselRegistrationPeriod.PROPERTY_REGISTRATION_CODE));
+        query.multiselect(root,
+            vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE),
+            vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)
+        );
 
         // Apply sorting
-        if (StringUtils.isNotBlank(sortAttribute)) {
-            Expression<?> sortExpression = root.get(sortAttribute);
-            query.orderBy(SortDirection.DESC.equals(sortDirection) ?
-                cb.desc(sortExpression) :
-                cb.asc(sortExpression)
-            );
-        }
+        addSorting(query, cb, root, sortAttribute, sortDirection);
 
         // No tripFilter: execute request
         if (filter == null) {
@@ -105,8 +104,9 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             return toVesselFeaturesVOs(q.getResultList());
         }
 
-        List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds()) ?
-                null : filter.getStatusIds();
+        List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds())
+            ? null
+            : filter.getStatusIds();
 
         // Apply tripFilter
         ParameterExpression<Date> dateParam = cb.parameter(Date.class);
@@ -114,6 +114,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         ParameterExpression<Integer> vesselFeaturesIdParam = cb.parameter(Integer.class);
         ParameterExpression<String> searchNameParam = cb.parameter(String.class);
         ParameterExpression<String> searchExteriorMarkingParam = cb.parameter(String.class);
+        ParameterExpression<String> searchRegistrationCodeParam = cb.parameter(String.class);
         ParameterExpression<Boolean> hasStatusIdsParam = cb.parameter(Boolean.class);
         ParameterExpression<Collection> statusIdsParam = cb.parameter(Collection.class);
 
@@ -121,8 +122,10 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             // Filter: date
             cb.or(
                 cb.and(
+                    // if no date in filter, will return only active period
                     cb.isNull(dateParam),
-                    cb.isNull(root.get(VesselFeatures.PROPERTY_END_DATE))
+                    cb.isNull(root.get(VesselFeatures.PROPERTY_END_DATE)),
+                    cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
                 ),
                 cb.and(
                     cb.isNotNull(dateParam),
@@ -132,6 +135,13 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                             cb.greaterThan(root.get(VesselFeatures.PROPERTY_END_DATE), dateParam)
                         ),
                         cb.lessThan(root.get(VesselFeatures.PROPERTY_START_DATE), dateParam)
+                    ),
+                    cb.and(
+                        cb.or(
+                            cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE)),
+                            cb.greaterThan(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE), dateParam)
+                        ),
+                        cb.lessThan(vrpJoin.get(VesselRegistrationPeriod.Fields.START_DATE), dateParam)
                     )
                 )
             ),
@@ -145,14 +155,15 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             // Filter: vessel id
             cb.or(
                 cb.isNull(vesselIdParam),
-                cb.equal(root.get(VesselFeatures.PROPERTY_VESSEL).get(Vessel.PROPERTY_ID), vesselIdParam))
+                cb.equal(vesselJoin.get(Vessel.PROPERTY_ID), vesselIdParam))
             ),
 
             // Filter: search text (on exterior marking OR id)
             cb.or(
                     cb.isNull(searchNameParam),
                     cb.like(cb.lower(root.get(VesselFeatures.PROPERTY_NAME)), cb.lower(searchNameParam)),
-                    cb.like(cb.lower(root.get(VesselFeatures.PROPERTY_EXTERIOR_MARKING)), cb.lower(searchExteriorMarkingParam))
+                    cb.like(cb.lower(root.get(VesselFeatures.PROPERTY_EXTERIOR_MARKING)), cb.lower(searchExteriorMarkingParam)),
+                    cb.like(cb.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), cb.lower(searchRegistrationCodeParam))
             ),
 
             // Status
@@ -178,6 +189,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 .setParameter(vesselFeaturesIdParam, filter.getVesselFeaturesId())
                 .setParameter(vesselIdParam, filter.getVesselId())
                 .setParameter(searchExteriorMarkingParam, searchTextAsPrefix)
+                .setParameter(searchRegistrationCodeParam, searchTextAsPrefix)
                 .setParameter(searchNameParam, searchTextAnyMatch)
                 .setParameter(hasStatusIdsParam, CollectionUtils.isNotEmpty(statusIds))
                 .setParameter(statusIdsParam, statusIds)
@@ -185,6 +197,56 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 .setMaxResults(size);
         List<VesselFeaturesResult> result = q.getResultList();
         return toVesselFeaturesVOs(result);
+    }
+
+    @Override
+    public List<VesselFeaturesVO> getByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        Preconditions.checkArgument(offset >= 0);
+        Preconditions.checkArgument(size > 0);
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<VesselFeatures> query = cb.createQuery(VesselFeatures.class);
+        Root<VesselFeatures> root = query.from(VesselFeatures.class);
+        query.select(root);
+
+        // Apply filter
+        ParameterExpression<Integer> vesselIdParam = cb.parameter(Integer.class);
+        query.where(cb.equal(root.get(VesselFeatures.PROPERTY_VESSEL).get(Vessel.PROPERTY_ID), vesselIdParam));
+
+        // Apply sorting
+        addSorting(query, cb, root, sortAttribute, sortDirection);
+
+        TypedQuery<VesselFeatures> q = entityManager.createQuery(query)
+            .setParameter(vesselIdParam, vesselId)
+            .setFirstResult(offset)
+            .setMaxResults(size);
+        List<VesselFeatures> result = q.getResultList();
+        return result.stream().map(this::toVesselFeaturesVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<VesselRegistrationVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        Preconditions.checkArgument(offset >= 0);
+        Preconditions.checkArgument(size > 0);
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<VesselRegistrationPeriod> query = cb.createQuery(VesselRegistrationPeriod.class);
+        Root<VesselRegistrationPeriod> root = query.from(VesselRegistrationPeriod.class);
+        query.select(root);
+
+        // Apply filter
+        ParameterExpression<Integer> vesselIdParam = cb.parameter(Integer.class);
+        query.where(cb.equal(root.get(VesselRegistrationPeriod.PROPERTY_VESSEL).get(Vessel.PROPERTY_ID), vesselIdParam));
+
+        // Apply sorting
+        addSorting(query, cb, root, sortAttribute, sortDirection);
+
+        TypedQuery<VesselRegistrationPeriod> q = entityManager.createQuery(query)
+            .setParameter(vesselIdParam, vesselId)
+            .setFirstResult(offset)
+            .setMaxResults(size);
+        List<VesselRegistrationPeriod> result = q.getResultList();
+        return result.stream().map(this::toVesselRegistrationVO).collect(Collectors.toList());
     }
 
     @Override
@@ -218,7 +280,25 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         if (source.getId() != null) {
             entity = get(VesselFeatures.class, source.getId());
         }
-        boolean isNew = (entity == null);
+        boolean isNew = entity == null;
+        boolean closeLastFeature = !isNew && entity.getStartDate() != source.getStartDate();
+
+        // if this feature have to be closed
+        if (closeLastFeature) {
+            Vessel vessel = entity.getVessel();
+//            List<VesselPhysicalMeasurement> measurements = entity.getMeasurements();
+            entity.setEndDate(DateUtils.addDays(source.getStartDate(), -1));
+            entityManager.merge(entity);
+            // create new feature with same vessel
+            entity = new VesselFeatures();
+            entity.setVessel(vessel);
+
+//            TODO ? if (config.isPreserveHistoricalMeasurements() && CollectionUtils.isNotEmpty(measurements)) {
+                // copy historical measurements
+
+//            }
+        }
+
         if (isNew) {
             entity = new VesselFeatures();
         }
@@ -250,6 +330,33 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             // Link to the target entity
             source.setVesselId(vessel.getId());
             entity.setVessel(vessel);
+        } else {
+            Vessel vessel = entity.getVessel();
+            vesselFeaturesVOToVesselEntity(source, vessel, true);
+            vessel.setUpdateDate(newUpdateDate);
+            entityManager.merge(vessel);
+        }
+
+        // Registration periods
+        VesselRegistrationPeriod lastPeriod = CollectionUtils.emptyIfNull(entity.getVessel().getVesselRegistrationPeriods()).stream()
+            .filter(period -> period.getEndDate() == null)
+            .findFirst().orElse(null);
+        boolean closeLastPeriod = lastPeriod != null && !lastPeriod.getRegistrationCode().equals(source.getRegistrationCode());
+        boolean createNewPeriod = lastPeriod == null || closeLastPeriod;
+
+        if (closeLastPeriod) {
+            // set end date the the day before the current start date TODO : the source.startDate must be after the current one : add control on page ? or here ?
+            lastPeriod.setEndDate(DateUtils.addDays(source.getStartDate(), -1));
+            entityManager.merge(lastPeriod);
+        }
+        if (createNewPeriod) {
+            // create new period
+            VesselRegistrationPeriod period = new VesselRegistrationPeriod();
+            period.setVessel(entity.getVessel());
+            period.setStartDate(source.getStartDate());
+            period.setRegistrationCode(source.getRegistrationCode());
+            period.setRegistrationLocation(get(Location.class, source.getRegistrationLocation().getId()));
+            entityManager.persist(period);
         }
 
         // Save entity
@@ -319,8 +426,8 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // base port location
-        LocationVO departureLocation = locationDao.toLocationVO(source.getBasePortLocation());
-        target.setBasePortLocation(departureLocation);
+        LocationVO basePortLocation = locationDao.toLocationVO(source.getBasePortLocation());
+        target.setBasePortLocation(basePortLocation);
 
         // Recorder department
         DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
@@ -342,9 +449,26 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         if (source == null)
             return null;
 
+        // Vessel features
         VesselFeaturesVO target = toVesselFeaturesVO(source.getVesselFeatures());
 
+        // Registration code
         target.setRegistrationCode(source.getRegistrationCode());
+
+        // Registration location
+        LocationVO registrationLocation = locationDao.toLocationVO(source.getRegistrationLocation());
+        target.setRegistrationLocation(registrationLocation);
+
+        return target;
+    }
+
+    private VesselRegistrationVO toVesselRegistrationVO(VesselRegistrationPeriod source) {
+        if (source == null)
+            return null;
+
+        VesselRegistrationVO target = new VesselRegistrationVO();
+
+        Beans.copyProperties(source, target);
 
         return target;
     }
@@ -419,15 +543,15 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         }
     }
 
-    protected <T extends Serializable> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
-                                                                   CriteriaBuilder cb,
-                                                                   Root<T> root, String sortAttribute, SortDirection sortDirection) {
+    protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
+                                              CriteriaBuilder cb,
+                                              Root<?> root, String sortAttribute, SortDirection sortDirection) {
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
             Expression<?> sortExpression = root.get(sortAttribute);
             query.orderBy(SortDirection.DESC.equals(sortDirection) ?
-                    cb.desc(sortExpression) :
-                    cb.asc(sortExpression)
+                cb.desc(sortExpression) :
+                cb.asc(sortExpression)
             );
         }
         return query;
@@ -438,5 +562,6 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     public static class VesselFeaturesResult {
         VesselFeatures vesselFeatures;
         String registrationCode;
+        Location registrationLocation;
     }
 }

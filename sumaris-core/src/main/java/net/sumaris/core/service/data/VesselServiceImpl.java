@@ -27,14 +27,14 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.VesselDao;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.data.ObservedLocationMeasurement;
 import net.sumaris.core.model.data.VesselPhysicalMeasurement;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselRegistrationVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +58,18 @@ public class VesselServiceImpl implements VesselService {
 
 
 	@Override
-	public List<VesselFeaturesVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute,
-											   SortDirection sortDirection) {
+	public List<VesselFeaturesVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
 		return vesselDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
+	}
+
+	@Override
+	public List<VesselFeaturesVO> getByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+		return vesselDao.getByVesselId(vesselId, offset, size, sortAttribute, sortDirection);
+	}
+
+	@Override
+	public List<VesselRegistrationVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+		return vesselDao.getRegistrationsByVesselId(vesselId, offset, size, sortAttribute, sortDirection);
 	}
 
 	@Override
@@ -71,13 +80,16 @@ public class VesselServiceImpl implements VesselService {
 	@Override
 	public VesselFeaturesVO save(VesselFeaturesVO vesselFeatures) {
 		Preconditions.checkNotNull(vesselFeatures);
-		Preconditions.checkNotNull(vesselFeatures);
 		Preconditions.checkNotNull(vesselFeatures.getRecorderDepartment(), "Missing recorderDepartment");
 		Preconditions.checkNotNull(vesselFeatures.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
 
 		Preconditions.checkNotNull(vesselFeatures.getBasePortLocation().getId(), "Missing basePortLocation.id");
 		Preconditions.checkArgument(vesselFeatures.getVesselId() != null || vesselFeatures.getVesselTypeId() != null, "Missing vesselId or vesselTypeId");
 
+		Preconditions.checkNotNull(vesselFeatures.getStartDate(), "Missing start date");
+		Preconditions.checkArgument(StringUtils.isNotBlank(vesselFeatures.getExteriorMarking()), "Missing exterior marking");
+		Preconditions.checkArgument(StringUtils.isNotBlank(vesselFeatures.getRegistrationCode()), "Missing registration code");
+		Preconditions.checkNotNull(vesselFeatures.getRegistrationLocation().getId(), "Missing registration location");
 
 		VesselFeaturesVO savedVesselFeatures = vesselDao.save(vesselFeatures);
 

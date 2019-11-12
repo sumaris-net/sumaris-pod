@@ -455,6 +455,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "sumaris.persistence.init.statisticalRectangles",
             n("sumaris.config.option.persistence.init.statisticalRectangles.description"),
             Boolean.TRUE.toString(),
+            Boolean.class),
+
+    PRESERVE_HISTORICAL_MEASUREMENTS(
+            "sumaris.persistence.preserve.historicalMeasurements",
+            n("sumaris.config.option.persistence.preserve.historicalMeasurements.description"),
+            Boolean.FALSE.toString(),
             Boolean.class)
 
     ;

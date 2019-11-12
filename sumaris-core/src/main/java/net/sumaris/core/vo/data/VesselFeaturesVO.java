@@ -51,6 +51,7 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
     private Double grossTonnageGrt;
     private Double grossTonnageGt;
     private LocationVO basePortLocation;
+    private LocationVO registrationLocation;
     private String comments;
     private ProgramVO program;
 

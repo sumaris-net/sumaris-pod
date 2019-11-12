@@ -28,8 +28,6 @@ import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
-import net.sumaris.core.service.data.BatchService;
-import net.sumaris.core.service.data.SampleService;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -41,7 +39,6 @@ import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -112,6 +109,28 @@ public class DataGraphQLService {
     ) {
         return vesselService.findByFilter(filter, offset, size, sort,
                 direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+    }
+
+    @GraphQLQuery(name = "vesselFeaturesHistory", description = "Get vessel features history")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<VesselFeaturesVO> getVesselFeaturesHistory(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                                     @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                     @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                     @GraphQLArgument(name = "sortBy", defaultValue = VesselFeaturesVO.PROPERTY_START_DATE) String sort,
+                                                     @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        return vesselService.getByVesselId(vesselId, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+    }
+
+    @GraphQLQuery(name = "vesselRegistrationHistory", description = "Get vessel registration history")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<VesselRegistrationVO> getVesselRegistrationHistory(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                                     @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                     @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                     @GraphQLArgument(name = "sortBy", defaultValue = VesselRegistrationVO.Fields.START_DATE) String sort,
+                                                     @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        return vesselService.getRegistrationsByVesselId(vesselId, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
     @GraphQLMutation(name = "saveVessel", description = "Create or update a vessel")

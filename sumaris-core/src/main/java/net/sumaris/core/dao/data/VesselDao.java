@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselRegistrationVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 
 import java.util.Date;
@@ -34,11 +35,16 @@ public interface VesselDao {
 
     List<VesselFeaturesVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
-    VesselFeaturesVO getByVesselIdAndDate(int id, Date date);
+    List<VesselFeaturesVO> getByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+    List<VesselRegistrationVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+    VesselFeaturesVO getByVesselIdAndDate(int vesselId, Date date);
 
     void delete(int id);
 
     VesselFeaturesVO save(VesselFeaturesVO vesselFeatures);
 
     VesselFeaturesVO toVesselFeaturesVO(VesselFeatures vesselFeatures);
+
 }

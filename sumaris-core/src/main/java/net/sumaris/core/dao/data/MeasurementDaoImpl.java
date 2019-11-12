@@ -23,7 +23,10 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.exception.ErrorCodes;
@@ -39,7 +42,6 @@ import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.collections.MultiMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +51,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -60,7 +61,10 @@ import javax.persistence.criteria.Root;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("measurementDao")
@@ -566,6 +570,8 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
         final EntityManager session = getEntityManager();
 
+        // TODO add option to preserve existing measurements
+
         // Remember existing measurements, to be able to remove unused measurements
         // note: Need Beans.getList() to avoid NullPointerException if target=null
         final Map<Integer, T> sourceToRemove = Beans.splitByProperty(Beans.getList(target), IMeasurementEntity.PROPERTY_PMFM + "." + IMeasurementEntity.PROPERTY_ID);
@@ -626,9 +632,13 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
             }
         }
 
-        // Remove unused tableNames
+        // Remove unused measurements
         if (MapUtils.isNotEmpty(sourceToRemove)) {
-            sourceToRemove.values().forEach(entity -> getEntityManager().remove(entity));
+            boolean preserveHistoricalMeasurements = config.isPreserveHistoricalMeasurements();
+            sourceToRemove.values().stream()
+                // if the measurement is part of the sources or if the historical measurements have not to be preserved
+                .filter(entity -> sources.containsKey(entity.getPmfm().getId()) || !preserveHistoricalMeasurements)
+                .forEach(entity -> getEntityManager().remove(entity));
         }
 
         return sources;

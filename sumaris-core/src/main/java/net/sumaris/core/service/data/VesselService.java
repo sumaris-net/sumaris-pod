@@ -24,9 +24,8 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
-import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.vo.data.VesselRegistrationVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +43,12 @@ public interface VesselService {
 
 	@Transactional(readOnly = true)
 	List<VesselFeaturesVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+	@Transactional(readOnly = true)
+	List<VesselFeaturesVO> getByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+	@Transactional(readOnly = true)
+	List<VesselRegistrationVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	@Transactional(readOnly = true)
 	VesselFeaturesVO getByVesselIdAndDate(int vesselId, Date date);

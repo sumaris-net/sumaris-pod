@@ -758,6 +758,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.INIT_STATISTICAL_RECTANGLES.getKey());
     }
 
+    public boolean isPreserveHistoricalMeasurements() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.PRESERVE_HISTORICAL_MEASUREMENTS.getKey());
+    }
+
     /* -- protected methods -- */
 
     /**
