@@ -601,18 +601,20 @@
   "VESSEL": {
     "VESSEL_ID": "Internal code",
     "NAME": "Name",
-    "EXTERIOR_MARKING": "Registration No",
-    "BASE_PORT_LOCATION": "base port",
+    "EXTERIOR_MARKING": "Exterior Marking",
+    "REGISTRATION_CODE": "Registration Code",
+    "BASE_PORT_LOCATION": "Base port",
     "COUNTRY": "Country",
     "COMMENTS": "Comments",
     "START_DATE": "Validity start date",
+    "END_DATE": "Validity end date",
     "TAB_GENERAL": "General information",
     "GROSS_TONNAGE_GT": "Gross tonnage (GT)",
     "GROSS_TONNAGE_GRT": "Gross registered tonnage (GRT)",
     "ADMINISTRATIVE_POWER": "Administrative power (kW)",
     "LENGTH_OVER_ALL": "Length over all (m)",
     "EDIT": {
-      "TITLE": "Vessel"
+      "TITLE": "Vessel {{exteriorMarking}}"
     },
     "NEW": {
       "TITLE": "New vessel"

@@ -1,10 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {VesselValidatorService} from "../../services/vessel.validator";
-import {LocationLevelIds, ReferentialRef, referentialToString, VesselFeatures} from "../../services/model";
+import {LocationLevelIds, referentialToString, VesselFeatures} from "../../services/model";
+import {DefaultStatusList} from "../../../core/services/model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {Observable} from 'rxjs';
-import {debounceTime, switchMap} from 'rxjs/operators';
 import {AppForm, AppFormUtils} from '../../../core/core.module';
 import {ReferentialRefService} from '../../services/referential-ref.service';
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
@@ -19,6 +18,8 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
 export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
 
   data: VesselFeatures;
+  statusList = DefaultStatusList;
+  statusById: any;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -29,17 +30,28 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
   ) {
 
     super(dateAdapter, vesselValidatorService.getFormGroup(), settings);
+
+    // Fill statusById
+    this.statusById = {};
+    this.statusList.forEach((status) => this.statusById[status.id] = status);
   }
 
   ngOnInit() {
     super.ngOnInit();
 
     // Combo location
-    this.registerAutocompleteField('location', {
+    this.registerAutocompleteField('basePortLocation', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
         levelId: LocationLevelIds.PORT
+      }
+    });
+    this.registerAutocompleteField('registrationLocation', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelId: LocationLevelIds.COUNTRY
       }
     });
 

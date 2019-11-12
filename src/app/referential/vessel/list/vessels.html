@@ -6,73 +6,120 @@
 <ion-content class="ion-no-padding">
 
   <mat-toolbar>
-    <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
-      <mat-icon>add</mat-icon>
-    </button>
-    <button mat-icon-button color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
-      (click)="onRefresh.emit()">
-      <mat-icon>refresh</mat-icon>
-    </button>
-    <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
-      <mat-icon>filter_list</mat-icon>
-    </button>
-    <button mat-icon-button color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
-      <mat-icon>delete</mat-icon>
-    </button>
+    <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+      <button mat-icon-button
+              hidden-xs hidden-sm hidden-mobile
+              *ngIf="canEdit"
+              [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+        <mat-icon>add</mat-icon>
+      </button>
+      <button mat-icon-button [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button mat-button color="{{filterIsEmpty ? '' : 'primary'}}"
+              [title]="'COMMON.BTN_FILTER'|translate"
+              (click)="filterExpansionPanel.toggle()">
+        <mat-icon>filter_list</mat-icon>
+        <ion-text *ngIf="!filterIsEmpty">
+          <span [innerHTML]="'COMMON.TABLE.FILTERED_PARENTHESIS'|translate"></span></ion-text>
+      </button>
+    </ng-container>
+    <ng-template #hasSelection>
+      <button mat-icon-button *ngIf="canDelete" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()"
+              class="hidden-xs hidden-sm">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </ng-template>
 
-<!--    <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"-->
-<!--      [disabled]="dirty" #inlineEditionBtn>-->
-<!--      <mat-icon>edit</mat-icon>-->
-<!--    </mat-button-toggle>-->
+    <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
 
-    <span class="toolbar-spacer"></span>
+    <div class="toolbar-spacer"></div>
 
-    <button mat-icon-button [title]=" 'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+    <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
       <mat-icon>more_vert</mat-icon>
     </button>
   </mat-toolbar>
 
   <!-- search -->
-  <mat-expansion-panel #filterExpansionPanel color="primary">
-    <form class="form-container ion-padding" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
+  <mat-expansion-panel #filterExpansionPanel class="ion-no-padding">
+    <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
-      <!-- date -->
-      <mat-date-time formControlName="date" [placeholder]="'VESSEL.LIST.FILTER.DATE'|translate" [displayTime]="false">
-      </mat-date-time>
+      <ion-grid>
+        <ion-row>
+          <ion-col>
+            <!-- date -->
+            <mat-date-time formControlName="date" [placeholder]="'VESSEL.LIST.FILTER.DATE'|translate" [displayTime]="false">
+              <ion-icon matPrefix name="calendar"></ion-icon>
+            </mat-date-time>
+          </ion-col>
+        </ion-row>
 
-      <!-- search text -->
-      <mat-form-field>
-        <input matInput [placeholder]="'VESSEL.LIST.FILTER.SEARCH_TEXT'|translate" formControlName="searchText">
-      </mat-form-field>
+        <ion-row>
+          <ion-col>
+            <!-- search text -->
+            <mat-form-field>
+              <input matInput [placeholder]="'VESSEL.LIST.FILTER.SEARCH_TEXT'|translate" formControlName="searchText">
+            </mat-form-field>
+          </ion-col>
+        </ion-row>
 
-      <!-- status -->
-      <mat-form-field>
-        <mat-select formControlName="statusId" [placeholder]=" 'REFERENTIAL.STATUS'|translate" >
-          <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
-          <mat-option *ngFor="let item of statusList" [value]="item.id">
-            <ion-icon [name]="item.icon"></ion-icon>
-            {{ item.label |translate }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+        <ion-row>
+          <ion-col>
+            <!-- status -->
+            <mat-form-field>
+              <mat-select formControlName="statusId" [placeholder]=" 'REFERENTIAL.STATUS'|translate" >
+                <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
+                <mat-option *ngFor="let item of statusList" [value]="item.id">
+                  <ion-icon [name]="item.icon"></ion-icon>
+                  {{ item.label |translate }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </ion-col>
+        </ion-row>
 
-      <button mat-raised-button [color]="filterForm.dirty ? 'primary' : undefined" type="submit">{{'COMMON.BTN_SEARCH'|translate}}</button>
+      </ion-grid>
     </form>
+
+    <mat-action-row>
+      <!-- Counter  -->
+      <ion-label [hidden]="($loading|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'"
+                 class="ion-padding">
+        {{ (resultsLength ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (resultsLength | numberFormat)} }}
+      </ion-label>
+
+      <div class="toolbar-spacer"></div>
+
+      <!-- Search button -->
+      <ion-button mat-button
+                  *ngIf="!mobile"
+                  [color]="filterForm.dirty ? 'tertiary' : undefined"
+                  [fill]="filterForm.dirty ? 'solid' : 'clear'"
+                  (click)="onRefresh.emit()">
+        <ion-text translate>COMMON.BTN_SEARCH</ion-text>
+      </ion-button>
+    </mat-action-row>
   </mat-expansion-panel>
 
   <!-- error -->
-  <mat-error class="ion-padding ion-text" color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
+  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
 
   <mat-table #table [dataSource]="dataSource" class="trips-table " matSort matSortActive="exteriorMarking"
     matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
-      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
+      <mat-header-cell *matHeaderCellDef [class.hidden]="!canEdit">
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
-      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+      <mat-cell *matCellDef="let row" [class.hidden]="!canEdit">
         <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
         </mat-checkbox>
       </mat-cell>
@@ -128,6 +175,20 @@
       </mat-cell>
     </ng-container>
 
+    <!-- Registration Code column -->
+    <ng-container matColumnDef="registrationCode">
+      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
+        <span translate>VESSEL.REGISTRATION_CODE</span>
+      </mat-header-cell>
+      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls['registrationCode']" [placeholder]="'VESSEL.REGISTRATION_CODE'|translate"
+            [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing">
+          <mat-error *ngIf="row.validator.controls['registrationCode'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
+
     <!-- Name column -->
     <ng-container matColumnDef="name">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
@@ -142,7 +203,7 @@
       </mat-cell>
     </ng-container>
 
-    <!-- departure location -->
+    <!-- base port location -->
     <ng-container matColumnDef="basePortLocation">
       <mat-header-cell *matHeaderCellDef>
         <span translate>VESSEL.BASE_PORT_LOCATION</span>
@@ -209,10 +270,7 @@
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-            [class.mat-row-disabled]="!row.editing"
-             [class.mat-row-dirty]="row.validator.dirty"
-             (click)="clickRow($event, row)"></mat-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="clickRow($event, row)"></mat-row>
   </mat-table>
 
   <!-- Bottom buttons -->
@@ -221,7 +279,7 @@
     <ion-col></ion-col>
 
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[10, 50, 100, 200]" showFirstLastButtons>
+      <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
   </ion-row>
@@ -229,14 +287,15 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
-  <form-buttons-bar (onCancel)="cancel($event) " (onSave)="save() " [disabled]="!dirty || loading " [disabledCancel]="!dirty || loading"></form-buttons-bar>
-</ion-footer>
+<!--<ion-footer hidden-xs hidden-sm hidden-mobile>-->
+<!--  <form-buttons-bar (onCancel)="cancel($event) " (onSave)="save() " [disabled]="!dirty || loading " [disabledCancel]="!dirty || loading"></form-buttons-bar>-->
+<!--</ion-footer>-->
 
 <!-- Add Button  -->
-<ion-fab slot="fixed" vertical="bottom" horizontal="end"
+<ion-fab vertical="bottom" horizontal="end"
+         *ngIf="canEdit"
          visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="light" (click)="addRow()">
+  <ion-fab-button color="tertiary" (click)="addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>

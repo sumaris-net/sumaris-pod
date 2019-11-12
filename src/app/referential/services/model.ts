@@ -22,7 +22,7 @@ import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 2,
+  PORT: 6,
   AUCTION: 3
 };
 
@@ -110,6 +110,7 @@ export {
 };
 
 export function vesselFeaturesToString(obj: VesselFeatures | any): string | undefined {
+  // TODO may be SFA will prefer 'registrationCode' instead of 'exteriorMarking' ?
   return obj && obj.vesselId && joinPropertiesPath(obj, ['exteriorMarking', 'name']) || undefined;
 }
 
@@ -165,11 +166,13 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   startDate: Date | Moment;
   endDate: Date | Moment;
   exteriorMarking: string;
+  registrationCode: string;
   administrativePower: number;
   lengthOverAll: number;
   grossTonnageGt: number;
   grossTonnageGrt: number;
   basePortLocation: any;
+  registrationLocation: any;
   creationDate: Date | Moment;
   recorderDepartment: Department;
   recorderPerson: Person;
@@ -178,6 +181,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   constructor() {
     super();
     this.basePortLocation = new ReferentialRef();
+    this.registrationLocation = new ReferentialRef();
     this.recorderDepartment = new Department();
     this.recorderPerson = new Person();
   }
@@ -186,6 +190,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     const target = new VesselFeatures();
     this.copy(target);
     target.basePortLocation = this.basePortLocation && this.basePortLocation.clone() || undefined;
+    target.registrationLocation = this.registrationLocation && this.registrationLocation.clone() || undefined;
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.clone() || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.clone() || undefined;
     return target;
@@ -200,6 +205,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     const target: any = super.asObject(minify);
 
     target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject(minify) || undefined;
+    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject(minify) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     target.creationDate = toDateISOString(this.creationDate);
@@ -212,6 +218,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   fromObject(source: any): VesselFeatures {
     super.fromObject(source);
     this.exteriorMarking = source.exteriorMarking;
+    this.registrationCode = source.registrationCode;
     this.name = source.name;
     this.comments = source.comments || undefined;
     this.vesselId = source.vesselId;
@@ -225,6 +232,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.grossTonnageGrt = source.grossTonnageGrt || undefined;
     this.creationDate = fromDateISOString(source.creationDate);
     source.basePortLocation && this.basePortLocation.fromObject(source.basePortLocation);
+    source.registrationLocation && this.registrationLocation.fromObject(source.registrationLocation);
     source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
     source.recorderPerson && this.recorderPerson.fromObject(source.recorderPerson);
     return this;

@@ -24,10 +24,10 @@ type AccountVO {
 }
 
 type AggregationResultVO {
+  aggStrata: [String]
   columns: [ExtractionProductColumnVO]
   rows: [[String]]
   spaceStrata: [String]
-  techStrata: [String]
   timeStrata: [String]
   total: BigDecimal
   type: ExtractionTypeVO
@@ -46,7 +46,7 @@ type AggregationTypeVO {
   recorderPerson: PersonVO
   sheetNames: [String]
   statusId: Int
-  strata: Strata
+  stratum: [ExtractionProductStrataVO]
   updateDate: Date
   version: String
 }
@@ -125,6 +125,66 @@ type ExtractionProductColumnVO {
   tableId: Int
   type: String
   values: [String]
+}
+
+type ExtractionProductStrataVO {
+  aggColumnName: String
+  aggFunction: String
+  comments: String
+  creationDate: Date
+  description: String
+  id: Int
+  isDefault: Boolean
+  label: String
+  name: String
+  product: ExtractionProductVO
+  productId: Int
+  sheetName: String
+  spaceColumnName: String
+  statusId: Int
+  techColumnName: String
+  timeColumnName: String
+  updateDate: Date
+}
+
+type ExtractionProductTableVO {
+  columnValues: Map_String_ListScalar
+  columns: [ExtractionProductColumnVO]
+  comments: String
+  creationDate: Date
+  defaultAggColumn: String
+  defaultSpaceColumn: String
+  defaultTechColumn: String
+  description: String
+  id: Int
+  isSpatial: Boolean
+  label: String
+  name: String
+  product: ExtractionProductVO
+  productId: Int
+  statusId: Int
+  tableName: String
+  updateDate: Date
+}
+
+type ExtractionProductVO {
+  comments: String
+  creationDate: Date
+  description: String
+  id: Int
+  isSpatial: Boolean
+  items: Map_String_StringScalar
+  label: String
+  name: String
+  parentId: Int
+  recorderDepartment: DepartmentVO
+  recorderPerson: PersonVO
+  sheetNames: [String]
+  statusId: Int
+  stratum: [ExtractionProductStrataVO]
+  tableNames: [String]
+  tables: [ExtractionProductTableVO]
+  updateDate: Date
 }
 
 type ExtractionResultVO {
@@ -511,7 +571,7 @@ type Query {
   aggregationGeoJson(filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: AggregationTypeVOInput): ObjectScalar
   "Read an aggregation"
   aggregationRows(filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: AggregationTypeVOInput): AggregationResultVO
-  "Get oneaggregation type"
+  "Get one aggregation type"
   aggregationType(id: Int): AggregationTypeVO
   "Get all available aggregation types"
   aggregationTypes(filter: AggregationTypeFilterVOInput): [AggregationTypeVO]
@@ -530,7 +590,7 @@ type Query {
   "Preview some extraction rows"
   extractionRows(filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", type: ExtractionTypeVOInput): ExtractionResultVO
   "Get all available extraction types"
-  extractionTypes: [ExtractionTypeVO]
+  extractionTypes(filter: ExtractionTypeFilterVOInput): [ExtractionTypeVO]
   "Check if email exists (from a md5 hash)"
   isEmailExists(email: String, hash: String): Boolean
   "Get an observed location, by id"
@@ -571,6 +631,10 @@ type Query {
   trips(filter: TripFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "departureDateTime", sortDirection: String = "asc"): [TripVO]
   "Get total trips count"
   tripsCount(filter: TripFilterVOInput): Long
+  "Get vessel features history"
+  vesselFeaturesHistory(offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselFeaturesVO]
+  "Get vessel registration history"
+  vesselRegistrationHistory(offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselRegistrationVO]
   "Search in vessels"
   vessels(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "exteriorMarking", sortDirection: String = "asc"): [VesselFeaturesVO]
 }
@@ -657,12 +721,6 @@ type SampleVO {
   taxonName: ReferentialVO
   updateDate: Date
   validationDate: Date
-}
-
-type Strata {
-  space: [String]
-  tech: [String]
-  time: [String]
 }
 
 type StrategyVO {
@@ -808,7 +866,7 @@ type UserSettingsVO {
 
 type VesselFeaturesVO {
   administrativePower: Int
-  basePortLocation: ReferentialVO
+  basePortLocation: LocationVO
   comments: String
   controlDate: Date
   creationDate: Date
@@ -829,12 +887,14 @@ type VesselFeaturesVO {
   qualityFlagId: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
+  registrationCode: String
+  registrationLocation: LocationVO
   startDate: Date
   updateDate: Date
   validationDate: Date
   vesselId: Int
-  vesselTypeId: Int
   vesselStatusId: Int
+  vesselTypeId: Int
 }
 
 type VesselPositionVO {
@@ -849,6 +909,16 @@ type VesselPositionVO {
   recorderDepartment: DepartmentVO
   updateDate: Date
   validationDate: Date
+}
+
+type VesselRegistrationVO {
+  endDate: Date
+  id: Int
+  qualityFlagId: Int
+  registrationCode: String
+  registrationLocation: LocationVO
+  startDate: Date
+  vesselId: Int
 }
 
 input AccountVOInput {
@@ -869,15 +939,28 @@ input AccountVOInput {
 }
 
 input AggregationStrataVOInput {
-  space: String
-  tech: String
-  techFunction: String
-  time: String
+  aggColumnName: String
+  aggFunction: String
+  comments: String
+  creationDate: Date
+  description: String
+  id: Int
+  isDefault: Boolean
+  label: String
+  name: String
+  product: ExtractionProductVOInput
+  productId: Int
+  sheetName: String
+  spaceColumnName: String
+  statusId: Int
+  techColumnName: String
+  timeColumnName: String
+  updateDate: Date
 }
 
 input AggregationTypeFilterVOInput {
+  departmentId: Int
   isSpatial: Boolean
-  statusId: Int
   statusIds: [Int]
 }
 
@@ -893,7 +976,7 @@ input AggregationTypeVOInput {
   recorderPerson: PersonVOInput
   sheetNames: [String]
   statusId: Int
-  strata: StrataInput
+  stratum: [ExtractionProductStrataVOInput]
   updateDate: Date
   version: String
 }
@@ -978,6 +1061,81 @@ input ExtractionFilterVOInput {
   operator: String
   preview: Boolean
   sheetName: String
+}
+
+input ExtractionProductColumnVOInput {
+  columnName: String
+  description: String
+  id: Int
+  label: String
+  name: String
+  rankOrder: Int
+  tableId: Int
+  type: String
+  values: [String]
+}
+
+input ExtractionProductStrataVOInput {
+  aggColumnName: String
+  aggFunction: String
+  comments: String
+  creationDate: Date
+  description: String
+  id: Int
+  isDefault: Boolean
+  label: String
+  name: String
+  product: ExtractionProductVOInput
+  productId: Int
+  sheetName: String
+  spaceColumnName: String
+  statusId: Int
+  techColumnName: String
+  timeColumnName: String
+  updateDate: Date
+}
+
+input ExtractionProductTableVOInput {
+  columnValues: Map_String_ListScalar
+  columns: [ExtractionProductColumnVOInput]
+  comments: String
+  creationDate: Date
+  defaultAggColumn: String
+  defaultSpaceColumn: String
+  defaultTechColumn: String
+  description: String
+  id: Int
+  isSpatial: Boolean
+  label: String
+  name: String
+  product: ExtractionProductVOInput
+  productId: Int
+  statusId: Int
+  tableName: String
+  updateDate: Date
+}
+
+input ExtractionProductVOInput {
+  comments: String
+  creationDate: Date
+  description: String
+  id: Int
+  isSpatial: Boolean
+  label: String
+  name: String
+  parentId: Int
+  recorderDepartment: DepartmentVOInput
+  recorderPerson: PersonVOInput
+  statusId: Int
+  stratum: [ExtractionProductStrataVOInput]
+  tables: [ExtractionProductTableVOInput]
+  updateDate: Date
+}
+
+input ExtractionTypeFilterVOInput {
+  category: String
+  departmentId: Int
+  statusIds: [Int]
 }
 
 input ExtractionTypeVOInput {
@@ -1358,12 +1516,6 @@ input SampleVOInput {
   validationDate: Date
 }
 
-input StrataInput {
-  space: [String]
-  tech: [String]
-  time: [String]
-}
-
 input StrategyVOInput {
   comments: String
   creationDate: Date
@@ -1479,7 +1631,7 @@ input UserSettingsVOInput {
 
 input VesselFeaturesVOInput {
   administrativePower: Int
-  basePortLocation: ReferentialVOInput
+  basePortLocation: LocationVOInput
   comments: String
   controlDate: Date
   creationDate: Date
@@ -1498,20 +1650,22 @@ input VesselFeaturesVOInput {
   qualityFlagId: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
+  registrationCode: String
+  registrationLocation: LocationVOInput
   startDate: Date
   updateDate: Date
   validationDate: Date
   vesselId: Int
-  vesselTypeId: Int
   vesselStatusId: Int
+  vesselTypeId: Int
 }
 
 input VesselFilterVOInput {
   date: Date
   searchText: String
+  statusIds: [Int]
   vesselFeaturesId: Int
   vesselId: Int
-  statusIds: [Int]
 }
 
 input VesselPositionVOInput {
@@ -1529,9 +1683,6 @@ input VesselPositionVOInput {
 }
 
 
-"Built-in java.math.BigDecimal"
-scalar BigDecimal
-
 "Built-in Date"
 scalar Date
 
@@ -1541,8 +1692,14 @@ scalar Map_String_StringScalar
 "Built-in object scalar"
 scalar Map_Integer_StringScalar
 
+"Built-in object scalar"
+scalar Map_String_ListScalar
+
 "Long type"
 scalar Long
+
+"Built-in java.math.BigDecimal"
+scalar BigDecimal
 
 "Built-in object scalar"
 scalar ObjectScalar

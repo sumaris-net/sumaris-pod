@@ -499,6 +499,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       }
 
       event.stopPropagation();
+      event.preventDefault();
 
       // No ID defined: unable to open details
       if (isNil(row.currentData.id)) {
