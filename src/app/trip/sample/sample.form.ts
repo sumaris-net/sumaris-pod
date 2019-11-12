@@ -15,6 +15,7 @@ import {AppFormUtils} from "../../core/core.module";
 import {isNilOrBlank} from "../../shared/functions";
 import {PlatformService} from "../../core/services/platform.service";
 import {SampleValidatorService} from "../services/sample.validator";
+import {Sample} from "../services/model/sample.model";
 
 @Component({
   selector: 'app-sample-form',
