@@ -1,0 +1,104 @@
+<ion-content class="ion-no-padding">
+
+  <!-- error -->
+  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <mat-table #table [dataSource]="dataSource" matSort matSortActive="startDate" matSortDirection="asc"
+             matSortDisableClear [trackBy]="trackByFn">
+
+<!--    <ng-container matColumnDef="select">-->
+<!--      <mat-header-cell *matHeaderCellDef [class.hidden]="true">-->
+<!--        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"-->
+<!--                      [indeterminate]="selection.hasValue() && !isAllSelected()">-->
+<!--        </mat-checkbox>-->
+<!--      </mat-header-cell>-->
+<!--      <mat-cell *matCellDef="let row" [class.hidden]="true">-->
+<!--        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">-->
+<!--        </mat-checkbox>-->
+<!--      </mat-cell>-->
+<!--    </ng-container>-->
+
+    <!-- Id Column -->
+    <ng-container matColumnDef="id">
+      <mat-header-cell *matHeaderCellDef mat-sort-header [class.hidden]="!isAdmin">
+        <span *ngIf="!loading">#</span>
+        <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" [class.hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
+    </ng-container>
+
+    <!-- Start date column -->
+    <ng-container matColumnDef="startDate">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>VESSEL.START_DATE</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.startDate|dateFormat:{time:false} }}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- End date column -->
+    <ng-container matColumnDef="endDate">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>VESSEL.END_DATE</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.endDate|dateFormat:{time:false} }}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Exterior marking column -->
+    <ng-container matColumnDef="exteriorMarking">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>VESSEL.EXTERIOR_MARKING</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.exteriorMarking}}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Name column -->
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>VESSEL.NAME</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.name}}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- base port location -->
+    <ng-container matColumnDef="basePortLocation">
+      <mat-header-cell *matHeaderCellDef>
+        <span translate>VESSEL.BASE_PORT_LOCATION</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{referentialToString(row.currentData.basePortLocation)}}
+      </mat-cell>
+    </ng-container>
+
+    <!-- Comments column -->
+    <ng-container matColumnDef="comments">
+      <mat-header-cell *matHeaderCellDef>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-icon color="primary" name="chatboxes" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled"></mat-row>
+  </mat-table>
+
+  <ion-row class="ion-no-padding">
+    <ion-col></ion-col>
+    <ion-col class="ion-no-padding" size="auto">
+      <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+      </mat-paginator>
+    </ion-col>
+  </ion-row>
+
+</ion-content>

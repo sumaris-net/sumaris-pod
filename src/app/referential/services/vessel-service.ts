@@ -1,8 +1,8 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {EntityUtils, isNotNil, Person, StatusIds, VesselFeatures} from "./model";
-import {LoadResult, TableDataService} from "../../shared/shared.module";
+import {EntityUtils, isNil, isNotNil, Person, StatusIds, VesselFeatures} from "./model";
+import {EditorDataService, isNilOrBlank, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
@@ -13,13 +13,20 @@ import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {FetchPolicy} from "apollo-client";
+import {isEmptyArray} from "../../shared/functions";
 
-export declare class VesselFilter {
+export class VesselFilter {
   date?: Date | Moment;
   vesselId?: number;
   searchText?: string;
   statusId?: number;
   statusIds?: number[];
+
+  static isEmpty(filter: VesselFilter | any): boolean {
+    return !filter || (
+      !filter.date && isNilOrBlank(filter.vesselId) && isNilOrBlank(filter.searchText) && isNilOrBlank(filter.statusId) && isEmptyArray(filter.statusIds)
+    );
+  }
 }
 
 export const VesselFragments = {
@@ -29,6 +36,7 @@ export const VesselFragments = {
     endDate
     name
     exteriorMarking
+    registrationCode  
     administrativePower
     lengthOverAll
     grossTonnageGt
@@ -42,6 +50,9 @@ export const VesselFragments = {
     basePortLocation {
       ...LocationFragment
     }
+    registrationLocation {
+      ...LocationFragment
+    }
     recorderDepartment {
      ...LightDepartmentFragment
     }
@@ -52,6 +63,7 @@ export const VesselFragments = {
     endDate
     name
     exteriorMarking
+    registrationCode
     administrativePower
     lengthOverAll
     grossTonnageGt
@@ -63,6 +75,9 @@ export const VesselFragments = {
     vesselTypeId
     vesselStatusId
     basePortLocation {
+      ...LocationFragment
+    }
+    registrationLocation {
       ...LocationFragment
     }
     recorderDepartment {
@@ -115,7 +130,9 @@ const DeleteVessels: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class VesselService extends BaseDataService implements SuggestionDataService<VesselFeatures>, TableDataService<VesselFeatures, VesselFilter> {
+export class VesselService
+  extends BaseDataService
+  implements SuggestionDataService<VesselFeatures>, TableDataService<VesselFeatures, VesselFilter>, EditorDataService<VesselFeatures, VesselFilter> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -234,7 +251,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
   //     .pipe(first()).toPromise();
   // }
 
-  async load(id: number, opts? : {
+  async load(id: number, opts?: {
     fetchPolicy?: FetchPolicy
   }): Promise<VesselFeatures | null> {
     console.debug("[vessel-service] Loading vessel " + id);
@@ -333,8 +350,12 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
     return vessel;
   }
 
+  delete(data: VesselFeatures, options?: any): Promise<any> {
+    return this.deleteAll([data]);
+  }
+
   deleteAll(vessels: VesselFeatures[]): Promise<any> {
-    let ids = vessels && vessels
+    const ids = vessels && vessels
       .map(t => t.id)
       .filter(id => (id > 0));
 
@@ -348,13 +369,17 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
     });
   }
 
+  listenChanges(id: number, options?: any): Observable<VesselFeatures> {
+    throw new Error("Method not implemented.");
+  }
+
   /* -- protected methods -- */
 
   protected asObject(vessel: VesselFeatures): any {
     const copy: any = vessel.asObject(true/*minify*/);
 
     // If no vessel: set the default vessel type
-    copy.vesselTypeId = !copy.vesselId ? 1/*TODO ?*/ : undefined;
+    copy.vesselTypeId = !copy.vesselId ? 1 /*TODO ?*/ : undefined;
 
     return copy;
   }
@@ -362,7 +387,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
   protected fillDefaultProperties(vessel: VesselFeatures): void {
 
     // If new
-    if (!vessel.id || vessel.id < 0) {
+    // if (!vessel.id || vessel.id < 0) {
 
       const person: Person = this.accountService.account;
 
@@ -376,6 +401,6 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
         vessel.recorderPerson.id = person.id;
       }
 
-    }
+    // }
   }
 }

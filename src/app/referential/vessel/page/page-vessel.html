@@ -1,6 +1,6 @@
-<app-toolbar [title]="$title|async" color="primary"
-             [hasValidate]="form.dirty && !loading" (onValidate)="save($event)"
-              canGoBack="true">
+<app-toolbar [title]="title | async" color="primary"
+             [hasValidate]="!loading && dirty" (onValidate)="save($event)"
+             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
 </app-toolbar>
 
 <ion-content>
@@ -15,11 +15,29 @@
 
       <ion-row class="ion-no-padding">
         <ion-col class="ion-padding">
-          <form-vessel (onSubmit)="save($event)" #form>
+          <form-vessel (onSubmit)="save($event)" #vesselForm>
           </form-vessel>
         </ion-col>
         <ion-col size="12" size-sm="9" size-md="6" size-lg="4" size-xl="3" class="ion-no-padding">
-          <entity-metadata [value]="data"></entity-metadata>
+          <entity-metadata [value]="data">
+
+            <!-- Vessel actions -->
+
+          </entity-metadata>
+        </ion-col>
+      </ion-row>
+    </mat-tab>
+
+    <mat-tab label="{{'VESSEL.TAB_HISTORY'|translate}}">
+      <ng-template mat-tab-label>
+        <ion-icon name="clock"></ion-icon>
+        <ion-label translate>VESSEL.TAB_HISTORY</ion-label>
+      </ng-template>
+
+      <ion-row class="ion-no-padding">
+        <ion-col class="ion-padding">
+          <app-vessel-features-history-table #featuresHistoryTable>
+          </app-vessel-features-history-table>
         </ion-col>
       </ion-row>
     </mat-tab>

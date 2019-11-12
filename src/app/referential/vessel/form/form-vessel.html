@@ -24,6 +24,26 @@
       </ion-col>
     </ion-row>
 
+    <!-- Registration -->
+    <ion-row>
+      <ion-col>
+        <mat-form-field>
+          <input matInput [placeholder]="'VESSEL.REGISTRATION_CODE'|translate" formControlName="registrationCode"
+                 autocomplete="off" required>
+          <mat-error *ngIf="form.controls['registrationCode'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
+      <ion-col>
+        <mat-autocomplete-field
+          [placeholder]="'VESSEL.REGISTRATION_LOCATION'|translate"
+          formControlName="registrationLocation"
+          [config]="autocompleteFields.registrationLocation"
+          [required]="true">
+          <ion-icon matPrefix name="pin"></ion-icon>
+        </mat-autocomplete-field>
+      </ion-col>
+    </ion-row>
+
     <!-- Name -->
     <ion-row>
       <ion-col>
@@ -40,7 +60,7 @@
         <mat-autocomplete-field
           [placeholder]="'VESSEL.BASE_PORT_LOCATION'|translate"
           formControlName="basePortLocation"
-          [config]="autocompleteFields.location"
+          [config]="autocompleteFields.basePortLocation"
           [required]="true">
           <ion-icon matPrefix name="pin"></ion-icon>
         </mat-autocomplete-field>
@@ -101,6 +121,26 @@
         </mat-form-field>
       </ion-col>-->
     </ion-row>
+
+    <!-- Status-->
+    <ion-row>
+      <ion-col>
+        <mat-form-field>
+          <mat-select formControlName="vesselStatusId" [placeholder]="'REFERENTIAL.STATUS'|translate">
+            <mat-select-trigger>
+          <span *ngIf="form.controls.vesselStatusId.value &gt;= 0">
+            {{ statusById[form.controls.vesselStatusId.value]?.label | translate}}</span>
+            </mat-select-trigger>
+            <mat-option *ngFor="let item of statusList" [value]="item.id">
+              <ion-icon [name]="item.icon"></ion-icon>
+              {{ item.label |translate }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.controls.vesselStatusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+
 
     <!-- Comments -->
     <ion-row>
