@@ -92,22 +92,22 @@
                  (click)="openTimePickerIfMobile($event)"
                  readonly>
 
-          <button *ngIf="!compact" type="button" matSuffix #timePickerButton (click)="openTimePicker($event)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
+          <button *ngIf="!compact" type="button" matSuffix #timePickerButton
+                  (click)="openTimePicker($event)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
             <div *ngIf="mobile; then iconTime; else iconDesktop"></div>
           </button>
 
           <ngx-material-timepicker #timePicker
-                                   [disableAnimation]="true"
-                                   theme="darkTheme"
                                    (timeSet)="onTimePickerChange($event)"
                                    [ESC]="false"
-                                   defaultTime="00:00"
+                                   [defaultTime]="'00:00'"
                                    [cancelBtnTmpl]="timePickerCancelButton"
                                    [confirmBtnTmpl]="timePickerOkButton"
                                    [preventOverlayClick]="false"
                                    [enableKeyboardInput]="false"
                                    (keyup.escape)="onTimePickerKeyup($event)"
-                                   (keyup.enter)="onTimePickerKeyup($event)">
+                                   (keyup.enter)="onTimePickerKeyup($event)"
+                                   [disableAnimation]="true">
             <!-- cancel button -->
             <ng-template #timePickerCancelButton>
               <ion-button fill="clear" color="dark">
