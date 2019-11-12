@@ -87,10 +87,11 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
         Join<VesselFeatures, Vessel> vesselJoin = root.join(VesselFeatures.PROPERTY_VESSEL, JoinType.INNER);
         Join<Vessel, VesselRegistrationPeriod> vrpJoin = vesselJoin.join(Vessel.PROPERTY_VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
+        Join<VesselRegistrationPeriod, Location> locationJoin = vrpJoin.join(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION, JoinType.LEFT);
 
         query.multiselect(root,
             vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE),
-            vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)
+            locationJoin.as(Location.class)
         );
 
         // Apply sorting
@@ -108,7 +109,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             ? null
             : filter.getStatusIds();
 
-        // Apply tripFilter
+        // Apply vessel Filter
         ParameterExpression<Date> dateParam = cb.parameter(Date.class);
         ParameterExpression<Integer> vesselIdParam = cb.parameter(Integer.class);
         ParameterExpression<Integer> vesselFeaturesIdParam = cb.parameter(Integer.class);
