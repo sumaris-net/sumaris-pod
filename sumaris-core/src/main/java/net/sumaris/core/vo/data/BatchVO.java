@@ -24,6 +24,7 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -37,10 +38,9 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@FieldNameConstants
 @EqualsAndHashCode
 public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
-    public static final String PROPERTY_OPERATION = "operation";
-    public static final String PROPERTY_BATCH = "batch";
 
     @EqualsAndHashCode.Exclude
     private Integer id;

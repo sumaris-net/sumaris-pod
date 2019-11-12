@@ -24,23 +24,17 @@ package net.sumaris.core.vo.administration.user;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.vo.IValueObject;
-import net.sumaris.core.vo.referential.UserProfileVO;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @EqualsAndHashCode
 public class PersonVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
-
-    public static final String PROPERTY_PUBKEY = "pubkey";
-    public static final String PROPERTY_FIRST_NAME = "firstName";
-    public static final String PROPERTY_LAST_NAME = "lastName";
-    public static final String PROPERTY_AVATAR = "avatar";
 
     private Integer id;
     private Date updateDate;

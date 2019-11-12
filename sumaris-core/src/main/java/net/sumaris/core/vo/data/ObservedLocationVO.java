@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithObserversEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -37,11 +38,9 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
+@FieldNameConstants
 public class ObservedLocationVO implements IRootDataVO<Integer>,
         IWithObserversEntity<Integer, PersonVO> {
-
-    public static final String PROPERTY_START_DATE_TIME = "startDateTime";
-    public static final String PROPERTY_END_DATE_TIME = "endDateTime";
 
     private Integer id;
     private String comments;

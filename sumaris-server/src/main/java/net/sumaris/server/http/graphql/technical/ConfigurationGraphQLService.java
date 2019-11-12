@@ -108,12 +108,12 @@ public class ConfigurationGraphQLService {
         ConfigurationVO result = new ConfigurationVO(software);
 
         // Fill partners departments
-        if (fields.contains(ConfigurationVO.PROPERTY_PARTNERS)) {
+        if (fields.contains(ConfigurationVO.Fields.PARTNERS)) {
             this.fillPartners(result);
         }
 
         // Fill background images URLs
-        if (fields.contains(ConfigurationVO.PROPERTY_BACKGROUND_IMAGES)) {
+        if (fields.contains(ConfigurationVO.Fields.BACKGROUND_IMAGES)) {
             this.fillBackgroundImages(result);
         }
 

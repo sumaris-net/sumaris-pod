@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.taxon;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
@@ -96,6 +97,7 @@ import java.util.Date;
  *
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "taxonomic_level")
 public class TaxonomicLevel implements IItemReferentialEntity {

@@ -134,22 +134,22 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
                         // Filter: program
                         builder.or(
                                 builder.isNull(programIdParam),
-                                builder.equal(root.get(ObservedLocation.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
+                                builder.equal(root.get(ObservedLocation.Fields.PROGRAM).get(Program.Fields.ID), programIdParam)
                         ),
                         // Filter: startDate
                         builder.or(
                                 builder.isNull(startDateParam),
-                                builder.not(builder.lessThan(root.get(ObservedLocation.PROPERTY_END_DATE_TIME), startDateParam))
+                                builder.not(builder.lessThan(root.get(ObservedLocation.Fields.END_DATE_TIME), startDateParam))
                         ),
                         // Filter: endDate
                         builder.or(
                                 builder.isNull(endDateParam),
-                                builder.not(builder.greaterThan(root.get(ObservedLocation.PROPERTY_START_DATE_TIME), endDateParam))
+                                builder.not(builder.greaterThan(root.get(ObservedLocation.Fields.START_DATE_TIME), endDateParam))
                         ),
                         // Filter: location
                         builder.or(
                                 builder.isNull(locationIdParam),
-                                builder.equal(root.get(ObservedLocation.PROPERTY_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
+                                builder.equal(root.get(ObservedLocation.Fields.LOCATION).get(Location.Fields.ID), locationIdParam)
                         )
                 ));
 
@@ -195,22 +195,22 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
                     // Filter: program
                     builder.or(
                             builder.isNull(programIdParam),
-                            builder.equal(root.get(ObservedLocation.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
+                            builder.equal(root.get(ObservedLocation.Fields.PROGRAM).get(Program.Fields.ID), programIdParam)
                     ),
                     // Filter: startDate
                     builder.or(
                             builder.isNull(startDateParam),
-                            builder.not(builder.lessThan(root.get(ObservedLocation.PROPERTY_END_DATE_TIME), startDateParam))
+                            builder.not(builder.lessThan(root.get(ObservedLocation.Fields.END_DATE_TIME), startDateParam))
                     ),
                     // Filter: endDate
                     builder.or(
                             builder.isNull(endDateParam),
-                            builder.not(builder.greaterThan(root.get(ObservedLocation.PROPERTY_START_DATE_TIME), endDateParam))
+                            builder.not(builder.greaterThan(root.get(ObservedLocation.Fields.START_DATE_TIME), endDateParam))
                     ),
                     // Filter: location
                     builder.or(
                             builder.isNull(locationIdParam),
-                            builder.equal(root.get(ObservedLocation.PROPERTY_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
+                            builder.equal(root.get(ObservedLocation.Fields.LOCATION).get(Location.Fields.ID), locationIdParam)
                     )
             ));
         }

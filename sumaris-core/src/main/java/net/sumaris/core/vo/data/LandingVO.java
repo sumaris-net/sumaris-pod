@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithObserversEntity;
 import net.sumaris.core.model.data.IWithVesselFeaturesEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -38,13 +39,10 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
+@FieldNameConstants
 public class LandingVO implements IRootDataVO<Integer>,
         IWithVesselFeaturesEntity<Integer, VesselFeaturesVO>,
         IWithObserversEntity<Integer, PersonVO> {
-
-    public static final String PROPERTY_DATE_TIME = "dateTime";
-    public static final String PROPERTY_TRIP = "trip";
-    public static final String PROPERTY_OBSERVED_LOCATION = "observedLocation";
 
     private Integer id;
     private String comments;

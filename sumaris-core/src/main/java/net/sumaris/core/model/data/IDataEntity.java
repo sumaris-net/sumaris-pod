@@ -35,11 +35,6 @@ public interface IDataEntity<ID extends Serializable>
 
     int LENGTH_COMMENTS = 2000;
 
-    String PROPERTY_CONTROL_DATE = "controlDate";
-    String PROPERTY_QUALIFICATION_DATE = "qualificationDate";
-    String PROPERTY_QUALITY_FLAG = "qualityFlag";
-    String PROPERTY_QUALIFICATION_COMMENTS = "qualificationComments";
-
     Date getControlDate();
 
     void setControlDate(Date controlDate);

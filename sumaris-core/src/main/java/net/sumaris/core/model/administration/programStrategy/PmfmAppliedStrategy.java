@@ -23,17 +23,17 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "pmfm_applied_strategy")
 public class PmfmAppliedStrategy implements Serializable {
-
-    public static final String PROPERTY_APPLIED_STRATEGY = "appliedStrategy";
 
     @Id
     @ManyToOne(fetch = FetchType.EAGER)

@@ -24,6 +24,7 @@ package net.sumaris.core.vo.administration.user;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
@@ -31,10 +32,8 @@ import java.util.Date;
 
 @Data
 @EqualsAndHashCode
+@FieldNameConstants
 public class DepartmentVO extends ReferentialVO {
-
-    public static final String PROPERTY_HAS_LOGO = "hasLogo";
-    public static final String PROPERTY_LOGO = "logo";
 
     private Integer id;
     private Date updateDate;

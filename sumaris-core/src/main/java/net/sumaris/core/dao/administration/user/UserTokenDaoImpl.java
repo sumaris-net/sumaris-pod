@@ -25,7 +25,6 @@ package net.sumaris.core.dao.administration.user;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.UserToken;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -59,10 +58,10 @@ public class UserTokenDaoImpl extends HibernateDaoSupport implements UserTokenDa
         ParameterExpression<String> pubkeyParam = builder.parameter(String.class);
         ParameterExpression<String> tokenParam = builder.parameter(String.class);
 
-        query.select(builder.count(root.get(IReferentialEntity.PROPERTY_ID)))
+        query.select(builder.count(root.get(UserToken.Fields.ID)))
                 .where(builder.and(
-                        builder.equal(root.get(UserToken.PROPERTY_PUBKEY), pubkeyParam),
-                        builder.equal(root.get(UserToken.PROPERTY_TOKEN), tokenParam)
+                        builder.equal(root.get(UserToken.Fields.PUBKEY), pubkeyParam),
+                        builder.equal(root.get(UserToken.Fields.TOKEN), tokenParam)
                     )
                 );
 
@@ -87,7 +86,7 @@ public class UserTokenDaoImpl extends HibernateDaoSupport implements UserTokenDa
         ParameterExpression<String> pubkeyParam = builder.parameter(String.class);
 
         query.select(root)
-             .where(builder.equal(root.get(UserToken.PROPERTY_PUBKEY), pubkeyParam));
+             .where(builder.equal(root.get(UserToken.Fields.PUBKEY), pubkeyParam));
 
         try {
             return session.createQuery(query)
@@ -131,7 +130,7 @@ public class UserTokenDaoImpl extends HibernateDaoSupport implements UserTokenDa
         ParameterExpression<String> tokenParam = builder.parameter(String.class);
 
         query.select(root)
-                .where(builder.equal(root.get(UserToken.PROPERTY_TOKEN), tokenParam));
+                .where(builder.equal(root.get(UserToken.Fields.TOKEN), tokenParam));
 
         try {
             UserToken existingToken = session.createQuery(query)

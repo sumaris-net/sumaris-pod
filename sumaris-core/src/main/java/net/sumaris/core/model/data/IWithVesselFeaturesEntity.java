@@ -31,8 +31,6 @@ import java.util.Date;
 
 public interface IWithVesselFeaturesEntity<T extends Serializable, V extends VesselFeaturesVO> extends IEntity<T> {
 
-    String PROPERTY_VESSEL_FEATURES = "vesselFeatures";
-
     V getVesselFeatures();
 
     void setVesselFeatures(V vesselFeatures);

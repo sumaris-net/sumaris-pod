@@ -24,6 +24,7 @@ package net.sumaris.core.model.data;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -45,15 +46,16 @@ import java.util.*;
             }),
         @FetchProfile(name = Trip.FETCH_PROFILE_RECORDER,
                 fetchOverrides = {
-                        @FetchProfile.FetchOverride(association = IRootDataEntity.PROPERTY_RECORDER_DEPARTMENT, entity = Trip.class, mode = FetchMode.JOIN),
-                        @FetchProfile.FetchOverride(association = IRootDataEntity.PROPERTY_RECORDER_PERSON, entity = Trip.class, mode = FetchMode.JOIN)
+                        @FetchProfile.FetchOverride(association = Trip.Fields.RECORDER_DEPARTMENT, entity = Trip.class, mode = FetchMode.JOIN),
+                        @FetchProfile.FetchOverride(association = Trip.Fields.RECORDER_PERSON, entity = Trip.class, mode = FetchMode.JOIN)
                 }),
         @FetchProfile(name = Trip.FETCH_PROFILE_OBSERVERS,
                 fetchOverrides = {
-                        @FetchProfile.FetchOverride(association = IWithObserversEntity.PROPERTY_OBSERVERS, entity = Trip.class, mode = FetchMode.JOIN)
+                        @FetchProfile.FetchOverride(association = Trip.Fields.OBSERVERS, entity = Trip.class, mode = FetchMode.JOIN)
                 })
 })
 @Data
+@FieldNameConstants
 @Entity
 public class Trip implements IRootDataEntity<Integer>,
         IWithObserversEntity<Integer, Person>,
@@ -62,13 +64,6 @@ public class Trip implements IRootDataEntity<Integer>,
     public static final String FETCH_PROFILE_LOCATION  = "trip-location";
     public static final String FETCH_PROFILE_RECORDER  = "trip-recorder";
     public static final String FETCH_PROFILE_OBSERVERS = "trip-observers";
-
-    public static final String PROPERTY_PROGRAM = "program";
-    public static final String PROPERTY_DEPARTURE_DATE_TIME = "departureDateTime";
-    public static final String PROPERTY_RETURN_DATE_TIME = "returnDateTime";
-    public static final String PROPERTY_DEPARTURE_LOCATION = "departureLocation";
-    public static final String PROPERTY_RETURN_LOCATION = "returnLocation";
-    public static final String PROPERTY_VESSEL = "vessel";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TRIP_SEQ")
@@ -135,20 +130,20 @@ public class Trip implements IRootDataEntity<Integer>,
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Operation.class, mappedBy = Operation.PROPERTY_TRIP)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Operation.class, mappedBy = Operation.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Operation> operations = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class, mappedBy = PhysicalGear.PROPERTY_TRIP)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class, mappedBy = PhysicalGear.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     @OrderBy("rankOrder ASC")
     private List<PhysicalGear> physicalGears = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.PROPERTY_TRIP)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sale> sales = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.PROPERTY_TRIP)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselUseMeasurement> measurements = new ArrayList<>();
 

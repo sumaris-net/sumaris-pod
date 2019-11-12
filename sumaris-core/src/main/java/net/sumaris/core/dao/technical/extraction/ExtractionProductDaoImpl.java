@@ -110,16 +110,16 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
 
         query.where(
                 cb.and(
-                        cb.equal(root.get(ExtractionProductColumn.PROPERTY_TABLE)
-                                .get(ExtractionProductTable.PROPERTY_PRODUCT)
-                                .get(ExtractionProduct.PROPERTY_ID), productIdParam),
-                        cb.equal(root.get(ExtractionProductColumn.PROPERTY_TABLE)
-                                .get(ExtractionProductTable.PROPERTY_LABEL), tableLabelParam)
+                        cb.equal(root.get(ExtractionProductColumn.Fields.TABLE)
+                                .get(ExtractionProductTable.Fields.PRODUCT)
+                                .get(ExtractionProduct.Fields.ID), productIdParam),
+                        cb.equal(root.get(ExtractionProductColumn.Fields.TABLE)
+                                .get(ExtractionProductTable.Fields.LABEL), tableLabelParam)
                 )
         );
 
         // Sort by rank order
-        query.orderBy(cb.asc(root.get(ExtractionProductColumn.PROPERTY_RANK_ORDER)));
+        query.orderBy(cb.asc(root.get(ExtractionProductColumn.Fields.RANK_ORDER)));
 
         return getEntityManager().createQuery(query)
                 .setParameter(productIdParam, id)
@@ -248,7 +248,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         } else {
             Map<String, ExtractionProductTable> existingItems = Beans.splitByProperty(
                     Beans.getList(parent.getTables()),
-                    ExtractionProductTable.PROPERTY_LABEL);
+                    ExtractionProductTable.Fields.LABEL);
             final Status enableStatus = load(Status.class, StatusEnum.ENABLE.getId());
             if (parent.getTables() == null) {
                 parent.setTables(Lists.newArrayList());
@@ -312,8 +312,8 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
                 toRemove.forEach(em::remove);
             }
         } else {
-            Map<String, ExtractionProductStrata> existingItems = Beans.splitByProperty(parent.getStratum(), ExtractionProductStrata.PROPERTY_LABEL);
-            Map<String, ExtractionProductTable> existingTables = Beans.splitByProperty(parent.getTables(), ExtractionProductTable.PROPERTY_LABEL);
+            Map<String, ExtractionProductStrata> existingItems = Beans.splitByProperty(parent.getStratum(), ExtractionProductStrata.Fields.LABEL);
+            Map<String, ExtractionProductTable> existingTables = Beans.splitByProperty(parent.getTables(), ExtractionProductTable.Fields.LABEL);
             final Status enableStatus = load(Status.class, StatusEnum.ENABLE.getId());
             if (parent.getStratum() == null) {
                 parent.setStratum(Lists.newArrayList());
@@ -393,7 +393,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         } else {
             Map<String, ExtractionProductColumn> existingItems = Beans.splitByProperty(
                     Beans.getList(parent.getColumns()),
-                    ExtractionProductColumn.PROPERTY_COLUMN_NAME);
+                    ExtractionProductColumn.Fields.COLUMN_NAME);
             if (parent.getColumns() == null) {
                 parent.setColumns(Lists.newArrayList());
             }
@@ -456,7 +456,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         } else {
             Map<String, ExtractionProductValue> existingItems = Beans.splitByProperty(
                     Beans.getList(parent.getValues()),
-                    ExtractionProductValue.PROPERTY_LABEL);
+                    ExtractionProductValue.Fields.LABEL);
             if (parent.getValues() == null) {
                 parent.setValues(Lists.newArrayList());
             }

@@ -130,7 +130,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
         else {
             Map<String, SoftwareProperty> existingProperties = Beans.splitByProperty(
                     Beans.getList(parent.getProperties()),
-                    SoftwareProperty.PROPERTY_LABEL);
+                    SoftwareProperty.Fields.LABEL);
             final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
             if (parent.getProperties() == null) {
                 parent.setProperties(Lists.newArrayList());

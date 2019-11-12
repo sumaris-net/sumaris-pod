@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.gear;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -33,14 +34,10 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 @Cacheable
 public class Gear implements IItemReferentialEntity {
-
-    public static final String PROPERTY_GEAR_CLASSIFICATION = "gearClassification";
-    public static final String PROPERTY_PARENT = "parent";
-    public static final String PROPERTY_CHILDREN = "children";
-    public static final String PROPERTY_STRATEGIES = "strategies";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEAR_SEQ")
@@ -98,11 +95,11 @@ public class Gear implements IItemReferentialEntity {
     @JoinColumn(name = "parent_gear_fk")
     private Gear parent;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Gear.class, mappedBy = Gear.PROPERTY_PARENT)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Gear.class, mappedBy = Gear.Fields.PARENT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Gear> children;
 
-    @ManyToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = Strategy.PROPERTY_GEARS)
+    @ManyToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = Strategy.Fields.GEARS)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<Strategy> strategies;
 

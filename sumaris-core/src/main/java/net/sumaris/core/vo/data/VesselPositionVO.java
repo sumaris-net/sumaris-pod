@@ -23,19 +23,15 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 public class VesselPositionVO implements IUpdateDateEntityBean<Integer, Date> {
-
-    public static final String PROPERTY_DATE_TIME = "dateTime";
-    public static final String PROPERTY_LATITUDE = "latitude";
-    public static final String PROPERTY_LONGITUDE = "longitude";
 
     private Integer id;
     private Date dateTime;

@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.location;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
@@ -31,6 +32,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "location_classification")
 @Cacheable

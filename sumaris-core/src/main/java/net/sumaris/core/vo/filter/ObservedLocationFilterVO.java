@@ -23,10 +23,12 @@ package net.sumaris.core.vo.filter;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 public class ObservedLocationFilterVO implements IRootDataFilter {
 
     private Date startDate;

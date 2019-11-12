@@ -26,22 +26,15 @@ import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
-import net.sumaris.core.service.administration.programStrategy.ProgramService;
-import net.sumaris.core.service.administration.programStrategy.StrategyService;
-import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.crypto.MD5Util;
-import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
-import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.rest.RestPaths;
@@ -51,9 +44,9 @@ import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.lang3.StringUtils;
+import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.parameters.P;
@@ -103,14 +96,14 @@ public class AdministrationGraphQLService {
     public List<PersonVO> findPersonsByFilter(@GraphQLArgument(name = "filter") PersonFilterVO filter,
                                               @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                               @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                              @GraphQLArgument(name = "sortBy", defaultValue = PersonVO.PROPERTY_PUBKEY) String sort,
+                                              @GraphQLArgument(name = "sortBy", defaultValue = PersonVO.Fields.PUBKEY) String sort,
                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                               @GraphQLEnvironment() Set<String> fields
     ) {
         List<PersonVO> result = personService.findByFilter(filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
 
         // Fill avatar Url
-        if (fields.contains(PersonVO.PROPERTY_AVATAR)) {
+        if (fields.contains(PersonVO.Fields.AVATAR)) {
             result.forEach(this::fillAvatar);
         }
 
@@ -178,13 +171,13 @@ public class AdministrationGraphQLService {
     public List<DepartmentVO> findDepartments(@GraphQLArgument(name = "filter") DepartmentFilterVO filter,
                                               @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                               @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                              @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.PROPERTY_NAME) String sort,
+                                              @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                               @GraphQLEnvironment() Set<String> fields) {
         List<DepartmentVO> result = departmentService.findByFilter(filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
 
         // Fill logo Url (if need)
-        if (fields.contains(DepartmentVO.PROPERTY_LOGO)) {
+        if (fields.contains(DepartmentVO.Fields.LOGO)) {
             result.forEach(this::fillLogo);
         }
 
@@ -199,7 +192,7 @@ public class AdministrationGraphQLService {
         DepartmentVO result = departmentService.get(id);
 
         // Fill avatar Url
-        if (result != null && fields.contains(DepartmentVO.PROPERTY_LOGO)) {
+        if (result != null && fields.contains(DepartmentVO.Fields.LOGO)) {
             this.fillLogo(result);
         }
 

@@ -22,10 +22,14 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
+import lombok.Data;
+import lombok.experimental.FieldNameConstants;
+
 import javax.persistence.*;
 import java.util.Date;
 
-@lombok.Data
+@Data
+@FieldNameConstants
 @Entity
 @Table(name = "quality_flag")
 public class QualityFlag implements IItemReferentialEntity {

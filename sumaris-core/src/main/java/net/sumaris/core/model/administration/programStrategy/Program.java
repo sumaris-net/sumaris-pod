@@ -23,6 +23,7 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.GearClassification;
@@ -36,13 +37,10 @@ import java.util.List;
 import java.util.Objects;
 
 @Data
+@FieldNameConstants
 @Entity
 @Cacheable
 public class Program implements IItemReferentialEntity {
-
-    public static final String PROPERTY_PROPERTIES = "properties";
-    public static final String PROPERTY_TAXON_GROUP_TYPE = "taxonGroupType";
-    public static final String PROPERTY_GEAR_CLASSIFICATION = "gearClassification";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_SEQ")
@@ -72,11 +70,11 @@ public class Program implements IItemReferentialEntity {
     @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
     private String comments;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = Strategy.PROPERTY_PROGRAM)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = Strategy.Fields.PROGRAM)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Strategy> strategies = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.EAGER, targetEntity = ProgramProperty.class, mappedBy = ProgramProperty.PROPERTY_PROGRAM)
+    @OneToMany(fetch = FetchType.EAGER, targetEntity = ProgramProperty.class, mappedBy = ProgramProperty.Fields.PROGRAM)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ProgramProperty> properties = new ArrayList<>();
 

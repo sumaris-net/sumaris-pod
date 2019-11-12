@@ -37,7 +37,6 @@ import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupHistoricalRecord;
 import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
 import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroupHierarchy;
 import net.sumaris.core.util.Beans;
@@ -49,8 +48,6 @@ import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.hibernate.Session;
-import org.hibernate.type.IntegerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -167,7 +164,7 @@ public class TaxonGroupRepositoryImpl
         final MutableInt insertCounter = new MutableInt();
 
         // Get all taxon group
-        findAll(Sort.by(TaxonGroup.PROPERTY_ID))
+        findAll(Sort.by(TaxonGroup.Fields.ID))
                 .stream()
                 .forEach(tg -> {
                     Integer childId = tg.getId();

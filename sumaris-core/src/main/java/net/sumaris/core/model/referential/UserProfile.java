@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Person;
 
 import javax.persistence.*;
@@ -32,6 +33,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "user_profile")
 public class UserProfile implements IItemReferentialEntity {

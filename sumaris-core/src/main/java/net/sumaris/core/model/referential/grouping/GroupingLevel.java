@@ -23,9 +23,9 @@ package net.sumaris.core.model.referential.grouping;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -42,11 +42,10 @@ import java.util.Date;
  * </ul>
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "grouping_level")
 public class GroupingLevel implements IItemReferentialEntity  {
-
-    public static final String PROPERTY_GROUPING_CLASSIFICAION = "groupingClassification";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GROUPING_LEVEL_SEQ")

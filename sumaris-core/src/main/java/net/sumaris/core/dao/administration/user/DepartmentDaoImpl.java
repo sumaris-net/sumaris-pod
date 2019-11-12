@@ -71,8 +71,8 @@ public class DepartmentDaoImpl extends HibernateDaoSupport implements Department
         CriteriaQuery<Department> query = builder.createQuery(Department.class);
         Root<Department> root = query.from(Department.class);
 
-        Join<Department, Status> statusJoin = root.join(Department.PROPERTY_STATUS, JoinType.INNER);
-        Join<Department, ImageAttachment> logoJoin = root.join(Department.PROPERTY_LOGO, JoinType.LEFT);
+        Join<Department, Status> statusJoin = root.join(Department.Fields.STATUS, JoinType.INNER);
+        Join<Department, ImageAttachment> logoJoin = root.join(Department.Fields.LOGO, JoinType.LEFT);
 
         ParameterExpression<Boolean> hasStatusIdsParam = builder.parameter(Boolean.class);
         ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
@@ -84,12 +84,12 @@ public class DepartmentDaoImpl extends HibernateDaoSupport implements Department
                                 // status Id
                                 builder.or(
                                     builder.isFalse(hasStatusIdsParam),
-                                    builder.in(statusJoin.get(IReferentialEntity.PROPERTY_ID)).value(statusIdsParam)
+                                    builder.in(statusJoin.get(IReferentialEntity.Fields.ID)).value(statusIdsParam)
                                 ),
                                 // with logo
                                 builder.or(
                                         builder.isNull(withLogoParam),
-                                        builder.isNotNull(logoJoin.get(IReferentialEntity.PROPERTY_ID))
+                                        builder.isNotNull(logoJoin.get(IReferentialEntity.Fields.ID))
                                 )
                         ));
 
@@ -132,7 +132,7 @@ public class DepartmentDaoImpl extends HibernateDaoSupport implements Department
         ParameterExpression<String> labelParam = builder.parameter(String.class);
 
         query.select(root)
-                .where(builder.equal(root.get(Department.PROPERTY_LABEL), labelParam));
+                .where(builder.equal(root.get(Department.Fields.LABEL), labelParam));
 
         try {
             return entityManager.createQuery(query)

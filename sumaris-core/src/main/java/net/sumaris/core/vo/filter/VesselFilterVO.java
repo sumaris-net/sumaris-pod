@@ -23,11 +23,13 @@ package net.sumaris.core.vo.filter;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 public class VesselFilterVO {
 
     private Date date;

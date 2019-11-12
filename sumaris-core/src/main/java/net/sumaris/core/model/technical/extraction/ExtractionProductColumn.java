@@ -23,24 +23,20 @@ package net.sumaris.core.model.technical.extraction;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 @Cacheable
 @Table(name = "extraction_product_column")
 public class ExtractionProductColumn implements IEntity<Integer> {
-
-    public static final String PROPERTY_TABLE = "table";
-    public static final String PROPERTY_NAME = "name";
-    public static final String PROPERTY_COLUMN_NAME = "columnName";
-    public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_COLUMN_SEQ")
@@ -66,7 +62,7 @@ public class ExtractionProductColumn implements IEntity<Integer> {
     @JoinColumn(name = "extraction_product_table_fk", nullable = false)
     private ExtractionProductTable table;
 
-    @OneToMany(fetch = FetchType.EAGER, targetEntity = ExtractionProductValue.class, mappedBy = ExtractionProductValue.PROPERTY_COLUMN)
+    @OneToMany(fetch = FetchType.EAGER, targetEntity = ExtractionProductValue.class, mappedBy = ExtractionProductValue.Fields.COLUMN)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ExtractionProductValue> values;
 

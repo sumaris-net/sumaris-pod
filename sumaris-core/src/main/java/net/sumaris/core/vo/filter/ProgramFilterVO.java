@@ -23,14 +23,12 @@ package net.sumaris.core.vo.filter;
  */
 
 import lombok.Data;
-import net.sumaris.core.vo.referential.IReferentialVO;
+import lombok.experimental.FieldNameConstants;
 
-import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @Data
+@FieldNameConstants
 public class ProgramFilterVO {
 
     private List<Integer> statusIds;

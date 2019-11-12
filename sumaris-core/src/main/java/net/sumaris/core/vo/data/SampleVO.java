@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -34,11 +35,9 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@FieldNameConstants
 public class SampleVO implements  IRootDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
-
-    public static final String PROPERTY_SAMPLE_DATE = "sampleDate";
-    public static final String PROPERTY_OPERATION = "operation";
 
     private Integer id;
     private String comments;

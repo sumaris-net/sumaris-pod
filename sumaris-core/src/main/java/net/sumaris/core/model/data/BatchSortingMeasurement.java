@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
@@ -32,12 +33,10 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name="sorting_measurement_b")
 public class BatchSortingMeasurement implements ISortedMeasurementEntity {
-
-    public static final String PROPERTY_BATCH = "batch";
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SORTING_MEASUREMENT_B_SEQ")

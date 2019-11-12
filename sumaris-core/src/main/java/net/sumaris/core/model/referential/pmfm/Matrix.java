@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.pmfm;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
@@ -36,6 +37,7 @@ import java.util.Date;
  * Le support ne correspond pas au support réellement analysé. En effet, il peut s'agir d'une analyse sur une fraction du support (par exemple, pour le poisson, l'otolite,… ou pour un engin, le bras).
  */
 @Data
+@FieldNameConstants
 @Entity
 public class Matrix implements IItemReferentialEntity {
 

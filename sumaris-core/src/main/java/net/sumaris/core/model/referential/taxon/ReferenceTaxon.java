@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.taxon;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.programStrategy.ReferenceTaxonStrategy;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
@@ -37,12 +38,10 @@ import java.util.List;
  *
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "reference_taxon")
 public class ReferenceTaxon implements IUpdateDateEntityBean<Integer, Date> {
-
-    public static final String PROPERTY_TAXON_NAMES = "taxonNames";
-    public static final String PROPERTY_PARENT_TAXON_GROUPS = "parentTaxonGroups";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "REFERENCE_TAXON_SEQ")
@@ -54,15 +53,15 @@ public class ReferenceTaxon implements IUpdateDateEntityBean<Integer, Date> {
     private Date updateDate;
 
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonName.class, mappedBy = TaxonName.PROPERTY_REFERENCE_TAXON)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonName.class, mappedBy = TaxonName.Fields.REFERENCE_TAXON)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<TaxonName> taxonNames;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ReferenceTaxonStrategy.class, mappedBy = ReferenceTaxonStrategy.PROPERTY_REFERENCE_TAXON)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ReferenceTaxonStrategy.class, mappedBy = ReferenceTaxonStrategy.Fields.REFERENCE_TAXON)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<ReferenceTaxonStrategy> strategies;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroup2TaxonHierarchy.class, mappedBy = TaxonGroup2TaxonHierarchy.PROPERTY_CHILD_REFERENCE_TAXON)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroup2TaxonHierarchy.class, mappedBy = TaxonGroup2TaxonHierarchy.Fields.CHILD_REFERENCE_TAXON)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<TaxonGroup2TaxonHierarchy> parentTaxonGroups;
 

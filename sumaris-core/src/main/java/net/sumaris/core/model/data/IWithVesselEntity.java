@@ -28,8 +28,6 @@ import java.io.Serializable;
 
 public interface IWithVesselEntity<T extends Serializable, V extends IEntity<Integer>> extends IEntity<T> {
 
-    String PROPERTY_VESSEL = "vessel";
-
     V getVessel();
 
     void setVessel(V vessel);

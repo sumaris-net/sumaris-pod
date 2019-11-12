@@ -96,7 +96,7 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Person> query = builder.createQuery(Person.class);
         Root<Person> root = query.from(Person.class);
-        Join<Person, UserProfile> upJ = root.join(Person.PROPERTY_USER_PROFILES, JoinType.LEFT);
+        Join<Person, UserProfile> upJ = root.join(Person.Fields.USER_PROFILES, JoinType.LEFT);
 
         ParameterExpression<Boolean> hasUserProfileIdsParam = builder.parameter(Boolean.class);
         ParameterExpression<Collection> userProfileIdsParam = builder.parameter(Collection.class);
@@ -136,40 +136,40 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
                     // user profile Ids
                     builder.or(
                             builder.isFalse(hasUserProfileIdsParam),
-                            upJ.get(IReferentialEntity.PROPERTY_ID).in(userProfileIdsParam)
+                            upJ.get(UserProfile.Fields.ID).in(userProfileIdsParam)
                     ),
                     // status Ids
                     builder.or(
                         builder.isFalse(hasStatusIdsParam),
-                        root.get(Person.PROPERTY_STATUS).get(IReferentialEntity.PROPERTY_ID).in(statusIdsParam)
+                        root.get(Person.Fields.STATUS).get(Status.Fields.ID).in(statusIdsParam)
                     ),
                     // pubkey
                     builder.or(
                             builder.isNull(pubkeyParam),
-                            builder.equal(root.get(Person.PROPERTY_PUBKEY), pubkeyParam)
+                            builder.equal(root.get(Person.Fields.PUBKEY), pubkeyParam)
                     ),
                     // email
                     builder.or(
                             builder.isNull(emailParam),
-                            builder.equal(root.get(Person.PROPERTY_EMAIL), emailParam)
+                            builder.equal(root.get(Person.Fields.EMAIL), emailParam)
                     ),
                     // firstName
                     builder.or(
                             builder.isNull(firstNameParam),
-                            builder.equal(builder.upper(root.get(Person.PROPERTY_FIRST_NAME)), builder.upper(firstNameParam))
+                            builder.equal(builder.upper(root.get(Person.Fields.FIRST_NAME)), builder.upper(firstNameParam))
                     ),
                     // lastName
                     builder.or(
                             builder.isNull(lastNameParam),
-                            builder.equal(builder.upper(root.get(Person.PROPERTY_LAST_NAME)), builder.upper(lastNameParam))
+                            builder.equal(builder.upper(root.get(Person.Fields.LAST_NAME)), builder.upper(lastNameParam))
                     ),
                     // search text
                     builder.or(
                             builder.isNull(searchTextParam),
-                            builder.like(builder.upper(root.get(Person.PROPERTY_PUBKEY)), builder.upper(searchTextParam)),
-                            builder.like(builder.upper(root.get(Person.PROPERTY_EMAIL)), builder.upper(searchTextParam)),
-                            builder.like(builder.upper(root.get(Person.PROPERTY_FIRST_NAME)), builder.upper(searchTextParam)),
-                            builder.like(builder.upper(root.get(Person.PROPERTY_LAST_NAME)), builder.upper(searchTextParam))
+                            builder.like(builder.upper(root.get(Person.Fields.PUBKEY)), builder.upper(searchTextParam)),
+                            builder.like(builder.upper(root.get(Person.Fields.EMAIL)), builder.upper(searchTextParam)),
+                            builder.like(builder.upper(root.get(Person.Fields.FIRST_NAME)), builder.upper(searchTextParam)),
+                            builder.like(builder.upper(root.get(Person.Fields.LAST_NAME)), builder.upper(searchTextParam))
                     )
                 ));
         if (StringUtils.isNotBlank(sortAttribute)) {
@@ -254,7 +254,7 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         CriteriaQuery<Person> query = builder.createQuery(Person.class);
         Root<Person> root = query.from(Person.class);
 
-        Join<Person, UserProfile> upJ = root.join(Person.PROPERTY_USER_PROFILES, JoinType.INNER);
+        Join<Person, UserProfile> upJ = root.join(Person.Fields.USER_PROFILES, JoinType.INNER);
 
         ParameterExpression<Collection> userProfileIdParam = builder.parameter(Collection.class);
         ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
@@ -263,9 +263,9 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
                 .where(
                         builder.and(
                                 // user profile Ids
-                                upJ.get(IReferentialEntity.PROPERTY_ID).in(userProfileIdParam),
+                                upJ.get(UserProfile.Fields.ID).in(userProfileIdParam),
                                 // status Ids
-                                root.get(Person.PROPERTY_STATUS).get(IReferentialEntity.PROPERTY_ID).in(statusIdsParam)
+                                root.get(Person.Fields.STATUS).get(Status.Fields.ID).in(statusIdsParam)
                         ));
 
         // TODO: select email column only
@@ -289,8 +289,8 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
 
         ParameterExpression<String> hashParam = builder.parameter(String.class);
 
-        query.select(builder.count(root.get(IReferentialEntity.PROPERTY_ID)))
-             .where(builder.equal(root.get(Person.PROPERTY_EMAIL_MD5), hashParam));
+        query.select(builder.count(root.get(Person.Fields.ID)))
+             .where(builder.equal(root.get(Person.Fields.EMAIL_M_D5), hashParam));
 
         return getEntityManager().createQuery(query)
                 .setParameter(hashParam, hash)
@@ -483,7 +483,7 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         ParameterExpression<String> pubkeyParam = builder.parameter(String.class);
 
         query.select(root)
-                .where(builder.equal(root.get(PersonVO.PROPERTY_PUBKEY), pubkeyParam));
+                .where(builder.equal(root.get(PersonVO.Fields.PUBKEY), pubkeyParam));
 
         try {
             return entityManager.createQuery(query)

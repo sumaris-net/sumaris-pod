@@ -28,7 +28,10 @@ import java.io.Serializable;
 
 public interface IWithRecorderDepartmentEntity<ID extends Serializable, P extends IEntity<Integer>> extends IEntity<ID> {
 
-    String PROPERTY_RECORDER_DEPARTMENT = "recorderDepartment";
+    interface Fields extends IEntity.Fields {
+        String RECORDER_DEPARTMENT = "recorderDepartment";
+    }
+
 
     P getRecorderDepartment();
 

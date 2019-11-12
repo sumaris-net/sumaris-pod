@@ -27,6 +27,7 @@ import io.leangen.graphql.annotations.GraphQLEnvironment;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.vo.AggregationResultVO;
@@ -34,7 +35,6 @@ import net.sumaris.core.extraction.vo.AggregationStrataVO;
 import net.sumaris.core.extraction.vo.AggregationTypeVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
-import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
@@ -148,8 +148,8 @@ public class AggregationGraphQLService {
 
     protected ProductFetchOptions getFetchOptions(Set<String> fields) {
         return ProductFetchOptions.builder()
-                .withRecorderDepartment(fields.contains(IWithRecorderDepartmentEntity.PROPERTY_RECORDER_DEPARTMENT + "/" + IDataEntity.PROPERTY_ID))
-                .withRecorderPerson(fields.contains(IWithRecorderPersonEntity.PROPERTY_RECORDER_PERSON + "/" + IDataEntity.PROPERTY_ID))
+                .withRecorderDepartment(fields.contains(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT + "/" + IEntity.Fields.ID))
+                .withRecorderPerson(fields.contains(IWithRecorderPersonEntity.Fields.RECORDER_PERSON + "/" + IEntity.Fields.ID))
                 // Tables (=sheets)
                 .withTables(fields.contains(AggregationTypeVO.PROPERTY_SHEET_NAMES))
                 // Columns not need

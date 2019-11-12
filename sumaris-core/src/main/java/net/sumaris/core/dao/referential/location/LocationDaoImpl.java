@@ -25,7 +25,7 @@ package net.sumaris.core.dao.referential.location;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.ValidityStatus;
@@ -79,7 +79,7 @@ public class LocationDaoImpl extends HibernateDaoSupport implements LocationDao 
         ParameterExpression<String> labelParam = builder.parameter(String.class);
 
         query.select(root)
-                .where(builder.equal(root.get(Location.PROPERTY_LABEL), labelParam));
+                .where(builder.equal(root.get(Location.Fields.LABEL), labelParam));
 
         TypedQuery<Location> q = getEntityManager().createQuery(query)
                 .setParameter(labelParam, label);
@@ -95,7 +95,7 @@ public class LocationDaoImpl extends HibernateDaoSupport implements LocationDao 
         ParameterExpression<Integer> levelIdParam = builder.parameter(Integer.class);
 
         query.select(root)
-                .where(builder.equal(root.get(Location.PROPERTY_LOCATION_LEVEL).get(LocationLevel.PROPERTY_ID), levelIdParam));
+                .where(builder.equal(root.get(Location.Fields.LOCATION_LEVEL).get(LocationLevel.Fields.ID), levelIdParam));
 
         TypedQuery<Location> q = getEntityManager().createQuery(query)
                 .setParameter(levelIdParam, locationLevelId);
@@ -192,8 +192,8 @@ public class LocationDaoImpl extends HibernateDaoSupport implements LocationDao 
         query.select(builder.count(root))
                 .where(
                         builder.and(
-                                builder.equal(root.get(LocationAssociation.PROPERTY_CHILD_LOCATION).get(IDataEntity.PROPERTY_ID), childIdParam),
-                                builder.equal(root.get(LocationAssociation.PROPERTY_PARENT_LOCATION).get(IDataEntity.PROPERTY_ID), parentIdParam)
+                                builder.equal(root.get(LocationAssociation.Fields.CHILD_LOCATION).get(IEntity.Fields.ID), childIdParam),
+                                builder.equal(root.get(LocationAssociation.Fields.PARENT_LOCATION).get(IEntity.Fields.ID), parentIdParam)
                         )
                 );
 

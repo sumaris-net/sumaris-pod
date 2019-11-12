@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -36,13 +37,10 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name="physical_gear")
 public class PhysicalGear implements IRootDataEntity<Integer> {
-
-    public static final String PROPERTY_GEAR = "gear";
-    public static final String PROPERTY_TRIP = "trip";
-    public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PHYSICAL_GEAR_SEQ")
@@ -100,7 +98,7 @@ public class PhysicalGear implements IRootDataEntity<Integer> {
 
     /* -- measurements -- */
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGearMeasurement.class, mappedBy = PhysicalGearMeasurement.PROPERTY_PHYSICAL_GEAR)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGearMeasurement.class, mappedBy = PhysicalGearMeasurement.Fields.PHYSICAL_GEAR)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<PhysicalGearMeasurement> measurements = new ArrayList<>();
 

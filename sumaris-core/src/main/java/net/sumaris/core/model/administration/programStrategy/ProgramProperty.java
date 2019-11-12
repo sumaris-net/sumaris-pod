@@ -23,6 +23,7 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
@@ -30,11 +31,10 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "program_property")
 public class ProgramProperty implements IItemReferentialEntity  {
-
-    public static final String PROPERTY_PROGRAM = "program";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_PROPERTY_SEQ")

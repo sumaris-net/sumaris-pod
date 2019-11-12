@@ -78,7 +78,7 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "filter") ReferentialFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-            @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.PROPERTY_NAME) String sort,
+            @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
 
@@ -159,7 +159,7 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "filter") TaxonNameFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-            @GraphQLArgument(name = "sortBy", defaultValue = TaxonNameVO.PROPERTY_NAME) String sort,
+            @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         filter = filter != null ? filter : new TaxonNameFilterVO();

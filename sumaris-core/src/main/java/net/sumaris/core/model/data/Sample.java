@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -39,16 +40,9 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 public class Sample implements IRootDataEntity<Integer> {
-
-
-    public static final String PROPERTY_OPERATION = "operation";
-    public static final String PROPERTY_LANDING = "landing";
-    public static final String PROPERTY_BATCH = "batch";
-
-    public static final String PROPERTY_PARENT = "parent";
-    public static final String PROPERTY_SAMPLE_MEASUREMENTS = "sampleMeasurements";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLE_SEQ")
@@ -132,7 +126,7 @@ public class Sample implements IRootDataEntity<Integer> {
 
     /* -- Tree link -- */
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = PROPERTY_PARENT)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Fields.PARENT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sample> children = new ArrayList<>();
 
@@ -143,7 +137,7 @@ public class Sample implements IRootDataEntity<Integer> {
 
     /* -- measurements -- */
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = SampleMeasurement.class, mappedBy = SampleMeasurement.PROPERTY_SAMPLE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = SampleMeasurement.class, mappedBy = SampleMeasurement.Fields.SAMPLE)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<SampleMeasurement> measurements = new ArrayList<>();
 

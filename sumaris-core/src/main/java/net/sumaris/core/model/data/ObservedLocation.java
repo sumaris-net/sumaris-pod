@@ -24,6 +24,7 @@ package net.sumaris.core.model.data;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -45,16 +46,10 @@ import java.util.*;
             })
 })
 @Data
+@FieldNameConstants
 @Entity
 @Table(name="observed_location")
 public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserversEntity<Integer, Person> {
-
-    public static final String PROPERTY_PROGRAM = "program";
-    public static final String PROPERTY_START_DATE_TIME = "startDateTime";
-    public static final String PROPERTY_END_DATE_TIME = "endDateTime";
-    public static final String PROPERTY_LOCATION = "location";
-    public static final String PROPERTY_SALES = "sales";
-    public static final String PROPERTY_OBSERVERS = "observers";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OBSERVED_LOCATION_SEQ")
@@ -113,15 +108,15 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.PROPERTY_OBSERVED_LOCATION)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.Fields.OBSERVED_LOCATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sale> sales = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Landing.class, mappedBy = Landing.PROPERTY_OBSERVED_LOCATION)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Landing.class, mappedBy = Landing.Fields.OBSERVED_LOCATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Landing> landings = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ObservedLocationMeasurement.class, mappedBy = ObservedLocationMeasurement.PROPERTY_OBSERVED_LOCATION)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ObservedLocationMeasurement.class, mappedBy = ObservedLocationMeasurement.Fields.OBSERVED_LOCATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ObservedLocationMeasurement> measurements = new ArrayList<>();
 

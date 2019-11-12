@@ -23,17 +23,15 @@ package net.sumaris.core.vo.administration.programStrategy;
  */
 
 import lombok.Data;
-import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @Data
+@FieldNameConstants
 public class StrategyVO implements IReferentialVO {
 
     private Integer id;

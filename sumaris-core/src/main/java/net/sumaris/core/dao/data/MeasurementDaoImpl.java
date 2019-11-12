@@ -29,6 +29,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
@@ -88,30 +89,30 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         Multimap<Class<? extends IMeasurementEntity>, PropertyDescriptor> result = ArrayListMultimap.create();
 
         // Trip
-        result.put(VesselUseMeasurement.class, BeanUtils.getPropertyDescriptor(VesselUseMeasurement.class, VesselUseMeasurement.PROPERTY_TRIP));
+        result.put(VesselUseMeasurement.class, BeanUtils.getPropertyDescriptor(VesselUseMeasurement.class, VesselUseMeasurement.Fields.TRIP));
 
         // Physical Gear
-        result.put(PhysicalGearMeasurement.class, BeanUtils.getPropertyDescriptor(PhysicalGearMeasurement.class, PhysicalGearMeasurement.PROPERTY_PHYSICAL_GEAR));
+        result.put(PhysicalGearMeasurement.class, BeanUtils.getPropertyDescriptor(PhysicalGearMeasurement.class, PhysicalGearMeasurement.Fields.PHYSICAL_GEAR));
 
         // Operation
-        result.put(VesselUseMeasurement.class, BeanUtils.getPropertyDescriptor(VesselUseMeasurement.class, VesselUseMeasurement.PROPERTY_OPERATION));
-        result.put(GearUseMeasurement.class, BeanUtils.getPropertyDescriptor(GearUseMeasurement.class, GearUseMeasurement.PROPERTY_OPERATION));
+        result.put(VesselUseMeasurement.class, BeanUtils.getPropertyDescriptor(VesselUseMeasurement.class, VesselUseMeasurement.Fields.OPERATION));
+        result.put(GearUseMeasurement.class, BeanUtils.getPropertyDescriptor(GearUseMeasurement.class, GearUseMeasurement.Fields.OPERATION));
 
         // Observed location
-        result.put(ObservedLocationMeasurement.class, BeanUtils.getPropertyDescriptor(ObservedLocationMeasurement.class, ObservedLocationMeasurement.PROPERTY_OBSERVED_LOCATION));
+        result.put(ObservedLocationMeasurement.class, BeanUtils.getPropertyDescriptor(ObservedLocationMeasurement.class, ObservedLocationMeasurement.Fields.OBSERVED_LOCATION));
 
         // Sample
-        result.put(SampleMeasurement.class, BeanUtils.getPropertyDescriptor(SampleMeasurement.class, SampleMeasurement.PROPERTY_SAMPLE));
+        result.put(SampleMeasurement.class, BeanUtils.getPropertyDescriptor(SampleMeasurement.class, SampleMeasurement.Fields.SAMPLE));
 
         // Batch
-        result.put(BatchSortingMeasurement.class, BeanUtils.getPropertyDescriptor(BatchSortingMeasurement.class, BatchSortingMeasurement.PROPERTY_BATCH));
-        result.put(BatchQuantificationMeasurement.class, BeanUtils.getPropertyDescriptor(BatchQuantificationMeasurement.class, BatchSortingMeasurement.PROPERTY_BATCH));
+        result.put(BatchSortingMeasurement.class, BeanUtils.getPropertyDescriptor(BatchSortingMeasurement.class, BatchSortingMeasurement.Fields.BATCH));
+        result.put(BatchQuantificationMeasurement.class, BeanUtils.getPropertyDescriptor(BatchQuantificationMeasurement.class, BatchSortingMeasurement.Fields.BATCH));
 
         // Sale
-        result.put(SaleMeasurement.class, BeanUtils.getPropertyDescriptor(SaleMeasurement.class, SaleMeasurement.PROPERTY_SALE));
+        result.put(SaleMeasurement.class, BeanUtils.getPropertyDescriptor(SaleMeasurement.class, SaleMeasurement.Fields.SALE));
 
         // Landing
-        result.put(LandingMeasurement.class, BeanUtils.getPropertyDescriptor(LandingMeasurement.class, LandingMeasurement.PROPERTY_LANDING));
+        result.put(LandingMeasurement.class, BeanUtils.getPropertyDescriptor(LandingMeasurement.class, LandingMeasurement.Fields.LANDING));
 
         return result;
     }
@@ -128,9 +129,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @Override
     public List<MeasurementVO> getTripVesselUseMeasurements(int tripId) {
         return getMeasurementsByParentId(VesselUseMeasurement.class,
-                VesselUseMeasurement.PROPERTY_TRIP,
+                VesselUseMeasurement.Fields.TRIP,
                 tripId,
-                VesselUseMeasurement.PROPERTY_RANK_ORDER
+                VesselUseMeasurement.Fields.RANK_ORDER
         );
     }
 
@@ -138,27 +139,27 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @SuppressWarnings("unchecked")
     public Map<Integer, String> getTripVesselUseMeasurementsMap(int tripId) {
         return getMeasurementsMapByParentId(VesselUseMeasurement.class,
-                VesselUseMeasurement.PROPERTY_TRIP,
+                VesselUseMeasurement.Fields.TRIP,
                 tripId,
-                VesselUseMeasurement.PROPERTY_ID
+                VesselUseMeasurement.Fields.ID
         );
     }
 
     @Override
     public List<MeasurementVO> getPhysicalGearMeasurements(int physicalGearId) {
         return getMeasurementsByParentId(PhysicalGearMeasurement.class,
-                PhysicalGearMeasurement.PROPERTY_PHYSICAL_GEAR,
+                PhysicalGearMeasurement.Fields.PHYSICAL_GEAR,
                 physicalGearId,
-                PhysicalGearMeasurement.PROPERTY_RANK_ORDER
+                PhysicalGearMeasurement.Fields.RANK_ORDER
         );
     }
 
     @Override
     public Map<Integer, String> getPhysicalGearMeasurementsMap(int physicalGearId) {
         return getMeasurementsMapByParentId(PhysicalGearMeasurement.class,
-                PhysicalGearMeasurement.PROPERTY_PHYSICAL_GEAR,
+                PhysicalGearMeasurement.Fields.PHYSICAL_GEAR,
                 physicalGearId,
-                PhysicalGearMeasurement.PROPERTY_ID
+                PhysicalGearMeasurement.Fields.ID
         );
     }
 
@@ -166,9 +167,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @SuppressWarnings("unchecked")
     public List<MeasurementVO> getOperationVesselUseMeasurements(int operationId) {
         return getMeasurementsByParentId(VesselUseMeasurement.class,
-                VesselUseMeasurement.PROPERTY_OPERATION,
+                VesselUseMeasurement.Fields.OPERATION,
                 operationId,
-                VesselUseMeasurement.PROPERTY_RANK_ORDER
+                VesselUseMeasurement.Fields.RANK_ORDER
         );
     }
 
@@ -176,18 +177,18 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @SuppressWarnings("unchecked")
     public Map<Integer, String> getOperationVesselUseMeasurementsMap(int operationId) {
         return getMeasurementsMapByParentId(VesselUseMeasurement.class,
-                VesselUseMeasurement.PROPERTY_OPERATION,
+                VesselUseMeasurement.Fields.OPERATION,
                 operationId,
-                VesselUseMeasurement.PROPERTY_ID
+                VesselUseMeasurement.Fields.ID
         );
     }
 
     @Override
     public Map<Integer, String> getOperationGearUseMeasurementsMap(int operationId) {
         return getMeasurementsMapByParentId(GearUseMeasurement.class,
-                GearUseMeasurement.PROPERTY_OPERATION,
+                GearUseMeasurement.Fields.OPERATION,
                 operationId,
-                GearUseMeasurement.PROPERTY_ID
+                GearUseMeasurement.Fields.ID
         );
     }
 
@@ -195,9 +196,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @SuppressWarnings("unchecked")
     public List<MeasurementVO> getOperationGearUseMeasurements(int operationId) {
         return getMeasurementsByParentId(GearUseMeasurement.class,
-                GearUseMeasurement.PROPERTY_OPERATION,
+                GearUseMeasurement.Fields.OPERATION,
                 operationId,
-                GearUseMeasurement.PROPERTY_RANK_ORDER
+                GearUseMeasurement.Fields.RANK_ORDER
         );
     }
 
@@ -205,18 +206,18 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @SuppressWarnings("unchecked")
     public List<MeasurementVO> getSampleMeasurements(int sampleId) {
         return getMeasurementsByParentId(SampleMeasurement.class,
-                SampleMeasurement.PROPERTY_SAMPLE,
+                SampleMeasurement.Fields.SAMPLE,
                 sampleId,
-                SampleMeasurement.PROPERTY_RANK_ORDER
+                SampleMeasurement.Fields.RANK_ORDER
         );
     }
 
     @Override
     public List<MeasurementVO> getObservedLocationMeasurements(int observedLocationId) {
         return getMeasurementsByParentId(ObservedLocationMeasurement.class,
-                ObservedLocationMeasurement.PROPERTY_OBSERVED_LOCATION,
+                ObservedLocationMeasurement.Fields.OBSERVED_LOCATION,
                 observedLocationId,
-                ObservedLocationMeasurement.PROPERTY_RANK_ORDER
+                ObservedLocationMeasurement.Fields.RANK_ORDER
         );
     }
 
@@ -224,9 +225,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @SuppressWarnings("unchecked")
     public Map<Integer, String> getSampleMeasurementsMap(int sampleId) {
         return getMeasurementsMapByParentId(SampleMeasurement.class,
-                SampleMeasurement.PROPERTY_SAMPLE,
+                SampleMeasurement.Fields.SAMPLE,
                 sampleId,
-                SampleMeasurement.PROPERTY_RANK_ORDER
+                SampleMeasurement.Fields.RANK_ORDER
         );
     }
 
@@ -234,9 +235,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @SuppressWarnings("unchecked")
     public Map<Integer, String> getBatchSortingMeasurementsMap(int batchId) {
         return getMeasurementsMapByParentId(BatchSortingMeasurement.class,
-                BatchSortingMeasurement.PROPERTY_BATCH,
+                BatchSortingMeasurement.Fields.BATCH,
                 batchId,
-                BatchSortingMeasurement.PROPERTY_RANK_ORDER
+                BatchSortingMeasurement.Fields.RANK_ORDER
         );
     }
 
@@ -244,9 +245,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @SuppressWarnings("unchecked")
     public Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId) {
         return getMeasurementsMapByParentId(BatchQuantificationMeasurement.class,
-                BatchQuantificationMeasurement.PROPERTY_BATCH,
+                BatchQuantificationMeasurement.Fields.BATCH,
                 batchId,
-                BatchQuantificationMeasurement.PROPERTY_ID
+                BatchQuantificationMeasurement.Fields.ID
         );
     }
 
@@ -254,9 +255,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @SuppressWarnings("unchecked")
     public Map<Integer, String> getObservedLocationMeasurementsMap(int observedLocationId) {
         return getMeasurementsMapByParentId(ObservedLocationMeasurement.class,
-                ObservedLocationMeasurement.PROPERTY_OBSERVED_LOCATION,
+                ObservedLocationMeasurement.Fields.OBSERVED_LOCATION,
                 observedLocationId,
-                ObservedLocationMeasurement.PROPERTY_ID
+                ObservedLocationMeasurement.Fields.ID
         );
     }
 
@@ -265,9 +266,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @SuppressWarnings("unchecked")
     public Map<Integer, String> getLandingMeasurementsMap(int landingId) {
         return getMeasurementsMapByParentId(LandingMeasurement.class,
-                LandingMeasurement.PROPERTY_LANDING,
+                LandingMeasurement.Fields.LANDING,
                 landingId,
-                LandingMeasurement.PROPERTY_ID
+                LandingMeasurement.Fields.ID
         );
     }
 
@@ -275,9 +276,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @SuppressWarnings("unchecked")
     public List<MeasurementVO> getLandingMeasurements(int landingId) {
         return getMeasurementsByParentId(LandingMeasurement.class,
-                LandingMeasurement.PROPERTY_LANDING,
+                LandingMeasurement.Fields.LANDING,
                 landingId,
-                LandingMeasurement.PROPERTY_ID
+                LandingMeasurement.Fields.ID
         );
     }
 
@@ -448,18 +449,18 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @Override
     public List<MeasurementVO> getVesselFeaturesMeasurements(int vesselFeaturesId) {
         return getMeasurementsByParentId(VesselPhysicalMeasurement.class,
-                VesselPhysicalMeasurement.PROPERTY_VESSEL_FEATURES,
+                VesselPhysicalMeasurement.Fields.VESSEL_FEATURES,
                 vesselFeaturesId,
-                VesselPhysicalMeasurement.PROPERTY_ID
+                VesselPhysicalMeasurement.Fields.ID
         );
     }
 
     @Override
     public Map<Integer, String> getVesselFeaturesMeasurementsMap(int vesselFeaturesId) {
         return getMeasurementsMapByParentId(VesselPhysicalMeasurement.class,
-                VesselPhysicalMeasurement.PROPERTY_VESSEL_FEATURES,
+                VesselPhysicalMeasurement.Fields.VESSEL_FEATURES,
                 vesselFeaturesId,
-                VesselPhysicalMeasurement.PROPERTY_ID
+                VesselPhysicalMeasurement.Fields.ID
         );
     }
 
@@ -574,7 +575,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
         // Remember existing measurements, to be able to remove unused measurements
         // note: Need Beans.getList() to avoid NullPointerException if target=null
-        final Map<Integer, T> sourceToRemove = Beans.splitByProperty(Beans.getList(target), IMeasurementEntity.PROPERTY_PMFM + "." + IMeasurementEntity.PROPERTY_ID);
+        final Map<Integer, T> sourceToRemove = Beans.splitByProperty(Beans.getList(target), IMeasurementEntity.Fields.PMFM + "." + IMeasurementEntity.Fields.ID);
 
         int rankOrder = 1;
         for (Map.Entry<Integer, String> source: sources.entrySet()) {
@@ -675,7 +676,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         ParameterExpression<Integer> idParam = builder.parameter(Integer.class);
 
         query.select(root)
-                .where(builder.equal(root.get(parentPropertyName).get(IRootDataEntity.PROPERTY_ID), idParam))
+                .where(builder.equal(root.get(parentPropertyName).get(IEntity.Fields.ID), idParam))
                 // Order byldev
                 .orderBy(builder.asc(root.get(sortByPropertyName)));
 

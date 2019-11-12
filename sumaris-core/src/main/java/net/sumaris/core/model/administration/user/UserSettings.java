@@ -23,12 +23,14 @@ package net.sumaris.core.model.administration.user;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "user_settings")
 public class UserSettings implements IUpdateDateEntityBean<Integer, Date> {

@@ -23,17 +23,17 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "vessel_owner_period")
 public class VesselOwnerPeriod implements Serializable {
-
-    public static final String PROPERTY_VESSEL = "vessel";
 
     @Id
     @ManyToOne(fetch = FetchType.EAGER)

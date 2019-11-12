@@ -29,7 +29,9 @@ import java.util.Set;
 
 public interface IWithObserversEntity<T extends Serializable, P extends IEntity<Integer>> extends IEntity<T> {
 
-    String PROPERTY_OBSERVERS = "observers";
+    interface Fields extends IEntity.Fields {
+        String OBSERVERS = "observers";
+    }
 
     Set<P> getObservers();
 

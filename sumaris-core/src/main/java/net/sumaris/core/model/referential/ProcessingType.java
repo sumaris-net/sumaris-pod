@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -36,6 +37,7 @@ import java.util.Date;
  * - etc.
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "processing_type")
 public class ProcessingType implements IItemReferentialEntity {

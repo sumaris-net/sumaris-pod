@@ -25,17 +25,17 @@ package net.sumaris.core.vo.technical.extraction;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.referential.IReferentialVO;
 
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldNameConstants
 public class ExtractionProductStrataVO implements IReferentialVO {
 
     Integer id;

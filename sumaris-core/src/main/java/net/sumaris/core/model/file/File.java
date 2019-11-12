@@ -23,6 +23,7 @@ package net.sumaris.core.model.file;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -35,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 public class File implements Serializable, IUpdateDateEntityBean<Integer, Date> {
 
@@ -72,7 +74,7 @@ public class File implements Serializable, IUpdateDateEntityBean<Integer, Date> 
 
     /* -- Tree link -- */
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = FileLine.class, mappedBy = FileLine.PROPERTY_FILE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = FileLine.class, mappedBy = FileLine.Fields.FILE)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<FileLine> lines = new ArrayList<>();
 

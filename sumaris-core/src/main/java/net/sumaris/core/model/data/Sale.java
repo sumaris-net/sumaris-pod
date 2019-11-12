@@ -24,6 +24,7 @@ package net.sumaris.core.model.data;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -39,15 +40,10 @@ import java.util.List;
 import java.util.Set;
 
 @Data
+@FieldNameConstants
 @Entity
 public class Sale implements IRootDataEntity<Integer>,
         IWithVesselEntity<Integer, Vessel> {
-
-    public static final String PROPERTY_START_DATE_TIME = "startDateTime";
-    public static final String PROPERTY_END_DATE_TIME = "endDateTime";
-    public static final String PROPERTY_SALE_TYPE = "saleType";
-    public static final String PROPERTY_TRIP = "trip";
-    public static final String PROPERTY_OBSERVED_LOCATION = "observedLocation";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SALE_SEQ")
@@ -124,7 +120,7 @@ public class Sale implements IRootDataEntity<Integer>,
 
     /* -- measurements -- */
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = SaleMeasurement.class, mappedBy = SaleMeasurement.PROPERTY_SALE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = SaleMeasurement.class, mappedBy = SaleMeasurement.Fields.SALE)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<SaleMeasurement> measurements = new ArrayList<>();
 

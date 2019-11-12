@@ -16,7 +16,7 @@ public class TaxonGroupSpecifications extends ReferentialSpecifications {
     public static Specification<TaxonGroup> hasType(Integer taxonGroupTypeId) {
         if (taxonGroupTypeId == null) return null;
         return (root, query, cb) -> cb.equal(
-                    root.get(TaxonGroup.PROPERTY_TAXON_GROUP_TYPE).get(Status.PROPERTY_ID),
+                    root.get(TaxonGroup.Fields.TAXON_GROUP_TYPE).get(Status.Fields.ID),
                     taxonGroupTypeId);
     }
 
@@ -24,9 +24,9 @@ public class TaxonGroupSpecifications extends ReferentialSpecifications {
     public static Specification<TaxonGroup> inGearIds(Integer[] gearIds) {
         if (ArrayUtils.isEmpty(gearIds)) return null;
         return (root, query, cb) -> cb.in(
-                    root.joinList(TaxonGroup.PROPERTY_METIERS, JoinType.INNER)
-                            .join(Metier.PROPERTY_GEAR, JoinType.INNER)
-                            .get(Gear.PROPERTY_ID))
+                    root.joinList(TaxonGroup.Fields.METIERS, JoinType.INNER)
+                            .join(Metier.Fields.GEAR, JoinType.INNER)
+                            .get(Gear.Fields.ID))
                     .value(ImmutableList.copyOf(gearIds));
     }
 

@@ -1,11 +1,13 @@
 package net.sumaris.core.vo.filter;
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @Data
+@FieldNameConstants
 public class TaxonNameFilterVO {
 
     private String searchText;

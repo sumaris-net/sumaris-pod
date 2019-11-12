@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -37,11 +38,9 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 public class Vessel implements IRootDataEntity<Integer> {
-
-    public static final String PROPERTY_STATUS = "status";
-    public static final String PROPERTY_VESSEL_REGISTRATION_PERIODS = "vesselRegistrationPeriods";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_SEQ")
@@ -98,15 +97,15 @@ public class Vessel implements IRootDataEntity<Integer> {
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselFeatures.class, mappedBy = VesselFeatures.PROPERTY_VESSEL)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselFeatures.class, mappedBy = VesselFeatures.Fields.VESSEL)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselFeatures> vesselFeatures = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselRegistrationPeriod.class, mappedBy = VesselRegistrationPeriod.PROPERTY_VESSEL)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselRegistrationPeriod.class, mappedBy = VesselRegistrationPeriod.Fields.VESSEL)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselRegistrationPeriod> vesselRegistrationPeriods = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselOwnerPeriod.class, mappedBy = VesselOwnerPeriod.PROPERTY_VESSEL)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselOwnerPeriod.class, mappedBy = VesselOwnerPeriod.Fields.VESSEL)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselOwnerPeriod> vesselOwnerPeriods = new ArrayList<>();
 

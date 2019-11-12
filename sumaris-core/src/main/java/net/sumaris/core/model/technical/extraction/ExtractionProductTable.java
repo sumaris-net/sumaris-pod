@@ -23,22 +23,21 @@ package net.sumaris.core.model.technical.extraction;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 @Cacheable
 @Table(name = "extraction_product_table")
 public class ExtractionProductTable implements IItemReferentialEntity {
-
-    public static final String PROPERTY_PRODUCT = "product";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_TABLE_SEQ")
@@ -79,7 +78,7 @@ public class ExtractionProductTable implements IItemReferentialEntity {
     @JoinColumn(name = "extraction_product_fk", nullable = false)
     private ExtractionProduct product;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductColumn.class, mappedBy = ExtractionProductColumn.PROPERTY_TABLE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductColumn.class, mappedBy = ExtractionProductColumn.Fields.TABLE)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ExtractionProductColumn> columns;
 

@@ -23,6 +23,7 @@
 package net.sumaris.core.model.referential.conversion;
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -49,6 +50,7 @@ import java.util.Date;
  * </p>
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "round_weight_conversion")
 @Cacheable
@@ -81,15 +83,6 @@ import java.util.Date;
                 "        )")
 })
 public class RoundWeightConversion implements IReferentialEntity {
-
-    public static final String PROPERTY_CONVERSION_COEFFICIENT = "conversionCoefficient";
-    public static final String PROPERTY_TAXON_GROUP = "taxonGroup";
-    public static final String PROPERTY_PRESERVING = "preserving";
-    public static final String PROPERTY_DRESSING = "dressing";
-    public static final String PROPERTY_LOCATION = "location";
-    public static final String PROPERTY_START_DATE = "startDate";
-    public static final String PROPERTY_END_DATE = "endDate";
-    public static final String PROPERTY_STATUS = "status";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ROUND_WEIGHT_CONVERSION_SEQ")

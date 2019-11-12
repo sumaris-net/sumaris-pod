@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.VesselPosition;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -75,7 +74,7 @@ public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPosi
         ParameterExpression<Integer> operationIdParam = builder.parameter(Integer.class);
 
         query.select(root)
-            .where(builder.equal(root.get(VesselPosition.PROPERTY_OPERATION).get(IRootDataEntity.PROPERTY_ID), operationIdParam));
+            .where(builder.equal(root.get(VesselPosition.Fields.OPERATION).get(Operation.Fields.ID), operationIdParam));
 
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {

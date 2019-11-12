@@ -23,6 +23,7 @@ package net.sumaris.core.model.administration.user;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -36,18 +37,11 @@ import java.util.Objects;
 import java.util.Set;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "person")
 @Cacheable
 public class Person implements IReferentialEntity {
-
-    public static final String PROPERTY_PUBKEY = "pubkey";
-    public static final String PROPERTY_LAST_NAME= "lastName";
-    public static final String PROPERTY_FIRST_NAME = "firstName";
-    public static final String PROPERTY_EMAIL = "email";
-    public static final String PROPERTY_EMAIL_MD5 = "emailMD5";
-    public static final String PROPERTY_USER_PROFILES = "userProfiles";
-    public static final String PROPERTY_STATUS = "status";
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PERSON_SEQ")

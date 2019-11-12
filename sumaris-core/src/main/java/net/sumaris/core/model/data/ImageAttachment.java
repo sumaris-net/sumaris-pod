@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -32,6 +33,7 @@ import java.util.Date;
 import java.util.Objects;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name="image_attachment")
 public class ImageAttachment implements IDataEntity<Integer>,

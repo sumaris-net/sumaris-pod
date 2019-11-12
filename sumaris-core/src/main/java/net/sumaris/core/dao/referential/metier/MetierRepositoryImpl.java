@@ -121,8 +121,8 @@ public class MetierRepositoryImpl
                         if (searchJoinProperty != null) {
                             Object joinSource = Beans.getProperty(source, searchJoinProperty);
                             if (joinSource != null && joinSource instanceof IItemReferentialEntity) {
-                                target.setLabel(Beans.getProperty(joinSource, IItemReferentialEntity.PROPERTY_LABEL));
-                                target.setName(Beans.getProperty(joinSource, IItemReferentialEntity.PROPERTY_NAME));
+                                target.setLabel(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.LABEL));
+                                target.setName(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.NAME));
                             }
                         }
                         return target;

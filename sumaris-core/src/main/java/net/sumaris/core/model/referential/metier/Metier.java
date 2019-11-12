@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.metier;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -36,11 +37,9 @@ import java.util.Date;
  *
  */
 @Data
+@FieldNameConstants
 @Entity
 public class Metier implements IItemReferentialEntity {
-
-    public static final String PROPERTY_GEAR = "gear";
-    public static final String PROPERTY_TAXON_GROUP = "taxonGroup";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "METIER_SEQ")

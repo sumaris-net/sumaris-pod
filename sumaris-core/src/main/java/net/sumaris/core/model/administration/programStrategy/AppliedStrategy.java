@@ -23,6 +23,7 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.location.Location;
 import org.hibernate.annotations.Cascade;
@@ -32,11 +33,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "applied_strategy")
 public class AppliedStrategy implements IEntity<Integer> {
-
-    public static final String PROPERTY_STRATEGY = "strategy";
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "APPLIED_STRATEGY_SEQ")
@@ -51,11 +51,11 @@ public class AppliedStrategy implements IEntity<Integer> {
     @JoinColumn(name = "location_fk", nullable = false)
     private Location location;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = AppliedPeriod.PROPERTY_APPLIED_STRATEGY)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = AppliedPeriod.Fields.APPLIED_STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<AppliedPeriod> appliedPeriods = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = PmfmAppliedStrategy.PROPERTY_APPLIED_STRATEGY)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = PmfmAppliedStrategy.Fields.APPLIED_STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<PmfmAppliedStrategy> pmfmStrategies = new ArrayList<>();
 

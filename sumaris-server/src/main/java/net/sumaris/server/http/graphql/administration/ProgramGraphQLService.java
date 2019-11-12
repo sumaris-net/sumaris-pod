@@ -25,30 +25,22 @@ package net.sumaris.server.http.graphql.administration;
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
-import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
-import net.sumaris.core.model.data.IDataEntity;
-import net.sumaris.core.model.data.IWithObserversEntity;
-import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
-import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
-import net.sumaris.core.vo.administration.programStrategy.*;
-import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
+import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
-import net.sumaris.server.http.security.IsUser;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +99,7 @@ public class ProgramGraphQLService {
             @GraphQLArgument(name = "filter") ProgramFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-            @GraphQLArgument(name = "sortBy", defaultValue = ProgramVO.PROPERTY_LABEL) String sort,
+            @GraphQLArgument(name = "sortBy", defaultValue = ProgramVO.Fields.LABEL) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         if (filter == null) {
             return programService.getAll();
@@ -159,8 +151,8 @@ public class ProgramGraphQLService {
     protected StrategyFetchOptions getFetchOptions(Set<String> fields) {
         return StrategyFetchOptions.builder()
                 .withPmfmStrategyInheritance(
-                        fields.contains(Strategy.PROPERTY_PMFM_STRATEGIES + "/" + PmfmStrategyVO.PROPERTY_LABEL)
-                        && !fields.contains(Strategy.PROPERTY_PMFM_STRATEGIES + "/" + PmfmStrategyVO.PROPERTY_PMFM)
+                        fields.contains(Strategy.Fields.PMFM_STRATEGIES + "/" + PmfmStrategyVO.Fields.LABEL)
+                        && !fields.contains(Strategy.Fields.PMFM_STRATEGIES + "/" + PmfmStrategyVO.Fields.PMFM)
                 )
                 .build();
     }

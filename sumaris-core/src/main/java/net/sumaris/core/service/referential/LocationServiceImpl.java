@@ -79,7 +79,7 @@ public class LocationServiceImpl implements LocationService{
                 .flatMap(list -> list.stream())
                 .collect(Collectors.toList());
 
-        Map<String, LocationVO> rectangleByLabelMap = Beans.splitByProperty(existingLocations, Location.PROPERTY_LABEL);
+        Map<String, LocationVO> rectangleByLabelMap = Beans.splitByProperty(existingLocations, Location.Fields.LABEL);
 
         int locationInsertCount = 0;
         Date creationDate = new Date();
@@ -138,11 +138,11 @@ public class LocationServiceImpl implements LocationService{
         ValidityStatus validStatus = validityStatusDao.getOne(ValidityStatusEnum.VALID.getId());
 
         // Get existing rectangle
-        Map<String, LocationVO> rectangleByLabelMap = Beans.splitByProperty(getExistingRectangles(), Location.PROPERTY_LABEL);
+        Map<String, LocationVO> rectangleByLabelMap = Beans.splitByProperty(getExistingRectangles(), Location.Fields.LABEL);
 
         // Get existing locations
         List<LocationVO> existingLocations = locationDao.getByLocationLevel(square10LocationLevel.getId());
-        Map<String, LocationVO> locationByLabelMap = Beans.splitByProperty(existingLocations, Location.PROPERTY_LABEL);
+        Map<String, LocationVO> locationByLabelMap = Beans.splitByProperty(existingLocations, Location.Fields.LABEL);
 
         int locationInsertCount = 0;
         int locationAssociationInsertCount = 0;

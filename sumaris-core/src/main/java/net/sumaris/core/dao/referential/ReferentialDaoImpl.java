@@ -168,19 +168,19 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         });
 
         // Other level (not having "level" in id)
-        result.put(Fraction.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Fraction.class, Fraction.PROPERTY_MATRIX));
-        result.put(QualitativeValue.class.getSimpleName(), BeanUtils.getPropertyDescriptor(QualitativeValue.class, QualitativeValue.PROPERTY_PARAMETER));
-        result.put(TaxonGroup.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonGroup.class, TaxonGroup.PROPERTY_TAXON_GROUP_TYPE));
-        result.put(TaxonName.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonName.class, TaxonName.PROPERTY_TAXONOMIC_LEVEL));
-        result.put(Strategy.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Strategy.class, Strategy.PROPERTY_PROGRAM));
-        result.put(Metier.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Metier.class, Metier.PROPERTY_GEAR));
-        result.put(GroupingLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(GroupingLevel.class, GroupingLevel.PROPERTY_GROUPING_CLASSIFICAION));
-        result.put(Grouping.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Grouping.class, Grouping.PROPERTY_GROUPING_LEVEL));
-        result.put(ExtractionProductTable.class.getSimpleName(), BeanUtils.getPropertyDescriptor(ExtractionProductTable.class, ExtractionProductTable.PROPERTY_PRODUCT));
-        result.put(LocationLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(LocationLevel.class, LocationLevel.PROPERTY_CLASSIFICATION));
-        result.put(Gear.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Gear.class, Gear.PROPERTY_GEAR_CLASSIFICATION));
-        result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.PROPERTY_GEAR_CLASSIFICATION));
-        result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.PROPERTY_TAXON_GROUP_TYPE));
+        result.put(Fraction.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Fraction.class, Fraction.Fields.MATRIX));
+        result.put(QualitativeValue.class.getSimpleName(), BeanUtils.getPropertyDescriptor(QualitativeValue.class, QualitativeValue.Fields.PARAMETER));
+        result.put(TaxonGroup.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonGroup.class, TaxonGroup.Fields.TAXON_GROUP_TYPE));
+        result.put(TaxonName.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonName.class, TaxonName.Fields.TAXONOMIC_LEVEL));
+        result.put(Strategy.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Strategy.class, Strategy.Fields.PROGRAM));
+        result.put(Metier.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Metier.class, Metier.Fields.GEAR));
+        result.put(GroupingLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(GroupingLevel.class, GroupingLevel.Fields.GROUPING_CLASSIFICATION));
+        result.put(Grouping.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Grouping.class, Grouping.Fields.GROUPING_LEVEL));
+        result.put(ExtractionProductTable.class.getSimpleName(), BeanUtils.getPropertyDescriptor(ExtractionProductTable.class, ExtractionProductTable.Fields.PRODUCT));
+        result.put(LocationLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(LocationLevel.class, LocationLevel.Fields.LOCATION_CLASSIFICATION));
+        result.put(Gear.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Gear.class, Gear.Fields.GEAR_CLASSIFICATION));
+        result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.Fields.GEAR_CLASSIFICATION));
+        result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.Fields.TAXON_GROUP_TYPE));
 
         return result;
     }
@@ -245,7 +245,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
         String levelEntityName = levelDescriptor.getPropertyType().getSimpleName();
         return findByFilter(levelEntityName, new ReferentialFilterVO(), 0, 100,
-                IItemReferentialEntity.PROPERTY_NAME, SortDirection.ASC);
+                IItemReferentialEntity.Fields.NAME, SortDirection.ASC);
     }
 
     @Override
@@ -326,7 +326,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         ParameterExpression<Collection> levelIdsParam = builder.parameter(Collection.class);
         PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
         if (pd != null && ArrayUtils.isNotEmpty(levelIds)) {
-            levelClause = builder.in(entityRoot.get(pd.getName()).get(IReferentialEntity.PROPERTY_ID)).value(levelIdsParam);
+            levelClause = builder.in(entityRoot.get(pd.getName()).get(IReferentialEntity.Fields.ID)).value(levelIdsParam);
             criteriaQuery.where(levelClause);
         }
 
@@ -476,7 +476,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                 levelIdsParam = builder.parameter(Collection.class);
                 PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
                 if (pd != null) {
-                    levelClause = builder.in(entityRoot.get(pd.getName()).get(IReferentialEntity.PROPERTY_ID)).value(levelIdsParam);
+                    levelClause = builder.in(entityRoot.get(pd.getName()).get(IReferentialEntity.Fields.ID)).value(levelIdsParam);
                 }
                 else {
                     log.warn(String.format("Trying to request  on level, but no level found for entity {%s}", entityClass.getSimpleName()));
@@ -489,7 +489,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
             levelIdParam = builder.parameter(Integer.class);
             PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
             if (pd != null) {
-                levelClause = builder.equal(entityRoot.get(pd.getName()).get(IReferentialEntity.PROPERTY_ID), levelIdParam);
+                levelClause = builder.equal(entityRoot.get(pd.getName()).get(IReferentialEntity.Fields.ID), levelIdParam);
             }
             else {
                 log.warn(String.format("Trying to request  on level, but no level found for entity {%s}", entityClass.getSimpleName()));
@@ -512,20 +512,20 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                 // Search on label+name
                 searchTextClause = builder.or(
                         builder.isNull(searchAnyMatchParam),
-                        builder.like(builder.upper(entityRoot.get(IItemReferentialEntity.PROPERTY_LABEL)), builder.upper(searchAsPrefixParam)),
-                        builder.like(builder.upper(entityRoot.get(IItemReferentialEntity.PROPERTY_NAME)), builder.upper(searchAnyMatchParam))
+                        builder.like(builder.upper(entityRoot.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(searchAsPrefixParam)),
+                        builder.like(builder.upper(entityRoot.get(IItemReferentialEntity.Fields.NAME)), builder.upper(searchAnyMatchParam))
                 );
-            } else if (BeanUtils.getPropertyDescriptor(entityClass, IItemReferentialEntity.PROPERTY_LABEL) != null) {
+            } else if (BeanUtils.getPropertyDescriptor(entityClass, IItemReferentialEntity.Fields.LABEL) != null) {
                 // Search on label
                 searchTextClause = builder.or(
                         builder.isNull(searchAnyMatchParam),
-                        builder.like(builder.upper(entityRoot.get(IItemReferentialEntity.PROPERTY_LABEL)), builder.upper(searchAsPrefixParam))
+                        builder.like(builder.upper(entityRoot.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(searchAsPrefixParam))
                 );
-            } else if (BeanUtils.getPropertyDescriptor(entityClass, IItemReferentialEntity.PROPERTY_NAME) != null) {
+            } else if (BeanUtils.getPropertyDescriptor(entityClass, IItemReferentialEntity.Fields.NAME) != null) {
                 // Search on name
                 searchTextClause = builder.or(
                         builder.isNull(searchAnyMatchParam),
-                        builder.like(builder.upper(entityRoot.get(IItemReferentialEntity.PROPERTY_NAME)), builder.upper(searchAnyMatchParam))
+                        builder.like(builder.upper(entityRoot.get(IItemReferentialEntity.Fields.NAME)), builder.upper(searchAnyMatchParam))
                 );
             }
         }
@@ -534,7 +534,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
         Predicate statusIdsClause = null;
         if (ArrayUtils.isNotEmpty(statusIds)) {
-            statusIdsClause = builder.in(entityRoot.get(IItemReferentialEntity.PROPERTY_STATUS).get(IItemReferentialEntity.PROPERTY_ID)).value(statusIdsParam);
+            statusIdsClause = builder.in(entityRoot.get(IItemReferentialEntity.Fields.STATUS).get(IItemReferentialEntity.Fields.ID)).value(statusIdsParam);
         }
 
         // Compute where clause
@@ -566,7 +566,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         if (StringUtils.isNotBlank(sortAttribute)) {
 
             // Convert level into the correct property name
-            if (ReferentialVO.PROPERTY_LEVEL.equals(sortAttribute)) {
+            if (IReferentialVO.Fields.LEVEL.equals(sortAttribute)) {
                 PropertyDescriptor levelDescriptor = levelPropertyNameMap.get(entityClass.getSimpleName());
                 if (levelDescriptor != null) {
                     sortAttribute = levelDescriptor.getName();
@@ -623,7 +623,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
         // Filter on text
         ParameterExpression<String> labelParam = builder.parameter(String.class);
-        query.where(builder.equal(tripRoot.get(IItemReferentialEntity.PROPERTY_LABEL), labelParam));
+        query.where(builder.equal(tripRoot.get(IItemReferentialEntity.Fields.LABEL), labelParam));
 
         return getEntityManager().createQuery(query)
                 .setParameter(labelParam, label);

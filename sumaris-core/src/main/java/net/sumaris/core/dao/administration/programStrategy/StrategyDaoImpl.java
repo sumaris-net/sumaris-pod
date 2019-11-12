@@ -37,7 +37,6 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ParameterValueType;
@@ -92,10 +91,10 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
 
         query.select(root)
                 .where(
-                        builder.equal(root.get(Strategy.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam));
+                        builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam));
 
         // Sort by rank order
-        query.orderBy(builder.asc(root.get(Strategy.PROPERTY_ID)));
+        query.orderBy(builder.asc(root.get(Strategy.Fields.ID)));
 
         return getEntityManager()
                 .createQuery(query)
@@ -114,12 +113,12 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
 
         ParameterExpression<Integer> strategyIdParam = builder.parameter(Integer.class);
 
-        Join<PmfmStrategy, Strategy> strategyInnerJoin = root.join(PmfmStrategy.PROPERTY_STRATEGY, JoinType.INNER);
+        Join<PmfmStrategy, Strategy> strategyInnerJoin = root.join(PmfmStrategy.Fields.STRATEGY, JoinType.INNER);
 
         query.select(root)
-                .where(builder.equal(strategyInnerJoin.get(Strategy.PROPERTY_ID), strategyIdParam))
+                .where(builder.equal(strategyInnerJoin.get(Strategy.Fields.ID), strategyIdParam))
                 // Sort by rank order
-                .orderBy(builder.asc(root.get(PmfmStrategy.PROPERTY_RANK_ORDER)));
+                .orderBy(builder.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
 
         return getEntityManager()
                 .createQuery(query)
@@ -138,17 +137,17 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
         ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
         ParameterExpression<Integer> acquisitionLevelIdParam = builder.parameter(Integer.class);
 
-        Join<PmfmStrategy, Strategy> strategyInnerJoin = root.join(PmfmStrategy.PROPERTY_STRATEGY, JoinType.INNER);
+        Join<PmfmStrategy, Strategy> strategyInnerJoin = root.join(PmfmStrategy.Fields.STRATEGY, JoinType.INNER);
 
         query.select(root)
                 .where(
                         builder.and(
-                                builder.equal(strategyInnerJoin.get(Strategy.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam),
-                                builder.equal(root.get(PmfmStrategy.PROPERTY_ACQUISITION_LEVEL).get(AcquisitionLevel.PROPERTY_ID), acquisitionLevelIdParam)
+                                builder.equal(strategyInnerJoin.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
+                                builder.equal(root.get(PmfmStrategy.Fields.ACQUISITION_LEVEL).get(AcquisitionLevel.Fields.ID), acquisitionLevelIdParam)
                         ));
 
         // Sort by rank order
-        query.orderBy(builder.asc(root.get(PmfmStrategy.PROPERTY_RANK_ORDER)));
+        query.orderBy(builder.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
 
         return getEntityManager()
                 .createQuery(query)
@@ -167,19 +166,19 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
 
         ParameterExpression<Integer> strategyIdParam = builder.parameter(Integer.class);
 
-        Join<Gear, Strategy> gearInnerJoin = root.joinList(Gear.PROPERTY_STRATEGIES, JoinType.INNER);
+        Join<Gear, Strategy> gearInnerJoin = root.joinList(Gear.Fields.STRATEGIES, JoinType.INNER);
 
         query.select(root)
                 .where(
                         builder.and(
                                 // strategy
-                                builder.equal(gearInnerJoin.get(Strategy.PROPERTY_ID), strategyIdParam),
+                                builder.equal(gearInnerJoin.get(Strategy.Fields.ID), strategyIdParam),
                                 // Status (temporary or valid)
-                                builder.in(root.get(Gear.PROPERTY_STATUS).get(Status.PROPERTY_ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+                                builder.in(root.get(Gear.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
                         ));
 
         // Sort by label
-        query.orderBy(builder.asc(root.get(Gear.PROPERTY_LABEL)));
+        query.orderBy(builder.asc(root.get(Gear.Fields.LABEL)));
 
         return getEntityManager()
                 .createQuery(query)

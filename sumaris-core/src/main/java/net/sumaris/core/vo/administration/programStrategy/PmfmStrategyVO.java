@@ -23,22 +23,18 @@ package net.sumaris.core.vo.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.vo.IValueObject;
-import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer>  {
-
-    public static final String PROPERTY_LABEL = "label";
-    public static final String PROPERTY_PMFM = "pmfm";
 
     private Integer id;
 

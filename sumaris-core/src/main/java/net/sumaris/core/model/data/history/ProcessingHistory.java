@@ -23,6 +23,7 @@ package net.sumaris.core.model.data.history;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.ProcessingStatus;
 import net.sumaris.core.model.referential.ProcessingType;
@@ -40,11 +41,10 @@ import java.util.Date;
  *  L’exécution des traitements en erreur peuvent également être tracée.
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "processing_history")
 public class ProcessingHistory implements IEntity<Integer> {
-
-    public static final String PROPERTY_DATE = "date";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_HISTORY_SEQ")

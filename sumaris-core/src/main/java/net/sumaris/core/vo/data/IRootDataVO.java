@@ -11,11 +11,6 @@ public interface IRootDataVO<T extends Serializable>
         extends IDataVO<T>,
         IWithRecorderPersonEntity<T, PersonVO> {
 
-    String PROPERTY_PROGRAM = "program";
-    String PROPERTY_CREATION_DATE = "creationDate";
-    String PROPERTY_COMMENTS = "comments";
-    String PROPERTY_VALIDATION_DATE = "validationDate";
-
     ProgramVO getProgram();
 
     void setProgram(ProgramVO program);

@@ -85,7 +85,7 @@ public class LocationClassificationDaoImpl extends HibernateDaoSupport implement
         ParameterExpression<String> labelParam = builder.parameter(String.class);
 
         query.select(root)
-                .where(builder.equal(root.get(LocationClassification.PROPERTY_LABEL), labelParam));
+                .where(builder.equal(root.get(LocationClassification.Fields.LABEL), labelParam));
 
         TypedQuery<LocationClassification> q = getEntityManager().createQuery(query)
                 .setParameter(labelParam, label);

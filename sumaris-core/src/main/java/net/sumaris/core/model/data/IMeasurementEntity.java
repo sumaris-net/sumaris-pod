@@ -22,16 +22,19 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 
 public interface IMeasurementEntity extends IDataEntity<Integer> {
 
-    String PROPERTY_PMFM = "pmfm";
-    String PROPERTY_NUMERICAL_VALUE = "numericalValue";
-    String PROPERTY_ALPHANUMERICAL_VALUE = "alphanumericalValue";
-    String PROPERTY_DIGIT_COUNT = "digitCount";
-    String PROPERTY_PRECISION_VALUE = "precisionValue";
+    interface Fields extends IEntity.Fields {
+        String PMFM = "pmfm";
+        String NUMERICAL_VALUE = "numericalValue";
+        String ALPHANUMERICAL_VALUE = "alphanumericalValue";
+        String DIGIT_COUNT = "digitCount";
+        String PRECISION_VALUE = "precisionValue";
+    }
 
     Double getNumericalValue();
 

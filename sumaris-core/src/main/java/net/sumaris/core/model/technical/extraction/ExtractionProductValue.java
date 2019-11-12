@@ -23,24 +23,19 @@ package net.sumaris.core.model.technical.extraction;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.gear.Gear;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "extraction_product_value")
 public class ExtractionProductValue implements IEntity<Integer> {
-
-    public static final String PROPERTY_COLUMN = "column";
-    public static final String PROPERTY_PARENT = "parent";
-    public static final String PROPERTY_LABEL = "label";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_VALUE_SEQ")
@@ -61,7 +56,7 @@ public class ExtractionProductValue implements IEntity<Integer> {
     @JoinColumn(name = "parent_fk")
     private ExtractionProductValue parent;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductValue.class, mappedBy = PROPERTY_PARENT)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductValue.class, mappedBy = Fields.PARENT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ExtractionProductValue> children;
 

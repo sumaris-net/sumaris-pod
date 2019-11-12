@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.grouping;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.ObjectType;
 import net.sumaris.core.model.referential.Status;
@@ -31,6 +32,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "grouping_classification")
 public class GroupingClassification implements IItemReferentialEntity  {

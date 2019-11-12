@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.grouping;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 
@@ -32,6 +33,7 @@ import javax.persistence.*;
  * GroupingItem permet de lister les entités du référentiel qui appartiennent à un regroupement.
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "grouping_item")
 public class GroupingItem implements IEntity<Integer> {

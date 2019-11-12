@@ -23,21 +23,19 @@
 package net.sumaris.core.model.technical.extraction;
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 @Cacheable
 @Table(name = "extraction_product_strata")
 public class ExtractionProductStrata implements IItemReferentialEntity {
-
-    public static final String PROPERTY_PRODUCT = "product";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_STRATA_SEQ")

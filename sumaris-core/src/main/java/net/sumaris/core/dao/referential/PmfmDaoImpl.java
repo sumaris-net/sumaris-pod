@@ -68,7 +68,7 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
         ParameterExpression<String> labelParam = builder.parameter(String.class);
 
         query.select(root)
-                .where(builder.equal(root.get(Pmfm.PROPERTY_LABEL), labelParam));
+                .where(builder.equal(root.get(Pmfm.Fields.LABEL), labelParam));
 
         TypedQuery<Pmfm> q = getEntityManager().createQuery(query)
                 .setParameter(labelParam, label);

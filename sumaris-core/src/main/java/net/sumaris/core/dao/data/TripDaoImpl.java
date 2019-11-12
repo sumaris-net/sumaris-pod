@@ -153,28 +153,28 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
                         // Filter: program
                         builder.or(
                                 builder.isNull(programIdParam),
-                                builder.equal(root.get(Trip.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
+                                builder.equal(root.get(Trip.Fields.PROGRAM).get(Program.Fields.ID), programIdParam)
                         ),
                         // Filter: startDate
                         builder.or(
                                 builder.isNull(startDateParam),
-                                builder.not(builder.lessThan(root.get(Trip.PROPERTY_RETURN_DATE_TIME), startDateParam))
+                                builder.not(builder.lessThan(root.get(Trip.Fields.RETURN_DATE_TIME), startDateParam))
                         ),
                         // Filter: endDate
                         builder.or(
                                 builder.isNull(endDateParam),
-                                builder.not(builder.greaterThan(root.get(Trip.PROPERTY_DEPARTURE_DATE_TIME), endDateParam))
+                                builder.not(builder.greaterThan(root.get(Trip.Fields.DEPARTURE_DATE_TIME), endDateParam))
                         ),
                         // Filter: location
                         builder.or(
                                 builder.isNull(locationIdParam),
-                                builder.equal(root.get(Trip.PROPERTY_DEPARTURE_LOCATION).get(Location.PROPERTY_ID), locationIdParam),
-                                builder.equal(root.get(Trip.PROPERTY_RETURN_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
+                                builder.equal(root.get(Trip.Fields.DEPARTURE_LOCATION).get(Location.Fields.ID), locationIdParam),
+                                builder.equal(root.get(Trip.Fields.RETURN_LOCATION).get(Location.Fields.ID), locationIdParam)
                         ),
                         // Filter: vessel
                         builder.or(
                                 builder.isNull(vesselIdParam),
-                                builder.equal(root.get(Trip.PROPERTY_VESSEL).get(Location.PROPERTY_ID), vesselIdParam)
+                                builder.equal(root.get(Trip.Fields.VESSEL).get(Location.Fields.ID), vesselIdParam)
                         )
                 ));
 
@@ -221,23 +221,23 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
                     // Filter: program
                     builder.or(
                             builder.isNull(programIdParam),
-                            builder.equal(root.get(Trip.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
+                            builder.equal(root.get(Trip.Fields.PROGRAM).get(Program.Fields.ID), programIdParam)
                     ),
                     // Filter: startDate
                     builder.or(
                             builder.isNull(startDateParam),
-                            builder.not(builder.lessThan(root.get(Trip.PROPERTY_RETURN_DATE_TIME), startDateParam))
+                            builder.not(builder.lessThan(root.get(Trip.Fields.RETURN_DATE_TIME), startDateParam))
                     ),
                     // Filter: endDate
                     builder.or(
                             builder.isNull(endDateParam),
-                            builder.not(builder.greaterThan(root.get(Trip.PROPERTY_DEPARTURE_DATE_TIME), endDateParam))
+                            builder.not(builder.greaterThan(root.get(Trip.Fields.DEPARTURE_DATE_TIME), endDateParam))
                     ),
                     // Filter: location
                     builder.or(
                             builder.isNull(locationIdParam),
-                            builder.equal(root.get(Trip.PROPERTY_DEPARTURE_LOCATION).get(Location.PROPERTY_ID), locationIdParam),
-                            builder.equal(root.get(Trip.PROPERTY_RETURN_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
+                            builder.equal(root.get(Trip.Fields.DEPARTURE_LOCATION).get(Location.Fields.ID), locationIdParam),
+                            builder.equal(root.get(Trip.Fields.RETURN_LOCATION).get(Location.Fields.ID), locationIdParam)
                     )
             ));
         }

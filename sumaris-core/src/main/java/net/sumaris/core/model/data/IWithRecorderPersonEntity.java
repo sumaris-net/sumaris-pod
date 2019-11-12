@@ -28,7 +28,9 @@ import java.io.Serializable;
 
 public interface IWithRecorderPersonEntity<T extends Serializable, P extends IEntity<Integer>> extends IEntity<T> {
 
-    String PROPERTY_RECORDER_PERSON = "recorderPerson";
+    interface Fields extends IEntity.Fields {
+        String RECORDER_PERSON = "recorderPerson";
+    }
 
     P getRecorderPerson();
 

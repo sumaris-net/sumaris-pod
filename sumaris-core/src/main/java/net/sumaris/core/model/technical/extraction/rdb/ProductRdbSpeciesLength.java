@@ -23,6 +23,7 @@ package net.sumaris.core.model.technical.extraction.rdb;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
 
@@ -30,6 +31,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "p01_rdb_species_length")
 public class ProductRdbSpeciesLength implements Serializable, IEntity<Integer> {

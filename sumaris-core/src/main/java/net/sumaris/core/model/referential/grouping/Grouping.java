@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.grouping;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.ValidityStatus;
@@ -42,13 +43,11 @@ import java.util.Date;
  * Un regroupement peut avoir un regroupement parent.
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "grouping",
         uniqueConstraints = @UniqueConstraint(name="grouping_unique_c", columnNames = {"label", "grouping_level_fk"}))
 public class Grouping implements IItemReferentialEntity  {
-
-    public static final String PROPERTY_GROUPING_CLASSIFICAION = "groupingClassification";
-    public static final String PROPERTY_GROUPING_LEVEL = "groupingLevel";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GROUPING_SEQ")

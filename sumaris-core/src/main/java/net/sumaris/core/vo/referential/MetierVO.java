@@ -23,12 +23,11 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
-
-import java.util.List;
 
 @Data
+@FieldNameConstants
 public class MetierVO extends ReferentialVO {
 
     private ReferentialVO gear;

@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.data.IWithVesselFeaturesEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -39,15 +40,10 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
+@FieldNameConstants
 public class SaleVO implements IRootDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO>,
         IWithVesselFeaturesEntity<Integer, VesselFeaturesVO> {
-
-    public static final String PROPERTY_START_DATE_TIME = "startDateTime";
-    public static final String PROPERTY_END_DATE_TIME = "endDateTime";
-    public static final String PROPERTY_SALE_TYPE = "saleType";
-    public static final String PROPERTY_TRIP = "trip";
-
 
     private Integer id;
     private String comments;

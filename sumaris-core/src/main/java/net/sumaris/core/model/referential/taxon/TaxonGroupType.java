@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.taxon;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
@@ -38,6 +39,7 @@ import java.util.Date;
  * </ul>
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "taxon_group_type")
 public class TaxonGroupType implements IItemReferentialEntity {

@@ -73,14 +73,14 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
 
             Expression<Boolean> whereClause = null;
             if (!withSynonyms) {
-                whereClause = builder.equal(root.get(TaxonName.PROPERTY_IS_REFERENT), Boolean.TRUE);
+                whereClause = builder.equal(root.get(TaxonName.Fields.IS_REFERENT), Boolean.TRUE);
             }
 
             Expression<Boolean> taxonGroupClause = null;
             if (ArrayUtils.isNotEmpty(filter.getTaxonGroupIds())) {
-                Join<TaxonName, ReferenceTaxon> rt = root.join(TaxonName.PROPERTY_REFERENCE_TAXON, JoinType.INNER);
-                ListJoin<ReferenceTaxon, TaxonGroup2TaxonHierarchy> tgh = rt.joinList(ReferenceTaxon.PROPERTY_PARENT_TAXON_GROUPS, JoinType.INNER);
-                taxonGroupClause = builder.in(tgh.get(TaxonGroup2TaxonHierarchy.PROPERTY_PARENT_TAXON_GROUP).get(TaxonGroup.PROPERTY_ID))
+                Join<TaxonName, ReferenceTaxon> rt = root.join(TaxonName.Fields.REFERENCE_TAXON, JoinType.INNER);
+                ListJoin<ReferenceTaxon, TaxonGroup2TaxonHierarchy> tgh = rt.joinList(ReferenceTaxon.Fields.PARENT_TAXON_GROUPS, JoinType.INNER);
+                taxonGroupClause = builder.in(tgh.get(TaxonGroup2TaxonHierarchy.Fields.PARENT_TAXON_GROUP).get(TaxonGroup.Fields.ID))
                         .value(taxonGroupIdsParam);
                 whereClause = whereClause == null ?  taxonGroupClause : builder.and(whereClause, taxonGroupClause);
             }
@@ -119,12 +119,12 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
         query.select(root)
                 .where(builder.and(
                         // Filter on taxonomic level (species+ subspecies)
-                        builder.in(root.get(TaxonName.PROPERTY_TAXONOMIC_LEVEL).get(TaxonomicLevel.PROPERTY_ID))
+                        builder.in(root.get(TaxonName.Fields.TAXONOMIC_LEVEL).get(TaxonomicLevel.Fields.ID))
                                .value(ImmutableList.of(TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId())),
                         // Filter on is_referent
                         builder.or(
                                 builder.isNull(withSynonymParam),
-                                builder.equal(root.get(TaxonName.PROPERTY_IS_REFERENT), Boolean.TRUE)
+                                builder.equal(root.get(TaxonName.Fields.IS_REFERENT), Boolean.TRUE)
                         )
                 ));
 
@@ -145,7 +145,7 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
         ParameterExpression<Integer> idParam = builder.parameter(Integer.class);
 
         query.select(root)
-                .where(builder.equal(root.get(TaxonName.PROPERTY_REFERENCE_TAXON).get(ReferenceTaxon.PROPERTY_ID), idParam));
+                .where(builder.equal(root.get(TaxonName.Fields.REFERENCE_TAXON).get(ReferenceTaxon.Fields.ID), idParam));
 
         TypedQuery<TaxonName> q = em.createQuery(query)
                 .setParameter(idParam, referenceTaxonId);
@@ -166,7 +166,7 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
 
         ParameterExpression<Collection> parentIdsParam = builder.parameter(Collection.class);
 
-        query.where(builder.in(root.get(TaxonName.PROPERTY_PARENT_TAXON_NAME).get(TaxonName.PROPERTY_ID)).value(parentIdsParam));
+        query.where(builder.in(root.get(TaxonName.Fields.PARENT_TAXON_NAME).get(TaxonName.Fields.ID)).value(parentIdsParam));
 
         return getEntityManager().createQuery(query)
                 .setParameter(parentIdsParam, taxonNameParentIds)
@@ -182,18 +182,18 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
 
         ParameterExpression<Integer> taxonGroupIdParam = builder.parameter(Integer.class);
 
-        Join<TaxonGroup2TaxonHierarchy, ReferenceTaxon> rt = root.join(TaxonGroup2TaxonHierarchy.PROPERTY_CHILD_REFERENCE_TAXON, JoinType.INNER);
-        Join<ReferenceTaxon, TaxonName> tn = rt.joinList(ReferenceTaxon.PROPERTY_TAXON_NAMES, JoinType.INNER);
+        Join<TaxonGroup2TaxonHierarchy, ReferenceTaxon> rt = root.join(TaxonGroup2TaxonHierarchy.Fields.CHILD_REFERENCE_TAXON, JoinType.INNER);
+        Join<ReferenceTaxon, TaxonName> tn = rt.joinList(ReferenceTaxon.Fields.TAXON_NAMES, JoinType.INNER);
 
         query.select(tn)
                 .where(builder.and(
                         // Filter on taxon_group
-                        builder.equal(root.get(TaxonGroup2TaxonHierarchy.PROPERTY_PARENT_TAXON_GROUP).get(TaxonGroup.PROPERTY_ID), taxonGroupIdParam),
+                        builder.equal(root.get(TaxonGroup2TaxonHierarchy.Fields.PARENT_TAXON_GROUP).get(TaxonGroup.Fields.ID), taxonGroupIdParam),
                         // Filter on taxonomic level (species and subspecies)
-                        builder.in(tn.get(TaxonName.PROPERTY_TAXONOMIC_LEVEL).get(TaxonomicLevel.PROPERTY_ID))
+                        builder.in(tn.get(TaxonName.Fields.TAXONOMIC_LEVEL).get(TaxonomicLevel.Fields.ID))
                                 .value(ImmutableList.of(TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId())),
                         // Filter on is_referent
-                        builder.equal(tn.get(TaxonName.PROPERTY_IS_REFERENT), Boolean.TRUE)
+                        builder.equal(tn.get(TaxonName.Fields.IS_REFERENT), Boolean.TRUE)
                 ));
 
         return em.createQuery(query)

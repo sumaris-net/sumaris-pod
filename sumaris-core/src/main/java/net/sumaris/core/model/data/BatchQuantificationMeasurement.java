@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
@@ -32,11 +33,10 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name="quantification_measurement_b")
 public class BatchQuantificationMeasurement implements IMeasurementEntity {
-
-    public static final String PROPERTY_BATCH = "batch";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "QUANTIF_MEASUREMENT_B_SEQ")

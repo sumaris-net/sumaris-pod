@@ -26,8 +26,9 @@ import java.io.Serializable;
 
 public interface IEntity<ID extends Serializable> extends Serializable {
 
-
-    String PROPERTY_ID = "id";
+    interface Fields {
+        String ID = "id";
+    }
 
     ID getId();
 

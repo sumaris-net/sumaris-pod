@@ -18,14 +18,14 @@ public class ReferentialSpecifications {
     public static Specification<Metier> inLevelIds(String levelProperty, Integer[] gearIds) {
         if (ArrayUtils.isEmpty(gearIds)) return null;
         return (root, query, cb) -> cb.in(
-                root.join(levelProperty, JoinType.INNER).get(Gear.PROPERTY_ID))
+                root.join(levelProperty, JoinType.INNER).get(Gear.Fields.ID))
                 .value(ImmutableList.copyOf(gearIds));
     }
 
     public static <T extends IReferentialEntity> Specification<T> inStatusIds(Integer[] statusIds) {
         if (ArrayUtils.isEmpty(statusIds)) return null;
         return (root, query, cb) -> cb.in(
-                root.get(IReferentialEntity.PROPERTY_STATUS).get(Status.PROPERTY_ID))
+                root.get(IReferentialEntity.Fields.STATUS).get(Status.Fields.ID))
                 .value(ImmutableList.copyOf(statusIds));
     }
 
@@ -45,8 +45,8 @@ public class ReferentialSpecifications {
                 // Search on label+name
                 return cb.or(
                         cb.isNull(searchTextParam),
-                        cb.like(cb.upper(root.get(IItemReferentialEntity.PROPERTY_LABEL)), cb.upper(searchTextParam)),
-                        cb.like(cb.upper(root.get(IItemReferentialEntity.PROPERTY_NAME)), cb.upper(cb.concat("%", searchTextParam)))
+                        cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.LABEL)), cb.upper(searchTextParam)),
+                        cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.NAME)), cb.upper(cb.concat("%", searchTextParam)))
                 );
             }
         };
@@ -69,9 +69,9 @@ public class ReferentialSpecifications {
                 return cb.or(
                         cb.isNull(searchTextParam),
                         cb.like(cb.upper(root.join(joinProperty)
-                                .get(IItemReferentialEntity.PROPERTY_LABEL)), cb.upper(searchTextParam)),
+                                .get(IItemReferentialEntity.Fields.LABEL)), cb.upper(searchTextParam)),
                         cb.like(cb.upper(root.join(joinProperty)
-                                .get(IItemReferentialEntity.PROPERTY_NAME)), cb.upper(cb.concat("%", searchTextParam)))
+                                .get(IItemReferentialEntity.Fields.NAME)), cb.upper(cb.concat("%", searchTextParam)))
                 );
             }
         };

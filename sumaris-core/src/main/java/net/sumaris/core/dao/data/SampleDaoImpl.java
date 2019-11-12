@@ -96,10 +96,10 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
         ParameterExpression<Integer> tripIdParam = cb.parameter(Integer.class);
 
-        query.where(cb.equal(root.get(Sample.PROPERTY_OPERATION).get(Operation.PROPERTY_ID), tripIdParam));
+        query.where(cb.equal(root.get(Sample.Fields.OPERATION).get(Operation.Fields.ID), tripIdParam));
 
         // Sort by rank order
-        query.orderBy(cb.asc(root.get(PmfmStrategy.PROPERTY_RANK_ORDER)));
+        query.orderBy(cb.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
 
         return toSampleVOs(getEntityManager().createQuery(query)
                 .setParameter(tripIdParam, operationId).getResultList(), false);
@@ -117,10 +117,10 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
         ParameterExpression<Integer> idParam = cb.parameter(Integer.class);
 
-        query.where(cb.equal(root.get(Sample.PROPERTY_LANDING).get(Landing.PROPERTY_ID), idParam));
+        query.where(cb.equal(root.get(Sample.Fields.LANDING).get(Landing.Fields.ID), idParam));
 
         // Sort by rank order
-        query.orderBy(cb.asc(root.get(PmfmStrategy.PROPERTY_RANK_ORDER)));
+        query.orderBy(cb.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
 
         return toSampleVOs(getEntityManager().createQuery(query)
                 .setParameter(idParam, landingId).getResultList(), false);

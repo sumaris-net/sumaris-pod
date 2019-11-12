@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.model.data.IRootDataEntity;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.PhysicalGearMeasurement;
 import net.sumaris.core.model.data.Trip;
@@ -77,7 +77,7 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
         ParameterExpression<Integer> tripIdParam = builder.parameter(Integer.class);
 
         query.select(root)
-            .where(builder.equal(root.get(PhysicalGear.PROPERTY_TRIP).get(IRootDataEntity.PROPERTY_ID), tripIdParam));
+            .where(builder.equal(root.get(PhysicalGear.Fields.TRIP).get(IEntity.Fields.ID), tripIdParam));
 
         TypedQuery<PhysicalGear> q = getEntityManager().createQuery(query)
                 .setParameter(tripIdParam, tripId);

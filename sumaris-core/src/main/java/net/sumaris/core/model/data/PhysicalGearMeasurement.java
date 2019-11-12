@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
@@ -32,12 +33,10 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name="physical_gear_measurement")
 public class PhysicalGearMeasurement implements ISortedMeasurementEntity {
-
-    public static final String PROPERTY_RANK_ORDER = "rankOrder";
-    public static final String PROPERTY_PHYSICAL_GEAR = "physicalGear";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PHYSICAL_GEAR_MEASUREMENT_SEQ")

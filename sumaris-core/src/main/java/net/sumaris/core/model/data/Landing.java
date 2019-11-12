@@ -24,6 +24,7 @@ package net.sumaris.core.model.data;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -38,16 +39,11 @@ import java.util.List;
 import java.util.Set;
 
 @Data
+@FieldNameConstants
 @Entity
 public class Landing implements IRootDataEntity<Integer>,
         IWithObserversEntity<Integer, Person>,
         IWithVesselEntity<Integer, Vessel> {
-
-    public static final String PROPERTY_DATE_TIME = "dateTime";
-    public static final String PROPERTY_LOCATION = "location";
-
-    public static final String PROPERTY_TRIP = "trip";
-    public static final String PROPERTY_OBSERVED_LOCATION = "observedLocation";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LANDING_SEQ")
@@ -118,13 +114,13 @@ public class Landing implements IRootDataEntity<Integer>,
                     @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
     private Set<Person> observers = Sets.newHashSet();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Sample.PROPERTY_LANDING)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Sample.Fields.LANDING)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sample> samples = new ArrayList<>();
 
     /* -- measurements -- */
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = LandingMeasurement.class, mappedBy = LandingMeasurement.PROPERTY_LANDING)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = LandingMeasurement.class, mappedBy = LandingMeasurement.Fields.LANDING)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<LandingMeasurement> measurements = new ArrayList<>();
 

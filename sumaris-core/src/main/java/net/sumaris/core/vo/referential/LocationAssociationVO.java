@@ -23,14 +23,14 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.location.LocationAssociation;
 
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 public class LocationAssociationVO extends ReferentialVO {
-
-    String PROPERTY_UPDATE_DATE = "updateDate";
 
     private Integer childId;
 

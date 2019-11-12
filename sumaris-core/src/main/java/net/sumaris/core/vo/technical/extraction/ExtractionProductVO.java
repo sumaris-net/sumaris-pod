@@ -1,21 +1,26 @@
 package net.sumaris.core.vo.technical.extraction;
 
 import com.google.common.base.Preconditions;
+import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import org.apache.commons.collections4.ListUtils;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-@lombok.Data
+@Data
+@FieldNameConstants
 public class ExtractionProductVO implements IReferentialVO,
         IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
         IWithRecorderPersonEntity<Integer, PersonVO> {

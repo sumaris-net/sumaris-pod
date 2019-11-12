@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.location.Location;
@@ -35,18 +36,12 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "vessel_features")
 public class VesselFeatures implements IDataEntity<Integer>,
         IWithRecorderPersonEntity<Integer, Person>,
         IWithRecorderDepartmentEntity<Integer, Department> {
-
-    public static final String PROPERTY_ID = "id";
-    public static final String PROPERTY_START_DATE = "startDate";
-    public static final String PROPERTY_END_DATE = "endDate";
-    public static final String PROPERTY_VESSEL = "vessel";
-    public static final String PROPERTY_NAME = "name";
-    public static final String PROPERTY_EXTERIOR_MARKING = "exteriorMarking";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_FEATURES_SEQ")
@@ -124,7 +119,7 @@ public class VesselFeatures implements IDataEntity<Integer>,
 
     /* -- measurements -- */
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPhysicalMeasurement.class, mappedBy = VesselPhysicalMeasurement.PROPERTY_VESSEL_FEATURES)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPhysicalMeasurement.class, mappedBy = VesselPhysicalMeasurement.Fields.VESSEL_FEATURES)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselPhysicalMeasurement> measurements = new ArrayList<>();
 

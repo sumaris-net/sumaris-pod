@@ -24,15 +24,13 @@ package net.sumaris.core.vo.administration.programStrategy;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.core.vo.referential.IReferentialVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 
 import java.io.Serializable;
-import java.util.Date;
 
 @Data
+@FieldNameConstants
 @EqualsAndHashCode
 public class TaxonNameStrategyVO  implements Serializable {
 

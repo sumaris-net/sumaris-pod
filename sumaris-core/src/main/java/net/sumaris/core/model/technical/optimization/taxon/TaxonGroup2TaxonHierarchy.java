@@ -23,8 +23,7 @@ package net.sumaris.core.model.technical.optimization.taxon;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
@@ -41,12 +40,10 @@ import java.util.Date;
  *
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "taxon_group2taxon_hierarchy")
 public class TaxonGroup2TaxonHierarchy implements Serializable {
-
-    public static final String PROPERTY_PARENT_TAXON_GROUP = "parentTaxonGroup";
-    public static final String PROPERTY_CHILD_REFERENCE_TAXON = "childReferenceTaxon";
 
     @Id
     @Column(name = "start_date", nullable = false)

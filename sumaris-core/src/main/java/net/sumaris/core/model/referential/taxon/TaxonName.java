@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.taxon;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
@@ -35,14 +36,10 @@ import java.util.Date;
  * On garde l'historique du passage en taxon valide, puis du passage en synonyme (date de fin référent).
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "taxon_name")
 public class TaxonName implements IItemReferentialEntity {
-
-    public static final String PROPERTY_IS_REFERENT = "isReferent";
-    public static final String PROPERTY_REFERENCE_TAXON = "referenceTaxon";
-    public static final String PROPERTY_PARENT_TAXON_NAME = "parentTaxonName";
-    public static final String PROPERTY_TAXONOMIC_LEVEL = "taxonomicLevel";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_NAME_SEQ")

@@ -23,8 +23,10 @@
 package net.sumaris.core.vo.technical.extraction;
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 @Data
+@FieldNameConstants
 public class ExtractionProductFilterVO {
 
     private Integer departmentId;

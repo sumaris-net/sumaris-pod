@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.taxon;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -45,14 +46,10 @@ import java.util.List;
  *
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "taxon_group")
 public class TaxonGroup implements IItemReferentialEntity {
-
-    public static final String PROPERTY_TAXON_GROUP_TYPE = "taxonGroupType";
-    public static final String PROPERTY_STRATEGIES = "strategies";
-    public static final String PROPERTY_METIERS = "metiers";
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_GROUP_SEQ")
@@ -90,11 +87,11 @@ public class TaxonGroup implements IItemReferentialEntity {
     @JoinColumn(name = "parent_taxon_group_fk")
     private TaxonGroup parentTaxonGroup;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.PROPERTY_TAXON_GROUP)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.Fields.TAXON_GROUP)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<TaxonGroupStrategy> strategies;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Metier.class, mappedBy = Metier.PROPERTY_TAXON_GROUP)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Metier.class, mappedBy = Metier.Fields.TAXON_GROUP)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<Metier> metiers;
 }

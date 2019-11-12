@@ -23,8 +23,10 @@ package net.sumaris.core.vo.administration.user;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 @Data
+@FieldNameConstants
 public class AccountVO extends PersonVO {
 
     private UserSettingsVO settings;

@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
 
@@ -30,13 +31,9 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity(name = "vessel_position")
 public class VesselPosition implements IDataEntity<Integer> {
-
-    public static final String PROPERTY_DATE_TIME = "date";
-    public static final String PROPERTY_LATITUDE = "latitude";
-    public static final String PROPERTY_LONGITUDE = "longitude";
-    public static final String PROPERTY_OPERATION = "operation";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_POSITION_SEQ")

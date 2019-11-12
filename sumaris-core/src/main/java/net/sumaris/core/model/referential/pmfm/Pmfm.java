@@ -24,6 +24,7 @@ package net.sumaris.core.model.referential.pmfm;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -34,10 +35,9 @@ import java.util.Objects;
 import java.util.Set;
 
 @Data
+@FieldNameConstants
 @Entity
 public class Pmfm implements IReferentialEntity {
-
-    public static final String PROPERTY_LABEL = "label";
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")

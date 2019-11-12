@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
@@ -32,13 +33,10 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name="vessel_use_measurement")
 public class VesselUseMeasurement implements IMeasurementEntity {
-
-    public static final String PROPERTY_TRIP = "trip";
-    public static final String PROPERTY_OPERATION = "operation";
-    public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_USE_MEASUREMENT_SEQ")

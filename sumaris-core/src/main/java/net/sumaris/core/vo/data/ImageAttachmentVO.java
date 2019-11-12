@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
@@ -34,13 +35,10 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 public class ImageAttachmentVO implements IUpdateDateEntityBean<Integer, Date>,
         IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
-
-    public static final String PROPERTY_DATE_TIME = "dateTime";
-    public static final String PROPERTY_CONTENT_TYPE = "contentType";
-    public static final String PROPERTY_CONTENT = "content";
 
     private Integer id;
     private String comments;

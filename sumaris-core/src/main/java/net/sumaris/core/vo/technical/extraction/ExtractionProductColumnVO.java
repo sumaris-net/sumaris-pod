@@ -1,15 +1,16 @@
 package net.sumaris.core.vo.technical.extraction;
 
+import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.vo.referential.IReferentialVO;
 
-import java.util.Date;
 import java.util.List;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-@lombok.Data
+@Data
+@FieldNameConstants
 public class ExtractionProductColumnVO implements IEntity<Integer> {
 
     private Integer id;

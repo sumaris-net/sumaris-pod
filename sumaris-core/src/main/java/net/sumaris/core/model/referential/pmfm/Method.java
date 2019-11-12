@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.pmfm;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
@@ -55,6 +56,7 @@ import java.util.Date;
  * </p>
  */
 @Data
+@FieldNameConstants
 @Entity
 public class Method implements IItemReferentialEntity {
 

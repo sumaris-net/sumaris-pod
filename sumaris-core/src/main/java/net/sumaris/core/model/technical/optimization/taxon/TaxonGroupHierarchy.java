@@ -23,12 +23,11 @@ package net.sumaris.core.model.technical.optimization.taxon;
  */
 
 import lombok.Data;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  *  Table technique présentant tous les liens père/fils (directs et hérités) entre les groupes de taxons.
@@ -39,12 +38,10 @@ import java.util.Date;
  *
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "taxon_group_hierarchy")
 public class TaxonGroupHierarchy implements Serializable {
-
-    public static final String PROPERTY_PARENT_TAXON_GROUP = "parentTaxonGroup";
-    public static final String PROPERTY_CHILD_TAXON_GROUP = "childTaxonGroup";
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonGroup.class, cascade = CascadeType.DETACH)

@@ -23,24 +23,17 @@ package net.sumaris.core.vo.technical;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.referential.IReferentialVO;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 @Data
+@FieldNameConstants
 public class ConfigurationVO extends SoftwareVO {
-
-    public static final String PROPERTY_PROPERTIES = "properties";
-    public static final String PROPERTY_PARTNERS = "partners";
-    public static final String PROPERTY_BACKGROUND_IMAGES = "backgroundImages";
-    public static final String PROPERTY_SMALL_LOGO = "smallLogo";
-    public static final String PROPERTY_LARGE_LOGO = "largeLogo";
 
     private String smallLogo;
     private String largeLogo;

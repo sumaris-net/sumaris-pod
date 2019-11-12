@@ -23,17 +23,17 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "applied_period")
 public class AppliedPeriod implements Serializable {
-
-    public static final String PROPERTY_APPLIED_STRATEGY = "appliedStrategy";
 
     @Id
     @ManyToOne(fetch = FetchType.EAGER)

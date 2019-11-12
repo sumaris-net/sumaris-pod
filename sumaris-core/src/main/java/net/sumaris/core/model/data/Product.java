@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -38,18 +39,9 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 public class Product implements IRootDataEntity<Integer> {
-
-
-    public static final String PROPERTY_OPERATION = "operation";
-    public static final String PROPERTY_LANDING = "landing";
-    public static final String PROPERTY_SALE = "sale";
-    public static final String PROPERTY_BATCH = "batch";
-
-    public static final String PROPERTY_SALE_TYPE = "saleType";
-    public static final String PROPERTY_SORTING_MEASUREMENTS = "sortingMeasurements";
-    public static final String PROPERTY_QUANTIFICATION_MEASUREMENTS = "quantificationMeasurements";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PRODUCT_SEQ")
@@ -123,11 +115,11 @@ public class Product implements IRootDataEntity<Integer> {
 
     /* -- measurements -- */
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ProductSortingMeasurement.class, mappedBy = ProductSortingMeasurement.PROPERTY_PRODUCT)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ProductSortingMeasurement.class, mappedBy = ProductSortingMeasurement.Fields.PRODUCT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ProductSortingMeasurement> sortingMeasurements = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ProductQuantificationMeasurement.class, mappedBy = ProductQuantificationMeasurement.PROPERTY_PRODUCT)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ProductQuantificationMeasurement.class, mappedBy = ProductQuantificationMeasurement.Fields.PRODUCT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ProductQuantificationMeasurement> quantificationMeasurements = new ArrayList<>();
 

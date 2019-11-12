@@ -23,6 +23,7 @@ package net.sumaris.core.model.technical.versionning;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 
@@ -30,6 +31,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "system_version")
 public class SystemVersion implements IUpdateDateEntityBean<Integer, Date> {

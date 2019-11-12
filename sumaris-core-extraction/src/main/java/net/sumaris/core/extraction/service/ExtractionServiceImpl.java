@@ -45,7 +45,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 
@@ -389,7 +388,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         filter.setPreview(true);
 
         // Replace default sort attribute
-        if (IEntity.PROPERTY_ID.equalsIgnoreCase(sort)) {
+        if (IEntity.Fields.ID.equalsIgnoreCase(sort)) {
             sort = null;
         }
 

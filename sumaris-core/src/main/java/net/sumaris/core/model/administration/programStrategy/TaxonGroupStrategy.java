@@ -23,21 +23,17 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "taxon_group_strategy")
 public class TaxonGroupStrategy implements Serializable {
-
-    public static final String PROPERTY_STRATEGY = "strategy";
-    public static final String PROPERTY_TAXON_GROUP = "taxonGroup";
-    public static final String PROPERTY_PRIORITY_LEVEL = "priorityLevel";
 
     @Column(name = "priority_level")
     private Integer priorityLevel;

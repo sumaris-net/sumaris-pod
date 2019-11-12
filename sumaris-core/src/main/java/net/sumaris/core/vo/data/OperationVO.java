@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.MetierVO;
@@ -34,13 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@FieldNameConstants
 public class OperationVO implements IUpdateDateEntityBean<Integer, Date> {
-
-    public static final String PROPERTY_START_DATE_TIME = "startDateTime";
-    public static final String PROPERTY_END_DATE_TIME = "endDateTime";
-    public static final String PROPERTY_RANK_ORDER_ON_PERIOD = "rankOrderOnPeriod";
-    public static final String PROPERTY_TRIP = "trip";
-
 
     private Integer id;
     private Integer rankOrderOnPeriod;

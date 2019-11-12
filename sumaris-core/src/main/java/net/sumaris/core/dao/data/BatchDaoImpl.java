@@ -85,10 +85,10 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         ParameterExpression<Integer> tripIdParam = cb.parameter(Integer.class);
 
-        query.where(cb.equal(root.get(Batch.PROPERTY_OPERATION).get(Batch.PROPERTY_ID), tripIdParam));
+        query.where(cb.equal(root.get(Batch.Fields.OPERATION).get(Batch.Fields.ID), tripIdParam));
 
         // Sort by rank order
-        query.orderBy(cb.asc(root.get(PmfmStrategy.PROPERTY_RANK_ORDER)));
+        query.orderBy(cb.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
 
         return toBatchVOs(getEntityManager().createQuery(query)
                 .setParameter(tripIdParam, operationId).getResultList(), false);
@@ -109,8 +109,8 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         // Remember existing entities
 
-        final Multimap<Integer, Batch> sourcesByHashCode = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.PROPERTY_HASH);
-        final Multimap<String, Batch> sourcesByLabelMap = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.PROPERTY_LABEL);
+        final Multimap<Integer, Batch> sourcesByHashCode = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.Fields.HASH);
+        final Multimap<String, Batch> sourcesByLabelMap = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.Fields.LABEL);
         final Map<Integer, Batch> sourcesIdsToRemove = Beans.splitById(Beans.getList(parent.getBatches()));
 
         // Save each batches

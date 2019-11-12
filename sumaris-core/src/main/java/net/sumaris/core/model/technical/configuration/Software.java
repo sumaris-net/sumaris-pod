@@ -1,6 +1,7 @@
 package net.sumaris.core.model.technical.configuration;
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Cascade;
@@ -11,10 +12,10 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "software")
 public class Software implements IItemReferentialEntity {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SOFTWARE_SEQ")
@@ -39,7 +40,7 @@ public class Software implements IItemReferentialEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @OneToMany(fetch = FetchType.EAGER, targetEntity = SoftwareProperty.class, mappedBy = SoftwareProperty.PROPERTY_SOFTWARE)
+    @OneToMany(fetch = FetchType.EAGER, targetEntity = SoftwareProperty.class, mappedBy = SoftwareProperty.Fields.SOFTWARE)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<SoftwareProperty> properties = new ArrayList<>();
 

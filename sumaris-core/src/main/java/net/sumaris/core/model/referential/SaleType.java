@@ -23,11 +23,13 @@ package net.sumaris.core.model.referential;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "sale_type")
 public class SaleType implements IItemReferentialEntity {

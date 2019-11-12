@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.taxon;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 
@@ -35,6 +36,7 @@ import java.util.Date;
  *
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "taxon_group_historical_record")
 public class TaxonGroupHistoricalRecord implements IUpdateDateEntityBean<Integer, Date> {

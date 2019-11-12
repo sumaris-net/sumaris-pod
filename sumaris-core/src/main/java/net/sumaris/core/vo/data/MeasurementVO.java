@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
@@ -35,14 +36,10 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 public class MeasurementVO implements IUpdateDateEntityBean<Integer, Date>,
         IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
-
-    public static final String PROPERTY_NUMERICAL_VALUE = "numericalValue";
-    public static final String PROPERTY_ALPHANUMERICAL_VALUE = "alphanumericalValue";
-    public static final String PROPERTY_DIGIT_COUNT = "digitCount";
-    public static final String PROPERTY_PRECISION_VALUE = "precisionValue";
 
     private Integer id;
 

@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.PmfmService;
@@ -104,7 +105,7 @@ public class DataGraphQLService {
     public List<VesselFeaturesVO> findVesselsByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
                                                       @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                       @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                      @GraphQLArgument(name = "sortBy", defaultValue = VesselFeaturesVO.PROPERTY_EXTERIOR_MARKING) String sort,
+                                                      @GraphQLArgument(name = "sortBy", defaultValue = VesselFeaturesVO.Fields.EXTERIOR_MARKING) String sort,
                                                       @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
         return vesselService.findByFilter(filter, offset, size, sort,
@@ -117,7 +118,7 @@ public class DataGraphQLService {
     public List<VesselFeaturesVO> getVesselFeaturesHistory(@GraphQLArgument(name = "vesselId") Integer vesselId,
                                                      @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                      @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                     @GraphQLArgument(name = "sortBy", defaultValue = VesselFeaturesVO.PROPERTY_START_DATE) String sort,
+                                                     @GraphQLArgument(name = "sortBy", defaultValue = VesselFeaturesVO.Fields.START_DATE) String sort,
                                                      @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         return vesselService.getByVesselId(vesselId, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
@@ -166,7 +167,7 @@ public class DataGraphQLService {
     public List<TripVO> findTripsByFilter(@GraphQLArgument(name = "filter") TripFilterVO filter,
                                           @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                           @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                          @GraphQLArgument(name = "sortBy", defaultValue = TripVO.PROPERTY_DEPARTURE_DATE_TIME) String sort,
+                                          @GraphQLArgument(name = "sortBy", defaultValue = TripVO.Fields.DEPARTURE_DATE_TIME) String sort,
                                           @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                           @GraphQLEnvironment() Set<String> fields
                                   ) {
@@ -292,7 +293,7 @@ public class DataGraphQLService {
     public List<ObservedLocationVO> findObservedLocationsByFilter(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
                                                                 @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                                 @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                                @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.PROPERTY_START_DATE_TIME) String sort,
+                                                                @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.Fields.START_DATE_TIME) String sort,
                                                                 @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                                                 @GraphQLEnvironment() Set<String> fields
     ) {
@@ -424,7 +425,7 @@ public class DataGraphQLService {
     public List<OperationVO> getOperationsByTripId(@GraphQLArgument(name = "filter") OperationFilterVO filter,
                                                    @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                    @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                   @GraphQLArgument(name = "sortBy", defaultValue = OperationVO.PROPERTY_START_DATE_TIME) String sort,
+                                                   @GraphQLArgument(name = "sortBy", defaultValue = OperationVO.Fields.START_DATE_TIME) String sort,
                                                    @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         Preconditions.checkNotNull(filter, "Missing tripFilter or tripFilter.tripId");
         Preconditions.checkNotNull(filter.getTripId(), "Missing tripFilter or tripFilter.tripId");
@@ -433,7 +434,7 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
     public List<OperationVO> getOperationsByTrip(@GraphQLContext TripVO trip) {
-        return operationService.getAllByTripId(trip.getId(), 0, 100, OperationVO.PROPERTY_START_DATE_TIME, SortDirection.ASC);
+        return operationService.getAllByTripId(trip.getId(), 0, 100, OperationVO.Fields.START_DATE_TIME, SortDirection.ASC);
     }
 
     @GraphQLQuery(name = "operation", description = "Get an operation")
@@ -484,7 +485,7 @@ public class DataGraphQLService {
         if (CollectionUtils.isNotEmpty(operation.getPositions())) {
             return operation.getPositions();
         }
-        return vesselPositionService.getAllByOperationId(operation.getId(), 0, 100, VesselPositionVO.PROPERTY_DATE_TIME, SortDirection.ASC);
+        return vesselPositionService.getAllByOperationId(operation.getId(), 0, 100, VesselPositionVO.Fields.DATE_TIME, SortDirection.ASC);
     }
 
     /* -- Vessel features -- */
@@ -538,7 +539,7 @@ public class DataGraphQLService {
     public List<LandingVO> findAllLandings(@GraphQLArgument(name = "filter") LandingFilterVO filter,
                                            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                           @GraphQLArgument(name = "sortBy", defaultValue = LandingVO.PROPERTY_DATE_TIME) String sort,
+                                           @GraphQLArgument(name = "sortBy", defaultValue = LandingVO.Fields.DATE_TIME) String sort,
                                            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                            @GraphQLEnvironment() Set<String> fields
     ) {
@@ -793,13 +794,13 @@ public class DataGraphQLService {
     }
 
     protected boolean hasImageField(Set<String> fields) {
-        return fields.contains(TripVO.PROPERTY_RECORDER_DEPARTMENT + File.separator + DepartmentVO.PROPERTY_LOGO) ||
-                fields.contains(TripVO.PROPERTY_RECORDER_PERSON + File.separator + PersonVO.PROPERTY_AVATAR);
+        return fields.contains(TripVO.Fields.RECORDER_DEPARTMENT + File.separator + DepartmentVO.Fields.LOGO) ||
+                fields.contains(TripVO.Fields.RECORDER_PERSON + File.separator + PersonVO.Fields.AVATAR);
     }
 
     protected boolean hasVesselFeaturesField(Set<String> fields) {
-        return fields.contains(TripVO.PROPERTY_VESSEL_FEATURES + File.separator + VesselFeaturesVO.PROPERTY_EXTERIOR_MARKING)
-                || fields.contains(TripVO.PROPERTY_VESSEL_FEATURES + File.separator + VesselFeaturesVO.PROPERTY_NAME);
+        return fields.contains(TripVO.Fields.VESSEL_FEATURES + File.separator + VesselFeaturesVO.Fields.EXTERIOR_MARKING)
+                || fields.contains(TripVO.Fields.VESSEL_FEATURES + File.separator + VesselFeaturesVO.Fields.NAME);
     }
 
     protected <T extends IRootDataVO<?>> List<T> fillImages(final List<T> results) {
@@ -860,9 +861,9 @@ public class DataGraphQLService {
 
     protected DataFetchOptions getFetchOptions(Set<String> fields) {
         return DataFetchOptions.builder()
-                .withObservers(fields.contains(IWithObserversEntity.PROPERTY_OBSERVERS + "/" + IDataEntity.PROPERTY_ID))
-                .withRecorderDepartment(fields.contains(IWithRecorderDepartmentEntity.PROPERTY_RECORDER_DEPARTMENT + "/" + IDataEntity.PROPERTY_ID))
-                .withRecorderPerson(fields.contains(IWithRecorderPersonEntity.PROPERTY_RECORDER_PERSON + "/" + IDataEntity.PROPERTY_ID))
+                .withObservers(fields.contains(IWithObserversEntity.Fields.OBSERVERS + "/" + IEntity.Fields.ID))
+                .withRecorderDepartment(fields.contains(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT + "/" + IEntity.Fields.ID))
+                .withRecorderPerson(fields.contains(IWithRecorderPersonEntity.Fields.RECORDER_PERSON + "/" + IEntity.Fields.ID))
                 .build();
     }
 }

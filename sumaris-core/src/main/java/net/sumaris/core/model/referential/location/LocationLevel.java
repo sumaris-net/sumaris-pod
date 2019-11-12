@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.location;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
@@ -31,12 +32,11 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "location_level")
 @Cacheable
 public class LocationLevel implements Serializable, IItemReferentialEntity {
-
-    public static final String PROPERTY_CLASSIFICATION = "locationClassification";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_LEVEL_SEQ")

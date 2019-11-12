@@ -23,18 +23,15 @@ package net.sumaris.core.vo.technical;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.referential.IReferentialVO;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 @Data
+@FieldNameConstants
 public class SoftwareVO implements IReferentialVO {
-
-    public static final String PROPERTY_PROPERTIES = "properties";
 
     private Integer id;
     private String label;

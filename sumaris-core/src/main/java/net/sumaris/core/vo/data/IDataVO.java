@@ -35,13 +35,6 @@ public interface IDataVO<ID extends Serializable>
         IUpdateDateEntityBean<ID, Date>,
         IWithRecorderDepartmentEntity<ID, DepartmentVO> {
 
-
-    String PROPERTY_CONTROL_DATE = "controlDate";
-    String PROPERTY_QUALIFICATION_DATE = "qualificationDate";
-    String PROPERTY_QUALITY_FLAG_ID = "qualityFlagId";
-    String PROPERTY_QUALIFICATION_COMMENTS = "qualificationComments";
-
-
     Date getControlDate();
 
     void setControlDate(Date controlDate);

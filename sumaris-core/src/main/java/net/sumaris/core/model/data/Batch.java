@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
@@ -35,16 +36,9 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 public class Batch implements IDataEntity<Integer> {
-
-    public static final String PROPERTY_RANK_ORDER = "rankOrder";
-    public static final String PROPERTY_LABEL = "label";
-    public static final String PROPERTY_OPERATION = "operation";
-    public static final String PROPERTY_PARENT = "parent";
-    public static final String PROPERTY_SORTING_MEASUREMENTS = "sortingMeasurements";
-    public static final String PROPERTY_QUANTIFICATION_MEASUREMENTS = "quantificationMeasurements";
-    public static final String PROPERTY_HASH = "hash";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "BATCH_SEQ")
@@ -107,7 +101,7 @@ public class Batch implements IDataEntity<Integer> {
 
     /* -- Tree link -- */
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Batch.class, mappedBy = PROPERTY_PARENT)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Batch.class, mappedBy = Fields.PARENT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Batch> children = new ArrayList<>();
 
@@ -120,11 +114,11 @@ public class Batch implements IDataEntity<Integer> {
 
     /* -- measurements -- */
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = BatchSortingMeasurement.class, mappedBy = BatchSortingMeasurement.PROPERTY_BATCH)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = BatchSortingMeasurement.class, mappedBy = BatchSortingMeasurement.Fields.BATCH)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<BatchSortingMeasurement> sortingMeasurements = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = BatchQuantificationMeasurement.class, mappedBy = BatchQuantificationMeasurement.PROPERTY_BATCH)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = BatchQuantificationMeasurement.class, mappedBy = BatchQuantificationMeasurement.Fields.BATCH)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<BatchQuantificationMeasurement> quantificationMeasurements = new ArrayList<>();
 

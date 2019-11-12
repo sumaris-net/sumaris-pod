@@ -86,7 +86,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
 
         ParameterExpression<Integer> tripIdParam = cb.parameter(Integer.class);
 
-        query.where(cb.equal(saleRoot.get(Sale.PROPERTY_TRIP).get(Trip.PROPERTY_ID), tripIdParam));
+        query.where(cb.equal(saleRoot.get(Sale.Fields.TRIP).get(Trip.Fields.ID), tripIdParam));
 
         return toSaleVOs(getEntityManager().createQuery(query)
                 .setParameter(tripIdParam, tripId).getResultList(), false);

@@ -23,8 +23,8 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
-import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -35,12 +35,9 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@FieldNameConstants
 public class VesselFeaturesVO implements IRootDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
-
-    public static final String PROPERTY_START_DATE = VesselFeatures.PROPERTY_START_DATE;
-    public static final String PROPERTY_EXTERIOR_MARKING = VesselFeatures.PROPERTY_EXTERIOR_MARKING;
-    public static final String PROPERTY_NAME = VesselFeatures.PROPERTY_NAME;
 
     private Integer id;
     private String name;

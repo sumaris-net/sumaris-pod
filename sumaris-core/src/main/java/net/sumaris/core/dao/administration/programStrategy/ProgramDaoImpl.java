@@ -115,7 +115,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
         CriteriaQuery<Program> query = builder.createQuery(Program.class);
         Root<Program> root = query.from(Program.class);
 
-        Join<Program, ProgramProperty> upJ = root.join(Program.PROPERTY_PROPERTIES, JoinType.LEFT);
+        Join<Program, ProgramProperty> upJ = root.join(Program.Fields.PROPERTIES, JoinType.LEFT);
 
         ParameterExpression<String> withPropertyParam = builder.parameter(String.class);
         ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
@@ -127,18 +127,18 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
                                 // property
                                 builder.or(
                                         builder.isNull(withPropertyParam),
-                                        builder.equal(upJ.get(ProgramProperty.PROPERTY_LABEL), withPropertyParam)
+                                        builder.equal(upJ.get(ProgramProperty.Fields.LABEL), withPropertyParam)
                                 ),
                                 // status Ids
                                 builder.or(
                                         builder.isNull(statusIdsParam),
-                                        root.get(Program.PROPERTY_STATUS).get(IReferentialEntity.PROPERTY_ID).in(statusIdsParam)
+                                        root.get(Program.Fields.STATUS).get(IReferentialEntity.Fields.ID).in(statusIdsParam)
                                 ),
                                 // search text
                                 builder.or(
                                         builder.isNull(searchTextParam),
-                                        builder.like(builder.upper(root.get(Program.PROPERTY_LABEL)), builder.upper(searchTextParam)),
-                                        builder.like(builder.upper(root.get(Program.PROPERTY_NAME)), builder.upper(searchTextParam))
+                                        builder.like(builder.upper(root.get(Program.Fields.LABEL)), builder.upper(searchTextParam)),
+                                        builder.like(builder.upper(root.get(Program.Fields.NAME)), builder.upper(searchTextParam))
                                 )
                         ));
 
@@ -185,7 +185,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
         ParameterExpression<String> labelParam = builder.parameter(String.class);
 
         query.select(root)
-                .where(builder.equal(root.get(Program.PROPERTY_LABEL), labelParam));
+                .where(builder.equal(root.get(Program.Fields.LABEL), labelParam));
 
         TypedQuery<Program> q = getEntityManager().createQuery(query)
                 .setParameter(labelParam, label);
@@ -271,19 +271,19 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
 
         ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
 
-        Join<Gear, Strategy> gearInnerJoin = root.joinList(Gear.PROPERTY_STRATEGIES, JoinType.INNER);
+        Join<Gear, Strategy> gearInnerJoin = root.joinList(Gear.Fields.STRATEGIES, JoinType.INNER);
 
         query.select(root)
                 .where(
                         builder.and(
                                 // program
-                                builder.equal(gearInnerJoin.get(Strategy.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam),
+                                builder.equal(gearInnerJoin.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
                                 // Status (temporary or valid)
-                                builder.in(root.get(Gear.PROPERTY_STATUS).get(Status.PROPERTY_ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+                                builder.in(root.get(Gear.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
                         ));
 
         // Sort by rank order
-        query.orderBy(builder.asc(root.get(Gear.PROPERTY_LABEL)));
+        query.orderBy(builder.asc(root.get(Gear.Fields.LABEL)));
 
         return getEntityManager()
                 .createQuery(query)
@@ -301,21 +301,21 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
 
         ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
 
-        Join<TaxonGroup, TaxonGroupStrategy> innerJoinTGS = root.joinList(TaxonGroup.PROPERTY_STRATEGIES, JoinType.INNER);
-        Join<TaxonGroupStrategy, Strategy> innerJoinS = innerJoinTGS.join(TaxonGroupStrategy.PROPERTY_STRATEGY, JoinType.INNER);
+        Join<TaxonGroup, TaxonGroupStrategy> innerJoinTGS = root.joinList(TaxonGroup.Fields.STRATEGIES, JoinType.INNER);
+        Join<TaxonGroupStrategy, Strategy> innerJoinS = innerJoinTGS.join(TaxonGroupStrategy.Fields.STRATEGY, JoinType.INNER);
 
 
         query.select(root)
                 .where(
                         builder.and(
                                 // program
-                                builder.equal(innerJoinS.get(Strategy.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam),
+                                builder.equal(innerJoinS.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
                                 // Status (temporary or valid)
-                                builder.in(root.get(TaxonGroup.PROPERTY_STATUS).get(Status.PROPERTY_ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+                                builder.in(root.get(TaxonGroup.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
                         ));
 
         // Sort by rank order
-        query.orderBy(builder.asc(root.get(TaxonGroup.PROPERTY_LABEL)));
+        query.orderBy(builder.asc(root.get(TaxonGroup.Fields.LABEL)));
 
         return getEntityManager()
                 .createQuery(query)
@@ -403,7 +403,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
         else {
             Map<String, ProgramProperty> existingProperties = Beans.splitByProperty(
                     Beans.getList(parent.getProperties()),
-                    ProgramProperty.PROPERTY_LABEL);
+                    ProgramProperty.Fields.LABEL);
             final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
             if (parent.getProperties() == null) {
                 parent.setProperties(Lists.newArrayList());

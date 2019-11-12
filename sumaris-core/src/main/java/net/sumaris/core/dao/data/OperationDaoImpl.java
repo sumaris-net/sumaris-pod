@@ -95,7 +95,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
         ParameterExpression<Integer> operationIdParam = builder.parameter(Integer.class);
 
         query.select(root)
-            .where(builder.equal(root.get(Operation.PROPERTY_TRIP).get(IReferentialEntity.PROPERTY_ID), operationIdParam));
+            .where(builder.equal(root.get(Operation.Fields.TRIP).get(IReferentialEntity.Fields.ID), operationIdParam));
 
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {

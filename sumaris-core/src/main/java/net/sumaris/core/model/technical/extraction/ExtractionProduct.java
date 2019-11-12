@@ -23,6 +23,7 @@ package net.sumaris.core.model.technical.extraction;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
@@ -37,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 @Cacheable
 @Table(name = "extraction_product")
@@ -87,11 +89,11 @@ public class ExtractionProduct implements IItemReferentialEntity,
     @JoinColumn(name = "parent_extraction_product_fk")
     private ExtractionProduct parent;
 
-    @OneToMany(fetch = FetchType.EAGER, targetEntity = ExtractionProductStrata.class, mappedBy = ExtractionProductStrata.PROPERTY_PRODUCT)
+    @OneToMany(fetch = FetchType.EAGER, targetEntity = ExtractionProductStrata.class, mappedBy = ExtractionProductStrata.Fields.PRODUCT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ExtractionProductStrata> stratum;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductTable.class, mappedBy = ExtractionProductTable.PROPERTY_PRODUCT)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductTable.class, mappedBy = ExtractionProductTable.Fields.PRODUCT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ExtractionProductTable> tables = new ArrayList<>();
 

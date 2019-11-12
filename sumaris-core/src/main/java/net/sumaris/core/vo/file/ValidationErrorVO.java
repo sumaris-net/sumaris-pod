@@ -24,12 +24,13 @@ package net.sumaris.core.vo.file;
 
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.ErrorType;
-import net.sumaris.core.vo.IValueObject;
 
 import java.io.Serializable;
 
 @Data
+@FieldNameConstants
 public class ValidationErrorVO implements Serializable {
 
 	protected String errorCode;
