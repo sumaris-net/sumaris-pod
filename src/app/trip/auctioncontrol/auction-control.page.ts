@@ -1,18 +1,15 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
-import {EntityUtils, isNil, isNotNil, LocationLevelIds, PmfmIds, PmfmStrategy} from "../../referential/services/model";
+import {ValidatorService} from "angular4-material-table";
+import {EntityUtils, isNotNil, LocationLevelIds, PmfmIds} from "../../referential/services/model";
 import {LandingPage} from "../landing/landing.page";
 import {LandingValidatorService} from "../services/landing.validator";
 import {debounceTime, filter, map, mergeMap, startWith, switchMap} from "rxjs/operators";
 import {from, Subscription} from "rxjs";
 import {Landing} from "../services/model/landing.model";
-import {Sample} from "../services/model/sample.model";
 import {AuctionControlValidators} from "../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
-import {SampleModal} from "../sample/sample.modal";
-import * as moment from "moment";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
-import {FormGroup} from "@angular/forms";
+import {fadeInOutAnimation} from "../../shared/shared.module";
 
 @Component({
   selector: 'app-auction-control',
@@ -21,6 +18,7 @@ import {FormGroup} from "@angular/forms";
   providers: [
     {provide: ValidatorService, useExisting: LandingValidatorService}
   ],
+  animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuctionControlPage extends LandingPage implements OnInit {
@@ -40,9 +38,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
     // Default location levels ids
     this.landingForm.locationLevelIds = [LocationLevelIds.AUCTION];
-    this.landingForm.showLocation = false;
-    this.landingForm.showDateTime = false;
-    this.landingForm.showObservers = false;
 
     // Configure sample table
     this.samplesTable.inlineEdition = !this.mobile;
@@ -100,6 +95,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
           this.markForCheck();
         })
     );
+
+    this.markForCheck();
   }
 
   onStartSampleEditingForm({form, pmfms}) {
@@ -109,7 +106,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     }
 
     // Add computation and validation
-    this._rowValidatorSubscription = AuctionControlValidators.addSampleValidators(form, pmfms);
+    this._rowValidatorSubscription = AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 
   protected async onEntityLoaded(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -117,6 +114,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
     // Send landing date time to sample tables, but leave empty if FIELD mode (= will use current date)
     this.samplesTable.defaultSampleDate = this.isOnFieldMode ? undefined : data.dateTime;
+    this.landingForm.showLocation = false;
+    this.landingForm.showDateTime = false;
+    this.landingForm.showObservers = false;
+    this.markForCheck();
   }
 
   // protected async getValue(): Promise<Landing> {

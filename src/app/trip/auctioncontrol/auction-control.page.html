@@ -48,7 +48,7 @@
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab label="{{'LANDING.TAB_SAMPLES'|translate}}" [disabled]="isNewData">
+    <mat-tab label="{{'LANDING.TAB_SAMPLES'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="flag"></ion-icon>
@@ -106,3 +106,12 @@
 
   </form-buttons-bar>
 </ion-footer>
+
+
+<ion-fab slot="fixed" vertical="bottom" horizontal="end"
+         *ngIf="selectedTabIndex === 1" @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

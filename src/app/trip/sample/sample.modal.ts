@@ -104,7 +104,7 @@ export class SampleModal implements OnInit {
 
     // Add callback
     this.ready().then(() => {
-      this.onReady && this.onReady(this);
+      if (this.onReady) this.onReady(this);
       this.markForCheck();
     });
   }

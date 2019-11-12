@@ -1,13 +1,14 @@
 import {FormGroup, ValidationErrors, Validators} from "@angular/forms";
 import {Subject, Subscription} from "rxjs";
-import {debounceTime, filter, map, tap} from "rxjs/operators";
+import {debounceTime, filter, map, startWith, tap} from "rxjs/operators";
 import {PmfmIds, PmfmStrategy} from "../../../referential/services/model";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {isNotNilOrBlank} from "../../../shared/functions";
 
 export class AuctionControlValidators {
 
-  static addSampleValidators(form: FormGroup, pmfms: PmfmStrategy[]): Subscription {
+  static addSampleValidators(form: FormGroup, pmfms: PmfmStrategy[],
+                             opts?: { markForCheck: () => void }): Subscription {
 
     // Label: remove 'required', and add integer
     form.get('label').setValidators([Validators.pattern(/^[0-9]*$/)]);
@@ -24,15 +25,18 @@ export class AuctionControlValidators {
     let computing = false;
     const subscription = form.valueChanges
       .pipe(
+        startWith(form.value),
         filter(() => !computing),
         // Protected against loop
         tap(() => computing = true),
         debounceTime(250),
-        map(() => AuctionControlValidators.computeAndValidate(form, pmfms, {emitEvent: false, onlySelf: false}))
-      ).subscribe((errors) => {
-        computing = false;
-        $errors.next(errors);
-      });
+        map(() => AuctionControlValidators.computeAndValidate(form, pmfms, {emitEvent: false, onlySelf: false})),
+        tap(errors => {
+          computing = false;
+          $errors.next(errors);
+        })
+      )
+      .subscribe();
 
     // When unsubscribe, remove async validator
     subscription.add(() => {

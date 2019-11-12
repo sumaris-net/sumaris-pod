@@ -76,6 +76,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   @Input() showLabelColumn = false;
   @Input() showCommentsColumn = true;
   @Input() showDateTimeColumn = true;
+  @Input() showFabButton = false;
 
   @Input()
   set showTaxonGroupColumn(value: boolean) {

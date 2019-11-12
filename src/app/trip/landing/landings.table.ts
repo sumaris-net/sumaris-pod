@@ -32,6 +32,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   @Input() canEdit = true;
   @Input() canDelete = true;
+  @Input() showFabButton = false;
 
   @Input()
   set showObserversColumn(value: boolean) {

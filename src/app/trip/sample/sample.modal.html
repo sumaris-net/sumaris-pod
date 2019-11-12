@@ -14,9 +14,8 @@
     <ion-buttons slot="end" >
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <!-- [disabled]="invalid" -->
       <ion-button *ngIf="!loading" (click)="close($event)"
-
+                  [disabled]="invalid"
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
@@ -33,9 +32,8 @@
                   [program]="program"
                   [showTaxonGroup]="showTaxonGroup"
                   [showTaxonName]="showTaxonName"
-                  (onSubmit)="close($event)"
-                  (onInitForm)="onInitForm && onInitForm($event)"
-  ></app-sample-form>
+                  (onSubmit)="close($event)">
+  </app-sample-form>
 
 </ion-content>
 

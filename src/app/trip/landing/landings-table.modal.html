@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="secondary">
     <ion-buttons slot="start">
       <ion-button (click)="cancel()"
                   visible-xs visible-sm visible-mobile>
@@ -12,7 +12,7 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-button *ngIf="!table.loading" (click)="close($event)"
+      <ion-button *ngIf="!table.loading && hasSelection()" (click)="close($event)"
                   visible-xs visible-sm visible-mobile>
         <ion-icon name="checkmark"></ion-icon>
       </ion-button>
@@ -31,6 +31,7 @@
                      [showObserversColumn]="false"
                      [showDateTimeColumn]="true"
                      [canEdit]="false"
+                     [canDelete]="false"
                      (onOpenRow)="selectRow($event)"
                      (onNewRow)="close($event)"
   ></app-landing-table>
