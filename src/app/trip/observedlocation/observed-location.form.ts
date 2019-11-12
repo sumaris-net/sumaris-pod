@@ -119,8 +119,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
           debounceTime(250),
           filter(EntityUtils.isNotEmpty),
           pluck('label'),
-          distinctUntilChanged(),
-          tap((p) => console.log("TODO: progrm changed: " + p))
+          distinctUntilChanged()
         )
         .subscribe(programLabel => this.program = programLabel));
 
@@ -146,14 +145,14 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     });
   }
 
-  public setValue(value: ObservedLocation) {
+  setValue(value: ObservedLocation) {
     if (!value) return;
 
     // Make sure to have (at least) one observer
     value.observers = value.observers && value.observers.length ? value.observers : [null];
 
     // Resize observers array
-    this.observersHelper.resize(Math.min(1, value.observers.length));
+    this.observersHelper.resize(Math.max(1, value.observers.length));
 
     // Propagate the program
     if (value.program && value.program.label) {

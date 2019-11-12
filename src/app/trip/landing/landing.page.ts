@@ -18,6 +18,7 @@ import {filter, throttleTime} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {VesselService} from "../../referential/services/vessel-service";
+import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'app-landing-page',
@@ -32,6 +33,9 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
   protected tripService: TripService;
   protected referentialRefService: ReferentialRefService;
   protected vesselService: VesselService;
+  protected platform: PlatformService;
+
+  mobile: boolean;
 
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
@@ -48,8 +52,10 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.vesselService = injector.get(VesselService);
+    this.platform = injector.get(PlatformService);
     this.idAttribute = 'landingId';
 
+    this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -122,7 +128,7 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
 
     this.parent = await this.loadParent(data);
 
-    // COpy not fetched data
+    // Copy not fetched data
     if (this.parent) {
       data.program = EntityUtils.isNotEmpty(data.program) && data.program || this.parent.program;
       data.observers = isNotEmptyArray(data.observers) && data.observers || this.parent.observers;
@@ -171,12 +177,10 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
 
   protected async setValue(data: Landing): Promise<void> {
 
-
     const isNew = isNil(data.id);
     if (!isNew) {
       this.programSubject.next(data.program.label);
     }
-
 
     this.landingForm.program = data.program.label;
     this.landingForm.value = data;

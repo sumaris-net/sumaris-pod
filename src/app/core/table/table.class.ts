@@ -29,6 +29,12 @@ export const DEFAULT_PAGE_SIZE = 20;
 export const RESERVED_START_COLUMNS = ['select', 'id'];
 export const RESERVED_END_COLUMNS = ['actions'];
 
+export class CellValueChangeListener {
+  eventEmitter: EventEmitter<any>;
+  subscription: Subscription;
+  formPath?: string;
+}
+
 export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, OnDestroy, AfterViewInit {
 
   private _initialized = false;
@@ -36,11 +42,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   private _dataSourceSubscription: Subscription;
 
   private _cellValueChangesDefs: {
-    [key: string]: {
-      eventEmitter: EventEmitter<any>;
-      subscription: Subscription,
-      formPath?: string;
-    }
+    [key: string]: CellValueChangeListener
   } = {};
 
   protected _enable = true;
@@ -85,11 +87,11 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: true}) sort: MatSort;
 
-  @Output()
-  onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>();
+  @Output() onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>();
 
-  @Output()
-  onNewRow: EventEmitter<void> = new EventEmitter<void>();
+  @Output() onNewRow: EventEmitter<void> = new EventEmitter<void>();
+
+  @Output() onStartEditingRow = new EventEmitter<TableElement<T>>();
 
   get $loading(): Observable<boolean> {
     return this.dataSource.loadingSubject;
@@ -336,7 +338,14 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       if (event) event.stopPropagation();
       // confirmation edition or creation
       if (!row.confirmEditCreate()) {
-        if (this.debug) console.warn("[table] Row not valid: unable to confirm", row);
+        // If pending, wait end of validation, then loop
+        if (row.validator && row.validator.pending) {
+          AppFormUtils.waitWhilePending(row.validator)
+            .then(() => this.confirmEditCreate(event, row));
+        }
+        else {
+          if (this.debug) console.warn("[table] Row not valid: unable to confirm", row);
+        }
         return false;
       }
       // If edit finished, forget edited row
@@ -483,7 +492,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       this.dataSource.startEdit(row);
     }
     this.editedRow = row;
-    this.startListenRow(row);
+    this.onStartEditingRow.emit(row);
     this._dirty = true;
     return true;
   }
@@ -595,7 +604,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     await modal.present();
 
     // On dismiss
-    const res = await modal.onDidDismiss()
+    const res = await modal.onDidDismiss();
     if (!res) return; // CANCELLED
 
     // Apply columns
@@ -635,8 +644,8 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     this.focusFirstColumn = true;
     await this.dataSource.asyncCreateNew();
     this.editedRow = this.dataSource.getRow(-1);
-    // Listen row value changes
-    this.startListenRow(this.editedRow);
+    // Emit start editing event
+    this.onStartEditingRow.emit(this.editedRow);
     this._dirty = true;
     this.resultsLength++;
     this.markForCheck();
@@ -662,13 +671,6 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     }
   }
 
-  /**
-   * Can be overwrite by subclasses
-   **/
-  protected startListenRow(row: TableElement<T>) {
-    // Can be overwrite by subclasses
-  }
-
   protected registerCellValueChanges(name: string, formPath?: string): Observable<any> {
     formPath = formPath || name;
     if (this.debug) console.debug(`[table] New listener {${name}} for value changes on path ${formPath}`);
@@ -677,6 +679,10 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       subscription: null,
       formPath: formPath
     };
+
+    // Start the listener, when editing starts
+    this.registerSubscription(
+      this.onStartEditingRow.subscribe(row => this.startCellValueChanges(name, row)));
 
     return this._cellValueChangesDefs[name].eventEmitter;
   }

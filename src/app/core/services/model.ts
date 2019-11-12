@@ -11,6 +11,7 @@ import {
 } from "../../shared/shared.module";
 import {noTrailingSlash} from "../../shared/functions";
 import {FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
+import {FocusableElement} from "../../shared/material/focusable";
 
 export {
   joinPropertiesPath,
@@ -261,6 +262,10 @@ export abstract class Entity<T> implements Cloneable<T> {
 
 export class EntityUtils {
   static isNotEmpty(obj: any | Entity<any>): boolean {
+    return !!obj && obj['id'];
+  }
+
+  static isNotEmptyEntity<T extends Entity<any>>(obj: any | Entity<any>): obj is T {
     return !!obj && obj['id'];
   }
 

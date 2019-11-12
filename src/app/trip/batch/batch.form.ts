@@ -77,10 +77,6 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
 
-  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
-    super.disable(opts);
-  }
-
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
     super.enable(opts);
 

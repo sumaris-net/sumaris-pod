@@ -1,6 +1,6 @@
 import {OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
-import {MatTabChangeEvent} from "@angular/material";
+import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
 import {Entity} from '../services/model';
 import {AlertController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
@@ -16,6 +16,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   private _forms: AppForm<any>[];
   private _tables: AppTable<any, any>[];
   private _subscription = new Subscription();
+  protected _enabled = false;
 
   debug = false;
   data: T;
@@ -23,13 +24,13 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   submitted = false;
   error: string;
   loading = true;
-  enabled = false;
   queryParams: {
     tab?: number;
     subtab?: number;
     [key: string]: any
   };
 
+  @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
   @ViewChild(ToolbarComponent, { static: true }) appToolbar: ToolbarComponent;
   @ViewChild(FormButtonsBarComponent, { static: true }) formButtonsBar: FormButtonsBarComponent;
 
@@ -57,6 +58,14 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     return (this._forms && !!this._forms.find(form => form.pending)) || (this._tables && !!this._tables.find(table => table.pending));
   }
 
+  get enabled(): boolean {
+    return this._enabled;
+  }
+
+  get disabled(): boolean {
+    return !this._enabled;
+  }
+
   protected get tables(): AppTable<any, any>[] {
     return this._tables;
   }
@@ -71,20 +80,19 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   }
 
   ngOnInit() {
-    // Listen route parameters
-
+    // Read route query parameters
     const queryParams = this.route.snapshot.queryParams;
 
     // Copy original queryParams, for reuse in onTabChange()
     this.queryParams = Object.assign({}, queryParams);
 
-    // Parse tab
+    // Parse tab param
     const tabIndex = queryParams["tab"];
     this.queryParams.tab = tabIndex && parseInt(tabIndex) || undefined;
-
     if (isNotNil(this.queryParams.tab)) {
       this.selectedTabIndex = this.queryParams.tab;
     }
+    if (this.tabGroup) this.tabGroup.realignInkBar();
 
     // Catch back click events
     if (this.appToolbar) {
@@ -130,14 +138,14 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   }
 
   disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    this.enabled = false;
+    this._enabled = false;
     this._forms && this._forms.forEach(form => form.disable(opts));
     this._tables && this._tables.forEach(table => table.disable(opts));
     if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
   }
 
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    this.enabled = true;
+    this._enabled = true;
     this._forms && this._forms.forEach(form => form.enable(opts));
     this._tables && this._tables.forEach(table => table.enable(opts));
     if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();

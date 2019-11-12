@@ -5,7 +5,9 @@
 
 <ion-content>
 
-  <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+  <mat-tab-group #tabGroup
+                 [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
+                 animationDuration="0s">
 
     <!-- TAB: general -->
     <mat-tab label="{{'LANDING.TAB_GENERAL'|translate}}">
@@ -30,6 +32,7 @@
             <!-- landing form-->
             <app-landing-form #landingForm
                               [showError]="false"
+                              [showMeasurements]="false"
                               [debug]="debug"
                               (onSubmit)="save($event)">
             </app-landing-form>
@@ -50,11 +53,21 @@
         <mat-icon>
           <ion-icon matPrefix slot="start" name="flag"></ion-icon>
         </mat-icon>
-        <ion-label translate>LANDING.TAB_SAMPLES</ion-label>
+        <ion-label translate>AUCTION_CONTROL.TAB_SAMPLES</ion-label>
         <ion-icon slot="end" name="alert" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
       <div class="ion-no-padding">
+
+        <form [formGroup]="landingForm.form"
+              class="form-container ion-padding-start ion-padding-top">
+          <!-- pmfms -->
+          <mat-form-field-measurement *ngFor="let pmfm of landingForm.$pmfms | async; index as i;"
+                                      [pmfm]="pmfm"
+                                      [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                      [tabindex]="50 + i*2">
+          </mat-form-field-measurement>
+        </form>
 
         <!-- error -->
         <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
@@ -62,16 +75,17 @@
           <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
         </ion-item>
 
-        <app-sample-auction-control-table #samplesTable
-                                          [program]="programSubject|async"
-                                          [showLabelColumn]="true"
-                                          [showDateTimeColumn]="false"
-                                          [showTaxonNameColumn]="false"
-                                          [showTaxonGroupColumn]="false"
-                                          [defaultSampleDate]="data?.dateTime"
-                                          [usageMode]="usageMode"
-                                          [debug]="debug"></app-sample-auction-control-table>
-
+        <app-samples-table #samplesTable
+                           [program]="programSubject|async"
+                           [showLabelColumn]="true"
+                           [showDateTimeColumn]="false"
+                           [showTaxonNameColumn]="false"
+                           [showTaxonGroupColumn]="false"
+                           [defaultSampleDate]="data?.dateTime"
+                           [usageMode]="usageMode"
+                           (onInitForm)="onStartSampleEditingForm($event)"
+                           [debug]="debug">
+        </app-samples-table>
       </div>
     </mat-tab>
 

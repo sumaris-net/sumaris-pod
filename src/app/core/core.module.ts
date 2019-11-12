@@ -69,7 +69,7 @@ import {SettingsPage} from "./settings/settings.page";
 import {LocalSettingsValidatorService} from "./services/local-settings.validator";
 import {LocalSettingsService} from "./services/local-settings.service";
 import {AppEditorPage} from "./form/editor-page.class";
-import {EntityStorage} from "./services/local-entities-repository.service";
+import {EntityStorage} from "./services/entities-storage.service";
 
 export {
   environment,

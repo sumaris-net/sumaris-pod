@@ -461,6 +461,12 @@
       }
     },
     "SAMPLE": {
+      "NEW": {
+        "TITLE": "Nouvel échantillon"
+      },
+      "EDIT": {
+        "TITLE": "Echantillon {{label}}"
+      },
       "TABLE": {
         "LABEL": "Lot",
         "LABEL_PLACEHOLDER": "Lot",
@@ -553,7 +559,6 @@
   },
   "LANDING": {
     "TAB_GENERAL": "Détails",
-    "TAB_SAMPLES": "Points de contrôle",
     "PROGRAM": "Programme",
     "VESSEL": "Navire",
     "LANDING": "Débarquement :",
@@ -584,6 +589,18 @@
       "SAVE_ERROR": "Erreur de sauvegarde du navire observé",
       "SAVE_ALL_ERROR": "Erreur de sauvegarde des navires observés",
       "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé."
+    }
+  },
+  "AUCTION_CONTROL": {
+    "TAB_SAMPLES": "Points de contrôle",
+    "TAXON_GROUP_PLACEHOLDER": "Espèce controllée",
+    "SAMPLE": {
+      "NEW": {
+        "TITLE": "Nouveau lot controlé"
+      },
+      "EDIT": {
+        "TITLE": "Lot controlé {{label}}"
+      }
     }
   },
   "QUALITY": {
@@ -938,6 +955,7 @@
     "FIELD_NOT_VALID_DATE_TIME": "Date/heure invalide",
     "FIELD_NOT_VALID_LATITUDE": "Latitude invalide",
     "FIELD_NOT_VALID_LONGITUDE": "Longitude invalide",
+    "FIELD_NOT_VALID_PATTERN": "Format incorrect",
     "FIELD_NOT_VALID_PUBKEY": "Clé publique invalide",
     "FIELD_NOT_UNIQUE": "Valeur déjà utilisée",
     "SPACE_NOT_ALLOW": "Espaces ou caractères spéciaux non autorisés",

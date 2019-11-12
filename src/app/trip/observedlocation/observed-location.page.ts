@@ -13,6 +13,7 @@ import {ModalController} from "@ionic/angular";
 import {LandingsTablesModal} from "../landing/landings-table.modal";
 import {environment} from "../../core/core.module";
 import {HistoryPageReference} from "../../core/services/model";
+import {MatTabGroup} from "@angular/material";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -81,7 +82,9 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
   }
 
   protected async onEntityLoaded(data: ObservedLocation, options?: EditorDataServiceLoadOptions): Promise<void> {
-    // nothing to do
+    // Move to second tab
+    this.selectedTabIndex = 1;
+    this.tabGroup.realignInkBar();
   }
 
   protected setValue(data: ObservedLocation) {
@@ -137,7 +140,10 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
     if (landing && landing.vesselFeatures) {
       const savedOrContinue = await this.saveIfDirtyAndConfirm();
       if (savedOrContinue) {
-        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselFeatures.vesselId}`);
+
+        const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
+
+        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselFeatures.vesselId}&rankOrder=${rankOrder}`);
       }
     }
 

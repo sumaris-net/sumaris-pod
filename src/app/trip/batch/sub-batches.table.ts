@@ -217,7 +217,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     if (this.inlineEdition) { // can be override bu subclasses
 
-      // Listening on column 'DISCARD_OR_LANDING' value changes
+      // Create listener on column 'DISCARD_OR_LANDING' value changes
       this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
         .subscribe((value) => {
           if (!this.editedRow) return; // Should never occur
@@ -660,13 +660,6 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     columnName = columnName && columnName === 'parent' && this.displayParentPmfm ? this.displayParentPmfm.pmfmId.toString() : columnName;
 
     return super.getI18nColumnName(columnName);
-  }
-
-  /**
-   * Can be overwrite by subclasses
-   **/
-  protected startListenRow(row: TableElement<Batch>) {
-    this.startCellValueChanges('discard', row);
   }
 
   protected linkDataToParent(data: Batch[]) {

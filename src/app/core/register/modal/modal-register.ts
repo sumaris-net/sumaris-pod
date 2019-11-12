@@ -9,7 +9,7 @@ import { RegisterForm } from '../form/form-register';
 })
 export class RegisterModal {
 
-  sending: boolean = false;
+  sending = false;
 
   @ViewChild('form', { static: true }) private form: RegisterForm;
 

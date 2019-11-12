@@ -62,7 +62,7 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
     this.label = source.label;
     this.name = source.name;
     this.statusId = source.statusId;
-    this.entityName = source.entityName || 'TaxonName';
+    this.entityName = source.entityName || 'TaxonNameVO';
     this.referenceTaxonId = source.referenceTaxonId;
     return this;
   }
@@ -117,7 +117,7 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef> implements IReferential
     this.label = source.label;
     this.name = source.name;
     this.statusId = source.statusId;
-    this.entityName = source.entityName;
+    this.entityName = source.entityName || 'TaxonGroupVO';
     this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameRef.fromObject) || [];
     return this;
   }

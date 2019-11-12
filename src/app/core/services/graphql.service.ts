@@ -22,7 +22,7 @@ import SerializingLink from 'apollo-link-serialize';
 import loggerLink from 'apollo-link-logger';
 import {Platform} from "@ionic/angular";
 import {EntityUtils} from "./model";
-import {EntityStorage} from "./local-entities-repository.service";
+import {EntityStorage} from "./entities-storage.service";
 import {DataProxy} from 'apollo-cache';
 import {isNotNil} from "../../shared/functions";
 

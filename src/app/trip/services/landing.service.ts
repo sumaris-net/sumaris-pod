@@ -42,6 +42,7 @@ export const LandingFragments = {
     validationDate
     qualificationDate
     comments
+    rankOrder
     observedLocationId
     tripId
     vesselFeatures {
@@ -191,6 +192,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
         map(res => {
           const data = (res && res.landings || []).map(Landing.fromObject);
           const total = res && res.landingCount || 0;
+
           if (this._debug) {
             if (now) {
               console.debug(`[landing-service] Loaded {${data.length || 0}} landings in ${Date.now() - now}ms`, data);
