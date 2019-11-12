@@ -36,7 +36,7 @@ export const VesselFragments = {
     endDate
     name
     exteriorMarking
-    registrationCode  
+    registrationCode
     administrativePower
     lengthOverAll
     grossTonnageGt
@@ -160,7 +160,7 @@ export class VesselService
       size: size || 100,
       sortBy: sortBy || 'exteriorMarking',
       sortDirection: sortDirection || 'asc',
-      filter: {
+      filter: filter && {
         date: filter.date,
         vesselId: filter.vesselId,
         searchText: filter.searchText,
