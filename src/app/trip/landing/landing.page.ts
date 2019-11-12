@@ -88,6 +88,7 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
   }
 
   protected async onNewEntity(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
+
     if (this.isOnFieldMode) {
       data.dateTime = moment();
     }
@@ -99,6 +100,7 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
 
     // Copy from parent into the new object
     if (this.parent) {
+      const queryParams = this.route.snapshot.queryParams;
       data.program = this.parent.program;
       data.observers = this.parent.observers;
       if (this.parent instanceof ObservedLocation) {
@@ -107,7 +109,6 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
         data.tripId = undefined;
 
         // Load the vessel, if any
-        const queryParams = this.route.snapshot.queryParams;
         if (isNotNil(queryParams['vessel'])) {
           const vesselId = +queryParams['vessel'];
           console.debug(`[landing-page] Loading vessel {${vesselId}}...`);
@@ -121,7 +122,16 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
         data.dateTime = this.parent.returnDateTime || this.parent.departureDateTime;
         data.observedLocationId = undefined;
       }
+
+      // Set rankOrder
+      if (isNotNil(queryParams['rankOrder'])) {
+        data.rankOrder = +queryParams['rankOrder'];
+      }
+      else {
+        data.rankOrder = 1;
+      }
     }
+
   }
 
   protected async onEntityLoaded(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -186,6 +196,10 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
     this.landingForm.value = data;
 
     this.samplesTable.value = data.samples || [];
+  }
+
+  updateView(data: Landing | null) {
+    super.updateView(data);
 
     if (this.parent) {
       if (this.parent instanceof ObservedLocation) {
@@ -217,7 +231,6 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
       this.landingForm.showDateTime = true;
       this.landingForm.showObservers = true;
     }
-
   }
 
   protected async computeTitle(data: Landing): Promise<string> {

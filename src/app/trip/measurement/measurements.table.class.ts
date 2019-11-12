@@ -47,7 +47,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   protected formBuilder: FormBuilder;
 
   measurementValuesFormGroupConfig: { [key: string]: any };
-  hasRankOrder = false;
+  readonly hasRankOrder: boolean;
 
   @Input()
   set program(value: string) {

@@ -19,6 +19,7 @@ import {
   EntityUtils,
   GearLevelIds,
   getPmfmName,
+  LocationLevelIds,
   Person,
   PmfmIds,
   PmfmLabelPatterns,
@@ -50,7 +51,7 @@ export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
   Referential, ReferentialRef, EntityUtils, Department, Person,
   VesselFeatures, PmfmStrategy, PmfmUtils, QualityFlagIds,
-  GearLevelIds, TaxonGroupIds, AcquisitionLevelCodes, StatusIds, PmfmIds, QualitativeLabels, TaxonomicLevelIds,
+  GearLevelIds, TaxonGroupIds, LocationLevelIds, AcquisitionLevelCodes, StatusIds, PmfmIds, QualitativeLabels, TaxonomicLevelIds,
   ReferentialFragments, PmfmLabelPatterns,
   entityToString, referentialToString, qualityFlagToColor,
   vesselFeaturesToString, getPmfmName

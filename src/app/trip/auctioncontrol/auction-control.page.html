@@ -59,8 +59,8 @@
 
       <div class="ion-no-padding">
 
-        <form [formGroup]="landingForm.form"
-              class="form-container ion-padding-start ion-padding-top">
+        <form [formGroup]="landingForm.form" class="form-container ion-padding">
+
           <!-- pmfms -->
           <mat-form-field-measurement *ngFor="let pmfm of landingForm.$pmfms | async; index as i;"
                                       [pmfm]="pmfm"
@@ -76,6 +76,7 @@
         </ion-item>
 
         <app-samples-table #samplesTable
+                           [class.hidden]="!samplesTable.defaultTaxonGroup"
                            [program]="programSubject|async"
                            [showLabelColumn]="true"
                            [showDateTimeColumn]="false"

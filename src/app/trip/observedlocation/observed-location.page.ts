@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@
 import {fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
-import {EntityUtils, Landing, ObservedLocation} from "../services/trip.model";
+import {EntityUtils, Landing, ObservedLocation, Trip} from "../services/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
 import {LandingEditor, ProgramProperties} from "../../referential/services/model";
@@ -13,7 +13,6 @@ import {ModalController} from "@ionic/angular";
 import {LandingsTablesModal} from "../landing/landings-table.modal";
 import {environment} from "../../core/core.module";
 import {HistoryPageReference} from "../../core/services/model";
-import {MatTabGroup} from "@angular/material";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -100,7 +99,7 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
 
     // Propagate parent to landings table
     if (this.landingsTable && data) {
-      if (this.debug) console.debug("[observed-location] Sending program to landings table");
+      if (this.debug) console.debug("[observed-location] Propagate observed location to landings table");
       this.landingsTable.setParent(data);
     }
   }
@@ -135,18 +134,28 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
 
   async onNewLanding(event?: any) {
 
-    const landing = await this.openVesselSelectionModal();
+    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+      // If on field mode: try to save silently
+      ? this.save(event)
+      // If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm();
 
-    if (landing && landing.vesselFeatures) {
-      const savedOrContinue = await this.saveIfDirtyAndConfirm();
-      if (savedOrContinue) {
+    const savedOrContinue = await savePromise;
+    if (savedOrContinue) {
+      this.loading = true;
+      this.markForCheck();
 
-        const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
-
-        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselFeatures.vesselId}&rankOrder=${rankOrder}`);
+      try {
+        const landing = await this.openVesselSelectionModal();
+        if (landing && landing.vesselFeatures) {
+          const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
+          await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselFeatures.vesselId}&rankOrder=${rankOrder}`);
+        }
+      } finally {
+        this.loading = false;
+        this.markForCheck();
       }
     }
-
   }
 
   /* -- protected methods -- */

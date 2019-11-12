@@ -74,7 +74,7 @@
       <ion-label *ngIf="!loading">#</ion-label>
       <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData.rankOrder }}</mat-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData.rankOrder || row.currentData.id }}</mat-cell>
   </ng-container>
 
   <!-- Vessel Column -->
@@ -136,9 +136,10 @@
     </mat-cell>
   </ng-container>
 
-  <mat-header-row *matHeaderRowDef="displayedColumns" [class.disabled]="disabled"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-           [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing" (click)="clickRow($event, row)"></mat-row>
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;"
+           class="mat-row-disabled"
+           (click)="clickRow($event, row)"></mat-row>
 
 </mat-table>
 

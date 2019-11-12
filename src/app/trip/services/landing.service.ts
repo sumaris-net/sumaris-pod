@@ -12,12 +12,14 @@ import gql from "graphql-tag";
 import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {map, throttleTime} from "rxjs/operators";
-import {isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
+import {fromDateISOString, isNil, isNilOrBlank, isNotNil, isNotNilOrNaN} from "../../shared/functions";
 import {RootDataService} from "./root-data-service.class";
 import {TripFilter} from "./trip.service";
 import {Sample} from "./model/sample.model";
 import {EntityUtils} from "../../core/services/model";
 import {DataRootEntityUtils} from "./model/base.model";
+import {WatchQueryFetchPolicy} from "apollo-client";
+import {Operation} from "./model/trip.model";
 
 
 export class LandingFilter extends TripFilter {
@@ -150,6 +152,11 @@ const UpdateSubscription = gql`
   ${LandingFragments.landing}
 `;
 
+
+const sortByDateFn = (n1: Landing, n2: Landing) => {
+  return n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
+};
+
 @Injectable({providedIn: 'root'})
 export class LandingService extends RootDataService<Landing, LandingFilter>
   implements TableDataService<Landing, LandingFilter>, EditorDataService<Landing, LandingFilter> {
@@ -165,7 +172,10 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
 
   watchAll(offset: number, size: number,
            sortBy?: string, sortDirection?: string,
-           filter?: LandingFilter, options?: any): Observable<LoadResult<Landing>> {
+           filter?: LandingFilter,
+           options?: {
+              fetchPolicy?: WatchQueryFetchPolicy
+           }): Observable<LoadResult<Landing>> {
 
     const variables: any = {
       offset: offset || 0,
@@ -175,7 +185,14 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       filter: filter
     };
 
-    this._lastVariables.loadAll = variables;
+    // Save filter if load for a tables
+    // This is need to update cache, when save new entity (see save())
+    if (filter && (isNotNil(filter.observedLocationId) || isNotNil(filter.tripId))) {
+      this._lastVariables.loadByParent = variables;
+    }
+    else {
+      this._lastVariables.loadAll = variables;
+    }
 
     let now;
     if (this._debug) {
@@ -185,10 +202,11 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     return this.graphql.watchQuery<{ landings: Landing[]; landingCount: number }>({
       query: LoadAllQuery,
       variables: variables,
-      error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"}
+      error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
+      fetchPolicy: options && options.fetchPolicy || undefined
     })
       .pipe(
-        throttleTime(200),
+        throttleTime(200), // avoid multiple call
         map(res => {
           const data = (res && res.landings || []).map(Landing.fromObject);
           const total = res && res.landingCount || 0;
@@ -201,6 +219,25 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
               console.debug(`[landing-service] Refreshed {${data.length || 0}} landings`);
             }
           }
+
+          // Compute rankOrder, by tripId or observedLocationId
+          if (filter && (isNotNil(filter.tripId) || isNotNil(filter.observedLocationId))) {
+            let rankOrder = 1;
+            // apply a sorted copy (do NOT change original order), then compute rankOrder
+            data.slice().sort(sortByDateFn)
+              .forEach(o => o.rankOrder = rankOrder++);
+
+            // sort by rankOrderOnPeriod (aka id)
+            if (!sortBy || sortBy === 'rankOrder') {
+              const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+              data.sort((a, b) => {
+                const valueA = a.rankOrder;
+                const valueB = b.rankOrder;
+                return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+              });
+            }
+          }
+
           return {
             data: data,
             total: total
@@ -282,11 +319,16 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
           this.copyIdAndUpdateDate(savedEntity, entity);
 
           // Add to cache
-          if (isNew && this._lastVariables.loadAll) {
-            this.graphql.addToQueryCache(proxy, {
-              query: LoadAllQuery,
-              variables: this._lastVariables.loadAll
-            }, 'landings', savedEntity);
+          if (isNew) {
+            Object.keys(this._lastVariables)
+              .map(name => this._lastVariables[name])
+              .filter(variables => this.applyFilter(variables.filter, savedEntity))
+              .forEach(variables => {
+                this.graphql.addToQueryCache(proxy, {
+                  query: LoadAllQuery,
+                  variables: variables
+                }, 'landings', savedEntity);
+              });
           }
         }
       }
@@ -318,13 +360,15 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
 
         if (this._debug) console.debug(`[landing-service] Landings deleted in ${Date.now() - now}ms`);
 
-        // Update the cache
-        if (this._lastVariables.loadAll) {
-          this.graphql.removeToQueryCacheByIds(proxy,{
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'landings', ids);
-        }
+        // Remove from cache
+        Object.keys(this._lastVariables)
+          .map(name => this._lastVariables[name])
+          .forEach(variables => {
+            this.graphql.removeToQueryCacheByIds(proxy,{
+              query: LoadAllQuery,
+              variables: variables
+            }, 'landings', ids);
+          });
       }
     });
 
@@ -408,5 +452,23 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
         }
       });
     }
+  }
+
+  applyFilter(filter: LandingFilter, source: Landing): boolean {
+    return !filter ||
+      // Filter by parent
+      (isNotNil(filter.observedLocationId) && filter.observedLocationId === source.observedLocationId) ||
+      (isNotNil(filter.tripId) && filter.tripId === source.tripId) ||
+      // Filter by search criteria
+      (
+        // Program
+        (!filter.programLabel || filter.programLabel === source.program.label) &&
+        // Location
+        (isNil(filter.locationId) || (source.location && filter.locationId === source.location.id)) &&
+        // start date
+        (!filter.startDate || (source.dateTime && fromDateISOString(source.dateTime).isSameOrAfter(filter.startDate))) &&
+        // end date
+        (!filter.endDate || (source.dateTime && fromDateISOString(source.dateTime).isSameOrBefore(filter.endDate)))
+      );
   }
 }

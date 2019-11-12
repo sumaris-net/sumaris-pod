@@ -70,7 +70,9 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.i18nColumnPrefix = 'LANDING.TABLE.';
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = false;
+    this.confirmBeforeDelete = true;
     this._enable = this.canEdit;
+    this.pageSize = 1000; // Do not use paginator
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;

@@ -1,27 +1,18 @@
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, EventEmitter,
+  Component,
+  EventEmitter,
   Injector,
   Input,
   OnDestroy,
   OnInit,
   Output
 } from "@angular/core";
-import {Observable} from 'rxjs';
-import {debounceTime, switchMap, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
-import {
-  getPmfmName,
-  Landing,
-  Operation,
-  PhysicalGear, PmfmStrategy,
-  referentialToString,
-  Sample,
-  TaxonGroupIds
-} from "../services/trip.model";
-import {AcquisitionLevelCodes, ReferentialRefService, TaxonomicLevelIds} from "../../referential/referential.module";
+import {getPmfmName, PmfmStrategy, referentialToString, Sample} from "../services/trip.model";
+import {AcquisitionLevelCodes, ReferentialRefService} from "../../referential/referential.module";
 import {SampleValidatorService} from "../services/sample.validator";
 import {isNilOrBlank, isNotNil} from "../../shared/shared.module";
 import {UsageMode} from "../../core/services/model";
@@ -29,10 +20,9 @@ import * as moment from "moment";
 import {Moment} from "moment";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {PhysicalGearModal} from "../physicalgear/physicalgear.modal";
 import {SampleModal} from "./sample.modal";
-import {AuctionControlValidators} from "../services/validator/auction-control.validators";
 import {FormGroup} from "@angular/forms";
+import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
 
 export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
 export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -208,12 +198,12 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     // Taxon group
     if (isNotNil(this.defaultTaxonName)) {
-      data.taxonName = ReferentialRef.fromObject(this.defaultTaxonName);
+      data.taxonName = TaxonNameRef.fromObject(this.defaultTaxonName);
     }
 
     // Default taxon group
     if (isNotNil(this.defaultTaxonGroup)) {
-      data.taxonGroup = ReferentialRef.fromObject(this.defaultTaxonGroup);
+      data.taxonGroup = TaxonGroupRef.fromObject(this.defaultTaxonGroup);
     }
   }
 
@@ -305,7 +295,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   referentialToString = referentialToString;
   getPmfmColumnHeader = getPmfmName;
 
-  protected markForCheck() {
+  public markForCheck() {
     this.cd.markForCheck();
   }
 }

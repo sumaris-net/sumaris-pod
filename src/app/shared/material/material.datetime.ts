@@ -397,7 +397,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
   }
 
   public openTimePicker(event: UIEvent) {
-    if (this.timePicker) {
+    if (this.timePicker && !event.defaultPrevented) {
       this.preventEvent(event);
       this.timePicker.open();
     }

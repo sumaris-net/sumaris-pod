@@ -1,6 +1,6 @@
 import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
-import {EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
+import {EntityUtils, fillRankOrder, isNil, Trip} from "./trip.model";
 import {
   EditorDataService,
   isNilOrBlank,
@@ -20,7 +20,6 @@ import {GraphqlService} from "../../core/services/graphql.service";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {RootDataService} from "./root-data-service.class";
 import {DataRootEntityUtils} from "./model/base.model";
-import {reject} from "async";
 import {NetworkService} from "../../core/services/network.service";
 import {Observable} from "rxjs";
 

@@ -53,6 +53,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
             return taxonGroupPmfm;
           }),
           mergeMap((taxonGroupPmfm) => {
+            console.log('TODO: check taxon group pmfm:', taxonGroupPmfm)
             // Load program taxon groups
             return from(this.programService.loadTaxonGroups(this.landingForm.program))
               .pipe(
@@ -66,6 +67,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
                       if (!tg) return null;
                       // Replace the QV name, using the taxon group name
                       qv.name = tg.name;
+                      qv.entityName = tg.entityName || 'QualitativeValue';
                       return qv;
                     })
                     .filter(isNotNil);
@@ -90,13 +92,16 @@ export class AuctionControlPage extends LandingPage implements OnInit {
         )
         .subscribe(taxonGroup => {
           console.debug('[control] Changing taxon group to:', taxonGroup);
+          if (taxonGroup && !taxonGroup.entityName) {
+            console.warn('[control] Settings manually entityName of taxon group:', taxonGroup);
+            taxonGroup.entityName = 'TaxonGroup';
+          }
           this.samplesTable.defaultTaxonGroup = taxonGroup;
           this.samplesTable.showTaxonGroupColumn = EntityUtils.isEmpty(taxonGroup);
-          this.markForCheck();
+          this.samplesTable.program = this.data.program && this.data.program.label;
+          this.samplesTable.markForCheck();
         })
     );
-
-    this.markForCheck();
   }
 
   onStartSampleEditingForm({form, pmfms}) {
@@ -109,15 +114,41 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this._rowValidatorSubscription = AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 
+  protected async onNewEntity(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
+
+    await super.onNewEntity(data, options);
+
+    // if vessel given in query params
+    if (this.route.snapshot.queryParams['vessel']) {
+
+      // Open the second tab
+      this.selectedTabIndex = 1;
+      this.tabGroup.realignInkBar();
+    }
+  }
+
   protected async onEntityLoaded(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
     await super.onEntityLoaded(data, options);
 
     // Send landing date time to sample tables, but leave empty if FIELD mode (= will use current date)
     this.samplesTable.defaultSampleDate = this.isOnFieldMode ? undefined : data.dateTime;
+
+    // Always open the second tab, when existing entity
+    this.selectedTabIndex = 1;
+    this.tabGroup.realignInkBar();
+
+    this.markForCheck();
+  }
+
+  updateView(data: Landing | null) {
+    super.updateView(data);
+
+    // Configure landing form
     this.landingForm.showLocation = false;
     this.landingForm.showDateTime = false;
     this.landingForm.showObservers = false;
-    this.markForCheck();
+
+
   }
 
   // protected async getValue(): Promise<Landing> {

@@ -131,25 +131,25 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
       .then(() => this.loading = false);
   }
 
-  onNewOperation(event?: any) {
+  async onNewOperation(event?: any) {
     const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
       // If on field mode: try to save silently
       ? this.save(event)
       // If desktop mode: ask before save
       : this.saveIfDirtyAndConfirm();
 
-    savePromise.then(savedOrContinue => {
-      if (savedOrContinue) {
-        this.loading = true;
-        this.markForCheck();
-        return this.router.navigateByUrl(`/trips/${this.data.id}/operations/new`);
+    const savedOrContinue = await savePromise;
+    if (savedOrContinue) {
+      this.loading = true;
+      this.markForCheck();
+      try {
+        await this.router.navigateByUrl(`/trips/${this.data.id}/operations/new`);
       }
-    })
-      .then(() => {
+      finally {
         this.loading = false;
         this.markForCheck();
-      })
-    ;
+      }
+    }
   }
 
   /* -- protected methods -- */

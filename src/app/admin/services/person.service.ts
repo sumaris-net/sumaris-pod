@@ -8,6 +8,7 @@ import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {EntityUtils, StatusIds} from "../../core/services/model";
+import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 //import {environment} from "../../../environments/environment";
 
 export const PersonFragments = {
@@ -67,14 +68,12 @@ const DeletePersons: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class PersonService extends BaseDataService implements TableDataService<Person, PersonFilter>, DataService<Person, PersonFilter> {
+export class PersonService extends BaseDataService<Person, PersonFilter> implements TableDataService<Person, PersonFilter>, DataService<Person, PersonFilter> {
 
   constructor(
     protected graphql: GraphqlService
   ) {
     super(graphql);
-
-    console.debug('::: PersonService constructor');
 
     // for DEV only -----
     //this._debug = !environment.production;
@@ -93,7 +92,10 @@ export class PersonService extends BaseDataService implements TableDataService<P
     size: number,
     sortBy?: string,
     sortDirection?: string,
-    filter?: PersonFilter
+    filter?: PersonFilter,
+    options?: {
+      fetchPolicy?: WatchQueryFetchPolicy
+    }
   ): Observable<LoadResult<Person>> {
 
     const variables = {
@@ -111,7 +113,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
-      fetchPolicy: 'network-only'
+      fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
     })
       .pipe(
         map(({persons, personsCount}) => {
@@ -123,7 +125,9 @@ export class PersonService extends BaseDataService implements TableDataService<P
       );
   }
 
-  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: string, filter?: PersonFilter, options?: any): Promise<LoadResult<Person>> {
+  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: string, filter?: PersonFilter, options?: {
+    fetchPolicy?: FetchPolicy
+  }): Promise<LoadResult<Person>> {
     const variables = {
       offset: offset || 0,
       size: size || 100,
@@ -139,7 +143,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
-      fetchPolicy: 'network-only'
+      fetchPolicy: (options && options.fetchPolicy || 'network-only')
     });
 
     const data = res && res.persons;

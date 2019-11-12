@@ -53,13 +53,6 @@ export const DefaultStatusList: StatusValue[] = [
   }
 ];
 
-export const LocationLevelIds = {
-  COUNTRY: 1,
-  PORT: 2,
-  AUCTION: 3
-};
-
-
 export const Locales: LocaleConfig[] = [
   {
     id: 'fr',
@@ -266,11 +259,11 @@ export class EntityUtils {
   }
 
   static isNotEmptyEntity<T extends Entity<any>>(obj: any | Entity<any>): obj is T {
-    return !!obj && obj['id'];
+    return !!obj && obj['id'] !== null && obj['id'] !== undefined;
   }
 
   static isEmpty(obj: any | Entity<any>): boolean {
-    return !obj || !obj['id'];
+    return !obj || obj['id'] === null || obj['id'] === undefined;
   }
 
   static getPropertyByPath(obj: any | Entity<any>, path: string): any {

@@ -71,12 +71,14 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     source.location && this.location.fromObject(source.location);
     this.rankOrder = source.rankOrder;
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    this.observedLocationId = source.observedLocationId;
-    this.tripId = source.tripId;
     this.measurementValues = source.measurementValues;
     if (this.measurementValues === undefined) {
       console.warn("Source as no measurementValues. Should never occur ! ", source);
     }
+
+    // Parent link
+    this.observedLocationId = source.observedLocationId;
+    this.tripId = source.tripId;
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;

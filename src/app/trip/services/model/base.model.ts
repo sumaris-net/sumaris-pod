@@ -5,7 +5,6 @@ import {
   fromDateISOString,
   isNil,
   isNotNil,
-  LocationLevelIds,
   personsToString,
   personToString,
   referentialToString,
@@ -23,6 +22,7 @@ import {
   Referential,
   ReferentialRef,
   TaxonGroupIds,
+  LocationLevelIds,
   AcquisitionLevelCodes,
   VesselFeatures,
   vesselFeaturesToString

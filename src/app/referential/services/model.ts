@@ -20,9 +20,10 @@ import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/fie
 import {PropertiesMap} from "../../core/services/model";
 import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 
+// TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 6,
+  PORT: 2,
   AUCTION: 3
 };
 

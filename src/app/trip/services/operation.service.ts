@@ -13,7 +13,7 @@ import {
   Sample,
   VesselPosition
 } from "./trip.model";
-import {map} from "rxjs/operators";
+import {map, throttleTime} from "rxjs/operators";
 import {LoadResult, TableDataService, toBoolean} from "../../shared/shared.module";
 import {BaseDataService, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
@@ -210,6 +210,7 @@ export class OperationService extends BaseDataService implements TableDataServic
       fetchPolicy: options && options.fetchPolicy || undefined
     })
       .pipe(
+        throttleTime(200), // avoid multiple call
         map((res) => {
           const data = (res && res.operations || []).map(Operation.fromObject);
           if (this._debug) console.debug(`[operation-service] Loaded ${data.length} operations`);
@@ -222,7 +223,7 @@ export class OperationService extends BaseDataService implements TableDataServic
               .forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
 
             // sort by rankOrderOnPeriod (aka id)
-            if (!sortBy || sortBy == 'id') {
+            if (!sortBy || sortBy === 'id') {
               const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
               data.sort((a, b) => {
                 const valueA = a.rankOrderOnPeriod;

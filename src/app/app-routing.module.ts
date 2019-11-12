@@ -199,14 +199,14 @@ const routes: Routes = [
   {
     path: 'observations',
     canActivate: [AuthGuardService],
+    data: {
+      profile: 'USER'
+    },
     children: [
       {
         path: '',
         pathMatch: 'full',
-        component: ObservedLocationsPage,
-        data: {
-          profile: 'USER'
-        }
+        component: ObservedLocationsPage
       },
       {
         path: ':observedLocationId',
