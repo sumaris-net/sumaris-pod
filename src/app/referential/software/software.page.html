@@ -1,4 +1,4 @@
-<app-toolbar [title]="'MENU.SERVER_SETTINGS' | translate" color="primary" [canGoBack]="false"
+<app-toolbar [title]="$title|async" color="primary" [canGoBack]="false"
              [hasValidate]="!loading && dirty" (onValidate)="save($event)">
 </app-toolbar>
 

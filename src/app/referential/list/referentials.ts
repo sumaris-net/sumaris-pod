@@ -15,6 +15,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {sort, DefaultStatusList} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {isNotNilOrBlank} from "../../shared/functions";
 
 
 const DEFAULT_ENTITY_NAME = "Location";
@@ -43,7 +44,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   canOpenDetail = false;
   detailsPath = {
     'Program': '/referential/program/:id',
-    'Software': '/referential/software/:id'
+    'Software': '/referential/software/:id?label=:label'
   };
 
   constructor(
@@ -262,8 +263,14 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   async openRow(id: number, row: TableElement<Referential>): Promise<boolean> {
     const path = this.detailsPath[this.entityName];
 
-    if (path && isNotNil(row.currentData.id)) {
-      await this.router.navigateByUrl(path.replace(':id', row.currentData.id.toString()));
+    if (isNotNilOrBlank(path)) {
+      await this.router.navigateByUrl(
+        path
+          // Replace the id in the path
+          .replace(':id', isNotNil(row.currentData.id) ? row.currentData.id.toString() : '')
+          // Replace the label in the path
+          .replace(':label', row.currentData.label || '')
+      );
       return true;
     }
 

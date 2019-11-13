@@ -93,6 +93,12 @@
     "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
     "BTN_ADD_PROPERTY": "Ajouter une option",
+    "NEW": {
+      "TITLE": "Nouvelle configuration"
+    },
+    "EDIT": {
+      "TITLE": "Configuration {{label}}"
+    },
     "OPTIONS": {
       "LOGO": "Menu > Logo (largeur max 110px)",
       "FAVICON": "favicon",

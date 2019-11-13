@@ -28,7 +28,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   protected settings: LocalSettingsService;
   protected idAttribute = 'id';
 
-  title = new Subject<string>();
+  $title = new Subject<string>();
   saving = false;
   defaultBackHref: string;
   onRefresh = new EventEmitter<any>();
@@ -329,7 +329,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   protected async updateTitle(data?: T) {
     data = data || this.data;
     const title = await this.computeTitle(data);
-    this.title.next(title);
+    this.$title.next(title);
 
     // If NOT data, then add to page history
     if (!this.isNewData) {

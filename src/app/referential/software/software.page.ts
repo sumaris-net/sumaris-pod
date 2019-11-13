@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, OnInit} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, Subject} from 'rxjs';
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {ConfigOptions, Configuration, Department, EntityUtils, StatusIds, DefaultStatusList} from '../../core/services/model';
 import {DateAdapter} from "@angular/material";
@@ -8,8 +8,10 @@ import {Moment} from "moment";
 import {AppFormUtils, FormArrayHelper} from "../../core/form/form.utils";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 import {PlatformService} from "../../core/services/platform.service";
-import {AppForm, ConfigValidatorService, isNil} from "../../core/core.module";
+import {AppForm, ConfigValidatorService, isNil, isNotNil} from "../../core/core.module";
 import {ConfigService} from "../../core/services/config.service";
+import {toInt, trimEmptyToNull} from "../../shared/functions";
+import {TranslateService} from "@ngx-translate/core";
 
 
 @Component({
@@ -26,6 +28,7 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
   loading = true;
   partners = new BehaviorSubject<Department[]>(null);
   data: Configuration;
+  $title = new Subject<string>();
   statusList = DefaultStatusList;
   statusById;
   propertyDefinitions: FormFieldDefinition[] = Object.getOwnPropertyNames(ConfigOptions).map(name => ConfigOptions[name]);
@@ -37,6 +40,10 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
     return this.form.get('properties') as FormArray;
   }
 
+  get isNewData(): boolean {
+    return !this.data || isNil(this.data.id);
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected route: ActivatedRoute,
@@ -44,7 +51,8 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
     protected service: ConfigService,
     protected validator: ConfigValidatorService,
     protected formBuilder: FormBuilder,
-    protected platform: PlatformService
+    protected platform: PlatformService,
+    protected translate: TranslateService
       ) {
     super(dateAdapter, validator.getFormGroup());
 
@@ -78,13 +86,23 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
     this.loading = true;
     let data;
 
+    // Load by label is any
+    const id = toInt(this.route.snapshot.params['id']);
+    const label = trimEmptyToNull(this.route.snapshot.queryParams['label']);
+
     // Get data
     try {
-      data = await this.service.load({fetchPolicy: "network-only"});
+      data = await this.service.load(label, {fetchPolicy: "network-only"});
+
+      // Check if load [id + label] are those existing in the URL
+      if (isNotNil(label) && data && data.id !== id) {
+        throw new Error('Invalid configuration load. Expected id=' + id + ' but found ' + data.id);
+      }
     }
     catch (err) {
       this.error = err && err.message || err;
       console.error(err);
+      this.loading = false;
       return;
     }
 
@@ -104,6 +122,8 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
 
     this.setValue(json, {emitEvent: false});
     this.markAsPristine();
+
+    this.computeTitle();
 
     this.partners.next(json.partners);
     this.loading = false;
@@ -167,6 +187,15 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
 
   removePartner(icon: String){
     console.log("remove Icon " + icon);
+  }
+
+  async computeTitle() {
+    if (this.isNewData) {
+      this.$title.next(await this.translate.get('CONFIGURATION.NEW.TITLE').toPromise());
+    }
+    else {
+      this.$title.next(await this.translate.get('CONFIGURATION.EDIT.TITLE', this.data).toPromise());
+    }
   }
 
   async cancel() {

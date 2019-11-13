@@ -44,8 +44,8 @@ export const Fragments = {
 };
 
 const LoadQuery: any = gql`
-query Configuration {
-  configuration{
+query Configuration($software: String) {
+  configuration(software: $software){
     ...ConfigFragment
   }
 }
@@ -129,7 +129,16 @@ export class ConfigService extends BaseDataService {
     this.start();
   }
 
-  async load(options?: {
+  async loadDefault(
+    options?: {
+      fetchPolicy?: FetchPolicy
+    }): Promise<Configuration> {
+    return this.load(null, options);
+  }
+
+  async load(
+    label?: string,
+    options?: {
     fetchPolicy?: FetchPolicy
   }): Promise<Configuration> {
 
@@ -138,12 +147,14 @@ export class ConfigService extends BaseDataService {
 
     const res = await this.graphql.query<{ configuration: Configuration }>({
       query: LoadQuery,
-      variables: {},
+      variables: {
+        software: label
+      },
       error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || undefined
+      fetchPolicy: options && options.fetchPolicy || undefined/*default*/
     });
 
-    const data = res && res.configuration && Configuration.fromObject(res && res.configuration);
+    const data = res && res.configuration ? Configuration.fromObject(res.configuration) : undefined;
     console.info(`[config] Remote configuration loaded in ${Date.now() - now}ms:`, data);
     return data;
   }
@@ -178,7 +189,7 @@ export class ConfigService extends BaseDataService {
 
     console.debug("[config] Configuration saved!");
 
-    const reloadedConfig = await this.load({fetchPolicy: "network-only"});
+    const reloadedConfig = await this.load(config.label,{ fetchPolicy: "network-only" });
     this.$data.next(reloadedConfig); // emit
 
     return reloadedConfig;
@@ -189,7 +200,7 @@ export class ConfigService extends BaseDataService {
   private async loadOrRestoreLocally() {
     let data;
     try {
-      data = await this.load({fetchPolicy: "network-only"});
+      data = await this.loadDefault({ fetchPolicy: "network-only" });
 
       if (data) {
         // Save it into local storage, for next startup

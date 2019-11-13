@@ -13,7 +13,7 @@
     <button mat-menu-item
             *ngFor="let item of $typesMap.live | async"
             (click)="setType(item)">
-      <ion-label>
+      <ion-label class="ion-text-wrap">
         <ion-icon name="eye-off" *ngIf="item.statusId===2"></ion-icon>&nbsp;
         <span>{{item.name}}</span>
       </ion-label>
@@ -27,7 +27,7 @@
     <button mat-menu-item
             *ngFor="let item of $typesMap.product | async"
             (click)="setType(item)">
-      <ion-label>
+      <ion-label class="ion-text-wrap">
         <ion-icon name="eye-off" *ngIf="item.statusId===2"></ion-icon>&nbsp;
         <span>{{item.name}}</span>
       </ion-label>
@@ -46,12 +46,12 @@
 
   <mat-toolbar>
     <mat-toolbar-row>
-      <ion-button color="secondary" *ngIf="type" [matMenuTriggerFor]="selectTypeMenu" class="select-type-button">
+      <ion-button size="small" color="secondary" *ngIf="type" [matMenuTriggerFor]="selectTypeMenu">
         <div slot="start">
           <ion-icon name="globe" *ngIf="type.isSpatial" ></ion-icon>
           <ion-icon name="eye-off" *ngIf="type.statusId==2"></ion-icon>&nbsp;
         </div>
-        <ion-label>{{type.name}}</ion-label>
+        <ion-label class="ion-text-wrap">{{type.name}}</ion-label>
         <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
       </ion-button>
 
@@ -94,6 +94,7 @@
       <span class="toolbar-spacer"></span>
 
       <ion-button [matMenuTriggerFor]="aggregateMenu"
+                  size="small"
                   color="light"
                   *ngIf="!type?.isSpatial"
                   [title]="'EXTRACTION.BTN_AGGREGATE_HELP'|translate">
