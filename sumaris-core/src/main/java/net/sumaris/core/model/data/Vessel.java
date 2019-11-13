@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
@@ -99,14 +100,17 @@ public class Vessel implements IRootDataEntity<Integer> {
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselFeatures.class, mappedBy = VesselFeatures.Fields.VESSEL)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @ToString.Exclude
     private List<VesselFeatures> vesselFeatures = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselRegistrationPeriod.class, mappedBy = VesselRegistrationPeriod.Fields.VESSEL)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @ToString.Exclude
     private List<VesselRegistrationPeriod> vesselRegistrationPeriods = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselOwnerPeriod.class, mappedBy = VesselOwnerPeriod.Fields.VESSEL)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @ToString.Exclude
     private List<VesselOwnerPeriod> vesselOwnerPeriods = new ArrayList<>();
 
 }

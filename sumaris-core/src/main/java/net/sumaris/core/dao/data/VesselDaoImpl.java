@@ -42,6 +42,7 @@ import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselRegistrationVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -281,7 +282,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             entity = get(VesselFeatures.class, source.getId());
         }
         boolean isNew = entity == null;
-        boolean closeLastFeature = !isNew && entity.getStartDate() != source.getStartDate();
+        boolean closeLastFeature = !isNew && !DateUtils.isSameDay(entity.getStartDate(), source.getStartDate());
 
         // if this feature have to be closed
         if (closeLastFeature) {
@@ -421,9 +422,12 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         }
 
         target.setVesselId(source.getVessel().getId());
-        target.setVesselTypeId(source.getVessel().getVesselType().getId());
         target.setVesselStatusId(source.getVessel().getStatus().getId());
         target.setQualityFlagId(source.getQualityFlag().getId());
+
+        // Vessel type
+        ReferentialVO vesselType = referentialDao.toReferentialVO(source.getVessel().getVesselType());
+        target.setVesselType(vesselType);
 
         // base port location
         LocationVO basePortLocation = locationDao.toLocationVO(source.getBasePortLocation());
@@ -519,15 +523,16 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
     protected void vesselFeaturesVOToVesselEntity(VesselFeaturesVO source, Vessel target, boolean copyIfNull) {
 
-        copyRootDataProperties(source, target, copyIfNull);
+        // Copy properties from root EXCEPT id
+        copyRootDataProperties(source, target, copyIfNull, VesselFeatures.Fields.ID);
 
         // Vessel type
-        if (copyIfNull || source.getVesselTypeId() != null) {
-            if (source.getVesselTypeId() == null) {
+        if (copyIfNull || source.getVesselType() != null) {
+            if (source.getVesselType() == null) {
                 target.setVesselType(null);
             }
             else {
-                target.setVesselType(load(VesselType.class, source.getVesselTypeId()));
+                target.setVesselType(load(VesselType.class, source.getVesselType().getId()));
             }
         }
 

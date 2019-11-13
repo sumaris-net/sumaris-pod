@@ -29,6 +29,7 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
 import java.util.List;
@@ -70,7 +71,7 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
 
     // From parent Entity
     private Integer vesselId;
-    private Integer vesselTypeId;
+    private ReferentialVO vesselType;
     private Integer vesselStatusId;
 
 }

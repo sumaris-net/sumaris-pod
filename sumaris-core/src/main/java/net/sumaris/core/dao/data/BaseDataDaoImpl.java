@@ -32,7 +32,18 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
     public <T extends Serializable> void copyRootDataProperties(IRootDataVO<T> source,
                                                                 IRootDataEntity<T> target,
                                                                 boolean copyIfNull) {
-        copyDataProperties(source, target, copyIfNull);
+
+        // Copy root data properties without exception
+        copyRootDataProperties(source, target, copyIfNull, (String) null);
+    }
+
+    public <T extends Serializable> void copyRootDataProperties(IRootDataVO<T> source,
+                                                                IRootDataEntity<T> target,
+                                                                boolean copyIfNull,
+                                                                String... exceptProperties) {
+
+        // Copy data properties except some properties if specified
+        copyDataProperties(source, target, copyIfNull, exceptProperties);
 
         // Recorder person
         copyRecorderPerson(source, target, copyIfNull);
@@ -45,7 +56,17 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
                                                             IDataEntity<T> target,
                                                             boolean copyIfNull) {
 
-        Beans.copyProperties(source, target);
+        // Copy data properties without exception
+        copyDataProperties(source, target, copyIfNull, (String) null);
+    }
+
+    public <T extends Serializable> void copyDataProperties(IDataVO<T> source,
+                                                            IDataEntity<T> target,
+                                                            boolean copyIfNull,
+                                                            String... exceptProperties) {
+
+        // Copy bean properties except some properties if specified
+        Beans.copyProperties(source, target, exceptProperties);
 
         // Recorder department
         copyRecorderDepartment(source, target, copyIfNull);

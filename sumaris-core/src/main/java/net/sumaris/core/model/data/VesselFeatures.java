@@ -26,8 +26,8 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.location.Location;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
