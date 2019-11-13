@@ -433,7 +433,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     if (this.loading || this.selection.isEmpty()) return;
 
     if (this.confirmBeforeDelete && !confirm) {
-      confirm = await this.askDeleteConfirmation()
+      confirm = await this.askDeleteConfirmation();
       if (!confirm) return; // user cancelled
       return await this.deleteSelection(true); // Loop with confirmation
     }
