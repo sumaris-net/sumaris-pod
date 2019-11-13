@@ -84,13 +84,15 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
 
   async load() {
     this.loading = true;
-    let data;
 
-    // Load by label is any
+    // Get the id, from the route path
     const id = toInt(this.route.snapshot.params['id']);
+
+    // Read the label, if given as query param
     const label = trimEmptyToNull(this.route.snapshot.queryParams['label']);
 
     // Get data
+    let data;
     try {
       data = await this.service.load(label, {fetchPolicy: "network-only"});
 
