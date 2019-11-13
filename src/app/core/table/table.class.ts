@@ -428,37 +428,12 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     }
   }
 
-  async deleteSelection(confirm?: boolean): Promise<void> {
+  async deleteSelection(): Promise<void> {
     if (!this._enable) return;
     if (this.loading || this.selection.isEmpty()) return;
 
-    if (this.confirmBeforeDelete && !confirm) {
-      const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE_IMMEDIATE', 'CONFIRM.ALERT_HEADER']);
-      const alert = await this.alertCtrl.create({
-        header: translations['CONFIRM.ALERT_HEADER'],
-        message: translations['CONFIRM.DELETE_IMMEDIATE'],
-        buttons: [
-          {
-            text: translations['COMMON.NO'],
-            role: 'cancel',
-            cssClass: 'secondary',
-            handler: () => {
-            }
-          },
-          {
-            text: translations['COMMON.YES'],
-            handler: () => {
-              confirm = true; // update upper value
-            }
-          }
-        ]
-      });
-      await alert.present();
-      await alert.onDidDismiss();
-      if (!confirm) return; // user cancelled
-
-      // Loop, with confirmation
-      return this.deleteSelection(true);
+    if (this.confirmBeforeDelete && !(await this.askDeleteConfirmation())) {
+      return; // user cancelled
     }
 
     if (this.debug) console.debug("[table] Delete selection...");
@@ -766,6 +741,34 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       this.loading = false;
       this.markForCheck();
     }
+  }
+
+  protected async askDeleteConfirmation(): Promise<boolean> {
+    const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE_IMMEDIATE', 'CONFIRM.ALERT_HEADER']);
+    let confirm = false;
+    const alert = await this.alertCtrl.create({
+      header: translations['CONFIRM.ALERT_HEADER'],
+      message: translations['CONFIRM.DELETE_IMMEDIATE'],
+      buttons: [
+        {
+          text: translations['COMMON.NO'],
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+          }
+        },
+        {
+          text: translations['COMMON.YES'],
+          handler: () => {
+            confirm = true; // update upper value
+          }
+        }
+      ]
+    });
+    await alert.present();
+    await alert.onDidDismiss();
+
+    return confirm;
   }
 }
 

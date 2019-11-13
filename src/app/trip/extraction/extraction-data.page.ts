@@ -266,6 +266,10 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
       return;
     }
 
+    if (!(await this.askDeleteConfirmation())) {
+      return; // user cancelled
+    }
+
     this.loading = true;
 
     try {
@@ -371,6 +375,34 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
 
   protected isEquals(t1: ExtractionType, t2: ExtractionType): boolean {
     return ExtractionType.equals(t1, t2);
+  }
+
+  protected async askDeleteConfirmation(): Promise<boolean> {
+    const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE_IMMEDIATE', 'CONFIRM.ALERT_HEADER']);
+    let confirm = false;
+    const alert = await this.alertCtrl.create({
+      header: translations['CONFIRM.ALERT_HEADER'],
+      message: translations['CONFIRM.DELETE_IMMEDIATE'],
+      buttons: [
+        {
+          text: translations['COMMON.NO'],
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+          }
+        },
+        {
+          text: translations['COMMON.YES'],
+          handler: () => {
+            confirm = true; // update upper value
+          }
+        }
+      ]
+    });
+    await alert.present();
+    await alert.onDidDismiss();
+
+    return confirm;
   }
 
   /* -- private method -- */
