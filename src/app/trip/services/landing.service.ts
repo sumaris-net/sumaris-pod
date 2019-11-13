@@ -114,7 +114,7 @@ const LoadAllQuery: any = gql`
     landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LandingFragment
     }
-    landingCount(filter: $filter)
+    landingsCount(filter: $filter)
   }
   ${LandingFragments.landing}
 `;
@@ -199,7 +199,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       now = Date.now();
       console.debug("[landing-service] Watching landings... using options:", variables);
     }
-    return this.graphql.watchQuery<{ landings: Landing[]; landingCount: number }>({
+    return this.graphql.watchQuery<{ landings: Landing[]; landingsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
@@ -209,8 +209,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
         throttleTime(200), // avoid multiple call
         map(res => {
           const data = (res && res.landings || []).map(Landing.fromObject);
-          const total = res && res.landingCount || 0;
-
+          const total = res && isNotNil(res.landingsCount) ? res.landingsCount : undefined;
           if (this._debug) {
             if (now) {
               console.debug(`[landing-service] Loaded {${data.length || 0}} landings in ${Date.now() - now}ms`, data);

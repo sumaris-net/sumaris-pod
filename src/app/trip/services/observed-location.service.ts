@@ -95,7 +95,7 @@ const LoadAllQuery: any = gql`
     observedLocations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightObservedLocationFragment
     }
-    observedLocationCount(filter: $filter)
+    observedLocationsCount(filter: $filter)
   }
   ${ObservedLocationFragments.lightObservedLocation}
 `;
@@ -174,7 +174,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
       .pipe(
         map(res => {
           const data = (res && res.observedLocations || []).map(ObservedLocation.fromObject);
-          const total = res && res.observedLocationsCount || 0;
+          const total = res && isNotNil(res.observedLocationsCount) ? res.observedLocationsCount : undefined;
           if (this._debug) {
             if (now) {
               console.debug(`[observed-location-service] Loaded {${data.length || 0}} observed locations in ${Date.now() - now}ms`, data);

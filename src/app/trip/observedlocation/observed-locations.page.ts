@@ -91,7 +91,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     this.autoLoad = false;
 
     // FOR DEV ONLY ----
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {

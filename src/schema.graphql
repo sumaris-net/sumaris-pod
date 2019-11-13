@@ -596,13 +596,13 @@ type Query {
   "Get an observed location, by id"
   landing(id: Int): LandingVO
   "Get total number of landings"
-  landingCount(filter: LandingFilterVOInput): Long
+  landingsCount(filter: LandingFilterVOInput): Long
   "Search in landings"
   landings(filter: LandingFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "dateTime", sortDirection: String = "asc"): [LandingVO]
   "Get an observed location, by id"
   observedLocation(id: Int): ObservedLocationVO
   "Get total number of observed locations"
-  observedLocationCount(filter: ObservedLocationFilterVOInput): Long
+  observedLocationsCount(filter: ObservedLocationFilterVOInput): Long
   "Search in observed locations"
   observedLocations(filter: ObservedLocationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "asc"): [ObservedLocationVO]
   "Get an operation"

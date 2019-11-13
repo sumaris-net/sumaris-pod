@@ -278,7 +278,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
       .pipe(
         map(res => {
           const data = (res && res.trips || []).map(Trip.fromObject);
-          const total = res && res.tripsCount || 0;
+          const total = res && isNotNil(res.tripsCount) ? res.tripsCount : undefined;
           if (/*this._debug &&*/ now) {
             console.debug(`[trip-service] Loaded {${data.length || 0}} trips in ${Date.now() - now}ms`, data);
             now = undefined;
