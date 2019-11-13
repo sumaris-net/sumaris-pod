@@ -428,12 +428,14 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     }
   }
 
-  async deleteSelection(): Promise<void> {
+  async deleteSelection(confirm?: boolean): Promise<void> {
     if (!this._enable) return;
     if (this.loading || this.selection.isEmpty()) return;
 
-    if (this.confirmBeforeDelete && !(await this.askDeleteConfirmation())) {
-      return; // user cancelled
+    if (this.confirmBeforeDelete && !confirm) {
+      confirm = await this.askDeleteConfirmation()
+      if (!confirm) return; // user cancelled
+      return await this.deleteSelection(true); // Loop with confirmation
     }
 
     if (this.debug) console.debug("[table] Delete selection...");
