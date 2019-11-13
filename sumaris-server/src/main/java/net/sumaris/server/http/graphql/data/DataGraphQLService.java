@@ -307,7 +307,7 @@ public class DataGraphQLService {
         return result;
     }
 
-    @GraphQLQuery(name = "observedLocationCount", description = "Get total number of observed locations")
+    @GraphQLQuery(name = "observedLocationsCount", description = "Get total number of observed locations")
     @Transactional(readOnly = true)
     @IsUser
     public long getObservedLocationsCount(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter) {
@@ -553,7 +553,7 @@ public class DataGraphQLService {
         return result;
     }
 
-    @GraphQLQuery(name = "landingCount", description = "Get total number of landings")
+    @GraphQLQuery(name = "landingsCount", description = "Get total number of landings")
     @Transactional(readOnly = true)
     @IsUser
     public long countLandings(@GraphQLArgument(name = "filter") LandingFilterVO filter) {
