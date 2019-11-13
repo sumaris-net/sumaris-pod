@@ -99,7 +99,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
-  };
+  }
 
   ngOnInit() {
     super.ngOnInit();
@@ -107,7 +107,6 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.isAdmin = this.accountService.isAdmin();
     this.canEdit = this.isAdmin || this.accountService.isUser();
     this.canDelete = this.isAdmin;
-    if (this.debug) console.debug("[trips-page] Can user edit table ? " + this.canEdit);
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -161,6 +160,12 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.restoreFilterOrLoad();
   }
 
+  setFilter(json: TripFilter, opts?: { emitEvent: boolean }) {
+    super.setFilter(json, opts);
+
+    this.filterIsEmpty = TripFilter.isEmpty(json);
+  }
+
   vesselFeaturesToString = vesselFeaturesToString;
   referentialToString = referentialToString;
   personsToString = personsToString;
@@ -184,13 +189,6 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.filterForm.patchValue(json);
     }
   }
-
-  setFilter(json: TripFilter, opts?: { emitEvent: boolean }) {
-    super.setFilter(json, opts);
-
-    this.filterIsEmpty = TripFilter.isEmpty(json);
-  }
-
 
   protected markForCheck() {
     this.cd.markForCheck();

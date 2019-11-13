@@ -1,29 +1,34 @@
 <app-toolbar [title]="'OBSERVED_LOCATION.TABLE.TITLE'|translate" color="primary" (onValidate)="save()"
-             [hasValidate]="!loading && dirty"
+             [hasValidate]="($loading|async) && dirty"
              [canGoBack]="false">
 </app-toolbar>
 
-
 <ion-content class="ion-no-padding">
   <mat-toolbar>
-    <button mat-icon-button *ngIf="canEdit && !selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()"
-            class="hidden-xs hidden-sm">
-      <mat-icon>add</mat-icon>
-    </button>
-    <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
-      <mat-icon>refresh</mat-icon>
-    </button>
-    <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
-      <mat-icon>filter_list</mat-icon>
-    </button>
-    <button mat-icon-button *ngIf="canDelete && selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()"
-            class="hidden-xs hidden-sm">
-      <mat-icon>delete</mat-icon>
-    </button>
-    <!-- <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
-      class="hidden-xs hidden-sm" [disabled]="dirty" #inlineEditionBtn>
-      <mat-icon>edit</mat-icon>
-    </mat-button-toggle> -->
+    <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+      <button mat-icon-button
+              hidden-xs hidden-sm hidden-mobile
+              *ngIf="canEdit"
+              [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+        <mat-icon>add</mat-icon>
+      </button>
+      <button mat-icon-button [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button mat-button color="{{filterIsEmpty ? '' : 'primary'}}"
+              [title]="'COMMON.BTN_FILTER'|translate"
+              (click)="filterExpansionPanel.toggle()">
+        <mat-icon>filter_list</mat-icon>
+        <ion-text *ngIf="!filterIsEmpty">
+          <span [innerHTML]="'COMMON.TABLE.FILTERED_PARENTHESIS'|translate"></span></ion-text>
+      </button>
+    </ng-container>
+    <ng-template #hasSelection>
+      <button mat-icon-button hidden-xs hidden-sm
+              *ngIf="canDelete" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </ng-template>
 
     <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
       <ion-icon color="danger" slot="start" name="alert"></ion-icon>
@@ -38,62 +43,74 @@
   </mat-toolbar>
 
   <!-- search -->
-  <mat-expansion-panel #filterExpansionPanel>
-    <form [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" class="form-container ion-padding" no-padding-xs>
+  <mat-expansion-panel #filterExpansionPanel class="ion-no-padding">
+    <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" >
 
-      <!-- Program -->
-      <mat-form-field style="min-width: 150px;">
-        <input matInput [placeholder]="'TRIP.PROGRAM'|translate" [matAutocomplete]="autoFilterProgram" formControlName="program">
-      </mat-form-field>
-
-      <!-- Program combo -->
-      <mat-autocomplete autoActiveFirstOption #autoFilterProgram="matAutocomplete" [displayWith]="programToString">
-        <ion-row class="mat-autocomplete-header">
-          <ion-col size="4" translate>REFERENTIAL.LABEL</ion-col>
-          <ion-col translate>REFERENTIAL.NAME</ion-col>
+      <ion-grid>
+        <ion-row>
+          <ion-col>
+            <!-- Program -->
+            <mat-autocomplete-field
+              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.PROGRAM'|translate"
+              formControlName="program"
+              [config]="autocompleteFields.program"
+              clearable="true">
+              <ion-icon matPrefix name="contract"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
         </ion-row>
 
-        <mat-option *ngFor="let item of programs | async" [value]="item" class="ion-no-padding">
-          <ion-row>
-            <ion-col size="4" [innerHTML]="item.label | highlight: {search: filterForm.controls.program.value }"></ion-col>
-            <ion-col [innerHTML]="item.name | highlight: {search: filterForm.controls.program.value }" [title]="item.name"></ion-col>
-          </ion-row>
-        </mat-option>
-      </mat-autocomplete>
-
-      <!-- Start date -->
-      <mat-date-time [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate" [formControl]="filterForm.controls.startDate"
-                     [displayTime]="false">
-      </mat-date-time>
-
-      <!-- End date -->
-      <mat-date-time [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE'|translate" [formControl]="filterForm.controls.endDate"
-                     [displayTime]="false">
-      </mat-date-time>
-
-      <!-- Location -->
-      <mat-form-field style="min-width: 300px;">
-        <input matInput [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION'|translate" [matAutocomplete]="autoFilterLocation"
-               formControlName="location">
-      </mat-form-field>
-
-      <!-- Location combo -->
-      <mat-autocomplete autoActiveFirstOption #autoFilterLocation="matAutocomplete" [displayWith]="referentialToString">
-        <ion-row class="mat-autocomplete-header">
-          <ion-col size="3" translate>REFERENTIAL.LABEL</ion-col>
-          <ion-col translate>REFERENTIAL.NAME</ion-col>
+        <ion-row>
+          <ion-col size="12">
+            <!-- Location -->
+            <mat-autocomplete-field
+              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION'|translate"
+              formControlName="location"
+              [config]="autocompleteFields.location"
+              clearable="true">
+              <ion-icon matPrefix name="pin"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
         </ion-row>
 
-        <mat-option *ngFor="let item of locations | async" [value]="item" class="ion-no-padding">
-          <ion-row>
-            <ion-col size="3" [innerHTML]="item.label | highlight: {search: filterForm.controls.location.value }"></ion-col>
-            <ion-col [innerHTML]="item.name | highlight: {search: filterForm.controls.location.value }"></ion-col>
-          </ion-row>
-        </mat-option>
-      </mat-autocomplete>
+        <ion-row>
+          <ion-col size="12" size-lg="6">
+            <!-- Start date -->
+            <mat-date-time [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate" [formControl]="filterForm.controls.startDate"
+                           [displayTime]="false">
+              <ion-icon matPrefix name="calendar"></ion-icon>
+            </mat-date-time>
+          </ion-col>
 
-      <button mat-raised-button [color]="filterForm.dirty ? 'primary' : undefined" type="submit">{{'COMMON.BTN_SEARCH'|translate}}</button>
+          <ion-col size="12" size-lg="6">
+            <!-- End date -->
+            <mat-date-time [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE'|translate" [formControl]="filterForm.controls.endDate"
+                           [displayTime]="false">
+            </mat-date-time>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </form>
+
+    <mat-action-row>
+      <!-- Counter  -->
+      <ion-label [hidden]="($loading|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'"
+                 class="ion-padding">
+        {{ (resultsLength ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (resultsLength |
+          numberFormat)} }}
+      </ion-label>
+
+      <div class="toolbar-spacer"></div>
+
+      <!-- Search button -->
+      <ion-button mat-button
+                  *ngIf="!mobile"
+                  [color]="filterForm.dirty ? 'tertiary' : undefined"
+                  [fill]="filterForm.dirty ? 'solid' : 'clear'"
+                  (click)="onRefresh.emit()">
+        <ion-text translate>COMMON.BTN_SEARCH</ion-text>
+      </ion-button>
+    </mat-action-row>
   </mat-expansion-panel>
 
   <!-- error -->
@@ -120,16 +137,15 @@
 
     <!-- Id Column -->
     <ng-container matColumnDef="id">
-      <mat-header-cell  *matHeaderCellDef mat-sort-header [class.hidden]="!isAdmin">
-        <span *ngIf="!loading">#</span>
-        <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+      <mat-header-cell *matHeaderCellDef mat-sort-header [class.hidden]="!isAdmin">
+        <span *ngIf="!($loading|async); else loadingSpinner">#</span>
       </mat-header-cell>
-      <mat-cell  *matCellDef="let row" [class.hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
+      <mat-cell *matCellDef="let row" [class.hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
     </ng-container>
 
     <!-- Quality Column -->
     <ng-container matColumnDef="quality">
-      <mat-header-cell *matHeaderCellDef>
+      <mat-header-cell *matHeaderCellDef><!-- FIXME pas triable pour l'instant -->
         <ion-label translate>OBSERVED_LOCATION.TABLE.QUALITY</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
@@ -212,16 +228,17 @@
       </mat-paginator>
     </ion-col>
   </ion-row>
-
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile *ngIf="inlineEdition">
-  <form-buttons-bar (onCancel)="cancel($event)" (onSave)="save()" [disabled]="loading || !dirty"></form-buttons-bar>
-</ion-footer>
-
-<!-- Add Button  -->
-<ion-fab slot="fixed" vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile>
+<!-- Add button -->
+<ion-fab vertical="bottom" horizontal="end"
+         *ngIf="canEdit"
+         visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<ng-template #loadingSpinner>
+  <ion-spinner [ngClass]="{'center':true}" ></ion-spinner>
+</ng-template>

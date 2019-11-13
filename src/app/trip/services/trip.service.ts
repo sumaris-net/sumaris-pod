@@ -276,7 +276,6 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
       fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
     })
       .pipe(
-        //throttleTime(200),
         map(res => {
           const data = (res && res.trips || []).map(Trip.fromObject);
           const total = res && res.tripsCount || 0;

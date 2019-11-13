@@ -544,9 +544,10 @@
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaires",
       "FILTER": {
+        "PROGRAM": "Programme de collecte",
+        "LOCATION": "Criée",
         "START_DATE": "Début de période",
-        "END_DATE": "Fin de période",
-        "LOCATION": "Criée"
+        "END_DATE": "Fin de période"
       }
     },
     "ERROR": {

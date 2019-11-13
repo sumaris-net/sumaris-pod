@@ -172,7 +172,6 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
       fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
     })
       .pipe(
-        //throttleTime(200),
         map(res => {
           const data = (res && res.observedLocations || []).map(ObservedLocation.fromObject);
           const total = res && res.observedLocationsCount || 0;
