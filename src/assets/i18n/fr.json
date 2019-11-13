@@ -630,16 +630,29 @@
     "NAME": "Nom",
     "EXTERIOR_MARKING": "Immatriculation",
     "REGISTRATION_CODE": "Immatriculation officielle",
+    "REGISTRATION_LOCATION": "Lieu d'immatriculation",
     "BASE_PORT_LOCATION": "Port d'attache",
+    "VESSEL_TYPE": "Type",
+    "VESSEL_STATUS_ID": "Statut",
     "COUNTRY": "Pavillon",
     "COMMENTS": "Commentaires",
     "START_DATE": "Début validité",
     "END_DATE": "Fin validité",
     "TAB_GENERAL": "Détails",
+    "TAB_HISTORY": "Historique Navire",
     "GROSS_TONNAGE_GT": "Tonnage (GT)",
     "GROSS_TONNAGE_GRT": "Tonnage jauge brute (TJB)",
     "ADMINISTRATIVE_POWER": "Puissance administrative (kW)",
     "LENGTH_OVER_ALL": "Longueur hors tout (m)",
+    "HISTORY": {
+      "FEATURES": "Caratéristiques",
+      "REGISTRATIONS": "Immatriculations"
+    },
+    "ACTION": {
+      "EDIT": "Modifier",
+      "EDIT_FEATURE": "Modifier le navire actuel",
+      "NEW_FEATURE": "Declarer un changement"
+    },
     "EDIT": {
       "TITLE": "Navire {{exteriorMarking}}"
     },

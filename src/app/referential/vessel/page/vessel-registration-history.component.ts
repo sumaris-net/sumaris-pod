@@ -2,7 +2,7 @@ import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {ValidatorService} from "angular4-material-table";
 import {VesselValidatorService} from "../../services/vessel.validator";
 import {AppTable} from "../../../core/table/table.class";
-import {referentialToString, VesselFeatures} from "../../services/model";
+import {referentialToString, VesselRegistration} from "../../services/model";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
@@ -11,17 +11,17 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
 import {VesselFilter} from "../../services/vessel-service";
 import {AppTableDataSource} from "../../../core/table/table-datasource.class";
 import {environment} from "../../../../environments/environment";
-import {VesselFeaturesHistoryService} from "../../services/vessel-features-history.service";
+import {VesselRegistrationHistoryService} from "../../services/vessel-registration-history.service";
 
 @Component({
-  selector: 'app-vessel-features-history-table',
-  templateUrl: './vessel-features-history.component.html',
-  styleUrls: ['./vessel-features-history.component.scss'],
+  selector: 'app-vessel-registration-history-table',
+  templateUrl: './vessel-registration-history.component.html',
+  styleUrls: ['./vessel-registration-history.component.scss'],
   providers: [
     {provide: ValidatorService, useClass: VesselValidatorService}
   ],
 })
-export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, VesselFilter> implements OnInit {
+export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistration, VesselFilter> implements OnInit {
 
   referentialToString = referentialToString;
   isAdmin: boolean;
@@ -35,7 +35,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected vesselValidatorService: VesselValidatorService,
-    protected vesselService: VesselFeaturesHistoryService,
+    protected vesselService: VesselRegistrationHistoryService,
     protected cd: ChangeDetectorRef) {
 
     super(route, router, platform, location, modalCtrl, settings,
@@ -43,16 +43,10 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
       ['id',
         'startDate',
         'endDate',
-        'exteriorMarking',
-        'name',
-        'administrativePower',
-        'lengthOverAll',
-        'grossTonnageGt',
-        'vesselType',
-        'basePortLocation',
-        'comments']
+        'registrationCode',
+        'registrationLocation']
       ,
-      new AppTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselService, vesselValidatorService, {
+      new AppTableDataSource<VesselRegistration, VesselFilter>(VesselRegistration, vesselService, vesselValidatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         serviceOptions: {

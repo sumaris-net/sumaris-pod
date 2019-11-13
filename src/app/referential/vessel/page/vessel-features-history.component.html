@@ -1,25 +1,15 @@
-<ion-content class="ion-no-padding">
-
   <!-- error -->
   <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
+  <h3>
+    <ion-text translate>VESSEL.HISTORY.FEATURES</ion-text>
+  </h3>
+
   <mat-table #table [dataSource]="dataSource" matSort matSortActive="startDate" matSortDirection="asc"
              matSortDisableClear [trackBy]="trackByFn">
-
-<!--    <ng-container matColumnDef="select">-->
-<!--      <mat-header-cell *matHeaderCellDef [class.hidden]="true">-->
-<!--        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"-->
-<!--                      [indeterminate]="selection.hasValue() && !isAllSelected()">-->
-<!--        </mat-checkbox>-->
-<!--      </mat-header-cell>-->
-<!--      <mat-cell *matCellDef="let row" [class.hidden]="true">-->
-<!--        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">-->
-<!--        </mat-checkbox>-->
-<!--      </mat-cell>-->
-<!--    </ng-container>-->
 
     <!-- Id Column -->
     <ng-container matColumnDef="id">
@@ -70,6 +60,46 @@
       </mat-cell>
     </ng-container>
 
+    <!-- administrativePower column -->
+    <ng-container matColumnDef="administrativePower">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>VESSEL.ADMINISTRATIVE_POWER</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.administrativePower}}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- lengthOverAll column -->
+    <ng-container matColumnDef="lengthOverAll">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>VESSEL.LENGTH_OVER_ALL</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.lengthOverAll}}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- grossTonnageGt column -->
+    <ng-container matColumnDef="grossTonnageGt">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>VESSEL.GROSS_TONNAGE_GT</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.grossTonnageGt}}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- vessel type -->
+    <ng-container matColumnDef="vesselType">
+      <mat-header-cell *matHeaderCellDef>
+        <span translate>VESSEL.VESSEL_TYPE</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{referentialToString(row.currentData.vesselType)}}
+      </mat-cell>
+    </ng-container>
+
     <!-- base port location -->
     <ng-container matColumnDef="basePortLocation">
       <mat-header-cell *matHeaderCellDef>
@@ -96,9 +126,7 @@
   <ion-row class="ion-no-padding">
     <ion-col></ion-col>
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+      <mat-paginator [length]="resultsLength" [pageSize]="5" [pageSizeOptions]="[5, 10, 50]" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
   </ion-row>
-
-</ion-content>

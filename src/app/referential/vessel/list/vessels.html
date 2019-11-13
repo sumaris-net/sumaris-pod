@@ -203,6 +203,24 @@
       </mat-cell>
     </ng-container>
 
+    <!-- Vessel Type -->
+    <ng-container matColumnDef="vesselType">
+      <mat-header-cell *matHeaderCellDef>
+        <span translate>VESSEL.VESSEL_TYPE</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls['vesselType']" [matAutocomplete]="autoVesselType" [readonly]="!row.editing" required>
+          <mat-error *ngIf="row.validator.controls['vesselType'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+        <mat-autocomplete #autoVesselType="matAutocomplete" [displayWith]="referentialToString">
+          <mat-option *ngFor="let vesselType of vesselTypes | async" [value]="vesselType">
+            {{ vesselType.label }} - {{ vesselType.name }}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-cell>
+    </ng-container>
+
     <!-- base port location -->
     <ng-container matColumnDef="basePortLocation">
       <mat-header-cell *matHeaderCellDef>
@@ -213,9 +231,7 @@
           <input matInput [formControl]="row.validator.controls['basePortLocation']" [matAutocomplete]="autoLocation"
             [readonly]="!row.editing" required>
           <mat-error *ngIf="row.validator.controls['basePortLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-
         </mat-form-field>
-
         <mat-autocomplete #autoLocation="matAutocomplete" [displayWith]="referentialToString">
           <mat-option *ngFor="let location of locations | async" [value]="location">
             {{ location.label }} - {{ location.name }}

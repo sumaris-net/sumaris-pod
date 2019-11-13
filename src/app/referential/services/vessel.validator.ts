@@ -35,6 +35,7 @@ export class VesselValidatorService implements ValidatorService {
       'registrationLocation': ['', Validators.compose([Validators.required, SharedValidators.entity])],
       'comments': ['', Validators.maxLength(2000)],
       'vesselStatusId': [null, Validators.required],
+      'vesselType': ['', Validators.compose([Validators.required, SharedValidators.entity])],
     });
   }
 }

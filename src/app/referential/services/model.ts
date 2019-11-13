@@ -161,7 +161,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   }
 
   vesselId: number;
-  vesselTypeId: number;
+  vesselType: ReferentialRef;
   vesselStatusId: number;
   name: string;
   startDate: Date | Moment;
@@ -172,8 +172,8 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   lengthOverAll: number;
   grossTonnageGt: number;
   grossTonnageGrt: number;
-  basePortLocation: any;
-  registrationLocation: any;
+  basePortLocation: ReferentialRef;
+  registrationLocation: ReferentialRef;
   creationDate: Date | Moment;
   recorderDepartment: Department;
   recorderPerson: Person;
@@ -181,6 +181,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
 
   constructor() {
     super();
+    this.vesselType = new ReferentialRef();
     this.basePortLocation = new ReferentialRef();
     this.registrationLocation = new ReferentialRef();
     this.recorderDepartment = new Department();
@@ -190,6 +191,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   clone(): VesselFeatures {
     const target = new VesselFeatures();
     this.copy(target);
+    target.vesselType = this.vesselType && this.vesselType.clone() || undefined;
     target.basePortLocation = this.basePortLocation && this.basePortLocation.clone() || undefined;
     target.registrationLocation = this.registrationLocation && this.registrationLocation.clone() || undefined;
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.clone() || undefined;
@@ -205,6 +207,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   asObject(minify?: boolean): any {
     const target: any = super.asObject(minify);
 
+    target.vesselType = this.vesselType && this.vesselType.asObject(minify) || undefined;
     target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject(minify) || undefined;
     target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject(minify) || undefined;
     target.startDate = toDateISOString(this.startDate);
@@ -223,7 +226,6 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.name = source.name;
     this.comments = source.comments || undefined;
     this.vesselId = source.vesselId;
-    this.vesselTypeId = source.vesselTypeId;
     this.vesselStatusId = source.vesselStatusId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
@@ -232,10 +234,63 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.grossTonnageGt = source.grossTonnageGt || undefined;
     this.grossTonnageGrt = source.grossTonnageGrt || undefined;
     this.creationDate = fromDateISOString(source.creationDate);
+    source.vesselType && this.vesselType.fromObject(source.vesselType);
     source.basePortLocation && this.basePortLocation.fromObject(source.basePortLocation);
     source.registrationLocation && this.registrationLocation.fromObject(source.registrationLocation);
     source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
     source.recorderPerson && this.recorderPerson.fromObject(source.recorderPerson);
+    return this;
+  }
+}
+export class VesselRegistration extends Entity<VesselRegistration> {
+
+  static fromObject(source: any): VesselRegistration {
+    if (!source || source instanceof VesselRegistration) return source;
+    const res = new VesselRegistration();
+    res.fromObject(source);
+    return res;
+  }
+
+  vesselId: number;
+  startDate: Date | Moment;
+  endDate: Date | Moment;
+  registrationCode: string;
+  registrationLocation: any;
+
+  constructor() {
+    super();
+    this.registrationLocation = new ReferentialRef();
+  }
+
+  clone(): VesselRegistration {
+    const target = new VesselRegistration();
+    this.copy(target);
+    target.registrationLocation = this.registrationLocation && this.registrationLocation.clone() || undefined;
+    return target;
+  }
+
+  copy(target: VesselRegistration): VesselRegistration {
+    target.fromObject(this);
+    return target;
+  }
+
+  asObject(minify?: boolean): any {
+    const target: any = super.asObject(minify);
+
+    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject(minify) || undefined;
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
+
+    return target;
+  }
+
+  fromObject(source: any): VesselRegistration {
+    super.fromObject(source);
+    this.registrationCode = source.registrationCode;
+    this.vesselId = source.vesselId;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
+    this.registrationLocation = source.registrationLocation && this.registrationLocation.fromObject(source.registrationLocation);
     return this;
   }
 }

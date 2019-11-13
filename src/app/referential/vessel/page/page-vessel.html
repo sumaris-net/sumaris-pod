@@ -9,7 +9,7 @@
     <!-- TAB: general -->
     <mat-tab label="{{'VESSEL.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
-        <ion-icon name="information-circle"></ion-icon>
+        <ion-icon name="information-circle"></ion-icon>&nbsp;
         <ion-label translate>VESSEL.TAB_GENERAL</ion-label>
       </ng-template>
 
@@ -20,8 +20,17 @@
         </ion-col>
         <ion-col size="12" size-sm="9" size-md="6" size-lg="4" size-xl="3" class="ion-no-padding">
           <entity-metadata [value]="data">
-
             <!-- Vessel actions -->
+            <mat-menu #selectTypeMenu="matMenu" xPosition="after">
+              <button mat-menu-item translate (click)="editFeature()">VESSEL.ACTION.EDIT_FEATURE</button>
+              <button mat-menu-item translate (click)="newFeature()">VESSEL.ACTION.NEW_FEATURE</button>
+            </mat-menu>
+
+            <ion-button color="secondary" [matMenuTriggerFor]="selectTypeMenu" [disabled]="!data || !canUserWrite(data)">
+              <ion-icon slot="start" name="create"></ion-icon>&nbsp;
+              <ion-label translate>VESSEL.ACTION.EDIT</ion-label>
+              <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+            </ion-button>
 
           </entity-metadata>
         </ion-col>
@@ -30,7 +39,7 @@
 
     <mat-tab label="{{'VESSEL.TAB_HISTORY'|translate}}">
       <ng-template mat-tab-label>
-        <ion-icon name="clock"></ion-icon>
+        <ion-icon name="clock"></ion-icon>&nbsp;
         <ion-label translate>VESSEL.TAB_HISTORY</ion-label>
       </ng-template>
 
@@ -38,6 +47,13 @@
         <ion-col class="ion-padding">
           <app-vessel-features-history-table #featuresHistoryTable>
           </app-vessel-features-history-table>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-no-padding">
+        <ion-col class="ion-padding">
+          <app-vessel-registration-history-table #registrationHistoryTable>
+          </app-vessel-registration-history-table>
         </ion-col>
       </ion-row>
     </mat-tab>

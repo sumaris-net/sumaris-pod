@@ -238,7 +238,6 @@ type LandingVO {
 }
 
 type LocationAssociationVO {
-  PROPERTY_UPDATE_DATE: String
   childId: Int
   childSurfaceRatio: Float
   comments: String
@@ -894,7 +893,7 @@ type VesselFeaturesVO {
   validationDate: Date
   vesselId: Int
   vesselStatusId: Int
-  vesselTypeId: Int
+  vesselType: ReferentialVO
 }
 
 type VesselPositionVO {
@@ -1200,7 +1199,6 @@ input LocationAssociationVOInput {
   levelId: Int
   name: String
   parentId: Int
-  property_UPDATE_DATE: String
   statusId: Int
   updateDate: Date
 }
@@ -1657,7 +1655,7 @@ input VesselFeaturesVOInput {
   validationDate: Date
   vesselId: Int
   vesselStatusId: Int
-  vesselTypeId: Int
+  vesselType: ReferentialVOInput
 }
 
 input VesselFilterVOInput {

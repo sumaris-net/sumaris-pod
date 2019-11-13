@@ -58,6 +58,19 @@
     <ion-row>
       <ion-col>
         <mat-autocomplete-field
+          [placeholder]="'VESSEL.VESSEL_TYPE'|translate"
+          formControlName="vesselType"
+          [config]="autocompleteFields.vesselType"
+          [required]="true">
+          <ion-icon matPrefix name="bookmark"></ion-icon>
+        </mat-autocomplete-field>
+      </ion-col>
+    </ion-row>
+
+    <!-- Base port location -->
+    <ion-row>
+      <ion-col>
+        <mat-autocomplete-field
           [placeholder]="'VESSEL.BASE_PORT_LOCATION'|translate"
           formControlName="basePortLocation"
           [config]="autocompleteFields.basePortLocation"

@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {EntityUtils, isNil, isNotNil, Person, StatusIds, VesselFeatures} from "./model";
+import {Department, EntityUtils, isNil, isNotNil, Person, StatusIds, VesselFeatures} from "./model";
 import {EditorDataService, isNilOrBlank, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {map} from "rxjs/operators";
@@ -45,7 +45,9 @@ export const VesselFragments = {
     updateDate
     comments
     vesselId
-    vesselTypeId
+    vesselType {
+      ...ReferentialFragment
+    }
     vesselStatusId
     basePortLocation {
       ...LocationFragment
@@ -72,7 +74,9 @@ export const VesselFragments = {
     updateDate
     comments
     vesselId
-    vesselTypeId
+    vesselType {
+        ...ReferentialFragment
+    }
     vesselStatusId
     basePortLocation {
       ...LocationFragment
@@ -98,6 +102,7 @@ const LoadAllQuery: any = gql`
   ${VesselFragments.lightVessel}
   ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
+  ${ReferentialFragments.referential}
 `;
 const LoadQuery: any = gql`
   query Vessel($vesselId: Int, $vesselFeaturesId: Int) {
@@ -109,6 +114,7 @@ const LoadQuery: any = gql`
   ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.lightPerson}
+  ${ReferentialFragments.referential}
 `;
 
 const SaveVessels: any = gql`
@@ -121,6 +127,7 @@ const SaveVessels: any = gql`
   ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.lightPerson}
+  ${ReferentialFragments.referential}
 `;
 
 const DeleteVessels: any = gql`
@@ -379,7 +386,9 @@ export class VesselService
     const copy: any = vessel.asObject(true/*minify*/);
 
     // If no vessel: set the default vessel type
-    copy.vesselTypeId = !copy.vesselId ? 1 /*TODO ?*/ : undefined;
+    // if (!copy.vesselTypeId) {
+    //   copy.vesselTypeId = (!copy.vesselTypeId && !copy.vesselId) ? 1 /*TODO ?*/ : undefined;
+    // }
 
     return copy;
   }
@@ -392,12 +401,18 @@ export class VesselService
       const person: Person = this.accountService.account;
 
       // Recorder department
-      if (person && !vessel.recorderDepartment.id && person.department) {
+      if (person && person.department && (!vessel.recorderDepartment || vessel.recorderDepartment.id !== person.department.id)) {
+        if (!vessel.recorderDepartment) {
+          vessel.recorderDepartment = new Department();
+        }
         vessel.recorderDepartment.id = person.department.id;
       }
 
       // Recorder person
-      if (person && !vessel.recorderPerson.id) {
+      if (person && (!vessel.recorderPerson || vessel.recorderPerson.id !== person.id)) {
+        if (!vessel.recorderPerson) {
+          vessel.recorderPerson = new Person();
+        }
         vessel.recorderPerson.id = person.id;
       }
 

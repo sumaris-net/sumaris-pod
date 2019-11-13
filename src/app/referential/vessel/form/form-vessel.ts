@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {VesselValidatorService} from "../../services/vessel.validator";
-import {LocationLevelIds, referentialToString, VesselFeatures} from "../../services/model";
+import {LocationLevelIds, referentialToString, StatusIds, VesselFeatures} from "../../services/model";
 import {DefaultStatusList} from "../../../core/services/model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
@@ -44,14 +44,23 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
-        levelId: LocationLevelIds.PORT
+        levelId: LocationLevelIds.PORT,
+        statusId: StatusIds.ENABLE
       }
     });
     this.registerAutocompleteField('registrationLocation', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
-        levelId: LocationLevelIds.COUNTRY
+        levelId: LocationLevelIds.COUNTRY,
+        statusId: StatusIds.ENABLE
+      }
+    });
+    this.registerAutocompleteField('vesselType', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'VesselType',
+        statusId: StatusIds.ENABLE
       }
     });
 

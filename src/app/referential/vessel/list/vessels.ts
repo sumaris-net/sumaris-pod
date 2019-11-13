@@ -39,6 +39,7 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
   filterForm: FormGroup;
   filterIsEmpty = true;
   locations: Observable<ReferentialRef[]>;
+  vesselTypes: Observable<ReferentialRef[]>;
   statusList = DefaultStatusList;
   statusById: any;
 
@@ -64,6 +65,7 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
           'startDate',
           'endDate',
           'name',
+          'vesselType',
           'basePortLocation',
           'comments',
           'vesselStatusId'])
@@ -101,6 +103,7 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
     if (this.debug) console.debug("[vessels-page] Can user edit table ? " + this.canEdit);
 
     // TODO fill locations
+    // TODO fill vessel types
 
     // Update filter when changes
     this.filterForm.valueChanges

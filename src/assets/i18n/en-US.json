@@ -603,16 +603,29 @@
     "NAME": "Name",
     "EXTERIOR_MARKING": "Exterior Marking",
     "REGISTRATION_CODE": "Registration Code",
+    "REGISTRATION_LOCATION": "Registration Location",
     "BASE_PORT_LOCATION": "Base port",
+    "VESSEL_TYPE": "Type",
+    "VESSEL_STATUS_ID": "Status",
     "COUNTRY": "Country",
     "COMMENTS": "Comments",
     "START_DATE": "Validity start date",
     "END_DATE": "Validity end date",
     "TAB_GENERAL": "General information",
+    "TAB_HISTORY": "Vessel history",
     "GROSS_TONNAGE_GT": "Gross tonnage (GT)",
     "GROSS_TONNAGE_GRT": "Gross registered tonnage (GRT)",
     "ADMINISTRATIVE_POWER": "Administrative power (kW)",
     "LENGTH_OVER_ALL": "Length over all (m)",
+    "HISTORY": {
+      "FEATURES": "Vessel features",
+      "REGISTRATIONS": "Registrations"
+    },
+    "ACTION": {
+      "EDIT": "Edit",
+      "EDIT_FEATURE": "Modify current vessel",
+      "NEW_FEATURE": "Declare a change"
+    },
     "EDIT": {
       "TITLE": "Vessel {{exteriorMarking}}"
     },

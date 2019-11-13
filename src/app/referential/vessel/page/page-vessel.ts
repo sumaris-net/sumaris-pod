@@ -8,6 +8,7 @@ import {FormGroup} from "@angular/forms";
 import {EditorDataServiceLoadOptions} from "../../../shared/shared.module";
 import * as moment from "moment";
 import {VesselFeaturesHistoryComponent} from "./vessel-features-history.component";
+import {VesselRegistrationHistoryComponent} from "./vessel-registration-history.component";
 
 @Component({
   selector: 'page-vessel',
@@ -18,6 +19,8 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
   @ViewChild('vesselForm', { static: true }) private vesselForm: VesselForm;
 
   @ViewChild('featuresHistoryTable', { static: true }) private featuresHistoryTable: VesselFeaturesHistoryComponent;
+
+  @ViewChild('registrationHistoryTable', { static: true }) private registrationHistoryTable: VesselRegistrationHistoryComponent;
 
   protected get form(): FormGroup {
     return this.vesselForm.form;
@@ -44,6 +47,7 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
     this.registerSubscription(
       this.onRefresh.subscribe(() => {
           this.featuresHistoryTable.setFilter({vesselId: this.data.vesselId});
+          this.registrationHistoryTable.setFilter({vesselId: this.data.vesselId});
         }
       )
     );
@@ -51,7 +55,7 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
   }
 
   protected registerFormsAndTables() {
-    this.registerForm(this.vesselForm).registerTable(this.featuresHistoryTable);
+    this.registerForm(this.vesselForm).registerTables([this.featuresHistoryTable, this.registrationHistoryTable]);
   }
 
   protected async onNewEntity(data: VesselFeatures, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -59,6 +63,12 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
     if (this.isOnFieldMode) {
       data.startDate = moment();
     }
+  }
+
+  updateViewState(data: VesselFeatures, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.updateViewState(data, opts);
+
+    this.form.disable();
   }
 
   protected canUserWrite(data: VesselFeatures): boolean {
@@ -83,4 +93,16 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
       return await this.translate.get('VESSEL.EDIT.TITLE', data).toPromise();
   }
 
+  editFeature() {
+
+    this.form.enable();
+
+  }
+
+  newFeature() {
+
+    this.form.controls["startDate"].setValue(undefined);
+
+    this.editFeature();
+  }
 }

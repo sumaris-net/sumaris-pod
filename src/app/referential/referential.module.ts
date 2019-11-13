@@ -46,6 +46,7 @@ import {StrategyValidatorService} from "./services/validator/strategy.validator"
 import {StrategiesTable} from "./program/strategies.table";
 import {SoftwarePage} from "./software/software.page";
 import {VesselFeaturesHistoryComponent} from "./vessel/page/vessel-features-history.component";
+import {VesselRegistrationHistoryComponent} from "./vessel/page/vessel-registration-history.component";
 
 export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
@@ -72,7 +73,8 @@ export {
     ProgramPage,
     StrategiesTable,
     SoftwarePage,
-    VesselFeaturesHistoryComponent
+    VesselFeaturesHistoryComponent,
+    VesselRegistrationHistoryComponent
   ],
   exports: [
     ReferentialsPage,
