@@ -11,7 +11,7 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
 import {VesselFilter} from "../../services/vessel-service";
 import {AppTableDataSource} from "../../../core/table/table-datasource.class";
 import {environment} from "../../../../environments/environment";
-import {VesselRegistrationHistoryService} from "../../services/vessel-registration-history.service";
+import {VesselRegistrationService} from "../../services/vessel-registration.service";
 
 @Component({
   selector: 'app-vessel-registration-history-table',
@@ -35,7 +35,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected vesselValidatorService: VesselValidatorService,
-    protected vesselService: VesselRegistrationHistoryService,
+    protected vesselService: VesselRegistrationService,
     protected cd: ChangeDetectorRef) {
 
     super(route, router, platform, location, modalCtrl, settings,

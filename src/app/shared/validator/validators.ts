@@ -1,7 +1,12 @@
 import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
-import {fromDateISOString, isNil, isNotNil, isNotNilOrBlank} from "../functions";
+import {fromDateISOString, isNil, isNotNil, isNotNilOrBlank, toDateISOString} from "../functions";
+import {Moment} from "moment";
+import {DateFormatPipe} from "../shared.module";
+import {DateAdapter} from "@angular/material";
+import {MomentDateAdapter} from "@angular/material-moment-adapter";
+import {PipeTransform} from "@angular/core";
 
 export class SharedValidators {
 
@@ -93,7 +98,7 @@ export class SharedValidators {
     };
   }
 
-  static dateIsAfter(startDateField: string, endDateField: string): ValidatorFn {
+  static dateRange(startDateField: string, endDateField: string): ValidatorFn {
     return (group: FormGroup): ValidationErrors | null => {
       const endField = group.get(endDateField);
       const startDate = fromDateISOString(group.get(startDateField).value);
@@ -101,18 +106,30 @@ export class SharedValidators {
       if (isNotNil(startDate) && isNotNil(endDate)  && startDate >= endDate) {
         // Update end field
         const endFieldErrors: ValidationErrors = endField.errors || {};
-        endFieldErrors['dateIsAfter'] = true;
+        endFieldErrors['dateRange'] = true;
         endField.setErrors(endFieldErrors);
         // Return the error (should be apply to the parent form)
-        return { dateIsAfter: true};
+        return { dateRange: true};
       }
       // OK: remove the existing on the end field
       else {
-        SharedValidators.clearError(endField, 'dateIsAfter');
+        SharedValidators.clearError(endField, 'dateRange');
       }
       return null;
     };
   }
+
+  static dateIsAfter(previousValue: Moment, errorParam: string): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = fromDateISOString(control.value);
+      if (isNotNil(value) && isNotNil(previousValue) && value.isSameOrBefore(previousValue, 'day')) {
+        // Return the error
+        return { dateIsAfter: {minDate: errorParam} };
+      }
+      return null;
+    };
+  }
+
 
   static dateMaxDuration(startDateField: string, endDateField: string, maxDuration: number, durationUnit?: moment.unitOfTime.Diff): ValidatorFn {
     return (group: FormGroup): ValidationErrors | null => {

@@ -39,6 +39,7 @@ function dataIdFromObjectProduction(object: Object): string {
       case 'TaxonNameVO':
       case 'TaxonGroupVO':
       case 'MeasurementVO':
+      case 'VesselFeaturesVO':
         return object['entityName'] + 'VO' + ':' + object['id'];
     }
   }
@@ -55,6 +56,7 @@ function dataIdFromObjectDebug (object: Object): string {
     case 'TaxonGroupVO':
     case 'TaxonNameVO':
     case 'MeasurementVO':
+    case 'VesselFeaturesVO':
       if (!object['entityName']) {
         console.warn("[dataIdFromObject] no entityName found on entity: cache can be corrupted !", object);
       }

@@ -594,16 +594,16 @@ type Query {
   isEmailExists(email: String, hash: String): Boolean
   "Get an observed location, by id"
   landing(id: Int): LandingVO
-  "Get total number of landings"
-  landingsCount(filter: LandingFilterVOInput): Long
   "Search in landings"
   landings(filter: LandingFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "dateTime", sortDirection: String = "asc"): [LandingVO]
+  "Get total number of landings"
+  landingsCount(filter: LandingFilterVOInput): Long
   "Get an observed location, by id"
   observedLocation(id: Int): ObservedLocationVO
-  "Get total number of observed locations"
-  observedLocationsCount(filter: ObservedLocationFilterVOInput): Long
   "Search in observed locations"
   observedLocations(filter: ObservedLocationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "asc"): [ObservedLocationVO]
+  "Get total number of observed locations"
+  observedLocationsCount(filter: ObservedLocationFilterVOInput): Long
   "Get an operation"
   operation(id: Int): OperationVO
   "Get trip's operations"
@@ -870,6 +870,7 @@ type VesselFeaturesVO {
   controlDate: Date
   creationDate: Date
   endDate: Date
+  entityName: String
   exteriorMarking: String
   grossTonnageGrt: Float
   grossTonnageGt: Float
@@ -887,7 +888,9 @@ type VesselFeaturesVO {
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
   registrationCode: String
+  registrationEndDate: Date
   registrationLocation: LocationVO
+  registrationStartDate: Date
   startDate: Date
   updateDate: Date
   validationDate: Date
@@ -1634,6 +1637,7 @@ input VesselFeaturesVOInput {
   controlDate: Date
   creationDate: Date
   endDate: Date
+  entityName: String
   exteriorMarking: String
   grossTonnageGrt: Float
   grossTonnageGt: Float
@@ -1649,7 +1653,9 @@ input VesselFeaturesVOInput {
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
   registrationCode: String
+  registrationEndDate: Date
   registrationLocation: LocationVOInput
+  registrationStartDate: Date
   startDate: Date
   updateDate: Date
   validationDate: Date
@@ -1687,14 +1693,14 @@ scalar Date
 "Built-in object scalar"
 scalar Map_String_StringScalar
 
+"Long type"
+scalar Long
+
 "Built-in object scalar"
 scalar Map_Integer_StringScalar
 
 "Built-in object scalar"
 scalar Map_String_ListScalar
-
-"Long type"
-scalar Long
 
 "Built-in java.math.BigDecimal"
 scalar BigDecimal

@@ -146,7 +146,8 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
   protected async openRow(id: number, row?: TableElement<VesselFeatures>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    return await this.router.navigateByUrl(`/referential/vessels/${row.currentData.vesselId}?vesselFeatureId=${id}` );
+    // return await this.router.navigateByUrl(`/referential/vessels/${row.currentData.vesselId}?vesselFeatureId=${id}` );
+    return await this.router.navigateByUrl(`/referential/vessels/${row.currentData.vesselId}` );
   }
 
   referentialToString = referentialToString;

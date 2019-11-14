@@ -19,6 +19,7 @@ import {Entity, HistoryPageReference, UsageMode} from "../services/model";
 import {FormGroup} from "@angular/forms";
 import {AppTabPage} from "./tab-page.class";
 import {AppFormUtils} from "./form.utils";
+import {PlatformService} from "../services/platform.service";
 
 export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
 

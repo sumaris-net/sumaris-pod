@@ -721,6 +721,14 @@ ion-item {
 }
 
 // --------------------------------------------------
+// Large button with icon floating on right
+// --------------------------------------------------
+.flex-margin ion-icon,
+.flex-margin span {
+  margin-left: auto;
+}
+
+// --------------------------------------------------
 // Inject theme colors (as CSS variables)
 // --------------------------------------------------
 :root {

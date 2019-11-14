@@ -631,6 +631,8 @@
     "EXTERIOR_MARKING": "Immatriculation",
     "REGISTRATION_CODE": "Immatriculation officielle",
     "REGISTRATION_LOCATION": "Lieu d'immatriculation",
+    "REGISTRATION_START_DATE": "Début immatriculation",
+    "REGISTRATION_END_DATE": "Fin immatriculation",
     "BASE_PORT_LOCATION": "Port d'attache",
     "VESSEL_TYPE": "Type",
     "VESSEL_STATUS_ID": "Statut",
@@ -639,7 +641,7 @@
     "START_DATE": "Début validité",
     "END_DATE": "Fin validité",
     "TAB_GENERAL": "Détails",
-    "TAB_HISTORY": "Historique Navire",
+    "TAB_HISTORY": "Historique",
     "GROSS_TONNAGE_GT": "Tonnage (GT)",
     "GROSS_TONNAGE_GRT": "Tonnage jauge brute (TJB)",
     "ADMINISTRATIVE_POWER": "Puissance administrative (kW)",
@@ -650,8 +652,11 @@
     },
     "ACTION": {
       "EDIT": "Modifier",
-      "EDIT_FEATURE": "Modifier le navire actuel",
-      "NEW_FEATURE": "Declarer un changement"
+      "EDIT_FEATURE": "Corriger les caractéristiques",
+      "NEW_FEATURE": "Declarer un changement de caratéristiques",
+      "EDIT_REGISTRATION": "Corriger l'immatriculation",
+      "NEW_REGISTRATION": "Declarer une nouvelle immatriculation",
+      "EDIT_STATUS": "Modifier le status"
     },
     "EDIT": {
       "TITLE": "Navire {{exteriorMarking}}"
@@ -968,7 +973,8 @@
     "FIELD_NOT_VALID_INTEGER": "Valeur entière attendue",
     "FIELD_NOT_VALID_EMAIL": "Addresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",
-    "FIELD_NOT_VALID_DATE_AFTER": "Dates incohérentes",
+    "FIELD_NOT_VALID_DATE_AFTER": "Doit être postérieure à {{minDate}}",
+    "FIELD_NOT_VALID_DATE_RANGE": "Dates incohérentes",
     "FIELD_NOT_VALID_DATE_MAX_DURATION": "Durée trop longue",
     "FIELD_NOT_VALID_DATE_MIN_DURATION": "Durée trop courte",
     "FIELD_NOT_VALID_HOUR_MINUTE": "Heure/minute invalide",

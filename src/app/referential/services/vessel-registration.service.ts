@@ -34,7 +34,7 @@ const LoadAllQuery: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class VesselRegistrationHistoryService
+export class VesselRegistrationService
   extends BaseDataService
   implements TableDataService<VesselRegistration, VesselFilter> {
 

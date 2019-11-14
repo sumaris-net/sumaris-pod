@@ -4,7 +4,7 @@
 </app-toolbar>
 
 <ion-content>
-  <mat-tab-group dynamicHeight>
+  <mat-tab-group>
 
     <!-- TAB: general -->
     <mat-tab label="{{'VESSEL.TAB_GENERAL'|translate}}">
@@ -24,9 +24,13 @@
             <mat-menu #selectTypeMenu="matMenu" xPosition="after">
               <button mat-menu-item translate (click)="editFeature()">VESSEL.ACTION.EDIT_FEATURE</button>
               <button mat-menu-item translate (click)="newFeature()">VESSEL.ACTION.NEW_FEATURE</button>
+              <button mat-menu-item translate (click)="editRegistration()">VESSEL.ACTION.EDIT_REGISTRATION</button>
+              <button mat-menu-item translate (click)="newRegistration()">VESSEL.ACTION.NEW_REGISTRATION</button>
+              <button mat-menu-item translate (click)="editStatus()">VESSEL.ACTION.EDIT_STATUS</button>
             </mat-menu>
 
-            <ion-button color="secondary" [matMenuTriggerFor]="selectTypeMenu" [disabled]="!data || !canUserWrite(data)">
+            <ion-button color="tertiary" size="full" class="flex-margin"
+                        [matMenuTriggerFor]="selectTypeMenu" [disabled]="!data || !canUserWrite(data)">
               <ion-icon slot="start" name="create"></ion-icon>&nbsp;
               <ion-label translate>VESSEL.ACTION.EDIT</ion-label>
               <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
@@ -39,7 +43,7 @@
 
     <mat-tab label="{{'VESSEL.TAB_HISTORY'|translate}}">
       <ng-template mat-tab-label>
-        <ion-icon name="clock"></ion-icon>&nbsp;
+        <ion-icon name="calendar"></ion-icon>&nbsp;
         <ion-label translate>VESSEL.TAB_HISTORY</ion-label>
       </ng-template>
 

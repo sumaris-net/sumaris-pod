@@ -16,7 +16,7 @@ export class DateFormatPipe implements PipeTransform {
     transform(value: string | Moment, args?: any): string | Promise<string> {
         args = args || {};
         args.pattern = args.pattern || (args.time ? 'L LT' : 'L');
-        let date = this.dateAdapter.parse(value, DATE_ISO_PATTERN);
+        const date = this.dateAdapter.parse(value, DATE_ISO_PATTERN);
         return date ? date.format(args.pattern) : '';
     }
 

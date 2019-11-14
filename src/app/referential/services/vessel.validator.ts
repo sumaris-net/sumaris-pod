@@ -27,6 +27,8 @@ export class VesselValidatorService implements ValidatorService {
       'name': ['', Validators.required],
       'exteriorMarking': ['', Validators.required],
       'registrationCode': ['', Validators.required],
+      'registrationStartDate': [null, Validators.required],
+      'registrationEndDate': [null],
       'administrativePower': ['', Validators.compose([Validators.min(0), SharedValidators.integer])],
       'lengthOverAll': ['', Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
       'grossTonnageGrt': ['', Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
