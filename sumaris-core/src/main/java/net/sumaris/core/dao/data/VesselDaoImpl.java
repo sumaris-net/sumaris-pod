@@ -87,11 +87,13 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
         Join<VesselFeatures, Vessel> vesselJoin = root.join(VesselFeatures.Fields.VESSEL, JoinType.INNER);
         Join<Vessel, VesselRegistrationPeriod> vrpJoin = vesselJoin.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
-        Join<VesselRegistrationPeriod, Location> locationJoin = vrpJoin.join(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION, JoinType.LEFT);
+        Join<VesselRegistrationPeriod, Location> registrationLocationJoin = vrpJoin.join(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION, JoinType.LEFT);
 
         query.multiselect(root,
             vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE),
-            locationJoin.as(Location.class)
+            vrpJoin.get(VesselRegistrationPeriod.Fields.START_DATE),
+            vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE),
+            registrationLocationJoin.as(Location.class)
         );
 
         // Apply sorting
@@ -290,6 +292,8 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 //            List<VesselPhysicalMeasurement> measurements = entity.getMeasurements();
             entity.setEndDate(DateUtils.addDays(source.getStartDate(), -1));
             entityManager.merge(entity);
+            entityManager.flush();
+
             // create new feature with same vessel
             entity = new VesselFeatures();
             entity.setVessel(vessel);
@@ -342,7 +346,8 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         VesselRegistrationPeriod lastPeriod = CollectionUtils.emptyIfNull(entity.getVessel().getVesselRegistrationPeriods()).stream()
             .filter(period -> period.getEndDate() == null)
             .findFirst().orElse(null);
-        boolean closeLastPeriod = lastPeriod != null && !lastPeriod.getRegistrationCode().equals(source.getRegistrationCode());
+        boolean closeLastPeriod = closeLastFeature && lastPeriod != null
+            && (!lastPeriod.getRegistrationCode().equals(source.getRegistrationCode()) || !lastPeriod.getRegistrationLocation().getId().equals(source.getRegistrationLocation().getId()));
         boolean createNewPeriod = lastPeriod == null || closeLastPeriod;
 
         if (closeLastPeriod) {
@@ -357,7 +362,13 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             period.setStartDate(source.getStartDate());
             period.setRegistrationCode(source.getRegistrationCode());
             period.setRegistrationLocation(get(Location.class, source.getRegistrationLocation().getId()));
+            period.setRankOrder(1);
             entityManager.persist(period);
+        } else {
+            // update current period
+            lastPeriod.setRegistrationCode(source.getRegistrationCode());
+            lastPeriod.setRegistrationLocation(get(Location.class, source.getRegistrationLocation().getId()));
+            entityManager.merge(lastPeriod);
         }
 
         // Save entity
@@ -458,6 +469,10 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
         // Registration code
         target.setRegistrationCode(source.getRegistrationCode());
+
+        // Registration dates
+        target.setRegistrationStartDate(source.getRegistrationStartDate());
+        target.setRegistrationEndDate(source.getRegistrationEndDate());
 
         // Registration location
         LocationVO registrationLocation = locationDao.toLocationVO(source.getRegistrationLocation());
@@ -571,6 +586,8 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     public static class VesselFeaturesResult {
         VesselFeatures vesselFeatures;
         String registrationCode;
+        Date registrationStartDate;
+        Date registrationEndDate;
         Location registrationLocation;
     }
 }
