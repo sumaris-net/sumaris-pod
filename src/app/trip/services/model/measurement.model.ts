@@ -1,6 +1,6 @@
 import {AppFormUtils, Entity, fromDateISOString, isNil, isNotNil, toDateISOString} from "../../../core/core.module";
 import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
-import {DataEntity} from "./base.model";
+import {DataEntity, DataEntityAsObjectOptions} from "./base.model";
 import {FormGroup} from "@angular/forms";
 import {isNotNilOrNaN} from "../../../shared/functions";
 import {Moment} from "moment";
@@ -62,9 +62,9 @@ export class Measurement extends DataEntity<Measurement> {
     target.fromObject(this);
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
-    target.qualitativeValue = this.qualitativeValue && this.qualitativeValue.asObject(minify) || undefined;
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
+    target.qualitativeValue = this.qualitativeValue && this.qualitativeValue.asObject(options) || undefined;
     return target;
   }
 
@@ -181,9 +181,9 @@ export class MeasurementUtils {
     return target;
   }
 
-  static measurementValuesAsObjectMap(source: { [key: number]: any }, minify: boolean): { [key: string]: any } {
-    if (!minify) return source;
-    return source && Object.getOwnPropertyNames(source)
+  static measurementValuesAsObjectMap(source: { [key: number]: any }, options: DataEntityAsObjectOptions): { [key: string]: any } {
+    if (!options || options.minify !== true || !source) return source;
+    return source && Object.keys(source)
       .reduce((map, pmfmId) => {
         const value = source[pmfmId] && source[pmfmId].id || source[pmfmId];
         if (isNotNil(value)) map[pmfmId] = '' + value;

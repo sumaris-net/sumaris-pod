@@ -334,7 +334,8 @@
       "SUBSCRIBE_TRIP_ERROR": "Echec de l'abonnement distant aux modifications de la marée.",
       "CONTROL_TRIP_ERROR": "Erreur lors de la terminaison de la marée",
       "VALIDATE_TRIP_ERROR": "Erreur lors de la validation de la marée",
-      "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée"
+      "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée",
+      "QUALIFY_TRIP_ERROR": "Erreur lors de la qualification de la marée"
     },
     "MEASUREMENT": {
       "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}"
@@ -623,7 +624,18 @@
     "QUALIFIED_ON": "Qualifié le ",
     "QUALIFICATION_COMMENT": "Commentaire de qualification",
     "QUALIFY": "Qualifier",
-    "QUALITY_FLAG": "Niveau de qualité"
+    "QUALITY_FLAG": "Niveau de qualité",
+    "QUALITY_FLAG_SHORT": "Qualité :",
+    "QUALITY_FLAGS": {
+      "NOT_QUALIFIED": "Non qualifiée",
+      "GOOD": "Bonne",
+      "OUT_STATS": "Hors statistique",
+      "DOUBTFUL": "Douteuse",
+      "BAD": "Mauvaise",
+      "FIXED": "Corrigée",
+      "NOT_COMPLETED": "Incomplète",
+      "MISSING": "Manquante"
+    }
   },
   "VESSEL": {
     "VESSEL_ID": "Code interne",

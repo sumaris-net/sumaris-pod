@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@
 
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
-import {Trip} from '../services/trip.model';
+import {fromDateISOString, Trip} from '../services/trip.model';
 import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
@@ -149,6 +149,32 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
         this.loading = false;
         this.markForCheck();
       }
+    }
+  }
+
+  // For DEV only
+  devFillFakeTrip(event?: UIEvent) {
+    const trip = {
+      program: {id: 10, label: 'ADAP-MER', name: 'Application d’assistance à l’auto-échantillonnage en mer', __typename: 'ProgramVO'},
+      departureDateTime: fromDateISOString('2019-01-01T12:00:00.000Z'),
+      departureLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO'},
+      returnDateTime: fromDateISOString('2019-01-05T12:00:00.000Z'),
+      returnLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO'},
+      vesselFeatures: {id:1, vesselId: 1, name: 'Vessel 1', basePortLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', __typename: 'ReferentialVO'} , __typename: 'VesselFeaturesVO'},
+      measurements: [
+        { numericalValue: '1', pmfmId: 21}
+      ]
+    };
+
+    this.form.patchValue(trip);
+  }
+
+  devToggleOfflineMode(event?: UIEvent) {
+    if (this.network.offline) {
+      this.network.setConnectionType('unknown');
+    }
+    else {
+      this.network.setConnectionType('none');
     }
   }
 

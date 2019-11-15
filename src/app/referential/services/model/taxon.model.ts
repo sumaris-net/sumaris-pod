@@ -1,5 +1,6 @@
 import {Entity, isNil, ReferentialRef, IReferentialRef, toDateISOString, EntityUtils} from "../../../core/core.module";
 import {MeasurementUtils} from "../../../trip/services/model/measurement.model";
+import {ReferentialAsObjectOptions} from "../../../core/services/model";
 
 
 export const TaxonGroupIds = {
@@ -50,9 +51,14 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    if (minify) return {id: this.id}; // minify=keep id only
-    const target: any = super.asObject();
+  asObject(options?: ReferentialAsObjectOptions): any {
+    if (options && options.minify) {
+      return {
+        id: this.id,
+        __typename: options.keepTypename && this.__typename || undefined
+      };
+    }
+    const target: any = super.asObject(options);
     delete target.entityName;
     return target;
   }
@@ -105,9 +111,14 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef> implements IReferential
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    if (minify) return {id: this.id}; // minify=keep id only
-    const target: any = super.asObject();
+  asObject(options?: ReferentialAsObjectOptions): any {
+    if (options && options.minify) {
+      return {
+        id: this.id,
+        __typename: options.keepTypename && this.__typename || undefined
+      };
+    }
+    const target: any = super.asObject(options);
     delete target.entityName;
     return target;
   }
@@ -162,10 +173,12 @@ export class MetierRef extends ReferentialRef<MetierRef> {
     return this;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
-    target.gear = this.gear && this.gear.asObject(minify) || undefined;
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(minify) || undefined;
+  asObject(options?: ReferentialAsObjectOptions): any {
+    const target = super.asObject(options);
+    if (!options || options.minify) {
+      target.gear = this.gear && this.gear.asObject(options) || undefined;
+      target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(options) || undefined;
+    }
     return target;
   }
 }

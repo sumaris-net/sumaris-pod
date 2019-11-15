@@ -1,8 +1,9 @@
 import {
+  DataEntityAsObjectOptions,
   DataRootEntity,
   DataRootEntityUtils,
   Department,
-  EntityUtils,
+  EntityUtils, MINIFY_OPTIONS,
   Person
 } from "../../trip/services/model/base.model";
 import {Injector} from "@angular/core";
@@ -22,12 +23,12 @@ export abstract class RootDataService<T extends DataRootEntity<T>, F = any> exte
     this.accountService = injector && injector.get(AccountService) || undefined;
   }
 
-  protected asObject(entity: T): any {
-    const copy: any = entity.asObject(true/*minify*/);
+  protected asObject(entity: T, options?: DataEntityAsObjectOptions): any {
+    const copy: any = entity.asObject({ ...MINIFY_OPTIONS, options } as DataEntityAsObjectOptions);
 
     // Keep id only, on person and department
-    copy.recorderPerson = {id: entity.recorderPerson && entity.recorderPerson.id};
-    copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
+    //copy.recorderPerson = {id: entity.recorderPerson && entity.recorderPerson.id};
+    //copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
 
     return copy;
   }

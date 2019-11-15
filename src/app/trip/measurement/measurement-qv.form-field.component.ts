@@ -42,10 +42,8 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 })
 export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
 
-  private _onChangeCallback = (_: any) => {
-  };
-  private _onTouchedCallback = () => {
-  };
+  private _onChangeCallback = (_: any) => { };
+  private _onTouchedCallback = () => { };
   private _implicitValue: ReferentialRef | any;
   private _onDestroy = new EventEmitter(true);
   private _sortedQualitativeValues: ReferentialRef[];

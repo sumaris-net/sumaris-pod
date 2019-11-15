@@ -57,7 +57,11 @@ import {
   Referential,
   ReferentialRef,
   referentialToString,
-  StatusIds
+  StatusIds,
+  EntityAsObjectOptions,
+  PropertiesMap,
+  ReferentialAsObjectOptions,
+  NOT_MINIFY_OPTIONS
 } from './services/model';
 // import ngx-translate and the http loader
 import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -110,7 +114,11 @@ export {
   personToString,
   personsToString,
   FormArrayHelper,
-  AppTableUtils
+  AppTableUtils,
+  EntityAsObjectOptions,
+  PropertiesMap,
+  ReferentialAsObjectOptions,
+  NOT_MINIFY_OPTIONS
 };
 
 export function HttpLoaderFactory(http: HttpClient) {

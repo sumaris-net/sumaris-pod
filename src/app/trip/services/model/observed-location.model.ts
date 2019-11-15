@@ -1,11 +1,12 @@
 import {fromDateISOString, isNotNil, Person, ReferentialRef, toDateISOString} from "../../../core/core.module";
 
-import {DataRootEntity, DataRootVesselEntity, IWithObserversEntity} from "./base.model";
+import {DataEntityAsObjectOptions, DataRootEntity, DataRootVesselEntity, IWithObserversEntity, NOT_MINIFY_OPTIONS} from "./base.model";
 
 
 import {Moment} from "moment/moment";
-import {IEntityWithMeasurement, MeasurementUtils} from "./measurement.model";
+import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Landing} from "./landing.model";
+import {ReferentialAsObjectOptions} from "../../../core/services/model";
 
 
 export class ObservedLocation extends DataRootEntity<ObservedLocation>
@@ -45,15 +46,15 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
     target.fromObject(this);
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
-    target.program = this.program && this.program.asObject(false/*keep it for table*/) || undefined;
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
+    target.program = this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
-    target.location = this.location && this.location.asObject(false/*keep it for table*/) || undefined;
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, minify);
-    target.landings = this.landings && this.landings.map(s => s.asObject(minify)) || undefined;
-    target.observers = this.observers && this.observers.map(o => o.asObject(false/*keep it for table*/)) || undefined;
+    target.location = this.location && this.location.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
+    target.landings = this.landings && this.landings.map(s => s.asObject(options)) || undefined;
+    target.observers = this.observers && this.observers.map(o => o.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions)) || undefined;
 
     return target;
   }
@@ -141,20 +142,13 @@ export class ObservedVessel extends DataRootVesselEntity<ObservedVessel> {
     return this;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
     target.dateTime = toDateISOString(this.dateTime);
-    target.observers = this.observers && this.observers.map(o => o.asObject(minify)) || undefined;
+    target.observers = this.observers && this.observers.map(o => o.asObject(options)) || undefined;
 
     // Measurement: keep only the map
-    if (minify) {
-      target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
-        .reduce((map, pmfmId) => {
-          const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];
-          if (isNotNil(value)) map[pmfmId] = '' + value;
-          return map;
-        }, {}) || undefined;
-    }
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
 
     return target;
   }

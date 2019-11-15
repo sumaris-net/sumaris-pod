@@ -1,7 +1,34 @@
 <app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading && enabled" (onValidate)="save($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true" >
   <ion-spinner *ngIf="loading"></ion-spinner>
+
+  <button mat-icon-button *ngIf="enabled"
+          [matMenuTriggerFor]="optionsMenu"
+          [title]=" 'COMMON.BTN_OPTIONS'|translate">
+    <mat-icon>more_vert</mat-icon>
+  </button>
 </app-toolbar>
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+  <button mat-menu-item *ngIf="!isNewData" (click)="delete($event)">
+    <ion-label>
+      <mat-icon>delete</mat-icon>&nbsp;
+      <span translate>COMMON.BTN_DELETE</span>
+    </ion-label>
+  </button>
+
+  <!-- DEV only -->
+  <button mat-menu-item *ngIf="debug && isNewData"
+          (click)="devFillFakeTrip()">
+    <ion-label>Remplissage auto
+    </ion-label>
+  </button>
+  <button mat-menu-item *ngIf="debug && network.online"
+          (click)="devToggleOfflineMode($event)">
+    <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
+  </button>
+</mat-menu>
 
 <ion-content>
 
@@ -58,7 +85,9 @@
           </ion-col>
           <ion-col size="12" size-xl="3" class="ion-no-padding">
             <entity-metadata [value]="data">
-              <entity-quality-form #qualityForm (onChange)="updateView(data)" (onControl)="onControl($event)">
+              <entity-quality-form #qualityForm
+                                   [dataService]="dataService"
+                                   (onChange)="updateView(data)" (onControl)="onControl($event)">
               </entity-quality-form>
             </entity-metadata>
           </ion-col>

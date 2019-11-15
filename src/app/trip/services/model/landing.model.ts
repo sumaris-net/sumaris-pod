@@ -1,14 +1,18 @@
 import {
-  DataRootVesselEntity, EntityUtils,
+  DataEntityAsObjectOptions,
+  DataRootVesselEntity,
+  EntityUtils,
   fromDateISOString,
-  isNotNil, IWithObserversEntity,
+  IWithObserversEntity,
   Person,
   ReferentialRef,
-  toDateISOString
+  toDateISOString,
+  NOT_MINIFY_OPTIONS
 } from "./base.model";
 import {Moment} from "moment";
 import {MeasurementUtils} from "./measurement.model";
 import {Sample} from "./sample.model";
+import {ReferentialAsObjectOptions} from "../../../core/services/model";
 
 /**
  * Landing entity
@@ -52,15 +56,15 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     target.fromObject(this);
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
     target.dateTime = toDateISOString(this.dateTime);
-    target.location = this.location && this.location.asObject(false/*keep for landing list*/) || undefined;
-    target.observers = this.observers && this.observers.map(p => p && p.asObject(minify)) || undefined;
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, minify);
+    target.location = this.location && this.location.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
+    target.observers = this.observers && this.observers.map(p => p && p.asObject(options)) || undefined;
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
 
     // Samples
-    target.samples = this.samples && this.samples.map(s => s.asObject(minify)) || undefined;
+    target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;
 
     return target;
   }

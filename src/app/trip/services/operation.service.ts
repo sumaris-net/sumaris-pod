@@ -6,11 +6,11 @@ import {
   DataEntity,
   Department,
   EntityUtils,
-  isNil,
+  isNil, isNotNil,
   Measurement,
   Operation,
   Person,
-  Sample,
+  Sample, Trip,
   VesselPosition
 } from "./trip.model";
 import {map, throttleTime} from "rxjs/operators";
@@ -25,6 +25,13 @@ import {AcquisitionLevelCodes, ReferentialFragments} from "../../referential/ref
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
+import {
+  DataEntityAsObjectOptions,
+  MINIFY_OPTIONS,
+  OPTIMISTIC_AS_OBJECT_OPTIONS,
+  SAVE_AS_OBJECT_OPTIONS
+} from "./model/base.model";
+import {EntityStorage} from "../../core/services/entities-storage.service";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -162,7 +169,8 @@ export class OperationService extends BaseDataService implements TableDataServic
   constructor(
     protected graphql: GraphqlService,
     protected network: NetworkService,
-    protected accountService: AccountService
+    protected accountService: AccountService,
+    protected entities: EntityStorage
   ) {
     super(graphql);
 
@@ -342,73 +350,89 @@ export class OperationService extends BaseDataService implements TableDataServic
    */
   async save(entity: Operation): Promise<Operation> {
 
+    const now = Date.now();
+    if (this._debug) console.debug("[operation-service] Saving operation...");
+
     // Fill default properties (as recorder department and person)
     this.fillDefaultProperties(entity, {});
 
     // If new, create a temporary if (for offline mode)
     const isNew = isNil(entity.id);
-    let optimisticResponse;
-    if (this.network.offline) {
+
+    const offlineResponse = async (context) => {
       if (isNew) {
-        entity.id = await this.graphql.getTemporaryId('Operation');
-        if (this._debug) console.debug(`[operation-service] New temporary id: {${entity.id}`);
+        entity.id = await this.entities.nextValue('Operation');
+        if (this._debug) console.debug(`[operation-service] New  Using local entity id {${entity.id}`);
       }
-      optimisticResponse = this.network.offline ? {saveOperations: [entity]} : undefined;
-    }
+
+      // For the query to be tracked (see tracked query link) with a unique serialization key
+      context.tracked = true;
+      if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
+
+      return { saveOperations: [this.asObject(entity, OPTIMISTIC_AS_OBJECT_OPTIONS)] };
+    };
 
     // Transform into json
-    const json = this.asObject(entity, true);
+    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
+    if (this._debug) console.debug("[operation-service] Using minify object, to send:", json);
 
-    const now = Date.now();
-    if (this._debug) console.debug("[operation-service] Saving operation...", json);
+    return new Promise<Operation>((resolve, reject) => {
+      this.graphql.mutate<{ saveOperations: Operation[] }>({
+        mutation: SaveOperations,
+        variables: {
+          operations: [json]
+        },
+        offlineResponse,
+        error: {reject, code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR"},
+        update: (proxy, {data}) => {
+          const savedEntity = data && data.saveOperations && data.saveOperations[0];
 
-    await this.graphql.mutate<{ saveOperations: Operation[] }>({
-      mutation: SaveOperations,
-      variables: {
-        operations: [json]
-      },
-      context: {
-        serializationKey: dataIdFromObject(entity),
-        tracked: true
+          // Local entity: save it
+          if (savedEntity.id < 0) {
+            if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', savedEntity);
 
-      },
-      optimisticResponse,
-      error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR"},
-      update: (proxy, {data}) => {
-        const savedEntity = data && data.saveOperations && data.saveOperations[0];
-        if (savedEntity) {
+            // Save response locally
+            this.entities.save(savedEntity);
+          }
 
-          // Copy id and update Date
-          if (savedEntity !== entity) {
+          // Update the entity and update GraphQL cache
+          else {
+
+            // Remove existing entity from the local storage
+            if (entity.id < 0) {
+              this.entities.delete(entity);
+            }
+
+            // Copy id and update Date
             this.copyIdAndUpdateDate(savedEntity, entity);
 
             // Copy gear
             if (savedEntity.metier) {
-              savedEntity.metier.gear = savedEntity.metier.gear || (entity.physicalGear && entity.physicalGear.gear && entity.physicalGear.gear.asObject(false));
+              savedEntity.metier.gear = savedEntity.metier.gear || (entity.physicalGear && entity.physicalGear.gear && entity.physicalGear.gear.asObject());
             }
 
-            if (this._debug) console.debug(`[operation-service] Operation saved and updated in ${Date.now() - now}ms`, entity);
+            if (this._debug) console.debug(`[operation-service] Operation saved in ${Date.now() - now}ms`, entity);
+
+            // Update the cache
+            if (isNew && this._lastVariables.loadAll) {
+              this.graphql.addToQueryCache(proxy, {
+                query: LoadAllQuery,
+                variables: this._lastVariables.loadAll
+              }, 'operations', savedEntity);
+            }
+            else if (this._lastVariables.load) {
+              this.graphql.updateToQueryCache(proxy,{
+                query: LoadQuery,
+                variables: this._lastVariables.load
+              }, 'operation', savedEntity);
+            }
           }
 
-          // Update the cache
-          if (isNew && this._lastVariables.loadAll) {
-            this.graphql.addToQueryCache(proxy, {
-              query: LoadAllQuery,
-              variables: this._lastVariables.loadAll
-            }, 'operations', savedEntity);
-          }
-          else if (this._lastVariables.load) {
-            this.graphql.updateToQueryCache(proxy,{
-              query: LoadQuery,
-              variables: this._lastVariables.load
-            }, 'operation', savedEntity);
-          }
+          resolve(entity);
         }
-      }
+      });
     });
 
-
-    return entity;
   }
 
   /**
@@ -445,9 +469,8 @@ export class OperationService extends BaseDataService implements TableDataServic
 
   /* -- protected methods -- */
 
-  protected asObject(entity: Operation, minify?: boolean): any {
-    const copy: any = entity.asObject(toBoolean(minify, true));
-    return copy;
+  protected asObject(entity: Operation, options?: DataEntityAsObjectOptions): any {
+    return entity.asObject({ ...MINIFY_OPTIONS, options } as DataEntityAsObjectOptions);
   }
 
   protected fillDefaultProperties(entity: Operation, options?: any) {

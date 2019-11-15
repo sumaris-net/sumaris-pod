@@ -52,8 +52,8 @@ const ProgramFragments = {
       updateDate
       creationDate
       statusId
-      properties      
-      strategies {        
+      properties
+      strategies {
         ...StrategyRefFragment
       }
     }`,
@@ -67,8 +67,8 @@ const ProgramFragments = {
       updateDate
       creationDate
       statusId
-      properties      
-      strategies {        
+      properties
+      strategies {
         ...StrategyFragment
       }
     }
@@ -83,13 +83,13 @@ const ProgramFragments = {
       updateDate
       creationDate
       statusId
-      gears { 
+      gears {
         ...ReferentialFragment
       }
-      taxonGroups { 
+      taxonGroups {
         ...TaxonGroupStrategyFragment
       }
-      taxonNames { 
+      taxonNames {
         ...TaxonNameStrategyFragment
       }
       pmfmStrategies {
@@ -108,13 +108,13 @@ const ProgramFragments = {
       creationDate
       statusId
       programId
-      gears { 
+      gears {
         ...ReferentialFragment
       }
-      taxonGroups { 
+      taxonGroups {
         ...TaxonGroupStrategyFragment
       }
-      taxonNames { 
+      taxonNames {
         ...TaxonNameStrategyFragment
       }
       pmfmStrategies {
@@ -137,7 +137,7 @@ const ProgramFragments = {
       defaultValue
       acquisitionNumber
       isMandatory
-      rankOrder    
+      rankOrder
       acquisitionLevel
       updateDate
       gears
@@ -163,9 +163,9 @@ const ProgramFragments = {
       pmfmId
       pmfm {
         id
-        label   
+        label
         name
-        minValue 
+        minValue
         maxValue
         unit
         defaultValue
@@ -179,6 +179,8 @@ const ProgramFragments = {
   }`,
   taxonGroupStrategy: gql`
     fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
+      strategyId
+      priorityLevel
       taxonGroup {
           id
           label
@@ -188,12 +190,12 @@ const ProgramFragments = {
               ...TaxonNameFragment
           }
       }
-      priorityLevel
       __typename
     }
   `,
   taxonNameStrategy: gql`
     fragment TaxonNameStrategyFragment on TaxonNameStrategyVO {
+      strategyId
       priorityLevel
       taxonName {
           ...TaxonNameFragment
@@ -225,7 +227,7 @@ const LoadQuery: any = gql`
   }
   ${ProgramFragments.program}
   ${ProgramFragments.strategy}
-  ${ProgramFragments.pmfmStrategy}  
+  ${ProgramFragments.pmfmStrategy}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -251,7 +253,7 @@ const SaveQuery: any = gql`
   }
   ${ProgramFragments.program}
   ${ProgramFragments.strategy}
-  ${ProgramFragments.pmfmStrategy}  
+  ${ProgramFragments.pmfmStrategy}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -639,7 +641,7 @@ export class ProgramService extends BaseDataService
 
     // Fill default properties
     this.fillDefaultProperties(data);
-    const json = data.asObject();
+    const json = data.asObject({minify: false /* keep all properties */});
 
     const now = Date.now();
     if (this._debug) console.debug("[program-service] Saving program...", json);

@@ -5,7 +5,7 @@ import {BehaviorSubject, Subject} from 'rxjs';
 import {isNil, isNotNil} from '../../shared/shared.module';
 import {DataRootEntity} from "../services/trip.model";
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
-import {filter, switchMap} from "rxjs/operators";
+import {distinctUntilChanged, filter, switchMap} from "rxjs/operators";
 import {Program} from "../../referential/services/model";
 import {ProgramService} from "../../referential/services/program.service";
 import {isNotNilOrBlank} from "../../shared/functions";
@@ -46,6 +46,7 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends E
       this.programSubject.asObservable()
         .pipe(
           filter(isNotNilOrBlank),
+          distinctUntilChanged(),
           switchMap(programLabel => this.programService.watchByLabel(programLabel, true))
         )
         .subscribe(program => this.onProgramChanged.next(program))

@@ -589,7 +589,7 @@ export class AccountService extends BaseDataService {
 
     if (this._debug) console.debug("[account] Saving account {" + this.data.pubkey.substring(0, 6) + "} in local storage...");
 
-    let copy = this.data.account.asObject();
+    let copy = this.data.account.asObject({keepTypename: true});
     const seckey = this.data.keypair && !!this.data.keypair.secretKey && base58.encode(this.data.keypair.secretKey) || null;
 
     await Promise.all([

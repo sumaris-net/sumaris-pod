@@ -286,7 +286,6 @@ export class CustomReuseStrategy extends IonicRouteStrategy {
         (future.queryParams[pathIdParam] || future.queryParams['id']) : future.params[pathIdParam];
       const currId = curr.params[pathIdParam] === 'new' ?
         (curr.queryParams[pathIdParam] || curr.queryParams['id']) : curr.params[pathIdParam];
-      //if (futureId !== currId) console.log("TODO: shouldReuseRoute -> NOT same page. Will not reused");
       return futureId === currId;
     }
     return res;

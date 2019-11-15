@@ -6,6 +6,7 @@ import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {AppForm} from '../../core/core.module';
 import {
+  ProgramService,
   ReferentialRefService,
   referentialToString,
   VesselModal,

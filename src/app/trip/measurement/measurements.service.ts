@@ -170,7 +170,6 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
 
     // Wait loaded
     if (pmfms instanceof Observable) {
-      //console.log("[measurement-service]: waiting pmfms before emit $pmfms")
       pmfms = await pmfms.pipe(filter(isNotNil), first()).toPromise();
     }
 

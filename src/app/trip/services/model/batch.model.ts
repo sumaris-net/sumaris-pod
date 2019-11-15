@@ -1,6 +1,6 @@
 import {EntityUtils, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../../core/core.module";
 import {AcquisitionLevelCodes, PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
-import {DataEntity} from "./base.model";
+import {DataEntity, DataEntityAsObjectOptions, NOT_MINIFY_OPTIONS} from "./base.model";
 import {
   IEntityWithMeasurement,
   MeasurementUtils,
@@ -9,7 +9,8 @@ import {
 } from "./measurement.model";
 import {isNilOrBlank, isNotNilOrBlank} from "../../../shared/functions";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {TaxonGroupRef, TaxonNameRef} from "../../../referential/services/model/taxon.model";
+import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
+import {ReferentialAsObjectOptions} from "../../../core/services/model";
 
 export declare interface BatchWeight {
   methodId: number;
@@ -108,26 +109,26 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    let parent = this.parent; // avoid parent conversion
-    this.parent = null;
-    const target = super.asObject(minify);
+  asObject(options?: DataEntityAsObjectOptions): any {
+    let parent = this.parent;
+    this.parent = null; // avoid parent conversion
+    const target = super.asObject(options);
     delete target.parentBatch;
     this.parent = parent;
 
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(false /*fix #32*/) || undefined;
-    target.taxonName = this.taxonName && this.taxonName.asObject(false /*fix #32*/) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
     target.samplingRatio = isNotNil(this.samplingRatio) ? this.samplingRatio : null;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
-    target.children = this.children && this.children.map(c => c.asObject(minify)) || undefined;
+    target.children = this.children && this.children.map(c => c.asObject(options)) || undefined;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, minify);
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
 
-    if (minify) {
+    if (options && options.minify) {
       // Parent Id not need, as the tree batch will be used by pod
       delete target.parent;
       delete target.parentId;
-
+      // Remove computed properties
       delete target.weight;
     }
 
@@ -345,8 +346,8 @@ export class BatchUtils {
         opts.formBuilder,
         opts.form,
         'children',
-        (value) => opts.createForm(),
-        (v1, v2) => false,
+        (value) => opts.createForm(value),
+        (v1, v2) => false /*comparision not need*/,
         (value) => isNil(value),
         {allowEmptyArray: true}
       );
