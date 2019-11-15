@@ -3,7 +3,7 @@
 -- Insertion des valeurs qualitatives (pour les coef de conversion)
 --
 -- *****************************************************************
--- Requête de generation, à executer sur le schéma SIH2_ADAGIO_DBA:
+-- Requête ayant permis la generation des INSERT, à executer sur le schéma SIH2_ADAGIO_DBA:
 --
 -- ( select distinct 'insert into QUALITATIVE_VALUE (id, status_fk, creation_date, update_date, label, name, parameter_fk) ',
 --                     'select NEXT VALUE FOR QUALITATIVE_VALUE_SEQ, 1, sysdate, now, ',
