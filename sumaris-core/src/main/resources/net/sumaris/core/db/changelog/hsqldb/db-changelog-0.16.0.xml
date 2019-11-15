@@ -35,8 +35,15 @@
     </preConditions>
     <createSequence sequenceName="LOCATION_SEQ"/>
     <sql>ALTER SEQUENCE LOCATION_SEQ RESTART WITH 2000</sql>
-    <sql>select NEXT VALUE FOR LOCATION_SEQ from STATUS where ID=1</sql>
   </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-1-2" runOnChange="true">
+    <preConditions onFail="HALT">
+        <sequenceExists sequenceName="LOCATION_SEQ"/>
+    </preConditions>
+    <sql>select NEXT VALUE FOR LOCATION_SEQ from LOCATION where ID > 2000</sql>
+  </changeSet>
+
   <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-2">
     <preConditions onFail="MARK_RAN">
       <not>
