@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithObserversEntity;
 import net.sumaris.core.model.data.IWithVesselFeaturesEntity;
@@ -40,10 +41,12 @@ import java.util.Set;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode
 public class TripVO implements IRootDataVO<Integer>,
         IWithObserversEntity<Integer, PersonVO>,
         IWithVesselFeaturesEntity<Integer, VesselFeaturesVO> {
 
+    @EqualsAndHashCode.Exclude
     private Integer id;
     private String comments;
     private Date creationDate;
@@ -64,13 +67,17 @@ public class TripVO implements IRootDataVO<Integer>,
     private LocationVO returnLocation;
     private ProgramVO program;
     private Set<PersonVO> observers;
-
-    private List<SaleVO> sales;
-    private SaleVO sale; // shortcut when only one sale
-
-    private List<OperationVO> operations;
     private List<PhysicalGearVO> gears;
 
+    @EqualsAndHashCode.Exclude
+    private List<SaleVO> sales;
+    @EqualsAndHashCode.Exclude
+    private SaleVO sale; // shortcut when only one sale
+
+    @EqualsAndHashCode.Exclude
+    private List<OperationVO> operations;
+
+    @EqualsAndHashCode.Exclude
     private List<MeasurementVO> measurements; // vessel_use_measurement
     private Map<Integer, String> measurementValues; // vessel_use_measurement
 

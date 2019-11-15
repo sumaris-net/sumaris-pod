@@ -31,6 +31,7 @@ import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
@@ -46,6 +47,7 @@ import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -269,7 +271,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
         EntityManager entityManager = getEntityManager();
         Trip entity = null;
-        if (source.getId() != null) {
+        if (source.getId() != null && source.getId().intValue() >= 0) {
             entity = get(Trip.class, source.getId());
         }
         boolean isNew = (entity == null);
@@ -292,6 +294,9 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
         // Save entityName
         if (isNew) {
+            // Force id to null, to use the generator
+            entity.setId(null);
+
             // Force creation date
             entity.setCreationDate(newUpdateDate);
             source.setCreationDate(newUpdateDate);
@@ -328,6 +333,9 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         Preconditions.checkNotNull(source);
 
         Trip entity = get(Trip.class, source.getId());
+        if (entity == null) {
+            throw new DataRetrievalFailureException(String.format("Trip {%s} not found", source.getId()));
+        }
 
         // Check update date
         checkUpdateDateForUpdate(source, entity);
@@ -358,26 +366,28 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         Preconditions.checkNotNull(source);
 
         Trip entity = get(Trip.class, source.getId());
+        if (entity == null) {
+            throw new DataRetrievalFailureException(String.format("Trip {%s} not found", source.getId()));
+        }
 
         // Check update date
         checkUpdateDateForUpdate(source, entity);
 
         // Lock entityName
-//        lockForUpdate(entity);
-
-        // TODO VALIDATION PROCESS HERE
-        Date validationDate = getDatabaseCurrentTimestamp();
-        entity.setValidationDate(validationDate);
+        // lockForUpdate(entity);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
+        // TODO VALIDATION PROCESS HERE
+        entity.setValidationDate(newUpdateDate);
+
         // Save entityName
 //        getEntityManager().merge(entity);
 
         // Update source
-        source.setValidationDate(validationDate);
+        source.setValidationDate(newUpdateDate);
         source.setUpdateDate(newUpdateDate);
 
         return source;
@@ -388,6 +398,9 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         Preconditions.checkNotNull(source);
 
         Trip entity = get(Trip.class, source.getId());
+        if (entity == null) {
+            throw new DataRetrievalFailureException(String.format("Trip {%s} not found", source.getId()));
+        }
 
         // Check update date
         checkUpdateDateForUpdate(source, entity);
@@ -407,6 +420,49 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
         // Update source
         source.setValidationDate(null);
+        source.setUpdateDate(newUpdateDate);
+
+        return source;
+    }
+
+    @Override
+    public TripVO qualify(TripVO source) {
+        Preconditions.checkNotNull(source);
+
+        Trip entity = get(Trip.class, source.getId());
+        if (entity == null) {
+            throw new DataRetrievalFailureException(String.format("Trip {%s} not found", source.getId()));
+        }
+
+        // Check update date
+        checkUpdateDateForUpdate(source, entity);
+
+        // Lock entityName
+//        lockForUpdate(entity);
+
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // Not qualify
+        int qualityFlagId = source.getQualityFlagId() != null ? source.getQualityFlagId().intValue() : 0;
+        if (qualityFlagId == 0) {
+            entity.setQualificationDate(null);
+        }
+        else {
+            entity.setQualificationDate(newUpdateDate);
+        }
+        entity.setQualityFlag(load(QualityFlag.class, qualityFlagId));
+
+        // TODO UNVALIDATION PROCESS HERE
+        // - insert into qualification history
+
+        // Save entityName
+//        getEntityManager().merge(entity);
+
+        // Update source
+        source.setQualificationDate(newUpdateDate);
         source.setUpdateDate(newUpdateDate);
 
         return source;

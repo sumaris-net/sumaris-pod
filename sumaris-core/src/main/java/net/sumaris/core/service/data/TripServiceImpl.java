@@ -212,6 +212,20 @@ public class TripServiceImpl implements TripService {
         return tripDao.unvalidate(trip);
     }
 
+    @Override
+    public TripVO qualify(TripVO trip) {
+        Preconditions.checkNotNull(trip);
+        Preconditions.checkNotNull(trip.getId());
+        Preconditions.checkNotNull(trip.getControlDate());
+        Preconditions.checkNotNull(trip.getValidationDate());
+        Preconditions.checkNotNull(trip.getQualityFlagId());
+
+        int qfId = trip.getQualityFlagId().intValue();
+        Preconditions.checkArgument(qfId >= 0 && qfId <= 9, "Invalid quality flag: " + qfId);
+
+        return tripDao.qualify(trip);
+    }
+
     /* protected methods */
 
     void fillDefaultProperties(TripVO parent, SaleVO sale) {
