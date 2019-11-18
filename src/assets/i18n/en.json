@@ -625,8 +625,8 @@
     },
     "ACTION": {
       "EDIT": "Edit",
-      "EDIT_FEATURE": "Modify current features",
-      "NEW_FEATURE": "Declare a feature change",
+      "EDIT_FEATURES": "Modify current features",
+      "NEW_FEATURES": "Declare a feature change",
       "EDIT_REGISTRATION": "Modify current registration",
       "NEW_REGISTRATION": "Declare new registration",
       "EDIT_STATUS": "Modify status"

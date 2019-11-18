@@ -889,6 +889,7 @@ type VesselFeaturesVO {
   recorderPerson: PersonVO
   registrationCode: String
   registrationEndDate: Date
+  registrationId: Int
   registrationLocation: LocationVO
   registrationStartDate: Date
   startDate: Date
@@ -1654,6 +1655,7 @@ input VesselFeaturesVOInput {
   recorderPerson: PersonVOInput
   registrationCode: String
   registrationEndDate: Date
+  registrationId: Int
   registrationLocation: LocationVOInput
   registrationStartDate: Date
   startDate: Date

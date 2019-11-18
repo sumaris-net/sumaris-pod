@@ -652,8 +652,8 @@
     },
     "ACTION": {
       "EDIT": "Modifier",
-      "EDIT_FEATURE": "Corriger les caractéristiques",
-      "NEW_FEATURE": "Declarer un changement de caratéristiques",
+      "EDIT_FEATURES": "Corriger les caractéristiques",
+      "NEW_FEATURES": "Declarer un changement de caratéristiques",
       "EDIT_REGISTRATION": "Corriger l'immatriculation",
       "NEW_REGISTRATION": "Declarer une nouvelle immatriculation",
       "EDIT_STATUS": "Modifier le status"

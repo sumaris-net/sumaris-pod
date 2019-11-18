@@ -23,7 +23,7 @@ import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 2,
+  PORT: 6,
   AUCTION: 3
 };
 
@@ -167,6 +167,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   startDate: Moment;
   endDate: Moment;
   exteriorMarking: string;
+  registrationId: number;
   registrationCode: string;
   registrationStartDate: Moment;
   registrationEndDate: Moment;
@@ -235,6 +236,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.vesselStatusId = source.vesselStatusId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
+    this.registrationId = source.registrationId;
     this.registrationStartDate = fromDateISOString(source.registrationStartDate);
     this.registrationEndDate = fromDateISOString(source.registrationEndDate);
     this.administrativePower = source.administrativePower || undefined;

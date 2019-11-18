@@ -54,6 +54,9 @@ export const VesselFeaturesFragments = {
         name
         exteriorMarking
         registrationCode
+        registrationId
+        registrationStartDate
+        registrationEndDate
         administrativePower
         lengthOverAll
         grossTonnageGt

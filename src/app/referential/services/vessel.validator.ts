@@ -26,6 +26,7 @@ export class VesselValidatorService implements ValidatorService {
       'endDate': [null],
       'name': ['', Validators.required],
       'exteriorMarking': ['', Validators.required],
+      'registrationId': [null],
       'registrationCode': ['', Validators.required],
       'registrationStartDate': [null, Validators.required],
       'registrationEndDate': [null],

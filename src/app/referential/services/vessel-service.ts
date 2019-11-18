@@ -67,6 +67,7 @@ export const VesselFragments = {
     endDate
     name
     exteriorMarking
+    registrationId
     registrationCode
     registrationStartDate
     registrationEndDate
