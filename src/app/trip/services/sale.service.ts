@@ -1,35 +1,34 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs";
 import {Department, EntityUtils, Person, Sale, Sample} from "./trip.model";
 import {map} from "rxjs/operators";
-import {TableDataService, LoadResult} from "../../shared/shared.module";
-import {BaseDataService, environment} from "../../core/core.module";
+import {LoadResult, TableDataService} from "../../shared/shared.module";
+import {BaseDataService} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {WatchQueryFetchPolicy} from "apollo-client";
-import {OperationFilter} from "./operation.service";
 import {AccountService} from "../../core/services/account.service";
+import {SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment on SaleVO {
     id
     startDateTime
     endDateTime
-    observedLocationId
+    tripId
     comments
-    updateDate 
-    location {
+    updateDate
+    saleLocation {
       ...LocationFragment
-    } 
+    }
     vesselFeatures {
       ...VesselFeaturesFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
-    }    
+    }
   }
   ${Fragments.location}
   ${Fragments.lightDepartment}
@@ -39,12 +38,12 @@ export const SaleFragments = {
     id
     startDateTime
     endDateTime
-    observedLocationId
+    tripId
     comments
-    updateDate   
-    location {
+    updateDate
+    saleLocation {
       ...LocationFragment
-    } 
+    }
     measurements {
       ...MeasurementFragment
     }
@@ -68,8 +67,8 @@ export const SaleFragments = {
   ${Fragments.lightDepartment}
   ${Fragments.measurement}
   ${Fragments.location}
-  ${DataFragments.sample} 
-  ${DataFragments.vesselFeatures} 
+  ${DataFragments.sample}
+  ${DataFragments.vesselFeatures}
   `
 };
 
@@ -90,9 +89,9 @@ const LoadQuery: any = gql`
   query Sale($id: Int) {
     sale(id: $id) {
       ...SaleFragment
-    }  
+    }
   }
-  ${SaleFragments.sale}  
+  ${SaleFragments.sale}
 `;
 const SaveSales: any = gql`
   mutation saveSales($sales:[SaleVOInput]){
@@ -100,7 +99,7 @@ const SaveSales: any = gql`
       ...SaleFragment
     }
   }
-  ${SaleFragments.sale}  
+  ${SaleFragments.sale}
 `;
 const DeleteSales: any = gql`
   mutation deleteSales($ids:[Int]){
@@ -262,36 +261,38 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
       console.error("[sale-service] Missing options.tripId");
       throw { code: ErrorCodes.SAVE_SALES_ERROR, message: "TRIP.SALE.ERROR.SAVE_SALES_ERROR" };
     }
+    const now = Date.now();
+    if (this._debug) console.debug("[sale-service] Saving sales...");
 
     // Compute rankOrder
     let rankOrder = 1;
     entities.sort(sortByEndDateOrStartDateFn).forEach(o => o.rankOrder = rankOrder++);
 
+    // Transform to json
     const json = entities.map(t => {
       // Fill default properties (as recorder department and person)
       this.fillDefaultProperties(t, options);
-      return t.asObject(true/*minify*/);
+      return t.asObject(SAVE_AS_OBJECT_OPTIONS);
     });
+    if (this._debug) console.debug("[sale-service] Using minify object, to send:", json);
 
-    const now = new Date();
-    if (this._debug) console.debug("[sale-service] Saving sales...", json);
-
-    const res = await this.graphql.mutate<{ saveSales: Sale[] }>({
+    await this.graphql.mutate<{ saveSales: Sale[] }>({
       mutation: SaveSales,
       variables: {
         sales: json
       },
-      error: { code: ErrorCodes.SAVE_SALES_ERROR, message: "TRIP.SALE.ERROR.SAVE_SALES_ERROR" }
+      error: { code: ErrorCodes.SAVE_SALES_ERROR, message: "TRIP.SALE.ERROR.SAVE_SALES_ERROR" },
+      update: (proxy, {data}) => {
+        // Copy id and update date
+        (data && data.saveSales && entities || [])
+          .forEach(entity => {
+            const savedSale = data.saveSales.find(res => entity.equals(res));
+            this.copyIdAndUpdateDate(savedSale, entity);
+          });
+
+        if (this._debug) console.debug(`[sale-service] Sales saved and updated in ${Date.now() - now}ms`, entities);
+      }
     });
-
-    // Copy id and update date
-    (res && res.saveSales && entities || [])
-      .forEach(entity => {
-        const savedSale = res.saveSales.find(res => entity.equals(res));
-        this.copyIdAndUpdateDate(savedSale, entity);
-      });
-
-    if (this._debug) console.debug("[sale-service] Sales saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entities);
 
     return entities;
   }
@@ -301,17 +302,17 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
      * @param data
      */
   async save(entity: Sale): Promise<Sale> {
-
+    const now = Date.now();
+    if (this._debug) console.debug("[sale-service] Saving a sale...");
 
     // Fill default properties (as recorder department and person)
     this.fillDefaultProperties(entity, {});
 
-    // Transform into json
-    const json = entity.asObject(true/*minify*/);
     const isNew = !entity.id && entity.id !== 0;
 
-    const now = new Date();
-    if (this._debug) console.debug("[sale-service] Saving sale...", json);
+    // Transform into json
+    const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
+    if (this._debug) console.debug("[sale-service] Using minify object, to send:", json);
 
     await this.graphql.mutate<{ saveSales: Sale[] }>({
       mutation: SaveSales,
@@ -324,7 +325,7 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
         if (savedEntity && savedEntity !== entity) {
           // Copy id and update Date
           this.copyIdAndUpdateDate(savedEntity, entity);
-          if (this._debug) console.debug("[sale-service] Sale saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+          if (this._debug) console.debug(`[sale-service] Sale saved and updated in ${Date.now() - now}ms`, entity);
         }
 
         // Update the cache

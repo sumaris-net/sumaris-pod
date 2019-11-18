@@ -29,6 +29,7 @@ import {SharedValidators} from "../../shared/validator/validators";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AccountService} from "../../core/services/account.service";
+import {NetworkService} from "../../core/services/network.service";
 
 @Component({
   selector: 'app-trips-page',
@@ -62,6 +63,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
+    protected network: NetworkService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -98,7 +100,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.autoLoad = false;
 
     // FOR DEV ONLY ----
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -164,6 +166,17 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     super.setFilter(json, opts);
 
     this.filterIsEmpty = TripFilter.isEmpty(json);
+  }
+
+  toggleOfflineMode(event?: UIEvent) {
+    if (this.network.offline) {
+      this.network.setConnectionType('unknown');
+    }
+    else {
+      this.network.setConnectionType('none');
+    }
+    // Refresh table
+    this.onRefresh.emit();
   }
 
   vesselFeaturesToString = vesselFeaturesToString;

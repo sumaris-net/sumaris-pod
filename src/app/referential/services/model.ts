@@ -2,14 +2,18 @@ import {
   Cloneable,
   Department,
   Entity,
+  EntityAsObjectOptions,
   entityToString,
   EntityUtils,
   fromDateISOString,
   isNil,
   isNotNil,
   joinPropertiesPath,
+  NOT_MINIFY_OPTIONS,
   Person,
+  PropertiesMap,
   Referential,
+  ReferentialAsObjectOptions,
   ReferentialRef,
   referentialToString,
   StatusIds,
@@ -17,7 +21,6 @@ import {
 } from "../../core/core.module";
 import {Moment} from "moment/moment";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {PropertiesMap} from "../../core/services/model";
 import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
@@ -100,6 +103,13 @@ export const QualityFlagIds = {
   NOT_COMPLETED: 8,
   MISSING: 9
 };
+
+export const QualityFlags = Object.entries(QualityFlagIds).map(([label, id]) => {
+  return {
+    id,
+    label
+  };
+});
 
 const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
 
@@ -185,11 +195,11 @@ export class VesselFeatures extends Entity<VesselFeatures> {
 
   constructor() {
     super();
-    this.vesselType = new ReferentialRef();
-    this.basePortLocation = new ReferentialRef();
-    this.registrationLocation = new ReferentialRef();
-    this.recorderDepartment = new Department();
-    this.recorderPerson = new Person();
+    this.vesselType = null;
+    this.basePortLocation = null;
+    this.registrationLocation = null;
+    this.recorderDepartment = null;
+    this.recorderPerson = null;
   }
 
   clone(): VesselFeatures {
@@ -208,19 +218,19 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    const target: any = super.asObject(minify);
+  asObject(options?: EntityAsObjectOptions): any {
+    const target: any = super.asObject(options);
 
-    target.vesselType = this.vesselType && this.vesselType.asObject(minify) || undefined;
-    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject(minify) || undefined;
-    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject(minify) || undefined;
+    target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
+    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
+    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     target.registrationStartDate = toDateISOString(this.registrationStartDate);
     target.registrationEndDate = toDateISOString(this.registrationEndDate);
     target.creationDate = toDateISOString(this.creationDate);
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(minify) || undefined;
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(minify) || undefined;
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
 
     return target;
   }
@@ -244,11 +254,11 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.grossTonnageGt = source.grossTonnageGt || undefined;
     this.grossTonnageGrt = source.grossTonnageGrt || undefined;
     this.creationDate = fromDateISOString(source.creationDate);
-    source.vesselType && this.vesselType.fromObject(source.vesselType);
-    source.basePortLocation && this.basePortLocation.fromObject(source.basePortLocation);
-    source.registrationLocation && this.registrationLocation.fromObject(source.registrationLocation);
-    source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
-    source.recorderPerson && this.recorderPerson.fromObject(source.recorderPerson);
+    this.vesselType = source.vesselType && ReferentialRef.fromObject(source.vesselType);
+    this.basePortLocation = source.basePortLocation && ReferentialRef.fromObject(source.basePortLocation);
+    this.registrationLocation = source.registrationLocation && ReferentialRef.fromObject(source.registrationLocation);
+    this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
+    this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
     return this;
   }
 }
@@ -284,10 +294,10 @@ export class VesselRegistration extends Entity<VesselRegistration> {
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    const target: any = super.asObject(minify);
+  asObject(options?: EntityAsObjectOptions): any {
+    const target: any = super.asObject(options);
 
-    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject(minify) || undefined;
+    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject(options) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
 
@@ -445,9 +455,14 @@ export class Program extends Entity<Program> {
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    if (minify) return {id: this.id}; // minify=keep id only
-    const target: any = super.asObject(minify);
+  asObject(options?: ReferentialAsObjectOptions): any {
+    if (options && options.minify) {
+      return {
+        id: this.id,
+        __typename: options.keepTypename && this.__typename || undefined
+      };
+    }
+    const target: any = super.asObject(options);
     target.creationDate = toDateISOString(this.creationDate);
     target.properties = this.properties;
     return target;
@@ -559,9 +574,9 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    const target: any = super.asObject();
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject()) || undefined;
+  asObject(options?: EntityAsObjectOptions): any {
+    const target: any = super.asObject(options);
+    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
     return target;
   }
 
@@ -673,15 +688,14 @@ export class Strategy extends Entity<Strategy> {
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    if (minify) return {id: this.id}; // minify=keep id only
-    const target: any = super.asObject(minify);
+  asObject(options?: EntityAsObjectOptions): any {
+    const target: any = super.asObject(options);
     target.programId = this.programId;
     target.creationDate = toDateISOString(this.creationDate);
-    target.pmfmStrategies = this.pmfmStrategies && this.pmfmStrategies.map(s => s.asObject(false/*minify*/));
-    target.gears = this.gears && this.gears.map(s => s.asObject(minify));
-    target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject(minify));
-    target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject(minify));
+    target.pmfmStrategies = this.pmfmStrategies && this.pmfmStrategies.map(s => s.asObject({ ...options, ...NOT_MINIFY_OPTIONS }));
+    target.gears = this.gears && this.gears.map(s => s.asObject(options));
+    target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject(options));
+    target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject(options));
     return target;
   }
 

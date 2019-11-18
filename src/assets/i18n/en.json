@@ -14,6 +14,8 @@
     "BTN_VALIDATE": "Validate",
     "BTN_NOT_SAVE": "do NOT save",
     "BTN_SAVE": "Save",
+    "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>ave",
+    "BTN_SAVE_WITH_SHORTCUT_HELP": "Save (Ctrl+S)",
     "BTN_FILTER": "Filter",
     "BTN_RELOAD": "Reload",
     "BTN_REFRESH": "Refresh",
@@ -91,6 +93,12 @@
     "PROPERTY_KEY": "Key",
     "PROPERTY_VALUE": "Value",
     "BTN_ADD_PROPERTY": "Add an option",
+    "NEW": {
+      "TITLE": "New configuration"
+    },
+    "EDIT": {
+      "TITLE": "Configuration {{label}}"
+    },
     "OPTIONS": {
       "LOGO": "Menu > Logo (max width: 110px)",
       "FAVICON": "favicon",
@@ -325,7 +333,8 @@
       "SUBSCRIBE_TRIP_ERROR": "Error while listening trip's changes.",
       "CONTROL_TRIP_ERROR": "Error while terminating the trip",
       "VALIDATE_TRIP_ERROR": "Error while validating the trip",
-      "UNVALIDATE_TRIP_ERROR": "Error while unvalidating the trip"
+      "UNVALIDATE_TRIP_ERROR": "Error while unvalidating the trip",
+      "QUALIFY_TRIP_ERROR": "Error while qualify the trip"
     },
     "MEASUREMENT": {
       "FEATURE_PLACEHOLDER" : "Feature #{{rankOrder}}"
@@ -458,6 +467,12 @@
       }
     },
     "SAMPLE": {
+      "NEW": {
+        "TITLE": "New batch"
+      },
+      "EDIT": {
+        "TITLE": "Batch {{label}}"
+      },
       "TABLE": {
         "LABEL": "Batch",
         "LABEL_PLACEHOLDER": "Batch",
@@ -535,9 +550,10 @@
       "OBSERVERS": "Observers",
       "COMMENTS": "Comments",
       "FILTER": {
+        "PROGRAM": "Data collection program",
+        "LOCATION": "Location",
         "START_DATE": "Start period",
-        "END_DATE": "End period",
-        "LOCATION": "Location"
+        "END_DATE": "End period"
       }
     },
     "ERROR": {
@@ -596,7 +612,18 @@
     "QUALIFIED_ON": "Qualified on ",
     "QUALIFICATION_COMMENT": "Qualification comment",
     "QUALIFY": "Qualify",
-    "QUALITY_FLAG": "Quality level"
+    "QUALITY_FLAG": "Quality level",
+    "QUALITY_FLAG_SHORT": "Quality :",
+    "QUALITY_FLAGS": {
+      "NOT_QUALIFIED": "Not qualified",
+      "GOOD": "Good",
+      "OUT_STATS": "Out of statistic",
+      "DOUBTFUL": "Doubtful",
+      "BAD": "Bade",
+      "FIXED": "Fixed",
+      "NOT_COMPLETED": "Not complete",
+      "MISSING": "Missing"
+    }
   },
   "VESSEL": {
     "VESSEL_ID": "Internal code",

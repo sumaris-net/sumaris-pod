@@ -773,6 +773,7 @@ type Subscription {
 }
 
 type TaxonGroupStrategyVO {
+  strategyId: Int
   priorityLevel: Int
   taxonGroup: TaxonGroupVO
 }
@@ -795,8 +796,9 @@ type TaxonGroupVO {
 }
 
 type TaxonNameStrategyVO {
-  isReferent: Boolean
+  strategyId: Int
   priorityLevel: Int
+  isReferent: Boolean
   referenceTaxonId: Int
   taxonName: TaxonNameVO
 }

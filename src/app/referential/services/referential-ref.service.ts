@@ -54,7 +54,6 @@ export class ReferentialRefService extends BaseDataService
   }
 
   /**
-   * @deprecated
    * @param offset
    * @param size
    * @param sortBy

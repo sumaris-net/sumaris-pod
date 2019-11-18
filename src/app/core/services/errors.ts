@@ -2,6 +2,7 @@
 export declare interface ServiceError {
   code: number;
   message: String;
+  reject?: (err) => void;
 }
 
 export const ErrorCodes = {

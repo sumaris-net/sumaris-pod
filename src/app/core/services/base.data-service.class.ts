@@ -1,5 +1,9 @@
 import {GraphqlService} from "./graphql.service";
 
+export const OPTIMISTIC_AS_OBJECT_OPTIONS = {
+
+}
+
 export abstract class BaseDataService<T = any, F = any> {
 
   protected _debug = false;

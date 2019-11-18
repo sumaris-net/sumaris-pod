@@ -53,7 +53,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
             return taxonGroupPmfm;
           }),
           mergeMap((taxonGroupPmfm) => {
-            console.log('TODO: check taxon group pmfm:', taxonGroupPmfm)
             // Load program taxon groups
             return from(this.programService.loadTaxonGroups(this.landingForm.program))
               .pipe(

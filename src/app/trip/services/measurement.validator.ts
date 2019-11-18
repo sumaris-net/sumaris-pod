@@ -77,7 +77,6 @@ export class MeasurementsValidatorService implements ValidatorService {
     validatorFns = validatorFns || [];
     // Add required validator (if NOT in ON FIELD mode)
     if (pmfm.required && !this.settings.isFieldUsageMode()) {
-      //console.log("TODO: check PMFM validator required=true")
       validatorFns.push(Validators.required);
     }
     if (pmfm.isAlphanumeric) {

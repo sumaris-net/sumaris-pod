@@ -29,6 +29,7 @@ import {
 } from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
 import {IWithProgramEntity} from "../../../referential/services/model";
+import {EntityAsObjectOptions, MINIFY_OPTIONS, NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model";
 
 
 export {
@@ -36,7 +37,7 @@ export {
   toDateISOString, fromDateISOString, isNotNil, isNil,
   vesselFeaturesToString, entityToString, referentialToString, personToString, personsToString, getPmfmName,
   StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds, QualityFlagIds,
-  PmfmStrategy, AcquisitionLevelCodes
+  PmfmStrategy, AcquisitionLevelCodes, NOT_MINIFY_OPTIONS, MINIFY_OPTIONS
 };
 
 
@@ -70,6 +71,21 @@ export interface IWithObserversEntity<T> extends Entity<T> {
   observers: Person[];
 }
 
+export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
+}
+
+export const OPTIMISTIC_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
+ minify: false,
+ keepTypename: true,
+ keepEntityName: true
+};
+
+export const SAVE_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
+  minify: true,
+  keepTypename: false,
+  keepEntityName: false
+};
+
 export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDepartmentEntity<T> {
   recorderDepartment: Department;
   controlDate: Moment;
@@ -82,13 +98,13 @@ export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDe
     this.recorderDepartment = null;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(minify) || undefined;
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
     target.controlDate = toDateISOString(this.controlDate);
     target.qualificationDate = toDateISOString(this.qualificationDate);
     target.qualificationComments = this.qualificationComments || undefined;
-    target.qualityFlag = this.qualityFlagId || undefined;
+    target.qualityFlagId = isNotNil(this.qualityFlagId) ? this.qualityFlagId : undefined;
     return target;
   }
 
@@ -103,6 +119,8 @@ export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDe
   }
 
 }
+
+
 
 export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRecorderPersonEntity<T>, IWithProgramEntity<T> {
   creationDate: Moment;
@@ -120,12 +138,12 @@ export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRe
     this.program = null;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
     target.creationDate = toDateISOString(this.creationDate);
     target.validationDate = toDateISOString(this.validationDate);
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(minify) || undefined;
-    target.program = this.program && this.program.asObject(false/*keep for trips list*/) || undefined;
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
+    target.program = this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for trips list*/ } as ReferentialAsObjectOptions) || undefined;
     return target;
   }
 
@@ -149,9 +167,9 @@ export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> implemen
     this.vesselFeatures = null;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
-    target.vesselFeatures = this.vesselFeatures && this.vesselFeatures.asObject(minify) || undefined;
+  asObject(options?: EntityAsObjectOptions): any {
+    const target = super.asObject(options);
+    target.vesselFeatures = this.vesselFeatures && this.vesselFeatures.asObject({ ...options, ...NOT_MINIFY_OPTIONS }) || undefined;
     return target;
   }
 

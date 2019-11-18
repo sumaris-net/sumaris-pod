@@ -3,6 +3,22 @@
              [canGoBack]="false">
 </app-toolbar>
 
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+
+  <button mat-menu-item
+          (click)="openSelectColumnsModal($event)">
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS</ion-label>
+  </button>
+
+  <!-- menu items for DEV ONLY -->
+  <button mat-menu-item *ngIf="debug && network.online"
+          (click)="toggleOfflineMode($event)">
+    <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
+  </button>
+</mat-menu>
+
 <ion-content class="ion-no-padding">
   <mat-toolbar>
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
@@ -37,7 +53,9 @@
 
     <div class="toolbar-spacer"></div>
 
-    <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+    <button mat-icon-button
+            [title]="'COMMON.BTN_OPTIONS'|translate"
+            [matMenuTriggerFor]="optionsMenu">
       <mat-icon>more_vert</mat-icon>
     </button>
   </mat-toolbar>

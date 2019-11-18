@@ -1,8 +1,9 @@
 import {fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
 import {Person, ReferentialRef} from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
-import {DataRootVesselEntity} from "./base.model";
+import {DataEntityAsObjectOptions, DataRootVesselEntity} from "./base.model";
 import {Sample} from "./sample.model";
+import {MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 
 
 export class Sale extends DataRootVesselEntity<Sale> {
@@ -72,24 +73,15 @@ export class Sale extends DataRootVesselEntity<Sale> {
     return this;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
-    target.saleLocation = this.saleLocation && this.saleLocation.asObject(minify) || undefined;
-    target.saleType = this.saleType && this.saleType.asObject(minify) || undefined;
-    target.samples = this.samples && this.samples.map(s => s.asObject(minify)) || undefined;
-    target.observers = this.observers && this.observers.map(o => o.asObject(minify)) || undefined;
-
-    // Measurement: keep only the map
-    if (minify) {
-      target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
-        .reduce((map, pmfmId) => {
-          const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];
-          if (isNotNil(value)) map[pmfmId] = '' + value;
-          return map;
-        }, {}) || undefined;
-    }
+    target.saleLocation = this.saleLocation && this.saleLocation.asObject(options) || undefined;
+    target.saleType = this.saleType && this.saleType.asObject(options) || undefined;
+    target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;
+    target.observers = this.observers && this.observers.map(o => o.asObject(options)) || undefined;
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
 
     return target;
   }

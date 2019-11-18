@@ -7,8 +7,9 @@ import {
 } from "../../../core/core.module";
 import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
-import {DataRootEntity} from "./base.model";
+import {DataEntityAsObjectOptions, DataRootEntity} from "./base.model";
 import {IEntityWithMeasurement, MeasurementUtils} from "./measurement.model";
+import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model";
 
 
 export class Sample extends DataRootEntity<Sample> implements IEntityWithMeasurement<Sample> {
@@ -64,17 +65,17 @@ export class Sample extends DataRootEntity<Sample> implements IEntityWithMeasure
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
     target.sampleDate = toDateISOString(this.sampleDate);
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(false/*fix #32*/) || undefined;
-    target.taxonName = this.taxonName && this.taxonName.asObject(false/*fix #32*/) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
-    target.children = this.children && this.children.map(c => c.asObject(minify)) || undefined;
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap( this.measurementValues, minify);
+    target.children = this.children && this.children.map(c => c.asObject(options)) || undefined;
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap( this.measurementValues, options);
 
-    if (minify) {
+    if (options && options.minify) {
       // Parent not need, as the tree will be used by pod
       delete target.parent;
       delete target.parentId;

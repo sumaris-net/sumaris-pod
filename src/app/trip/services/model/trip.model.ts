@@ -1,18 +1,21 @@
 import {EntityUtils, fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
 import {Moment} from "moment/moment";
 import {
-  DataEntity,
+  DataEntity, DataEntityAsObjectOptions,
   DataRootEntity,
   DataRootVesselEntity,
   IWithObserversEntity,
   Person,
-  ReferentialRef
+  ReferentialRef,
+  NOT_MINIFY_OPTIONS
 } from "./base.model";
 import {IEntityWithMeasurement, Measurement, MeasurementUtils} from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
 import {MetierRef} from "../../../referential/services/model/taxon.model";
+import {ReferentialAsObjectOptions} from "../../../core/services/model";
+import {isEmptyArray} from "../../../shared/functions";
 
 
 /* -- Helper function -- */
@@ -24,6 +27,7 @@ const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => { return n1
 export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEntity<Trip> {
 
   static fromObject(source: any): Trip {
+    if (!source) return null;
     const res = new Trip();
     res.fromObject(source);
     return res;
@@ -57,16 +61,16 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.fromObject(this);
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
     target.departureDateTime = toDateISOString(this.departureDateTime);
     target.returnDateTime = toDateISOString(this.returnDateTime);
-    target.departureLocation = this.departureLocation && this.departureLocation.asObject(false/*keep for trips list*/) || undefined;
-    target.returnLocation = this.returnLocation && this.returnLocation.asObject(false/*keep for trips list*/) || undefined;
-    target.sale = this.sale && this.sale.asObject(minify) || undefined;
-    target.gears = this.gears && this.gears.map(p => p && p.asObject(minify)) || undefined;
-    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(minify)) || undefined;
-    target.observers = this.observers && this.observers.map(p => p && p.asObject(minify)) || undefined;
+    target.departureLocation = this.departureLocation && this.departureLocation.asObject({...options, ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.returnLocation = this.returnLocation && this.returnLocation.asObject({...options, ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.sale = this.sale && this.sale.asObject(options) || undefined;
+    target.gears = this.gears && this.gears.map(p => p && p.asObject(options)) || undefined;
+    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
+    target.observers = this.observers && this.observers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS })) || undefined;
     return target;
   }
 
@@ -122,9 +126,9 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
   constructor() {
     super();
     this.__typename = 'PhysicalGearVO';
-    this.gear = new ReferentialRef();
+    this.gear = null;
     this.rankOrder = null;
-    this.measurements = [];
+    this.measurements = null;
     this.measurementValues = {};
   }
 
@@ -138,12 +142,13 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
     target.fromObject(this);
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
-    target.gear = this.gear && this.gear.asObject(minify) || undefined;
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
+    target.gear = this.gear && this.gear.asObject(options) || undefined;
 
     // Measurements
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap( this.measurementValues, minify);
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap( this.measurementValues, options);
+    if (isEmptyArray(target.measurements)) delete target.measurements;
 
     return target;
   }
@@ -151,7 +156,7 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
   fromObject(source: any): PhysicalGear {
     super.fromObject(source);
     this.rankOrder = source.rankOrder;
-    source.gear && this.gear.fromObject(source.gear);
+    this.gear = source.gear && ReferentialRef.fromObject(source.gear);
     this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
     return this;
   }
@@ -212,8 +217,8 @@ export class Operation extends DataEntity<Operation> {
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
@@ -225,12 +230,12 @@ export class Operation extends DataEntity<Operation> {
       target.endPosition.dateTime = target.endPosition.dateTime || target.fishingEndDateTime || target.endDateTime;
     }
 
-    target.metier = this.metier && this.metier.asObject(false/*Always minify=false, because of operations tables cache*/) || undefined;
+    target.metier = this.metier && this.metier.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/ } as ReferentialAsObjectOptions) || undefined;
 
     // Create an array of position, instead of start/end
     target.positions = [this.startPosition, this.endPosition]
       .filter(p => p && p.dateTime)
-      .map(p => p && p.asObject(minify)) || undefined;
+      .map(p => p && p.asObject(options)) || undefined;
     delete target.startPosition;
     delete target.endPosition;
 
@@ -239,13 +244,13 @@ export class Operation extends DataEntity<Operation> {
     delete target.physicalGear;
 
     // Measurements
-    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(minify)) || undefined;
+    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
 
     // Samples
-    target.samples = this.samples && this.samples.map(s => s.asObject(minify)) || undefined;
+    target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;
 
     // Batch
-    target.catchBatch = this.catchBatch && this.catchBatch.asObject(minify) || undefined;
+    target.catchBatch = this.catchBatch && this.catchBatch.asObject(options) || undefined;
 
     return target;
   }
@@ -338,8 +343,8 @@ export class VesselPosition extends DataEntity<VesselPosition> {
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
     target.dateTime = toDateISOString(this.dateTime);
     return target;
   }

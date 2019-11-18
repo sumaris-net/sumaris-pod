@@ -2,7 +2,7 @@ import {Moment} from "moment/moment";
 import {
   fromDateISOString,
   isNil,
-  isNilOrBlank, isNotEmptyArray,
+  isNilOrBlank,
   isNotNil,
   joinPropertiesPath,
   propertyComparator,
@@ -11,7 +11,6 @@ import {
 } from "../../shared/shared.module";
 import {noTrailingSlash} from "../../shared/functions";
 import {FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
-import {FocusableElement} from "../../shared/material/focusable";
 
 export {
   joinPropertiesPath,
@@ -227,6 +226,11 @@ export function personsToString(data: Person[], separator?: string): string {
   }, '');
 }
 
+export interface EntityAsObjectOptions {
+  minify?: boolean;
+  keepTypename?: boolean;
+}
+
 export abstract class Entity<T> implements Cloneable<T> {
   id: number;
   updateDate: Date | Moment;
@@ -234,9 +238,9 @@ export abstract class Entity<T> implements Cloneable<T> {
 
   abstract clone(): T;
 
-  asObject(minify?: boolean): any {
+  asObject(options?: EntityAsObjectOptions): any {
     const target: any = Object.assign({}, this);
-    delete target.__typename;
+    if (!options || options.keepTypename !== true) delete target.__typename;
     target.updateDate = toDateISOString(this.updateDate);
     return target;
   }
@@ -244,7 +248,7 @@ export abstract class Entity<T> implements Cloneable<T> {
   fromObject(source: any): Entity<T> {
     this.id = (source.id || source.id === 0) ? source.id : undefined;
     this.updateDate = fromDateISOString(source.updateDate);
-    this.__typename = source.__typename;
+    this.__typename = source.__typename || this.__typename; // Keep original type (can be set in constructor)
     return this;
   }
 
@@ -347,6 +351,7 @@ export class EntityUtils {
 
 /* -- Referential -- */
 
+
 export class Referential extends Entity<Referential> {
 
   static fromObject(source: any): Referential {
@@ -391,9 +396,17 @@ export class Referential extends Entity<Referential> {
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    const target: any = super.asObject(minify);
+  asObject(options?: ReferentialAsObjectOptions): any {
+    if (options && options.minify) {
+      return {
+        id: this.id,
+        entityName: options.keepEntityName && this.entityName || undefined, // Don't keep by default
+        __typename: options.keepTypename && this.__typename || undefined
+      };
+    }
+    const target: any = super.asObject(options);
     target.creationDate = toDateISOString(this.creationDate);
+    if (options && options.keepTypename === false) delete target.entityName;
     return target;
   }
 
@@ -423,7 +436,15 @@ export declare interface IReferentialRef {
   entityName: string;
 }
 
-export class ReferentialRef<T=any> extends Entity<T> implements IReferentialRef {
+export interface ReferentialAsObjectOptions extends EntityAsObjectOptions {
+  keepEntityName?: boolean;
+}
+
+export const NOT_MINIFY_OPTIONS: ReferentialAsObjectOptions = {minify: false};
+
+export const MINIFY_OPTIONS: ReferentialAsObjectOptions = {minify: true};
+
+export class ReferentialRef<T = any> extends Entity<T> implements IReferentialRef {
 
   static fromObject(source: any): ReferentialRef<any> {
     if (!source || source instanceof ReferentialRef) return source;
@@ -459,10 +480,17 @@ export class ReferentialRef<T=any> extends Entity<T> implements IReferentialRef 
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    if (minify) return {id: this.id}; // minify=keep id only
-    const target: any = super.asObject();
-    delete target.entityName;
+  asObject(options?: ReferentialAsObjectOptions): any {
+    if (options && options.minify) {
+      return {
+        id: this.id,
+        entityName: options.keepEntityName && this.entityName || undefined, // Don't keep by default
+        __typename: options.keepTypename && this.__typename || undefined
+      };
+    }
+    const target: any = super.asObject(options);
+    if (!options || options.keepEntityName !== true) delete target.entityName;
+
     return target;
   }
 
@@ -512,12 +540,11 @@ export class Configuration extends Entity<Configuration> {
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    if (minify) return {id: this.id}; // minify=keep id only
-    const target: any = super.asObject();
+  asObject(options?: EntityAsObjectOptions): any {
+    const target: any = super.asObject(options);
     target.creationDate = toDateISOString(this.creationDate);
     if (this.partners)
-      target.partners = (this.partners || []).map(p => p.asObject());
+      target.partners = (this.partners || []).map(p => p.asObject(options));
     target.properties = this.properties;
     return target;
   }
@@ -551,7 +578,6 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     if (!source || source instanceof Person) return source;
     const result = new Person();
     result.fromObject(source);
-    result.__typename = 'PersonVO';
     return result;
   }
 
@@ -568,7 +594,8 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
 
   constructor() {
     super();
-    this.department = new Department();
+    this.department = null;
+    this.__typename = 'PersonVO';
   }
 
   clone(): Person {
@@ -583,16 +610,21 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     target.profiles = this.profiles && this.profiles.slice(0) || undefined;
   }
 
-  asObject(minify?: boolean): any {
-    if (minify) return {id: this.id}; // minify=keep id only
-    const target: any = super.asObject();
-    target.department = this.department && this.department.asObject() || undefined;
+  asObject(options?: ReferentialAsObjectOptions): any {
+    if (options && options.minify)  {
+      return {
+        id: this.id,
+        __typename: options.keepTypename && this.__typename || undefined
+      };
+    }
+    const target: any = super.asObject(options);
+    target.department = this.department && this.department.asObject(options) || undefined;
     target.profiles = this.profiles && this.profiles.slice(0) || [];
     // Set profile list from the main profile
     target.profiles = this.mainProfile && [this.mainProfile] || target.profiles || ['GUEST'];
     target.creationDate = toDateISOString(this.creationDate);
 
-    if (!minify) target.mainProfile = getMainProfile(target.profiles);
+    if (!options || options.minify !== true) target.mainProfile = getMainProfile(target.profiles);
     return target;
   }
 
@@ -605,7 +637,7 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     this.pubkey = source.pubkey;
     this.avatar = source.avatar;
     this.statusId = source.statusId;
-    source.department && this.department.fromObject(source.department);
+    this.department = source.department && Department.fromObject(source.department) || undefined;
     this.profiles = source.profiles && source.profiles.slice(0) || [];
     // Add main profile to the list, if need
     if (source.mainProfile && !this.profiles.find(p => p === source.mainProfile)) {
@@ -642,10 +674,8 @@ export class Department extends Referential implements Cloneable<Department> {
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    if (minify) return {id: this.id}; // minify=keep id only
-    const target: any = super.asObject();
-    delete target.entityName;
+  asObject(options?: EntityAsObjectOptions): any {
+    const target: any = super.asObject(options);
     return target;
   }
 
@@ -669,8 +699,8 @@ export class UserSettings extends Entity<UserSettings> implements Cloneable<User
     return res;
   }
 
-  asObject(minify?: boolean): any {
-    const res: any = super.asObject(minify);
+  asObject(options?: EntityAsObjectOptions): any {
+    const res: any = super.asObject(options);
     res.content = this.content && JSON.stringify(res.content) || undefined;
     return res;
   }
@@ -720,9 +750,9 @@ export class Account extends Person {
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    const target: any = super.asObject();
-    target.settings = this.settings && this.settings.asObject() || undefined;
+  asObject(options?: EntityAsObjectOptions): any {
+    const target: any = super.asObject(options);
+    target.settings = this.settings && this.settings.asObject(options) || undefined;
     return target;
   }
 
@@ -736,7 +766,9 @@ export class Account extends Person {
    * Convert into a Person. This will fill __typename with a right value, for data cache
    */
   asPerson(): Person {
-    return Person.fromObject(this.asObject(false));
+    return Person.fromObject(this.asObject({
+      keepTypename: true // This is need for the department object
+    }));
   }
 
 }
@@ -790,8 +822,8 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
     return target;
   }
 
-  asObject(minify?: boolean): any {
-    const target: any = super.asObject(minify);
+  asObject(options?: EntityAsObjectOptions): any {
+    const target: any = super.asObject(options);
     return target;
   }
 

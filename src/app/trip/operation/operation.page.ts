@@ -617,6 +617,32 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       {tripId: this.trip && this.trip.id});
   }
 
+  addTableRow(event: UIEvent) {
+    if (this.showBatchTables) {
+      switch (this.selectedBatchTabIndex) {
+        case 0:
+          this.batchGroupsTable.addRow(event);
+          break;
+        case 1:
+          this.subBatchesTable.addRow(event);
+          break;
+      }
+    }
+    else if (this.showSampleTables) {
+      switch (this.selectedSampleTabIndex) {
+        case 0:
+          this.samplesTable.addRow(event);
+          break;
+        case 1:
+          this.individualMonitoringTable.addRow(event);
+          break;
+        case 2:
+          this.individualReleaseTable.addRow(event);
+          break;
+      }
+    }
+  }
+
   /**
    * Compute the title
    * @param data

@@ -22,7 +22,6 @@ import SerializingLink from 'apollo-link-serialize';
 import loggerLink from 'apollo-link-logger';
 import {Platform} from "@ionic/angular";
 import {EntityUtils} from "./model";
-import {EntityStorage} from "./entities-storage.service";
 import {DataProxy} from 'apollo-cache';
 import {isNotNil} from "../../shared/functions";
 
@@ -42,10 +41,6 @@ export class GraphqlService {
 
   protected _debug = false;
 
-  protected get isOffline(): boolean {
-    return !this._started;
-  }
-
   get started(): boolean {
     return this._started;
   }
@@ -55,8 +50,7 @@ export class GraphqlService {
     private apollo: Apollo,
     private httpLink: HttpLink,
     private network: NetworkService,
-    private storage: Storage,
-    private entities: EntityStorage
+    private storage: Storage
   ) {
 
     this._defaultFetchPolicy = environment.apolloFetchPolicy;
@@ -152,18 +146,33 @@ export class GraphqlService {
       );
   }
 
-  mutate<T, V = R>(opts: {
+  async mutate<T, V = R>(opts: {
     mutation: any,
     variables: V,
     error?: ServiceError,
     context?: {
       serializationKey?: string;
       tracked?: boolean;
-      optimisticResponse?: any;
     },
-    optimisticResponse?: T;
+    optimisticResponse?: T,
+    offlineResponse?: T | ((context: any) => Promise<T>),
     update?: MutationUpdaterFn<T>
   }): Promise<T> {
+
+    // If offline, compute an optimistic response for tracked queries
+    if (this.network.offline && opts.offlineResponse) {
+      if (typeof opts.offlineResponse === 'function') {
+        opts.context = opts.context || {};
+        const optimisticResponseFn = (opts.offlineResponse as ((context: any) => Promise<T>));
+        opts.optimisticResponse = await optimisticResponseFn(opts.context);
+        if (this._debug) console.debug("[graphql] [offline] Using an optimistic response: ", opts.optimisticResponse);
+
+      }
+      else {
+        opts.optimisticResponse = opts.offlineResponse as T;
+      }
+    }
+
     return new Promise<T>((resolve, reject) => {
       this.apollo.mutate<ApolloQueryResult<T>, V>({
         mutation: opts.mutation,
@@ -178,7 +187,8 @@ export class GraphqlService {
         )
         .subscribe(({data, errors}) => {
           if (errors) {
-            const error = errors[0] as any;
+            let error = errors[0] as any;
+
             if (error && error.code && error.message) {
               if (error && error.code == ServerErrorCodes.BAD_UPDATE_DATE) {
                 reject({code: ServerErrorCodes.BAD_UPDATE_DATE, message: "ERROR.BAD_UPDATE_DATE"});
@@ -188,8 +198,10 @@ export class GraphqlService {
                 reject(error);
               }
             } else {
-              console.error("[data-service] " + error.message);
-              reject(opts.error ? opts.error : error.message);
+              console.error("[graphql] " + error.message, error.stack);
+              error = opts.error ? opts.error : error.message;
+              reject(error);
+              if (opts.error && opts.error.reject) opts.error.reject(error);
             }
           } else {
             resolve(data as T);
@@ -218,7 +230,7 @@ export class GraphqlService {
             if (error /*&& error.code*/ && error.message) {
               throw error;
             }
-            console.error("[data-service] " + error.message);
+            console.error("[graphql] " + error.message);
             throw opts.error ? opts.error : error.message;
           }
           return data;
@@ -231,6 +243,8 @@ export class GraphqlService {
     query: any,
     variables: V
   }, propertyName: string, newValue: any) {
+
+    proxy = proxy || this.apollo.getClient();
 
     try {
       const values = proxy.readQuery(opts);
@@ -249,7 +263,7 @@ export class GraphqlService {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
     }
-    if (this._debug) console.debug("[data-service] Unable to add entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
+    if (this._debug) console.debug("[graphql] Unable to add entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
   addManyToQueryCache<V = R>(proxy: DataProxy,
@@ -259,6 +273,8 @@ export class GraphqlService {
   }, propertyName: string, newValues: any[]) {
 
     if (!newValues || !newValues.length) return; // nothing to process
+
+    proxy = proxy || this.apollo.getClient();
 
     try {
       const values = proxy.readQuery(opts);
@@ -283,7 +299,7 @@ export class GraphqlService {
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
     }
 
-    if (this._debug) console.debug("[data-service] Unable to add entities to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
+    if (this._debug) console.debug("[graphql] Unable to add entities to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
   removeToQueryCacheById<V = R>(proxy: DataProxy,
@@ -291,6 +307,8 @@ export class GraphqlService {
     query: any,
     variables: V
   }, propertyName: string, idToRemove: number) {
+
+    proxy = proxy || this.apollo.getClient();
 
     try {
       const values = proxy.readQuery(opts);
@@ -310,7 +328,7 @@ export class GraphqlService {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
     }
-    console.warn("[data-service] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
+    console.warn("[graphql] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
   }
 
   removeToQueryCacheByIds<V = R>(proxy: DataProxy, opts: {
@@ -338,7 +356,7 @@ export class GraphqlService {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
     }
-    console.warn("[data-service] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
+    console.warn("[graphql] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
   }
 
   updateToQueryCache<V = R>(proxy: DataProxy,
@@ -370,7 +388,7 @@ export class GraphqlService {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
     }
-    if (this._debug) console.debug("[data-service] Unable to update entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
+    if (this._debug) console.debug("[graphql] Unable to update entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
   async ready(): Promise<void> {
@@ -378,9 +396,6 @@ export class GraphqlService {
     await this.onStart.toPromise();
   }
 
-  async getTemporaryId(entityName: string): Promise<number> {
-    return await this.entities.nextValue(entityName);
-  }
 
   /* -- protected methods -- */
 
@@ -456,12 +471,14 @@ export class GraphqlService {
       const authLink = new ApolloLink((operation, forward) => {
 
         // Use the setContext method to set the HTTP headers.
-        operation.setContext(Object.assign(operation.getContext() || {},
-          {
+        operation.setContext({
+          ...operation.getContext(),
+          ...{
             headers: {
               authorization: this.wsConnectionParams.authToken ? `token ${this.wsConnectionParams.authToken}` : ''
             }
-          }));
+          }
+        });
 
         // Call the next link in the middleware chain.
         return forward(operation);

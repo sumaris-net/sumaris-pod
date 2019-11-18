@@ -1,32 +1,27 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {
-  BaseDataService,
-  Department,
-  EntityUtils,
-  environment,
-  isNil,
-  isNotNil,
-  Person,
-  StatusIds, TableDataService
-} from "../../core/core.module";
+import {BaseDataService, EntityUtils, environment, isNil, isNotNil, StatusIds} from "../../core/core.module";
 import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {
-  AggregationStrata,
   AggregationType,
-  ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion,
+  ExtractionColumn,
+  ExtractionFilter,
+  ExtractionFilterCriterion,
   ExtractionResult,
-  ExtractionType, StrataAreaType, StrataTimeType
+  ExtractionType,
+  StrataAreaType,
+  StrataTimeType
 } from "./extraction.model";
 import {FetchPolicy} from "apollo-client";
 import {isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {FeatureCollection} from "geojson";
 import {Fragments} from "./trip.queries";
+import {SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
 
 
 export const ExtractionFragments = {
@@ -526,18 +521,19 @@ export class ExtractionService extends BaseDataService {
 
   async saveAggregation(sourceType: AggregationType,
                         filter?: ExtractionFilter): Promise<AggregationType> {
+    const now = Date.now();
+    if (this._debug) console.debug("[extraction-service] Saving aggregation...");
 
     // Transform into entity
     const entity = AggregationType.fromObject(sourceType);
 
     this.fillDefaultProperties(entity);
 
-    const json = entity.asObject(false/*minify*/);
-
     const isNew = isNil(sourceType.id);
 
-    const now = Date.now();
-    if (this._debug) console.debug("[extraction-service] Saving aggregation...", json);
+    // Transform to json
+    const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
+    if (this._debug) console.debug("[extraction-service] Using minify object, to send:", json);
 
     await this.graphql.mutate<{ saveAggregation: any }>({
       mutation: SaveAggregation,
@@ -582,8 +578,6 @@ export class ExtractionService extends BaseDataService {
               }, 'aggregationTypes', savedEntity);
             }
           }
-
-
         }
       }
     });

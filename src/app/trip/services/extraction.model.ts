@@ -1,9 +1,8 @@
 /* -- Extraction -- */
 
-import {Department, Entity, Person} from "../../core/services/model";
-import {isNotNil, IWithRecorderDepartmentEntity, IWithRecorderPersonEntity, toDateISOString} from "./model/base.model";
+import {Department, Entity, EntityAsObjectOptions, Person} from "../../core/services/model";
+import {isNotNil, IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from "./model/base.model";
 import {arraySize, isNotEmptyArray, toBoolean} from "../../shared/functions";
-import {Validators} from "@angular/forms";
 import {Moment} from "moment";
 
 export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>> extends Entity<T> {
@@ -54,9 +53,9 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
     return this;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(minify) || undefined;
+  asObject(options?: EntityAsObjectOptions): any {
+    const target = super.asObject(options);
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
     return target;
   }
 
@@ -134,11 +133,11 @@ export class AggregationType extends ExtractionType<AggregationType>
     return this;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
+  asObject(options?: EntityAsObjectOptions): any {
+    const target = super.asObject(options);
 
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(minify) || undefined;
-    target.stratum = this.stratum && this.stratum.map(s => s.asObject(minify)) || undefined;
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
+    target.stratum = this.stratum && this.stratum.map(s => s.asObject(options)) || undefined;
     target.columns = this.columns && this.columns.map((c: any) => {
       const json = Object.assign({}, c);
       delete json.index;
@@ -193,8 +192,8 @@ export class AggregationStrata extends Entity<AggregationStrata> {
     return this;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
+  asObject(options?: EntityAsObjectOptions): any {
+    const target = super.asObject(options);
     return target;
   }
 }
@@ -243,8 +242,8 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
     return this;
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
+  asObject(options?: EntityAsObjectOptions): any {
+    const target = super.asObject(options);
     return target;
   }
 }

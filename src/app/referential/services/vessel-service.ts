@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {Department, EntityUtils, isNil, isNotNil, Person, StatusIds, VesselFeatures} from "./model";
+import {Department, EntityUtils, isNotNil, Person, VesselFeatures} from "./model";
 import {EditorDataService, isNilOrBlank, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {map} from "rxjs/operators";
@@ -15,6 +15,7 @@ import {ReferentialFragments} from "./referential.queries";
 import {FetchPolicy} from "apollo-client";
 import {isEmptyArray} from "../../shared/functions";
 import {VesselFeaturesService} from "./vessel-features.service";
+import {EntityAsObjectOptions, MINIFY_OPTIONS} from "../../core/services/model";
 
 export class VesselFilter {
   date?: Date | Moment;
@@ -370,8 +371,8 @@ export class VesselService
 
   /* -- protected methods -- */
 
-  protected asObject(vessel: VesselFeatures): any {
-    const copy: any = vessel.asObject(true/*minify*/);
+  protected asObject(vessel: VesselFeatures, options?: EntityAsObjectOptions): any {
+    const copy: any = vessel.asObject({ ...MINIFY_OPTIONS, options } as EntityAsObjectOptions);
 
     // If no vessel: set the default vessel type
     // if (!copy.vesselTypeId) {

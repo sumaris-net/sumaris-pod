@@ -4,9 +4,10 @@ import * as uuidv4 from "uuid/v4";
 import {EventEmitter} from "@angular/core";
 import {debounceTime, filter, switchMap} from "rxjs/operators";
 import {PersistedData, PersistentStorage} from "apollo-cache-persist/types";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject, Observable, of} from "rxjs";
 import {ApolloClient} from "apollo-client";
 import {environment} from "../../../environments/environment";
+import {isNotNil} from "../../shared/functions";
 
 declare let window: any;
 const _global = typeof global !== 'undefined' ? global : (typeof window !== 'undefined' ? window : {});
@@ -30,18 +31,25 @@ AppWebSocket.OPEN = NativeWebSocket.OPEN;
  * @param object
  */
 function dataIdFromObjectProduction(object: Object): string {
-  if (object['entityName']) {
-    switch (object['__typename']) {
-      // For generic VO: add entityName in the cache key (to distinguish by entity)
-      case 'ReferentialVO':
-      case 'MetierVO':
-      case 'PmfmVO':
-      case 'TaxonNameVO':
-      case 'TaxonGroupVO':
-      case 'MeasurementVO':
-      case 'VesselFeaturesVO':
-        return object['entityName'] + 'VO' + ':' + object['id'];
-    }
+  switch (object['__typename']) {
+
+    // For generic VO: add entityName in the cache key (to distinguish by entity)
+    case 'ReferentialVO':
+    case 'MetierVO':
+    case 'PmfmVO':
+    case 'TaxonNameVO':
+    case 'TaxonGroupVO':
+    case 'MeasurementVO':
+      if (object['entityName'] && isNotNil(object['id'])) {
+        return object['entityName'] + 'VO' + ':' + object['id'];
+      }
+      break;
+
+    // Join entity (without attribute 'id')
+    case 'TaxonGroupStrategyVO':
+      return `TaxonGroupStrategyVO:${object['strategyId']}:${dataIdFromObjectProduction(object['taxonGroup'])}`;
+    case 'TaxonNameStrategyVO':
+      return `TaxonGroupStrategyVO:${object['strategyId']}:${dataIdFromObjectProduction(object['taxonName'])}`;
   }
   return defaultDataIdFromObject(object);
 }
@@ -56,11 +64,19 @@ function dataIdFromObjectDebug (object: Object): string {
     case 'TaxonGroupVO':
     case 'TaxonNameVO':
     case 'MeasurementVO':
-    case 'VesselFeaturesVO':
-      if (!object['entityName']) {
-        console.warn("[dataIdFromObject] no entityName found on entity: cache can be corrupted !", object);
+      if (object['entityName'] && isNotNil(object['id'])) {
+        return object['entityName'] + 'VO' + ':' + object['id'];
       }
-      return ((object['entityName'] + 'VO') || object['__typename']) + ':' + object['id'];
+      console.warn("[dataIdFromObject] Missing attribute 'entityName' or 'id' on an entity. Both are required for graphQL cache. Make sure to fetch it, in GraphQL queries.", object);
+      break;
+
+    // Join entity (without attribute 'id')
+    case 'TaxonGroupStrategyVO':
+      console.debug("TODO: check computing TaxonGroupStrategyVO cache key");
+      return `TaxonGroupStrategyVO:${object['strategyId']}:${dataIdFromObjectDebug(object['taxonGroup'])}`;
+    case 'TaxonNameStrategyVO':
+      console.debug("TODO: check computing TaxonNameStrategyVO cache key");
+      return `TaxonGroupStrategyVO:${object['strategyId']}:${dataIdFromObjectDebug(object['taxonName'])}`;
 
     // Fallback to default cache key
     default:
@@ -118,12 +134,16 @@ export function createTrackerLink(opts: {
 
     const id = context.serializationKey || uuidv4();
     console.debug(`[apollo-tracker-link] Watching tracked query {${operation.operationName}#${id}}`);
+
+    // Clean context, before calling JSON.stringify (remove unused attributes)
+    const cleanContext = { ...context, ...{optimisticResponse: null, cache: null} };
+
     const trackedQuery: TrackedQuery = {
       id,
       name: operation.operationName,
       queryJSON: JSON.stringify(operation.query),
       variablesJSON: JSON.stringify(operation.variables),
-      contextJSON: JSON.stringify(context)
+      contextJSON: JSON.stringify(cleanContext)
     };
 
     // Add to map
@@ -143,8 +163,6 @@ export function createTrackerLink(opts: {
     if (networkStatusSubject.getValue() === 'none') {
       if (context.optimisticResponse) {
         console.debug(`[apollo-tracker-link] Query {${operation.operationName}#${id}} has optimistic response: `, context.optimisticResponse);
-        //const response: FetchResult<any> = {data: context.optimisticResponse};
-        //return Observable.of(response);
       }
       else {
         console.warn(`[apollo-tracker-link] Query {${operation.operationName}#${id}} missing 'context.optimisticResponse': waiting network UP before to continue...`);

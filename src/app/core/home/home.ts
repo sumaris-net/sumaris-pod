@@ -155,7 +155,6 @@ export class HomePage implements OnDestroy {
   }
 
   protected onLogout() {
-    //console.log('[home] Logout');
     this.isLogin = false;
     this.displayName = "";
     this.markForCheck();
