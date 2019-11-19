@@ -132,7 +132,7 @@ export class VesselFeaturesService
     const isNew = isNil(vesselFeatures.id);
 
     // Transform into json
-    const json = vesselFeatures.asObject(true);
+    const json = vesselFeatures.asObject();
 
     const now = Date.now();
     console.debug("[vessel-service] Saving vessel: ", json);
