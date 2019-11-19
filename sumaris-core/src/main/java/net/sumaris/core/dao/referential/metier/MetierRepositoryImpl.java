@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.Parameter;
 import javax.persistence.TypedQuery;
@@ -132,7 +133,9 @@ public class MetierRepositoryImpl
 
 
     @Override
-    public MetierVO toMetierVO(Metier source) {
+    public MetierVO toMetierVO(@Nullable Metier source) {
+        if (source == null) return null;
+
         MetierVO target = new MetierVO();
 
         Beans.copyProperties(source, target);
@@ -154,4 +157,8 @@ public class MetierRepositoryImpl
         return target;
     }
 
+    @Override
+    public MetierVO getById(int id) {
+        return toMetierVO(getOne(id));
+    }
 }

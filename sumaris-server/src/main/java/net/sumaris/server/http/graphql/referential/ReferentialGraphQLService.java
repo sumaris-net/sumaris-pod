@@ -165,4 +165,5 @@ public class ReferentialGraphQLService {
         filter = filter != null ? filter : new TaxonNameFilterVO();
         return taxonNameService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
+
 }
