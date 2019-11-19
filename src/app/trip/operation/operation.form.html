@@ -97,7 +97,8 @@
               <mat-date-time formControlName="endDateTime"
                              [placeholder]="'COMMON.DATE'|translate"
                              [tabindex]="tabindex+6"
-                             [startDate]="form.controls.startDateTime.value">
+                             [startDate]="form.controls.startDateTime.value"
+                             [required]="isOnFieldMode">
 
                 <mat-error *ngIf="form.controls.endDateTime.hasError('invalid')" translate>TRIP.OPERATION.ERROR.FIELD_DATE_OUTSIDE_TRIP</mat-error>
                 <mat-hint align="end" *ngIf="form.controls.endDateTime.value">

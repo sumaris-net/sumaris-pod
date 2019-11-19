@@ -478,7 +478,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
          else {
 
            // Remove existing entity from the local storage
-           if (entity.id < 0) {
+           if (entity.id < 0 && savedEntity.updateDate) {
              await this.entities.delete(entity);
            }
 

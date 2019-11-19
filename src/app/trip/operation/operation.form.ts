@@ -62,6 +62,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
   }
 
+
+  get isOnFieldMode(): boolean {
+    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: OperationValidatorService,

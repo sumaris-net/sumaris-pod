@@ -61,6 +61,10 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   @ViewChild('batchGroupsTable', { static: true }) batchGroupsTable: BatchGroupsTable;
   @ViewChild('subBatchesTable', { static: true }) subBatchesTable: SubBatchesTable;
 
+  get isOnFieldMode(): boolean {
+    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+  }
+
   get form(): FormGroup {
     return this.opeForm.form;
   }
@@ -308,11 +312,13 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   }
 
   async onNewEntity(data: Operation, options?: EditorDataServiceLoadOptions): Promise<void> {
-    if (!options || isNil(options.tripId)) throw new Error("Missing argument 'options.tripId'!");
+    const tripId = options && isNotNil(options.tripId) ? options.tripId :
+      isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
+    if (isNil(tripId)) throw new Error("Missing argument 'options.tripId'!");
+    data.tripId = tripId;
 
-    const trip = await this.tripService.load(options.tripId);
+    const trip = await this.tripService.load(tripId);
     data.trip = trip;
-    data.tripId = trip && trip.id;
 
     // If is on field mode, fill default values
     if (this.usageMode === 'FIELD') {
@@ -323,17 +329,23 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     if (trip && trip.gears && trip.gears.length === 1) {
       data.physicalGear = trip.gears[0];
     }
+
+    this.defaultBackHref = trip ? '/trips/' + trip.id  + '?tab=2': undefined;
   }
 
   async onEntityLoaded(data: Operation, options?: EditorDataServiceLoadOptions): Promise<void> {
-    if (!options || isNil(options.tripId)) throw new Error("Missing argument 'options.tripId'!");
+    const tripId = options && isNotNil(options.tripId) ? options.tripId :
+      isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
+    if (isNil(tripId)) throw new Error("Missing argument 'options.tripId'!");
+    data.tripId = tripId;
 
-    const trip = await this.tripService.load(options.tripId);
+    const trip = await this.tripService.load(tripId);
     data.trip = trip;
-    data.tripId = trip && trip.id;
 
     // Replace physical gear by the real entity
     data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear)) || data.physicalGear;
+
+    this.defaultBackHref = trip ? '/trips/' + trip.id  + '?tab=2' : undefined;
   }
 
 
@@ -481,15 +493,17 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
 
   setValue(data: Operation) {
 
-    this.trip = data.trip || this.trip;
+    // set parent trip
+    const trip = data.trip;
+    delete data.trip;
+    this.trip = trip || this.trip;
 
     this.opeForm.value = data;
-    const trip = this.trip;
-    const program = trip && trip.program && trip.program.label;
-
     if (trip) {
       this.opeForm.trip = trip;
     }
+
+    const program = trip && trip.program && trip.program.label;
 
     // Get gear
     const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label || null;

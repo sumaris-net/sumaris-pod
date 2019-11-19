@@ -328,7 +328,7 @@ export class OperationService extends BaseDataService
     const json = entities.map(o => {
       // Fill default properties
       this.fillDefaultProperties(o, options);
-      return this.asObject(o);
+      return this.asObject(o, SAVE_AS_OBJECT_OPTIONS);
     });
 
     const now = new Date();
@@ -411,7 +411,7 @@ export class OperationService extends BaseDataService
           else {
 
             // Remove existing entity from the local storage
-            if (entity.id < 0) {
+            if (entity.id < 0 && savedEntity.updateDate) {
               this.entities.delete(entity);
             }
 

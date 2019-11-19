@@ -155,7 +155,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
     // Add custom 'validDate' validator
     this.formControl.setValidators(this.required ? Validators.compose([Validators.required, SharedValidators.validDate]) : SharedValidators.validDate);
-    //this.formControl.updateValueAndValidity({ emitEvent: false, onlySelf: true });
 
     // Get patterns to display date and date+time
     const patterns = this.translate.instant(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN']);

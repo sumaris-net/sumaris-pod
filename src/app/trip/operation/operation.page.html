@@ -31,9 +31,11 @@
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
             <!-- form -->
-            <form-operation (onSubmit)="save($event)" [showError]="false" #opeForm [debug]="debug"
+            <form-operation #opeForm
+                            (onSubmit)="save($event)" [showError]="false"
                             [usageMode]="usageMode"
-                            [tabindex]="1">
+                            [tabindex]="1"
+                            [debug]="debug">
 
               <!-- Other features (Measurements) -->
               <ion-grid class="ion-no-padding ion-padding-top">

@@ -219,9 +219,9 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
 
-    target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
-    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
-    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
+    target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  ...NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
+    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
+    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     target.registrationStartDate = toDateISOString(this.registrationStartDate);
@@ -313,7 +313,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     const target: any = super.asObject(options);
 
     target.vesselId = this.vesselId;
-    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
+    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     target.creationDate = toDateISOString(this.creationDate);
