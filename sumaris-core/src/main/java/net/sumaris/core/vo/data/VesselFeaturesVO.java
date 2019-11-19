@@ -44,20 +44,16 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
     private Integer id;
     private String name;
     private String exteriorMarking;
-    private String registrationCode;
     private Integer administrativePower;
     private Double lengthOverAll;
     private Double grossTonnageGrt;
     private Double grossTonnageGt;
     private LocationVO basePortLocation;
-    private LocationVO registrationLocation;
     private String comments;
     private ProgramVO program;
 
     private Date startDate;
     private Date endDate;
-    private Date registrationStartDate;
-    private Date registrationEndDate;
 
     private Date creationDate;
     private Date updateDate;
@@ -76,6 +72,13 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
     private Integer vesselId;
     private ReferentialVO vesselType;
     private Integer vesselStatusId;
+
+    // Registration
+    private Integer registrationId;
+    private String registrationCode;
+    private Date registrationStartDate;
+    private Date registrationEndDate;
+    private LocationVO registrationLocation;
 
     private String entityName;
 

@@ -91,6 +91,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     UserProfile.class,
                     SaleType.class,
                     VesselType.class,
+                    QualityFlag.class,
                     // Taxon group
                     TaxonGroupType.class,
                     TaxonGroup.class,
