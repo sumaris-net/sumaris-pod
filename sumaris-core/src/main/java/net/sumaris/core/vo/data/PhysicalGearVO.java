@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -38,11 +39,12 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode
 public class PhysicalGearVO implements IRootDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
+    @EqualsAndHashCode.Exclude
     private Integer id;
-
     private Integer rankOrder;
     private ReferentialVO gear;
 
@@ -59,13 +61,14 @@ public class PhysicalGearVO implements IRootDataVO<Integer>,
 
     private ProgramVO program;
 
+    @EqualsAndHashCode.Exclude
     private List<MeasurementVO> measurements;
     private Map<Integer, String> measurementValues;
 
     // Parent entity
+    @EqualsAndHashCode.Exclude
     private TripVO trip;
     private Integer tripId;
-
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

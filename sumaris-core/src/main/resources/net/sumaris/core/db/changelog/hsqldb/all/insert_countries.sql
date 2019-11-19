@@ -3,7 +3,7 @@
 -- Insertion des pays manquants (pour les coef de conversion)
 --
 -- *****************************************************************
--- Requête de generation, à executer sur le schéma SIH2_ADAGIO_DBA:
+-- Requête ayant permis la generation des INSERT, à executer sur le schéma SIH2_ADAGIO_DBA:
 --
 -- select distinct
 --     'insert into LOCATION (id, status_fk, validity_status_fk, creation_date, update_date, location_level_fk, label, name) ',

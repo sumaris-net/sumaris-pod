@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
@@ -37,12 +38,13 @@ import java.util.Date;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode
 public class MeasurementVO implements IUpdateDateEntityBean<Integer, Date>,
         IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
+    @EqualsAndHashCode.Exclude
     private Integer id;
-
     private int pmfmId;
     private Double numericalValue;
     private String alphanumericalValue;

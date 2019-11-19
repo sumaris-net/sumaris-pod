@@ -175,6 +175,9 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
         // Save entityName
         if (isNew) {
+            // Force id to null, to use the generator
+            entity.setId(null);
+
             session.persist(entity);
             source.setId(entity.getId());
         } else {

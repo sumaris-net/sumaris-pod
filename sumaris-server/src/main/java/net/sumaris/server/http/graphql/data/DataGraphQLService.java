@@ -278,6 +278,17 @@ public class DataGraphQLService {
         return result;
     }
 
+    @GraphQLMutation(name = "qualifyTrip", description = "Qualify a trip")
+    @IsSupervisor
+    public TripVO qualifyTrip(@GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
+        final TripVO result = tripService.qualify(trip);
+
+        // Add additional properties if needed
+        fillTripFields(result, fields);
+
+        return result;
+    }
+
     /* -- Gears -- */
 
     @GraphQLQuery(name = "gears", description = "Get operation's gears")

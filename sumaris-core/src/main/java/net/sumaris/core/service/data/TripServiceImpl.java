@@ -212,6 +212,17 @@ public class TripServiceImpl implements TripService {
         return tripDao.unvalidate(trip);
     }
 
+    @Override
+    public TripVO qualify(TripVO trip) {
+        Preconditions.checkNotNull(trip);
+        Preconditions.checkNotNull(trip.getId());
+        Preconditions.checkNotNull(trip.getControlDate());
+        Preconditions.checkNotNull(trip.getValidationDate());
+        Preconditions.checkNotNull(trip.getQualityFlagId());
+
+        return tripDao.qualify(trip);
+    }
+
     /* protected methods */
 
     void fillDefaultProperties(TripVO parent, SaleVO sale) {

@@ -34,6 +34,7 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class TaxonGroupStrategyVO implements Serializable {
 
+    Integer strategyId;
     Integer priorityLevel;
     TaxonGroupVO taxonGroup;
 

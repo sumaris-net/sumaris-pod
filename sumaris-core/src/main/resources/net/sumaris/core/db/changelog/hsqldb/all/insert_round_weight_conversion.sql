@@ -3,7 +3,7 @@
 -- Insertion des coef de conversion
 --
 -- *****************************************************************
--- Requête de generation, à executer sur le schéma SIH2_ADAGIO_DBA:
+-- Requête ayant permis la generation des INSERT (à executer sur le schéma SIH2_ADAGIO_DBA):
 --
 -- select
 --     'insert into ROUND_WEIGHT_CONVERSION (id, status_fk, creation_date, update_date, taxon_group_fk, conversion_coefficient, start_date, end_date, dressing_fk, preserving_fk, location_fk) select NEXT VALUE FOR ROUND_WEIGHT_CONVERSION_SEQ, 1, sysdate, now, TG.ID, ',

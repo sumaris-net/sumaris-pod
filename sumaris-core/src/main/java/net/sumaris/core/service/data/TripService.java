@@ -72,4 +72,6 @@ public interface TripService {
 	TripVO validate(TripVO trip);
 
 	TripVO unvalidate(TripVO trip);
+
+	TripVO qualify(TripVO trip);
 }

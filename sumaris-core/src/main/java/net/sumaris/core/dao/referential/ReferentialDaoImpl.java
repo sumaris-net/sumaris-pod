@@ -105,6 +105,8 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     Matrix.class,
                     Fraction.class,
                     QualitativeValue.class,
+                    // Quality
+                    QualityFlag.class,
                     // Program/strategy
                     Program.class,
                     Strategy.class,

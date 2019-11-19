@@ -34,8 +34,9 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class TaxonNameStrategyVO  implements Serializable {
 
-    private Integer referenceTaxonId;
-    private Boolean isReferent;
+    Integer strategyId;
+    Integer referenceTaxonId;
+    Boolean isReferent;
 
     Integer priorityLevel;
     TaxonNameVO taxonName;

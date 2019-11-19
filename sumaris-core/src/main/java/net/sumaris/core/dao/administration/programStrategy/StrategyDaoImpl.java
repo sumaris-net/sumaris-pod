@@ -478,6 +478,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                         item.getReferenceTaxon().getId().intValue()))
                 .map(item -> {
                     TaxonNameStrategyVO target = new TaxonNameStrategyVO();
+                    target.setStrategyId(source.getId());
 
                     // Priority level
                     target.setPriorityLevel(item.getPriorityLevel());
@@ -499,15 +500,16 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                         item.getTaxonGroup().getId().intValue()))
                 .map(item -> {
                     TaxonGroupStrategyVO target = new TaxonGroupStrategyVO();
+                    target.setStrategyId(source.getId());
+
+                    // Priority level
+                    target.setPriorityLevel(item.getPriorityLevel());
 
                     // Taxon group
                     TaxonGroupVO tg = new TaxonGroupVO();
                     Beans.copyProperties(item.getTaxonGroup(), tg);
                     tg.setStatusId(item.getTaxonGroup().getStatus().getId());
                     target.setTaxonGroup(tg);
-
-                    // Priority level
-                    target.setPriorityLevel(item.getPriorityLevel());
 
                     return target;
                 })
