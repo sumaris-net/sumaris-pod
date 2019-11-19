@@ -30,6 +30,7 @@ import {fadeInAnimation} from "./material.animations";
 import {InputElement, isFocusableElement} from "./focusable";
 import {firstNotNilPromise} from "../observables";
 import {BehaviorSubject, Subject} from "rxjs";
+import {AppFormUtils} from "../../core/core.module";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -169,12 +170,11 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
         if (this.readonly || this.writing || this.disabling) return; // Skip
         if (status === 'INVALID') {
           $error.next(this.formControl.errors);
-          this.form.controls.day.setErrors($error.getValue());
         }
         else if (status === 'VALID') {
           $error.next(null);
-          this.form.controls.day.setErrors(null);
         }
+        this.form.controls.day.updateValueAndValidity({onlySelf: true, emitEvent: false});
         this.markForCheck();
       });
 
