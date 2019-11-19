@@ -29,19 +29,18 @@ import com.google.common.collect.Multimap;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.util.Dates;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Dates;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
 import org.nuiton.i18n.I18n;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -186,7 +185,7 @@ public abstract class HibernateDaoSupport {
      *
      * @param clazz a {@link Class} object.
      * @param id a {@link Serializable} object.
-     * @param lockOptions a {@link LockOptions} object.
+     * @param lockModeType a {@link LockModeType} object.
      * @param <T> a T object.
      * @return a T object.
      */

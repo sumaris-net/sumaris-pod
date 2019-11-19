@@ -738,11 +738,15 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
        return LaunchModeEnum.production.name().equalsIgnoreCase(getLaunchMode());
     }
 
-    public Integer getDefaultQualityFlagId() {
+    public int getDefaultQualityFlagId() {
         return applicationConfig.getOptionAsInt(SumarisConfigurationOption.DEFAULT_QUALITY_FLAG.getKey());
     }
 
-    public Integer getSequenceStartWithValue() {
+    public int getSequenceIncrementValue() {
+        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.SEQUENCE_INCREMENT.getKey());
+    }
+
+    public int getSequenceStartWithValue() {
         return applicationConfig.getOptionAsInt(SumarisConfigurationOption.SEQUENCE_START_WITH.getKey());
     }
 

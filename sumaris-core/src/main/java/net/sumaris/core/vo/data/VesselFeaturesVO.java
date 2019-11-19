@@ -25,6 +25,7 @@ package net.sumaris.core.vo.data;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -43,13 +44,11 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
     private Integer id;
     private String name;
     private String exteriorMarking;
-    private String registrationCode;
     private Integer administrativePower;
     private Double lengthOverAll;
     private Double grossTonnageGrt;
     private Double grossTonnageGt;
     private LocationVO basePortLocation;
-    private LocationVO registrationLocation;
     private String comments;
     private ProgramVO program;
 
@@ -74,4 +73,16 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
     private ReferentialVO vesselType;
     private Integer vesselStatusId;
 
+    // Registration
+    private Integer registrationId;
+    private String registrationCode;
+    private Date registrationStartDate;
+    private Date registrationEndDate;
+    private LocationVO registrationLocation;
+
+    private String entityName;
+
+    public VesselFeaturesVO() {
+        this.setEntityName(VesselFeatures.class.getSimpleName());
+    }
 }
