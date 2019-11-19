@@ -207,7 +207,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
         target.setSaleType(saleType);
 
         if (allFields) {
-            target.setVesselFeatures(vesselDao.getByVesselIdAndDate(source.getVessel().getId(), source.getStartDateTime()));
+            target.setVesselSnapshot(vesselDao.getSnapshotByIdAndDate(source.getVessel().getId(), source.getStartDateTime()));
             target.setQualityFlagId(source.getQualityFlag().getId());
 
             // Recorder department
@@ -232,7 +232,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
 
         target.setRecorderDepartment(source.getRecorderDepartment());
         target.setRecorderPerson(source.getRecorderPerson());
-        target.setVesselFeatures(source.getVesselFeatures());
+        target.setVesselSnapshot(source.getVesselSnapshot());
         target.setQualityFlagId(source.getQualityFlagId());
 
     }
@@ -252,12 +252,12 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
         copyRootDataProperties(source, target, copyIfNull);
 
         // Vessel
-        if (copyIfNull || (source.getVesselFeatures() != null && source.getVesselFeatures().getVesselId() != null)) {
-            if (source.getVesselFeatures() == null || source.getVesselFeatures().getVesselId() == null) {
+        if (copyIfNull || (source.getVesselSnapshot() != null && source.getVesselSnapshot().getId() != null)) {
+            if (source.getVesselSnapshot() == null || source.getVesselSnapshot().getId() == null) {
                 target.setVessel(null);
             }
             else {
-                target.setVessel(load(Vessel.class, source.getVesselFeatures().getVesselId()));
+                target.setVessel(load(Vessel.class, source.getVesselSnapshot().getId()));
             }
         }
 

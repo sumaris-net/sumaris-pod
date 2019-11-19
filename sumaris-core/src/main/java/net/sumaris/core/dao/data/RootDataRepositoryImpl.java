@@ -37,7 +37,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
-import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.filter.IRootDataFilter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -265,10 +265,10 @@ public class RootDataRepositoryImpl<
         }
 
         // Vessel
-        if (source instanceof IWithVesselEntity && target instanceof IWithVesselFeaturesEntity) {
-            VesselFeaturesVO vesselFeatures = new VesselFeaturesVO();
-            vesselFeatures.setVesselId((Integer) ((IWithVesselEntity) source).getVessel().getId());
-            ((IWithVesselFeaturesEntity<Integer, VesselFeaturesVO>) target).setVesselFeatures(vesselFeatures);
+        if (source instanceof IWithVesselEntity && target instanceof IWithVesselSnapshotEntity) {
+            VesselSnapshotVO vesselSnapshot = new VesselSnapshotVO();
+            vesselSnapshot.setId((Integer) ((IWithVesselEntity) source).getVessel().getId());
+            ((IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>) target).setVesselSnapshot(vesselSnapshot);
         }
 
         // Recorder department
@@ -317,7 +317,7 @@ public class RootDataRepositoryImpl<
     /* -- protected methods -- */
 
 
-    protected void copyVessel(IWithVesselFeaturesEntity<Integer, VesselFeaturesVO> source,
+    protected void copyVessel(IWithVesselSnapshotEntity<Integer, VesselSnapshotVO> source,
                               IWithVesselEntity<Integer, Vessel> target,
                               boolean copyIfNull) {
         DataDaos.copyVessel(getEntityManager(), source, target, copyIfNull);

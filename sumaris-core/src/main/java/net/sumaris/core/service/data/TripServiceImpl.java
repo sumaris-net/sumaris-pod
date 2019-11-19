@@ -108,8 +108,8 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(source.getDepartureLocation().getId(), "Missing departureLocation.id");
         Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
         Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
-        Preconditions.checkNotNull(source.getVesselFeatures(), "Missing vesselFeatures");
-        Preconditions.checkNotNull(source.getVesselFeatures().getVesselId(), "Missing vesselFeatures.vesselId");
+        Preconditions.checkNotNull(source.getVesselSnapshot(), "Missing vesselSnapshot");
+        Preconditions.checkNotNull(source.getVesselSnapshot().getId(), "Missing vesselSnapshot.id");
         Preconditions.checkArgument(Objects.isNull(source.getSale()) || CollectionUtils.isEmpty(source.getSales()), "Must not have both 'sales' and 'sale' attributes");
 
         // Reset control date
@@ -231,7 +231,7 @@ public class TripServiceImpl implements TripService {
         // Set default values from parent
         DataBeans.setDefaultRecorderDepartment(sale, parent.getRecorderDepartment());
         DataBeans.setDefaultRecorderPerson(sale, parent.getRecorderPerson());
-        DataBeans.setDefaultVesselFeatures(sale, parent.getVesselFeatures());
+        DataBeans.setDefaultVesselFeatures(sale, parent.getVesselSnapshot());
 
         sale.setTripId(parent.getId());
     }

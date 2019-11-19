@@ -28,7 +28,7 @@ import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.LandingVO;
-import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -96,9 +96,9 @@ public class LandingServiceWriteTest extends AbstractServiceTest{
         vo.setLocation(location);
 
         // Vessel
-        VesselFeaturesVO vessel = new VesselFeaturesVO();
-        vessel.setVesselId(dbResource.getFixtures().getVesselId(0));
-        vo.setVesselFeatures(vessel);
+        VesselSnapshotVO vessel = new VesselSnapshotVO();
+        vessel.setId(dbResource.getFixtures().getVesselId(0));
+        vo.setVesselSnapshot(vessel);
 
         // Department
         DepartmentVO recorderDepartment = new DepartmentVO();

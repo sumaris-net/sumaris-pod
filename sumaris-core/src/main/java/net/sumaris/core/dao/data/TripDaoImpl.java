@@ -40,7 +40,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -497,9 +497,9 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
                 ProgramFetchOptions.builder().withProperties(false).build()));
 
         // Vessel
-        VesselFeaturesVO vesselFeatures = new VesselFeaturesVO();
-        vesselFeatures.setVesselId(source.getVessel().getId());
-        target.setVesselFeatures(vesselFeatures);
+        VesselSnapshotVO vesselSnapshot = new VesselSnapshotVO();
+        vesselSnapshot.setId(source.getVessel().getId());
+        target.setVesselSnapshot(vesselSnapshot);
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // Departure & return locations

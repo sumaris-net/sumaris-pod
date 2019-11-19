@@ -25,7 +25,7 @@ package net.sumaris.core.vo.data;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
-import net.sumaris.core.model.data.IWithVesselFeaturesEntity;
+import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -43,7 +43,7 @@ import java.util.Set;
 @FieldNameConstants
 public class SaleVO implements IRootDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO>,
-        IWithVesselFeaturesEntity<Integer, VesselFeaturesVO> {
+        IWithVesselSnapshotEntity<Integer, VesselSnapshotVO> {
 
     private Integer id;
     private String comments;
@@ -58,7 +58,7 @@ public class SaleVO implements IRootDataVO<Integer>,
     private PersonVO recorderPerson;
 
     private ProgramVO program;
-    private VesselFeaturesVO vesselFeatures;
+    private VesselSnapshotVO vesselSnapshot;
     private Date startDateTime;
     private Date endDateTime;
     private LocationVO saleLocation;

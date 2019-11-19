@@ -25,6 +25,7 @@ package net.sumaris.core.service.data;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.VesselRegistrationVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,20 +43,20 @@ import java.util.List;
 public interface VesselService {
 
 	@Transactional(readOnly = true)
-	List<VesselFeaturesVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+	List<VesselSnapshotVO> findSnapshotByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	@Transactional(readOnly = true)
-	List<VesselFeaturesVO> getByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+	List<VesselSnapshotVO> getSnapshotByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	@Transactional(readOnly = true)
 	List<VesselRegistrationVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	@Transactional(readOnly = true)
-	VesselFeaturesVO getByVesselIdAndDate(int vesselId, Date date);
+    VesselSnapshotVO getSnapshotByIdAndDate(int vesselId, Date date);
 
-	VesselFeaturesVO save(VesselFeaturesVO trip);
+	VesselFeaturesVO save(VesselFeaturesVO source);
 
-	List<VesselFeaturesVO> save(List<VesselFeaturesVO> trips);
+	List<VesselFeaturesVO> save(List<VesselFeaturesVO> sources);
 
 	void delete(int id);
 

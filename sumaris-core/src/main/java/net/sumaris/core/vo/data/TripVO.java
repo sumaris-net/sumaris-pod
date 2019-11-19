@@ -26,7 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithObserversEntity;
-import net.sumaris.core.model.data.IWithVesselFeaturesEntity;
+import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -44,7 +44,7 @@ import java.util.Set;
 @EqualsAndHashCode
 public class TripVO implements IRootDataVO<Integer>,
         IWithObserversEntity<Integer, PersonVO>,
-        IWithVesselFeaturesEntity<Integer, VesselFeaturesVO> {
+        IWithVesselSnapshotEntity<Integer, VesselSnapshotVO> {
 
     @EqualsAndHashCode.Exclude
     private Integer id;
@@ -59,7 +59,7 @@ public class TripVO implements IRootDataVO<Integer>,
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
-    private VesselFeaturesVO vesselFeatures;
+    private VesselSnapshotVO vesselSnapshot;
 
     private Date departureDateTime;
     private Date returnDateTime;

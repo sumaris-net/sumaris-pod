@@ -39,6 +39,7 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.VesselRegistrationVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -77,7 +78,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<VesselFeaturesVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public List<VesselSnapshotVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
         Preconditions.checkArgument(offset >= 0);
         Preconditions.checkArgument(size > 0);
 
@@ -201,7 +202,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     }
 
     @Override
-    public List<VesselFeaturesVO> getByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public List<VesselSnapshotVO> getByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
         Preconditions.checkArgument(offset >= 0);
         Preconditions.checkArgument(size > 0);
 
@@ -251,11 +252,11 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     }
 
     @Override
-    public VesselFeaturesVO getByVesselIdAndDate(int vesselId, Date date) {
+    public VesselSnapshotVO getSnapshotByIdAndDate(int vesselId, Date date) {
         VesselFilterVO filter = new VesselFilterVO();
         filter.setVesselId(vesselId);
         filter.setDate(date);
-        List<VesselFeaturesVO> res = findByFilter(filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC);
+        List<VesselSnapshotVO> res = findByFilter(filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC);
 
         // No result for this date
         if (res.size() == 0) {
@@ -263,9 +264,9 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             filter.setDate(null);
             res = findByFilter(filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC);
             if (res.size() == 0) {
-                VesselFeaturesVO unknownVessel = new VesselFeaturesVO();
-                unknownVessel.setVesselId(vesselId);
-                unknownVessel.setName("unknown vessel " + vesselId);
+                VesselSnapshotVO unknownVessel = new VesselSnapshotVO();
+                unknownVessel.setId(vesselId);
+                unknownVessel.setName("Unknown vessel " + vesselId); // TODO remove string
                 return unknownVessel;
             }
         }
@@ -329,7 +330,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             // Create the vessel
             entityManager.persist(vessel);
             // Link to the target entity
-            source.setVesselId(vessel.getId());
+            source.setId(vessel.getId());
             entity.setVessel(vessel);
         } else {
             Vessel vessel = entity.getVessel();
@@ -402,10 +403,10 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     }
 
     @Override
-    public VesselFeaturesVO toVesselFeaturesVO(VesselFeatures source) {
+    public VesselSnapshotVO toVesselFeaturesVO(VesselFeatures source) {
         if (source == null) return null;
 
-        VesselFeaturesVO target = new VesselFeaturesVO();
+        VesselSnapshotVO target = new VesselSnapshotVO();
 
         Beans.copyProperties(source, target);
 
@@ -421,7 +422,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             target.setGrossTonnageGt(source.getGrossTonnageGt().doubleValue() / 100);
         }
 
-        target.setVesselId(source.getVessel().getId());
+        target.setId(source.getVessel().getId());
         target.setVesselStatusId(source.getVessel().getStatus().getId());
         target.setQualityFlagId(source.getQualityFlag().getId());
 
@@ -442,19 +443,19 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
     /* -- protected methods -- */
 
-    protected List<VesselFeaturesVO> toVesselFeaturesVOs(List<VesselFeaturesResult> source) {
+    protected List<VesselSnapshotVO> toVesselFeaturesVOs(List<VesselFeaturesResult> source) {
         return source.stream()
                 .map(this::toVesselFeaturesVO)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    protected VesselFeaturesVO toVesselFeaturesVO(VesselFeaturesResult source) {
+    protected VesselSnapshotVO toVesselFeaturesVO(VesselFeaturesResult source) {
         if (source == null)
             return null;
 
         // Vessel features
-        VesselFeaturesVO target = toVesselFeaturesVO(source.getVesselFeatures());
+        VesselSnapshotVO target = toVesselFeaturesVO(source.getVesselFeatures());
 
         // Registration code
         target.setRegistrationCode(source.getRegistrationCode());
@@ -501,12 +502,12 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         }
 
         // Vessel
-        if (copyIfNull || source.getVesselId() != null) {
-            if (source.getVesselId() == null) {
+        if (copyIfNull || source.getId() != null) {
+            if (source.getId() == null) {
                 target.setVessel(null);
             }
             else {
-                target.setVessel(load(Vessel.class, source.getVesselId()));
+                target.setVessel(load(Vessel.class, source.getId()));
             }
         }
 

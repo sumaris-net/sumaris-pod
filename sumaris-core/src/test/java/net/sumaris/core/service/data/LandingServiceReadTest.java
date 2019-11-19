@@ -22,21 +22,14 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
-import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.LandingVO;
-import net.sumaris.core.vo.data.VesselFeaturesVO;
-import net.sumaris.core.vo.referential.LocationVO;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
 import java.util.List;
 
 public class LandingServiceReadTest extends AbstractServiceTest{

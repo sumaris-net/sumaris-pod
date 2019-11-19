@@ -3,8 +3,8 @@ package net.sumaris.core.util;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
-import net.sumaris.core.model.data.IWithVesselFeaturesEntity;
-import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
 
 import java.io.Serializable;
 
@@ -41,14 +41,14 @@ public class DataBeans extends Beans {
         }
     }
 
-    public static <T extends Serializable, D extends VesselFeaturesVO> void setDefaultVesselFeatures(
-            IWithVesselFeaturesEntity<T, D> target,
+    public static <T extends Serializable, D extends VesselSnapshotVO> void setDefaultVesselFeatures(
+            IWithVesselSnapshotEntity<T, D> target,
             D defaultValue) {
         if (target == null) return;
 
         // Copy recorder person from the parent
-        if (target.getVesselFeatures() == null || target.getVesselFeatures().getVesselId() == null) {
-            target.setVesselFeatures(defaultValue);
+        if (target.getVesselSnapshot() == null || target.getVesselSnapshot().getId() == null) {
+            target.setVesselSnapshot(defaultValue);
         }
     }
 }

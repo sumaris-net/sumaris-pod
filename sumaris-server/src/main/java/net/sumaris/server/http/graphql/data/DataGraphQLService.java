@@ -102,25 +102,25 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "vessels", description = "Search in vessels")
     @Transactional(readOnly = true)
     @IsUser
-    public List<VesselFeaturesVO> findVesselsByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
+    public List<VesselSnapshotVO> findVesselsByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
                                                       @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                       @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                      @GraphQLArgument(name = "sortBy", defaultValue = VesselFeaturesVO.Fields.EXTERIOR_MARKING) String sort,
+                                                      @GraphQLArgument(name = "sortBy", defaultValue = VesselSnapshotVO.Fields.EXTERIOR_MARKING) String sort,
                                                       @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
-        return vesselService.findByFilter(filter, offset, size, sort,
+        return vesselService.findSnapshotByFilter(filter, offset, size, sort,
                 direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
     @GraphQLQuery(name = "vesselFeaturesHistory", description = "Get vessel features history")
     @Transactional(readOnly = true)
     @IsUser
-    public List<VesselFeaturesVO> getVesselFeaturesHistory(@GraphQLArgument(name = "vesselId") Integer vesselId,
-                                                     @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                     @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                     @GraphQLArgument(name = "sortBy", defaultValue = VesselFeaturesVO.Fields.START_DATE) String sort,
-                                                     @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        return vesselService.getByVesselId(vesselId, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+    public List<VesselSnapshotVO> getVesselFeaturesHistory(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                                           @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                           @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                           @GraphQLArgument(name = "sortBy", defaultValue = VesselSnapshotVO.Fields.START_DATE) String sort,
+                                                           @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        return vesselService.getSnapshotByVesselId(vesselId, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
     @GraphQLQuery(name = "vesselRegistrationHistory", description = "Get vessel registration history")
@@ -501,9 +501,9 @@ public class DataGraphQLService {
 
     /* -- Vessel features -- */
 
-    @GraphQLQuery(name = "vesselFeatures", description = "Get trip vessel features")
-    public VesselFeaturesVO getVesselFeaturesByTrip(@GraphQLContext TripVO trip) {
-        return vesselService.getByVesselIdAndDate(trip.getVesselFeatures().getVesselId(), trip.getDepartureDateTime());
+    @GraphQLQuery(name = "vesselSnapshot", description = "Get trip vessel snapshot")
+    public VesselSnapshotVO getVesselFeaturesByTrip(@GraphQLContext TripVO trip) {
+        return vesselService.getSnapshotByIdAndDate(trip.getVesselSnapshot().getId(), trip.getDepartureDateTime());
     }
 
     /* -- Sample -- */
@@ -747,16 +747,16 @@ public class DataGraphQLService {
 
     // Vessel
     @GraphQLQuery(name = "measurements", description = "Get vessel's physical measurements")
-    public List<MeasurementVO> getVesselFeaturesMeasurements(@GraphQLContext VesselFeaturesVO vesselFeatures) {
-        return measurementService.getVesselFeaturesMeasurements(vesselFeatures.getId());
+    public List<MeasurementVO> getVesselFeaturesMeasurements(@GraphQLContext VesselSnapshotVO vesselSnapshot) {
+        return measurementService.getVesselFeaturesMeasurements(vesselSnapshot.getId());
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get vessel's physical measurements")
-    public Map<Integer, String> getVesselFeaturesMeasurementsMap(@GraphQLContext VesselFeaturesVO vesselFeatures) {
-        if (vesselFeatures.getMeasurementValues() == null) {
-            return measurementService.getVesselFeaturesMeasurementsMap(vesselFeatures.getId());
+    public Map<Integer, String> getVesselFeaturesMeasurementsMap(@GraphQLContext VesselSnapshotVO vesselSnapshot) {
+        if (vesselSnapshot.getMeasurementValues() == null) {
+            return measurementService.getVesselFeaturesMeasurementsMap(vesselSnapshot.getId());
         }
-        return vesselFeatures.getMeasurementValues();
+        return vesselSnapshot.getMeasurementValues();
     }
 
 
@@ -767,7 +767,7 @@ public class DataGraphQLService {
         fillImages(trip, fields);
 
         // Add vessel if need
-        fillVesselFeatures(trip, fields);
+        fillVesselSnapshot(trip, fields);
     }
 
     protected void fillTrips(List<TripVO> trips, Set<String> fields) {
@@ -775,7 +775,7 @@ public class DataGraphQLService {
         fillImages(trips, fields);
 
         // Add vessel if need
-        fillVesselFeatures(trips, fields);
+        fillVesselSnapshot(trips, fields);
     }
 
     protected void fillObservedLocationFields(ObservedLocationVO observedLocation, Set<String> fields) {
@@ -793,7 +793,7 @@ public class DataGraphQLService {
         fillImages(landing, fields);
 
         // Add vessel if need
-        fillVesselFeatures(landing, fields);
+        fillVesselSnapshot(landing, fields);
     }
 
     protected void fillLandingsFields(List<LandingVO> landings, Set<String> fields) {
@@ -801,7 +801,7 @@ public class DataGraphQLService {
         fillImages(landings, fields);
 
         // Add vessel if need
-        fillVesselFeatures(landings, fields);
+        fillVesselSnapshot(landings, fields);
     }
 
     protected boolean hasImageField(Set<String> fields) {
@@ -810,8 +810,8 @@ public class DataGraphQLService {
     }
 
     protected boolean hasVesselFeaturesField(Set<String> fields) {
-        return fields.contains(TripVO.Fields.VESSEL_FEATURES + File.separator + VesselFeaturesVO.Fields.EXTERIOR_MARKING)
-                || fields.contains(TripVO.Fields.VESSEL_FEATURES + File.separator + VesselFeaturesVO.Fields.NAME);
+        return fields.contains(TripVO.Fields.VESSEL_SNAPSHOT + File.separator + VesselSnapshotVO.Fields.EXTERIOR_MARKING)
+                || fields.contains(TripVO.Fields.VESSEL_SNAPSHOT + File.separator + VesselSnapshotVO.Fields.NAME);
     }
 
     protected <T extends IRootDataVO<?>> List<T> fillImages(final List<T> results) {
@@ -850,21 +850,21 @@ public class DataGraphQLService {
         return result;
     }
 
-    protected <T extends IWithVesselFeaturesEntity<?, VesselFeaturesVO>> void fillVesselFeatures(T bean, Set<String> fields) {
+    protected <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(T bean, Set<String> fields) {
         // Add vessel if need
         if (hasVesselFeaturesField(fields)) {
-            if (bean.getVesselFeatures() != null && bean.getVesselFeatures().getVesselId() != null) {
-                bean.setVesselFeatures(vesselService.getByVesselIdAndDate(bean.getVesselFeatures().getVesselId(), bean.getVesselDateTime()));
+            if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null) {
+                bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), bean.getVesselDateTime()));
             }
         }
     }
 
-    protected <T extends IWithVesselFeaturesEntity<?, VesselFeaturesVO>> void fillVesselFeatures(List<T> beans, Set<String> fields) {
+    protected <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(List<T> beans, Set<String> fields) {
         // Add vessel if need
         if (hasVesselFeaturesField(fields)) {
             beans.forEach(bean -> {
-                if (bean.getVesselFeatures() != null && bean.getVesselFeatures().getVesselId() != null) {
-                    bean.setVesselFeatures(vesselService.getByVesselIdAndDate(bean.getVesselFeatures().getVesselId(), bean.getVesselDateTime()));
+                if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null) {
+                    bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), bean.getVesselDateTime()));
                 }
             });
         }

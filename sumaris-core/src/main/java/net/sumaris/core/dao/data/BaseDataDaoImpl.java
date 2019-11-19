@@ -15,7 +15,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.IRootDataVO;
-import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 
@@ -131,15 +131,15 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
         }
     }
 
-    public void copyVessel(IWithVesselFeaturesEntity<Integer, VesselFeaturesVO> source,
+    public void copyVessel(IWithVesselSnapshotEntity<Integer, VesselSnapshotVO> source,
                            IWithVesselEntity<Integer, Vessel> target,
                            boolean copyIfNull) {
         // Vessel
-        if (copyIfNull || (source.getVesselFeatures() != null && source.getVesselFeatures().getVesselId() != null)) {
-            if (source.getVesselFeatures() == null || source.getVesselFeatures().getVesselId() == null) {
+        if (copyIfNull || (source.getVesselSnapshot() != null && source.getVesselSnapshot().getId() != null)) {
+            if (source.getVesselSnapshot() == null || source.getVesselSnapshot().getId() == null) {
                 target.setVessel(null);
             } else {
-                target.setVessel(load(Vessel.class, source.getVesselFeatures().getVesselId()));
+                target.setVessel(load(Vessel.class, source.getVesselSnapshot().getId()));
             }
         }
     }

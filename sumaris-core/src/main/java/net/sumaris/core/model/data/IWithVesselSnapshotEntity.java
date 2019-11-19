@@ -23,17 +23,17 @@ package net.sumaris.core.model.data;
  */
 
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
 
 import java.beans.Transient;
 import java.io.Serializable;
 import java.util.Date;
 
-public interface IWithVesselFeaturesEntity<T extends Serializable, V extends VesselFeaturesVO> extends IEntity<T> {
+public interface IWithVesselSnapshotEntity<T extends Serializable, V extends VesselSnapshotVO> extends IEntity<T> {
 
-    V getVesselFeatures();
+    V getVesselSnapshot();
 
-    void setVesselFeatures(V vesselFeatures);
+    void setVesselSnapshot(V vesselSnapshot);
 
     @Transient
     Date getVesselDateTime();
