@@ -23,29 +23,28 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "reference_taxon_strategy")
 public class ReferenceTaxonStrategy implements Serializable {
-
-    public static final String PROPERTY_STRATEGY = "strategy";
-    public static final String PROPERTY_REFERENCE_TAXON = "referenceTaxon";
 
     @Column(name = "priority_level")
     private Integer priorityLevel;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Strategy.class)
-    @PrimaryKeyJoinColumn(name = "strategy_fk")
+    @JoinColumn(name = "strategy_fk")
     private Strategy strategy;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ReferenceTaxon.class)
-    @PrimaryKeyJoinColumn(name = "reference_taxon_fk")
+    @JoinColumn(name = "reference_taxon_fk")
     private ReferenceTaxon referenceTaxon;
 }

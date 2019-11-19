@@ -23,14 +23,22 @@ package net.sumaris.core.vo.filter;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 @Data
+@FieldNameConstants
 public class ReferentialFilterVO {
 
     private String label;
     private String name;
+
+    private Integer[] statusIds;
+
     private Integer levelId;
+    private Integer[] levelIds;
+
+    private String searchJoin;
     private String searchText;
     private String searchAttribute;
-    private Integer[] statusIds;
+
 }

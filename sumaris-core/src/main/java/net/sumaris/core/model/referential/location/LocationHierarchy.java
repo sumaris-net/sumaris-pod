@@ -23,12 +23,14 @@ package net.sumaris.core.model.referential.location;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "location_hierarchy")
 public class LocationHierarchy implements Serializable {

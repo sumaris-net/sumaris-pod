@@ -24,12 +24,12 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.VesselPosition;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselPositionVO;
 import org.apache.commons.collections4.MapUtils;
@@ -49,7 +49,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("vesselPositionDao")
-public class VesselPositionDaoImpl extends HibernateDaoSupport implements VesselPositionDao {
+public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPositionDao {
 
     /** Logger. */
     private static final Logger log =
@@ -74,7 +74,7 @@ public class VesselPositionDaoImpl extends HibernateDaoSupport implements Vessel
         ParameterExpression<Integer> operationIdParam = builder.parameter(Integer.class);
 
         query.select(root)
-            .where(builder.equal(root.get(VesselPosition.PROPERTY_OPERATION).get(IRootDataEntity.PROPERTY_ID), operationIdParam));
+            .where(builder.equal(root.get(VesselPosition.Fields.OPERATION).get(Operation.Fields.ID), operationIdParam));
 
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
@@ -187,7 +187,7 @@ public class VesselPositionDaoImpl extends HibernateDaoSupport implements Vessel
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // Recorder department
-        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         return target;

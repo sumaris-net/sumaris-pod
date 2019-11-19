@@ -77,6 +77,7 @@ public class DatabaseSchemaServiceTest extends AbstractServiceTest {
         File outputFile = new File(dbResource.getResourceDirectory(), "update-schema.sql");
         service.updateSchemaToFile(outputFile);
 
+        Assert.assertTrue(outputFile.exists());
         String sql = FileUtils.readFileToString(outputFile, "UTF-8");
         log.debug("Generated schema update script:\n" + sql);
     }

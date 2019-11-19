@@ -28,20 +28,19 @@ package net.sumaris.core.dao.technical.hibernate;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.util.Dates;
-import net.sumaris.core.dao.technical.model.IEntityBean;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Dates;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
 import org.nuiton.i18n.I18n;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -117,6 +116,11 @@ public abstract class HibernateDaoSupport {
         return entityManager;
     }
 
+
+    protected Session getSession() {
+        return entityManager.unwrap(Session.class);
+    }
+
     /**
      * <p>deleteAll.</p>
      *
@@ -152,15 +156,15 @@ public abstract class HibernateDaoSupport {
      * @return a T object.
      */
     @SuppressWarnings("unchecked")
-    protected <T> T load(Class<T> clazz, Serializable id) {
+    protected <T> T load(Class<? extends T> clazz, Serializable id) {
 
         if (debugEntityLoad) {
-            T load = getEntityManager().find(clazz, id);
+            T load = entityManager.find(clazz, id);
             if (load == null) {
                 throw new DataIntegrityViolationException("Unable to load entity " + clazz.getName() + " with identifier '" + id + "': not found in database.");
             }
         }
-        return getEntityManager().getReference(clazz, id);
+        return entityManager.unwrap(Session.class).load(clazz, id);
     }
 
     /**
@@ -181,14 +185,14 @@ public abstract class HibernateDaoSupport {
      *
      * @param clazz a {@link Class} object.
      * @param id a {@link Serializable} object.
-     * @param lockOptions a {@link LockOptions} object.
+     * @param lockModeType a {@link LockModeType} object.
      * @param <T> a T object.
      * @return a T object.
      */
     @SuppressWarnings("unchecked")
     protected <T extends Serializable> T get(Class<? extends T> clazz, Serializable id, LockModeType lockModeType) {
-        T entity = getEntityManager().find(clazz, id);
-        getEntityManager().lock(entity, lockModeType);
+        T entity = entityManager.find(clazz, id);
+        entityManager.lock(entity, lockModeType);
         return entity;
     }
 
@@ -251,7 +255,7 @@ public abstract class HibernateDaoSupport {
                     queryString = String.format(countQueryString, tableName, columnName, source);
                 }
 
-                query = getEntityManager().createNativeQuery(queryString);
+                query = entityManager.createNativeQuery(queryString);
                 if (logger.isDebugEnabled()) {
                     logger.debug(queryString);
                 }
@@ -325,7 +329,7 @@ public abstract class HibernateDaoSupport {
                     queryString = String.format(updateQueryString, tableName, columnName, target, columnName, source);
                 }
 
-                query = getEntityManager().createNativeQuery(queryString);
+                query = entityManager.createNativeQuery(queryString);
                 if (logger.isDebugEnabled()) {
                     logger.debug(queryString);
                 }
@@ -343,7 +347,7 @@ public abstract class HibernateDaoSupport {
         try {
             final Dialect dialect = Dialect.getDialect(SumarisConfiguration.getInstance().getConnectionProperties());
             final String sql = dialect.getCurrentTimestampSelectString();
-            Object r = Daos.sqlUnique(dataSource, sql);
+            Object r = Daos.sqlUniqueTimestamp(dataSource, sql);
             return Daos.toTimestampFromJdbcResult(r);
         }catch(DataAccessResourceFailureException | SQLException e) {
             throw new SumarisTechnicalException(e);
@@ -370,21 +374,22 @@ public abstract class HibernateDaoSupport {
         }
     }
 
-    protected void lockForUpdate(IEntityBean<?> entity) {
+    protected void lockForUpdate(IEntity<?> entity) {
        lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
     }
 
-    protected void lockForUpdate(IEntityBean<?> entity, LockModeType modeType) {
+    protected void lockForUpdate(IEntity<?> entity, LockModeType modeType) {
         // Lock entityName
         try {
-            getEntityManager().lock(entity, modeType);
+            entityManager.lock(entity, modeType);
         } catch (LockTimeoutException e) {
             throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
                     getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
         }
     }
 
-    protected void delete(IEntityBean<?> entity) {
-        getEntityManager().remove(entity);
+    protected void delete(IEntity<?> entity) {
+        entityManager.remove(entity);
     }
+
 }

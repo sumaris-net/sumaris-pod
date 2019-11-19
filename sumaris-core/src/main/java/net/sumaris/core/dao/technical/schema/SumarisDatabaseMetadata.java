@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.cache.CacheNames;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.boot.Metadata;
@@ -41,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Component;
@@ -66,6 +68,9 @@ public class SumarisDatabaseMetadata {
 	private static final Logger log =
 			LoggerFactory.getLogger(SumarisDatabaseMetadata.class);
 
+	@Autowired
+	protected SumarisDatabaseMetadata databaseMetadata;
+
 	protected final Map<String, SumarisTableMetadata> tables;
 	protected final Map<String, PersistentClass> entities;
 
@@ -80,8 +85,6 @@ public class SumarisDatabaseMetadata {
 	protected Set<String> sequences;
 
 	protected String sequenceSuffix;
-
-	protected boolean isQuoted = false;
 
 	protected String defaultUpdateDateColumnName;
 
@@ -107,10 +110,12 @@ public class SumarisDatabaseMetadata {
 		//loadAllTables();
 	}
 
+	@Cacheable(cacheNames = CacheNames.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
 	public SumarisTableMetadata getTable(String name) throws HibernateException {
 		return getTable(name, defaultSchemaName, defaultCatalogName);
 	}
 
+	@Cacheable(cacheNames = CacheNames.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
 	public SumarisHibernateTableMetadata getHibernateTable(String name) throws HibernateException {
 		return (SumarisHibernateTableMetadata) getTable(name);
 	}
@@ -141,9 +146,9 @@ public class SumarisDatabaseMetadata {
 
 	public QualifiedTableName getQualifiedTableName(String catalog, String schema, String tableName) {
 		return new QualifiedTableName(
-				new Identifier(catalog, isQuoted),
-				new Identifier(schema, isQuoted),
-				new Identifier(tableName, isQuoted));
+				Identifier.toIdentifier(catalog),
+				Identifier.toIdentifier(schema),
+				Identifier.toIdentifier(tableName));
 	}
 
 	public String getDefaultUpdateDateColumnName() {
@@ -151,7 +156,6 @@ public class SumarisDatabaseMetadata {
 	}
 
 	/* -- protected methods -- */
-
 
 	@PostConstruct
 	protected void init() {
@@ -212,7 +216,7 @@ public class SumarisDatabaseMetadata {
 
 	protected void initTables(Connection conn) {
 		Map<String, PersistentClass> persistentClassMap = Maps.newHashMap();
-		for ( PersistentClass persistentClass : metadata.getEntityBindings()) {
+		for (PersistentClass persistentClass: metadata.getEntityBindings()) {
 
 			Table table = persistentClass.getTable();
 
@@ -225,19 +229,21 @@ public class SumarisDatabaseMetadata {
 			String qualifiedTableName = getQualifiedTableName(catalog, schema, table.getName()).render().toLowerCase();
 			persistentClassMap.put(qualifiedTableName, persistentClass);
 
-			for(Iterator propertyIterator = persistentClass.getPropertyIterator();
-				propertyIterator.hasNext(); ) {
-				Property property = (Property) propertyIterator.next();
+			if (log.isDebugEnabled()) {
+				for (Iterator propertyIterator = persistentClass.getPropertyIterator();
+					 propertyIterator.hasNext(); ) {
+					Property property = (Property) propertyIterator.next();
 
-				for(Iterator columnIterator = property.getColumnIterator();
-					columnIterator.hasNext(); ) {
-					Column column = (Column) columnIterator.next();
+					for (Iterator columnIterator = property.getColumnIterator();
+						 columnIterator.hasNext(); ) {
+						Column column = (Column) columnIterator.next();
 
-					log.debug( String.format("Property: %s is mapped on table column: %s of type: %s",
-							property.getName(),
-							column.getName(),
-							column.getSqlType())
-					);
+						log.debug(String.format("Property: %s is mapped on table column: %s of type: %s",
+								property.getName(),
+								column.getName(),
+								column.getSqlType())
+						);
+					}
 				}
 			}
 		}
@@ -285,8 +291,8 @@ public class SumarisDatabaseMetadata {
 			if (persistentClass != null) {
 				// Get the table mapping
 				Table table = persistentClass.getTable();
-				table.setCatalog(qualifiedTableName.getCatalogName().getText());
-				table.setSchema(qualifiedTableName.getSchemaName().getText());
+				table.setCatalog(qualifiedTableName.getCatalogName() != null ? qualifiedTableName.getCatalogName().getText() : null);
+				table.setSchema(qualifiedTableName.getSchemaName() != null ? qualifiedTableName.getSchemaName().getText() : null);
 				sumarisTableMetadata = new SumarisHibernateTableMetadata(table, this, jdbcMeta, persistentClass);
 			}
 
@@ -295,7 +301,12 @@ public class SumarisDatabaseMetadata {
 				sumarisTableMetadata = new SumarisTableMetadata(qualifiedTableName, this, jdbcMeta);
 			}
 
-			tables.put(fullTableName, sumarisTableMetadata);
+			// Add to cached (if not extraction)
+			// TODO: use include/exclude pattern, by configuration
+			String tableName = qualifiedTableName.getTableName().getText().toLowerCase();
+			if (!tableName.startsWith("ext_") && !tableName.startsWith("agg_"))  {
+				tables.put(fullTableName, sumarisTableMetadata);
+			}
 		}
 		return sumarisTableMetadata;
 	}
@@ -308,7 +319,7 @@ public class SumarisDatabaseMetadata {
 		return getTable(getQualifiedTableName(catalog, schema, name), jdbcMeta, persistentClass);
 	}
 
-	protected SumarisTableMetadata getTable(String name,
+	public SumarisTableMetadata getTable(String name,
 											String schema,
 											String catalog) throws HibernateException {
 		QualifiedTableName qualifiedTableName = getQualifiedTableName(catalog, schema, name);

@@ -23,8 +23,8 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.dao.AbstractDaoTest;
+import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.data.sample.SampleDao;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SampleVO;
@@ -52,6 +52,8 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
     private SampleDao dao;
 
     private OperationVO parentOperation;
+    
+    private DatabaseFixtures fixtures;
 
     @Before
     public void setUp() throws Exception {
@@ -60,6 +62,8 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
 
         parentOperation = operationDao.get(1);
         Assume.assumeNotNull(parentOperation);
+
+        this.fixtures = dbResource.getFixtures();
     }
 
     @Test
@@ -71,21 +75,25 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
 
         sample.setSampleDate(new Date());
         sample.setLabel("S1");
+        sample.setRankOrder(1);
         sample.setIndividualCount(1);
+
+        // Program
+        sample.setProgram(fixtures.getDefaultProgram());
 
         // Matrix
         ReferentialVO matrix = new ReferentialVO();
-        matrix.setId(dbResource.getFixtures().getMatrixIdForIndividual());
+        matrix.setId(fixtures.getMatrixIdForIndividual());
         sample.setMatrix(matrix);
 
         // Taxon group
         ReferentialVO taxonGroup= new ReferentialVO();
-        taxonGroup.setId(dbResource.getFixtures().getTaxonGroupFAOId(0));
+        taxonGroup.setId(fixtures.getTaxonGroupFAOId(0));
         sample.setTaxonGroup(taxonGroup);
 
         // Recorder department
         DepartmentVO recorderDepartment = new DepartmentVO();
-        recorderDepartment.setId(dbResource.getFixtures().getDepartmentId(0));
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
         sample.setRecorderDepartment(recorderDepartment);
 
         SampleVO savedVO = dao.save(sample);
@@ -95,7 +103,7 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
 
     @Test
     public void delete() {
-        Integer id = dbResource.getFixtures().getSampleId(0);
+        Integer id = fixtures.getSampleId(0);
         dao.delete(id);
 
     }

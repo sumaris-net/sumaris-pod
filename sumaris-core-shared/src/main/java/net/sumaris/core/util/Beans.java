@@ -27,13 +27,13 @@ package net.sumaris.core.util;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IEntityBean;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.shared.exception.ErrorCodes;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ComparatorUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 
@@ -51,6 +51,10 @@ import java.util.stream.Stream;
  * Created by blavenie on 13/10/15.
  */
 public class Beans {
+
+    protected Beans() {
+        // helper class does not instantiate
+    }
 
     /**
      * <p>getList.</p>
@@ -158,12 +162,25 @@ public class Beans {
      * <p>splitByProperty.</p>
      *
      * @param list a {@link Iterable} object.
+     * @param propertyName a {@link String} object.
      * @param <K> a K object.
      * @param <V> a V object.
      * @return a {@link Map} object.
      */
-    public static <K extends Serializable, V extends IEntityBean<K>> Map<K, V> splitById(Iterable<V> list) {
-        return getMap(Maps.uniqueIndex(list, IEntityBean::getId));
+    public static <K, V> Multimap<K, V> splitByNotUniqueProperty(Iterable<V> list, String propertyName) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(propertyName));
+        return Multimaps.index(list, input -> getProperty(input, propertyName));
+    }
+
+    /**
+     * <p>splitByProperty.</p>
+     *
+     * @param list a {@link Iterable} object.
+     * @param <V> a V object.
+     * @return a {@link Map} object.
+     */
+    public static <V> Multimap<Integer, V> splitByNotUniqueHashcode(Iterable<V> list) {
+        return Multimaps.index(list, Object::hashCode);
     }
 
     /**
@@ -174,8 +191,20 @@ public class Beans {
      * @param <V> a V object.
      * @return a {@link Map} object.
      */
-    public static <K extends Serializable, V extends IEntityBean<K>> List<K> collectIds(Collection<V> list) {
-        return transformCollection(list, IEntityBean::getId);
+    public static <K extends Serializable, V extends IEntity<K>> Map<K, V> splitById(Iterable<V> list) {
+        return getMap(Maps.uniqueIndex(list, IEntity::getId));
+    }
+
+    /**
+     * <p>splitByProperty.</p>
+     *
+     * @param list a {@link Iterable} object.
+     * @param <K> a K object.
+     * @param <V> a V object.
+     * @return a {@link Map} object.
+     */
+    public static <K extends Serializable, V extends IEntity<K>> List<K> collectIds(Collection<V> list) {
+        return transformCollection(list, IEntity::getId);
     }
 
     /**
@@ -237,14 +266,14 @@ public class Beans {
         if (CollectionUtils.isEmpty(values)) {
             return null;
         }
-        return values.toArray(new Integer[values.size()]);
+        return values.toArray(new Integer[0]);
     }
 
     public static String[] asStringArray(Collection<String> values) {
         if (CollectionUtils.isEmpty(values)) {
             return null;
         }
-        return values.toArray(new String[values.size()]);
+        return values.toArray(new String[0]);
     }
 
     public static String[] asStringArray(String value, String delimiter) {
@@ -297,37 +326,41 @@ public class Beans {
      * @param target
      */
     public static <S, T> void copyProperties(S source, T target) {
+        copyProperties(source, target, (String) null);
+    }
 
-        Map<Class<?>, String[]> cache = cacheCopyPropertiesIgnored.get(source.getClass());
-        if (cache == null) {
-            cache = Maps.newConcurrentMap();
-            cacheCopyPropertiesIgnored.put(source.getClass(), cache);
-        }
-        String[] cachedIgnoreProperties = cache.get(target.getClass());
+    /**
+     * Usefull method that ignore complex type, as list
+     * @param source
+     * @param target
+     */
+    public static <S, T> void copyProperties(S source, T target, String... exceptProperties) {
+
+        Map<Class<?>, String[]> cache = cacheCopyPropertiesIgnored.computeIfAbsent(source.getClass(), k -> Maps.newConcurrentMap());
+        String[] ignoredProperties = cache.get(target.getClass());
 
         // Fill the cache
-        if (cachedIgnoreProperties == null) {
+        if (ignoredProperties == null) {
 
             PropertyDescriptor[] targetDescriptors = BeanUtils.getPropertyDescriptors(target.getClass());
             Map<String, PropertyDescriptor> targetProperties = Maps.uniqueIndex(ImmutableList.copyOf(targetDescriptors), PropertyDescriptor::getName);
 
-            List<String> ignorePropertiesList = Stream.of(BeanUtils.getPropertyDescriptors(source.getClass()))
-                    // Keep invalid properties
-                    .filter(pd -> {
-                        PropertyDescriptor targetDescriptor = targetProperties.get(pd.getName());
-                        return targetDescriptor == null
-                                || !targetDescriptor.getPropertyType().isAssignableFrom(pd.getPropertyType())
-                                || Collection.class.isAssignableFrom(pd.getPropertyType())
-                                || targetDescriptor.getWriteMethod() == null;
-                    })
-                    .map(PropertyDescriptor::getName)
-                    .collect(Collectors.toList());
-            cachedIgnoreProperties = ignorePropertiesList.toArray(new String[ignorePropertiesList.size()]);
+            ignoredProperties = Stream.of(BeanUtils.getPropertyDescriptors(source.getClass()))
+                // Keep invalid properties
+                .filter(pd -> {
+                    PropertyDescriptor targetDescriptor = targetProperties.get(pd.getName());
+                    return targetDescriptor == null
+                        || !targetDescriptor.getPropertyType().isAssignableFrom(pd.getPropertyType())
+                        || Collection.class.isAssignableFrom(pd.getPropertyType())
+                        || targetDescriptor.getWriteMethod() == null;
+                })
+                .map(PropertyDescriptor::getName)
+                .toArray(String[]::new);
 
             // Add to cache
-            cache.put(target.getClass(), cachedIgnoreProperties);
+            cache.put(target.getClass(), ignoredProperties);
         }
 
-        BeanUtils.copyProperties(source, target, cachedIgnoreProperties);
+        BeanUtils.copyProperties(source, target, ArrayUtils.addAll(ignoredProperties, exceptProperties));
     }
 }

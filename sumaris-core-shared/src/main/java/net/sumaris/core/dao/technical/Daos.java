@@ -27,8 +27,11 @@ package net.sumaris.core.dao.technical;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.Geometries;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
@@ -78,6 +81,7 @@ public class Daos {
     private final static String JDBC_URL_PREFIX_HSQLDB = JDBC_URL_PREFIX + "hsqldb:";
     private final static String JDBC_URL_PREFIX_ORACLE = JDBC_URL_PREFIX + "oracle:";
     private final static String JDBC_URL_PREFIX_HSQLDB_FILE = JDBC_URL_PREFIX_HSQLDB + "file:";
+
 
     /**
      * Constant <code>DB_DIRECTORY="db"</code>
@@ -329,6 +333,12 @@ public class Daos {
         return jdbcUrl;
     }
 
+    public static String getDbms(String jdbcUrl) {
+        Preconditions.checkNotNull(jdbcUrl);
+        Preconditions.checkArgument(jdbcUrl.startsWith(JDBC_URL_PREFIX));
+        return jdbcUrl.substring(JDBC_URL_PREFIX.length(), jdbcUrl.indexOf(":", JDBC_URL_PREFIX.length()));
+    }
+
     /**
      * <p>isHsqlDatabase.</p>
      *
@@ -360,6 +370,17 @@ public class Daos {
     public static boolean isOracleDatabase(String jdbcUrl) {
         Preconditions.checkNotNull(jdbcUrl);
         return jdbcUrl.startsWith(JDBC_URL_PREFIX_ORACLE);
+    }
+
+    public static boolean isOracleDatabase(Connection conn) {
+        Preconditions.checkNotNull(conn);
+        try {
+            String jdbcUrl = conn.getMetaData().getURL();
+            return isOracleDatabase(jdbcUrl);
+        }
+        catch(SQLException e) {
+            throw new SumarisTechnicalException(e);
+        }
     }
 
     /**
@@ -931,6 +952,22 @@ public class Daos {
     }
 
     /**
+     * <p>sqlUnique.</p>
+     *
+     * @param dataSource a {@link DataSource} object.
+     * @param sql        a {@link String} object.
+     * @return a {@link Object} object.
+     */
+    public static Object sqlUniqueTimestamp(DataSource dataSource, String sql) throws DataAccessResourceFailureException {
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try {
+            return sqlUnique(connection, sql, true);
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
+    }
+
+    /**
      * <p>sqlUniqueTyped.</p>
      *
      * @param dataSource a {@link DataSource} object.
@@ -951,6 +988,17 @@ public class Daos {
      * @return a {@link Object} object.
      */
     public static Object sqlUnique(Connection connection, String sql) {
+        return sqlUnique(connection, sql, false);
+    }
+
+    /**
+     * <p>sqlUnique.</p>
+     *
+     * @param connection a {@link Connection} object.
+     * @param sql        a {@link String} object.
+     * @return a {@link Object} object.
+     */
+    public static Object sqlUnique(Connection connection, String sql, boolean timestamp) {
         Statement stmt;
         try {
             stmt = connection.createStatement();
@@ -968,7 +1016,9 @@ public class Daos {
             if (!rs.next()) {
                 throw new DataRetrievalFailureException("Executed query return no row: " + sql);
             }
-            Object result = rs.getObject(1);
+            Object result = timestamp
+                    ? rs.getTimestamp(1)
+                    : rs.getObject(1);
             if (rs.next()) {
                 throw new DataRetrievalFailureException("Executed query has more than one row: " + sql);
             }
@@ -1361,7 +1411,7 @@ public class Daos {
     }
 
     /**
-     * Set collection items. Wille reuse the instance of the collection is possible
+     * Set collection tableNames. Wille reuse the instance of the collection is possible
      *
      * @param existingEntities a {@link Collection} object.
      * @param function         a {@link Function} object.
@@ -1377,7 +1427,7 @@ public class Daos {
     }
 
     /**
-     * Set collection items. Wille reuse the instance of the collection is possible
+     * Set collection tableNames. Wille reuse the instance of the collection is possible
      *
      * @param existingEntities a {@link Collection} object.
      * @param function         a {@link Function} object.
@@ -1479,5 +1529,23 @@ public class Daos {
         }
     }
 
+    public static void checkUpdateDateForUpdate(IUpdateDateEntityBean<?, ? extends Date> source,
+                                                IUpdateDateEntityBean<?, ? extends Date> entity) {
+        // Check update date
+        if (entity.getUpdateDate() != null) {
+            Timestamp serverUpdateDtNoMillisecond = Dates.resetMillisecond(entity.getUpdateDate());
+            Timestamp sourceUpdateDtNoMillisecond = Dates.resetMillisecond(source.getUpdateDate());
+            if (!Objects.equals(sourceUpdateDtNoMillisecond, serverUpdateDtNoMillisecond)) {
+                throw new BadUpdateDateException(I18n.t("sumaris.persistence.error.badUpdateDate",
+                        getTableName(entity.getClass().getSimpleName()), source.getId(), serverUpdateDtNoMillisecond,
+                        sourceUpdateDtNoMillisecond));
+            }
+        }
+    }
+
+    public static String getTableName(String entityName) {
+
+        return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
+    }
 
 }

@@ -23,11 +23,8 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.batch.Batch;
-import net.sumaris.core.model.data.measure.GearUseMeasurement;
-import net.sumaris.core.model.data.measure.VesselUseMeasurement;
-import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import org.hibernate.annotations.Cascade;
@@ -38,18 +35,12 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 public class Operation implements IDataEntity<Integer> {
 
-    public static final String PROPERTY_START_DATE_TIME = "startDateTime";
-    public static final String PROPERTY_END_DATE_TIME = "endDateTime";
-    public static final String PROPERTY_RANK_ORDER_ON_PERIOD = "rankOrderOnPeriod";
-    public static final String PROPERTY_TRIP = "trip";
-    public static final String PROPERTY_VESSEL_USE_MEASUREMENTS = "vesselUseMeasurements";
-    public static final String PROPERTY_GEAR_USE_MEASUREMENTS = "gearUseMeasurements";
-
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "OPERATION_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OPERATION_SEQ")
     @SequenceGenerator(name = "OPERATION_SEQ", sequenceName="OPERATION_SEQ")
     private Integer id;
 
@@ -110,24 +101,24 @@ public class Operation implements IDataEntity<Integer> {
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private PhysicalGear physicalGear;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPosition.class, mappedBy = VesselPosition.PROPERTY_OPERATION)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPosition.class, mappedBy = VesselPosition.Fields.OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselPosition> positions = new ArrayList<>();
 
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.PROPERTY_OPERATION)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.Fields.OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselUseMeasurement> vesselUseMeasurements = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = GearUseMeasurement.class, mappedBy = GearUseMeasurement.PROPERTY_OPERATION)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = GearUseMeasurement.class, mappedBy = GearUseMeasurement.Fields.OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<GearUseMeasurement> gearUseMeasurements = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Sample.PROPERTY_OPERATION)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Sample.Fields.OPERATION)
     @Cascade({org.hibernate.annotations.CascadeType.DELETE})
     private List<Sample> samples = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Batch.class, mappedBy = Batch.PROPERTY_OPERATION)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Batch.class, mappedBy = Batch.Fields.OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Batch> batches;
 }

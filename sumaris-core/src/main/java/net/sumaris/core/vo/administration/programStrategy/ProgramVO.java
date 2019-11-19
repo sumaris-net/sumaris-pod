@@ -23,14 +23,17 @@ package net.sumaris.core.vo.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.referential.IReferentialVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 
-import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Data
+@FieldNameConstants
 public class ProgramVO implements IReferentialVO {
+
     private Integer id;
     private String label;
     private String name;
@@ -40,5 +43,9 @@ public class ProgramVO implements IReferentialVO {
     private Date creationDate;
 
     private Integer statusId;
+
+    private Map<String, String> properties;
+
+    private List<StrategyVO> strategies;
 
 }

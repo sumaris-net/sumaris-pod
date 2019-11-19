@@ -24,15 +24,13 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.IRootDataEntity;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.PhysicalGear;
-import net.sumaris.core.model.data.measure.PhysicalGearMeasurement;
+import net.sumaris.core.model.data.PhysicalGearMeasurement;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
@@ -57,7 +55,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("physicalGearDao")
-public class PhysicalGearDaoImpl extends HibernateDaoSupport implements PhysicalGearDao {
+public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGearDao {
 
     /** Logger. */
     private static final Logger log =
@@ -79,7 +77,7 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
         ParameterExpression<Integer> tripIdParam = builder.parameter(Integer.class);
 
         query.select(root)
-            .where(builder.equal(root.get(PhysicalGear.PROPERTY_TRIP).get(IRootDataEntity.PROPERTY_ID), tripIdParam));
+            .where(builder.equal(root.get(PhysicalGear.Fields.TRIP).get(IEntity.Fields.ID), tripIdParam));
 
         TypedQuery<PhysicalGear> q = getEntityManager().createQuery(query)
                 .setParameter(tripIdParam, tripId);
@@ -91,6 +89,8 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
 
         // Load parent entity
         Trip parent = get(Trip.class, tripId);
+        ProgramVO parentProgram = new ProgramVO();
+        parentProgram.setId(parent.getProgram().getId());
 
         // Remember existing entities
         final Map<Integer, PhysicalGear> sourcesToRemove = Beans.splitById(parent.getPhysicalGears());
@@ -98,6 +98,8 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
         // Save each sources
         List<PhysicalGearVO> result = sources.stream().map(gear -> {
             gear.setTripId(tripId);
+            gear.setProgram(parentProgram);
+
             if (gear.getId() != null) {
                 sourcesToRemove.remove(gear.getId());
             }
@@ -111,15 +113,21 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
 
         // Save measurements on each gears
         // NOTE: using the savedGear to be sure to get an id
-        result.forEach(savedGear -> {
-            List<MeasurementVO> measurements = Beans.getList(savedGear.getMeasurements());
-            int rankOrder = 1;
-            for (MeasurementVO m: measurements) {
-                fillDefaultProperties(savedGear, m);
-                m.setRankOrder(rankOrder++);
+        result.forEach(source -> {
+
+            if (source.getMeasurementValues() != null) {
+                measurementDao.savePhysicalGearMeasurementsMap(source.getId(), source.getMeasurementValues());
             }
-            measurements = measurementDao.savePhysicalGearMeasurementByPhysicalGearId(savedGear.getId(), measurements);
-            savedGear.setMeasurements(measurements);
+            else {
+                List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
+                int rankOrder = 1;
+                for (MeasurementVO m : measurements) {
+                    fillDefaultProperties(source, m);
+                    m.setRankOrder(rankOrder++);
+                }
+                measurements = measurementDao.savePhysicalGearMeasurements(source.getId(), measurements);
+                source.setMeasurements(measurements);
+            }
         });
 
         return result;
@@ -191,7 +199,7 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
             target.setQualityFlagId(source.getQualityFlag().getId());
 
             // Recorder department
-            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
+            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
             target.setRecorderDepartment(recorderDepartment);
 
         }
@@ -218,7 +226,8 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
 
     protected void physicalGearVOToEntity(PhysicalGearVO source, PhysicalGear target, boolean copyIfNull) {
 
-        Beans.copyProperties(source, target);
+        // Copy properties
+        copyRootDataProperties(source, target, copyIfNull);
 
         // Gear
         target.setGear(load(Gear.class, source.getGear().getId()));
@@ -233,27 +242,6 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
                 target.setTrip(load(Trip.class, tripId));
             }
         }
-
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
-            }
-        }
-
-        // Quality flag
-        if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-            }
-            else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
-            }
-        }
-
     }
 
     protected  List<PhysicalGearVO> toPhysicalGearVOs(List<PhysicalGear> source) {
@@ -275,7 +263,6 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
             measurement.setRecorderPerson(parent.getRecorderPerson());
         }
 
-        measurement.setPhysicalGearId(parent.getId());
         measurement.setEntityName(PhysicalGearMeasurement.class.getSimpleName());
     }
 }

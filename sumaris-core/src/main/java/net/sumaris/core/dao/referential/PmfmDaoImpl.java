@@ -55,7 +55,7 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
     public int unitIdNone;
 
     @PostConstruct
-    public void initConstants() {
+    protected void init() {
         this.unitIdNone = config.getUnitIdNone();
     }
 
@@ -68,7 +68,7 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
         ParameterExpression<String> labelParam = builder.parameter(String.class);
 
         query.select(root)
-                .where(builder.equal(root.get(Pmfm.PROPERTY_LABEL), labelParam));
+                .where(builder.equal(root.get(Pmfm.Fields.LABEL), labelParam));
 
         TypedQuery<Pmfm> q = getEntityManager().createQuery(query)
                 .setParameter(labelParam, label);
@@ -108,8 +108,15 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
             target.setUnit(source.getUnit().getLabel());
         }
 
-        // Qualitative values
-        if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
+        // Qualitative values: from pmfm first, or (if empty) from parameter
+        if (CollectionUtils.isNotEmpty(source.getQualitativeValues())) {
+            List<ReferentialVO> qualitativeValues = source.getQualitativeValues()
+                    .stream()
+                    .map(referentialDao::toReferentialVO)
+                    .collect(Collectors.toList());
+            target.setQualitativeValues(qualitativeValues);
+        }
+        else if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
             List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
                     .stream()
                     .map(referentialDao::toReferentialVO)

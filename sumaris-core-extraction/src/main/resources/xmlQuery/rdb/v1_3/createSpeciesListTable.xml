@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<queries name="extractionCreateSpeciesListTable">
+
+  <query type="create" temp="false" table="&amp;speciesListTableName" option="DISTINCT">
+
+    <!-- PK (inherited) -->
+    <select alias="RECORD_TYPE" type="text">'SL'</select>
+    <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
+    <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
+    <select alias="YEAR" type="number">S.YEAR</select>
+    <select alias="PROJECT" type="text">S.PROJECT</select>
+    <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
+    <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
+    <select alias="SPECIES" type="text">S.SPECIES</select>
+    <select alias="CATCH_CATEGORY" type="text">S.CATCH_CATEGORY</select>
+    <select alias="LANDING_CATEGORY" type="text">S.LANDING_CATEGORY</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">S.COMMERCIAL_SIZE_CATEGORY_SCALE</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">S.COMMERCIAL_SIZE_CATEGORY</select>
+    <select alias="SUBSAMPLING_CATEGORY" type="text">S.SUBSAMPLING_CATEGORY</select>
+    <select alias="SEX" type="text">S.SEX</select><!-- always define in the HL table -->
+
+    <!-- other fields -->
+    <select alias="WEIGHT" type="number">sum(S.WEIGHT)</select>
+    <select alias="SUBSAMPLE_WEIGHT" type="number">sum(S.SUBSAMPLE_WEIGHT)</select>
+    <select alias="LENGTH_CODE" type="text">S.LENGTH_CODE</select>
+
+    <from alias="S">&amp;rawSpeciesListTableName</from>
+
+    <where>1=1</where>
+
+    <groupby>
+      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
+      CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY, SUBSAMPLING_CATEGORY,
+      SEX, LENGTH_CODE
+    </groupby>
+
+<!--    <orderby direction="ASC">S.SAMPLE_ID, LENGTH_CODE</orderby>-->
+  </query>
+
+</queries>

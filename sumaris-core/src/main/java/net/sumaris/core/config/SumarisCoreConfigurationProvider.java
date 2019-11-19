@@ -43,7 +43,7 @@ public class SumarisCoreConfigurationProvider implements ApplicationConfigProvid
 	/** {@inheritDoc} */
 	@Override
 	public String getName() {
-		return "sumaris-core-actions";
+		return "sumaris-core";
 	}
 
 	/** {@inheritDoc} */

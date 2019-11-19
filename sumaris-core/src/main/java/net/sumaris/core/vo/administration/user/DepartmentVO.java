@@ -23,16 +23,17 @@ package net.sumaris.core.vo.administration.user;
  */
 
 import lombok.Data;
-import net.sumaris.core.vo.referential.IReferentialVO;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
-public class DepartmentVO implements IReferentialVO {
-
-    public static final String PROPERTY_HAS_LOGO = "hasLogo";
-    public static final String PROPERTY_LOGO = "logo";
+@EqualsAndHashCode
+@FieldNameConstants
+public class DepartmentVO extends ReferentialVO {
 
     private Integer id;
     private Date updateDate;
@@ -41,6 +42,14 @@ public class DepartmentVO implements IReferentialVO {
     private String name;
     private Integer statusId;
     private String siteUrl;
+
+    @EqualsAndHashCode.Exclude
     private boolean hasLogo;
+
+    @EqualsAndHashCode.Exclude
     private String logo;
+
+    public DepartmentVO() {
+        this.setEntityName(Department.class.getSimpleName());
+    }
 }

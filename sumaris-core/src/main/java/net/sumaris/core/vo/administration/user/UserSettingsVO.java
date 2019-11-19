@@ -23,19 +23,15 @@ package net.sumaris.core.vo.administration.user;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.vo.IValueObject;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
-public class UserSettingsVO implements IUpdateDateEntityBean<Integer, Date> {
-
-    public static final String PROPERTY_ISSUER = "issuer";
-    public static final String PROPERTY_CONTENT = "content";
-    public static final String PROPERTY_NONCE = "nonce";
-    public static final String PROPERTY_LOCALE = "locale";
-    public static final String PROPERTY_LAT_LONG_FORMAT= "latLongFormat";
+@FieldNameConstants
+public class UserSettingsVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
     private Integer id;
     private Date updateDate;

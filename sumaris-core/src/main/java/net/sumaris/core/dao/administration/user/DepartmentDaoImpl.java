@@ -44,6 +44,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.*;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -70,21 +71,25 @@ public class DepartmentDaoImpl extends HibernateDaoSupport implements Department
         CriteriaQuery<Department> query = builder.createQuery(Department.class);
         Root<Department> root = query.from(Department.class);
 
-        Join<Department, Status> statusJoin = root.join(Department.PROPERTY_STATUS, JoinType.INNER);
-        Join<Department, ImageAttachment> logoJoin = root.join(Department.PROPERTY_LOGO, JoinType.LEFT);
+        Join<Department, Status> statusJoin = root.join(Department.Fields.STATUS, JoinType.INNER);
+        Join<Department, ImageAttachment> logoJoin = root.join(Department.Fields.LOGO, JoinType.LEFT);
 
         ParameterExpression<Boolean> hasStatusIdsParam = builder.parameter(Boolean.class);
+        ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
         ParameterExpression<Boolean> withLogoParam = builder.parameter(Boolean.class);
 
         query.select(root)
                 .where(
                         builder.and(
                                 // status Id
-                                CollectionUtils.isEmpty(filter.getStatusIds()) ? builder.isFalse(hasStatusIdsParam) : builder.in(statusJoin.get(IReferentialEntity.PROPERTY_ID)).value(filter.getStatusIds()),
+                                builder.or(
+                                    builder.isFalse(hasStatusIdsParam),
+                                    builder.in(statusJoin.get(IReferentialEntity.Fields.ID)).value(statusIdsParam)
+                                ),
                                 // with logo
                                 builder.or(
                                         builder.isNull(withLogoParam),
-                                        builder.isNotNull(logoJoin.get(IReferentialEntity.PROPERTY_ID))
+                                        builder.isNotNull(logoJoin.get(IReferentialEntity.Fields.ID))
                                 )
                         ));
 
@@ -98,6 +103,7 @@ public class DepartmentDaoImpl extends HibernateDaoSupport implements Department
 
         return entityManager.createQuery(query)
                 .setParameter(hasStatusIdsParam, CollectionUtils.isNotEmpty(statusIds))
+                .setParameter(statusIdsParam, statusIds)
                 .setParameter(withLogoParam, isTrueOrNull(filter.getWithLogo()))
                 .setFirstResult(offset)
                 .setMaxResults(size)
@@ -126,7 +132,7 @@ public class DepartmentDaoImpl extends HibernateDaoSupport implements Department
         ParameterExpression<String> labelParam = builder.parameter(String.class);
 
         query.select(root)
-                .where(builder.equal(root.get(Department.PROPERTY_LABEL), labelParam));
+                .where(builder.equal(root.get(Department.Fields.LABEL), labelParam));
 
         try {
             return entityManager.createQuery(query)

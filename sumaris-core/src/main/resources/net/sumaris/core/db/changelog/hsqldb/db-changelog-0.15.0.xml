@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.15.0.xml">
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-1">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-8">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="PROCESSING_HISTORY_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="PROCESSING_HISTORY_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-9">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="PROCESSING_STATUS_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="PROCESSING_STATUS_SEQ"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-9-1">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="REFERENCE_TAXON_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="REFERENCE_TAXON_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-9-2">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="TAXON_NAME_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="TAXON_NAME_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-9-3">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="PROCESSING_TYPE_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="PROCESSING_TYPE_SEQ"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-11">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="processing_history"/>
+      </not>
+    </preConditions>
+    <createTable tableName="processing_history">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="processing_history_pk"/>
+      </column>
+      <column name="configuration" type="VARCHAR(255)"/>
+      <column name="data_transfert_address" type="VARCHAR(255)"/>
+      <column name="data_transfert_date" type="TIMESTAMP"/>
+      <column name="data_transfert_type" type="VARCHAR(255)"/>
+      <column name="processing_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)"/>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="xml_configuration" type="VARCHAR(3000)"/>
+      <column name="xml_report" type="VARCHAR(3000)"/>
+      <column name="processing_type_fk" type="INT"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-12">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="processing_status"/>
+      </not>
+    </preConditions>
+    <createTable tableName="processing_status">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="processing_status_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-13">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="processing_type"/>
+      </not>
+    </preConditions>
+    <createTable tableName="processing_type">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="processing_type_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-14">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="taxon_group2taxon_hierarchy"/>
+      </not>
+    </preConditions>
+    <createTable tableName="taxon_group2taxon_hierarchy">
+      <column name="start_date" type="TIMESTAMP">
+        <constraints primaryKey="true" primaryKeyName="taxon_group2taxon_hierarchy_pk"/>
+      </column>
+      <column name="end_date" type="TIMESTAMP"/>
+      <column name="is_inherited" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="parent_taxon_group_fk" type="INT">
+        <constraints primaryKey="true" primaryKeyName="taxon_group2taxon_hierarchy_pk"/>
+      </column>
+      <column name="child_reference_taxon_fk" type="INT">
+        <constraints primaryKey="true" primaryKeyName="taxon_group2taxon_hierarchy_pk"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-15">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="taxon_group_hierarchy"/>
+      </not>
+    </preConditions>
+    <createTable tableName="taxon_group_hierarchy">
+      <column name="parent_taxon_group_fk" type="INT">
+        <constraints primaryKey="true" primaryKeyName="taxon_group_hierarchy_pk"/>
+      </column>
+      <column name="child_taxon_group_fk" type="INT">
+        <constraints primaryKey="true" primaryKeyName="taxon_group_hierarchy_pk"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-16" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="parent_taxon_group_fk" baseTableName="taxon_group2taxon_hierarchy" constraintName="FKbsw7iuvnql1tu6jjlbjq8r5h2" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_group"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-17" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="child_taxon_group_fk" baseTableName="taxon_group_hierarchy" constraintName="FKdgo668qgun66m28qk4206wwf0" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_group"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-18" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="processing_type_fk" baseTableName="processing_history" constraintName="FKf4vtsp08g37cyycb3yxeh5p2p" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="processing_type"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-19" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="child_reference_taxon_fk" baseTableName="taxon_group2taxon_hierarchy" constraintName="FKg9enkuob675jsmf22xomf35wj" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-20" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="parent_taxon_group_fk" baseTableName="taxon_group_hierarchy" constraintName="FKi4p076fnkfafi0jwqvrfkl3if" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_group"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-21" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="processing_type" constraintName="FKqnfyj0p455j2lhw1h4clt206i" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-22" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="processing_status" constraintName="FKtfxrsgbg6titgs8995m19mn7x" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-23" >
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="processing_history" columnName="processing_status_fk"/></not>
+    </preConditions>
+    <addColumn tableName="processing_history">
+      <column name="processing_status_fk" type="integer">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-24" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="processing_status_fk" baseTableName="processing_history" constraintName="FKrx3mwk3to76guajp9ancbax9i" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="processing_status" validate="true"/>
+  </changeSet>
+
+  <!-- Insert processing status -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-25" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><sqlCheck expectedResult="5">SELECT count(*) FROM processing_status</sqlCheck></not>
+      <not><sqlCheck expectedResult="0">SELECT count(*) FROM status</sqlCheck></not>
+    </preConditions>
+    <delete tableName="processing_status"/>
+    <insert tableName="processing_status">
+      <column name="ID" valueComputed="NEXT VALUE FOR processing_status_seq"/>
+      <column name="LABEL">SUCCESS</column>
+      <column name="NAME">Job completed successfully</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="processing_status">
+      <column name="ID" valueComputed="NEXT VALUE FOR processing_status_seq"/>
+      <column name="LABEL">ERROR</column>
+      <column name="NAME">Job failed</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="processing_status">
+      <column name="ID" valueComputed="NEXT VALUE FOR processing_status_seq"/>
+      <column name="LABEL">WARNING</column>
+      <column name="NAME">Job completed successfully, with warnings</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="processing_status">
+      <column name="ID" valueComputed="NEXT VALUE FOR processing_status_seq"/>
+      <column name="LABEL">WAITING_EXECUTION</column>
+      <column name="NAME">Pending execution</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="processing_status">
+      <column name="ID" valueComputed="NEXT VALUE FOR processing_status_seq"/>
+      <column name="LABEL">WAITING_ACKNOWLEDGE</column>
+      <column name="NAME">Pending acknowledge</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+
+  </changeSet>
+
+  <!-- Insert processing type -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-26" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count(*) FROM processing_type where label='SYS_P_FILL_TAXON_GROUP_HIERARCHY'</sqlCheck>
+      <not><sqlCheck expectedResult="0">SELECT count(*) FROM processing_status</sqlCheck></not>
+    </preConditions>
+    <insert tableName="processing_type">
+      <column name="ID" valueComputed="NEXT VALUE FOR processing_type_seq"/>
+      <column name="LABEL">SYS_P_FILL_TAXON_GROUP_HIERARCHY</column>
+      <column name="NAME">Stored procedure P_FILL_TAXON_GROUP_HIERARCHY</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-27">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="taxon_group_historical_record"/></not>
+    </preConditions>
+    <createTable tableName="taxon_group_historical_record">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="taxon_group_hist_record_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="end_date" type="TIMESTAMP"/>
+      <column name="start_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="reference_taxon_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="taxon_group_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-28" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="taxon_group_historical_record" constraintName="FK3nhcidceqsauu3aua1be6krdb" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-29" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxon_group_fk" baseTableName="taxon_group_historical_record" constraintName="FK52rdbqf6qba9i9e54t39wykg6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_group" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-30" failOnError="false">
+    <dropForeignKeyConstraint baseTableName="LOCATION_AREA" constraintName="FK_LOCATION_AREA_ID"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-31" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count(*) FROM processing_history where processing_type_fk IS NULL</sqlCheck>
+    </preConditions>
+    <addNotNullConstraint columnDataType="int" columnName="processing_type_fk" tableName="processing_history"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-32" >
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="batch" columnName="hash"/></not>
+    </preConditions>
+    <addColumn tableName="batch">
+      <column name="hash" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-33" >
+    <preConditions onFail="MARK_RAN">
+      <not><sqlCheck expectedResult="0">SELECT count(*) FROM batch where hash is null</sqlCheck></not>
+    </preConditions>
+    <sql>update BATCH set hash=id where hash is null</sql>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-34" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count(*) FROM batch where hash IS NULL</sqlCheck>
+    </preConditions>
+    <addNotNullConstraint columnDataType="int" columnName="hash" tableName="batch"/>
+  </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-35">
+      <preConditions onFail="MARK_RAN">
+          <not>
+              <sequenceExists sequenceName="METIER_SEQ"/>
+          </not>
+      </preConditions>
+      <createSequence sequenceName="METIER_SEQ"/>
+      <sql>select NEXT VALUE FOR METIER_SEQ from METIER</sql>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-36">
+      <preConditions onFail="MARK_RAN">
+          <not>
+              <sequenceExists sequenceName="TAXON_GROUP_SEQ"/>
+          </not>
+      </preConditions>
+      <createSequence sequenceName="TAXON_GROUP_SEQ"/>
+      <sql>select NEXT VALUE FOR TAXON_GROUP_SEQ from TAXON_GROUP</sql>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-37">
+      <preConditions onFail="MARK_RAN">
+          <not>
+              <sequenceExists sequenceName="GEAR_SEQ"/>
+          </not>
+      </preConditions>
+      <createSequence sequenceName="GEAR_SEQ"/>
+      <sql>select NEXT VALUE FOR GEAR_SEQ from GEAR</sql>
+    </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='0.15.0'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">0.15.0</column>
+      <column name="DESCRIPTION">
+        - Data: Add link between taxon and taxon group
+        - Add PROCESSING_HiSTORY
+        - Add tables TAXON_GROUP_HIERARCHY and TAXON_GROUP2TAXON_HIERARCHY
+        - Add missing sequences METIER_SEQ, TAXON_GROUP_SEQ, GEAR_SEQ
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

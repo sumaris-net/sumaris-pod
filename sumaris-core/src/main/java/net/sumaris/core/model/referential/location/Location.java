@@ -23,22 +23,24 @@ package net.sumaris.core.model.referential.location;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.ValidityStatus;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Cacheable
-public class Location implements IItemReferentialEntity {
-
-    public static final String PROPERTY_LOCATION_LEVEL = "locationLevel";
+public class Location implements IItemReferentialEntity, Serializable {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_SEQ")
+    @SequenceGenerator(name = "LOCATION_SEQ", sequenceName="LOCATION_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -61,10 +63,12 @@ public class Location implements IItemReferentialEntity {
 
     private String description;
 
-    private Float bathymetry;
+    private Double bathymetry;
 
+    @Column(name = "ut_format")
     private Short utFormat;
 
+    @Column(name = "daylight_saving_time")
     private Boolean daylightSavingTime;
 
     @Column(length = LENGTH_COMMENTS)

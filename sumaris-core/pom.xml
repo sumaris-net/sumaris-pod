@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>0.9.9-SNAPSHOT</version>
+    <version>0.19.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>
@@ -50,16 +50,12 @@
       <artifactId>hibernate-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.hibernate</groupId>
+      <groupId>org.hibernate.validator</groupId>
       <artifactId>hibernate-validator</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-ehcache</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-tools</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
@@ -215,7 +211,7 @@
               <goal>regex-property</goal>
             </goals>
             <configuration>
-              <value>${project.build.outputDirectory}</value>
+              <value>${project.build.directory}/generated-sources/resources</value>
               <regex>\\</regex>
               <replacement>/</replacement>
               <name>escapedOutputDirectory</name>
@@ -237,6 +233,7 @@
         </dependencies>
         <executions>
           <execution>
+            <id>generate-reflections-xml</id>
             <phase>generate-resources</phase>
             <goals>
               <goal>execute</goal>

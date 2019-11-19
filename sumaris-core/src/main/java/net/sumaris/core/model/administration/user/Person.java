@@ -22,8 +22,8 @@ package net.sumaris.core.model.administration.user;
  * #L%
  */
 
-import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -31,28 +31,21 @@ import net.sumaris.core.model.referential.UserProfile;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "person")
 @Cacheable
 public class Person implements IReferentialEntity {
 
-    public static final String PROPERTY_PUBKEY = "pubkey";
-    public static final String PROPERTY_LAST_NAME= "lastName";
-    public static final String PROPERTY_FIRST_NAME = "firstName";
-    public static final String PROPERTY_EMAIL = "email";
-    public static final String PROPERTY_EMAIL_MD5 = "emailMD5";
-    public static final String PROPERTY_USER_PROFILES = "userProfiles";
-    public static final String PROPERTY_STATUS = "status";
-
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PERSON_SEQ")
+    @SequenceGenerator(name = "PERSON_SEQ", sequenceName="PERSON_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -79,7 +72,7 @@ public class Person implements IReferentialEntity {
     @Column(name="email_md5", unique = true)
     private String emailMD5;
 
-    @Column(name="pubkey", nullable = false, unique = true)
+    @Column(name="pubkey", unique = true)
     private String pubkey;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -88,6 +81,7 @@ public class Person implements IReferentialEntity {
     private Department department;
 
     @ManyToMany(fetch = FetchType.EAGER, targetEntity = UserProfile.class)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     @JoinTable(name = "person2user_profile",
             joinColumns = {
                 @JoinColumn(name = "person_fk", nullable = false, updatable = false)
@@ -95,7 +89,6 @@ public class Person implements IReferentialEntity {
             inverseJoinColumns = {
                 @JoinColumn(name = "user_profile_fk", nullable = false, updatable = false)
             })
-    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private Set<UserProfile> userProfiles = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

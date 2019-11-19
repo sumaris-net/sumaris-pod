@@ -66,7 +66,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet author="blavenie (generated)" id="1549028598312-6">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-6">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="validity_status"/>
@@ -90,56 +90,56 @@
     </changeSet>
 
     <!-- ICES file table -->
-    <changeSet author="blavenie (generated)" id="1549028598312-7">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-7" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
-                <sequenceExists sequenceName="file_ices_landing_seq"/>
+                <sequenceExists sequenceName="p01_rdb_landing_seq"/>
             </not>
         </preConditions>
-        <createSequence sequenceName="file_ices_landing_seq"/>
+        <createSequence sequenceName="p01_rdb_landing_seq"/>
     </changeSet>
-    <changeSet author="blavenie (generated)" id="1549028598312-8">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-8" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
-                <sequenceExists sequenceName="file_ices_species_length_seq"/>
+                <sequenceExists sequenceName="p01_rdb_species_length_seq"/>
             </not>
         </preConditions>
-        <createSequence sequenceName="file_ices_species_length_seq"/>
+        <createSequence sequenceName="p01_rdb_species_length_seq"/>
     </changeSet>
-    <changeSet author="blavenie (generated)" id="1549028598312-9">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-9" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
-                <sequenceExists sequenceName="file_ices_species_list_seq"/>
+                <sequenceExists sequenceName="p01_rdb_species_list_seq"/>
             </not>
         </preConditions>
-        <createSequence sequenceName="file_ices_species_list_seq"/>
+        <createSequence sequenceName="p01_rdb_species_list_seq"/>
     </changeSet>
-    <changeSet author="blavenie (generated)" id="1549028598312-10">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-10" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
-                <sequenceExists sequenceName="file_ices_station_seq"/>
+                <sequenceExists sequenceName="p01_rdb_station_seq"/>
             </not>
         </preConditions>
-        <createSequence sequenceName="file_ices_station_seq"/>
+        <createSequence sequenceName="p01_rdb_station_seq"/>
     </changeSet>
-    <changeSet author="blavenie (generated)" id="1549028598312-11">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-11" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
-                <sequenceExists sequenceName="file_ices_trip_seq"/>
+                <sequenceExists sequenceName="p01_rdb_trip_seq"/>
             </not>
         </preConditions>
-        <createSequence sequenceName="file_ices_trip_seq"/>
+        <createSequence sequenceName="p01_rdb_trip_seq"/>
     </changeSet>
 
-    <changeSet author="blavenie (generated)" id="1549028598312-12">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-12" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="file_ices_landing"/>
+                <tableExists tableName="p01_rdb_landing"/>
             </not>
         </preConditions>
-        <createTable tableName="file_ices_landing">
+        <createTable tableName="p01_rdb_landing">
             <column name="id" type="INT">
-                <constraints primaryKey="true" primaryKeyName="file_ices_landingPK"/>
+                <constraints primaryKey="true" primaryKeyName="p01_rdb_landingPK"/>
             </column>
             <column name="area" type="VARCHAR(25)">
                 <constraints nullable="false"/>
@@ -187,15 +187,15 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="blavenie (generated)" id="1549028598312-13">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-13" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="file_ices_species_length"/>
+                <tableExists tableName="p01_rdb_species_length"/>
             </not>
         </preConditions>
-        <createTable tableName="file_ices_species_length">
+        <createTable tableName="p01_rdb_species_length">
             <column name="id" type="INT">
-                <constraints primaryKey="true" primaryKeyName="file_ices_species_lengthPK"/>
+                <constraints primaryKey="true" primaryKeyName="p01_rdb_species_lengthPK"/>
             </column>
             <column name="catch_category" type="VARCHAR(25)">
                 <constraints nullable="false"/>
@@ -234,15 +234,15 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="blavenie (generated)" id="1549028598312-14">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-14" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="file_ices_species_list"/>
+                <tableExists tableName="p01_rdb_species_list"/>
             </not>
         </preConditions>
-        <createTable tableName="file_ices_species_list">
+        <createTable tableName="p01_rdb_species_list">
             <column name="id" type="INT">
-                <constraints primaryKey="true" primaryKeyName="file_ices_species_listPK"/>
+                <constraints primaryKey="true" primaryKeyName="p01_rdb_species_listPK"/>
             </column>
             <column name="catch_category" type="VARCHAR(25)">
                 <constraints nullable="false"/>
@@ -283,15 +283,15 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="blavenie (generated)" id="1549028598312-15">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-15" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="file_ices_station"/>
+                <tableExists tableName="p01_rdb_station"/>
             </not>
         </preConditions>
-        <createTable tableName="file_ices_station">
+        <createTable tableName="p01_rdb_station">
             <column name="id" type="INT">
-                <constraints primaryKey="true" primaryKeyName="file_ices_stationPK"/>
+                <constraints primaryKey="true" primaryKeyName="p01_rdb_stationPK"/>
             </column>
             <column name="aggregation_level" type="VARCHAR(1)"/>
             <column name="area" type="VARCHAR(25)">
@@ -301,7 +301,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="date" type="VARCHAR(10)"/>
-            <column name="fishing_duration" type="INT"/>
+            <column name="fishing_time" type="INT"/>
             <column name="fishing_validity" type="VARCHAR(1)"/>
             <column name="gear_type" type="VARCHAR(5)">
                 <constraints nullable="false"/>
@@ -345,15 +345,15 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="blavenie (generated)" id="1549028598312-16">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-16" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="file_ices_trip"/>
+                <tableExists tableName="p01_rdb_trip"/>
             </not>
         </preConditions>
-        <createTable tableName="file_ices_trip">
+        <createTable tableName="p01_rdb_trip">
             <column name="id" type="INT">
-                <constraints primaryKey="true" primaryKeyName="file_ices_tripPK"/>
+                <constraints primaryKey="true" primaryKeyName="p01_rdb_tripPK"/>
             </column>
             <column name="days_at_sea" type="INT"/>
             <column name="harbour" type="VARCHAR(50)"/>
@@ -390,7 +390,6 @@
         </createTable>
     </changeSet>
 
-
     <!-- update SYSTEM_VERSION -->
     <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-200" runOnChange="true">
         <delete tableName="SYSTEM_VERSION">
@@ -402,14 +401,14 @@
             <column name="DESCRIPTION">
                 - Add column DEPARTMENT.LOCATION_FK
                 - Add table VALIDITY_STATUS
-                - Add tables for FILE_ICES_*
+                - Add tables for FILE_RDB_*
             </column>
             <column name="CREATION_DATE" valueComputed="sysdate" />
             <column name="UPDATE_DATE" valueComputed="current_timestamp" />
             <column name="COMMENTS">
                 - Add DEPARTMENT.LOCATION_FK
                 - Add table VALIDITY_STATUS
-                - Add tables for FILE_ICES_*
+                - Add tables for FILE_RDB_*
             </column>
         </insert>
     </changeSet>

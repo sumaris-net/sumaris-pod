@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>net.sumaris</groupId>
 		<artifactId>sumaris-pod</artifactId>
-		<version>0.9.9-SNAPSHOT</version>
+		<version>0.19.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>sumaris-core-extraction</artifactId>
@@ -42,13 +42,27 @@
 		<dependency>
 			<groupId>fr.ifremer.common</groupId>
 			<artifactId>xmlquery</artifactId>
-			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jdom</groupId>
+			<artifactId>jdom2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>jaxen</groupId>
+			<artifactId>jaxen</artifactId>
 		</dependency>
 
 		<!-- OpenCSV for extraction result -->
 		<dependency>
 			<groupId>net.sf.opencsv</groupId>
 			<artifactId>opencsv</artifactId>
+		</dependency>
+
+		<!-- Gdal (SIG utilities) -->
+		<dependency>
+			<groupId>org.gdal</groupId>
+			<artifactId>gdal</artifactId>
+			<version>3.0.0</version>
 		</dependency>
 
 		<!-- Unit test -->

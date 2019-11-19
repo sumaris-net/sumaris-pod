@@ -23,8 +23,11 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.gear.GearClassification;
+import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
@@ -34,12 +37,14 @@ import java.util.List;
 import java.util.Objects;
 
 @Data
+@FieldNameConstants
 @Entity
 @Cacheable
 public class Program implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_SEQ")
+    @SequenceGenerator(name = "PROGRAM_SEQ", sequenceName="PROGRAM_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -65,9 +70,21 @@ public class Program implements IItemReferentialEntity {
     @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
     private String comments;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = Strategy.PROPERTY_PROGRAM)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = Strategy.Fields.PROGRAM)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Strategy> strategies = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.EAGER, targetEntity = ProgramProperty.class, mappedBy = ProgramProperty.Fields.PROGRAM)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<ProgramProperty> properties = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonGroupType.class)
+    @JoinColumn(name = "taxon_group_type_fk", nullable = false)
+    private TaxonGroupType taxonGroupType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "gear_classification_fk", nullable = false)
+    private GearClassification gearClassification;
 
     public int hashCode() {
         return Objects.hash(label);

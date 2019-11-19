@@ -22,26 +22,23 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Person;
 
 import java.io.Serializable;
 import java.util.Date;
 
-public interface IRootDataEntity<T extends Serializable> extends IDataEntity<T> {
+public interface IRootDataEntity<ID extends Serializable>
+        extends IDataEntity<ID>,
+        IWithRecorderPersonEntity<ID, Person> {
 
+    Program getProgram();
 
-    String PROPERTY_CREATION_DATE = "creationDate";
-    String PROPERTY_RECORDER_PERSON = "recorderPerson";
-    String PROPERTY_COMMENTS = "comments";
-    String PROPERTY_VALIDATION_DATE = "validationDate";
+    void setProgram(Program program);
 
     Date getCreationDate() ;
 
     void setCreationDate(Date creationDate);
-
-    Person getRecorderPerson();
-
-    void setRecorderPerson(Person recorderPerson);
 
     String getComments();
 

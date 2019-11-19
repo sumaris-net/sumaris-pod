@@ -23,26 +23,25 @@ package net.sumaris.core.model.administration.user;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.location.Location;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Objects;
 
 @Data
+@FieldNameConstants
 @Entity
 @Cacheable
 public class Department implements IItemReferentialEntity {
 
-    public static final String PROPERTY_LOGO = "logo";
-
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "DEPARTMENT_SEQ")
+    @SequenceGenerator(name = "DEPARTMENT_SEQ", sequenceName="DEPARTMENT_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

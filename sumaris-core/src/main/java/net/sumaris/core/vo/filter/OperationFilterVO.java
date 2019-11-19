@@ -23,11 +23,14 @@ package net.sumaris.core.vo.filter;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class OperationFilterVO {
+@FieldNameConstants
+public class OperationFilterVO implements Serializable {
 
     private Integer tripId;
 }

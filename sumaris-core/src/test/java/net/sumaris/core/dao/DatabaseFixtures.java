@@ -47,13 +47,21 @@ public class DatabaseFixtures {
 		return 2;
 	}
 
+	public int getUserProfileSupervisor() {
+		return 3;
+	}
+
 	public String getPersonEmail(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
 			case 0:
 				return "benoit.lavenier@e-is.pro";
 			case 1:
-				return "observer@test.sumaris.net";
+				return "obs@sumaris.net";
+			case 2:
+				return "demo@sumaris.net";
+			case 3:
+				return "disable@sumaris.net";
 
 			default:
 				return "no-reply@sumaris.net";
@@ -73,6 +81,29 @@ public class DatabaseFixtures {
 	}
 
 	public Integer getTripId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1;
+
+			default:
+				return 1;
+		}
+	}
+
+
+	public Integer getObservedLocationId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1;
+
+			default:
+				return 1;
+		}
+	}
+
+	public Integer getLandingId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
 			case 0:
@@ -104,6 +135,8 @@ public class DatabaseFixtures {
 				return 1;
 		}
 	}
+
+	/* -- Referential -- */
 
 	public Integer getLocationPortId(int index) {
 		Preconditions.checkArgument(index >= 0);
@@ -159,7 +192,6 @@ public class DatabaseFixtures {
 		}
 	}
 
-
 	public Integer getMatrixIdForIndividual() {
 		return 2; // INDIV
 	}
@@ -169,12 +201,17 @@ public class DatabaseFixtures {
 		return 1001 + index;
 	}
 
-
-
     public ProgramVO getDefaultProgram() {
 		ProgramVO program = new ProgramVO();
 		program.setId(1);
 		program.setLabel("SUMARiS");
+		return program;
+	}
+
+	public ProgramVO getAuctionProgram() {
+		ProgramVO program = new ProgramVO();
+		program.setId(11);
+		program.setLabel("ADAP-CONTROLE");
 		return program;
 	}
 
@@ -188,4 +225,20 @@ public class DatabaseFixtures {
 		return 82;
 	}
 
+	public Integer getPmfmSampleIsDead() {
+		return 94;
+	}
+
+	/* -- product -- */
+
+	public Integer getProductId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1;
+
+			default:
+				return 1;
+		}
+	}
 }

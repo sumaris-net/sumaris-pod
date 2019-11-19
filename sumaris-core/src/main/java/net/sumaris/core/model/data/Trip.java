@@ -22,11 +22,12 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
+import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.data.measure.VesselUseMeasurement;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import org.hibernate.annotations.Cascade;
@@ -35,32 +36,37 @@ import org.hibernate.annotations.FetchProfile;
 import org.hibernate.annotations.FetchProfiles;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @FetchProfiles({
-        @FetchProfile(name = "with-location",
+        @FetchProfile(name = Trip.FETCH_PROFILE_LOCATION,
             fetchOverrides = {
                 @FetchProfile.FetchOverride(association = "departureLocation", entity = Trip.class, mode = FetchMode.JOIN),
-                @FetchProfile.FetchOverride(association = "returnLocation", entity = Trip.class, mode = FetchMode.JOIN),
-                    @FetchProfile.FetchOverride(association = "recorderDepartment", entity = Trip.class, mode = FetchMode.JOIN)
-            })
+                @FetchProfile.FetchOverride(association = "returnLocation", entity = Trip.class, mode = FetchMode.JOIN)
+            }),
+        @FetchProfile(name = Trip.FETCH_PROFILE_RECORDER,
+                fetchOverrides = {
+                        @FetchProfile.FetchOverride(association = Trip.Fields.RECORDER_DEPARTMENT, entity = Trip.class, mode = FetchMode.JOIN),
+                        @FetchProfile.FetchOverride(association = Trip.Fields.RECORDER_PERSON, entity = Trip.class, mode = FetchMode.JOIN)
+                }),
+        @FetchProfile(name = Trip.FETCH_PROFILE_OBSERVERS,
+                fetchOverrides = {
+                        @FetchProfile.FetchOverride(association = Trip.Fields.OBSERVERS, entity = Trip.class, mode = FetchMode.JOIN)
+                })
 })
 @Data
+@FieldNameConstants
 @Entity
-public class Trip implements IRootDataEntity<Integer> {
+public class Trip implements IRootDataEntity<Integer>,
+        IWithObserversEntity<Integer, Person>,
+        IWithVesselEntity<Integer, Vessel> {
 
-    public static final String PROPERTY_PROGRAM = "program";
-    public static final String PROPERTY_DEPARTURE_DATE_TIME = "departureDateTime";
-    public static final String PROPERTY_RETURN_DATE_TIME = "returnDateTime";
-    public static final String PROPERTY_DEPARTURE_LOCATION = "departureLocation";
-    public static final String PROPERTY_RETURN_LOCATION = "returnLocation";
-    public static final String PROPERTY_VESSEL = "vessel";
+    public static final String FETCH_PROFILE_LOCATION  = "trip-location";
+    public static final String FETCH_PROFILE_RECORDER  = "trip-recorder";
+    public static final String FETCH_PROFILE_OBSERVERS = "trip-observers";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "TRIP_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TRIP_SEQ")
     @SequenceGenerator(name = "TRIP_SEQ", sequenceName="TRIP_SEQ")
     private Integer id;
 
@@ -112,34 +118,42 @@ public class Trip implements IRootDataEntity<Integer> {
     @Column(name = "return_date_time", nullable = false)
     private Date returnDateTime;
 
-    @ManyToOne(fetch = FetchType.EAGER, targetEntity = Location.class)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Location.class)
     @JoinColumn(name = "departure_location_fk", nullable = false)
     private Location departureLocation;
 
-    @ManyToOne(fetch = FetchType.EAGER, targetEntity = Location.class)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Location.class)
     @JoinColumn(name = "return_location_fk", nullable = false)
     private Location returnLocation;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
+    @ManyToOne(fetch = FetchType.EAGER, targetEntity = Program.class)
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Operation.class, mappedBy = Operation.PROPERTY_TRIP)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Operation.class, mappedBy = Operation.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Operation> operations = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class, mappedBy = PhysicalGear.PROPERTY_TRIP)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class, mappedBy = PhysicalGear.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     @OrderBy("rankOrder ASC")
     private List<PhysicalGear> physicalGears = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.PROPERTY_TRIP)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sale> sales = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.PROPERTY_TRIP)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselUseMeasurement> measurements = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.EAGER, targetEntity = Person.class)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
+    @JoinTable(name = "trip2observer_person", joinColumns = {
+            @JoinColumn(name = "trip_fk", nullable = false, updatable = false) },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
+    private Set<Person> observers = Sets.newHashSet();
 
     public String toString() {
         return new StringBuilder().append("Trip(")

@@ -50,9 +50,9 @@ public class CacheConfiguration {
     protected CacheManager cacheManager;
 
     @PostConstruct
-    protected void afterPropertiesSet() {
-        log.info("Initializing referential caches...");
+    protected void init() {
         if (this.cacheManager == null)
+            log.info("Starting cache manager...");
             this.cacheManager = ehcache();
     }
 
@@ -100,13 +100,18 @@ public class CacheConfiguration {
     }
 
     @Bean
-    public EhCacheFactoryBean pmfmByProgramIdCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_PROGRAM_ID, 1500, 1500, 100);
+    public EhCacheFactoryBean pmfmByStrategyIdCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_STRATEGY_ID, 1500, 1500, 100);
+    }
+
+    @Bean
+    public EhCacheFactoryBean programByIdCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.PROGRAM_BY_ID, 100, 1500, 100);
     }
 
     @Bean
     public EhCacheFactoryBean programByLabelCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.PROGRAM_BY_LABEL, 1500, 1500, 100);
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PROGRAM_BY_LABEL, 100);
     }
 
     @Bean
@@ -120,6 +125,11 @@ public class CacheConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean taxonNamesByTaxonGroupId() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.TAXON_NAMES_BY_TAXON_GROUP_ID, 600);
+    }
+
+    @Bean
     public EhCacheFactoryBean referentialTypesCache() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.REFERENTIAL_TYPES, 600);
     }
@@ -128,6 +138,27 @@ public class CacheConfiguration {
     public EhCacheFactoryBean referentialLevelByUniqueLabel() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, 600);
     }
+
+    @Bean
+    public EhCacheFactoryBean productByLabelCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PRODUCT_BY_LABEL, 100);
+    }
+
+    @Bean
+    public EhCacheFactoryBean productsCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PRODUCTS, 100);
+    }
+
+    @Bean
+    public EhCacheFactoryBean productsByFilterCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PRODUCTS_BY_FILTER, 100);
+    }
+
+    @Bean
+    public EhCacheFactoryBean tableMetaByNameCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.TABLE_META_BY_NAME, 1500, 1500, 500);
+    }
+
 
     /* protected */
     protected net.sf.ehcache.CacheManager ehcache() {

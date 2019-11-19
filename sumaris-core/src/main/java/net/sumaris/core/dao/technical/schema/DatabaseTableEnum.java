@@ -36,11 +36,11 @@ import java.util.List;
 public enum DatabaseTableEnum {
 
 	// ICES format tables (v1)
-	FILE_ICES_LANDING, // CL
-	FILE_ICES_TRIP, // TR
-	FILE_ICES_STATION, // HH
-	FILE_ICES_SPECIES_LIST, // SL
-	FILE_ICES_SPECIES_LENGTH // HL
+	P01_RDB_LANDING, // CL
+	P01_RDB_TRIP, // TR
+	P01_RDB_STATION, // HH
+	P01_RDB_SPECIES_LIST, // SL
+	P01_RDB_SPECIES_LENGTH // HL
 	;
 
 	private final boolean association;

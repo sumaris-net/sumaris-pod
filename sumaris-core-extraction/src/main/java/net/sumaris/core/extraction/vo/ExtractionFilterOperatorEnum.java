@@ -24,33 +24,37 @@ package net.sumaris.core.extraction.vo;
 
 import com.google.common.base.Preconditions;
 
+import java.util.Arrays;
+
 public enum ExtractionFilterOperatorEnum {
 
-    IN,
-    NOT_IN,
-    EQUALS,
-    NOT_EQUALS,
-    GREATER_THAN,
-    GREATER_THAN_OR_EQUALS,
-    LESS_THAN,
-    LESS_THAN_OR_EQUALS,
-    BETWEEN;
+    IN("IN"),
+    NOT_IN("NOT IN"),
+    EQUALS("="),
+    NOT_EQUALS("!="),
+    GREATER_THAN(">"),
+    GREATER_THAN_OR_EQUALS(">="),
+    LESS_THAN("<"),
+    LESS_THAN_OR_EQUALS("<="),
+    BETWEEN("BETWEEN");
+
+    private String symbol;
+
+    ExtractionFilterOperatorEnum(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
 
     public static ExtractionFilterOperatorEnum fromSymbol(String operator) {
         Preconditions.checkNotNull(operator);
-        switch (operator.toUpperCase()) {
-            case "=": return EQUALS;
-            case "!=": return NOT_EQUALS;
-            case ">": return GREATER_THAN;
-            case ">=": return GREATER_THAN_OR_EQUALS;
-            case "<": return LESS_THAN;
-            case "<=": return LESS_THAN_OR_EQUALS;
-            case "IN": return IN;
-            case "NOT IN": return NOT_IN;
-            case "BETWEEN": return BETWEEN;
-            default:
-                throw new IllegalArgumentException("Unknown operation symbol");
-        }
-
+        return Arrays.stream(values())
+                .filter(op -> op.symbol.equalsIgnoreCase(operator))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown operation symbol"));
     }
+
+
 }

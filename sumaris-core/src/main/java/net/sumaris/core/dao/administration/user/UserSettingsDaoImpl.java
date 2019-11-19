@@ -64,7 +64,7 @@ public class UserSettingsDaoImpl extends HibernateDaoSupport implements UserSett
         ParameterExpression<String> issuerParam = builder.parameter(String.class);
 
         query.select(root)
-             .where(builder.equal(root.get(UserSettingsVO.PROPERTY_ISSUER), issuerParam));
+             .where(builder.equal(root.get(UserSettingsVO.Fields.ISSUER), issuerParam));
 
         try {
             return toUserSettingsVO(session.createQuery(query)

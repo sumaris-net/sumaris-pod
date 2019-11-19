@@ -23,9 +23,22 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.referential.location.Location;
+
+import java.util.List;
 
 @Data
+@FieldNameConstants
 public class LocationVO extends ReferentialVO {
 
     private Integer validityStatusId;
+
+    private List<LocationAssociationVO> parents;
+
+    private List<LocationAssociationVO> children;
+
+    public LocationVO() {
+        this.setEntityName(Location.class.getSimpleName());
+    }
 }

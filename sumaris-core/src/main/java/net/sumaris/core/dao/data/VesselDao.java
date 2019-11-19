@@ -23,12 +23,10 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
-import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
-import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.data.VesselRegistrationVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 
 import java.util.Date;
@@ -36,13 +34,18 @@ import java.util.List;
 
 public interface VesselDao {
 
-    List<VesselFeaturesVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    List<VesselSnapshotVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
-    VesselFeaturesVO getByVesselIdAndDate(int id, Date date);
+    List<VesselSnapshotVO> getByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+    List<VesselRegistrationVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+    VesselSnapshotVO getSnapshotByIdAndDate(int vesselId, Date date);
 
     void delete(int id);
 
     VesselFeaturesVO save(VesselFeaturesVO vesselFeatures);
 
-    VesselFeaturesVO toVesselFeaturesVO(VesselFeatures vesselFeatures);
+    VesselSnapshotVO toVesselFeaturesVO(VesselFeatures vesselFeatures);
+
 }

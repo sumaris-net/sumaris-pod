@@ -26,6 +26,7 @@ package net.sumaris.core.service;
 import com.google.common.io.CharStreams;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -158,6 +159,12 @@ public class AbstractServiceTest {
 
 	protected ReferentialVO createReferentialVO(int id) {
 		ReferentialVO result = new ReferentialVO();
+		result.setId(id);
+		return result;
+	}
+
+	protected MetierVO createMetierVO(int id) {
+		MetierVO result = new MetierVO();
 		result.setId(id);
 		return result;
 	}

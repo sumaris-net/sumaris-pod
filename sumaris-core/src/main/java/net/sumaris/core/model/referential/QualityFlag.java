@@ -22,17 +22,21 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
+import lombok.Data;
+import lombok.experimental.FieldNameConstants;
+
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
-@lombok.Data
+@Data
+@FieldNameConstants
 @Entity
 @Table(name = "quality_flag")
 public class QualityFlag implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "QUALITY_FLAG_SEQ")
+    @SequenceGenerator(name = "QUALITY_FLAG_SEQ", sequenceName="QUALITY_FLAG_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -24,11 +24,9 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import org.slf4j.Logger;
@@ -43,7 +41,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("imageAttachmentDao")
-public class ImageAttachmentDaoImpl extends HibernateDaoSupport implements ImageAttachmentDao {
+public class ImageAttachmentDaoImpl extends BaseDataDaoImpl implements ImageAttachmentDao {
 
     /** Logger. */
     private static final Logger log =
@@ -147,15 +145,9 @@ public class ImageAttachmentDaoImpl extends HibernateDaoSupport implements Image
 
         Beans.copyProperties(source, target);
 
-        // Department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
-            }
-        }
+        // Recorder department & person
+        copyRecorderDepartment(source, target, copyIfNull);
+        copyRecorderPerson(source, target, copyIfNull);
 
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {

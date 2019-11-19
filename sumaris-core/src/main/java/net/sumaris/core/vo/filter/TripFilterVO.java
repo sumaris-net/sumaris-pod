@@ -23,11 +23,13 @@ package net.sumaris.core.vo.filter;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
 
 @Data
-public class TripFilterVO {
+@FieldNameConstants
+public class TripFilterVO implements IRootDataFilter, IVesselFilter {
 
     private Date startDate;
 
@@ -40,4 +42,5 @@ public class TripFilterVO {
     private Integer vesselId;
 
     private Integer locationId;
+
 }

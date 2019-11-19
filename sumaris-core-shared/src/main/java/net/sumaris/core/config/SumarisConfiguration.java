@@ -30,18 +30,17 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ArgumentsParserException;
 import org.nuiton.version.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,8 +75,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      * Delegate application config.
      */
     protected final ApplicationConfig applicationConfig;
-
-    private boolean isInitialize = false;
 
     private static SumarisConfiguration instance;
 
@@ -154,12 +151,19 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         // Override some external module default config (sumaris)
         overrideExternalModulesDefaultOptions(applicationConfig);
 
+        // parse config file and inline arguments
         try {
             applicationConfig.parse(args);
 
         } catch (ArgumentsParserException e) {
             throw new SumarisTechnicalException(t("sumaris.config.parse.error"), e);
         }
+
+        // Init the application version
+        initVersion(applicationConfig);
+
+        // Init time zone
+        initTimeZone();
 
         // TODO Review this, this is very dirty to do this...
         File appBasedir = applicationConfig.getOptionAsFile(
@@ -213,21 +217,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     protected void overrideExternalModulesDefaultOptions(ApplicationConfig applicationConfig) {
 
-    }
-
-    @PostConstruct
-    public void setUp() {
-
-        if (isInitialize) {
-            return;
-        }
-        isInitialize = true;
-
-        // Init the application version
-        initVersion(applicationConfig);
-
-        // Init time zone
-        initTimeZone();
     }
 
     /**
@@ -512,7 +501,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      * @return a {@link String} object.
      */
     public String getJdbcCatalog() {
-        return applicationConfig.getOption(SumarisConfigurationOption.JDBC_SCHEMA.getKey());
+        return applicationConfig.getOption(SumarisConfigurationOption.JDBC_CATALOG.getKey());
     }
 
     /**
@@ -749,11 +738,15 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
        return LaunchModeEnum.production.name().equalsIgnoreCase(getLaunchMode());
     }
 
-    public Integer getDefaultQualityFlagId() {
+    public int getDefaultQualityFlagId() {
         return applicationConfig.getOptionAsInt(SumarisConfigurationOption.DEFAULT_QUALITY_FLAG.getKey());
     }
 
-    public Integer getSequenceStartWithValue() {
+    public int getSequenceIncrementValue() {
+        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.SEQUENCE_INCREMENT.getKey());
+    }
+
+    public int getSequenceStartWithValue() {
         return applicationConfig.getOptionAsInt(SumarisConfigurationOption.SEQUENCE_START_WITH.getKey());
     }
 
@@ -763,6 +756,14 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     public String getCsvSeparator() {
         return applicationConfig.getOption(SumarisConfigurationOption.CSV_SEPARATOR.getKey());
+    }
+
+    public boolean isInitStatisticalRectangles() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.INIT_STATISTICAL_RECTANGLES.getKey());
+    }
+
+    public boolean isPreserveHistoricalMeasurements() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.PRESERVE_HISTORICAL_MEASUREMENTS.getKey());
     }
 
     /* -- protected methods -- */

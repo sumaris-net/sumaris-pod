@@ -24,18 +24,15 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.user.PersonDao;
-import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.SaleType;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.SaleVO;
@@ -59,7 +56,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Repository("saleDao")
-public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
+public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
 
     /** Logger. */
     private static final Logger log =
@@ -89,7 +86,7 @@ public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
 
         ParameterExpression<Integer> tripIdParam = cb.parameter(Integer.class);
 
-        query.where(cb.equal(saleRoot.get(Sale.PROPERTY_TRIP).get(Trip.PROPERTY_ID), tripIdParam));
+        query.where(cb.equal(saleRoot.get(Sale.Fields.TRIP).get(Trip.Fields.ID), tripIdParam));
 
         return toSaleVOs(getEntityManager().createQuery(query)
                 .setParameter(tripIdParam, tripId).getResultList(), false);
@@ -106,6 +103,8 @@ public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
     public List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sources) {
         // Load parent entity
         Trip parent = get(Trip.class, tripId);
+        ProgramVO parentProgram = new ProgramVO();
+        parentProgram.setId(parent.getProgram().getId());
 
         // Remember existing entities
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getOperations()));
@@ -113,6 +112,8 @@ public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
         // Save each gears
         List<SaleVO> result = sources.stream().map(source -> {
             source.setTripId(tripId);
+            source.setProgram(parentProgram);
+
             if (source.getId() != null) {
                 sourcesIdsToRemove.remove(source.getId());
             }
@@ -206,11 +207,11 @@ public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
         target.setSaleType(saleType);
 
         if (allFields) {
-            target.setVesselFeatures(vesselDao.getByVesselIdAndDate(source.getVessel().getId(), source.getStartDateTime()));
+            target.setVesselSnapshot(vesselDao.getSnapshotByIdAndDate(source.getVessel().getId(), source.getStartDateTime()));
             target.setQualityFlagId(source.getQualityFlag().getId());
 
             // Recorder department
-            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
+            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
             target.setRecorderDepartment(recorderDepartment);
 
             // Recorder person
@@ -231,7 +232,7 @@ public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
 
         target.setRecorderDepartment(source.getRecorderDepartment());
         target.setRecorderPerson(source.getRecorderPerson());
-        target.setVesselFeatures(source.getVesselFeatures());
+        target.setVesselSnapshot(source.getVesselSnapshot());
         target.setQualityFlagId(source.getQualityFlagId());
 
     }
@@ -248,15 +249,15 @@ public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
 
     protected void saleVOToEntity(SaleVO source, Sale target, boolean copyIfNull) {
 
-        Beans.copyProperties(source, target);
+        copyRootDataProperties(source, target, copyIfNull);
 
         // Vessel
-        if (copyIfNull || (source.getVesselFeatures() != null && source.getVesselFeatures().getVesselId() != null)) {
-            if (source.getVesselFeatures() == null || source.getVesselFeatures().getVesselId() == null) {
+        if (copyIfNull || (source.getVesselSnapshot() != null && source.getVesselSnapshot().getId() != null)) {
+            if (source.getVesselSnapshot() == null || source.getVesselSnapshot().getId() == null) {
                 target.setVessel(null);
             }
             else {
-                target.setVessel(load(Vessel.class, source.getVesselFeatures().getVesselId()));
+                target.setVessel(load(Vessel.class, source.getVesselSnapshot().getId()));
             }
         }
 
@@ -288,43 +289,6 @@ public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
             }
             else {
                 target.setSaleType(load(SaleType.class, source.getSaleType().getId()));
-            }
-        }
-
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
-            }
-        }
-
-        // Recorder person
-        if (copyIfNull || source.getRecorderPerson() != null) {
-            if (source.getRecorderPerson() == null || source.getRecorderPerson().getId() == null) {
-                target.setRecorderPerson(null);
-            }
-            else {
-                Object person = load(Person.class, source.getRecorderPerson().getId());
-                if (!(person instanceof Person)) {
-                    // TODO FIXME : pourquoi récupère t on parfois le mauvais type ?
-                    log.error("Should get a Person, but get a :" + person.getClass().getName());
-                }
-                else {
-                    target.setRecorderPerson((Person)person);
-                }
-            }
-        }
-
-        // Quality flag
-        if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-            }
-            else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
             }
         }
     }

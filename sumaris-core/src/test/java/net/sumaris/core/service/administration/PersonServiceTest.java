@@ -56,7 +56,7 @@ public class PersonServiceTest extends AbstractServiceTest{
 
         Integer observerProfileId =  dbResource.getFixtures().getUserProfileObserver();
 
-        // Find by profiles
+        // Find by one profile
         PersonFilterVO filter = new PersonFilterVO();
         filter.setUserProfileId(observerProfileId);
         List<PersonVO> results = service.findByFilter(filter, 0, 100, null, null);
@@ -67,22 +67,28 @@ public class PersonServiceTest extends AbstractServiceTest{
         UserProfileEnum profile = UserProfileEnum.valueOf(person.getProfiles().get(0)) ;
         Assert.assertEquals(observerProfileId, new Integer(profile.id));
 
-        // Find by status
+        // Find by many profile
         filter = new PersonFilterVO();
-        filter.setStatusIds(ImmutableList.of(getConfig().getStatusIdTemporary()));
+        filter.setUserProfileIds(new Integer[]{observerProfileId, dbResource.getFixtures().getUserProfileSupervisor()});
         results = service.findByFilter(filter, 0, 100, null, null);
         Assert.assertNotNull(results);
-        //FIXME this failed:
-        // Assert.assertTrue(results.size() > 0);
+        Assert.assertTrue(results.size() > 0);
+
+        // Find by status (inactive person)
+        filter = new PersonFilterVO();
+        filter.setStatusIds(new Integer[]{getConfig().getStatusIdTemporary(), getConfig().getStatusIdValid()});
+        results = service.findByFilter(filter, 0, 100, null, null);
+        Assert.assertNotNull(results);
+        Assert.assertTrue(results.size() > 0);
 
         // Find by email
         filter = new PersonFilterVO();
         filter.setEmail(dbResource.getFixtures().getPersonEmail(0));
         results = service.findByFilter(filter, 0, 100, null, null);
         Assert.assertNotNull(results);
-        Assert.assertTrue(results.size() > 0);
+        Assert.assertEquals(1, results.size());
 
-        // Find by last id
+        // Find by last name (case insensitive)
         filter = new PersonFilterVO();
         filter.setLastName("LaVEniER");
         results = service.findByFilter(filter, 0, 100, null, null);

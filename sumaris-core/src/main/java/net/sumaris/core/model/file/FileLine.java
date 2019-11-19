@@ -23,20 +23,21 @@ package net.sumaris.core.model.file;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Clob;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "file_line")
 public class FileLine implements Serializable {
 
-    public static final String PROPERTY_FILE = "file";
-
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_LINE_SEQ")
+    @SequenceGenerator(name = "FILE_LINE_SEQ", sequenceName="FILE_LINE_SEQ")
     private Integer id;
 
     @Column(nullable = false, name = "line_number")

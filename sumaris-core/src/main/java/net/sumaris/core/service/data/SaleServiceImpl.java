@@ -24,7 +24,12 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.SaleDao;
+import net.sumaris.core.model.data.IMeasurementEntity;
+import net.sumaris.core.model.data.SaleMeasurement;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.SaleVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +47,9 @@ public class SaleServiceImpl implements SaleService {
 
 	@Autowired
 	protected SaleDao saleDao;
+
+	@Autowired
+	protected MeasurementDao measurementDao;
 
 	@Override
 	public List<SaleVO> getAllByTripId(int tripId) {
@@ -69,7 +77,20 @@ public class SaleServiceImpl implements SaleService {
 		Preconditions.checkNotNull(sale.getRecorderDepartment(), "Missing sale.recorderDepartment");
 		Preconditions.checkNotNull(sale.getRecorderDepartment().getId(), "Missing sale.recorderDepartment.id");
 
-		return saleDao.save(sale);
+		SaleVO savedSale = saleDao.save(sale);
+
+		// Save measurements
+		if (savedSale.getMeasurementValues() != null) {
+			measurementDao.saveSaleMeasurementsMap(savedSale.getId(), savedSale.getMeasurementValues());
+		}
+		else {
+			List<MeasurementVO> measurements = Beans.getList(savedSale.getMeasurements());
+			measurements.forEach(m -> fillDefaultProperties(savedSale, m, SaleMeasurement.class));
+			measurements = measurementDao.saveSaleMeasurements(savedSale.getId(), measurements);
+			savedSale.setMeasurements(measurements);
+		}
+
+		return savedSale;
 	}
 
 	@Override
@@ -92,5 +113,18 @@ public class SaleServiceImpl implements SaleService {
 		ids.stream()
 				.filter(Objects::nonNull)
 				.forEach(this::delete);
+	}
+
+	/* -- protected methods -- */
+
+	protected void fillDefaultProperties(SaleVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
+		if (measurement == null) return;
+
+		// Copy recorder department from the parent
+		if (measurement.getRecorderDepartment() == null || measurement.getRecorderDepartment().getId() == null) {
+			measurement.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		measurement.setEntityName(entityClass.getSimpleName());
 	}
 }

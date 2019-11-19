@@ -23,17 +23,17 @@ package net.sumaris.core.vo.filter;
  */
 
 import lombok.Data;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import java.util.Date;
-import java.util.List;
-
 @Data
+@FieldNameConstants
 public class PersonFilterVO {
 
     private Integer userProfileId;
+    private Integer[] userProfileIds;
+    private String[] userProfiles;
 
     private String email;
 
@@ -43,7 +43,7 @@ public class PersonFilterVO {
 
     private String lastName;
 
-    private List<Integer> statusIds;
+    private Integer[] statusIds;
 
     private String searchText;
 

@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,7 @@ import java.util.List;
 /**
  * @author BLA
  * 
- *    Service in charge of importing csv file into DB
+ *    Service in charge of trip data
  * 
  */
 @Transactional
@@ -47,16 +48,16 @@ public interface TripService {
 	List<TripVO> findByFilter(TripFilterVO filter, int offset, int size);
 
 	@Transactional(readOnly = true)
-	List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+	List<TripVO> findByFilter(TripFilterVO filter, int offset, int size,
+							  String sortAttribute,
+							  SortDirection sortDirection,
+							  DataFetchOptions fieldOptions);
 
 	@Transactional(readOnly = true)
 	Long countByFilter(TripFilterVO filter);
 
 	@Transactional(readOnly = true)
 	TripVO get(int id);
-
-	@Transactional(readOnly = true)
-	<T> T get(int id, Class<T> targetClass);
 
 	TripVO save(TripVO trip, boolean withOperation);
 
@@ -71,4 +72,6 @@ public interface TripService {
 	TripVO validate(TripVO trip);
 
 	TripVO unvalidate(TripVO trip);
+
+	TripVO qualify(TripVO trip);
 }

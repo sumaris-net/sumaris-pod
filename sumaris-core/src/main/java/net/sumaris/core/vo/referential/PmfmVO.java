@@ -23,10 +23,13 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
 
 import java.util.List;
 
 @Data
+@FieldNameConstants
 public class PmfmVO extends ReferentialVO {
 
     private String unit;
@@ -41,4 +44,8 @@ public class PmfmVO extends ReferentialVO {
     private Boolean isCalculated; // from the method
 
     List<ReferentialVO> qualitativeValues;
+
+    public PmfmVO() {
+        this.setEntityName(Pmfm.class.getSimpleName());
+    }
 }

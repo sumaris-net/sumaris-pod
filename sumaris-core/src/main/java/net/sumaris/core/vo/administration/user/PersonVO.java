@@ -23,21 +23,18 @@ package net.sumaris.core.vo.administration.user;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.vo.referential.UserProfileVO;
+import net.sumaris.core.vo.IValueObject;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
 @Data
-public class PersonVO implements IUpdateDateEntityBean<Integer, Date> {
-
-    public static final String PROPERTY_PUBKEY = "pubkey";
-    public static final String PROPERTY_FIRST_NAME = "firstName";
-    public static final String PROPERTY_LAST_NAME = "lastName";
-    public static final String PROPERTY_AVATAR = "avatar";
+@FieldNameConstants
+@EqualsAndHashCode
+public class PersonVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
     private Integer id;
     private Date updateDate;
@@ -53,14 +50,18 @@ public class PersonVO implements IUpdateDateEntityBean<Integer, Date> {
 
     private DepartmentVO department;
 
+    @EqualsAndHashCode.Exclude
     private List<String> profiles;
 
     // Workaround for issue see https://github.com/sumaris-net/sumaris-app/issues/3
     // TODO: remove this, later
+    @EqualsAndHashCode.Exclude
     private String mainProfile;
 
+    @EqualsAndHashCode.Exclude
     private boolean hasAvatar;
 
+    @EqualsAndHashCode.Exclude
     private String avatar;
 
 }

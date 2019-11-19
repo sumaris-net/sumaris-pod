@@ -22,19 +22,31 @@ package net.sumaris.core.extraction.vo;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
 
 import java.util.List;
 
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ExtractionResultVO {
 
-    private ExtractionTypeVO type;
+    ExtractionTypeVO type;
+    List<ExtractionProductColumnVO> columns;
+    List<String[]> rows;
+    Number total;
 
-    private List<ExtractionColumnMetadataVO> columns;
+    public ExtractionResultVO() {
+    }
 
-    private List<String[]> rows;
-
-    private Number total;
+    public ExtractionResultVO(ExtractionResultVO result) {
+        type = result.type;
+        columns = ImmutableList.copyOf(result.columns);
+        rows = result.rows;
+        total = result.total;
+    }
 
 }

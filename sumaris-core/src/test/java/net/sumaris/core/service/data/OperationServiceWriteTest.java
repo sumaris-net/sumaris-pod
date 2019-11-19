@@ -29,20 +29,15 @@ import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.data.batch.BatchService;
-import net.sumaris.core.service.data.sample.SampleService;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.*;
-import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 public class OperationServiceWriteTest extends AbstractServiceTest {
@@ -75,12 +70,14 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
 
     @Before
     public void setUp() {
-        this.parent = tripService.get(dbResource.getFixtures().getTripId(0));
-        Assume.assumeNotNull(this.parent);
         this.fixtures = dbResource.getFixtures();
+        this.parent = tripService.get(fixtures.getTripId(0));
+        Assume.assumeNotNull(this.parent);
     }
 
     @Test
+    @Ignore
+    // Ignore because delete() is call before get()
     public void get() {
         OperationVO vo = service.get(1);
         Assert.assertNotNull(vo);
@@ -88,7 +85,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
     }
 
     @Test
-    public void save() {
+    public void saveAndGet() {
         OperationVO vo = createOperation();
         int batchCount = countBatches(vo);
         int sampleCount = countSamples(vo);
@@ -109,7 +106,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
         {
             // Should NOT be loaded in VO
             Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getMeasurements()));
-            List<MeasurementVO> reloadMeasurements = measurementService.getVesselUseMeasurementsByOperationId(savedVo.getId());
+            List<MeasurementVO> reloadMeasurements = measurementService.getOperationVesselUseMeasurements(savedVo.getId());
             Assert.assertEquals(CollectionUtils.size(savedVo.getMeasurements()), CollectionUtils.size(reloadMeasurements));
         }
 
@@ -195,7 +192,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
         vo.setPhysicalGearId(1);
 
         // Metier
-        vo.setMetier(createReferentialVO(fixtures.getMetierIdForOTB(0)));
+        vo.setMetier(createMetierVO(fixtures.getMetierIdForOTB(0)));
 
         // Measurements (= vessel use measurements)
         PmfmVO bottomDepthPmfm = pmfmService.getByLabel("BOTTOM_DEPTH_M");
@@ -219,6 +216,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
             sample.setLabel(AcquisitionLevelEnum.SURVIVAL_TEST.label + "#1");
             sample.setMatrix(createReferentialVO(fixtures.getMatrixIdForIndividual()));
             sample.setComments("A survival test sample #1");
+            sample.setProgram(fixtures.getDefaultProgram());
 
             // Measurements (as map)
             sample.setMeasurementValues(
@@ -243,7 +241,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
                 // Measurements (as map)
                 childSample.setMeasurementValues(
                         ImmutableMap.<Integer, String>builder()
-                                .put(100, "0")
+                                .put(fixtures.getPmfmSampleIsDead(), "0")
                                 .build());
                 children.add(childSample);
             }

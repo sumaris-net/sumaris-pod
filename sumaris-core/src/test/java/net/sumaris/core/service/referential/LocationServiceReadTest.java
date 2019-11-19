@@ -25,6 +25,7 @@ package net.sumaris.core.service.referential;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -35,11 +36,11 @@ import static org.junit.Assert.assertNotNull;
 
 public class LocationServiceReadTest extends AbstractServiceTest {
 
-	@Autowired
-	private LocationService service;
-
 	@ClassRule
 	public static final DatabaseResource dbResource = DatabaseResource.readDb();
+
+	@Autowired
+	private LocationService service;
 
 	@Test
 	public void getLocationLabelByLatLong() {

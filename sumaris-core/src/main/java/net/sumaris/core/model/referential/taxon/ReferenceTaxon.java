@@ -23,28 +23,50 @@ package net.sumaris.core.model.referential.taxon;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.administration.programStrategy.ReferenceTaxonStrategy;
+import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Un référence stable (un identifiant unique) de taxon réel.
  *
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "reference_taxon")
 public class ReferenceTaxon implements IUpdateDateEntityBean<Integer, Date> {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "REFERENCE_TAXON_SEQ")
+    @SequenceGenerator(name = "REFERENCE_TAXON_SEQ", sequenceName="REFERENCE_TAXON_SEQ")
     private Integer id;
 
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonName.class, mappedBy = TaxonName.Fields.REFERENCE_TAXON)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<TaxonName> taxonNames;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ReferenceTaxonStrategy.class, mappedBy = ReferenceTaxonStrategy.Fields.REFERENCE_TAXON)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
+    private List<ReferenceTaxonStrategy> strategies;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroup2TaxonHierarchy.class, mappedBy = TaxonGroup2TaxonHierarchy.Fields.CHILD_REFERENCE_TAXON)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
+    private List<TaxonGroup2TaxonHierarchy> parentTaxonGroups;
+
+
+    public String toString() {
+        return String.format("ReferenceTaxon{id=%s}", id);
+    }
 }

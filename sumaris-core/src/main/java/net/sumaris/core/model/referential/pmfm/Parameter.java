@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.pmfm;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Cascade;
@@ -36,11 +37,13 @@ import java.util.List;
  * Quadruplet paramètre/support/méthode/fraction. Ce quadruplet est systématiquement associé aux résultats et décrit précisemment les conditions de mesure/d'analyse de ceux-ci.
  */
 @Data
+@FieldNameConstants
 @Entity
 public class Parameter implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PARAMETER_SEQ")
+    @SequenceGenerator(name = "PARAMETER_SEQ", sequenceName="PARAMETER_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -78,7 +81,7 @@ public class Parameter implements IItemReferentialEntity {
     @Column(name = "is_date")
     private Boolean isDate;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = QualitativeValue.class, mappedBy = "parameter")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = QualitativeValue.class, mappedBy = QualitativeValue.Fields.PARAMETER)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<QualitativeValue> qualitativeValues = new ArrayList<>();
 

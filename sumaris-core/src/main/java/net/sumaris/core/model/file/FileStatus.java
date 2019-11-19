@@ -23,6 +23,7 @@ package net.sumaris.core.model.file;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
@@ -30,13 +31,15 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "file_status")
 @Cacheable
 public class FileStatus implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_STATUS_SEQ")
+    @SequenceGenerator(name = "FILE_STATUS_SEQ", sequenceName="FILE_STATUS_SEQ")
     private Integer id;
 
     @Column(nullable = false, length = LENGTH_LABEL)

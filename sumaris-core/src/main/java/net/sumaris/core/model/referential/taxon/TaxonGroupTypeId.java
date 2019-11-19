@@ -1,0 +1,56 @@
+package net.sumaris.core.model.referential.taxon;
+
+/*-
+ * #%L
+ * SUMARiS:: Core
+ * %%
+ * Copyright (C) 2018 SUMARiS Consortium
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+import java.io.Serializable;
+
+public enum TaxonGroupTypeId implements Serializable {
+
+    FAO(2),
+    METIER_SPECIES(3);
+
+    private int id;
+
+    TaxonGroupTypeId(int id) {
+        this.id = id;
+    }
+
+    /**
+     * Returns the database row id
+     *
+     * @return int the id
+     */
+    public int getId()
+    {
+        return this.id;
+    }
+
+
+    public static TaxonGroupTypeId valueOf(final int id) {
+        switch (id) {
+            case 2: return FAO;
+            case 3: return METIER_SPECIES;
+        }
+        throw new IllegalArgumentException("Unknown TaxonGroupTypeId: " + id);
+    }
+}

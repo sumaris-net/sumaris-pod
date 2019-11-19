@@ -27,6 +27,7 @@ import lombok.Data;
 @Data
 public class ExtractionFilterCriterionVO {
 
+    private String sheetName;
     private String name;
     private String operator;
     private String value;

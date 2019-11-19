@@ -683,10 +683,17 @@ public class Liquibase implements InitializingBean, BeanNameAware, ResourceLoade
             // create liquibase instance
             liquibase = createLiquibase(c);
 
+            DiffResult diffResult;
             // First, release locks, then update and release locks again
-            liquibase.forceReleaseLocks();
-            DiffResult diffResult = performDiff(liquibase, typesToControl);
-            liquibase.forceReleaseLocks();
+            // (only if not in a transaction - because it can be a read-only transaction)
+            if (!DataSourceUtils.isConnectionTransactional(c, dataSource)) {
+                liquibase.forceReleaseLocks();
+                diffResult = performDiff(liquibase, typesToControl);
+                liquibase.forceReleaseLocks();
+            }
+            else {
+                diffResult = performDiff(liquibase, typesToControl);
+            }
 
             // Write the result into report file
             writer = changeLogFile != null ? new PrintStream(changeLogFile) : null;

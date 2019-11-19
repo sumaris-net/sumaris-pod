@@ -23,7 +23,10 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.IWithObserversEntity;
+import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -31,52 +34,61 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Data
-public class TripVO implements IUpdateDateEntityBean<Integer, Date> {
+@FieldNameConstants
+@EqualsAndHashCode
+public class TripVO implements IRootDataVO<Integer>,
+        IWithObserversEntity<Integer, PersonVO>,
+        IWithVesselSnapshotEntity<Integer, VesselSnapshotVO> {
 
-    public static final String PROPERTY_PROGRAM = "program";
-    public static final String PROPERTY_DEPARTURE_DATE_TIME = "departureDateTime";
-    public static final String PROPERTY_RETURN_DATE_TIME = "returnDateTime";
-    public static final String PROPERTY_DEPARTURE_LOCATION = "departureLocation";
-    public static final String PROPERTY_RETURN_LOCATION = "returnLocation";
-    public static final String PROPERTY_RECORDER_PERSON = "recorderPerson";
-    public static final String PROPERTY_RECORDER_DEPARTMENT = "recorderDepartment";
-    public static final String PROPERTY_VESSEL_FEATURES = "vesselFeatures";
-
+    @EqualsAndHashCode.Exclude
     private Integer id;
     private String comments;
     private Date creationDate;
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;
+    private Date qualificationDate;
+    private String qualificationComments;
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
-    private VesselFeaturesVO vesselFeatures;
+    private VesselSnapshotVO vesselSnapshot;
 
     private Date departureDateTime;
     private Date returnDateTime;
     private LocationVO departureLocation;
     private LocationVO returnLocation;
-
     private ProgramVO program;
-
-    private List<SaleVO> sales;
-    private SaleVO sale;
-
-    private List<OperationVO> operations;
+    private Set<PersonVO> observers;
     private List<PhysicalGearVO> gears;
+
+    @EqualsAndHashCode.Exclude
+    private List<SaleVO> sales;
+    @EqualsAndHashCode.Exclude
+    private SaleVO sale; // shortcut when only one sale
+
+    @EqualsAndHashCode.Exclude
+    private List<OperationVO> operations;
+
+    @EqualsAndHashCode.Exclude
     private List<MeasurementVO> measurements; // vessel_use_measurement
+    private Map<Integer, String> measurementValues; // vessel_use_measurement
 
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+    }
+
+    @Override
+    public Date getVesselDateTime() {
+        return departureDateTime;
     }
 
 }

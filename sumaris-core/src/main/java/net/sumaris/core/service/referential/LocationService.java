@@ -10,6 +10,8 @@ public interface LocationService extends LocationByPositionService  {
 
     void insertOrUpdateRectangleLocations();
 
+    void insertOrUpdateSquares10();
+
     void insertOrUpdateRectangleAndSquareAreas();
 
     void updateLocationHierarchy();

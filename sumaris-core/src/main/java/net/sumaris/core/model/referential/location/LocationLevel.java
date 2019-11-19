@@ -23,22 +23,24 @@ package net.sumaris.core.model.referential.location;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "location_level")
 @Cacheable
 public class LocationLevel implements Serializable, IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_LEVEL_SEQ")
+    @SequenceGenerator(name = "LOCATION_LEVEL_SEQ", sequenceName="LOCATION_LEVEL_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -63,4 +65,9 @@ public class LocationLevel implements Serializable, IItemReferentialEntity {
 
     @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
     private String comments;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = LocationClassification.class)
+    @JoinColumn(name = "location_classification_fk") // TODO should be not nullable
+    private LocationClassification locationClassification;
+
 }

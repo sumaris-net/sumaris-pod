@@ -1,0 +1,567 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.9.12.xml">
+
+    <!--
+    TODO:
+     - VESSEL.PROGRAM_FK = SIH
+       VESSEL_FEATURES.QUALITY_FLAG = 0
+    -->
+
+    <!-- create sequences -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-10">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="LANDING_MEASUREMENT_SEQ"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="LANDING_MEASUREMENT_SEQ"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-11">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="OBSERVED_LOCATION_MEASURME_SEQ"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="OBSERVED_LOCATION_MEASURME_SEQ"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-12">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="OBSERVED_LOCATION_SEQ"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="OBSERVED_LOCATION_SEQ"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-13">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="SALE_MEASUREMENT_SEQ"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="SALE_MEASUREMENT_SEQ"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-13-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="PROGRAM_SEQ"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="PROGRAM_SEQ"/>
+        <sql>
+            select NEXT VALUE FOR PROGRAM_SEQ from PROGRAM
+        </sql>
+        <sql>
+            select NEXT VALUE FOR PROGRAM_SEQ from STATUS where ID=1
+        </sql>
+    </changeSet>
+
+    <!-- Add new tables (LANDING, OBSERVED_LOCATION, ...) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-14">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="landing"/>
+            </not>
+        </preConditions>
+        <createTable tableName="landing">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="landingPK"/>
+            </column>
+            <column name="comments" type="VARCHAR(2000)"/>
+            <column name="control_date" type="TIMESTAMP"/>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_date_time" type="TIMESTAMP"/>
+            <column name="landing_date_time" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="qualification_comments" type="VARCHAR(2000)"/>
+            <column name="qualification_date" type="TIMESTAMP"/>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="validation_date" type="TIMESTAMP"/>
+            <column name="landing_location_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="observed_location_fk" type="INT"/>
+            <column name="program_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quality_flag_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="recorder_department_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="recorder_person_fk" type="INT"/>
+            <column name="trip_fk" type="INT"/>
+            <column name="vessel_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-15">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="landing2observer_person"/>
+            </not>
+        </preConditions>
+        <createTable tableName="landing2observer_person">
+            <column name="landing_fk" type="INT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="person_fk" type="INT">
+                <constraints primaryKey="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-16">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="landing_measurement"/>
+            </not>
+        </preConditions>
+        <createTable tableName="landing_measurement">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="landing_measurementPK"/>
+            </column>
+            <column name="alphanumerical_value" type="VARCHAR(40)"/>
+            <column name="comments" type="VARCHAR(2000)"/>
+            <column name="control_date" type="TIMESTAMP"/>
+            <column name="digit_count" type="INT"/>
+            <column name="numerical_value" type="DOUBLE"/>
+            <column name="precision_value" type="DOUBLE"/>
+            <column name="qualification_comments" type="VARCHAR(2000)"/>
+            <column name="qualification_date" type="TIMESTAMP"/>
+            <column name="rank_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="landing_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pmfm_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="qualitative_value_fk" type="INT"/>
+            <column name="quality_flag_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="recorder_department_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-17">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="observed_location"/>
+            </not>
+        </preConditions>
+        <createTable tableName="observed_location">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="observed_locationPK"/>
+            </column>
+            <column name="comments" type="VARCHAR(2000)"/>
+            <column name="control_date" type="TIMESTAMP"/>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_date_time" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="qualification_comments" type="VARCHAR(2000)"/>
+            <column name="qualification_date" type="TIMESTAMP"/>
+            <column name="start_date_time" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="validation_date" type="TIMESTAMP"/>
+            <column name="location_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="program_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quality_flag_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="recorder_department_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="recorder_person_fk" type="INT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-18">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="observed_location2person"/>
+            </not>
+        </preConditions>
+        <createTable tableName="observed_location2person">
+            <column name="observed_location_fk" type="INT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="person_fk" type="INT">
+                <constraints primaryKey="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-19">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="observed_location_measurement"/>
+            </not>
+        </preConditions>
+        <createTable tableName="observed_location_measurement">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="observed_location_measurementPK"/>
+            </column>
+            <column name="alphanumerical_value" type="VARCHAR(40)"/>
+            <column name="comments" type="VARCHAR(2000)"/>
+            <column name="control_date" type="TIMESTAMP"/>
+            <column name="digit_count" type="INT"/>
+            <column name="numerical_value" type="DOUBLE"/>
+            <column name="precision_value" type="DOUBLE"/>
+            <column name="qualification_comments" type="VARCHAR(2000)"/>
+            <column name="qualification_date" type="TIMESTAMP"/>
+            <column name="rank_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="observed_location_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pmfm_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="qualitative_value_fk" type="INT"/>
+            <column name="quality_flag_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="recorder_department_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-20">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="sale2observer_person"/>
+            </not>
+        </preConditions>
+        <createTable tableName="sale2observer_person">
+            <column name="sale_fk" type="INT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="person_fk" type="INT">
+                <constraints primaryKey="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-21">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="sale_measurement"/>
+            </not>
+        </preConditions>
+        <createTable tableName="sale_measurement">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="sale_measurementPK"/>
+            </column>
+            <column name="alphanumerical_value" type="VARCHAR(40)"/>
+            <column name="comments" type="VARCHAR(2000)"/>
+            <column name="control_date" type="TIMESTAMP"/>
+            <column name="digit_count" type="INT"/>
+            <column name="numerical_value" type="DOUBLE"/>
+            <column name="precision_value" type="DOUBLE"/>
+            <column name="qualification_comments" type="VARCHAR(2000)"/>
+            <column name="qualification_date" type="TIMESTAMP"/>
+            <column name="rank_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="pmfm_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="qualitative_value_fk" type="INT"/>
+            <column name="quality_flag_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="recorder_department_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sale_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-22">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="trip2observer_person"/>
+            </not>
+        </preConditions>
+        <createTable tableName="trip2observer_person">
+            <column name="trip_fk" type="INT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="person_fk" type="INT">
+                <constraints primaryKey="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-23">
+      <preConditions onFail="MARK_RAN">
+        <not>
+          <columnExists tableName="sale" columnName="observed_location_fk"/>
+        </not>
+      </preConditions>
+        <addColumn tableName="sale">
+            <column name="observed_location_fk" type="INT"/>
+        </addColumn>
+    </changeSet>
+    
+    <!-- Add program column -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-24">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="sale" columnName="program_fk"/></not>
+        </preConditions>
+        <addColumn tableName="sale">
+            <column name="program_fk" type="INT"/>
+        </addColumn>
+        <sql>
+            update SALE set PROGRAM_FK=(select T.PROGRAM_FK from TRIP T where T.ID=SALE.TRIP_FK)
+        </sql>
+        <addNotNullConstraint tableName="sale" columnName="program_fk"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-25">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="sample" columnName="program_fk"/></not>
+        </preConditions>
+        <addColumn tableName="sample">
+            <column name="program_fk" type="INT"/>
+        </addColumn>
+        <sql>
+            update SAMPLE set PROGRAM_FK=(select T.PROGRAM_FK from TRIP T inner join OPERATION O on O.TRIP_FK=T.ID where O.ID=SAMPLE.OPERATION_FK)
+        </sql>
+        <addNotNullConstraint tableName="sample" columnName="program_fk"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-26-1">
+        <preConditions onFail="MARK_RAN">
+            <!-- ignore if already exists, or if database is empty -->
+            <and>
+                <sqlCheck expectedResult="0">
+                    select count(*) from program where label='SIH'
+                </sqlCheck>
+                <sqlCheck expectedResult="1">
+                    select count(*) from status where id=1
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="program">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_SEQ"/>
+            <column name="LABEL">SIH</column>
+            <column name="NAME">Validated and shared data</column>
+            <column name="DESCRIPTION">
+                Default program for validated and shared data
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+            <column name="STATUS_FK">1</column>
+        </insert>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-26-2">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="vessel" columnName="program_fk"/></not>
+        </preConditions>
+        <addColumn tableName="vessel">
+            <column name="program_fk" type="INT"/>
+        </addColumn>
+        <sql>
+            update VESSEL set PROGRAM_FK=(select ID from PROGRAM where LABEL='SIH')
+        </sql>
+        <addNotNullConstraint tableName="vessel" columnName="program_fk"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-27">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="physical_gear" columnName="program_fk"/></not>
+        </preConditions>
+        <addColumn tableName="physical_gear">
+            <column name="program_fk" type="INT"/>
+        </addColumn>
+        <sql>
+            update PHYSICAL_GEAR set PROGRAM_FK=(select T.PROGRAM_FK from TRIP T where T.ID=PHYSICAL_GEAR.TRIP_FK)
+        </sql>
+        <addNotNullConstraint tableName="physical_gear" columnName="program_fk"/>
+    </changeSet>
+
+
+    <!-- foreign keys -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-30" failOnError="false">
+        <addUniqueConstraint columnNames="label" constraintName="UC_SOFTWARELABEL_COL" tableName="software"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-32" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="landing2observer_person" constraintName="FK11t9lvmdhs3gi5flwmimn1i8x" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-33" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="observed_location" constraintName="FK1ghqm8478y4ruy0nh3hpiej95" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-34" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="landing_measurement" constraintName="FK29k2ni2rinvtd39009eu724gc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-35" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="landing_fk" baseTableName="landing_measurement" constraintName="FK30fb37dwes8b8s2f1xdlboyqa" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="landing"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-36" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="landing_measurement" constraintName="FK431veecf2etegruh1d3etsorn" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-37" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="sale_fk" baseTableName="sale2observer_person" constraintName="FK5rc0135jh8u37gjxvquoirwqw" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sale"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-38" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="sale2observer_person" constraintName="FK66g69v42ebb81jliordexsijt" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-39" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="Landing" constraintName="FK7uu8nj0ccfcsq72ttggmfvw13" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-40" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="recorder_person_fk" baseTableName="Landing" constraintName="FK8blrm0owvsvfnpva8crcl6ho7" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-41" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="Landing" constraintName="FK8jv4av9agnek32hg1ikbbubr5" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-42" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="landing_location_fk" baseTableName="Landing" constraintName="FK8yf6i41p0ifbmxlnmloh7sr0l" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-43" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="observed_location_fk" baseTableName="observed_location_measurement" constraintName="FKasyi73oq2lwe5n26io3tnu1tx" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="observed_location"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-44" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="sale_measurement" constraintName="FKbu0q3xqbw97ier3uvfdx4s934" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-45" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="observed_location_fk" baseTableName="Sale" constraintName="FKcolqb0misq4x99296ib90xold" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="observed_location"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-46" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="trip2observer_person" constraintName="FKdh0cc271ahx2gv9alh5qf95j2" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-47" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="observed_location_measurement" constraintName="FKdxb7dd3g90ba9shat9lxoa9qv" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-48" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="physical_gear" constraintName="FKf0045fecxa1bsve9nuxcnckpl" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-49" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="sale_measurement" constraintName="FKff1cmquattpb3d421n617shc4" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-50" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="Vessel" constraintName="FKgw1phmby35m7atjbgfktcicv6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-51" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="sale_measurement" constraintName="FKhide0rpk4s61gya5u0fgot9le" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-52" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="Sale" constraintName="FKiqo6lw0x1g5sffi4nlhkndgl3" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-53" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="recorder_person_fk" baseTableName="observed_location" constraintName="FKjb5hgk4sie31c7dlfoiqjyg7r" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-54" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="Landing" constraintName="FKk13iy8kua8b1kubu72l1jf5hh" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-55" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="observed_location_measurement" constraintName="FKk1civ2sweoryrrgwb3cdasi2r" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-56" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="trip_fk" baseTableName="trip2observer_person" constraintName="FKk57ypygh1b8drqlmcwk21dugy" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="trip"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-57" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="vessel_fk" baseTableName="Landing" constraintName="FKkdxp5x75buu965qrfmypdw790" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vessel"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-58" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="sale_measurement" constraintName="FKkfia9lw7frixdyftgl6ldw8sf" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-59" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="location_fk" baseTableName="observed_location" constraintName="FKl3r15f6sowlc799vyw9bg8ete" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-60" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="observed_location_measurement" constraintName="FKlxw35qg5biqmwg00lh09lurvu" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-61" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="observed_location" constraintName="FKmwvyp1du854f4cvpg53dt3fga" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-62" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="landing_measurement" constraintName="FKnknoiqcyvst2cnbn8s5a6rs8g" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-63" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="trip_fk" baseTableName="Landing" constraintName="FKnojx79qw0f5p3wpis7fvb3vo4" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="trip"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-64" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="sale_fk" baseTableName="sale_measurement" constraintName="FKnrlrkj8wyvxpd0pews31op975" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sale"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-65" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="observed_location_fk" baseTableName="observed_location2person" constraintName="FKogn0msd8uqx3txen7fb0xigq" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="observed_location"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-66" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="landing_fk" baseTableName="landing2observer_person" constraintName="FKos99ag2er2q9bucw03u47osjm" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="landing"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-67" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="observed_location_measurement" constraintName="FKp4jwi2yxnci7wr8yst30qhdpy" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-68" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="observed_location_fk" baseTableName="Landing" constraintName="FKqd1yaeg0d8q02xwoejy15qvg4" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="observed_location"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-69" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="observed_location" constraintName="FKseboqtkiqsrt9qsdo6s1j1p0s" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-70" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="Sample" constraintName="FKsnnikoplpe1srsgk58tnq4g52" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-71" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="landing_measurement" constraintName="FKt7sj0vpilxh7di8g34ivtgr5i" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-72" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="observed_location2person" constraintName="FKtaejox0m2b5dr4r46xbkp4gsy" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-73">
+        <preConditions onFail="MARK_RAN">
+            <not><sqlCheck expectedResult="0">
+                select count(*) from location where validity_status_fk is null
+            </sqlCheck></not>
+        </preConditions>
+        <sql>
+            update location set validity_status_fk=1 where validity_status_fk is null
+        </sql>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-74" failOnError="false">
+        <addNotNullConstraint columnName="validity_status_fk" tableName="location"/>
+    </changeSet>
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-200">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='0.9.12'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">0.9.12</column>
+            <column name="DESCRIPTION">
+                - Add tables OBSERVED_LOCATION, LANDING, LANDING_MEASUREMENT, SALE_MEASUREMENT
+                - Add tables to store observers
+                - Add column PROGRAM_FK on data table
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+            <column name="COMMENTS">
+                - Add tables OBSERVED_LOCATION, LANDING, LANDING_MEASUREMENT, SALE_MEASUREMENT
+                - Add tables to store observers: TRIP2OBSERVER_PERSON, LANDING2OBSERVER_PERSON, SALE2OBSERVER_PERSON
+                - Add column PROGRAM_FK on data table: VESSEL, SAMPLE, PHYSICAL_GEAR
+            </column>
+        </insert>
+    </changeSet>
+    
+</databaseChangeLog>

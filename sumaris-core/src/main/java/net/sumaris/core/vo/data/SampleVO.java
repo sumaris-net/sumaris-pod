@@ -23,7 +23,9 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -33,9 +35,9 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class SampleVO implements IUpdateDateEntityBean<Integer, Date> {
-    public static final String PROPERTY_SAMPLE_DATE = "sampleDate";
-    public static final String PROPERTY_OPERATION = "operation";
+@FieldNameConstants
+public class SampleVO implements  IRootDataVO<Integer>,
+        IWithRecorderPersonEntity<Integer, PersonVO> {
 
     private Integer id;
     private String comments;
@@ -43,14 +45,19 @@ public class SampleVO implements IUpdateDateEntityBean<Integer, Date> {
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;
+    private Date qualificationDate;
+    private String qualificationComments;
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
+    private ProgramVO program;
     private String label;
     private Date sampleDate;
     private Integer rankOrder;
     private Integer individualCount;
+    private Double size;
+    private String sizeUnit;
     private ReferentialVO matrix;
     private ReferentialVO taxonGroup;
     private ReferentialVO taxonName;
@@ -63,6 +70,8 @@ public class SampleVO implements IUpdateDateEntityBean<Integer, Date> {
     private Integer batchId;
     private OperationVO operation;
     private Integer operationId;
+    private LandingVO landing;
+    private Integer landingId;
 
     private List<MeasurementVO> measurements; // sample_measurement
     private Map<Integer, String> measurementValues; // sample_measurement

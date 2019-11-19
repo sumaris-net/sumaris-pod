@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -32,12 +33,15 @@ import java.util.Date;
 import java.util.Objects;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name="image_attachment")
-public class ImageAttachment implements IRootDataEntity<Integer> {
+public class ImageAttachment implements IDataEntity<Integer>,
+        IWithRecorderPersonEntity<Integer, Person>,
+        IWithRecorderDepartmentEntity<Integer, Department> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "IMAGE_ATTACHMENT_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "IMAGE_ATTACHMENT_SEQ")
     @SequenceGenerator(name = "IMAGE_ATTACHMENT_SEQ", sequenceName="IMAGE_ATTACHMENT_SEQ")
     private Integer id;
 
@@ -59,6 +63,9 @@ public class ImageAttachment implements IRootDataEntity<Integer> {
 
     @Column(length = LENGTH_COMMENTS)
     private String comments;
+
+    @Column()
+    private String path;
 
     @Column(name="control_date")
     @Temporal(TemporalType.TIMESTAMP)

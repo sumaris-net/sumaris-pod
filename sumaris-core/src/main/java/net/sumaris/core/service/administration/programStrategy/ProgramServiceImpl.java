@@ -23,8 +23,12 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
+import net.sumaris.core.vo.filter.ProgramFilterVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +44,17 @@ public class ProgramServiceImpl implements ProgramService {
 	@Autowired
 	protected ProgramDao  programDao;
 
+	@Autowired
+	protected StrategyService strategyService;
+
 	@Override
 	public List<ProgramVO> getAll() {
 		return programDao.getAll();
+	}
+
+	@Override
+	public List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+		return programDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
 	}
 
 	@Override
@@ -52,7 +64,27 @@ public class ProgramServiceImpl implements ProgramService {
 
 	@Override
 	public ProgramVO getByLabel(String label) {
+		Preconditions.checkNotNull(label);
 		return programDao.getByLabel(label);
+	}
+
+	@Override
+	public ProgramVO save(ProgramVO source) {
+		Preconditions.checkNotNull(source);
+		ProgramVO savedProgram = programDao.save(source);
+
+		// Save strategies
+		if (savedProgram.getStrategies() != null) {
+			List<StrategyVO> savedStrategies = strategyService.saveByProgramId(savedProgram.getId(), source.getStrategies());
+			savedProgram.setStrategies(savedStrategies);
+		}
+
+		return savedProgram;
+	}
+
+	@Override
+	public void delete(int id) {
+		programDao.delete(id);
 	}
 }
 

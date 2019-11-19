@@ -26,6 +26,7 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.programStrategy.TaxonGroupStrategyVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -51,5 +52,15 @@ public class StrategyServiceTest extends AbstractServiceTest{
         Assert.assertNotNull(results);
         Assert.assertTrue(results.size() > 10);
         Assert.assertTrue(results.size() < 30);
+    }
+
+    @Test
+    public void getTaxonGroupStrategies() {
+
+        ProgramVO program =  dbResource.getFixtures().getAuctionProgram();
+
+        List<TaxonGroupStrategyVO> results = service.getTaxonGroupStrategies(program.getId());
+        Assert.assertNotNull(results);
+        Assert.assertTrue(results.size() > 0);
     }
 }

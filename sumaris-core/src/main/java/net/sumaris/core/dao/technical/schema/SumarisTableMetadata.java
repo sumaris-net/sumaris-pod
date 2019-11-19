@@ -29,18 +29,18 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.SortDirection;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.dialect.Dialect;
-import org.hibernate.mapping.*;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,10 +56,12 @@ import java.util.Set;
  * @since 1.0
  */
 public class SumarisTableMetadata {
+	
+	public static final String DEFAULT_TABLE_ALIAS = "t"; 
 
 	protected static final String QUERY_INSERT = "INSERT INTO %s (%s) VALUES (%s)";
 	protected static final String QUERY_UPDATE = "UPDATE %s SET %s WHERE %s";
-	protected static final String QUERY_DELETE = "DELETE FROM %s WHERE %s";
+	protected static final String QUERY_DELETE = "DELETE FROM %s %s WHERE %s";
 	protected static final String QUERY_SELECT_ALL = "SELECT %s FROM %s %s";
 	protected static final String QUERY_SELECT_PRIMARY_KEYS = "SELECT %s FROM %s";
 	protected static final String QUERY_SELECT_COUNT_ALL = "SELECT count(*) FROM %s %s";
@@ -67,6 +69,8 @@ public class SumarisTableMetadata {
 	protected static final String QUERY_HQL_SELECT = "from %s";
 
 	protected final QualifiedTableName tableName;
+	protected final String tableAlias;
+
 	protected String existingPrimaryKeysQuery;
 	protected String maxUpdateDateQuery;
 	protected String countAllQuery;
@@ -90,6 +94,7 @@ public class SumarisTableMetadata {
 		Preconditions.checkNotNull(dbMeta);
 		Preconditions.checkNotNull(jdbcDbMeta);
 
+		this.tableAlias = DEFAULT_TABLE_ALIAS;
 		this.tableName = tableName;
 
 		init(dbMeta, jdbcDbMeta);
@@ -98,8 +103,8 @@ public class SumarisTableMetadata {
 	protected void init(SumarisDatabaseMetadata dbMeta, DatabaseMetaData jdbcDbMeta) throws SQLException {
 		try {
 			// Retrieve some data on the table
-			this.columns = initColumns(tableName, jdbcDbMeta);
-			this.withUpdateDateColumn = columns.containsKey(dbMeta.getDefaultUpdateDateColumnName().toLowerCase());
+			this.columns = initColumns(this.tableName, jdbcDbMeta);
+			this.withUpdateDateColumn = this.columns.containsKey(dbMeta.getDefaultUpdateDateColumnName().toLowerCase());
 			this.pkNames = initPrimaryKeys(jdbcDbMeta);
 			Preconditions.checkNotNull(pkNames);
 			this.pkIndexs = createPkIndex();
@@ -146,6 +151,10 @@ public class SumarisTableMetadata {
 		return columns.keySet();
 	}
 
+	public String getAlias() {
+		return tableAlias;
+	}
+
 	public String getName() {
 		return tableName.getTableName().getText();
 	}
@@ -156,11 +165,11 @@ public class SumarisTableMetadata {
 	}
 
 	public String getSchema() {
-		return tableName.getSchemaName().getText();
+		return tableName.getSchemaName() != null ? tableName.getSchemaName().getText() : null;
 	}
 
 	public String getCatalog() {
-		return tableName.getCatalogName().getText();
+		return tableName.getCatalogName() != null ? tableName.getCatalogName().getText() : null;
 	}
 
 	/**
@@ -180,6 +189,39 @@ public class SumarisTableMetadata {
 	public String getSelectAllQuery() {
 		return selectAllQuery;
 	}
+
+	public String getSelectQuery(Collection<String> columnNames,
+								 String whereClause) {
+		return getSelectQuery(false, columnNames, whereClause, null, null);
+	}
+
+	public String getSelectQuery(boolean distinct,
+								 Collection<String> columnNames,
+								 String whereClause,
+								 String sort,
+								 SortDirection direction) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format(QUERY_SELECT_ALL,
+				(distinct ? "DISTINCT " : "") + createSelectParams(columnNames, tableAlias),
+				tableName.render().toUpperCase(),
+				tableAlias));
+
+		// Where clause
+		if (StringUtils.isNotBlank(whereClause)) {
+			sb.append(" ").append(whereClause);
+		}
+
+		// Add order by
+		if (StringUtils.isNotBlank(sort)) {
+			sb.append(" ORDER BY ")
+					.append(String.format("%s.%s %s", tableAlias, sort, (direction != null ? direction.name() : "")));
+		}
+
+		return sb.toString();
+	}
+
+
+
 
 	/**
 	 * <p>Getter for the field <code>insertQuery</code>.</p>
@@ -252,19 +294,29 @@ public class SumarisTableMetadata {
 	public String getDeleteQuery(String[] columnNames) {
 
 		String whereClause = null;
-		if (columnNames == null || columnNames.length == 0) {
-			whereClause = "1==1";
-		} else {
+		if (columnNames != null && columnNames.length > 0) {
 			StringBuilder whereClauseBuilder = new StringBuilder();
 			for (String columnName : columnNames) {
-				whereClauseBuilder.append("AND ").append(columnName).append(" = ?");
+				whereClauseBuilder
+						.append("AND ")
+						.append(tableAlias).append('.').append(columnName)
+						.append(" = ?");
 			}
 			whereClause = whereClauseBuilder.substring(4);
 		}
 
+		return getDeleteQuery(whereClause);
+	}
+
+	public String getDeleteQuery() {
+		return getDeleteQuery((String)null);
+	}
+
+	public String getDeleteQuery(String whereClauseContent) {
 		String result = String.format(QUERY_DELETE,
-				getName().toUpperCase(),
-				whereClause);
+				tableName.render().toUpperCase(),
+				tableAlias,
+				whereClauseContent == null ? "1=1" : whereClauseContent);
 		return result;
 	}
 
@@ -356,7 +408,6 @@ public class SumarisTableMetadata {
 	 * @return a {@link java.lang.String} object.
 	 */
 	protected String createAllCountQuery() {
-		String tableAlias = "t";
 		return String.format(QUERY_SELECT_COUNT_ALL, getName(), tableAlias);
 	}
 
@@ -366,10 +417,9 @@ public class SumarisTableMetadata {
 	 * @return a {@link java.lang.String} object.
 	 */
 	protected String createSelectAllQuery() {
-		String tableAlias = "t";
 		return String.format(QUERY_SELECT_ALL,
 				createSelectParams(tableAlias),
-				getName(),
+				tableName.render().toUpperCase(),
 				tableAlias);
 	}
 
@@ -388,9 +438,9 @@ public class SumarisTableMetadata {
 		}
 
 		String result = String.format(QUERY_INSERT,
-										getName(),
-										queryParams.substring(2),
-										valueParams.substring(2));
+				tableName.render().toUpperCase(),
+				queryParams.substring(2),
+				valueParams.substring(2));
 		return result;
 	}
 
@@ -502,13 +552,12 @@ public class SumarisTableMetadata {
 	}
 
 	protected String createSelectAllToUpdateQuery(SumarisDatabaseMetadata dbMeta) {
-		String tableAlias = "t";
 		String query = String.format(QUERY_SELECT_ALL,
 				createSelectParams(tableAlias),
-				getName(),
+				tableName.render().toUpperCase(),
 				tableAlias);
 
-		// add a filter on update date column
+		// add a tripFilter on update date column
 		if (isWithUpdateDateColumn()) {
 
 			String updateDateColumn = dbMeta.getDefaultUpdateDateColumnName();
@@ -521,12 +570,11 @@ public class SumarisTableMetadata {
 	}
 
 	protected String createCountDataToUpdateQuery(SumarisDatabaseMetadata dbMeta) {
-		String tableAlias = "t";
 		String query = String.format(QUERY_SELECT_COUNT_ALL,
-				getName(),
+				tableName.render().toUpperCase(),
 				tableAlias);
 
-		// add a filter on update date column
+		// add a tripFilter on update date column
 		if (isWithUpdateDateColumn()) {
 
 			String updateDateColumn = dbMeta.getDefaultUpdateDateColumnName();

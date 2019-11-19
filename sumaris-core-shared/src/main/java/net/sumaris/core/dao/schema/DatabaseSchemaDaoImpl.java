@@ -47,6 +47,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -143,7 +145,11 @@ public class DatabaseSchemaDaoImpl
     public void afterPropertiesSet() {
 
         // check database and server timezones conformity
-        checkTimezoneConformity();
+        try {
+            checkTimezoneConformity();
+        } catch (SQLException e) {
+            throw new SumarisTechnicalException("Could not check database timezone", e);
+        }
 
         if (log.isInfoEnabled()) {
             try {
@@ -193,10 +199,10 @@ public class DatabaseSchemaDaoImpl
         EnumSet<TargetType> targets = doUpdate ?
                 EnumSet.of(TargetType.SCRIPT, TargetType.DATABASE) :  EnumSet.of(TargetType.SCRIPT);
 
-        SchemaUpdate schemaExport = new SchemaUpdate();
-        schemaExport.setDelimiter(";");
-        schemaExport.setOutputFile(filename);
-        schemaExport.execute(targets, getMetadata());
+        SchemaUpdate task = new SchemaUpdate();
+        task.setDelimiter(";");
+        task.setOutputFile(filename);
+        task.execute(targets, getMetadata());
     }
 
     /** {@inheritDoc} */
@@ -636,9 +642,12 @@ public class DatabaseSchemaDaoImpl
 
     protected Metadata getMetadata() {
 
-        //SessionFactory session = getSessionFactory();
-        //Map<String, Object> sessionSettings = null;
-        //if (session  == null) {
+        Map<String, Object> sessionSettings = null;
+        SessionFactory session = null;
+        if (getEntityManager() != null) {
+            session = getEntityManager().unwrap(Session.class).getSessionFactory();
+        }
+        if (session  == null) {
             try {
                 // To be able to retrieve connection from datasource
                 Connection conn = Daos.createConnection(config.getConnectionProperties());
@@ -648,7 +657,7 @@ public class DatabaseSchemaDaoImpl
                 throw new SumarisTechnicalException("Could not open connection: " + config.getJdbcURL());
             }
 
-        Map<String, Object> sessionSettings = Maps.newHashMap();
+            sessionSettings = Maps.newHashMap();
             sessionSettings.put(Environment.DIALECT, config.getHibernateDialect());
             sessionSettings.put(Environment.DRIVER, config.getJdbcDriver());
             sessionSettings.put(Environment.URL, config.getJdbcURL());
@@ -656,12 +665,12 @@ public class DatabaseSchemaDaoImpl
 
             sessionSettings.put(Environment.PHYSICAL_NAMING_STRATEGY, HibernatePhysicalNamingStrategy.class.getName());
             //sessionSettings.put(Environment.PHYSICAL_NAMING_STRATEGY, "org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy");
-        //}
-        //else {
+        }
+        else {
             // To be able to retrieve connection from datasource
-        //    HibernateConnectionProvider.setDataSource(dataSource);
-        //    sessionSettings = session.getProperties();
-        //}
+            HibernateConnectionProvider.setDataSource(dataSource);
+            sessionSettings = session.getProperties();
+        }
 
 
         MetadataSources metadata = new MetadataSources(
@@ -682,14 +691,14 @@ public class DatabaseSchemaDaoImpl
      * Check server and database timezones conformity
      * Warn if offsets differs
      */
-    private void checkTimezoneConformity() {
+    private void checkTimezoneConformity() throws SQLException {
 
         // get server timezone
         TimeZone serverTimeZone = TimeZone.getDefault();
         log.info(I18n.t("sumaris.persistence.serverTimeZone", new Timestamp(new Date().getTime()), serverTimeZone.getID()));
 
         // get db timezone offset in time format ex: '1:00' for 1 hour offset
-        String dbOffsetAsString = (String) Daos.sqlUnique(dataSource,"CALL DATABASE_TIMEZONE()");
+        String dbOffsetAsString = (String) Daos.sqlUnique(dataSource, getTimezoneQuery(dataSource.getConnection()));
         log.info(I18n.t("sumaris.persistence.dbTimeZone", getDatabaseCurrentTimestamp(), dbOffsetAsString));
 
         // convert db time zone offset in raw offset in milliseconds
@@ -702,4 +711,13 @@ public class DatabaseSchemaDaoImpl
         }
     }
 
+    private String getTimezoneQuery(Connection connection) {
+        if (Daos.isHsqlDatabase(connection)) {
+            return "CALL DATABASE_TIMEZONE()";
+        }
+        if (Daos.isOracleDatabase(connection)) {
+            return "SELECT DBTIMEZONE FROM DUAL";
+        }
+        throw new SumarisTechnicalException("Could not determine database type");
+    }
 }

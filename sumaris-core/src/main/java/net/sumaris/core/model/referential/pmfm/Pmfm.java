@@ -22,7 +22,9 @@ package net.sumaris.core.model.referential.pmfm;
  * #L%
  */
 
+import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -30,15 +32,16 @@ import net.sumaris.core.model.referential.Status;
 import javax.persistence.*;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Set;
 
 @Data
+@FieldNameConstants
 @Entity
 public class Pmfm implements IReferentialEntity {
 
-    public static final String PROPERTY_LABEL = "label";
-
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")
+    @SequenceGenerator(name = "PMFM_SEQ", sequenceName="PMFM_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -108,6 +111,13 @@ public class Pmfm implements IReferentialEntity {
     @JoinColumn(name = "unit_fk", nullable = false)
     private Unit unit;
 
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @JoinTable(name = "pmfm2qualitative_value", joinColumns = {
+            @JoinColumn(name = "pmfm_fk", nullable = false, updatable = false) },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "qualitative_value_fk", nullable = false, updatable = false) })
+    private Set<QualitativeValue> qualitativeValues = Sets.newHashSet();
+
     public String toString() {
         return new StringBuilder().append("id=").append(getId()).toString();
     }
@@ -121,8 +131,8 @@ public class Pmfm implements IReferentialEntity {
         if ( !Objects.equals(bean.getId(), getId() ) ) return false;
         if ( !Objects.equals(bean.getParameter(), getParameter() ) ) return false;
         if ( !Objects.equals(bean.getMatrix(), getMatrix() ) ) return false;
-        if ( !Objects.equals(bean.getUnit(), getUnit() ) ) return false;
         if ( !Objects.equals(bean.getFraction(), getFraction() ) ) return false;
+        if ( !Objects.equals(bean.getUnit(), getUnit() ) ) return false;
 
         return true;
     }

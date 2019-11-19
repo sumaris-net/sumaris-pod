@@ -24,8 +24,10 @@ package net.sumaris.core.model.referential;
 
 public interface IItemReferentialEntity extends IReferentialEntity {
 
-    String PROPERTY_LABEL = "label";
-    String PROPERTY_NAME = "name";
+    interface Fields extends IReferentialEntity.Fields {
+        String LABEL = "label";
+        String NAME = "name";
+    }
 
     int LENGTH_LABEL = 50;
     int LENGTH_NAME = 100;

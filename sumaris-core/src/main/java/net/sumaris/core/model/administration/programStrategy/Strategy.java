@@ -24,30 +24,26 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
-import net.sumaris.core.model.administration.user.Department;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.service.referential.PmfmService;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 @Data
+@FieldNameConstants
 @Entity
 public class Strategy implements IItemReferentialEntity {
 
-    public static final String PROPERTY_PROGRAM = "program";
-    public static final String PROPERTY_GEARS = "gears";
-
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "STRATEGY_SEQ")
+    @SequenceGenerator(name = "STRATEGY_SEQ", sequenceName="STRATEGY_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -77,18 +73,27 @@ public class Strategy implements IItemReferentialEntity {
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = PmfmStrategy.class, mappedBy = PmfmStrategy.PROPERTY_STRATEGY)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = PmfmStrategy.class, mappedBy = PmfmStrategy.Fields.STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<PmfmStrategy> pmfmStrategies = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "strategy2gear", joinColumns = {
             @JoinColumn(name = "strategy_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {
                     @JoinColumn(name = "gear_fk", nullable = false, updatable = false) })
     private Set<Gear> gears = Sets.newHashSet();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ReferenceTaxonStrategy.class, mappedBy = ReferenceTaxonStrategy.PROPERTY_STRATEGY)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ReferenceTaxonStrategy.class, mappedBy = ReferenceTaxonStrategy.Fields.STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ReferenceTaxonStrategy> referenceTaxons = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.Fields.STRATEGY)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<TaxonGroupStrategy> taxonGroups = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = AppliedStrategy.class, mappedBy = AppliedStrategy.Fields.STRATEGY)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<AppliedStrategy> appliedStrategies = new ArrayList<>();
+
 }

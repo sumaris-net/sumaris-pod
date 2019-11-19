@@ -1,6 +1,5 @@
 package net.sumaris.core.dao.technical;
 
-
 import java.io.Serializable;
 
 /**

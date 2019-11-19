@@ -1,42 +1,45 @@
-package net.sumaris.core.vo.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
+package net.sumaris.core.vo.data;
+
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Data
-public class VesselFeaturesVO implements IUpdateDateEntityBean<Integer, Date> {
-
-    public static final String PROPERTY_START_DATE = VesselFeatures.PROPERTY_START_DATE;
-    public static final String PROPERTY_EXTERIOR_MARKING = VesselFeatures.PROPERTY_EXTERIOR_MARKING;
-    public static final String PROPERTY_NAME = VesselFeatures.PROPERTY_NAME;
+@FieldNameConstants
+public class VesselFeaturesVO implements IRootDataVO<Integer>,
+        IWithRecorderPersonEntity<Integer, PersonVO> {
 
     private Integer id;
     private String name;
@@ -45,21 +48,41 @@ public class VesselFeaturesVO implements IUpdateDateEntityBean<Integer, Date> {
     private Double lengthOverAll;
     private Double grossTonnageGrt;
     private Double grossTonnageGt;
-    private ReferentialVO basePortLocation;
+    private LocationVO basePortLocation;
     private String comments;
+    private ProgramVO program;
 
     private Date startDate;
     private Date endDate;
 
     private Date creationDate;
     private Date updateDate;
-
+    private Date controlDate;
+    private Date validationDate;
+    private Date qualificationDate;
+    private String qualificationComments;
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
+    private List<MeasurementVO> measurements;
+    private Map<Integer, String> measurementValues;
+
     // From parent Entity
     private Integer vesselId;
-    private Integer vesselTypeId;
+    private ReferentialVO vesselType;
+    private Integer vesselStatusId;
 
+    // Registration
+    private Integer registrationId;
+    private String registrationCode;
+    private Date registrationStartDate;
+    private Date registrationEndDate;
+    private LocationVO registrationLocation;
+
+    private String entityName;
+
+    public VesselFeaturesVO() {
+        this.setEntityName(VesselFeatures.class.getSimpleName());
+    }
 }

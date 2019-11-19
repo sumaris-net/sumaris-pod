@@ -43,7 +43,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 )
 @EntityScan("net.sumaris.core.model")
 @EnableTransactionManagement
-@EnableJpaRepositories("net.sumaris.core.dao")
+@EnableJpaRepositories(value = "net.sumaris.core.dao", considerNestedRepositories = true)
 public class ServiceTestConfiguration extends TestConfiguration{
 
     @Bean

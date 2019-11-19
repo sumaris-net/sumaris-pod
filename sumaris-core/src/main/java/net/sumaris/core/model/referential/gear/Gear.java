@@ -23,28 +23,25 @@ package net.sumaris.core.model.referential.gear;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
 @Data
+@FieldNameConstants
 @Entity
 @Cacheable
 public class Gear implements IItemReferentialEntity {
 
-    public static final String PROPERTY_GEAR_LEVEL = "gearLevel";
-    public static final String PROPERTY_PARENT = "parent";
-    public static final String PROPERTY_CHILDREN = "children";
-    public static final String PROPERTY_STRATEGIES = "strategies";
-
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEAR_SEQ")
+    @SequenceGenerator(name = "GEAR_SEQ", sequenceName="GEAR_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -91,18 +88,18 @@ public class Gear implements IItemReferentialEntity {
     private Boolean isTowed;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gear_level_fk", nullable = false)
-    private GearLevel gearLevel;
+    @JoinColumn(name = "gear_classification_fk", nullable = false)
+    private GearClassification gearClassification;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_gear_fk")
     private Gear parent;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Gear.class, mappedBy = "parent")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Gear.class, mappedBy = Gear.Fields.PARENT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Gear> children;
 
-    @ManyToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = "gears")
+    @ManyToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = Strategy.Fields.GEARS)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<Strategy> strategies;
 //

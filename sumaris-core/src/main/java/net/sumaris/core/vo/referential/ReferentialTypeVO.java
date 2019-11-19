@@ -23,10 +23,10 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
-
-import java.util.Date;
+import lombok.experimental.FieldNameConstants;
 
 @Data
+@FieldNameConstants
 public class ReferentialTypeVO {
     private String id;
     private String level;

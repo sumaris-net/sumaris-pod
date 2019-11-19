@@ -10,12 +10,12 @@ package net.sumaris.core.dao.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,22 +23,29 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.referential.location.LocationDao;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.util.Beans;
+import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
-import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.VesselType;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.data.VesselRegistrationVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -49,15 +56,16 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
-import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("DuplicatedCode")
 @Repository("vesselDao")
-public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
+public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
     /** Logger. */
     private static final Logger log =
@@ -71,45 +79,68 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<VesselFeaturesVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public List<VesselSnapshotVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
         Preconditions.checkArgument(offset >= 0);
         Preconditions.checkArgument(size > 0);
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<VesselFeatures> query = cb.createQuery(VesselFeatures.class);
+        CriteriaQuery<VesselFeaturesResult> query = cb.createQuery(VesselFeaturesResult.class);
         Root<VesselFeatures> root = query.from(VesselFeatures.class);
 
-        query.select(root);
+        Join<VesselFeatures, Vessel> vesselJoin = root.join(VesselFeatures.Fields.VESSEL, JoinType.INNER);
+        Join<Vessel, VesselRegistrationPeriod> vrpJoin = vesselJoin.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
+
+        query.multiselect(root, vrpJoin);
 
         // Apply sorting
         addSorting(query, cb, root, sortAttribute, sortDirection);
 
-        // No filter: execute request
+        // No tripFilter: execute request
         if (filter == null) {
-            TypedQuery<VesselFeatures> q = getEntityManager().createQuery(query)
+            TypedQuery<VesselFeaturesResult> q = getEntityManager().createQuery(query)
                     .setFirstResult(offset)
                     .setMaxResults(size);
             return toVesselFeaturesVOs(q.getResultList());
         }
 
-        // Apply filter
+        List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds())
+            ? null
+            : filter.getStatusIds();
+
+        // Apply vessel Filter
         ParameterExpression<Date> dateParam = cb.parameter(Date.class);
         ParameterExpression<Integer> vesselIdParam = cb.parameter(Integer.class);
         ParameterExpression<Integer> vesselFeaturesIdParam = cb.parameter(Integer.class);
         ParameterExpression<String> searchNameParam = cb.parameter(String.class);
         ParameterExpression<String> searchExteriorMarkingParam = cb.parameter(String.class);
+        ParameterExpression<String> searchRegistrationCodeParam = cb.parameter(String.class);
+        ParameterExpression<Boolean> hasStatusIdsParam = cb.parameter(Boolean.class);
+        ParameterExpression<Collection> statusIdsParam = cb.parameter(Collection.class);
 
         query.where(cb.and(
             // Filter: date
             cb.or(
-                cb.isNull(dateParam),
-                cb.not(
+                cb.and(
+                    // if no date in filter, will return only active period
+                    cb.isNull(dateParam),
+                    cb.isNull(root.get(VesselFeatures.Fields.END_DATE)),
+                    cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
+                ),
+                cb.and(
+                    cb.isNotNull(dateParam),
                     cb.and(
                         cb.or(
-                            cb.isNull(root.get(VesselFeatures.PROPERTY_END_DATE)),
-                            cb.lessThan(root.get(VesselFeatures.PROPERTY_END_DATE), dateParam)
+                            cb.isNull(root.get(VesselFeatures.Fields.END_DATE)),
+                            cb.greaterThan(root.get(VesselFeatures.Fields.END_DATE), dateParam)
                         ),
-                        cb.greaterThan(root.get(VesselFeatures.PROPERTY_START_DATE), dateParam)
+                        cb.lessThan(root.get(VesselFeatures.Fields.START_DATE), dateParam)
+                    ),
+                    cb.and(
+                        cb.or(
+                            cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE)),
+                            cb.greaterThan(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE), dateParam)
+                        ),
+                        cb.lessThan(vrpJoin.get(VesselRegistrationPeriod.Fields.START_DATE), dateParam)
                     )
                 )
             ),
@@ -117,20 +148,27 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             // Filter: vessel features id
             cb.or(
                     cb.isNull(vesselFeaturesIdParam),
-                    cb.equal(root.get(VesselFeatures.PROPERTY_ID), vesselFeaturesIdParam)
+                    cb.equal(root.get(VesselFeatures.Fields.ID), vesselFeaturesIdParam)
             ),
 
             // Filter: vessel id
             cb.or(
                 cb.isNull(vesselIdParam),
-                cb.equal(root.get(VesselFeatures.PROPERTY_VESSEL).get(Vessel.PROPERTY_ID), vesselIdParam))
+                cb.equal(vesselJoin.get(Vessel.Fields.ID), vesselIdParam))
             ),
 
             // Filter: search text (on exterior marking OR id)
             cb.or(
                     cb.isNull(searchNameParam),
-                    cb.like(cb.lower(root.get(VesselFeatures.PROPERTY_NAME)), cb.lower(searchNameParam)),
-                    cb.like(cb.lower(root.get(VesselFeatures.PROPERTY_EXTERIOR_MARKING)), cb.lower(searchExteriorMarkingParam))
+                    cb.like(cb.lower(root.get(VesselFeatures.Fields.NAME)), cb.lower(searchNameParam)),
+                    cb.like(cb.lower(root.get(VesselFeatures.Fields.EXTERIOR_MARKING)), cb.lower(searchExteriorMarkingParam)),
+                    cb.like(cb.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), cb.lower(searchRegistrationCodeParam))
+            ),
+
+            // Status
+            cb.or(
+                    cb.isFalse(hasStatusIdsParam),
+                    cb.in(vesselJoin.get(Vessel.Fields.STATUS).get(Status.Fields.ID)).value(statusIdsParam)
             )
         );
 
@@ -145,31 +183,88 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         }
         String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
 
-        TypedQuery<VesselFeatures> q = entityManager.createQuery(query)
+        TypedQuery<VesselFeaturesResult> q = entityManager.createQuery(query)
                 .setParameter(dateParam, filter.getDate())
                 .setParameter(vesselFeaturesIdParam, filter.getVesselFeaturesId())
                 .setParameter(vesselIdParam, filter.getVesselId())
                 .setParameter(searchExteriorMarkingParam, searchTextAsPrefix)
+                .setParameter(searchRegistrationCodeParam, searchTextAsPrefix)
                 .setParameter(searchNameParam, searchTextAnyMatch)
+                .setParameter(hasStatusIdsParam, CollectionUtils.isNotEmpty(statusIds))
+                .setParameter(statusIdsParam, statusIds)
                 .setFirstResult(offset)
                 .setMaxResults(size);
-        return toVesselFeaturesVOs(q.getResultList());
+        List<VesselFeaturesResult> result = q.getResultList();
+        return toVesselFeaturesVOs(result);
     }
 
     @Override
-    public VesselFeaturesVO getByVesselIdAndDate(int vesselId, Date date) {
+    public List<VesselSnapshotVO> getByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        Preconditions.checkArgument(offset >= 0);
+        Preconditions.checkArgument(size > 0);
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<VesselFeatures> query = cb.createQuery(VesselFeatures.class);
+        Root<VesselFeatures> root = query.from(VesselFeatures.class);
+        query.select(root);
+
+        // Apply filter
+        ParameterExpression<Integer> vesselIdParam = cb.parameter(Integer.class);
+        query.where(cb.equal(root.get(VesselFeatures.Fields.VESSEL).get(Vessel.Fields.ID), vesselIdParam));
+
+        // Apply sorting
+        addSorting(query, cb, root, sortAttribute, sortDirection);
+
+        TypedQuery<VesselFeatures> q = entityManager.createQuery(query)
+            .setParameter(vesselIdParam, vesselId)
+            .setFirstResult(offset)
+            .setMaxResults(size);
+        List<VesselFeatures> result = q.getResultList();
+        return result.stream().map(this::toVesselFeaturesVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<VesselRegistrationVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        Preconditions.checkArgument(offset >= 0);
+        Preconditions.checkArgument(size > 0);
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<VesselRegistrationPeriod> query = cb.createQuery(VesselRegistrationPeriod.class);
+        Root<VesselRegistrationPeriod> root = query.from(VesselRegistrationPeriod.class);
+        query.select(root);
+
+        // Apply filter
+        ParameterExpression<Integer> vesselIdParam = cb.parameter(Integer.class);
+        query.where(cb.equal(root.get(VesselRegistrationPeriod.Fields.VESSEL).get(Vessel.Fields.ID), vesselIdParam));
+
+        // Apply sorting
+        addSorting(query, cb, root, sortAttribute, sortDirection);
+
+        TypedQuery<VesselRegistrationPeriod> q = entityManager.createQuery(query)
+            .setParameter(vesselIdParam, vesselId)
+            .setFirstResult(offset)
+            .setMaxResults(size);
+        List<VesselRegistrationPeriod> result = q.getResultList();
+        return result.stream().map(this::toVesselRegistrationVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public VesselSnapshotVO getSnapshotByIdAndDate(int vesselId, Date date) {
         VesselFilterVO filter = new VesselFilterVO();
         filter.setVesselId(vesselId);
         filter.setDate(date);
-        List<VesselFeaturesVO> res = findByFilter(filter, 0, 1, VesselFeatures.PROPERTY_START_DATE, SortDirection.DESC);
+        List<VesselSnapshotVO> res = findByFilter(filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC);
 
         // No result for this date
         if (res.size() == 0) {
             // Retry using only vessel id (and limit to most recent features)
             filter.setDate(null);
-            res = findByFilter(filter, 0, 1, VesselFeatures.PROPERTY_START_DATE, SortDirection.DESC);
+            res = findByFilter(filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC);
             if (res.size() == 0) {
-                return null;
+                VesselSnapshotVO unknownVessel = new VesselSnapshotVO();
+                unknownVessel.setId(vesselId);
+                unknownVessel.setName("Unknown vessel " + vesselId); // TODO remove string
+                return unknownVessel;
             }
         }
         return res.get(0);
@@ -184,7 +279,8 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         if (source.getId() != null) {
             entity = get(VesselFeatures.class, source.getId());
         }
-        boolean isNew = (entity == null);
+        boolean isNew = entity == null;
+
         if (isNew) {
             entity = new VesselFeatures();
         }
@@ -214,8 +310,33 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             // Create the vessel
             entityManager.persist(vessel);
             // Link to the target entity
-            source.setVesselId(vessel.getId());
+            source.setId(vessel.getId());
             entity.setVessel(vessel);
+        } else {
+            Vessel vessel = entity.getVessel();
+            lockForUpdate(vessel);
+            vesselFeaturesVOToVesselEntity(source, vessel, true);
+            vessel.setUpdateDate(newUpdateDate);
+            entityManager.merge(vessel);
+        }
+
+        // Registration period
+        boolean isNewPeriod = source.getRegistrationId() == null;
+
+        if (isNewPeriod) {
+
+            VesselRegistrationPeriod period = new VesselRegistrationPeriod();
+            period.setVessel(entity.getVessel());
+            vesselFeaturesVOToVesselRegistrationPeriodEntity(source, period, false);
+            entityManager.persist(period);
+            source.setRegistrationId(period.getId());
+
+        } else {
+
+            VesselRegistrationPeriod period = get(VesselRegistrationPeriod.class, source.getRegistrationId());
+            lockForUpdate(period);
+            vesselFeaturesVOToVesselRegistrationPeriodEntity(source, period, true);
+            entityManager.merge(period);
         }
 
         // Save entity
@@ -260,10 +381,10 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
     }
 
     @Override
-    public VesselFeaturesVO toVesselFeaturesVO(VesselFeatures source) {
+    public VesselSnapshotVO toVesselFeaturesVO(VesselFeatures source) {
         if (source == null) return null;
 
-        VesselFeaturesVO target = new VesselFeaturesVO();
+        VesselSnapshotVO target = new VesselSnapshotVO();
 
         Beans.copyProperties(source, target);
 
@@ -279,15 +400,20 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             target.setGrossTonnageGt(source.getGrossTonnageGt().doubleValue() / 100);
         }
 
-        target.setVesselId(source.getVessel().getId());
+        target.setId(source.getVessel().getId());
+        target.setVesselStatusId(source.getVessel().getStatus().getId());
         target.setQualityFlagId(source.getQualityFlag().getId());
 
+        // Vessel type
+        ReferentialVO vesselType = referentialDao.toReferentialVO(source.getVessel().getVesselType());
+        target.setVesselType(vesselType);
+
         // base port location
-        LocationVO departureLocation = locationDao.toLocationVO(source.getBasePortLocation());
-        target.setBasePortLocation(departureLocation);
+        LocationVO basePortLocation = locationDao.toLocationVO(source.getBasePortLocation());
+        target.setBasePortLocation(basePortLocation);
 
         // Recorder department
-        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         return target;
@@ -295,36 +421,82 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
     /* -- protected methods -- */
 
-    protected List<VesselFeaturesVO> toVesselFeaturesVOs(List<VesselFeatures> source) {
+    protected List<VesselSnapshotVO> toVesselFeaturesVOs(List<VesselFeaturesResult> source) {
         return source.stream()
                 .map(this::toVesselFeaturesVO)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    protected void vesselFeaturesVOToEntity(VesselFeaturesVO source, VesselFeatures target, boolean copyIfNull) {
+    protected VesselSnapshotVO toVesselFeaturesVO(VesselFeaturesResult source) {
+        if (source == null)
+            return null;
+
+        // Vessel features
+        VesselSnapshotVO target = toVesselFeaturesVO(source.getVesselFeatures());
+
+        VesselRegistrationPeriod period = source.getVesselRegistrationPeriod();
+        if (period != null) {
+
+            // Registration id
+            target.setRegistrationId(period.getId());
+
+            // Registration code
+            target.setRegistrationCode(period.getRegistrationCode());
+
+            // Registration dates
+            target.setRegistrationStartDate(period.getStartDate());
+            target.setRegistrationEndDate(period.getEndDate());
+
+            // Registration location
+            LocationVO registrationLocation = locationDao.toLocationVO(period.getRegistrationLocation());
+            target.setRegistrationLocation(registrationLocation);
+        }
+
+        return target;
+    }
+
+    private VesselRegistrationVO toVesselRegistrationVO(VesselRegistrationPeriod source) {
+        if (source == null)
+            return null;
+
+        VesselRegistrationVO target = new VesselRegistrationVO();
 
         Beans.copyProperties(source, target);
 
+        // Registration location
+        LocationVO registrationLocation = locationDao.toLocationVO(source.getRegistrationLocation());
+        target.setRegistrationLocation(registrationLocation);
+
+        return target;
+    }
+
+    protected void vesselFeaturesVOToEntity(VesselFeaturesVO source, VesselFeatures target, boolean copyIfNull) {
+
+        copyDataProperties(source, target, copyIfNull);
+
+        // Recorder department and person
+        copyRecorderPerson(source, target, copyIfNull);
+
         // Convert from meter to centimeter
         if (source.getLengthOverAll() != null) {
-            target.setLengthOverAll((int)(source.getLengthOverAll().doubleValue()  * 100));
+            target.setLengthOverAll((int)(source.getLengthOverAll() * 100));
         }
         // Convert tonnage (x100)
         if (source.getGrossTonnageGrt() != null) {
-            target.setGrossTonnageGrt((int)(source.getGrossTonnageGrt().doubleValue() * 100));
+            target.setGrossTonnageGrt((int)(source.getGrossTonnageGrt() * 100));
         }
         if (source.getGrossTonnageGt() != null) {
-            target.setGrossTonnageGt((int)(source.getGrossTonnageGt().doubleValue() * 100));
+            target.setGrossTonnageGt((int)(source.getGrossTonnageGt() * 100));
         }
 
         // Vessel
-        if (copyIfNull || source.getVesselId() != null) {
-            if (source.getVesselId() == null) {
+        if (copyIfNull || source.getId() != null) {
+            if (source.getId() == null) {
                 target.setVessel(null);
             }
             else {
-                target.setVessel(load(Vessel.class, source.getVesselId()));
+                target.setVessel(load(Vessel.class, source.getId()));
             }
         }
 
@@ -337,93 +509,94 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
                 target.setBasePortLocation(load(Location.class, source.getBasePortLocation().getId()));
             }
         }
-
-        // Recorder person
-        if (copyIfNull || source.getRecorderPerson() != null) {
-            if (source.getRecorderPerson() == null || source.getRecorderPerson().getId() == null) {
-                target.setRecorderPerson(null);
-            }
-            else {
-                target.setRecorderPerson(load(Person.class, source.getRecorderPerson().getId()));
-            }
-        }
-
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
-            }
-        }
-
-        // Quality flag
-        if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-            }
-            else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
-            }
-        }
     }
 
     protected void vesselFeaturesVOToVesselEntity(VesselFeaturesVO source, Vessel target, boolean copyIfNull) {
 
+        // Copy properties from root EXCEPT id
+        copyRootDataProperties(source, target, copyIfNull, VesselFeatures.Fields.ID);
+
         // Vessel type
-        if (copyIfNull || source.getVesselTypeId() != null) {
-            if (source.getVesselTypeId() == null) {
+        if (copyIfNull || source.getVesselType() != null) {
+            if (source.getVesselType() == null) {
                 target.setVesselType(null);
             }
             else {
-                target.setVesselType(load(VesselType.class, source.getVesselTypeId()));
+                target.setVesselType(load(VesselType.class, source.getVesselType().getId()));
             }
         }
 
-        // Recorder person
-        if (copyIfNull || source.getRecorderPerson() != null) {
-            if (source.getRecorderPerson() == null || source.getRecorderPerson().getId() == null) {
-                target.setRecorderPerson(null);
+        // Vessel status
+        if (copyIfNull || source.getVesselStatusId() != null) {
+            if (source.getVesselStatusId() == null) {
+                target.setStatus(null);
             }
             else {
-                target.setRecorderPerson(load(Person.class, source.getRecorderPerson().getId()));
+                target.setStatus(load(Status.class, source.getVesselStatusId()));
             }
         }
 
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
-            }
+        // Default program
+        if (copyIfNull && target.getProgram() == null) {
+            target.setProgram(load(Program.class, ProgramEnum.SIH.getId()));
         }
-
-        // Quality flag
-        if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-            }
-            else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
-            }
-        }
-
     }
 
-    protected <T extends Serializable> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
-                                                                   CriteriaBuilder cb,
-                                                                   Root<T> root, String sortAttribute, SortDirection sortDirection) {
+    protected void vesselFeaturesVOToVesselRegistrationPeriodEntity(VesselFeaturesVO source, VesselRegistrationPeriod target, boolean copyIfNull) {
+
+        // Registration start date
+        if (copyIfNull || source.getRegistrationStartDate() != null) {
+            target.setStartDate(source.getRegistrationStartDate());
+        }
+
+        // Registration end date
+        if (copyIfNull || source.getRegistrationEndDate() != null) {
+            target.setEndDate(source.getRegistrationEndDate());
+        }
+
+        // Registration code
+        if (copyIfNull || source.getRegistrationCode() != null) {
+            target.setRegistrationCode(source.getRegistrationCode());
+        }
+
+        // Registration location
+        if (copyIfNull || source.getRegistrationLocation() != null) {
+            if (source.getRegistrationLocation() == null || source.getRegistrationLocation().getId() == null) {
+                target.setRegistrationLocation(null);
+            } else {
+                target.setRegistrationLocation(get(Location.class, source.getRegistrationLocation().getId()));
+            }
+        }
+
+        // default quality flag
+        if (target.getQualityFlag() == null) {
+            target.setQualityFlag(load(QualityFlag.class, SumarisConfiguration.getInstance().getDefaultQualityFlagId()));
+        }
+
+        // default rank order
+        if (target.getRankOrder() == null) {
+            target.setRankOrder(1);
+        }
+    }
+
+    protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
+                                              CriteriaBuilder cb,
+                                              Root<?> root, String sortAttribute, SortDirection sortDirection) {
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
             Expression<?> sortExpression = root.get(sortAttribute);
             query.orderBy(SortDirection.DESC.equals(sortDirection) ?
-                    cb.desc(sortExpression) :
-                    cb.asc(sortExpression)
+                cb.desc(sortExpression) :
+                cb.asc(sortExpression)
             );
         }
         return query;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class VesselFeaturesResult {
+        VesselFeatures vesselFeatures;
+        VesselRegistrationPeriod vesselRegistrationPeriod;
     }
 }

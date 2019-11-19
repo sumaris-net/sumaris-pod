@@ -10,7 +10,9 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 @Data
 public class ExtractionTripFilterVO extends TripFilterVO {
 
-    private boolean firstTableOnly;
+    private boolean preview;
+
+    private String sheetName;
 
     private Pageable pageable;
 }

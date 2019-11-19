@@ -23,19 +23,23 @@ package net.sumaris.core.model.referential.transcribing;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.ObjectType;
 import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "transcribing_item_type")
 public class TranscribingItemType implements IItemReferentialEntity  {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "TRANSCRIBING_ITEM_TYPE_SEQ")
+    @SequenceGenerator(name = "TRANSCRIBING_ITEM_TYPE_SEQ", sequenceName="TRANSCRIBING_ITEM_TYPE_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -61,7 +65,11 @@ public class TranscribingItemType implements IItemReferentialEntity  {
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObjectType.class)
+    @JoinColumn(name = "object_type_fk")
+    private ObjectType objectType;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = TranscribingSystem.class)
     @JoinColumn(name = "transcribing_system_fk")
     private TranscribingSystem system;
 }

@@ -10,12 +10,12 @@ package net.sumaris.core.model.referential.taxon;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,9 +23,9 @@ package net.sumaris.core.model.referential.taxon;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -36,22 +36,18 @@ import java.util.Date;
  * On garde l'historique du passage en taxon valide, puis du passage en synonyme (date de fin référent).
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "taxon_name")
 public class TaxonName implements IItemReferentialEntity {
 
-    public static final String PROPERTY_IS_REFERENT = "isReferent";
-    public static final String PROPERTY_REFERENCE_TAXON = "referenceTaxon";
-    public static final String PROPERTY_PARENT_TAXON_NAME = "parentTaxonName";
-    public static final String PROPERTY_TAXONOMIC_LEVEL = "taxonomicLevel";
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "IdOrGenerated")
-    @GenericGenerator(name = "IdOrGenerated", strategy = "net.sumaris.core.model.referential.taxon.UseExistingIdOrGenerate"  )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_NAME_SEQ")
+    @SequenceGenerator(name = "TAXON_NAME_SEQ", sequenceName="TAXON_NAME_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_fk")
+    @JoinColumn(name = "status_fk", nullable = false)
     private Status status;
 
     @Column(name = "creation_date", nullable = false)
@@ -93,16 +89,22 @@ public class TaxonName implements IItemReferentialEntity {
     @Column(nullable = false, name = "is_virtual")
     private boolean isVirtual;
 
+    @Column(name = "upper_rank")
+    private Integer upperRank;
+
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ReferenceTaxon.class)
-    @JoinColumn(name = "reference_taxon_fk")
+    @JoinColumn(name = "reference_taxon_fk", nullable = false)
     private ReferenceTaxon referenceTaxon;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonomicLevel.class)
-    @JoinColumn(name = "taxonomic_level_fk")
+    @JoinColumn(name = "taxonomic_level_fk", nullable = false)
     private TaxonomicLevel taxonomicLevel;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonName.class)
     @JoinColumn(name = "parent_taxon_name_fk")
     private TaxonName parentTaxonName;
 
+    public String toString() {
+        return String.format("TaxonName{id=%s,referenceTaxonId=%s}", id, referenceTaxon != null ? referenceTaxon.getId() : "null");
+    }
 }

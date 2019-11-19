@@ -23,7 +23,10 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -32,31 +35,40 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
-public class PhysicalGearVO implements IUpdateDateEntityBean<Integer, Date> {
+@FieldNameConstants
+@EqualsAndHashCode
+public class PhysicalGearVO implements IRootDataVO<Integer>,
+        IWithRecorderPersonEntity<Integer, PersonVO> {
 
-    public static final String PROPERTY_GEAR = "gear";
-
+    @EqualsAndHashCode.Exclude
     private Integer id;
-
     private Integer rankOrder;
     private ReferentialVO gear;
-    private List<MeasurementVO> measurements;
 
     private String comments;
     private Date creationDate;
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;
+    private Date qualificationDate;
+    private String qualificationComments;
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
+    private ProgramVO program;
+
+    @EqualsAndHashCode.Exclude
+    private List<MeasurementVO> measurements;
+    private Map<Integer, String> measurementValues;
+
     // Parent entity
+    @EqualsAndHashCode.Exclude
     private TripVO trip;
     private Integer tripId;
-
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

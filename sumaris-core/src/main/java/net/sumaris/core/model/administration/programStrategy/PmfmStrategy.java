@@ -24,24 +24,25 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IEntityBean;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
 import javax.persistence.*;
 import java.util.Set;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "pmfm_strategy")
-public class PmfmStrategy implements IEntityBean<Integer> {
-
-    public static final String PROPERTY_STRATEGY = "strategy";
-    public static final String PROPERTY_ACQUISITION_LEVEL = "acquisitionLevel";
-    public static final String PROPERTY_RANK_ORDER = "rankOrder";
+public class PmfmStrategy implements IEntity<Integer> {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_STRATEGY_SEQ")
+    @SequenceGenerator(name = "PMFM_STRATEGY_SEQ", sequenceName="PMFM_STRATEGY_SEQ")
     private Integer id;
 
     @Column(name = "acquisition_number", nullable = false)
@@ -74,7 +75,7 @@ public class PmfmStrategy implements IEntityBean<Integer> {
     @JoinColumn(name = "acquisition_level_fk", nullable = false)
     private AcquisitionLevel acquisitionLevel;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "pmfm_strategy2gear", joinColumns = {
             @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {

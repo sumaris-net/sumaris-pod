@@ -23,11 +23,14 @@ package net.sumaris.core.vo.filter;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class DepartmentFilterVO {
+@FieldNameConstants
+public class DepartmentFilterVO implements Serializable {
 
     private Boolean withLogo;
 

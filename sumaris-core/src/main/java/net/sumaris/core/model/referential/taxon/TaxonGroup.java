@@ -23,12 +23,16 @@ package net.sumaris.core.model.referential.taxon;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.metier.Metier;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 
 /**
  *  Il désigne un ensemble de taxons appartenant à des groupes taxinomiques différents mais ayant les mêmes caractéristiques pour un critère donné. Ce critère peut être morpho-anatomique (par exemple les strates algales ou la taille des organismes), comportemental (par exemple des groupes trophiques ou des modes de déplacement), ou encore basé sur des notions plus complexes comme la polluo-sensibilité (exemple des groupes écologiques définis pour les macroinvertébrés benthiques). Pour un critère donné, les groupes de taxons sont rassemblés dans un regroupement appelé groupe de taxons père.
@@ -42,14 +46,14 @@ import java.util.Date;
  *
  */
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "taxon_group")
 public class TaxonGroup implements IItemReferentialEntity {
 
-    public static final String PROPERTY_TAXON_GROUP_TYPE = "taxonGroupType";
-
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_GROUP_SEQ")
+    @SequenceGenerator(name = "TAXON_GROUP_SEQ", sequenceName="TAXON_GROUP_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -82,4 +86,12 @@ public class TaxonGroup implements IItemReferentialEntity {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonGroup.class)
     @JoinColumn(name = "parent_taxon_group_fk")
     private TaxonGroup parentTaxonGroup;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.Fields.TAXON_GROUP)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
+    private List<TaxonGroupStrategy> strategies;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Metier.class, mappedBy = Metier.Fields.TAXON_GROUP)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
+    private List<Metier> metiers;
 }

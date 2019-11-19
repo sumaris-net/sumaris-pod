@@ -1,6 +1,7 @@
 package net.sumaris.core.model.social;
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 
 import javax.persistence.*;
@@ -8,6 +9,7 @@ import java.util.Date;
 
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "user_event")
 @Cacheable
@@ -16,10 +18,9 @@ import java.util.Date;
  */
 public class UserEvent implements IUpdateDateEntityBean<Integer, Date> {
 
-    public static final String PROPERTY_ISSUER = "issuer";
-
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_EVENT_SEQ")
+    @SequenceGenerator(name = "USER_EVENT_SEQ", sequenceName="USER_EVENT_SEQ")
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

@@ -24,14 +24,13 @@ package net.sumaris.core.model.referential;
 
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
 public interface IReferentialEntity extends IUpdateDateEntityBean<Integer, Date> {
 
-    String PROPERTY_CREATION_DATE = "creationDate";
-    String PROPERTY_STATUS = "status";
+    interface Fields extends IUpdateDateEntityBean.Fields {
+        String STATUS = "status";
+    }
 
     Date getCreationDate();
 

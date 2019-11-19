@@ -29,13 +29,11 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.OperationDao;
 import net.sumaris.core.dao.data.VesselPositionDao;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.data.measure.GearUseMeasurement;
-import net.sumaris.core.model.data.measure.IMeasurementEntity;
-import net.sumaris.core.model.data.measure.VesselUseMeasurement;
-import net.sumaris.core.service.data.batch.BatchService;
-import net.sumaris.core.service.data.sample.SampleService;
+import net.sumaris.core.model.data.GearUseMeasurement;
+import net.sumaris.core.model.data.IMeasurementEntity;
+import net.sumaris.core.model.data.VesselUseMeasurement;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -113,34 +111,44 @@ public class OperationServiceImpl implements OperationService {
 
 		// Save measurements (vessel use measurement)
 		{
-			List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
-			measurements.forEach(m -> fillDefaultProperties(savedOperation, m, VesselUseMeasurement.class));
-			measurements = measurementDao.saveVesselUseMeasurementsByOperationId(savedOperation.getId(), measurements);
-			savedOperation.setMeasurements(measurements);
+			if (source.getMeasurementValues() != null) {
+				measurementDao.saveOperationVesselUseMeasurementsMap(savedOperation.getId(), source.getMeasurementValues());
+			}
+			else {
+				List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
+				measurements.forEach(m -> fillDefaultProperties(savedOperation, m, VesselUseMeasurement.class));
+				measurements = measurementDao.saveOperationVesselUseMeasurements(savedOperation.getId(), measurements);
+				savedOperation.setMeasurements(measurements);
+			}
 		}
 
 		// Save gear measurements (gear use measurement)
 		{
-			List<MeasurementVO> measurements = Beans.getList(source.getGearMeasurements());
-			measurements.forEach(m -> fillDefaultProperties(savedOperation, m, GearUseMeasurement.class));
-			measurements = measurementDao.saveGearUseMeasurementsByOperationId(savedOperation.getId(), measurements);
-			savedOperation.setGearMeasurements(measurements);
+			if (source.getGearMeasurementValues() != null) {
+				measurementDao.saveOperationGearUseMeasurementsMap(savedOperation.getId(), source.getGearMeasurementValues());
+			}
+			else {
+				List<MeasurementVO> measurements = Beans.getList(source.getGearMeasurements());
+				measurements.forEach(m -> fillDefaultProperties(savedOperation, m, GearUseMeasurement.class));
+				measurements = measurementDao.saveOperationGearUseMeasurements(savedOperation.getId(), measurements);
+				savedOperation.setGearMeasurements(measurements);
+			}
 		}
 
 		// Save samples
 		{
-			List<SampleVO> samples = getOperationSamplesAsList(savedOperation);
+			List<SampleVO> samples = getSamplesAsList(savedOperation);
 			samples.forEach(s -> fillDefaultProperties(savedOperation, s));
 			samples = sampleService.saveByOperationId(savedOperation.getId(), samples);
 
 			// Prepare saved samples (e.g. to be used as graphQL query response)
 			samples.forEach(sample -> {
 				// Set parentId (instead of parent object)
-				if (sample.getParent() != null) {
+				if (sample.getParentId() == null && sample.getParent() != null) {
 					sample.setParentId(sample.getParent().getId());
-					sample.setParent(null);
 				}
-				// Remove link to children
+				// Remove link parent/children
+				sample.setParent(null);
 				sample.setChildren(null);
 			});
 			
@@ -157,11 +165,11 @@ public class OperationServiceImpl implements OperationService {
 			// Transform saved batches into flat list (e.g. to be used as graphQL query response)
 			batches.forEach(batch -> {
 				// Set parentId (instead of parent object)
-				if (batch.getParent() != null) {
+				if (batch.getParentId() == null && batch.getParent() != null) {
 					batch.setParentId(batch.getParent().getId());
-					batch.setParent(null);
 				}
-				// Remove link to children
+				// Remove link parent/children
+				batch.setParent(null);
 				batch.setChildren(null);
 			});
 
@@ -185,7 +193,6 @@ public class OperationServiceImpl implements OperationService {
 	public void delete(int id) {
 		operationDao.delete(id);
 	}
-
 	@Override
 	public void delete(List<Integer> ids) {
 		Preconditions.checkNotNull(ids);
@@ -215,7 +222,6 @@ public class OperationServiceImpl implements OperationService {
 			measurement.setRecorderDepartment(parent.getRecorderDepartment());
 		}
 
-		measurement.setOperationId(parent.getId());
 		measurement.setEntityName(entityClass.getSimpleName());
 	}
 
@@ -272,29 +278,7 @@ public class OperationServiceImpl implements OperationService {
 		sample.setOperationId(parent.getId());
 	}
 
-	protected void fillDefaultProperties(SampleVO parent, SampleVO sample) {
-		if (sample == null) return;
 
-		// Copy recorder department from the parent
-		if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
-			sample.setRecorderDepartment(parent.getRecorderDepartment());
-		}
-
-		// Fill matrix
-		if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
-			ReferentialVO matrix = new ReferentialVO();
-			matrix.setId(config.getMatrixIdIndividual());
-			sample.setMatrix(matrix);
-		}
-
-		// Fill sample (use operation end date time)
-		if (sample.getSampleDate() == null) {
-			sample.setSampleDate(parent.getSampleDate());
-		}
-
-		sample.setParentId(parent.getId());
-		sample.setOperationId(parent.getOperationId());
-	}
 
 	protected List<BatchVO> getAllBatches(OperationVO operation) {
 		BatchVO catchBatch = operation.getCatchBatch();
@@ -325,39 +309,16 @@ public class OperationServiceImpl implements OperationService {
 	 * @param parent
 	 * @return
 	 */
-	protected List<SampleVO> getOperationSamplesAsList(final OperationVO parent) {
+	protected List<SampleVO> getSamplesAsList(final OperationVO parent) {
 		final List<SampleVO> result = Lists.newArrayList();
 		if (CollectionUtils.isNotEmpty(parent.getSamples())) {
 			parent.getSamples().forEach(sample -> {
 				fillDefaultProperties(parent, sample);
-				transformSampleTreeToList(sample, result);
+				sampleService.treeToList(sample, result);
 			});
 		}
 		return result;
 	}
 
 
-	/**
-	 * Transform a samples (with children) into a falt list, sorted with parent always before children
-	 * @param sample
-	 * @param result
-	 */
-	protected void transformSampleTreeToList(final SampleVO sample, final List<SampleVO> result) {
-		if (sample == null) return;
-
-		// Add the batch itself
-		if (!result.contains(sample)) result.add(sample);
-
-		// Process children
-		if (CollectionUtils.isNotEmpty(sample.getChildren())) {
-			// Recursive call
-			sample.getChildren().forEach(child -> {
-				fillDefaultProperties(sample, child);
-				// Link to parent
-				child.setParent(sample);
-				transformSampleTreeToList(child, result);
-			});
-		}
-
-	}
 }

@@ -29,19 +29,11 @@ import net.sumaris.core.model.referential.QualityFlag;
 import java.io.Serializable;
 import java.util.Date;
 
-public interface IDataEntity<T extends Serializable> extends Serializable, IUpdateDateEntityBean<T, Date> {
+public interface IDataEntity<ID extends Serializable>
+        extends Serializable, IUpdateDateEntityBean<ID, Date>,
+        IWithRecorderDepartmentEntity<ID, Department> {
 
     int LENGTH_COMMENTS = 2000;
-
-    String PROPERTY_CONTROL_DATE = "controlDate";
-    String PROPERTY_QUALIFICATION_DATE = "qualificationDate";
-    String PROPERTY_QUALITY_FLAG = "qualityFlag";
-    String PROPERTY_QUALIFICATION_COMMENTS = "qualificationComments";
-    String PROPERTY_RECORDER_DEPARTMENT = "recorderDepartment";
-
-    Department getRecorderDepartment();
-
-    void setRecorderDepartment(Department recorderDepartment);
 
     Date getControlDate();
 

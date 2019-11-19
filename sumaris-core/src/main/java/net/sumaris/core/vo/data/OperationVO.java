@@ -23,25 +23,20 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.MetierVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
+@FieldNameConstants
 public class OperationVO implements IUpdateDateEntityBean<Integer, Date> {
-
-    public static final String PROPERTY_START_DATE_TIME = "startDateTime";
-    public static final String PROPERTY_END_DATE_TIME = "endDateTime";
-    public static final String PROPERTY_RANK_ORDER_ON_PERIOD = "rankOrderOnPeriod";
-    public static final String PROPERTY_TRIP = "trip";
-
 
     private Integer id;
     private Integer rankOrderOnPeriod;
@@ -57,7 +52,7 @@ public class OperationVO implements IUpdateDateEntityBean<Integer, Date> {
     private Boolean hasCatch;
     private String comments;
 
-    private ReferentialVO metier;
+    private MetierVO metier;
 
     private TripVO trip;
     private Integer tripId;
@@ -66,8 +61,12 @@ public class OperationVO implements IUpdateDateEntityBean<Integer, Date> {
     private Integer physicalGearId;
 
     private List<VesselPositionVO> positions;
+
     private List<MeasurementVO> measurements;
+    private Map<Integer, String> measurementValues;
+
     private List<MeasurementVO> gearMeasurements;
+    private Map<Integer, String> gearMeasurementValues;
 
     private List<SampleVO> samples;
 

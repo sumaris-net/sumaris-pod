@@ -23,25 +23,24 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 @Data
+@FieldNameConstants
 @Entity
 @Cacheable
 @Table(name="acquisition_level")
 public class AcquisitionLevel implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "ACQUISITION_LEVEL_SEQ")
+    @SequenceGenerator(name = "ACQUISITION_LEVEL_SEQ", sequenceName="ACQUISITION_LEVEL_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

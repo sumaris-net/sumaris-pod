@@ -23,10 +23,13 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -35,10 +38,11 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@FieldNameConstants
+@EqualsAndHashCode
 public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
-    public static final String PROPERTY_OPERATION = "operation";
-    public static final String PROPERTY_BATCH = "batch";
 
+    @EqualsAndHashCode.Exclude
     private Integer id;
     private String comments;
     private Date updateDate;
@@ -55,22 +59,32 @@ public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
     private String samplingRatioText;
     private Integer individualCount;
     private ReferentialVO taxonGroup;
-    private ReferentialVO taxonName;
+    private TaxonNameVO taxonName;
 
+    @EqualsAndHashCode.Exclude
     private OperationVO operation;
     private Integer operationId;
 
+    @EqualsAndHashCode.Exclude
     private BatchVO parent;
     private Integer parentId;
+
+    @EqualsAndHashCode.Exclude
     private List<BatchVO> children;
 
+    @EqualsAndHashCode.Exclude
     private List<MeasurementVO> sortingMeasurements;
+    @EqualsAndHashCode.Exclude
     private List<MeasurementVO> quantificationMeasurements;
 
     private Map<Integer, String> measurementValues;
 
-    private Map<Integer, String> sortingMeasurementValues;
-    private Map<Integer, String> quantificationMeasurementValues;
+
+    @EqualsAndHashCode.Exclude
+    private Map<Integer, String> sortingMeasurementValues;     // TODO: remove (not used anymore)
+    @EqualsAndHashCode.Exclude
+    private Map<Integer, String> quantificationMeasurementValues;     // TODO: remove (not used anymore)
+
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

@@ -22,17 +22,17 @@ package net.sumaris.core.service.technical;
  * #L%
  */
 
-import net.sumaris.core.vo.technical.ConfigurationVO;
+import net.sumaris.core.vo.technical.SoftwareVO;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public interface SoftwareService {
 
-    ConfigurationVO getDefault();
+    SoftwareVO getDefault();
 
-    ConfigurationVO get(String label);
+    SoftwareVO get(String label);
 
-    ConfigurationVO save(ConfigurationVO configuration);
+    SoftwareVO save(SoftwareVO configuration);
 
 }
 

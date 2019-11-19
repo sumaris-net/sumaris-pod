@@ -40,5 +40,5 @@ public interface OperationDao {
 
     List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations);
 
-    OperationVO toOperationVO(Operation operation);
+    OperationVO toVO(Operation operation);
 }

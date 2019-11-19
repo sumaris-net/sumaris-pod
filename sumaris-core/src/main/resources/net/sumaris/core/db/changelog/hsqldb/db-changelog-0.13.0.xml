@@ -1,0 +1,559 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.13.0.xml">
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-9">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="LANDING_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="LANDING_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-10">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="PRODUCT_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="PRODUCT_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-11">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="QUANTIF_MEASUREMENT_P_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="QUANTIF_MEASUREMENT_P_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-12">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="SORTING_MEASUREMENT_P_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="SORTING_MEASUREMENT_P_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-13">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="VESSEL_PHYSICAL_MEASUREMEN_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="VESSEL_PHYSICAL_MEASUREMEN_SEQ"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-14">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="product"/>
+      </not>
+    </preConditions>
+    <createTable tableName="product">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="product_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="control_date" type="TIMESTAMP"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="individual_count" type="INT"/>
+      <column name="label" type="VARCHAR(40)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="qualification_comments" type="VARCHAR(2000)"/>
+      <column name="qualification_date" type="TIMESTAMP"/>
+      <column name="rank_order" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="validation_date" type="TIMESTAMP"/>
+      <column name="landing_fk" type="INT"/>
+      <column name="matrix_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="operation_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="program_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="quality_flag_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_department_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_person_fk" type="INT"/>
+      <column name="sale_fk" type="INT"/>
+      <column name="sale_type_fk" type="INT"/>
+      <column name="taxon_group_fk" type="INT"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-15">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="pmfm_strategy2reference_taxon"/>
+      </not>
+    </preConditions>
+
+    <createTable tableName="pmfm_strategy2reference_taxon">
+      <column name="pmfm_strategy_fk" type="INT">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="reference_taxon_fk" type="INT">
+        <constraints primaryKey="true"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-16">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="pmfm_strategy2taxon_group"/>
+      </not>
+    </preConditions>
+    <createTable tableName="pmfm_strategy2taxon_group">
+      <column name="pmfm_strategy_fk" type="INT">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="taxon_group_fk" type="INT">
+        <constraints primaryKey="true"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-17">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="quantification_measurement_p"/>
+      </not>
+    </preConditions>
+    <createTable tableName="quantification_measurement_p">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="quantification_measurement_p_pk"/>
+      </column>
+      <column name="alphanumerical_value" type="VARCHAR(40)"/>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="control_date" type="TIMESTAMP"/>
+      <column name="digit_count" type="INT"/>
+      <column name="is_reference_quantification" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="numerical_value" type="DOUBLE"/>
+      <column name="precision_value" type="DOUBLE"/>
+      <column name="qualification_comments" type="VARCHAR(2000)"/>
+      <column name="qualification_date" type="TIMESTAMP"/>
+      <column name="rank_order" type="INT"/>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="pmfm_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="product_fk" type="INT"/>
+      <column name="qualitative_value_fk" type="INT"/>
+      <column name="quality_flag_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_department_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-18">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="sorting_measurement_p"/>
+      </not>
+    </preConditions>
+    <createTable tableName="sorting_measurement_p">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="sorting_measurement_p_pk"/>
+      </column>
+      <column name="alphanumerical_value" type="VARCHAR(40)"/>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="control_date" type="TIMESTAMP"/>
+      <column name="digit_count" type="INT"/>
+      <column name="numerical_value" type="DOUBLE"/>
+      <column name="precision_value" type="DOUBLE"/>
+      <column name="qualification_comments" type="VARCHAR(2000)"/>
+      <column name="qualification_date" type="TIMESTAMP"/>
+      <column name="rank_order" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="pmfm_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="product_fk" type="INT"/>
+      <column name="qualitative_value_fk" type="INT"/>
+      <column name="quality_flag_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_department_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-19">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="taxon_group_strategy"/>
+      </not>
+    </preConditions>
+    <createTable tableName="taxon_group_strategy">
+      <column name="priority_level" type="INT"/>
+      <column name="taxon_group_fk" type="INT">
+        <constraints primaryKey="true" primaryKeyName="taxon_group_strategy_pk"/>
+      </column>
+      <column name="strategy_fk" type="INT">
+        <constraints primaryKey="true" primaryKeyName="taxon_group_strategy_pk"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-20">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="vessel_physical_measurement"/>
+      </not>
+    </preConditions>
+    <createTable tableName="vessel_physical_measurement">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="vessel_physical_measurement_pk"/>
+      </column>
+      <column name="alphanumerical_value" type="VARCHAR(40)"/>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="control_date" type="TIMESTAMP"/>
+      <column name="digit_count" type="INT"/>
+      <column name="numerical_value" type="DOUBLE"/>
+      <column name="precision_value" type="DOUBLE"/>
+      <column name="qualification_comments" type="VARCHAR(2000)"/>
+      <column name="qualification_date" type="TIMESTAMP"/>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="pmfm_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="qualitative_value_fk" type="INT"/>
+      <column name="quality_flag_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_department_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="vessel_features_fk" type="INT"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-21">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="extraction_product" columnName="is_spatial"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="extraction_product">
+      <column name="is_spatial" type="boolean"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-22">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="extraction_product_table" columnName="is_spatial"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="extraction_product_table">
+      <column name="is_spatial" type="boolean"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-23">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="sample" columnName="landing_fk"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="sample">
+      <column name="landing_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-24">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="extraction_product" columnName="parent_extraction_product_fk"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="extraction_product">
+      <column name="parent_extraction_product_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-25">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="landing" columnName="rank_order"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="landing">
+      <column name="rank_order" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-26">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="sample" columnName="size"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="sample">
+      <column name="size" type="double"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-27">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="sample" columnName="size_unit_fk"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="sample">
+      <column name="size_unit_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-28" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="vessel_physical_measurement"
+                             constraintName="FK1kl659f8k5s7bvb74eby5rf2h" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Department"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-29" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="sorting_measurement_p"
+                             constraintName="FK1ps6yoq5xyjwmb69hhla45rgj" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="qualitative_value"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-30" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="sorting_measurement_p"
+                             constraintName="FK2fhogwxk5kc8tw5v4x3f568tq" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Pmfm"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-31" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="sorting_measurement_p"
+                             constraintName="FK2irjq5ojxucqm6heeh05fxoys" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="quality_flag"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-32" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="product_fk" baseTableName="sorting_measurement_p"
+                             constraintName="FK8e01wlegprd1fqqv6xm2403u3" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Product"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-33" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="product"
+                             constraintName="FKam1nksoyawerorkiya7dphply" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Department"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-34" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="vessel_physical_measurement"
+                             constraintName="FKay3b0qk4wk3e97ev0bsfv8h7g" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Pmfm"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-35" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="landing_fk" baseTableName="sample"
+                             constraintName="FKcib9umm7mbqk4qdu87ube4d5a" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Landing"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-36" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="quantification_measurement_p"
+                             constraintName="FKckmw6m9l2424upkwwn6750uu8" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Department"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-37" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="product_fk" baseTableName="quantification_measurement_p"
+                             constraintName="FKd07e94t9oie3g1375q98tfiiu" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Product"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-38" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="landing_fk" baseTableName="product"
+                             constraintName="FKfah8k0ckw6qg46cp5q85du4i4" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Landing"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-39" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="vessel_features_fk" baseTableName="vessel_physical_measurement"
+                             constraintName="FKfqlijq155lxeqrrhncsojbvnh" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="vessel_features"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-40" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="strategy_fk" baseTableName="taxon_group_strategy"
+                             constraintName="FKi7fuw20alp51puwnxxyb1oxdu" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Strategy"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-41" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="product"
+                             constraintName="FKicp8cem7rgcgy75acy42nhnqw" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="quality_flag"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-42" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="quantification_measurement_p"
+                             constraintName="FKkl8ee4s0e0xlkevk3rj32f0ek" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Pmfm"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-43" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxon_group_fk" baseTableName="product"
+                             constraintName="FKknoe8dee56ju4ibwrjairefk1" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="taxon_group"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-44" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxon_group_fk" baseTableName="pmfm_strategy2taxon_group"
+                             constraintName="FKkthdjuokhu8stojb849rg6mfo" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="taxon_group"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-45" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="vessel_physical_measurement"
+                             constraintName="FKljbiujpv19oluyug8746xjgx5" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="qualitative_value"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-46" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="pmfm_strategy_fk" baseTableName="pmfm_strategy2taxon_group"
+                             constraintName="FKmumglkhi2kesnn10h3h7lvtlg" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="pmfm_strategy"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-47" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="sale_fk" baseTableName="product"
+                             constraintName="FKmvh2j14ou65lolm4a9rfoqpn7" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Sale"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-48" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="sale_type_fk" baseTableName="product"
+                             constraintName="FKn04800o8s06vf1tvyqq9t9lo4" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="sale_type"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-49" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="sorting_measurement_p"
+                             constraintName="FKnw3nf715irl0wx1avj5p7p4nm" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Department"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-50" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="matrix_fk" baseTableName="product"
+                             constraintName="FKnxwt25myvt6fqtlaviu04iye4" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Matrix"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-51" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="operation_fk" baseTableName="product"
+                             constraintName="FKohr5fss9qftle30cb1j52qyrl" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Operation"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-52" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="pmfm_strategy_fk" baseTableName="pmfm_strategy2reference_taxon"
+                             constraintName="FKonl96mfvjhqybo40na2moaow" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="pmfm_strategy"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-53" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="vessel_physical_measurement"
+                             constraintName="FKoocm4j5uro4bg9as66xutgtcg" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="quality_flag"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-54" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxon_group_fk" baseTableName="taxon_group_strategy"
+                             constraintName="FKq34r28j998717lt015dt6kcot" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="taxon_group"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-55" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="product"
+                             constraintName="FKri4e64jet341my5mk2hk3jrhg" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Program"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-56" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="parent_extraction_product_fk" baseTableName="extraction_product"
+                             constraintName="FKrlkjppc81jyavegpbotqakvg5" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="extraction_product"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-57" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="quantification_measurement_p"
+                             constraintName="FKrugqcoi1dtcssf3sg04vru4i1" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="quality_flag"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-58" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="pmfm_strategy2reference_taxon"
+                             constraintName="FKsdvy91g8nhv3lpybyvo2xdqiu" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="reference_taxon"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-59" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_person_fk" baseTableName="product"
+                             constraintName="FKskahdtmurtifapqrxwh2jthwf" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="person"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-60" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="quantification_measurement_p"
+                             constraintName="FKt76ty1yfang7jrxcdk0nu81cy" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="qualitative_value"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-61" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="size_unit_fk" baseTableName="sample"
+                             constraintName="FKtikj068t8lntb71qr93hmexm6" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Unit"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-62">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="landing" columnName="END_DATE_TIME"/>
+    </preConditions>
+    <dropColumn columnName="END_DATE_TIME" tableName="landing"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-63" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="operation_fk" tableName="sample"/>
+  </changeSet>
+
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-64">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product" columnName="recorder_department_fk"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product">
+      <column name="recorder_department_fk" type="integer">
+      </column>
+    </addColumn>
+    <sql>
+      update extraction_product set recorder_department_fk=1 where recorder_department_fk is null;
+    </sql>
+    <addNotNullConstraint tableName="extraction_product" columnName="recorder_department_fk"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-65">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product" columnName="recorder_person_fk"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product">
+      <column name="recorder_person_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-66" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_person_fk" baseTableName="extraction_product"
+                             constraintName="FKb2rbvdacyyhqpjcwvr21i0t5c" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="person"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-67" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="extraction_product"
+                             constraintName="FKc6p3w1ctchm5pfig9syb1rtja" deferrable="false" initiallyDeferred="false"
+                             referencedColumnNames="id" referencedTableName="Department"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-68">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product_column" columnName="rank_order"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product_column">
+      <column name="rank_order" type="integer">
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-200">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='0.13.0'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">0.13.0</column>
+      <column name="DESCRIPTION">
+        - Add table PRODUCT, SORTING_MEASUREMENT_P, QUANTIFICATION_MEASUREMENT_P
+        - Add column SAMPLE.LANDING_FK
+        - Add link between strategy and taxon
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

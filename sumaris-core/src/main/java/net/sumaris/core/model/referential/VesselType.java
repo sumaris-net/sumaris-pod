@@ -23,18 +23,20 @@ package net.sumaris.core.model.referential;
  */
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "vessel_type")
 public class VesselType implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "VESSEL_TYPE_SEQ")
+    @SequenceGenerator(name = "VESSEL_TYPE_SEQ", sequenceName="VESSEL_TYPE_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

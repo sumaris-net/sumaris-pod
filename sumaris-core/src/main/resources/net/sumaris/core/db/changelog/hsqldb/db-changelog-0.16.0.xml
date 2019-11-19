@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.16.0.xml">
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-1" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="LOCATION_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="LOCATION_SEQ"/>
+    <sql>ALTER SEQUENCE LOCATION_SEQ RESTART WITH 2000</sql>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-1-2" runOnChange="true">
+    <preConditions onFail="HALT">
+        <sequenceExists sequenceName="LOCATION_SEQ"/>
+    </preConditions>
+    <sql>select NEXT VALUE FOR LOCATION_SEQ from LOCATION where ID > 2000</sql>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-2">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="ROUND_WEIGHT_CONVERSION_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="ROUND_WEIGHT_CONVERSION_SEQ"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-3">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="round_weight_conversion"/>
+      </not>
+    </preConditions>
+    <createTable tableName="round_weight_conversion">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="round_weight_conversion_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="conversion_coefficient" type="DOUBLE">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="end_date" type="TIMESTAMP"/>
+      <column name="start_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="dressing_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="location_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="preserving_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="taxon_group_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-10" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="location_fk" baseTableName="round_weight_conversion" constraintName="FK82b10lh2qvk744lkmrpyf41pt" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Location" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-11" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="round_weight_conversion" constraintName="FKky2ifbmn5k2r9xhsioffhc4cw" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-12" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxon_group_fk" baseTableName="round_weight_conversion" constraintName="FKmfhbf9ufj2titpetlcu04u5cl" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_group" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-13" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="preserving_fk" baseTableName="round_weight_conversion" constraintName="FKtc9oeqyva2yncsucmhs3naqcx" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-14" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="dressing_fk" baseTableName="round_weight_conversion" constraintName="FKtqidtohidccsdmx8y85mfxgon" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-15" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="QUALITATIVE_VALUE_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="QUALITATIVE_VALUE_SEQ"/>
+    <sql>ALTER SEQUENCE QUALITATIVE_VALUE_SEQ RESTART WITH 330</sql>
+    <sql>select NEXT VALUE FOR QUALITATIVE_VALUE_SEQ from STATUS where ID=1</sql>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='0.16.0'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">0.16.0</column>
+      <column name="DESCRIPTION">
+        - Data: Add round weight conversion (équivalent poids vif)
+        - Add tables ROUND_WEIGHT_CONVERSION
+        - Add missing sequences LOCATION_SEQ
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

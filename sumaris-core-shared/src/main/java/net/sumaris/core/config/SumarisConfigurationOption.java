@@ -24,9 +24,7 @@ package net.sumaris.core.config;
  * #L%
  */
 
-
-
-import org.hibernate.dialect.HSQLDialect;
+import net.sumaris.core.dao.technical.hibernate.spatial.HSQLSpatialDialect;
 import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.version.Version;
 
@@ -191,7 +189,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     HIBERNATE_DIALECT(
             "spring.jpa.database-platform",
             n("sumaris.config.option.spring.jpa.database-platform.description"),
-            HSQLDialect.class.getName(),
+            HSQLSpatialDialect.class.getName(),
             Class.class),
 
     HIBERNATE_ENTITIES_PACKAGE(
@@ -360,7 +358,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     LIQUIBASE_RUN_AUTO(
             "spring.liquibase.enabled",
             n("sumaris.config.option.liquibase.should.run.description"),
-            Boolean.FALSE.toString(),
+            Boolean.TRUE.toString(),
             boolean.class,
             false),
 
@@ -447,12 +445,29 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             String.valueOf(1),
             Integer.class),
 
+    SEQUENCE_INCREMENT(
+            "sumaris.persistence.sequence.increment",
+            n("sumaris.config.option.persistence.sequence.increment.description"),
+            null, // null as default to let Hibernate use allocationSize in model (@see javax.persistence.SequenceGenerator.allocationSize)
+            Integer.class),
+
     SEQUENCE_SUFFIX(
             "sumaris.persistence.sequence.suffix",
             n("sumaris.config.option.persistence.sequence.suffix.description"),
             "_SEQ",
             String.class),
 
+    INIT_STATISTICAL_RECTANGLES(
+            "sumaris.persistence.init.statisticalRectangles",
+            n("sumaris.config.option.persistence.init.statisticalRectangles.description"),
+            Boolean.TRUE.toString(),
+            Boolean.class),
+
+    PRESERVE_HISTORICAL_MEASUREMENTS(
+            "sumaris.persistence.preserve.historicalMeasurements",
+            n("sumaris.config.option.persistence.preserve.historicalMeasurements.description"),
+            Boolean.FALSE.toString(),
+            Boolean.class)
 
     ;
 

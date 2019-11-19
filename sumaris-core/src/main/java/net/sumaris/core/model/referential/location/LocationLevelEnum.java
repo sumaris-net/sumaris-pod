@@ -7,10 +7,12 @@ public enum LocationLevelEnum implements Serializable {
 
 
     COUNTRY(1, "Country"),
-    PORT(2, "Port"),
-    RECTANGLE_ICES(3,"ICES_RECTANGLE"),
-    RECTANGLE_CGPM_GFCM(4,"CGPM_GFCM_RECTANGLE"),
-    SQUARE_10(5, "SQUARE_10")
+    HARBOUR(2, "Port"),
+    AUCTION(3, "Auction"),
+    RECTANGLE_ICES(4,"ICES_RECTANGLE"),
+    RECTANGLE_CGPM_GFCM(5,"CGPM_GFCM_RECTANGLE"),
+    SQUARE_10(6, "SQUARE_10"), // 10' x 10'
+    SQUARE_3(7, "SQUARE_3") // 3' x 3'
     ;
 
     public static LocationLevelEnum valueOf(final int id) {
@@ -22,7 +24,7 @@ public enum LocationLevelEnum implements Serializable {
 
     public static LocationLevelEnum byLabel(final String label) {
         return Arrays.stream(values())
-                .filter(level -> level.label == label)
+                .filter(level -> label.equals(level.label))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown LocationLevelEnum: " + label));
     }

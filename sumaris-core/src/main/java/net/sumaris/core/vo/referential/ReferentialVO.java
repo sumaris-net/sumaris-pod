@@ -23,11 +23,14 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
+@EqualsAndHashCode
 public class ReferentialVO implements IReferentialVO {
     private Integer id;
     private String label;
@@ -38,10 +41,12 @@ public class ReferentialVO implements IReferentialVO {
     private Date creationDate;
 
     private Integer statusId;
+
+    @EqualsAndHashCode.Exclude
     private Integer levelId;
 
     // Metadata
+    @EqualsAndHashCode.Exclude
     private String entityName;
-
 }
 

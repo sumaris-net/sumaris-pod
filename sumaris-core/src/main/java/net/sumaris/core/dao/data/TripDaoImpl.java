@@ -28,26 +28,27 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.model.QualityFlagEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.data.Vessel;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -57,12 +58,15 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Repository("tripDao")
-public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
+public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
-    /** Logger. */
+    /**
+     * Logger.
+     */
     private static final Logger log =
             LoggerFactory.getLogger(TripDaoImpl.class);
 
@@ -87,7 +91,9 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<TripVO> getAllTrips(int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public List<TripVO> findAll(int offset, int size, String sortAttribute,
+                                SortDirection sortDirection,
+                                DataFetchOptions fieldOptions) {
 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Trip> query = builder.createQuery(Trip.class);
@@ -104,15 +110,25 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
             );
         }
 
-        return toTripVOs(entityManager.createQuery(query).
-                setFirstResult(offset)
+        // Enable fetch profiles
+        Session session = getSession();
+        if (fieldOptions.isWithRecorderDepartment() || fieldOptions.isWithRecorderPerson())
+            session.enableFetchProfile(Trip.FETCH_PROFILE_RECORDER);
+        if (fieldOptions.isWithObservers())
+            session.enableFetchProfile(Trip.FETCH_PROFILE_OBSERVERS);
+        session.enableFetchProfile(Trip.FETCH_PROFILE_LOCATION);
+
+        return toTripVOs(entityManager.createQuery(query)
+                .setFirstResult(offset)
                 .setMaxResults(size)
-                .getResultList());
+                .getResultList(), fieldOptions);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public List<TripVO> findAll(TripFilterVO filter, int offset, int size, String sortAttribute,
+                                SortDirection sortDirection,
+                                DataFetchOptions fieldOptions) {
         Preconditions.checkNotNull(filter);
         Preconditions.checkArgument(offset >= 0);
         Preconditions.checkArgument(size > 0);
@@ -133,31 +149,37 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         ParameterExpression<Date> endDateParam = builder.parameter(Date.class);
         ParameterExpression<Integer> locationIdParam = builder.parameter(Integer.class);
         ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
+        ParameterExpression<Integer> vesselIdParam = builder.parameter(Integer.class);
 
         query.select(root)
-            .where(builder.and(
-                // Filter: program
-                builder.or(
-                        builder.isNull(programIdParam),
-                        builder.equal(root.get(Trip.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
-                ),
-                // Filter: startDate
-                builder.or(
-                        builder.isNull(startDateParam),
-                        builder.not(builder.lessThan(root.get(Trip.PROPERTY_RETURN_DATE_TIME), startDateParam))
-                ),
-                // Filter: endDate
-                builder.or(
-                    builder.isNull(endDateParam),
-                    builder.not(builder.greaterThan(root.get(Trip.PROPERTY_DEPARTURE_DATE_TIME), endDateParam))
-                ),
-                // Filter: location
-                builder.or(
-                        builder.isNull(locationIdParam),
-                        builder.equal(root.get(Trip.PROPERTY_DEPARTURE_LOCATION).get(Location.PROPERTY_ID), locationIdParam),
-                        builder.equal(root.get(Trip.PROPERTY_RETURN_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
-                )
-            ));
+                .where(builder.and(
+                        // Filter: program
+                        builder.or(
+                                builder.isNull(programIdParam),
+                                builder.equal(root.get(Trip.Fields.PROGRAM).get(Program.Fields.ID), programIdParam)
+                        ),
+                        // Filter: startDate
+                        builder.or(
+                                builder.isNull(startDateParam),
+                                builder.not(builder.lessThan(root.get(Trip.Fields.RETURN_DATE_TIME), startDateParam))
+                        ),
+                        // Filter: endDate
+                        builder.or(
+                                builder.isNull(endDateParam),
+                                builder.not(builder.greaterThan(root.get(Trip.Fields.DEPARTURE_DATE_TIME), endDateParam))
+                        ),
+                        // Filter: location
+                        builder.or(
+                                builder.isNull(locationIdParam),
+                                builder.equal(root.get(Trip.Fields.DEPARTURE_LOCATION).get(Location.Fields.ID), locationIdParam),
+                                builder.equal(root.get(Trip.Fields.RETURN_LOCATION).get(Location.Fields.ID), locationIdParam)
+                        ),
+                        // Filter: vessel
+                        builder.or(
+                                builder.isNull(vesselIdParam),
+                                builder.equal(root.get(Trip.Fields.VESSEL).get(Location.Fields.ID), vesselIdParam)
+                        )
+                ));
 
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
@@ -173,9 +195,10 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
                 .setParameter(startDateParam, filter.getStartDate())
                 .setParameter(endDateParam, filter.getEndDate())
                 .setParameter(locationIdParam, filter.getLocationId())
+                .setParameter(vesselIdParam, filter.getVesselId())
                 .setFirstResult(offset)
                 .setMaxResults(size);
-        return toTripVOs(q.getResultList());
+        return toTripVOs(q.getResultList(), fieldOptions);
     }
 
     @Override
@@ -201,23 +224,23 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
                     // Filter: program
                     builder.or(
                             builder.isNull(programIdParam),
-                            builder.equal(root.get(Trip.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
+                            builder.equal(root.get(Trip.Fields.PROGRAM).get(Program.Fields.ID), programIdParam)
                     ),
                     // Filter: startDate
                     builder.or(
                             builder.isNull(startDateParam),
-                            builder.not(builder.lessThan(root.get(Trip.PROPERTY_RETURN_DATE_TIME), startDateParam))
+                            builder.not(builder.lessThan(root.get(Trip.Fields.RETURN_DATE_TIME), startDateParam))
                     ),
                     // Filter: endDate
                     builder.or(
                             builder.isNull(endDateParam),
-                            builder.not(builder.greaterThan(root.get(Trip.PROPERTY_DEPARTURE_DATE_TIME), endDateParam))
+                            builder.not(builder.greaterThan(root.get(Trip.Fields.DEPARTURE_DATE_TIME), endDateParam))
                     ),
                     // Filter: location
                     builder.or(
                             builder.isNull(locationIdParam),
-                            builder.equal(root.get(Trip.PROPERTY_DEPARTURE_LOCATION).get(Location.PROPERTY_ID), locationIdParam),
-                            builder.equal(root.get(Trip.PROPERTY_RETURN_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
+                            builder.equal(root.get(Trip.Fields.DEPARTURE_LOCATION).get(Location.Fields.ID), locationIdParam),
+                            builder.equal(root.get(Trip.Fields.RETURN_LOCATION).get(Location.Fields.ID), locationIdParam)
                     )
             ));
         }
@@ -240,14 +263,7 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
     @Override
     public TripVO get(int id) {
         Trip entity = get(Trip.class, id);
-        return toTripVO(entity);
-    }
-
-    @Override
-    public <T> T get(int id, Class<T> targetClass) {
-        if (targetClass.isAssignableFrom(Trip.class)) return (T)get(Trip.class, id);
-        if (targetClass.isAssignableFrom(TripVO.class)) return (T)get(id);
-        throw new IllegalArgumentException("Unable to convert into " + targetClass.getName());
+        return toVO(entity);
     }
 
     @Override
@@ -256,15 +272,13 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
 
         EntityManager entityManager = getEntityManager();
         Trip entity = null;
-        if (source.getId() != null) {
+        if (source.getId() != null && source.getId().intValue() >= 0) {
             entity = get(Trip.class, source.getId());
         }
         boolean isNew = (entity == null);
         if (isNew) {
             entity = new Trip();
-        }
-
-        else {
+        } else {
             // Check update date
             checkUpdateDateForUpdate(source, entity);
 
@@ -281,6 +295,9 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
 
         // Save entityName
         if (isNew) {
+            // Force id to null, to use the generator
+            entity.setId(null);
+
             // Force creation date
             entity.setCreationDate(newUpdateDate);
             source.setCreationDate(newUpdateDate);
@@ -308,37 +325,8 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
     }
 
     @Override
-    public TripVO toTripVO(Trip source) {
-        if (source == null) return null;
-
-        TripVO target = new TripVO();
-
-        Beans.copyProperties(source, target);
-
-        // Program
-        target.setProgram(programDao.toProgramVO(source.getProgram()));
-
-        // Vessel
-        VesselFeaturesVO vesselFeatures = new VesselFeaturesVO();
-        vesselFeatures.setVesselId(source.getVessel().getId());
-        target.setVesselFeatures(vesselFeatures);
-        target.setQualityFlagId(source.getQualityFlag().getId());
-
-        // Departure & return locations
-        target.setDepartureLocation(locationDao.toLocationVO(source.getDepartureLocation()));
-        target.setReturnLocation(locationDao.toLocationVO(source.getReturnLocation()));
-
-        // Recorder department
-        DepartmentVO recorderDepartment = departmentDao.toDepartmentVO(source.getRecorderDepartment());
-        target.setRecorderDepartment(recorderDepartment);
-
-        // Recorder person
-        if (source.getRecorderPerson() != null) {
-            PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
-            target.setRecorderPerson(recorderPerson);
-        }
-
-        return target;
+    public TripVO toVO(Trip source) {
+        return toTripVO(source, null);
     }
 
     @Override
@@ -346,6 +334,9 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         Preconditions.checkNotNull(source);
 
         Trip entity = get(Trip.class, source.getId());
+        if (entity == null) {
+            throw new DataRetrievalFailureException(String.format("Trip {%s} not found", source.getId()));
+        }
 
         // Check update date
         checkUpdateDateForUpdate(source, entity);
@@ -376,26 +367,28 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         Preconditions.checkNotNull(source);
 
         Trip entity = get(Trip.class, source.getId());
+        if (entity == null) {
+            throw new DataRetrievalFailureException(String.format("Trip {%s} not found", source.getId()));
+        }
 
         // Check update date
         checkUpdateDateForUpdate(source, entity);
 
         // Lock entityName
-//        lockForUpdate(entity);
-
-        // TODO VALIDATION PROCESS HERE
-        Date validationDate = getDatabaseCurrentTimestamp();
-        entity.setValidationDate(validationDate);
+        // lockForUpdate(entity);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
+        // TODO VALIDATION PROCESS HERE
+        entity.setValidationDate(newUpdateDate);
+
         // Save entityName
-//        getEntityManager().merge(entity);
+        getEntityManager().merge(entity);
 
         // Update source
-        source.setValidationDate(validationDate);
+        source.setValidationDate(newUpdateDate);
         source.setUpdateDate(newUpdateDate);
 
         return source;
@@ -406,6 +399,9 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         Preconditions.checkNotNull(source);
 
         Trip entity = get(Trip.class, source.getId());
+        if (entity == null) {
+            throw new DataRetrievalFailureException(String.format("Trip {%s} not found", source.getId()));
+        }
 
         // Check update date
         checkUpdateDateForUpdate(source, entity);
@@ -415,16 +411,66 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
 
         // TODO UNVALIDATION PROCESS HERE
         entity.setValidationDate(null);
+        entity.setQualificationDate(null);
+        entity.setQualityFlag(load(QualityFlag.class, QualityFlagEnum.NOT_QUALIFED.getId()));
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
         // Save entityName
-//        getEntityManager().merge(entity);
+        getEntityManager().merge(entity);
 
         // Update source
         source.setValidationDate(null);
+        source.setQualificationDate(null);
+        source.setQualityFlagId(QualityFlagEnum.NOT_QUALIFED.getId());
+        source.setUpdateDate(newUpdateDate);
+
+        return source;
+    }
+
+    @Override
+    public TripVO qualify(TripVO source) {
+        Preconditions.checkNotNull(source);
+
+        Trip entity = get(Trip.class, source.getId());
+        if (entity == null) {
+            throw new DataRetrievalFailureException(String.format("Trip {%s} not found", source.getId()));
+        }
+
+        // Check update date
+        checkUpdateDateForUpdate(source, entity);
+
+        // Lock entityName
+//        lockForUpdate(entity);
+
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        int qualityFlagId = source.getQualityFlagId() != null ? source.getQualityFlagId().intValue() : 0;
+
+        // If not qualify, then remove the qualification date
+        if (qualityFlagId == QualityFlagEnum.NOT_QUALIFED.getId()) {
+            entity.setQualificationDate(null);
+        }
+        else {
+            entity.setQualificationDate(newUpdateDate);
+        }
+        // Apply a get, because can return a null value (e.g. if id is not in the DB instance)
+        entity.setQualityFlag(get(QualityFlag.class, Integer.valueOf(qualityFlagId)));
+
+        // TODO UNVALIDATION PROCESS HERE
+        // - insert into qualification history
+
+        // Save entityName
+        getEntityManager().merge(entity);
+
+        // Update source
+        source.setQualificationDate(entity.getQualificationDate());
+        source.setQualityFlagId(entity.getQualityFlag() != null ? entity.getQualityFlag().getId() : 0);
         source.setUpdateDate(newUpdateDate);
 
         return source;
@@ -432,49 +478,70 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
 
     /* -- protected methods -- */
 
-    protected List<TripVO> toTripVOs(List<Trip> source) {
+    protected List<TripVO> toTripVOs(List<Trip> source, DataFetchOptions fieldOptions) {
         return source.stream()
-                .map(this::toTripVO)
+                .map(item -> this.toTripVO(item, fieldOptions))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    protected void tripVOToEntity(TripVO source, Trip target, boolean copyIfNull) {
+    protected TripVO toTripVO(Trip source, DataFetchOptions fieldOptions) {
+        if (source == null) return null;
+
+        TripVO target = new TripVO();
 
         Beans.copyProperties(source, target);
 
         // Program
-        if (copyIfNull || (source.getProgram() != null && (source.getProgram().getId() != null || source.getProgram().getLabel() != null))) {
-            if (source.getProgram() == null || (source.getProgram().getId() == null && source.getProgram().getLabel() == null)) {
-                target.setProgram(null);
-            }
-            // Load by id
-            else if (source.getProgram().getId() != null){
-                target.setProgram(load(Program.class, source.getProgram().getId()));
-            }
-            // Load by label
-            else {
-                ProgramVO program = programDao.getByLabel(source.getProgram().getLabel());
-                target.setProgram(load(Program.class, program.getId()));
-            }
-        }
+        target.setProgram(programDao.toProgramVO(source.getProgram(),
+                ProgramFetchOptions.builder().withProperties(false).build()));
 
         // Vessel
-        if (copyIfNull || (source.getVesselFeatures() != null && source.getVesselFeatures().getVesselId() != null)) {
-            if (source.getVesselFeatures() == null || source.getVesselFeatures().getVesselId() == null) {
-                target.setVessel(null);
-            }
-            else {
-                target.setVessel(load(Vessel.class, source.getVesselFeatures().getVesselId()));
-            }
+        VesselSnapshotVO vesselSnapshot = new VesselSnapshotVO();
+        vesselSnapshot.setId(source.getVessel().getId());
+        target.setVesselSnapshot(vesselSnapshot);
+        target.setQualityFlagId(source.getQualityFlag().getId());
+
+        // Departure & return locations
+        target.setDepartureLocation(locationDao.toLocationVO(source.getDepartureLocation()));
+        target.setReturnLocation(locationDao.toLocationVO(source.getReturnLocation()));
+
+        // Recorder department
+        if ((fieldOptions == null || fieldOptions.isWithRecorderDepartment()) && source.getRecorderDepartment() != null) {
+            DepartmentVO recorderDepartment = departmentDao.toDepartmentVO(source.getRecorderDepartment());
+            target.setRecorderDepartment(recorderDepartment);
         }
+
+        // Recorder person
+        if ((fieldOptions == null || fieldOptions.isWithRecorderPerson()) && source.getRecorderPerson() != null) {
+            PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
+            target.setRecorderPerson(recorderPerson);
+        }
+
+        // Observers
+        if ((fieldOptions == null || fieldOptions.isWithObservers()) && CollectionUtils.isNotEmpty(source.getObservers())) {
+            Set<PersonVO> observers = source.getObservers().stream().map(personDao::toPersonVO).collect(Collectors.toSet());
+            target.setObservers(observers);
+        }
+
+        return target;
+    }
+
+    protected void tripVOToEntity(TripVO source, Trip target, boolean copyIfNull) {
+        // Copy properties
+        copyRootDataProperties(source, target, copyIfNull);
+
+        // Observers
+        copyObservers(source, target, copyIfNull);
+
+        // Vessel
+        copyVessel(source, target, copyIfNull);
 
         // Departure location
         if (copyIfNull || source.getDepartureLocation() != null) {
             if (source.getDepartureLocation() == null || source.getDepartureLocation().getId() == null) {
                 target.setDepartureLocation(null);
-            }
-            else {
+            } else {
                 target.setDepartureLocation(load(Location.class, source.getDepartureLocation().getId()));
             }
         }
@@ -483,40 +550,10 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         if (copyIfNull || source.getReturnLocation() != null) {
             if (source.getReturnLocation() == null || source.getReturnLocation().getId() == null) {
                 target.setReturnLocation(null);
-            }
-            else {
+            } else {
                 target.setReturnLocation(load(Location.class, source.getReturnLocation().getId()));
             }
         }
 
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
-            }
-        }
-
-        // Recorder person
-        if (copyIfNull || source.getRecorderPerson() != null) {
-            if (source.getRecorderPerson() == null || source.getRecorderPerson().getId() == null) {
-                target.setRecorderPerson(null);
-            }
-            else {
-                target.setRecorderPerson(load(Person.class, source.getRecorderPerson().getId()));
-            }
-        }
-
-        // Quality flag
-        if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-            }
-            else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
-            }
-        }
     }
 }

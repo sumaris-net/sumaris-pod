@@ -23,16 +23,17 @@ package net.sumaris.core.vo.referential;
  */
 
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.vo.IValueObject;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
-public interface IReferentialVO extends IUpdateDateEntityBean<Integer, Date> {
+public interface IReferentialVO extends IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
-    String PROPERTY_LABEL = "label";
-    String PROPERTY_NAME = "name";
-    String PROPERTY_LEVEL = "level";
+    interface Fields {
+//        String LABEL = "label";
+//        String NAME = "name";
+        String LEVEL = "level";
+    }
 
     String getLabel();
 

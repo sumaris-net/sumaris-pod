@@ -446,4 +446,20 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
 
         return result;
     }
+
+    public static Date getFirstDayOfYear(int year) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.DAY_OF_YEAR, 1);
+        resetTime(calendar);
+        return calendar.getTime();
+    }
+    public static Date getLastSecondOfYear(int year) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, year+1);
+        calendar.set(Calendar.DAY_OF_YEAR, 1);
+        resetTime(calendar);
+        calendar.add(Calendar.SECOND, -1);
+        return calendar.getTime();
+    }
 }

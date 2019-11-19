@@ -24,10 +24,14 @@ package net.sumaris.core.vo.file;
 
 
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.ErrorType;
 
+import java.io.Serializable;
+
 @Data
-public class ValidationErrorVO {
+@FieldNameConstants
+public class ValidationErrorVO implements Serializable {
 
 	protected String errorCode;
 

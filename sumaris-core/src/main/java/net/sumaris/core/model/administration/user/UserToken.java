@@ -23,22 +23,22 @@ package net.sumaris.core.model.administration.user;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IEntityBean;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.IEntity;
 
 import javax.persistence.*;
 import java.util.Date;
 import java.util.Objects;
 
 @Data
+@FieldNameConstants
 @Entity
 @Table(name = "user_token")
-public class UserToken implements IEntityBean<Integer> {
-
-    public static final String PROPERTY_PUBKEY = "pubkey";
-    public static final String PROPERTY_TOKEN = "token";
+public class UserToken implements IEntity<Integer> {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_TOKEN_SEQ")
+    @SequenceGenerator(name = "USER_TOKEN_SEQ", sequenceName="USER_TOKEN_SEQ")
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

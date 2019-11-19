@@ -28,7 +28,6 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -72,8 +71,8 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 	@Override
 	public List<ReferentialVO> findByFilter(String entityName, ReferentialFilterVO filter, int offset, int size) {
-		return referentialDao.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size,
-				IItemReferentialEntity.PROPERTY_LABEL,
+		return findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size,
+				IItemReferentialEntity.Fields.LABEL,
 				SortDirection.ASC);
 	}
 
@@ -110,6 +109,12 @@ public class ReferentialServiceImpl implements ReferentialService {
 	public Long count(String entityName) {
 		Preconditions.checkNotNull(entityName);
 		return referentialDao.count(entityName);
+	}
+
+	@Override
+	public Long countByLevelId(String entityName, Integer... levelIds) {
+		Preconditions.checkNotNull(entityName);
+		return referentialDao.countByLevelId(entityName, levelIds);
 	}
 
 	@Override

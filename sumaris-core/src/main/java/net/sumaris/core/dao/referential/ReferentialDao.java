@@ -33,10 +33,18 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Root;
 import java.util.List;
+import java.util.Optional;
 
 public interface ReferentialDao {
 
+    interface QueryVisitor<T> {
+        Expression<Boolean> apply(CriteriaQuery<T> query, Root<T> root);
+    }
 
     @Cacheable(cacheNames = CacheNames.REFERENTIAL_TYPES)
     List<ReferentialTypeVO> getAllTypes();
@@ -52,13 +60,25 @@ public interface ReferentialDao {
                                      String sortAttribute,
                                      SortDirection sortDirection);
 
-    @Cacheable(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, key = "#entityName:#label", condition = "#entityName == 'LocationLevel'")
+    @Cacheable(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, key = "#entityName+':'+#label", condition = "#entityName == 'LocationLevel'")
     ReferentialVO findByUniqueLabel(String entityName, String label);
 
     <T extends IReferentialEntity> ReferentialVO toReferentialVO(T source);
 
-    <T extends IReferentialVO, S extends IReferentialEntity> T toTypedVO(S source, Class<T> targetClazz);
+    <T extends IReferentialVO, S extends IReferentialEntity> Optional<T> toTypedVO(S source, Class<T> targetClazz);
 
+
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, key = "#source.id", condition = "#source.entityName == 'Person'"),
+                    @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#source.id", condition = "#source.entityName == 'Department'"),
+                    @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Pmfm'"),
+                    @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#source.id", condition = "#source.entityName == 'Program'"),
+                    @CacheEvict(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, key = "#source.label", condition = "#source.entityName == 'LocationLevel'"),
+                    @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'Program'"),
+                    @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Program'")
+            }
+    )
     ReferentialVO save(ReferentialVO source);
 
     @Caching(evict= {
@@ -66,9 +86,23 @@ public interface ReferentialDao {
             @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id", condition = "#entityName == 'Department'"),
             @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#id", condition = "#entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#id", condition = "#entityName == 'Program'"),
-            @CacheEvict(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'")
+            @CacheEvict(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'"),
+            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, allEntries = true, condition = "#entityName == 'Program'"),
+            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_ID, key = "#id", condition = "#entityName == 'Program'")
     })
     void delete(String entityName, int id);
 
     Long count(String entityName);
+
+    Long countByLevelId(String entityName, Integer... levelIds);
+
+    <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
+                                      Integer levelId,
+                                      Integer[] levelIds,
+                                      String searchText,
+                                      String searchAttribute,
+                                      Integer[] statusIds,
+                                      String sortAttribute,
+                                      SortDirection sortDirection,
+                                      QueryVisitor<T> queryVisitor);
 }

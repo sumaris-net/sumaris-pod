@@ -23,12 +23,10 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.data.batch.BatchDao;
-import net.sumaris.core.dao.data.sample.SampleDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.util.Beans;
+import net.sumaris.core.dao.referential.metier.MetierRepository;
+import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;
@@ -36,6 +34,7 @@ import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.OperationVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -54,7 +53,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("operationDao")
-public class OperationDaoImpl extends HibernateDaoSupport implements OperationDao {
+public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
     /** Logger. */
     private static final Logger log =
@@ -73,6 +72,12 @@ public class OperationDaoImpl extends HibernateDaoSupport implements OperationDa
     @Autowired
     private PhysicalGearDao physicalGearDao;
 
+    @Autowired
+    private TaxonGroupRepository taxonGroupDao;
+
+    @Autowired
+    private MetierRepository metierDao;
+
     @Override
     @SuppressWarnings("unchecked")
     public List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
@@ -90,7 +95,7 @@ public class OperationDaoImpl extends HibernateDaoSupport implements OperationDa
         ParameterExpression<Integer> operationIdParam = builder.parameter(Integer.class);
 
         query.select(root)
-            .where(builder.equal(root.get(Operation.PROPERTY_TRIP).get(IReferentialEntity.PROPERTY_ID), operationIdParam));
+            .where(builder.equal(root.get(Operation.Fields.TRIP).get(IReferentialEntity.Fields.ID), operationIdParam));
 
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
@@ -111,7 +116,7 @@ public class OperationDaoImpl extends HibernateDaoSupport implements OperationDa
     @Override
     public OperationVO get(int id) {
         Operation entity = get(Operation.class, id);
-        return toOperationVO(entity);
+        return toVO(entity);
     }
 
     @Override
@@ -170,6 +175,9 @@ public class OperationDaoImpl extends HibernateDaoSupport implements OperationDa
 
         // Save entityName
         if (isNew) {
+            // Force id to null, to use the generator
+            entity.setId(null);
+
             session.persist(entity);
             source.setId(entity.getId());
         } else {
@@ -192,7 +200,7 @@ public class OperationDaoImpl extends HibernateDaoSupport implements OperationDa
     }
 
     @Override
-    public OperationVO toOperationVO(Operation source) {
+    public OperationVO toVO(Operation source) {
         if (source == null) return null;
 
         OperationVO target = new OperationVO();
@@ -215,11 +223,11 @@ public class OperationDaoImpl extends HibernateDaoSupport implements OperationDa
 
         // Métier
         if (source.getMetier() != null) {
-            target.setMetier(referentialDao.toReferentialVO(source.getMetier()));
+            target.setMetier(metierDao.toMetierVO(source.getMetier()));
         }
 
         // Recorder department
-        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         return target;
@@ -229,7 +237,7 @@ public class OperationDaoImpl extends HibernateDaoSupport implements OperationDa
 
     protected List<OperationVO> toOperationVOs(List<Operation> source) {
         return source.stream()
-                .map(this::toOperationVO)
+                .map(this::toVO)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }

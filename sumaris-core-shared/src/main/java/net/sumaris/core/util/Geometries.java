@@ -179,7 +179,7 @@ public class Geometries {
 		String wtkPoint3 = String.format(WKT_POLYGON_SUBPART, topRightX, topRightY);
 		String wtkPoint4 = String.format(WKT_POLYGON_SUBPART, bottomLeftX, topRightY);
 		String wtkPolygon = wtkPoint1 + "," + wtkPoint2 + "," + wtkPoint3 + "," + wtkPoint4 + "," + wtkPoint1;
-		String wktString = null;
+		String wktString;
 		if (!returnHasMultiPolygon) {
 			wktString = String.format(WKT_POLYGON, wtkPolygon);
 		} else {

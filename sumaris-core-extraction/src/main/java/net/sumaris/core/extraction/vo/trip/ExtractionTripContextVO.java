@@ -4,10 +4,13 @@ import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.extraction.vo.ExtractionContextVO;
+import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Ludovic Pecquot <ludovic.pecquot>
@@ -15,59 +18,34 @@ import java.util.*;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public abstract class ExtractionTripContextVO {
+public class ExtractionTripContextVO extends ExtractionContextVO {
 
-    long id;
-    TripFilterVO filter;
-
-    String formatName;
-    String formatVersion;
+    TripFilterVO tripFilter;
 
     List<ExtractionPmfmInfoVO> pmfmInfos;
 
-    @FieldNameConstants.Exclude
-    Map<String, String> tableNames = new LinkedHashMap<>();
-
     public Date getStartDate() {
-        return filter != null ? filter.getStartDate() : null;
+        return tripFilter != null ? tripFilter.getStartDate() : null;
     }
 
     public Date getEndDate() {
-        return filter != null ? filter.getEndDate() : null;
+        return tripFilter != null ? tripFilter.getEndDate() : null;
     }
 
     public List<String> getProgramLabels() {
-        return filter != null ? ImmutableList.of(filter.getProgramLabel()) : null;
+        return tripFilter != null && StringUtils.isNotBlank(tripFilter.getProgramLabel()) ? ImmutableList.of(tripFilter.getProgramLabel()) : null;
     }
 
     public List<Integer> getRecorderDepartmentIds() {
-        return filter != null ? ImmutableList.of(filter.getRecorderDepartmentId()) : null;
+        return tripFilter != null && tripFilter.getRecorderDepartmentId() != null ? ImmutableList.of(tripFilter.getRecorderDepartmentId()) : null;
     }
 
     public List<Integer> getVesselIds() {
-        return filter != null ? ImmutableList.of(filter.getVesselId()) : null;
+        return tripFilter != null && tripFilter.getVesselId() != null ? ImmutableList.of(tripFilter.getVesselId()) : null;
     }
 
     public List<Integer> getLocationIds() {
-        return filter != null ? ImmutableList.of(filter.getLocationId()) : null;
-    }
-
-    /**
-     * Register a table (with rows inside)
-     * @param tableName
-     * @param userFriendlyName
-     */
-    public void addTableName(String tableName, String userFriendlyName) {
-        tableNames.put(tableName, userFriendlyName);
-    }
-
-    public String getUserFriendlyName(String tableName) {
-        String otherName = tableNames.get(tableName);
-        return (otherName!=null) ? otherName : tableName;
-    }
-
-    public Set<String> getTableNames() {
-        return tableNames.keySet();
+        return tripFilter != null && tripFilter.getLocationId() != null ? ImmutableList.of(tripFilter.getLocationId()) : null;
     }
 
 }

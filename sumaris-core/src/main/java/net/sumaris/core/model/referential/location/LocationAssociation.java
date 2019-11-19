@@ -23,22 +23,19 @@ package net.sumaris.core.model.referential.location;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IEntityBean;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.Status;
+import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@FieldNameConstants
 @Entity
 @Cacheable
 @Table(name="location_association")
 @IdClass(LocationAssociationId.class)
 public class LocationAssociation implements Serializable {
-
-    public static final String PROPERTY_LOCATION_LEVEL = "locationLevel";
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
