@@ -44,4 +44,6 @@ public interface MetierRepositoryExtend {
             int size,
             String sortAttribute,
             SortDirection sortDirection);
+
+    MetierVO getById(int id);
 }

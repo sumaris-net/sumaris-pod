@@ -25,6 +25,7 @@ package net.sumaris.server.http.graphql.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
+import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.*;
@@ -34,6 +35,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.*;
+import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -95,6 +97,9 @@ public class DataGraphQLService {
 
     @Autowired
     private ChangesPublisherService changesPublisherService;
+
+    @Autowired
+    private MetierRepository metierRepository;
 
     /* -- Vessel -- */
 
@@ -671,6 +676,7 @@ public class DataGraphQLService {
         return measurementService.getOperationGearUseMeasurementsMap(operation.getId());
     }
 
+
     // Physical gear
     @GraphQLQuery(name = "measurements", description = "Get physical gear measurements")
     public List<MeasurementVO> getPhysicalGearMeasurements(@GraphQLContext PhysicalGearVO physicalGear) {
@@ -683,6 +689,19 @@ public class DataGraphQLService {
             return physicalGear.getMeasurementValues();
         }
         return measurementService.getPhysicalGearMeasurementsMap(physicalGear.getId());
+    }
+
+    // Metier
+    @GraphQLQuery(name = "metier", description = "Get operation's metier")
+    public MetierVO getOperationMetier(@GraphQLContext OperationVO operation) {
+        // Already fetch: use it
+        if (operation.getMetier() == null || operation.getMetier().getTaxonGroup() != null) {
+            return operation.getMetier();
+        }
+        Integer metierId = operation.getMetier().getId();
+        if (metierId == null) return null;
+
+        return metierRepository.getById(metierId);
     }
 
     // Sample
