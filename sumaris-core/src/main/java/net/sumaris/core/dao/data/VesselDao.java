@@ -46,6 +46,8 @@ public interface VesselDao {
 
     VesselFeaturesVO save(VesselFeaturesVO vesselFeatures);
 
-    VesselSnapshotVO toVesselFeaturesVO(VesselFeatures vesselFeatures);
+    VesselSnapshotVO toVesselSnapshotVO(VesselFeatures vesselFeatures);
+
+    VesselFeaturesVO toVesselFeaturesVO(VesselFeatures source);
 
 }

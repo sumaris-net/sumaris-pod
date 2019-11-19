@@ -100,7 +100,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             TypedQuery<VesselFeaturesResult> q = getEntityManager().createQuery(query)
                     .setFirstResult(offset)
                     .setMaxResults(size);
-            return toVesselFeaturesVOs(q.getResultList());
+            return toVesselSnapshotVOs(q.getResultList());
         }
 
         List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds())
@@ -195,7 +195,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 .setFirstResult(offset)
                 .setMaxResults(size);
         List<VesselFeaturesResult> result = q.getResultList();
-        return toVesselFeaturesVOs(result);
+        return toVesselSnapshotVOs(result);
     }
 
     @Override
@@ -219,8 +219,9 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             .setParameter(vesselIdParam, vesselId)
             .setFirstResult(offset)
             .setMaxResults(size);
-        List<VesselFeatures> result = q.getResultList();
-        return result.stream().map(this::toVesselFeaturesVO).collect(Collectors.toList());
+        return q.getResultStream()
+                .map(this::toVesselSnapshotVO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -381,7 +382,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     }
 
     @Override
-    public VesselSnapshotVO toVesselFeaturesVO(VesselFeatures source) {
+    public VesselSnapshotVO toVesselSnapshotVO(VesselFeatures source) {
         if (source == null) return null;
 
         VesselSnapshotVO target = new VesselSnapshotVO();
@@ -421,32 +422,85 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
     /* -- protected methods -- */
 
-    protected List<VesselSnapshotVO> toVesselFeaturesVOs(List<VesselFeaturesResult> source) {
+    protected List<VesselSnapshotVO> toVesselSnapshotVOs(List<VesselFeaturesResult> source) {
         return source.stream()
-                .map(this::toVesselFeaturesVO)
+                .map(this::toVesselSnapshotVO)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    protected VesselSnapshotVO toVesselFeaturesVO(VesselFeaturesResult source) {
+    protected VesselSnapshotVO toVesselSnapshotVO(VesselFeaturesResult source) {
         if (source == null)
             return null;
 
         // Vessel features
-        VesselSnapshotVO target = toVesselFeaturesVO(source.getVesselFeatures());
+        VesselSnapshotVO target = toVesselSnapshotVO(source.getVesselFeatures());
 
         VesselRegistrationPeriod period = source.getVesselRegistrationPeriod();
         if (period != null) {
 
-            // Registration id
-            target.setRegistrationId(period.getId());
-
             // Registration code
             target.setRegistrationCode(period.getRegistrationCode());
 
-            // Registration dates
-            target.setRegistrationStartDate(period.getStartDate());
-            target.setRegistrationEndDate(period.getEndDate());
+            // Registration location
+            LocationVO registrationLocation = locationDao.toLocationVO(period.getRegistrationLocation());
+            target.setRegistrationLocation(registrationLocation);
+        }
+
+        return target;
+    }
+
+    @Override
+    public VesselFeaturesVO toVesselFeaturesVO(VesselFeatures source) {
+        if (source == null) return null;
+
+        VesselFeaturesVO target = new VesselFeaturesVO();
+
+        Beans.copyProperties(source, target);
+
+        // Convert from cm to m
+        if (source.getLengthOverAll() != null) {
+            target.setLengthOverAll(source.getLengthOverAll().doubleValue() /100);
+        }
+        // Convert tonnage (divide by 100)
+        if (source.getGrossTonnageGrt() != null) {
+            target.setGrossTonnageGrt(source.getGrossTonnageGrt().doubleValue() / 100);
+        }
+        if (source.getGrossTonnageGt() != null) {
+            target.setGrossTonnageGt(source.getGrossTonnageGt().doubleValue() / 100);
+        }
+
+        target.setId(source.getVessel().getId());
+        target.setVesselStatusId(source.getVessel().getStatus().getId());
+        target.setQualityFlagId(source.getQualityFlag().getId());
+
+        // Vessel type
+        ReferentialVO vesselType = referentialDao.toReferentialVO(source.getVessel().getVesselType());
+        target.setVesselType(vesselType);
+
+        // base port location
+        LocationVO basePortLocation = locationDao.toLocationVO(source.getBasePortLocation());
+        target.setBasePortLocation(basePortLocation);
+
+        // Recorder department
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+        target.setRecorderDepartment(recorderDepartment);
+
+        return target;
+    }
+
+    protected VesselFeaturesVO toVesselFeaturesVO(VesselFeaturesResult source) {
+        if (source == null)
+            return null;
+
+        // Vessel features
+        VesselFeaturesVO target = toVesselFeaturesVO(source.getVesselFeatures());
+
+        VesselRegistrationPeriod period = source.getVesselRegistrationPeriod();
+        if (period != null) {
+
+            // Registration code
+            target.setRegistrationCode(period.getRegistrationCode());
 
             // Registration location
             LocationVO registrationLocation = locationDao.toLocationVO(period.getRegistrationLocation());
