@@ -120,8 +120,6 @@ export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDe
 
 }
 
-
-
 export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRecorderPersonEntity<T>, IWithProgramEntity<T> {
   creationDate: Moment;
   validationDate: Moment;

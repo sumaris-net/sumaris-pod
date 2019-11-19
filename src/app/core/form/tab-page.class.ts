@@ -20,6 +20,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
   debug = false;
   data: T;
+  previousDataId: number;
   selectedTabIndex = 0;
   submitted = false;
   error: string;
@@ -43,7 +44,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   }
 
   /**
-   *
+   * Is valid (tables and forms)
    */
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (and NOT 'invalid')

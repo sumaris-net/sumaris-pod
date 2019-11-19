@@ -14,7 +14,13 @@ import {
   VesselPosition
 } from "./trip.model";
 import {map, throttleTime} from "rxjs/operators";
-import {LoadResult, TableDataService, toBoolean} from "../../shared/shared.module";
+import {
+  EditorDataService,
+  EditorDataServiceLoadOptions,
+  LoadResult,
+  TableDataService,
+  toBoolean
+} from "../../shared/shared.module";
 import {BaseDataService, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
@@ -164,7 +170,9 @@ const sortByEndDateOrStartDateFn = (n1: Operation, n2: Operation) => {
 };
 
 @Injectable({providedIn: 'root'})
-export class OperationService extends BaseDataService implements TableDataService<Operation, OperationFilter> {
+export class OperationService extends BaseDataService
+  implements TableDataService<Operation, OperationFilter>,
+             EditorDataService<Operation, OperationFilter>{
 
   constructor(
     protected graphql: GraphqlService,
@@ -248,7 +256,7 @@ export class OperationService extends BaseDataService implements TableDataServic
         }));
   }
 
-  async load(id: number, options?: { fetchPolicy: FetchPolicy }): Promise<Operation | null> {
+  async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Operation | null> {
     if (isNil(id)) throw new Error("Missing argument 'id' ");
 
     const now = Date.now();
@@ -267,6 +275,10 @@ export class OperationService extends BaseDataService implements TableDataServic
 
     if (data && this._debug) console.debug(`[operation-service] Operation #${id} loaded in ${Date.now() - now}ms`, data);
     return data;
+  }
+
+  async delete(data: Operation, options?: any): Promise<any> {
+    await this.deleteAll([data]);
   }
 
   public listenChanges(id: number): Observable<Operation> {
@@ -485,9 +497,9 @@ export class OperationService extends BaseDataService implements TableDataServic
     // Measurements
     (entity.measurements || []).forEach(m => this.fillRecorderDepartment(m, department));
 
-    // Fill position date s
+    // Fill position dates
     entity.startPosition.dateTime = entity.fishingStartDateTime || entity.startDateTime;
-    entity.endPosition.dateTime = entity.fishingEndDateTime || entity.endDateTime;
+    entity.endPosition.dateTime = entity.fishingEndDateTime || entity.endDateTime || entity.startPosition.dateTime;
 
     // Fill trip ID
     if (!entity.tripId && options) {

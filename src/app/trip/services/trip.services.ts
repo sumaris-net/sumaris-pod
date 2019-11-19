@@ -7,6 +7,9 @@ export { LandingService } from './landing.service';
 
 
 export interface DataQualityService<T extends DataEntity<T>> {
+
+  synchronize(data: T): Promise<T>;
+
   control(data: T): Promise<T>;
   validate(data: T): Promise<T>;
   unvalidate(data: T): Promise<T>;

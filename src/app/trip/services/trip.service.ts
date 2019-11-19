@@ -463,7 +463,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
        },
        offlineResponse,
        error: { reject,  code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" },
-       update: (proxy, {data}) => {
+       update: async (proxy, {data}) => {
          const savedEntity = data && data.saveTrips && data.saveTrips[0];
 
          // Local entity: save it
@@ -471,7 +471,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
            if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', savedEntity);
 
            // Save response locally
-           this.entities.save(savedEntity);
+           await this.entities.save(savedEntity);
          }
 
          // Update the entity and update GraphQL cache
@@ -479,7 +479,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
 
            // Remove existing entity from the local storage
            if (entity.id < 0) {
-             this.entities.delete(entity);
+             await this.entities.delete(entity);
            }
 
            // Copy id and update Date
@@ -511,6 +511,23 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
 
   }
 
+  async synchronize(entity: Trip): Promise<Trip> {
+    if (isNil(entity.id) || entity.id >= 0) {
+      throw new Error("Entity must be a local entity");
+    }
+    if (this.network.offline) {
+      throw new Error("Could not synchronize if network if offline");
+    }
+
+    entity = await this.save(entity);
+
+    if (entity.id < 0) {
+      throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
+    }
+
+    return this.control(entity);
+  }
+
   /**
    * Control the trip
    * @param entity
@@ -521,6 +538,13 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
 
     if (isNil(entity.id)) {
       throw new Error("Entity must be saved before control !");
+    }
+
+    if (entity.id < 0) {
+      if (this.network.offline) {
+        throw new Error("Could not control when offline");
+      }
+      entity = await this.save(entity);
     }
 
     // Prepare to save

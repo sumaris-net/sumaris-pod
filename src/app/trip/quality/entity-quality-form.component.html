@@ -1,6 +1,10 @@
 <ion-label class="ion-text-wrap" *ngIf="!loading">
-  <br/>
-
+  <br *ngIf="data.updateDate"/>
+  <!-- local entity -->
+  <ion-text *ngIf="!data.updateDate">
+    <ion-icon name="warning"></ion-icon>&nbsp;
+    <span translate>QUALITY.NOT_SYNCHRONIZED</span>
+  </ion-text>
   <!-- control date -->
   <ion-text *ngIf="data.controlDate">
     <ion-icon name="checkmark"></ion-icon>&nbsp;
@@ -21,16 +25,20 @@
 </ion-label>
 
 <p>
+  <ion-button *ngIf="canSynchronize" (click)="synchronize($event)" expand="block" color="danger">
+    <ion-icon slot="start" name="cloud-upload"></ion-icon>
+    <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
+  </ion-button>
   <ion-button *ngIf="canControl" (click)="control($event)" expand="block" color="tertiary">
-    <ion-icon name="checkmark"></ion-icon>&nbsp;
-    <ion-text translate>QUALITY.CONTROL</ion-text>
+    <ion-icon slot="start" name="checkmark"></ion-icon>&nbsp;
+    <ion-text translate>QUALITY.BTN_CONTROL</ion-text>
   </ion-button>
   <ion-button *ngIf="canValidate" (click)="validate($event)" expand="block" color="success">
-    <ion-icon name="checkmark-circle"></ion-icon>&nbsp;
-    <ion-text translate>QUALITY.VALIDATE</ion-text>
+    <ion-icon slot="start" name="checkmark-circle"></ion-icon>&nbsp;
+    <ion-text translate>QUALITY.BTN_VALIDATE</ion-text>
   </ion-button>
   <ion-button *ngIf="canUnvalidate" (click)="unvalidate($event)" expand="block" color="danger">
-    <ion-text translate>QUALITY.UNVALIDATE</ion-text>
+    <ion-text translate>QUALITY.BTN_UNVALIDATE</ion-text>
   </ion-button>
 
 </p>
@@ -52,7 +60,7 @@
 
       <ion-button *ngIf="canQualify" [matMenuTriggerFor]="qualityFlagMenu" expand="block" color="tertiary">
         <ion-icon name="ribbon" slot="start"></ion-icon>
-        <ion-text translate>QUALITY.QUALIFY</ion-text>
+        <ion-text translate>QUALITY.BTN_QUALIFY</ion-text>
         <ion-icon name="arrow-dropdown" slot="end"></ion-icon>
       </ion-button>
 
@@ -68,7 +76,7 @@
           </ion-text>
           <br/>
         </ion-label>
-        <ion-button  [matMenuTriggerFor]="qualityFlagMenu" expand="block"
+        <ion-button [matMenuTriggerFor]="qualityFlagMenu" expand="block"
                     [color]="qualityFlagToColor(data.qualityFlagId)">
           <ion-icon name="ribbon" slot="start"></ion-icon>
           <ion-text>

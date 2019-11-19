@@ -28,6 +28,7 @@ hooks/
 platforms/
 plugins/
 www/
+src/app/**/*.js
 $RECYCLE.BIN/
 
 .DS_Store

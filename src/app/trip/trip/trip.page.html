@@ -141,7 +141,8 @@
 </ion-content>
 
 <ion-footer [translucent]="true" hidden-xs hidden-sm hidden-mobile>
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
+  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
+                    [disabledCancel]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">

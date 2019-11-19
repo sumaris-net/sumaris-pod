@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, EventEmitter, Injector, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from "@angular/router";
+import {ActivatedRoute, ActivatedRouteSnapshot, Router} from "@angular/router";
 import {AlertController} from "@ionic/angular";
 
 import {TranslateService} from '@ngx-translate/core';
@@ -10,11 +10,12 @@ import {
   EditorDataService,
   EditorDataServiceLoadOptions,
   isNil,
-  isNotNil
+  isNotNil,
+  toBoolean
 } from '../../shared/shared.module';
 import {Moment} from "moment";
 import {LocalSettingsService} from "../services/local-settings.service";
-import {filter, first} from "rxjs/operators";
+import {filter} from "rxjs/operators";
 import {Entity, HistoryPageReference, UsageMode} from "../services/model";
 import {FormGroup} from "@angular/forms";
 import {AppTabPage} from "./tab-page.class";
@@ -30,6 +31,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
   $title = new Subject<string>();
   saving = false;
+  hasRemoteListener = false;
   defaultBackHref: string;
   onRefresh = new EventEmitter<any>();
   usageMode: UsageMode;
@@ -62,11 +64,17 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     // Register forms & tables
     this.registerFormsAndTables();
 
+    // Disable page, during load
     this.disable();
 
-    const params = this.route.snapshot.params;
+    // Load data from the snapshot route
+    this.loadFromRoute(this.route.snapshot);
+  }
+
+  protected async loadFromRoute(route: ActivatedRouteSnapshot) {
+    const params = route.params;
     const id = params[this.idAttribute];
-    if (!id || id === "new") {
+    if (isNil(id) || id === "new") {
       this.load(undefined, params);
     } else {
       this.load(+id, params);
@@ -99,8 +107,12 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   startListenRemoteChanges() {
+    if (this.hasRemoteListener) return; // Skip, if already listening
+
     // Listen for changes on server
     if (isNotNil(this.data.id) && this._enableListenChanges) {
+      this.hasRemoteListener = true;
+
       this.registerSubscription(
         this.dataService.listenChanges(this.data.id)
           .pipe(filter(isNotNil))
@@ -114,12 +126,23 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
               }
             }
           })
+          .add(() => this.hasRemoteListener = false)
       );
     }
   }
 
-  updateView(data: T | null) {
+  updateView(data: T | null, opts?: {
+    openSecondTab?: boolean;
+    updateTabAndRoute?: boolean;
+  }) {
+    const idChanged = this.previousDataId && isNotNil(data.id) && this.previousDataId !== data.id || false;
+
+    opts = opts || {};
+    opts.updateTabAndRoute = toBoolean(opts.updateTabAndRoute, idChanged);
+    opts.openSecondTab = toBoolean(opts.openSecondTab, idChanged && isNil(this.previousDataId));
+
     this.data = data;
+    this.previousDataId = data.id;
     this.setValue(data);
 
     this.updateTitle(data);
@@ -128,6 +151,11 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     this.markAsUntouched();
 
     this.updateViewState(data);
+
+    // Need to update route
+    if (opts.updateTabAndRoute === true) {
+      this.updateTabAndRoute(data, opts);
+    }
 
     this.onRefresh.emit();
   }
@@ -145,16 +173,20 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   /**
-   * After first save, update the route location
+   * Update the route location, and open the next tab
    */
-  async updateRouteAfterFirstSave(data: T) {
+  async updateTabAndRoute(data: T, opts?: {
+    openSecondTab?: boolean;
+  }) {
 
     this.queryParams = this.queryParams || {};
 
-    // Open the next tab
-    if (this.selectedTabIndex === 0) {
-      this.selectedTabIndex = 1;
-      Object.assign(this.queryParams, {tab: this.selectedTabIndex});
+    // Open the second tab
+    if (opts && opts.openSecondTab === true) {
+      if (this.selectedTabIndex === 0) {
+        this.selectedTabIndex = 1;
+        Object.assign(this.queryParams, {tab: this.selectedTabIndex});
+      }
     }
 
     // Update route location
@@ -201,20 +233,12 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     try {
       // Save saleControl form (with sale)
       const updatedData = await this.dataService.save(data);
-      this.markAsPristine();
-      this.markAsUntouched();
 
       // Update the view (e.g metadata)
-      this.updateView(updatedData);
+      this.updateView(updatedData, {openSecondTab: isNew});
 
-      // Is first save
-      if (isNew) {
-        // Update route location
-        await this.updateRouteAfterFirstSave(updatedData);
-
-        // Subscription to remote changes
-        this.startListenRemoteChanges();
-      }
+      // Subscribe to remote changes
+      if (!this.hasRemoteListener) this.startListenRemoteChanges();
 
       this.submitted = false;
       return true;
@@ -301,7 +325,6 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
   protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
     // can be overwrite by subclasses
-    console.warn(`${this.constructor.name} should implement fucntion updateRoute() to have correct URL, after saving entity`);
     return false;
   }
 

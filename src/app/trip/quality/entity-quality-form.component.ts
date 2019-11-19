@@ -3,7 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
-  Input,
+  Input, OnDestroy,
   OnInit,
   Output
 } from '@angular/core';
@@ -15,8 +15,9 @@ import {DataQualityService} from "../services/trip.services";
 import {QualityFlags, qualityFlagToColor} from "../../referential/services/model";
 import * as moment from "moment";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {Observable} from "rxjs";
+import {merge, Observable, Subscription} from "rxjs";
 import {first, map} from "rxjs/operators";
+import {NetworkService} from "../../core/services/network.service";
 
 @Component({
   selector: 'entity-quality-form',
@@ -25,10 +26,13 @@ import {first, map} from "rxjs/operators";
   animations: [fadeInAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EntityQualityFormComponent implements OnInit {
+export class EntityQualityFormComponent implements OnInit, OnDestroy {
+
+  private _subscription = new Subscription();
 
   data: DataRootEntity<any>;
   loading = true;
+  canSynchronize: boolean;
   canControl: boolean;
   canValidate: boolean;
   canUnvalidate: boolean;
@@ -57,9 +61,17 @@ export class EntityQualityFormComponent implements OnInit {
   constructor(
     protected accountService: AccountService,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    public network: NetworkService
   ) {
-    this.accountService.onLogin.subscribe(() => this.onValueChange());
+    this._subscription
+      .add(
+          merge(
+            this.accountService.onLogin,
+            this.network.onNetworkStatusChanges
+          )
+          .subscribe(() => this.onValueChange())
+      );
   }
 
   ngOnInit(): void {
@@ -79,14 +91,27 @@ export class EntityQualityFormComponent implements OnInit {
           const items = res && res.data || [];
 
           // Try to get i18n key instead of label
-          items.forEach(flag => {
-            flag.label = this.getI18nQualityFlag(flag.id) || flag.label;
-          });
+          items.forEach(flag => flag.label = this.getI18nQualityFlag(flag.id) || flag.label);
 
           return items;
         })
 
     );
+  }
+
+  ngOnDestroy(): void {
+    this._subscription.unsubscribe();
+  }
+
+  async synchronize(event: Event) {
+    if (event.defaultPrevented) return;
+
+    if (this.data instanceof Trip) {
+      console.debug("[quality] Synchronize trip...");
+      const data = await this.dataService.synchronize(this.data);
+      this.onChange.emit(data);
+      this.markForCheck();
+    }
   }
 
   async control(event: Event) {
@@ -96,8 +121,8 @@ export class EntityQualityFormComponent implements OnInit {
 
     if (this.data instanceof Trip) {
       console.debug("[quality] Mark trip as controlled...");
-      await this.dataService.control(this.data);
-      this.onChange.emit();
+      const data = await this.dataService.control(this.data);
+      this.onChange.emit(data);
       this.markForCheck();
     }
   }
@@ -109,24 +134,24 @@ export class EntityQualityFormComponent implements OnInit {
 
     if (this.data instanceof Trip) {
       console.debug("[quality] Mark trip as validated...");
-      await this.dataService.validate(this.data);
-      this.onChange.emit();
+      const data = await this.dataService.validate(this.data);
+      this.onChange.emit(data);
       this.markForCheck();
     }
   }
 
   async unvalidate(event) {
     if (this.data instanceof Trip) {
-      await this.dataService.unvalidate(this.data);
-      this.onChange.emit();
+      const data = await this.dataService.unvalidate(this.data);
+      this.onChange.emit(data);
       this.markForCheck();
     }
   }
 
   async qualify(event, qualityFlagId: number ) {
     if (this.data instanceof Trip) {
-      await this.dataService.qualify(this.data, qualityFlagId);
-      this.onChange.emit();
+      const data = await this.dataService.qualify(this.data, qualityFlagId);
+      this.onChange.emit(data);
       this.markForCheck();
     }
   }
@@ -148,16 +173,20 @@ export class EntityQualityFormComponent implements OnInit {
   protected onValueChange() {
     this.loading = isNil(this.data) || isNil(this.data.id);
     if (this.loading) {
+      this.canSynchronize = false;
       this.canControl = false;
       this.canValidate = false;
       this.canUnvalidate = false;
       this.canQualify = false;
+      this.canUnqualify = false;
     }
     else if (this.data instanceof Trip) {
       const canWrite = this.dataService.canUserWrite(this.data);
       const isSupervisor = this.accountService.isSupervisor();
-      this.canControl = canWrite && isNil(this.data.controlDate);
-      this.canValidate = canWrite && isSupervisor && isNotNil(this.data.controlDate) && isNil(this.data.validationDate);
+      const isLocalData = this.data.id < 0;
+      this.canSynchronize = canWrite && isLocalData && this.network.online;
+      this.canControl = canWrite && !isLocalData && isNil(this.data.controlDate);
+      this.canValidate = canWrite && isSupervisor && !isLocalData && isNotNil(this.data.controlDate) && isNil(this.data.validationDate);
       this.canUnvalidate = canWrite && isSupervisor && isNotNil(this.data.controlDate) && isNotNil(this.data.validationDate);
       this.canQualify = canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(this.data.validationDate) && isNil(this.data.qualificationDate);
       this.canUnqualify = canWrite && isSupervisor && isNotNil(this.data.validationDate) && isNotNil(this.data.qualificationDate);

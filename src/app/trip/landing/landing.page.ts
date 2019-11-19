@@ -13,7 +13,7 @@ import {FormGroup} from "@angular/forms";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
-import {isEmptyArray, isNotEmptyArray, isNotNilOrBlank} from "../../shared/functions";
+import {isNotEmptyArray} from "../../shared/functions";
 import {filter, throttleTime} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";

@@ -194,6 +194,7 @@ export class Operation extends DataEntity<Operation> {
   metier: MetierRef;
   physicalGear: PhysicalGear;
   tripId: number;
+  trip: Trip;
 
   measurements: Measurement[];
   samples: Sample[];
@@ -268,6 +269,7 @@ export class Operation extends DataEntity<Operation> {
     this.fishingEndDateTime = fromDateISOString(source.fishingEndDateTime);
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
     this.metier = source.metier && MetierRef.fromObject(source.metier, true/*Copy taxonGroup label/name*/) || undefined;
+    console.log("TODO heck position", source)
     if (source.startPosition || source.endPosition) {
       this.startPosition = source.startPosition && VesselPosition.fromObject(source.startPosition);
       this.endPosition = source.endPosition && VesselPosition.fromObject(source.endPosition);

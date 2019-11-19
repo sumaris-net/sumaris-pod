@@ -5,6 +5,7 @@ import {DOCUMENT} from "@angular/common";
 import {MatDialog} from '@angular/material';
 import {HotkeysDialogComponent} from './dialog/hotkeys-dialog.component';
 import {isNotNilOrBlank} from "../functions";
+import {environment} from "../../../environments/environment.prod";
 
 type Options = {
   element: any;
@@ -18,6 +19,7 @@ type Options = {
 })
 export class Hotkeys {
 
+  private _debug = false;
   private _hotkeys = new Map();
 
   private _defaults: Partial<Options> = {
@@ -28,11 +30,13 @@ export class Hotkeys {
   constructor(private eventManager: EventManager,
               private dialog: MatDialog,
               @Inject(DOCUMENT) private document: Document) {
-    console.debug("[hotkeys] Starting hotkeys service... Press Shift+? to get help modal.");
+    if (this._debug) console.debug("[hotkeys] Starting hotkeys service... Press Shift+? to get help modal.");
 
     this.addShortcut({ keys: 'shift.?' })
       .subscribe(() => this.openHelpModal());
 
+    // For DEV only
+    //this._debug = !environment.production;
   }
 
   addShortcut(options: Partial<Options>): Observable<UIEvent> {
@@ -42,18 +46,18 @@ export class Hotkeys {
 
 
     if (isNotNilOrBlank(merged.description)) {
-      console.debug(`[hotkeys] Add shortcut {${options.keys}}: ${merged.description}`);
+      if (this._debug) console.debug(`[hotkeys] Add shortcut {${options.keys}}: ${merged.description}`);
       this._hotkeys.set(merged.keys, merged.description);
     }
     else {
-      console.debug(`[hotkeys] Add shortcut {${options.keys}}`);
+      if (this._debug) console.debug(`[hotkeys] Add shortcut {${options.keys}}`);
     }
 
     return new Observable(observer => {
       const handler = (e: UIEvent) => {
         if (e instanceof KeyboardEvent && e.repeat) return; // skip when repeated
         if (merged.preventDefault) e.preventDefault();
-        console.debug(`[hotkeys] Shortcut {${options.keys}} detected...`);
+        if (this._debug) console.debug(`[hotkeys] Shortcut {${options.keys}} detected...`);
         observer.next(e);
       };
 
