@@ -11,7 +11,7 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
 import {VesselFilter} from "../../services/vessel-service";
 import {AppTableDataSource} from "../../../core/table/table-datasource.class";
 import {environment} from "../../../../environments/environment";
-import {VesselFeaturesHistoryService} from "../../services/vessel-features-history.service";
+import {VesselFeaturesService} from "../../services/vessel-features.service";
 
 @Component({
   selector: 'app-vessel-features-history-table',
@@ -35,7 +35,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected vesselValidatorService: VesselValidatorService,
-    protected vesselService: VesselFeaturesHistoryService,
+    protected vesselService: VesselFeaturesService,
     protected cd: ChangeDetectorRef) {
 
     super(route, router, platform, location, modalCtrl, settings,

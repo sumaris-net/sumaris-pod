@@ -36,7 +36,7 @@ export class TripValidatorService extends DataRootEntityValidatorService<Trip> {
   getFormOptions(data?: any): { [key: string]: any } {
     return {
       validator: Validators.compose([
-        SharedValidators.dateIsAfter('departureDateTime', 'returnDateTime'),
+        SharedValidators.dateRange('departureDateTime', 'returnDateTime'),
         SharedValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours'),
         SharedValidators.dateMaxDuration('departureDateTime', 'returnDateTime', 100, 'days')
       ])
@@ -59,7 +59,7 @@ export class TripValidatorService extends DataRootEntityValidatorService<Trip> {
       comments: ['', Validators.maxLength(2000)]
     }, {
       validator: Validators.compose([
-        SharedValidators.dateIsAfter('departureDateTime', 'returnDateTime'),
+        SharedValidators.dateRange('departureDateTime', 'returnDateTime'),
         SharedValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours'),
         SharedValidators.dateMaxDuration('departureDateTime', 'returnDateTime', 100, 'days')
       ])

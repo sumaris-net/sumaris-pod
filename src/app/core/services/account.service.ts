@@ -332,7 +332,8 @@ export class AccountService extends BaseDataService {
 
   public canUserWriteDataForDepartment(recorderDepartment: Referential | any): boolean {
     if (EntityUtils.isEmpty(recorderDepartment)) {
-      console.warn("Unable to check if user has right: invalid recorderDepartment", recorderDepartment);
+      if (!this.isAdmin())
+        console.warn("Unable to check if user has right: invalid recorderDepartment", recorderDepartment);
       return this.isAdmin();
     }
 

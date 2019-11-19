@@ -631,6 +631,8 @@
     "EXTERIOR_MARKING": "Exterior Marking",
     "REGISTRATION_CODE": "Registration Code",
     "REGISTRATION_LOCATION": "Registration Location",
+    "REGISTRATION_START_DATE": "Registration start date",
+    "REGISTRATION_END_DATE": "Registration end date",
     "BASE_PORT_LOCATION": "Base port",
     "VESSEL_TYPE": "Type",
     "VESSEL_STATUS_ID": "Status",
@@ -639,7 +641,7 @@
     "START_DATE": "Validity start date",
     "END_DATE": "Validity end date",
     "TAB_GENERAL": "General information",
-    "TAB_HISTORY": "Vessel history",
+    "TAB_HISTORY": "History",
     "GROSS_TONNAGE_GT": "Gross tonnage (GT)",
     "GROSS_TONNAGE_GRT": "Gross registered tonnage (GRT)",
     "ADMINISTRATIVE_POWER": "Administrative power (kW)",
@@ -650,8 +652,11 @@
     },
     "ACTION": {
       "EDIT": "Edit",
-      "EDIT_FEATURE": "Modify current vessel",
-      "NEW_FEATURE": "Declare a change"
+      "EDIT_FEATURES": "Modify current features",
+      "NEW_FEATURES": "Declare a feature change",
+      "EDIT_REGISTRATION": "Modify current registration",
+      "NEW_REGISTRATION": "Declare new registration",
+      "EDIT_STATUS": "Modify status"
     },
     "EDIT": {
       "TITLE": "Vessel {{exteriorMarking}}"
@@ -934,7 +939,8 @@
     "FIELD_NOT_VALID_INTEGER": "Expected integer value",
     "FIELD_NOT_VALID_EMAIL": "Invalid email address",
     "FIELD_NOT_VALID_DATE": "Invalid date",
-    "FIELD_NOT_VALID_DATE_AFTER": "Inconsistent dates",
+    "FIELD_NOT_VALID_DATE_AFTER": "Must be after {{minDate}}",
+    "FIELD_NOT_VALID_DATE_RANGE": "Inconsistent dates",
     "FIELD_NOT_VALID_DATE_MAX_DURATION": "Duration too long",
     "FIELD_NOT_VALID_DATE_MIN_DURATION": "Duration too short",
     "FIELD_NOT_VALID_HOUR_MINUTE": "Invalid hour/minute",

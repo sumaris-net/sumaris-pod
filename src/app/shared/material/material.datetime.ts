@@ -16,7 +16,7 @@ import {
   FormControl,
   FormGroup,
   FormGroupDirective,
-  NG_VALUE_ACCESSOR,
+  NG_VALUE_ACCESSOR, ValidationErrors, ValidatorFn,
   Validators
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
@@ -29,6 +29,7 @@ import {delay, first} from "rxjs/operators";
 import {fadeInAnimation} from "./material.animations";
 import {InputElement, isFocusableElement} from "./focusable";
 import {firstNotNilPromise} from "../observables";
+import {BehaviorSubject, Subject} from "rxjs";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -135,15 +136,19 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-date-time>.");
 
+    // Redirect errors from main control, into day sub control
+    const $error = new BehaviorSubject<ValidationErrors>(null);
+    const dayValidator: ValidatorFn = (_) => $error.getValue();
+
     this.required = toBoolean(this.required, this.formControl.validator === Validators.required);
     if (this.displayTime) {
       this.form = this.formBuilder.group({
-        day: (this.required ? ['', Validators.required] : ['']),
+        day: [dayValidator],
         hour: ['', this.required ? Validators.compose([Validators.required, Validators.pattern(HOUR_TIME_PATTERN)]) : Validators.pattern(HOUR_TIME_PATTERN)]
       });
     } else {
       this.form = this.formBuilder.group({
-        day: (this.required ? ['', Validators.required] : [''])
+        day: [dayValidator]
       });
     }
 
@@ -162,6 +167,14 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     this.formControl.statusChanges
       .subscribe((status) => {
         if (this.readonly || this.writing || this.disabling) return; // Skip
+        if (status === 'INVALID') {
+          $error.next(this.formControl.errors);
+          this.form.controls.day.setErrors($error.getValue());
+        }
+        else if (status === 'VALID') {
+          $error.next(null);
+          this.form.controls.day.setErrors(null);
+        }
         this.markForCheck();
       });
 

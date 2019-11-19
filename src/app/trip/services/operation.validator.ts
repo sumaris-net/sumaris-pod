@@ -37,7 +37,7 @@ export class OperationValidatorService implements ValidatorService {
       },
       {
         validator: Validators.compose([
-          SharedValidators.dateIsAfter('startDateTime', 'endDateTime'),
+          SharedValidators.dateRange('startDateTime', 'endDateTime'),
           SharedValidators.dateMaxDuration('startDateTime', 'endDateTime', 100, 'days')
         ])
       });

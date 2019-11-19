@@ -26,7 +26,7 @@ import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 2,
+  PORT: 6,
   AUCTION: 3
 };
 
@@ -174,20 +174,24 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   vesselType: ReferentialRef;
   vesselStatusId: number;
   name: string;
-  startDate: Date | Moment;
-  endDate: Date | Moment;
+  startDate: Moment;
+  endDate: Moment;
   exteriorMarking: string;
+  registrationId: number;
   registrationCode: string;
+  registrationStartDate: Moment;
+  registrationEndDate: Moment;
   administrativePower: number;
   lengthOverAll: number;
   grossTonnageGt: number;
   grossTonnageGrt: number;
   basePortLocation: ReferentialRef;
   registrationLocation: ReferentialRef;
-  creationDate: Date | Moment;
+  creationDate: Moment;
   recorderDepartment: Department;
   recorderPerson: Person;
   comments: string;
+  entityName: string;
 
   constructor() {
     super();
@@ -222,6 +226,8 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
+    target.registrationStartDate = toDateISOString(this.registrationStartDate);
+    target.registrationEndDate = toDateISOString(this.registrationEndDate);
     target.creationDate = toDateISOString(this.creationDate);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
@@ -235,10 +241,14 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.registrationCode = source.registrationCode;
     this.name = source.name;
     this.comments = source.comments || undefined;
+    this.entityName = source.entityName;
     this.vesselId = source.vesselId;
     this.vesselStatusId = source.vesselStatusId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
+    this.registrationId = source.registrationId;
+    this.registrationStartDate = fromDateISOString(source.registrationStartDate);
+    this.registrationEndDate = fromDateISOString(source.registrationEndDate);
     this.administrativePower = source.administrativePower || undefined;
     this.lengthOverAll = source.lengthOverAll || undefined;
     this.grossTonnageGt = source.grossTonnageGt || undefined;
@@ -262,8 +272,8 @@ export class VesselRegistration extends Entity<VesselRegistration> {
   }
 
   vesselId: number;
-  startDate: Date | Moment;
-  endDate: Date | Moment;
+  startDate: Moment;
+  endDate: Moment;
   registrationCode: string;
   registrationLocation: any;
 
@@ -420,7 +430,7 @@ export class Program extends Entity<Program> {
   name: string;
   description: string;
   comments: string;
-  creationDate: Date | Moment;
+  creationDate: Moment;
   statusId: number;
   properties: PropertiesMap;
   strategies: Strategy[];
@@ -644,7 +654,7 @@ export class Strategy extends Entity<Strategy> {
   name: string;
   description: string;
   comments: string;
-  creationDate: Date | Moment;
+  creationDate: Moment;
   statusId: number;
   pmfmStrategies: PmfmStrategy[];
 

@@ -30,7 +30,7 @@ export class ObservedLocationValidatorService extends DataRootEntityValidatorSer
 
   getFormOptions(data?: any): { [key: string]: any } {
     return {
-      validators: [SharedValidators.dateIsAfter('startDateTime', 'endDateTime')]
+      validators: [SharedValidators.dateRange('startDateTime', 'endDateTime')]
     };
   }
 }

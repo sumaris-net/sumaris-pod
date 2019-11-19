@@ -8,7 +8,7 @@
     <ion-text translate>VESSEL.HISTORY.REGISTRATIONS</ion-text>
   </h3>
 
-  <mat-table #table [dataSource]="dataSource" matSort matSortActive="startDate" matSortDirection="asc"
+  <mat-table #table [dataSource]="dataSource" matSort matSortActive="startDate" matSortDirection="desc"
              matSortDisableClear [trackBy]="trackByFn">
 
     <!-- Id Column -->
@@ -23,7 +23,7 @@
     <!-- Start date column -->
     <ng-container matColumnDef="startDate">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.START_DATE</span>
+        <span translate>VESSEL.REGISTRATION_START_DATE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.startDate|dateFormat:{time:false} }}</ion-text>
@@ -33,7 +33,7 @@
     <!-- End date column -->
     <ng-container matColumnDef="endDate">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.END_DATE</span>
+        <span translate>VESSEL.REGISTRATION_END_DATE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.endDate|dateFormat:{time:false} }}</ion-text>

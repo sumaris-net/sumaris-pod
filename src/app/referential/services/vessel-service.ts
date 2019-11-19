@@ -14,6 +14,7 @@ import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {FetchPolicy} from "apollo-client";
 import {isEmptyArray} from "../../shared/functions";
+import {VesselFeaturesService} from "./vessel-features.service";
 import {EntityAsObjectOptions, MINIFY_OPTIONS} from "../../core/services/model";
 
 export class VesselFilter {
@@ -59,6 +60,7 @@ export const VesselFragments = {
     recorderDepartment {
      ...LightDepartmentFragment
     }
+    entityName
   }`,
   vessel: gql`fragment VesselFragment on VesselFeaturesVO {
     id
@@ -66,7 +68,10 @@ export const VesselFragments = {
     endDate
     name
     exteriorMarking
+    registrationId
     registrationCode
+    registrationStartDate
+    registrationEndDate
     administrativePower
     lengthOverAll
     grossTonnageGt
@@ -91,6 +96,7 @@ export const VesselFragments = {
     recorderPerson {
       ...LightPersonFragment
     }
+    entityName
   }`,
 };
 
@@ -144,7 +150,8 @@ export class VesselService
 
   constructor(
     protected graphql: GraphqlService,
-    private accountService: AccountService
+    private accountService: AccountService,
+    private vesselFeatureService: VesselFeaturesService
   ) {
     super(graphql);
   }
@@ -336,26 +343,7 @@ export class VesselService
    */
   async save(vessel: VesselFeatures): Promise<VesselFeatures> {
 
-    // Prepare to save
-    this.fillDefaultProperties(vessel);
-
-    // Transform into json
-    const json = this.asObject(vessel);
-
-    console.debug("[vessel-service] Saving vessel: ", json);
-
-    const res = await this.graphql.mutate<{ saveVessels: any }>({
-      mutation: SaveVessels,
-      variables: {
-        vessels: [json]
-      },
-      error: {code: ErrorCodes.SAVE_VESSEL_ERROR, message: "VESSEL.ERROR.SAVE_VESSEL_ERROR"}
-    });
-    const data = res && res.saveVessels && res.saveVessels[0];
-    vessel.id = data && data.id || vessel.id;
-    vessel.updateDate = data && data.updateDate || vessel.updateDate;
-    vessel.vesselId = data && data.vesselId || vessel.vesselId;
-    return vessel;
+    return this.vesselFeatureService.save(vessel);
   }
 
   delete(data: VesselFeatures, options?: any): Promise<any> {
