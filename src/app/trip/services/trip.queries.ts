@@ -85,8 +85,8 @@ export const DataFragments = {
     taxonGroup {
       ...ReferentialFragment
     }
-    measurementValues    
-    __typename  
+    measurementValues
+    __typename
   }
   ${Fragments.referential}`,
   batch: gql`fragment BatchFragment on BatchVO {
@@ -106,16 +106,16 @@ export const DataFragments = {
     taxonName {
       ...TaxonNameFragment
     }
-    measurementValues     
-    __typename 
+    measurementValues
+    __typename
   }
   ${Fragments.referential}
   ${ReferentialFragments.taxonName}`,
-  vesselFeatures: gql`fragment VesselFeaturesFragment on VesselFeaturesVO {
+  vesselSnapshot: gql`fragment VesselSnapshotFragment on VesselSnapshotVO {
     id
-    vesselId
     name
     exteriorMarking
+    registrationCode
   }
   `
 };

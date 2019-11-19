@@ -160,7 +160,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
       departureLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO'},
       returnDateTime: fromDateISOString('2019-01-05T12:00:00.000Z'),
       returnLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO'},
-      vesselFeatures: {id:1, vesselId: 1, name: 'Vessel 1', basePortLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', __typename: 'ReferentialVO'} , __typename: 'VesselFeaturesVO'},
+      vesselSnapshot: {id:1, vesselId: 1, name: 'Vessel 1', basePortLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', __typename: 'ReferentialVO'} , __typename: 'VesselSnapshotVO'},
       measurements: [
         { numericalValue: '1', pmfmId: 21}
       ]
@@ -201,7 +201,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
 
     // Existing data
     return await this.translate.get('TRIP.EDIT.TITLE', {
-      vessel: data.vesselFeatures && (data.vesselFeatures.exteriorMarking || data.vesselFeatures.name),
+      vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
       departureDateTime: data.departureDateTime && this.dateFormat.transform(data.departureDateTime) as string
     }).toPromise();
   }

@@ -23,8 +23,8 @@ export const SaleFragments = {
     saleLocation {
       ...LocationFragment
     }
-    vesselFeatures {
-      ...VesselFeaturesFragment
+    vesselSnapshot {
+      ...VesselSnapshotFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -32,7 +32,7 @@ export const SaleFragments = {
   }
   ${Fragments.location}
   ${Fragments.lightDepartment}
-  ${DataFragments.vesselFeatures}
+  ${DataFragments.vesselSnapshot}
   `,
   sale: gql`fragment SaleFragment on SaleVO {
     id
@@ -50,8 +50,8 @@ export const SaleFragments = {
     samples {
       ...SampleFragment
     }
-    vesselFeatures {
-      ...VesselFeaturesFragment
+    vesselSnapshot {
+      ...VesselSnapshotFragment
     }
     recorderPerson {
         ...LightPersonFragment
@@ -68,7 +68,7 @@ export const SaleFragments = {
   ${Fragments.measurement}
   ${Fragments.location}
   ${DataFragments.sample}
-  ${DataFragments.vesselFeatures}
+  ${DataFragments.vesselSnapshot}
   `
 };
 

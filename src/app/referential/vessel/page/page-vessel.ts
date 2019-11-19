@@ -1,7 +1,7 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 import {VesselService} from '../../services/vessel-service';
 import {VesselForm} from '../form/form-vessel';
-import {fromDateISOString, isNotNil, toDateISOString, VesselFeatures} from '../../services/model';
+import {fromDateISOString, isNotNil, toDateISOString, VesselSnapshot} from '../../services/model';
 import {AccountService} from "../../../core/services/account.service";
 import {AppEditorPage} from "../../../core/form/editor-page.class";
 import {AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
@@ -20,9 +20,9 @@ import {TranslateService} from "@ngx-translate/core";
   templateUrl: './page-vessel.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit, AfterViewInit {
+export class VesselPage extends AppEditorPage<VesselSnapshot> implements OnInit, AfterViewInit {
 
-  previousData: VesselFeatures;
+  previousData: VesselSnapshot;
   isNewFeatures = false;
   isNewRegistration = false;
   private _editing = false;
@@ -53,7 +53,7 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
     private vesselService: VesselService,
     private dateAdapter: DateFormatPipe
   ) {
-    super(injector, VesselFeatures, vesselService);
+    super(injector, VesselSnapshot, vesselService);
     this.idAttribute = 'vesselId';
   }
 
@@ -69,8 +69,8 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
 
     this.registerSubscription(
       this.onRefresh.subscribe(() => {
-          this.featuresHistoryTable.setFilter({vesselId: this.data.vesselId});
-          this.registrationHistoryTable.setFilter({vesselId: this.data.vesselId});
+          this.featuresHistoryTable.setFilter({vesselId: this.data.id});
+          this.registrationHistoryTable.setFilter({vesselId: this.data.id});
         }
       )
     );
@@ -81,7 +81,7 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
     this.registerForm(this.vesselForm).registerTables([this.featuresHistoryTable, this.registrationHistoryTable]);
   }
 
-  protected async onNewEntity(data: VesselFeatures, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: VesselSnapshot, options?: EditorDataServiceLoadOptions): Promise<void> {
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
       data.startDate = moment();
@@ -89,7 +89,7 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
     }
   }
 
-  updateViewState(data: VesselFeatures, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+  updateViewState(data: VesselSnapshot, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data, opts);
 
     this.form.disable();
@@ -97,11 +97,11 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
     this.previousData = undefined;
   }
 
-  protected canUserWrite(data: VesselFeatures): boolean {
+  protected canUserWrite(data: VesselSnapshot): boolean {
     return !this.editing && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
   }
 
-  protected setValue(data: VesselFeatures) {
+  protected setValue(data: VesselSnapshot) {
     // Set data to form
     this.vesselForm.value = data;
   }
@@ -110,7 +110,7 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
     return this.vesselForm.invalid ? 0 : 0; // no other tab for now
   }
 
-  protected async computeTitle(data: VesselFeatures): Promise<string> {
+  protected async computeTitle(data: VesselSnapshot): Promise<string> {
 
       if (this.isNewData) {
         return await this.translate.get('VESSEL.NEW.TITLE').toPromise();
@@ -125,7 +125,7 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
 
   async doReload(): Promise<void> {
     this.loading = true;
-    await this.load(this.data && this.data.vesselId);
+    await this.load(this.data && this.data.id);
   }
 
   editFeatures() {
@@ -146,7 +146,7 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
     this.isNewFeatures = true;
 
     const json = this.form.value;
-    this.previousData = VesselFeatures.fromObject(json);
+    this.previousData = VesselSnapshot.fromObject(json);
 
     this.form.setValue({ ...json , ...{id: null, startDate: null, endDate: null} } );
 
@@ -179,7 +179,7 @@ export class VesselPage extends AppEditorPage<VesselFeatures> implements OnInit,
     this.isNewRegistration = true;
 
     const json = this.form.value;
-    this.previousData = VesselFeatures.fromObject(json);
+    this.previousData = VesselSnapshot.fromObject(json);
 
     this.form.setValue({ ...json , ...{registrationId: null, registrationCode: null, registrationStartDate: null, registrationEndDate: null} } );
 

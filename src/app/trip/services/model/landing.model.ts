@@ -94,7 +94,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     return super.equals(other)
       || (
         // Same vessel
-        (this.vesselFeatures && other.vesselFeatures && this.vesselFeatures.vesselId === other.vesselFeatures.vesselId)
+        (this.vesselSnapshot && other.vesselSnapshot && this.vesselSnapshot.id === other.vesselSnapshot.id)
         // Same date
         && (this.dateTime === other.dateTime)
         // Same location

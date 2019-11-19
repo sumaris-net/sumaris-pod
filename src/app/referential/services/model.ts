@@ -120,7 +120,7 @@ export {
   entityToString, referentialToString
 };
 
-export function vesselFeaturesToString(obj: VesselFeatures | any): string | undefined {
+export function vesselSnapshotToString(obj: VesselSnapshot | any): string | undefined {
   // TODO may be SFA will prefer 'registrationCode' instead of 'exteriorMarking' ?
   return obj && obj.vesselId && joinPropertiesPath(obj, ['exteriorMarking', 'name']) || undefined;
 }
@@ -161,23 +161,22 @@ export interface IWithProgramEntity<T> extends Entity<T> {
   recorderDepartment: Referential | any;
 }
 
-export class VesselFeatures extends Entity<VesselFeatures> {
+export class VesselSnapshot extends Entity<VesselSnapshot> {
 
-  static fromObject(source: any): VesselFeatures {
-    if (!source || source instanceof VesselFeatures) return source;
-    const res = new VesselFeatures();
+  static fromObject(source: any): VesselSnapshot {
+    if (!source || source instanceof VesselSnapshot) return source;
+    const res = new VesselSnapshot();
     res.fromObject(source);
     return res;
   }
 
-  vesselId: number;
   vesselType: ReferentialRef;
   vesselStatusId: number;
   name: string;
   startDate: Moment;
   endDate: Moment;
   exteriorMarking: string;
-  registrationId: number;
+  registrationId: number; // TODO remove this ?
   registrationCode: string;
   registrationStartDate: Moment;
   registrationEndDate: Moment;
@@ -191,7 +190,6 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   recorderDepartment: Department;
   recorderPerson: Person;
   comments: string;
-  entityName: string;
 
   constructor() {
     super();
@@ -202,8 +200,8 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.recorderPerson = null;
   }
 
-  clone(): VesselFeatures {
-    const target = new VesselFeatures();
+  clone(): VesselSnapshot {
+    const target = new VesselSnapshot();
     this.copy(target);
     target.vesselType = this.vesselType && this.vesselType.clone() || undefined;
     target.basePortLocation = this.basePortLocation && this.basePortLocation.clone() || undefined;
@@ -213,7 +211,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     return target;
   }
 
-  copy(target: VesselFeatures): VesselFeatures {
+  copy(target: VesselSnapshot): VesselSnapshot {
     target.fromObject(this);
     return target;
   }
@@ -235,14 +233,12 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     return target;
   }
 
-  fromObject(source: any): VesselFeatures {
+  fromObject(source: any): VesselSnapshot {
     super.fromObject(source);
     this.exteriorMarking = source.exteriorMarking;
     this.registrationCode = source.registrationCode;
     this.name = source.name;
     this.comments = source.comments || undefined;
-    this.entityName = source.entityName;
-    this.vesselId = source.vesselId;
     this.vesselStatusId = source.vesselStatusId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
@@ -262,6 +258,92 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     return this;
   }
 }
+
+
+export class VesselFeatures extends Entity<VesselFeatures> {
+
+  static fromObject(source: any): VesselFeatures {
+    if (!source || source instanceof VesselFeatures) return source;
+    const res = new VesselFeatures();
+    res.fromObject(source);
+    return res;
+  }
+
+  vesselStatusId: number;
+  name: string;
+  startDate: Moment;
+  endDate: Moment;
+  exteriorMarking: string;
+  administrativePower: number;
+  lengthOverAll: number;
+  grossTonnageGt: number;
+  grossTonnageGrt: number;
+  basePortLocation: ReferentialRef;
+  creationDate: Moment;
+  recorderDepartment: Department;
+  recorderPerson: Person;
+  comments: string;
+
+  // Parent
+  vesselId: number;
+
+  constructor() {
+    super();
+    this.basePortLocation = null;
+    this.recorderDepartment = null;
+    this.recorderPerson = null;
+  }
+
+  clone(): VesselFeatures {
+    const target = new VesselFeatures();
+    this.copy(target);
+    target.basePortLocation = this.basePortLocation && this.basePortLocation.clone() || undefined;
+    target.vesselId = this.vesselId || undefined;
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.clone() || undefined;
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.clone() || undefined;
+    return target;
+  }
+
+  copy(target: VesselFeatures): VesselFeatures {
+    target.fromObject(this);
+    return target;
+  }
+
+  asObject(options?: EntityAsObjectOptions): any {
+    const target: any = super.asObject(options);
+
+    target.vesselId = this.vesselId;
+    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
+    target.creationDate = toDateISOString(this.creationDate);
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
+
+    return target;
+  }
+
+  fromObject(source: any): VesselFeatures {
+    super.fromObject(source);
+    this.exteriorMarking = source.exteriorMarking;
+    this.name = source.name;
+    this.comments = source.comments || undefined;
+    this.vesselStatusId = source.vesselStatusId;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
+    this.administrativePower = source.administrativePower || undefined;
+    this.lengthOverAll = source.lengthOverAll || undefined;
+    this.grossTonnageGt = source.grossTonnageGt || undefined;
+    this.grossTonnageGrt = source.grossTonnageGrt || undefined;
+    this.creationDate = fromDateISOString(source.creationDate);
+    this.vesselId  = source.vesselId;
+    this.basePortLocation = source.basePortLocation && ReferentialRef.fromObject(source.basePortLocation);
+    this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
+    this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
+    return this;
+  }
+}
+
 export class VesselRegistration extends Entity<VesselRegistration> {
 
   static fromObject(source: any): VesselRegistration {
@@ -275,11 +357,11 @@ export class VesselRegistration extends Entity<VesselRegistration> {
   startDate: Moment;
   endDate: Moment;
   registrationCode: string;
-  registrationLocation: any;
+  registrationLocation: ReferentialRef;
 
   constructor() {
     super();
-    this.registrationLocation = new ReferentialRef();
+    this.registrationLocation = null;
   }
 
   clone(): VesselRegistration {
@@ -310,7 +392,7 @@ export class VesselRegistration extends Entity<VesselRegistration> {
     this.vesselId = source.vesselId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
-    this.registrationLocation = source.registrationLocation && this.registrationLocation.fromObject(source.registrationLocation);
+    this.registrationLocation = source.registrationLocation && ReferentialRef.fromObject(source.registrationLocation) || undefined;
     return this;
   }
 }

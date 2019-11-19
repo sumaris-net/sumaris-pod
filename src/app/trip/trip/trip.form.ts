@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {TripValidatorService} from "../services/trip.validator";
-import {LocationLevelIds, Referential, Trip, VesselFeatures, vesselFeaturesToString} from "../services/trip.model";
+import {LocationLevelIds, Referential, Trip, VesselSnapshot, vesselSnapshotToString} from "../services/trip.model";
 import {ModalController} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
@@ -71,7 +71,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     });
 
     // Combo: vessels
-    this.registerAutocompleteField('vesselFeatures', {
+    this.registerAutocompleteField('vesselSnapshot', {
       service: this.vesselService,
       attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
     });
@@ -90,9 +90,9 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     const modal = await this.modalCtrl.create({ component: VesselModal });
     modal.onDidDismiss().then(res => {
       // if new vessel added, use it
-      if (res && res.data instanceof VesselFeatures) {
+      if (res && res.data instanceof VesselSnapshot) {
         console.debug("[trip-form] New vessel added : updating form...", res.data);
-        this.form.controls['vesselFeatures'].setValue(res.data);
+        this.form.controls['vesselSnapshot'].setValue(res.data);
         this.markForCheck();
       }
       else {
@@ -104,7 +104,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   /* -- protected methods-- */
 
-  vesselFeaturesToString = vesselFeaturesToString;
+  vesselSnapshotToString = vesselSnapshotToString;
   referentialToString = referentialToString;
 
   protected markForCheck() {

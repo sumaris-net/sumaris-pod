@@ -9,7 +9,7 @@ import {
   personToString,
   Referential,
   ReferentialRef,
-  referentialToString, vesselFeaturesToString, VesselFeatures, StatusIds
+  referentialToString, vesselSnapshotToString, VesselSnapshot, StatusIds
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {FormArrayHelper} from '../../core/core.module';
@@ -138,7 +138,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     });
 
     // Combo: vessels
-    this.registerAutocompleteField('vesselFeatures', {
+    this.registerAutocompleteField('vesselSnapshot', {
       service: this.vesselService,
       attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
     });
@@ -218,9 +218,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     const modal = await this.modalCtrl.create({ component: VesselModal });
     modal.onDidDismiss().then(res => {
       // if new vessel added, use it
-      if (res && res.data instanceof VesselFeatures) {
+      if (res && res.data instanceof VesselSnapshot) {
         console.debug("[landing-form] New vessel added : updating form...", res.data);
-        this.form.controls['vesselFeatures'].setValue(res.data);
+        this.form.controls['vesselSnapshot'].setValue(res.data);
         this.markForCheck();
       }
       else {
@@ -238,7 +238,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   entityToString = entityToString;
   referentialToString = referentialToString;
-  vesselFeaturesToString = vesselFeaturesToString;
+  vesselSnapshotToString = vesselSnapshotToString;
 
 
   protected markForCheck() {

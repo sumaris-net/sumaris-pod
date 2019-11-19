@@ -22,7 +22,7 @@ export class TripValidatorService extends DataRootEntityValidatorService<Trip> {
       super.getFormConfig(data),
       {
         __typename: ['TripVO'],
-        vesselFeatures: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+        vesselSnapshot: ['', Validators.compose([Validators.required, SharedValidators.entity])],
         departureDateTime: ['', Validators.required],
         departureLocation: ['', Validators.compose([Validators.required, SharedValidators.entity])],
         returnDateTime: ['', isOnFieldMode ? null : Validators.required],
@@ -51,7 +51,7 @@ export class TripValidatorService extends DataRootEntityValidatorService<Trip> {
       program: ['', Validators.compose([Validators.required, SharedValidators.entity])],
       updateDate: [''],
       creationDate: [''],
-      vesselFeatures: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      vesselSnapshot: ['', Validators.compose([Validators.required, SharedValidators.entity])],
       departureDateTime: ['', Validators.required],
       departureLocation: ['', Validators.compose([Validators.required, SharedValidators.entity])],
       returnDateTime: ['', isOnFieldMode ? null : Validators.required],

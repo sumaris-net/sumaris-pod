@@ -23,8 +23,8 @@ import {
   Referential,
   ReferentialRef,
   TaxonGroupIds,
-  VesselFeatures,
-  vesselFeaturesToString
+  VesselSnapshot,
+  vesselSnapshotToString
 } from "../../referential/referential.module";
 import {DataEntity, DataRootEntity, DataRootVesselEntity, fillRankOrder} from "./model/base.model";
 import {Measurement, MeasurementUtils} from "./model/measurement.model";
@@ -38,8 +38,8 @@ import {ObservedLocation, ObservedVessel} from "./model/observed-location.model"
 export {
   Referential, ReferentialRef, EntityUtils, Person, Department,
   toDateISOString, fromDateISOString, isNotNil, isNil,
-  vesselFeaturesToString, entityToString, referentialToString, personToString, personsToString, getPmfmName,
-  StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds, QualityFlagIds,
+  vesselSnapshotToString, entityToString, referentialToString, personToString, personsToString, getPmfmName,
+  StatusIds, Cloneable, Entity, VesselSnapshot, LocationLevelIds, GearLevelIds, TaxonGroupIds, QualityFlagIds,
   PmfmStrategy,
   fillRankOrder,
   DataEntity,

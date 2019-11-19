@@ -83,9 +83,9 @@
             <!-- Vessel -->
             <mat-autocomplete-field
               [placeholder]="'TRIP.TABLE.FILTER.VESSEL'|translate"
-              formControlName="vesselFeatures"
-              [config]="autocompleteFields.vesselFeatures"
-              [displayWith]="vesselFeaturesToString"
+              formControlName="vesselSnapshot"
+              [config]="autocompleteFields.vesselSnapshot"
+              [displayWith]="vesselSnapshotToString"
               clearable="true">
               <ion-icon matPrefix name="boat"></ion-icon>
             </mat-autocomplete-field>
@@ -204,7 +204,7 @@
         <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-label>{{vesselFeaturesToString(row.currentData.vesselFeatures)}}</ion-label>
+        <ion-label>{{vesselSnapshotToString(row.currentData.vesselSnapshot)}}</ion-label>
       </mat-cell>
     </ng-container>
 

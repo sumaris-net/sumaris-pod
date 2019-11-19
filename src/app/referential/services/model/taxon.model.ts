@@ -175,9 +175,13 @@ export class MetierRef extends ReferentialRef<MetierRef> {
 
   asObject(options?: ReferentialAsObjectOptions): any {
     const target = super.asObject(options);
-    if (!options || options.minify) {
+    if (!options || options.minify !== true) {
       target.gear = this.gear && this.gear.asObject(options) || undefined;
       target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(options) || undefined;
+    }
+    else {
+      delete target.gear;
+      delete target.taxonGroup;
     }
     return target;
   }

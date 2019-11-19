@@ -102,7 +102,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     return super.equals(other)
       || (
         // Same vessel
-        (this.vesselFeatures && other.vesselFeatures && this.vesselFeatures.vesselId === other.vesselFeatures.vesselId)
+        (this.vesselSnapshot && other.vesselSnapshot && this.vesselSnapshot.id === other.vesselSnapshot.id)
         // Same departure date (or, if not set, same return date)
         && ((this.departureDateTime === other.departureDateTime)
           || (!this.departureDateTime && !other.departureDateTime && this.returnDateTime === other.returnDateTime))
@@ -269,7 +269,6 @@ export class Operation extends DataEntity<Operation> {
     this.fishingEndDateTime = fromDateISOString(source.fishingEndDateTime);
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
     this.metier = source.metier && MetierRef.fromObject(source.metier, true/*Copy taxonGroup label/name*/) || undefined;
-    console.log("TODO heck position", source)
     if (source.startPosition || source.endPosition) {
       this.startPosition = source.startPosition && VesselPosition.fromObject(source.startPosition);
       this.endPosition = source.endPosition && VesselPosition.fromObject(source.endPosition);

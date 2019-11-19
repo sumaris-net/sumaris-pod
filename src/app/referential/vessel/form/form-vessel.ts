@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {VesselValidatorService} from "../../services/vessel.validator";
-import {LocationLevelIds, referentialToString, StatusIds, VesselFeatures} from "../../services/model";
+import {LocationLevelIds, referentialToString, StatusIds, VesselSnapshot} from "../../services/model";
 import {DefaultStatusList} from "../../../core/services/model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
@@ -15,9 +15,9 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
   styleUrls: ['./form-vessel.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
+export class VesselForm extends AppForm<VesselSnapshot> implements OnInit {
 
-  data: VesselFeatures;
+  data: VesselSnapshot;
   statusList = DefaultStatusList;
   statusById: any;
 

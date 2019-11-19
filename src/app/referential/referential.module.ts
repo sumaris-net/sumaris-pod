@@ -34,8 +34,8 @@ import {
   StatusIds,
   TaxonGroupIds,
   TaxonomicLevelIds,
-  VesselFeatures,
-  vesselFeaturesToString
+  VesselSnapshot,
+  vesselSnapshotToString
 } from './services/model';
 
 import {ReferentialFragments} from './services/referential.queries';
@@ -51,11 +51,11 @@ import {VesselRegistrationHistoryComponent} from "./vessel/page/vessel-registrat
 export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
   Referential, ReferentialRef, EntityUtils, Department, Person,
-  VesselFeatures, PmfmStrategy, PmfmUtils, QualityFlagIds,
+  VesselSnapshot, PmfmStrategy, PmfmUtils, QualityFlagIds,
   GearLevelIds, TaxonGroupIds, LocationLevelIds, AcquisitionLevelCodes, StatusIds, PmfmIds, QualitativeLabels, TaxonomicLevelIds,
   ReferentialFragments, PmfmLabelPatterns,
   entityToString, referentialToString, qualityFlagToColor,
-  vesselFeaturesToString, getPmfmName
+  vesselSnapshotToString, getPmfmName
 };
 
 @NgModule({

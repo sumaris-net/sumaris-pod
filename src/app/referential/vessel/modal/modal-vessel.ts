@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import { VesselFeatures } from "../../services/model";
+import { VesselSnapshot } from "../../services/model";
 import { ModalController } from "@ionic/angular";
 import { VesselForm } from '../form/form-vessel';
 import { VesselService } from '../../services/vessel-service';
@@ -55,7 +55,7 @@ export class VesselModal implements OnInit {
 
     try {
       const json = this.formVessel.value;
-      const data = VesselFeatures.fromObject(json);
+      const data = VesselSnapshot.fromObject(json);
 
       this.disable();
 
@@ -83,7 +83,7 @@ export class VesselModal implements OnInit {
   }
 
   onReset(event: any) {
-    this.formVessel.setValue(VesselFeatures.fromObject({}));
+    this.formVessel.setValue(VesselSnapshot.fromObject({}));
     this.formVessel.markAsPristine();
     this.formVessel.markAsUntouched();
   }

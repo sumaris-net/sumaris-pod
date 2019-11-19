@@ -482,7 +482,13 @@ export class OperationService extends BaseDataService
   /* -- protected methods -- */
 
   protected asObject(entity: Operation, options?: DataEntityAsObjectOptions): any {
-    return entity.asObject({ ...MINIFY_OPTIONS, options } as DataEntityAsObjectOptions);
+    const copy: any = entity.asObject({ ...MINIFY_OPTIONS, ...options } as DataEntityAsObjectOptions);
+
+    if (options && options.minify) {
+      // Clean metier object, before saving
+      copy.metier = {id: entity.metier && entity.metier.id};
+    }
+    return copy;
   }
 
   protected fillDefaultProperties(entity: Operation, options?: any) {

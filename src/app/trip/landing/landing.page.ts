@@ -3,7 +3,7 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@
 import {EntityUtils, environment, isNil, isNotNil} from '../../core/core.module';
 import * as moment from "moment";
 import {LandingForm} from "./landing.form";
-import {Landing, ObservedLocation, PmfmStrategy, Trip, vesselFeaturesToString} from "../services/trip.model";
+import {Landing, ObservedLocation, PmfmStrategy, Trip, vesselSnapshotToString} from "../services/trip.model";
 import {ProgramProperties} from "../../referential/services/model";
 import {SamplesTable} from "../sample/samples.table";
 import {UsageMode} from "../../core/services/model";
@@ -112,12 +112,12 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
         if (isNotNil(queryParams['vessel'])) {
           const vesselId = +queryParams['vessel'];
           console.debug(`[landing-page] Loading vessel {${vesselId}}...`);
-          data.vesselFeatures = await this.vesselService.load(vesselId, {fetchPolicy: 'cache-first'});
+          data.vesselSnapshot = await this.vesselService.load(vesselId, {fetchPolicy: 'cache-first'});
         }
 
       }
       else if (this.parent instanceof Trip) {
-        data.vesselFeatures = this.parent.vesselFeatures;
+        data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = this.parent.returnLocation || this.parent.departureLocation;
         data.dateTime = this.parent.returnDateTime || this.parent.departureDateTime;
         data.observedLocationId = undefined;
@@ -149,7 +149,7 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
         data.tripId = undefined;
       }
       else if (this.parent instanceof Trip) {
-        data.vesselFeatures = this.parent.vesselFeatures;
+        data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = data.location || this.parent.returnLocation || this.parent.departureLocation;
         data.dateTime = data.dateTime || this.parent.returnDateTime || this.parent.departureDateTime;
         data.observedLocationId = undefined;
@@ -241,7 +241,7 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
 
     // Existing data
     return await this.translate.get('LANDING.EDIT.TITLE', {
-      vessel: vesselFeaturesToString(data.vesselFeatures)
+      vessel: vesselSnapshotToString(data.vesselSnapshot)
     }).toPromise();
   }
 

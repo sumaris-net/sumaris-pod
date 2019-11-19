@@ -1,8 +1,8 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
+import {fadeInOutAnimation, isNil} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
-import {EntityUtils, Landing, ObservedLocation, Trip} from "../services/trip.model";
+import {EntityUtils, Landing, ObservedLocation} from "../services/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
 import {LandingEditor, ProgramProperties} from "../../referential/services/model";
@@ -147,9 +147,9 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
 
       try {
         const landing = await this.openVesselSelectionModal();
-        if (landing && landing.vesselFeatures) {
+        if (landing && landing.vesselSnapshot) {
           const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
-          await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselFeatures.vesselId}&rankOrder=${rankOrder}`);
+          await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselSnapshot.id}&rankOrder=${rankOrder}`);
         }
       } finally {
         this.loading = false;

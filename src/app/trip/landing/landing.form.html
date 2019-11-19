@@ -32,9 +32,9 @@
       <ion-col>
         <mat-autocomplete-field
           [placeholder]="'TRIP.VESSEL'|translate"
-          formControlName="vesselFeatures"
-          [config]="autocompleteFields.vesselFeatures"
-          [displayWith]="vesselFeaturesToString"
+          formControlName="vesselSnapshot"
+          [config]="autocompleteFields.vesselSnapshot"
+          [displayWith]="VesselSnapshotToString"
           required>
           <ion-icon matPrefix name="boat"></ion-icon>
         </mat-autocomplete-field>

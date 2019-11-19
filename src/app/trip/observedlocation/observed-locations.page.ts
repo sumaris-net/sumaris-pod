@@ -7,7 +7,7 @@ import {
   personsToString,
   ReferentialRef,
   referentialToString,
-  vesselFeaturesToString
+  vesselSnapshotToString
 } from "../services/trip.model";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ModalController} from "@ionic/angular";
@@ -152,7 +152,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     this.filterIsEmpty = TripFilter.isEmpty(json);
   }
 
-  vesselFeaturesToString = vesselFeaturesToString;
+  vesselSnapshotToString = vesselSnapshotToString;
   referentialToString = referentialToString;
   personsToString = personsToString;
   qualityFlagToColor = qualityFlagToColor;

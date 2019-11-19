@@ -24,8 +24,8 @@ import {
   TaxonGroupIds,
   LocationLevelIds,
   AcquisitionLevelCodes,
-  VesselFeatures,
-  vesselFeaturesToString
+  VesselSnapshot,
+  vesselSnapshotToString
 } from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
 import {IWithProgramEntity} from "../../../referential/services/model";
@@ -35,8 +35,8 @@ import {EntityAsObjectOptions, MINIFY_OPTIONS, NOT_MINIFY_OPTIONS, ReferentialAs
 export {
   Referential, ReferentialRef, EntityUtils, Person, Department,
   toDateISOString, fromDateISOString, isNotNil, isNil,
-  vesselFeaturesToString, entityToString, referentialToString, personToString, personsToString, getPmfmName,
-  StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds, QualityFlagIds,
+  vesselSnapshotToString, entityToString, referentialToString, personToString, personsToString, getPmfmName,
+  StatusIds, Cloneable, Entity, VesselSnapshot, LocationLevelIds, GearLevelIds, TaxonGroupIds, QualityFlagIds,
   PmfmStrategy, AcquisitionLevelCodes, NOT_MINIFY_OPTIONS, MINIFY_OPTIONS
 };
 
@@ -64,8 +64,8 @@ export interface IWithRecorderPersonEntity<T> extends Entity<T> {
   recorderPerson: Person;
 }
 
-export interface IWithVesselFeaturesEntity<T> extends Entity<T> {
-  vesselFeatures: VesselFeatures;
+export interface IWithVesselSnapshotEntity<T> extends Entity<T> {
+  vesselSnapshot: VesselSnapshot;
 }
 export interface IWithObserversEntity<T> extends Entity<T> {
   observers: Person[];
@@ -157,23 +157,23 @@ export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRe
 }
 
 
-export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> implements IWithVesselFeaturesEntity<T> {
-  vesselFeatures: VesselFeatures;
+export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> implements IWithVesselSnapshotEntity<T> {
+  vesselSnapshot: VesselSnapshot;
 
   protected constructor() {
     super();
-    this.vesselFeatures = null;
+    this.vesselSnapshot = null;
   }
 
   asObject(options?: EntityAsObjectOptions): any {
     const target = super.asObject(options);
-    target.vesselFeatures = this.vesselFeatures && this.vesselFeatures.asObject({ ...options, ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.vesselSnapshot = this.vesselSnapshot && this.vesselSnapshot.asObject({ ...options, ...NOT_MINIFY_OPTIONS }) || undefined;
     return target;
   }
 
   fromObject(source: any): DataRootVesselEntity<T> {
     super.fromObject(source);
-    this.vesselFeatures = source.vesselFeatures && VesselFeatures.fromObject(source.vesselFeatures);
+    this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     return this;
   }
 }

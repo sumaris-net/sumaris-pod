@@ -20,7 +20,7 @@ import {
   qualityFlagToColor,
   ReferentialRefService,
   referentialToString,
-  vesselFeaturesToString,
+  vesselSnapshotToString,
   VesselService
 } from "../../referential/referential.module";
 import {debounceTime, filter, tap} from "rxjs/operators";
@@ -90,7 +90,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.i18nColumnPrefix = 'TRIP.TABLE.';
     this.filterForm = formBuilder.group({
       'program': [null, SharedValidators.entity],
-      'vesselFeatures': [null, SharedValidators.entity],
+      'vesselSnapshot': [null, SharedValidators.entity],
       'location': [null, SharedValidators.entity],
       'startDate': [null, SharedValidators.validDate],
       'endDate': [null, SharedValidators.validDate]
@@ -128,7 +128,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     });
 
     // Combo: vessels
-    this.registerAutocompleteField('vesselFeatures', {
+    this.registerAutocompleteField('vesselSnapshot', {
       service: this.vesselService,
       attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
     });
@@ -144,7 +144,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
             startDate: json.startDate,
             endDate: json.endDate,
             locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
-            vesselId:  json.vesselFeatures && typeof json.vesselFeatures === "object" && json.vesselFeatures.vesselId || undefined,
+            vesselId:  json.vesselSnapshot && typeof json.vesselSnapshot === "object" && json.vesselSnapshot.vesselId || undefined,
           }, {emitEvent: this.mobile || isNil(this.filter)})),
         // Save filter in settings (after a debounce time)
         debounceTime(1000),
@@ -179,7 +179,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.onRefresh.emit();
   }
 
-  vesselFeaturesToString = vesselFeaturesToString;
+  vesselSnapshotToString = vesselSnapshotToString;
   referentialToString = referentialToString;
   personsToString = personsToString;
   qualityFlagToColor = qualityFlagToColor;

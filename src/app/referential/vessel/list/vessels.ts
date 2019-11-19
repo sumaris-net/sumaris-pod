@@ -10,7 +10,7 @@ import {
 import { VesselValidatorService } from "../../services/vessel.validator";
 import { VesselService, VesselFilter } from "../../services/vessel-service";
 import { VesselModal } from "../modal/modal-vessel";
-import { VesselFeatures, Referential, toDateISOString, fromDateISOString, referentialToString, ReferentialRef } from "../../services/model";
+import { VesselSnapshot, Referential, toDateISOString, fromDateISOString, referentialToString, ReferentialRef } from "../../services/model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { AccountService } from "../../../core/services/account.service";
@@ -31,7 +31,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implements OnInit {
+export class VesselsPage extends AppTable<VesselSnapshot, VesselFilter> implements OnInit {
 
   canEdit: boolean;
   canDelete: boolean;
@@ -70,7 +70,7 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
           'comments',
           'vesselStatusId'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselService, vesselValidatorService, {
+      new AppTableDataSource<VesselSnapshot, VesselFilter>(VesselSnapshot, vesselService, vesselValidatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         serviceOptions: {
@@ -143,11 +143,11 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
     return modal.present();
   }
 
-  protected async openRow(id: number, row?: TableElement<VesselFeatures>): Promise<boolean> {
+  protected async openRow(id: number, row?: TableElement<VesselSnapshot>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
     // return await this.router.navigateByUrl(`/referential/vessels/${row.currentData.vesselId}?vesselFeatureId=${id}` );
-    return await this.router.navigateByUrl(`/referential/vessels/${row.currentData.vesselId}` );
+    return await this.router.navigateByUrl(`/referential/vessels/${row.currentData.id}` );
   }
 
   referentialToString = referentialToString;

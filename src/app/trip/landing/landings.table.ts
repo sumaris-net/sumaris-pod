@@ -7,7 +7,7 @@ import {
   personsToString,
   referentialToString,
   Trip,
-  vesselFeaturesToString
+  vesselSnapshotToString
 } from "../services/trip.model";
 import {LandingFilter, LandingService} from "../services/landing.service";
 import {LandingValidatorService} from "../services/landing.validator";
@@ -100,7 +100,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   }
 
   referentialToString = referentialToString;
-  vesselFeaturesToString = vesselFeaturesToString;
+  vesselSnapshotToString = vesselSnapshotToString;
   personsToString = personsToString;
   measurementValueToString = measurementValueToString;
 

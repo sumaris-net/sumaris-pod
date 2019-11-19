@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {Department, EntityUtils, isNotNil, Person, VesselFeatures} from "./model";
+import {Department, EntityUtils, isNotNil, Person, VesselSnapshot} from "./model";
 import {EditorDataService, isNilOrBlank, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {map} from "rxjs/operators";
@@ -31,8 +31,8 @@ export class VesselFilter {
   }
 }
 
-export const VesselFragments = {
-  lightVessel: gql`fragment LightVesselFragment on VesselFeaturesVO {
+export const VesselSnapshotFragments = {
+  lightVessel: gql`fragment LightVesselFragment on VesselSnapshotVO {
     id
     startDate
     endDate
@@ -46,7 +46,6 @@ export const VesselFragments = {
     creationDate
     updateDate
     comments
-    vesselId
     vesselType {
       ...ReferentialFragment
     }
@@ -62,7 +61,7 @@ export const VesselFragments = {
     }
     entityName
   }`,
-  vessel: gql`fragment VesselFragment on VesselFeaturesVO {
+  vessel: gql`fragment VesselFragment on VesselSnapshotVO {
     id
     startDate
     endDate
@@ -106,7 +105,7 @@ const LoadAllQuery: any = gql`
       ...LightVesselFragment
     }
   }
-  ${VesselFragments.lightVessel}
+  ${VesselSnapshotFragments.lightVessel}
   ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.referential}
@@ -117,7 +116,7 @@ const LoadQuery: any = gql`
       ...VesselFragment
     }
   }
-  ${VesselFragments.vessel}
+  ${VesselSnapshotFragments.vessel}
   ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.lightPerson}
@@ -125,12 +124,12 @@ const LoadQuery: any = gql`
 `;
 
 const SaveVessels: any = gql`
-  mutation saveVessels($vessels:[VesselFeaturesVOInput]){
+  mutation saveVessels($vessels:[VesselSnapshotVOInput]){
     saveVessels(vessels: $vessels){
       ...VesselFragment
     }
   }
-  ${VesselFragments.vessel}
+  ${VesselSnapshotFragments.vessel}
   ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.lightPerson}
@@ -146,7 +145,7 @@ const DeleteVessels: any = gql`
 @Injectable({providedIn: 'root'})
 export class VesselService
   extends BaseDataService
-  implements SuggestionDataService<VesselFeatures>, TableDataService<VesselFeatures, VesselFilter>, EditorDataService<VesselFeatures, VesselFilter> {
+  implements SuggestionDataService<VesselSnapshot>, TableDataService<VesselSnapshot, VesselFilter>, EditorDataService<VesselSnapshot, VesselFilter> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -168,7 +167,7 @@ export class VesselService
            size: number,
            sortBy?: string,
            sortDirection?: string,
-           filter?: VesselFilter): Observable<LoadResult<VesselFeatures>> {
+           filter?: VesselFilter): Observable<LoadResult<VesselSnapshot>> {
 
     const variables: any = {
       offset: offset || 0,
@@ -192,7 +191,7 @@ export class VesselService
     })
       .pipe(
         map(({vessels}) => {
-            const data = (vessels || []).map(VesselFeatures.fromObject);
+            const data = (vessels || []).map(VesselSnapshot.fromObject);
             if (this._debug) console.debug(`[vessel-service] Vessels loaded in ${Date.now() - now}ms`, data);
             return {
               data: data
@@ -214,7 +213,7 @@ export class VesselService
                 size: number,
                 sortBy?: string,
                 sortDirection?: string,
-                filter?: VesselFilter): Promise<LoadResult<VesselFeatures>> {
+                filter?: VesselFilter): Promise<LoadResult<VesselSnapshot>> {
 
     const variables: any = {
       offset: offset || 0,
@@ -235,7 +234,7 @@ export class VesselService
       error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"}
     });
 
-    const data = (res && res.vessels || []).map(VesselFeatures.fromObject);
+    const data = (res && res.vessels || []).map(VesselSnapshot.fromObject);
     return {
       data: data
     };
@@ -243,7 +242,7 @@ export class VesselService
 
   async suggest(value: any, options?: {
     date: Date | Moment;
-  }): Promise<VesselFeatures[]> {
+  }): Promise<VesselSnapshot[]> {
     if (EntityUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
@@ -268,7 +267,7 @@ export class VesselService
 
   async load(id: number, opts?: {
     fetchPolicy?: FetchPolicy
-  }): Promise<VesselFeatures | null> {
+  }): Promise<VesselSnapshot | null> {
     console.debug("[vessel-service] Loading vessel " + id);
 
     const data = await this.graphql.query<{ vessels: any }>({
@@ -281,14 +280,14 @@ export class VesselService
     });
 
     if (data && data.vessels && data.vessels.length) {
-      const res = new VesselFeatures();
+      const res = new VesselSnapshot();
       res.fromObject(data.vessels[0]);
       return res;
     }
     return null;
   }
 
-  async loadByVesselFeaturesId(id: number): Promise<VesselFeatures | null> {
+  async loadByVesselFeaturesId(id: number): Promise<VesselSnapshot | null> {
     console.debug("[vessel-service] Loading vessel by features " + id);
 
     const data = await this.graphql.query<{ vessels: any }>({
@@ -300,7 +299,7 @@ export class VesselService
     });
 
     if (data && data.vessels && data.vessels.length) {
-      const res = new VesselFeatures();
+      const res = new VesselSnapshot();
       res.fromObject(data.vessels[0]);
       return res;
     }
@@ -311,7 +310,7 @@ export class VesselService
    * Save many vessels
    * @param data
    */
-  async saveAll(vessels: VesselFeatures[]): Promise<VesselFeatures[]> {
+  async saveAll(vessels: VesselSnapshot[]): Promise<VesselSnapshot[]> {
 
     if (!vessels) return vessels;
 
@@ -332,7 +331,7 @@ export class VesselService
       .map(t => {
         const data = res.saveVessels.find(res => res.id == t.id);
         t.updateDate = data && data.updateDate || t.updateDate;
-        t.vesselId = data && data.vesselId || t.vesselId;
+        t.id = data && isNotNil(data.id) ? data.id : t.id;
         return t;
       });
   }
@@ -341,16 +340,17 @@ export class VesselService
    * Save a trip
    * @param data
    */
-  async save(vessel: VesselFeatures): Promise<VesselFeatures> {
+  async save(vessel: VesselSnapshot): Promise<VesselSnapshot> {
 
-    return this.vesselFeatureService.save(vessel);
+    throw new Error("Not implemented. Use vesselFeatures service instead");
+    //return this.vesselFeatureService.save(vessel);
   }
 
-  delete(data: VesselFeatures, options?: any): Promise<any> {
+  delete(data: VesselSnapshot, options?: any): Promise<any> {
     return this.deleteAll([data]);
   }
 
-  deleteAll(vessels: VesselFeatures[]): Promise<any> {
+  deleteAll(vessels: VesselSnapshot[]): Promise<any> {
     const ids = vessels && vessels
       .map(t => t.id)
       .filter(id => (id > 0));
@@ -365,13 +365,13 @@ export class VesselService
     });
   }
 
-  listenChanges(id: number, options?: any): Observable<VesselFeatures> {
+  listenChanges(id: number, options?: any): Observable<VesselSnapshot> {
     throw new Error("Method not implemented.");
   }
 
   /* -- protected methods -- */
 
-  protected asObject(vessel: VesselFeatures, options?: EntityAsObjectOptions): any {
+  protected asObject(vessel: VesselSnapshot, options?: EntityAsObjectOptions): any {
     const copy: any = vessel.asObject({ ...MINIFY_OPTIONS, options } as EntityAsObjectOptions);
 
     // If no vessel: set the default vessel type
@@ -382,7 +382,7 @@ export class VesselService
     return copy;
   }
 
-  protected fillDefaultProperties(vessel: VesselFeatures): void {
+  protected fillDefaultProperties(vessel: VesselSnapshot): void {
 
     // If new
     // if (!vessel.id || vessel.id < 0) {

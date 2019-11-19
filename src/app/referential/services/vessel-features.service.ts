@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {Department, EntityUtils, isNil, Person, VesselFeatures} from "./model";
+import {Department, EntityUtils, isNil, Person, VesselFeatures, VesselSnapshot} from "./model";
 import {
   EditorDataService,
   EditorDataServiceLoadOptions,

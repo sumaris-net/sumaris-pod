@@ -72,8 +72,8 @@ export const TripFragments = {
     returnLocation {
       ...LocationFragment
     }
-    vesselFeatures {
-        ...VesselFeaturesFragment
+    vesselSnapshot {
+        ...VesselSnapshotFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -88,7 +88,7 @@ export const TripFragments = {
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
-  ${DataFragments.vesselFeatures}
+  ${DataFragments.vesselSnapshot}
   `,
   trip: gql`fragment TripFragment on TripVO {
     id
@@ -111,8 +111,8 @@ export const TripFragments = {
     returnLocation {
       ...LocationFragment
     }
-    vesselFeatures {
-      ...VesselFeaturesFragment
+    vesselSnapshot {
+      ...VesselSnapshotFragment
     }
     sale {
       id
@@ -148,7 +148,7 @@ export const TripFragments = {
   ${Fragments.measurement}
   ${Fragments.referential}
   ${Fragments.location}
-  ${DataFragments.vesselFeatures}
+  ${DataFragments.vesselSnapshot}
   ${physicalGearFragment}
   `
 };
@@ -786,9 +786,9 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
       copy.returnLocation = { ...copy.departureLocation };
     }
 
-    if (options.minify) {
+    if (options && options.minify) {
       // Clean vessel features object, before saving
-      copy.vesselFeatures = {vesselId: entity.vesselFeatures && entity.vesselFeatures.vesselId};
+      copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
 
       // Keep id only, on person and department
       copy.recorderPerson = {id: entity.recorderPerson && entity.recorderPerson.id};

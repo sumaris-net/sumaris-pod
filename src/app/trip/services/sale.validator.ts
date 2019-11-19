@@ -22,7 +22,7 @@ export class SaleValidatorService implements ValidatorService {
       id: [''],
       updateDate: [''],
       creationDate: [''],
-      vesselFeatures: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      vesselSnapshot: ['', Validators.compose([Validators.required, SharedValidators.entity])],
       saleType: ['', Validators.compose([Validators.required, SharedValidators.entity])],
       startDateTime: [''],
       endDateTime: [''],
@@ -38,11 +38,11 @@ export class SaleValidatorService implements ValidatorService {
 
   setRequired(form: FormGroup, required: boolean) {
     if (required) {
-      form.controls['vesselFeatures'].setValidators(Validators.compose([Validators.required, SharedValidators.entity]));
+      form.controls['vesselSnapshot'].setValidators(Validators.compose([Validators.required, SharedValidators.entity]));
       form.controls['saleType'].setValidators(Validators.compose([Validators.required, SharedValidators.entity]));
     }
     else {
-      form.controls['vesselFeatures'].setValidators(SharedValidators.entity);
+      form.controls['vesselSnapshot'].setValidators(SharedValidators.entity);
       form.controls['saleType'].setValidators(SharedValidators.entity);
     }
 

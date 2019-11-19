@@ -47,8 +47,8 @@ export const LandingFragments = {
     rankOrder
     observedLocationId
     tripId
-    vesselFeatures {
-      ...VesselFeaturesFragment
+    vesselSnapshot {
+      ...VesselSnapshotFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -63,7 +63,7 @@ export const LandingFragments = {
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
-  ${DataFragments.vesselFeatures}
+  ${DataFragments.vesselSnapshot}
   `,
   landing: gql`fragment LandingFragment on LandingVO {
     id
@@ -83,8 +83,8 @@ export const LandingFragments = {
     comments
     observedLocationId
     tripId
-    vesselFeatures {
-      ...VesselFeaturesFragment
+    vesselSnapshot {
+      ...VesselSnapshotFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -103,7 +103,7 @@ export const LandingFragments = {
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
-  ${DataFragments.vesselFeatures}
+  ${DataFragments.vesselSnapshot}
   ${DataFragments.sample}
   `
 };

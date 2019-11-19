@@ -7,8 +7,8 @@ import {
   ReferentialRef,
   referentialToString,
   Sale,
-  VesselFeatures,
-  vesselFeaturesToString
+  VesselSnapshot,
+  vesselSnapshotToString
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {AppForm} from '../../core/core.module';
@@ -25,7 +25,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 })
 export class SaleForm extends AppForm<Sale> implements OnInit {
 
-  vessels: Observable<VesselFeatures[]>;
+  vessels: Observable<VesselSnapshot[]>;
   locations: Observable<ReferentialRef[]>;
   saleTypes: Observable<ReferentialRef[]>;
 
@@ -67,7 +67,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
 
     // Combo: vessels (if need)
     if (this.showVessel) {
-      this.vessels = this.form.controls['vesselFeatures']
+      this.vessels = this.form.controls['vesselSnapshot']
         .valueChanges
         .pipe(
           mergeMap(value => {
@@ -78,7 +78,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
             ).pipe(map(({data}) => data));
           }));
     } else {
-      this.form.controls['vesselFeatures'].clearValidators();
+      this.form.controls['vesselSnapshot'].clearValidators();
     }
 
     // Combo: sale locations
@@ -102,6 +102,6 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
   }
 
   entityToString = entityToString;
-  vesselFeaturesToString = vesselFeaturesToString;
+  vesselSnapshotToString = vesselSnapshotToString;
   referentialToString = referentialToString;
 }
