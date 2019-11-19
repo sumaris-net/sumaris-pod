@@ -29,6 +29,7 @@ import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.QualityFlagEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -384,7 +385,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         entity.setValidationDate(newUpdateDate);
 
         // Save entityName
-//        getEntityManager().merge(entity);
+        getEntityManager().merge(entity);
 
         // Update source
         source.setValidationDate(newUpdateDate);
@@ -410,16 +411,20 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
         // TODO UNVALIDATION PROCESS HERE
         entity.setValidationDate(null);
+        entity.setQualificationDate(null);
+        entity.setQualityFlag(load(QualityFlag.class, QualityFlagEnum.NOT_QUALIFED.getId()));
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
         // Save entityName
-//        getEntityManager().merge(entity);
+        getEntityManager().merge(entity);
 
         // Update source
         source.setValidationDate(null);
+        source.setQualificationDate(null);
+        source.setQualityFlagId(QualityFlagEnum.NOT_QUALIFED.getId());
         source.setUpdateDate(newUpdateDate);
 
         return source;
@@ -445,24 +450,27 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
-        // Not qualify
         int qualityFlagId = source.getQualityFlagId() != null ? source.getQualityFlagId().intValue() : 0;
-        if (qualityFlagId == 0) {
+
+        // If not qualify, then remove the qualification date
+        if (qualityFlagId == QualityFlagEnum.NOT_QUALIFED.getId()) {
             entity.setQualificationDate(null);
         }
         else {
             entity.setQualificationDate(newUpdateDate);
         }
-        entity.setQualityFlag(load(QualityFlag.class, qualityFlagId));
+        // Apply a get, because can return a null value (e.g. if id is not in the DB instance)
+        entity.setQualityFlag(get(QualityFlag.class, Integer.valueOf(qualityFlagId)));
 
         // TODO UNVALIDATION PROCESS HERE
         // - insert into qualification history
 
         // Save entityName
-//        getEntityManager().merge(entity);
+        getEntityManager().merge(entity);
 
         // Update source
-        source.setQualificationDate(newUpdateDate);
+        source.setQualificationDate(entity.getQualificationDate());
+        source.setQualityFlagId(entity.getQualityFlag() != null ? entity.getQualityFlag().getId() : 0);
         source.setUpdateDate(newUpdateDate);
 
         return source;

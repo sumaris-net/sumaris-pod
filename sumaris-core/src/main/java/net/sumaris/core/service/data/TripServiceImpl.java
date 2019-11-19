@@ -220,9 +220,6 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getValidationDate());
         Preconditions.checkNotNull(trip.getQualityFlagId());
 
-        int qfId = trip.getQualityFlagId().intValue();
-        Preconditions.checkArgument(qfId >= 0 && qfId <= 9, "Invalid quality flag: " + qfId);
-
         return tripDao.qualify(trip);
     }
 
