@@ -321,7 +321,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     data.trip = trip;
 
     // If is on field mode, fill default values
-    if (this.usageMode === 'FIELD') {
+    if (this.isOnFieldMode) {
       data.startDateTime = moment();
     }
 

@@ -180,7 +180,7 @@ const LoadAllQuery: any = gql`
 `;
 // Load a trip
 const LoadQuery: any = gql`
-  query Trip($id: Int) {
+  query Trip($id: Int!) {
     trip(id: $id) {
       ...TripFragment
     }

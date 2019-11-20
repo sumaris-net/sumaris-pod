@@ -129,7 +129,7 @@ const LoadAllQuery: any = gql`
   ${OperationFragments.lightOperation}
 `;
 const LoadQuery: any = gql`
-  query Operation($id: Int) {
+  query Operation($id: Int!) {
     operation(id: $id) {
       ...OperationFragment
     }
@@ -385,7 +385,8 @@ export class OperationService extends BaseDataService
     };
 
     // Transform into json
-    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
+    const json11 = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
+    const json = this.asObject(entity, {minify: true, keepEntityName: true});
     if (this._debug) console.debug("[operation-service] Using minify object, to send:", json);
 
     return new Promise<Operation>((resolve, reject) => {
