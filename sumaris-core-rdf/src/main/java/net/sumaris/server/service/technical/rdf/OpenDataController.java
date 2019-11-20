@@ -9,12 +9,18 @@ import org.reflections.scanners.SubTypesScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 @Transactional
 public abstract class OpenDataController implements Synchro {
@@ -61,11 +67,11 @@ public abstract class OpenDataController implements Synchro {
 
     @GetMapping(value = "/json/{q}/{name}", produces = {"application/x-javascript", "application/json", "application/ld+json"})
     @ResponseBody
-    public StreamingResponseBody getModelAsrdfjson(@PathVariable String q, @PathVariable String name,
+    public String getModelAsrdfjson(@PathVariable String q, @PathVariable String name,
                                     @RequestParam(defaultValue = "false") String disjoints,
                                     @RequestParam(defaultValue = "false") String methods,
                                     @RequestParam(defaultValue = "false") String packages) {
-        return toStreamingResponseBody(execute(q, name, disjoints, methods, packages), "RDF/JSON");
+        return Helpers.toString(execute(q, name, disjoints, methods, packages), "RDF/JSON");
     }
 
     @GetMapping(value = "/trig/{q}/{name}", produces = {"text/trig"})
@@ -79,20 +85,21 @@ public abstract class OpenDataController implements Synchro {
 
     @GetMapping(value = "/jsonld/{q}/{name}", produces = {"application/x-javascript", "application/json", "application/ld+json"})
     @ResponseBody
-    public StreamingResponseBody getModelAsJson(@PathVariable String q, @PathVariable String name,
+    public String getModelAsJson(@PathVariable String q, @PathVariable String name,
                                  @RequestParam(defaultValue = "false") String disjoints,
                                  @RequestParam(defaultValue = "false") String methods,
                                  @RequestParam(defaultValue = "false") String packages) {
-        return toStreamingResponseBody(execute(q, name, disjoints, methods, packages), "JSON-LD");
+        return Helpers.toString(execute(q, name, disjoints, methods, packages), "JSON-LD");
     }
 
     @GetMapping(value = "/rdf/{q}/{name}", produces = {"application/xml", "application/rdf+xml"})
-    @ResponseBody
-    public StreamingResponseBody getModelAsXml(@PathVariable String q, @PathVariable String name,
+    public String getModelAsXml(@PathVariable String q, @PathVariable String name,
                                 @RequestParam(defaultValue = "false") String disjoints,
                                 @RequestParam(defaultValue = "false") String methods,
                                 @RequestParam(defaultValue = "false") String packages) {
-        return toStreamingResponseBody(execute(q, name, disjoints, methods, packages), "RDF/XML");
+
+        Model model = execute(q, name, disjoints, methods, packages);
+        return Helpers.toString(model, "RDF/XML");
     }
 
     @GetMapping(value = "/trix/{q}/{name}", produces = {"text/trix"})
@@ -139,9 +146,9 @@ public abstract class OpenDataController implements Synchro {
 
         switch (q) {
             case "referentials":
-                String query = NAMED_QUERIES.getOrDefault(name, "from Status");
+                String query = NAMED_QUERIES.getOrDefault(name, "Status");
                 res = ontOfData(MY_PREFIX + name,
-                        getEntityManager().createQuery(query)
+                        getEntityManager().createQuery("from " + query)
                                 .setMaxResults(20000)
                                 .getResultList(),
                         opts);
@@ -176,6 +183,28 @@ public abstract class OpenDataController implements Synchro {
                 model.write(os, format);
             }
         };
+    }
+
+    /**
+     * Serialize model in requested format
+     *
+     * @param model  input model
+     * @param format output format if null then output to RDF/XML
+     * @return a string representation of the model
+     */
+    protected Callable<StreamingResponseBody> toCallableStreamingResponseBody(Model model, String format) {
+        Callable<StreamingResponseBody> ret = () -> {
+            return os -> {
+                if (format == null) {
+                    model.write(os);
+                } else {
+                    model.write(os, format);
+                }
+            };
+        };
+
+
+        return ret;
     }
 
 }

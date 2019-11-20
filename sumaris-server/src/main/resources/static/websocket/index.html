@@ -212,6 +212,7 @@
             <label for="wsUri">WS URI</label>
             <div class="form-inline">
                 <input type="text" name="wsUri" id="wsUri" class="form-control" placeholder="ws://server/path" style="width: 80%;">
+                &nbsp;
                 <button id="buttonConnect" type="button" onclick="doOpenOrClose()" class="btn btn-primary" tabindex="-1" style="width: 15%; min-width: 150px;">Disconnect</button>
             </div>
         </div>
@@ -219,21 +220,21 @@
         <div class="form-group">
             <label for="content">Content</label>
             <textarea name="content" id="content" rows="10" class="form-control" placeholder="Content to sent"></textarea><br/>
-            <div class="form-inline">
-                Examples:
-                <a href="#" onclick="showExample('connection_init');">connection</a> |
-                <a href="#" onclick="showExample('account_changes');">account changes</a> |
-                <a href="#" onclick="showExample('trip_changes');">trip changes</a>
-            </div>
+            <p>
+            Examples:&nbsp;
+            <a href="#" onclick="showExample('connection_init');">connection</a>&nbsp;|&nbsp;
+            <a href="#" onclick="showExample('account_changes');">account changes</a>&nbsp;|&nbsp;
+            <a href="#" onclick="showExample('trip_changes');">trip changes</a>
+            </p>
         </div>
 
-        <div class="form-group form-inline text-center">
-            <button type="button" onclick="clearScreen()" class="btn btn-lg">Clear output</button>
+        <div class="form-group text-center">
+            <button type="button" onclick="clearScreen()" class="btn btn-light btn-lg">Clear output</button>
             <button type="button" onclick="doSendContent()" class="btn btn-primary btn-lg">Send</button>
         </div>
 
-        <!-- output message -->
-        <h2>Output:</h2>
+        <!-- log output -->
+        <h2>Log:</h2>
         <div id="output" style="padding-left: 15px;"></div>
 
         <script src="/core/js/jquery.slim.min.js"></script>

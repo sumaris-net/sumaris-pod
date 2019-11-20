@@ -357,7 +357,9 @@ public interface Helpers extends O2BConfig {
             } else {
                 model.write(os, format);
             }
-            return os.toString();
+            os.flush();
+            os.close();
+            return new String(os.toByteArray(), "UTF8");
         } catch (IOException e) {
             LOG.error("doWrite ", e);
         }

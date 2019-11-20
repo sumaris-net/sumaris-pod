@@ -41,7 +41,7 @@
             <version>${jena.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.visualdataweb.vowl.owl2vowl</groupId>
+            <groupId>com.github.VisualDataWeb</groupId>
             <artifactId>OWL2VOWL</artifactId>
             <version>${owl2vowl.version}</version>
             <exclusions>
