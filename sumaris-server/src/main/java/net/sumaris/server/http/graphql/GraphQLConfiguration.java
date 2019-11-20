@@ -28,6 +28,7 @@ import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
 import net.sumaris.server.http.graphql.administration.ProgramGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
@@ -36,6 +37,7 @@ import net.sumaris.server.http.graphql.extraction.ExtractionGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
 import net.sumaris.server.http.graphql.security.AuthGraphQLService;
 import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
+import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,8 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.handler.PerConnectionWebSocketHandler;
+
+import java.io.Serializable;
 
 @Configuration
 @EnableWebSocket
@@ -96,8 +100,10 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 .withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class)
                 .withOperationsFromSingleton(podConfigurationService, ConfigurationGraphQLService.class)
 
-                // Replace raw and unbounded type with Object
-                //.withTypeTransformer(new DefaultTypeTransformer(true, true))
+
+                .withTypeTransformer(new DefaultTypeTransformer(false, true)
+                        // Replace unbounded IEntity<ID> with IEntity<Serializable>
+                        .addUnboundedReplacement(IEntity.class, Serializable.class))
 
                 .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
                         .withPrototype(objectMapper)
@@ -127,3 +133,4 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         return new PerConnectionWebSocketHandler(SubscriptionWebSocketHandler.class);
     }
 }
+

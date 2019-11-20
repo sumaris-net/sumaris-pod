@@ -30,7 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Expiring cache map
+ * Expiring cache URI_2_CLASS
  *
  * Created by lpecquot on 03/12/18.
  */

@@ -37,6 +37,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             new AntPathRequestMatcher("/core/**"),
             new AntPathRequestMatcher("/api/**"),
             new AntPathRequestMatcher("/graphiql/**"),
+            new AntPathRequestMatcher("/jena/**"),
             new AntPathRequestMatcher("/graphql/websocket/**"),
             new AntPathRequestMatcher("/error")
     );

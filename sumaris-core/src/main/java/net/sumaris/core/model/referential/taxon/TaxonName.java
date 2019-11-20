@@ -81,13 +81,13 @@ public class TaxonName implements IItemReferentialEntity {
     private Date endDate;
 
     @Column(nullable = false, name = "is_referent")
-    private Boolean isReferent;
+    private boolean isReferent;
 
     @Column(nullable = false, name = "is_naming")
-    private Boolean isNaming;
+    private boolean isNaming;
 
     @Column(nullable = false, name = "is_virtual")
-    private Boolean isVirtual;
+    private boolean isVirtual;
 
     @Column(name = "upper_rank")
     private Integer upperRank;

@@ -107,6 +107,11 @@ public class Application extends SpringBootServletInitializer {
                 registry.addRedirectViewController("/graphql/websocket/test/", "/graphql/websocket/test");
                 registry.addViewController("/graphql/websocket/test")
                         .setViewName("forward:/websocket/index.html");
+
+                // define path to RDF explorer
+                registry.addRedirectViewController("/rdf/test/", "/rdf/test");
+                registry.addViewController("/rdf/test")
+                        .setViewName("forward:/rdf/index.html");
             }
 
             @Override

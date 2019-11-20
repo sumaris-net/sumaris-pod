@@ -187,7 +187,7 @@ public class AdministrationGraphQLService {
     @GraphQLQuery(name = "department", description = "Get a person")
     @Transactional(readOnly = true)
     public DepartmentVO getDepartmentById(@GraphQLArgument(name = "id") int id,
-                                        @GraphQLEnvironment() Set<String> fields
+                                         @GraphQLEnvironment() Set<String> fields
     ) {
         DepartmentVO result = departmentService.get(id);
 
@@ -253,7 +253,7 @@ public class AdministrationGraphQLService {
     }
 
     public DepartmentVO fillLogo(DepartmentVO department) {
-        if (department != null && department.isHasLogo() && StringUtils.isBlank(department.getLogo()) && StringUtils.isNotBlank(department.getLabel())) {
+        if (department != null && department.getHasLogo() != null && department.getHasLogo().booleanValue() && StringUtils.isBlank(department.getLogo()) && StringUtils.isNotBlank(department.getLabel())) {
             department.setLogo(departmentLogoUrl.replace("{label}", department.getLabel()));
         }
         return department;
@@ -265,7 +265,7 @@ public class AdministrationGraphQLService {
 
     protected void fillAvatar(PersonVO person) {
         if (person == null) return;
-        if (person.isHasAvatar() && StringUtils.isNotBlank(person.getPubkey())) {
+        if (person.getHasAvatar() != null && person.getHasAvatar().booleanValue() && StringUtils.isNotBlank(person.getPubkey())) {
             person.setAvatar(personAvatarUrl.replace("{pubkey}", person.getPubkey()));
         }
         // Use gravatar URL

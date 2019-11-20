@@ -44,7 +44,7 @@ public class DepartmentVO extends ReferentialVO {
     private String siteUrl;
 
     @EqualsAndHashCode.Exclude
-    private boolean hasLogo;
+    private Boolean hasLogo;
 
     @EqualsAndHashCode.Exclude
     private String logo;

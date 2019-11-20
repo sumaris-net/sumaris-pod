@@ -34,6 +34,11 @@
       <scope>provided</scope>
     </dependency>
 
+    <dependency>
+      <groupId>io.leangen.graphql</groupId>
+      <artifactId>spqr</artifactId>
+    </dependency>
+
     <!-- hibernate -->
     <dependency>
       <groupId>org.hibernate</groupId>

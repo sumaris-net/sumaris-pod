@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<!--
+  #%L
+  SUMARiS:: Server
+  %%
+  Copyright (C) 2018 SUMARiS Consortium
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/gpl-3.0.html>.
+  #L%
+  -->
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>SUMARiS - RDF test</title>
+
+    <link rel="stylesheet" href="/core/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/core/css/bootstrap-grid.min.css" />
+
+    <script language="javascript" type="text/javascript">
+
+        var baseUri = "http://localhost:8080/jena"; // DEV default URL
+
+        var buttonConnect;
+        var inputUri;
+        var inputFormat;
+        var inputQ;
+        var inputName;
+        var inputDisjoints;
+        var inputMethods;
+        var inputPackages;
+
+        var output;
+        var logDiv;
+
+        var requests_examples = {
+
+        };
+
+        function init()
+        {
+            if (window.location && window.location.origin) {
+                baseUri = window.location.origin + '/jena';
+            }
+
+            inputUri = document.getElementById("baseUri");
+            inputUri.value = baseUri;
+
+            inputFormat = document.getElementById("format");
+            inputQ = document.getElementById("q");
+            inputName = document.getElementById("name");
+            inputDisjoints = document.getElementById("disjoints");
+            inputMethods = document.getElementById("methods");
+            inputPackages = document.getElementById("packages");
+
+            buttonConnect = document.getElementById("buttonConnect");
+
+            output = document.getElementById("output");
+            logDiv = document.getElementById("log");
+        }
+
+        function logInfo(message, cssClass)
+        {
+            logToHtml(message, cssClass || 'text-info');
+            console.info(message);
+        }
+
+        function logWarning(message)
+        {
+            logToHtml('WARNING: ', 'text-warning');
+            console.warn(message);
+        }
+
+        function logError(message, error)
+        {
+            logToHtml('ERROR: ' + message, 'text-error');
+            if (error) {
+                console.error(message, error);
+            }
+            else {
+                console.error(message);
+            }
+        }
+
+        function createRequestUri()
+        {
+            baseUri = (inputUri.value) || baseUri;
+            if (baseUri.lastIndexOf('/') !== baseUri.length - 1) {
+                baseUri += '/';
+            }
+
+            var path = baseUri + inputFormat.value + '/' + inputQ.value + '/' + inputName.value ;
+
+            var params = [];
+            if (inputDisjoints.checked) {
+                params.push('disjoints=true')
+            }
+            if (inputMethods.checked) {
+                params.push('methods=true')
+            }
+            if (inputPackages && inputPackages.value) {
+                params.push('packages=' + inputPackages.value)
+            }
+
+            if (!params.length) return path;
+            return path + '?' + params.join('&');
+        }
+
+
+        function executeRequest(requestUri) {
+
+            requestUri = requestUri || createRequestUri();
+
+            try {
+
+                logInfo("GET: " + requestUri, "text-muted");
+                var xmlhttp = new XMLHttpRequest();
+                var now = Date.now();
+                xmlhttp.onreadystatechange = function() {
+                        if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+                            if (xmlhttp.status == 200) {
+                                var execTimeMs = Date.now() - now;
+                                output.value = xmlhttp.responseText;
+                                logInfo('Response received in ' + execTimeMs + 'ms');
+                            }
+                            else if (xmlhttp.status == 400 || xmlhttp.status == 404) {
+                                logError('Http error ' + xmlhttp.status + ' (not found)');
+                            }
+                            else {
+                                logError('Unknown error (code=' + xmlhttp.status + ')', xmlhttp.error);
+                            }
+                        }
+                    };
+
+                xmlhttp.open("GET", requestUri, true);
+                xmlhttp.send();
+
+            }
+            catch(error) {
+                console.error(error);
+                logError({data: (error && error.message || error)});
+            }
+        }
+
+        function logToHtml(message, classAttribute)
+        {
+            var pre = document.createElement("p");
+            if (classAttribute) {
+                var classes = classAttribute.split(" ");
+                for (var i=0; i< classes.length; i++) {
+                    pre.classList.add(classes[i]);
+                }
+            }
+            pre.style.wordWrap = "break-word";
+            pre.innerHTML = message;
+            logDiv.appendChild(pre);
+        }
+
+        function clearScreen()
+        {
+            logDiv.innerHTML = "";
+            output.value = "";
+        }
+
+        function showExample(name) {
+            if (requests_examples[name]) {
+                inputContent.value = JSON.stringify(requests_examples[name]);
+            }
+        }
+
+
+        window.addEventListener("load", init, false);
+
+    </script>
+</head>
+<body>
+    <div class="container">
+
+        <h1>RDF test</h1>
+
+        <div class="form-group">
+            <label for="baseUri">Server URI</label>
+            <div class="form-inline">
+                <input type="text" name="baseUri" id="baseUri" class="form-control" placeholder="http://server/path" style="width: 80%;">
+                &nbsp;
+                <button id="buttonConnect" type="button" onclick="doOpenOrClose()" class="btn btn-primary" tabindex="-1" style="width: 15%; min-width: 150px;">Disconnect</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+        <!-- format -->
+        <label for="format">Format</label>
+        <select name="format" id="format">
+            <option value="json">RDF (JSON)</option>
+            <option value="rdf">RDF (XML)</option>
+            <option value="jsonld">JSON-LD (Linked data)</option>
+
+            <option value="ntriple">N-TRIPLE</option>
+            <option value="ttl">Turtle</option>
+            <option value="n3">N3 (text)</option>
+            <option value="trig">TriG</option>
+            <option value="trix">Trix format</option>
+
+            <option value="vowl">VOWL-JSON (Visual Notation for OWL Ontologies)</option>
+        </select>
+
+        <!-- data type -->
+        <label for="q">Request type</label>
+        <select name="q" id="q">
+            <option value="ontology">Ontology model</option>
+            <option value="referentials">Referential items</option>
+            <option value="sync">Synchronize from a remote server</option>
+        </select>
+
+        <!-- type -->
+        <label for="name">Request type</label>
+        <select name="name" id="name">
+            <option value="entities">Model entities</option>
+            <option value="vo">Value Object (for transport)</option>
+            <option value="module">RDF module itself</option>
+        </select>
+
+        <!-- class -->
+        <label for="className">Class</label>
+        <select name="className" id="className">
+            <option value="Status">Status</option>
+            <option value="Location">Location</option>
+            <option value="TaxonName">TaxonName</option>
+        </select>
+
+<!--            <div class="form-inline">-->
+<!--                Examples:-->
+<!--                <a href="#" onclick="showExample('connection_init');">connection</a> |-->
+<!--                <a href="#" onclick="showExample('account_changes');">account changes</a> |-->
+<!--                <a href="#" onclick="showExample('trip_changes');">trip changes</a>-->
+<!--            </div>-->
+
+            <input type="checkbox" id="disjoints" name="disjoints"
+                   checked>
+            <label for="disjoints">Disjoints ?</label>
+            <input type="checkbox" id="methods" name="methods"
+                   checked>
+            <label for="methods">Export methods ?</label>
+
+
+        </div>
+
+        <div class="form-group text-center">
+            <button type="button" onclick="clearScreen()" class="btn btn-light btn-lg ">Clear</button>
+            <button type="button" onclick="executeRequest()" class="btn btn-primary btn-lg">Execute</button>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <!-- Output header -->
+                <div class="col col-8">
+                    <h2>Response:</h2>
+                </div>
+
+                <!-- Log header -->
+                <div class="col col-4">
+                    <h2>Log:</h2>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Output -->
+                <div class="col col-8">
+                    <textarea name="output" id="output" rows="30" class="form-control" placeholder="Output result"></textarea><br/>
+                </div>
+
+                <!-- Log -->
+                <div class="col col-4" id="log">
+                </div>
+            </div>
+        </div>
+
+        <script src="/core/js/jquery.slim.min.js"></script>
+        <script src="/core/js/bootstrap.min.js"></script>
+    </div>
+</body>

@@ -59,7 +59,7 @@ public class PersonVO implements IUpdateDateEntityBean<Integer, Date>, IValueObj
     private String mainProfile;
 
     @EqualsAndHashCode.Exclude
-    private boolean hasAvatar;
+    private Boolean hasAvatar;
 
     @EqualsAndHashCode.Exclude
     private String avatar;

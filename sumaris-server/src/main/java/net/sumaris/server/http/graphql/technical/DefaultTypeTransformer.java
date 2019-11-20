@@ -1,0 +1,49 @@
+package net.sumaris.server.http.graphql.technical;
+
+import io.leangen.geantyref.GenericTypeReflector;
+import io.leangen.geantyref.TypeArgumentNotInBoundException;
+import io.leangen.graphql.metadata.exceptions.TypeMappingException;
+import io.leangen.graphql.metadata.strategy.type.TypeTransformer;
+import io.leangen.graphql.util.ClassUtils;
+import net.sumaris.core.dao.technical.model.IEntity;
+
+import java.io.Serializable;
+import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
+
+public class DefaultTypeTransformer implements TypeTransformer {
+    private final AnnotatedType rawReplacement;
+    private final AnnotatedType unboundedReplacement;
+    private final Map<Type, AnnotatedType> unboundedReplacements = new HashMap<>();
+
+    public DefaultTypeTransformer(boolean replaceRaw, boolean replaceUnbounded) {
+        AnnotatedType replacement = GenericTypeReflector.annotate(Object.class);
+        this.rawReplacement = replaceRaw ? replacement : null;
+        this.unboundedReplacement = replaceUnbounded ? replacement : null;
+    }
+
+    public DefaultTypeTransformer(AnnotatedType rawReplacement, AnnotatedType unboundedReplacement) {
+        this.rawReplacement = rawReplacement;
+        this.unboundedReplacement = unboundedReplacement;
+    }
+
+    public DefaultTypeTransformer addUnboundedReplacement(Type type, Type unboundedReplacement)  {
+        this.unboundedReplacements.put(type, GenericTypeReflector.annotate(unboundedReplacement));
+        return this;
+    }
+
+    public AnnotatedType transform(AnnotatedType type) throws TypeMappingException {
+        AnnotatedType unboundedReplacement = this.unboundedReplacements.get(type.getType());
+        if (unboundedReplacement != null) {
+            return ClassUtils.eraseBounds(type, unboundedReplacement);
+        }
+        try {
+            type = ClassUtils.eraseBounds(type, this.unboundedReplacement);
+            return ClassUtils.completeGenerics(type, this.rawReplacement);
+        } catch (TypeArgumentNotInBoundException e) {
+            throw e;
+        }
+    }
+}
