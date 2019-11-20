@@ -42,6 +42,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ public class GraphQLHelper {
     public static Map<String, Object> getVariables(Map<String, Object> request, ObjectMapper objectMapper) {
         Object variablesObj = request.get("variables");
         if (variablesObj == null) {
-            return null;
+            return Maps.newHashMap(); // Need empty map
         }
         if (variablesObj instanceof String) {
             String variableStr = (String) variablesObj;

@@ -93,21 +93,21 @@ public interface O2BConfig {
     default void initConfig() {
         try {
             WHITELIST.addAll(Arrays.asList(
-                    Bean2Owl.getterOfField(TaxonName.class, TaxonName.PROPERTY_TAXONOMIC_LEVEL),
-                    Bean2Owl.getterOfField(TaxonName.class, TaxonName.PROPERTY_REFERENCE_TAXON),
-                    Bean2Owl.getterOfField(TaxonName.class, TaxonName.PROPERTY_STATUS),
-                    Bean2Owl.getterOfField(Location.class, Location.PROPERTY_STATUS),
-                    Bean2Owl.getterOfField(Location.class, Location.PROPERTY_LOCATION_LEVEL),
-                    Bean2Owl.getterOfField(PmfmStrategy.class, PmfmStrategy.PROPERTY_STRATEGY),
-                    Bean2Owl.getterOfField(PmfmStrategy.class, PmfmStrategy.PROPERTY_ACQUISITION_LEVEL)
+                    Bean2Owl.getterOfField(TaxonName.class, TaxonName.Fields.TAXONOMIC_LEVEL),
+                    Bean2Owl.getterOfField(TaxonName.class, TaxonName.Fields.REFERENCE_TAXON),
+                    Bean2Owl.getterOfField(TaxonName.class, TaxonName.Fields.STATUS),
+                    Bean2Owl.getterOfField(Location.class, Location.Fields.STATUS),
+                    Bean2Owl.getterOfField(Location.class, Location.Fields.LOCATION_LEVEL),
+                    Bean2Owl.getterOfField(PmfmStrategy.class, PmfmStrategy.Fields.STRATEGY),
+                    Bean2Owl.getterOfField(PmfmStrategy.class, PmfmStrategy.Fields.ACQUISITION_LEVEL)
             ));
         } catch (Exception e) {
             LOG.error("Exception ", e);
         }
 
         BLACKLIST.addAll(Arrays.asList(
-                Bean2Owl.getterOfField(Gear.class, Gear.PROPERTY_STRATEGIES),
-                Bean2Owl.getterOfField(Gear.class, Gear.PROPERTY_CHILDREN)
+                Bean2Owl.getterOfField(Gear.class, Gear.Fields.STRATEGIES),
+                Bean2Owl.getterOfField(Gear.class, Gear.Fields.CHILDREN)
         ));
 
 

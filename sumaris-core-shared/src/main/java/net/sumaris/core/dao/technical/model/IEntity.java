@@ -22,8 +22,11 @@ package net.sumaris.core.dao.technical.model;
  * #L%
  */
 
+import io.leangen.graphql.annotations.GraphQLIgnore;
+
 import java.io.Serializable;
 
+@GraphQLIgnore
 public interface IEntity<ID extends Serializable> extends Serializable {
 
     interface Fields {

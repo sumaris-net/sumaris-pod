@@ -1,6 +1,5 @@
 package net.sumaris.server.service.technical.rdf;
 
-import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
@@ -9,7 +8,6 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Id;
 import java.lang.annotation.Annotation;
@@ -79,7 +77,7 @@ public interface Owl2Bean extends Helpers {
         return ref;
     }
 
-     private String attributeOf(String pred) {
+    default String attributeOf(String pred) {
         String fName = pred.substring(pred.indexOf("#") + 1);
         fName = fName.substring(0, 1).toLowerCase() + fName.substring(1);
         return fName;

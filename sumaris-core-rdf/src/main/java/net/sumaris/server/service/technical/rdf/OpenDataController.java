@@ -1,6 +1,7 @@
 package net.sumaris.server.service.technical.rdf;
 
 import de.uni_stuttgart.vis.vowl.owl2vowl.Owl2Vowl;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.reflections.Reflections;
@@ -9,15 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
-
-import static net.sumaris.server.service.technical.rdf.Helpers.doWrite;
 
 @Transactional
 public abstract class OpenDataController implements Synchro {
@@ -41,7 +38,7 @@ public abstract class OpenDataController implements Synchro {
                                      @RequestParam(defaultValue = "false") String disjoints,
                                      @RequestParam(defaultValue = "false") String methods,
                                      @RequestParam(defaultValue = "false") String packages) {
-        return doWrite(execute(q, name, disjoints, methods, packages), "N-TRIPLE");
+        return Helpers.toString(execute(q, name, disjoints, methods, packages), "N-TRIPLE");
     }
 
     @GetMapping(value = "/ttl/{q}/{name}", produces = {"text/turtle"})
@@ -50,7 +47,7 @@ public abstract class OpenDataController implements Synchro {
                                    @RequestParam(defaultValue = "false") String disjoints,
                                    @RequestParam(defaultValue = "false") String methods,
                                    @RequestParam(defaultValue = "false") String packages) {
-        return doWrite(execute(q, name, disjoints, methods, packages), "TURTLE");
+        return Helpers.toString(execute(q, name, disjoints, methods, packages), "TURTLE");
     }
 
     @GetMapping(value = "/n3/{q}/{name}", produces = {"text/n3", "application/text", "text/text"})
@@ -59,16 +56,16 @@ public abstract class OpenDataController implements Synchro {
                                @RequestParam(defaultValue = "false") String disjoints,
                                @RequestParam(defaultValue = "false") String methods,
                                @RequestParam(defaultValue = "false") String packages) {
-        return doWrite(execute(q, name, disjoints, methods, packages), "N3");
+        return Helpers.toString(execute(q, name, disjoints, methods, packages), "N3");
     }
 
     @GetMapping(value = "/json/{q}/{name}", produces = {"application/x-javascript", "application/json", "application/ld+json"})
     @ResponseBody
-    public String getModelAsrdfjson(@PathVariable String q, @PathVariable String name,
+    public StreamingResponseBody getModelAsrdfjson(@PathVariable String q, @PathVariable String name,
                                     @RequestParam(defaultValue = "false") String disjoints,
                                     @RequestParam(defaultValue = "false") String methods,
                                     @RequestParam(defaultValue = "false") String packages) {
-        return doWrite(execute(q, name, disjoints, methods, packages), "RDF/JSON");
+        return toStreamingResponseBody(execute(q, name, disjoints, methods, packages), "RDF/JSON");
     }
 
     @GetMapping(value = "/trig/{q}/{name}", produces = {"text/trig"})
@@ -77,25 +74,25 @@ public abstract class OpenDataController implements Synchro {
                                  @RequestParam(defaultValue = "false") String disjoints,
                                  @RequestParam(defaultValue = "false") String methods,
                                  @RequestParam(defaultValue = "false") String packages) {
-        return doWrite(execute(q, name, disjoints, methods, packages), "TriG");
+        return Helpers.toString(execute(q, name, disjoints, methods, packages), "TriG");
     }
 
     @GetMapping(value = "/jsonld/{q}/{name}", produces = {"application/x-javascript", "application/json", "application/ld+json"})
     @ResponseBody
-    public String getModelAsJson(@PathVariable String q, @PathVariable String name,
+    public StreamingResponseBody getModelAsJson(@PathVariable String q, @PathVariable String name,
                                  @RequestParam(defaultValue = "false") String disjoints,
                                  @RequestParam(defaultValue = "false") String methods,
                                  @RequestParam(defaultValue = "false") String packages) {
-        return doWrite(execute(q, name, disjoints, methods, packages), "JSON-LD");
+        return toStreamingResponseBody(execute(q, name, disjoints, methods, packages), "JSON-LD");
     }
 
     @GetMapping(value = "/rdf/{q}/{name}", produces = {"application/xml", "application/rdf+xml"})
     @ResponseBody
-    public String getModelAsXml(@PathVariable String q, @PathVariable String name,
+    public StreamingResponseBody getModelAsXml(@PathVariable String q, @PathVariable String name,
                                 @RequestParam(defaultValue = "false") String disjoints,
                                 @RequestParam(defaultValue = "false") String methods,
                                 @RequestParam(defaultValue = "false") String packages) {
-        return doWrite(execute(q, name, disjoints, methods, packages), "RDF/XML");
+        return toStreamingResponseBody(execute(q, name, disjoints, methods, packages), "RDF/XML");
     }
 
     @GetMapping(value = "/trix/{q}/{name}", produces = {"text/trix"})
@@ -105,9 +102,29 @@ public abstract class OpenDataController implements Synchro {
                                  @RequestParam(defaultValue = "false") String methods,
                                  @RequestParam(defaultValue = "false") String packages) {
         fillObjectWithStdAttribute(null,null,null);
-        return doWrite(execute(q, name, disjoints, methods, packages), "TriX");
+        return Helpers.toString(execute(q, name, disjoints, methods, packages), "TriX");
     }
 
+    @GetMapping(value = "/vowl/{q}/{name}", produces = {"application/x-javascript", "application/json", "application/ld+json"})
+    @ResponseBody
+    public String getModelAsVowl(@PathVariable String q, @PathVariable String name,
+                                                @RequestParam(defaultValue = "false") String disjoints,
+                                                @RequestParam(defaultValue = "false") String methods,
+                                                @RequestParam(defaultValue = "false") String packages) {
+        Model res =  execute(q, name, disjoints, methods, packages);
+        try (
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                BufferedOutputStream bout = new BufferedOutputStream(bos);
+        ) {
+            res.write(bout, "N3");
+            bout.flush();
+
+            return new Owl2Vowl(new ByteArrayInputStream(bos.toByteArray())).getJsonAsString();
+        } catch (Exception e) {
+            LOG.warn("Error converting model into VOWL", e);
+            throw new SumarisTechnicalException(e);
+        }
+    }
 
     // ===========  protected methods =============
     @Transactional
@@ -138,28 +155,27 @@ public abstract class OpenDataController implements Synchro {
             case "ontology":
                 res = onto(name, opts);
         }
-
-        if (res == null)
-            // report error to user
-            return null;
-
-        try {
-            //save ontology as file
-            File owl = File.createTempFile(name, "owl");
-            res.write(new FileOutputStream(owl), "N3");
-
-            //convert to webVowl
-            new Owl2Vowl(new FileInputStream(owl))
-                    .writeToFile(new File("/home/bbertran/ws/WebVOWL/deploy/data/" + name + ".json"));
-
-        } catch (Exception e) {
-            LOG.warn("error saving OWL and VOWL", e);
-        }
-
         return res;
     }
 
     protected abstract OntModel onto(String name, Map<String, String> opts);
 
+    /**
+     * Serialize model in requested format
+     *
+     * @param model  input model
+     * @param format output format if null then output to RDF/XML
+     * @return a string representation of the model
+     */
+    protected StreamingResponseBody toStreamingResponseBody(Model model, String format) {
+
+        return os -> {
+            if (format == null) {
+                model.write(os);
+            } else {
+                model.write(os, format);
+            }
+        };
+    }
 
 }

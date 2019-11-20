@@ -425,6 +425,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @Override
     public Map<Integer, String> saveBatchSortingMeasurementsMap(int batchId, Map<Integer, String> sources) {
         Batch parent = get(Batch.class, batchId);
+        Preconditions.checkNotNull(parent, "Could not found batch with id=" + batchId);
         return saveMeasurementsMap(BatchSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
     }
 

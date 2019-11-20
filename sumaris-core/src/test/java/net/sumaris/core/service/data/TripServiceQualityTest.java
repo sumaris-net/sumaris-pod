@@ -27,6 +27,14 @@ public class TripServiceQualityTest extends AbstractServiceTest {
         TripVO trip = service.get(dbResource.getFixtures().getTripId(0));
         Assert.assertNotNull(trip);
 
+        // Make sure control date is NOT set
+        if (trip.getControlDate() != null) {
+            trip.setControlDate(null);
+            service.save(trip, false);
+            trip = service.get(dbResource.getFixtures().getTripId(0));
+            Assert.assertNotNull(trip);
+        }
+
         Assert.assertNull(trip.getControlDate());
 
         trip = service.control(trip);

@@ -6,6 +6,7 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/jena")
+@ConditionalOnProperty(name="sumaris.rdf.enable", havingValue = "true")
 public class RDFRestController extends OpenDataController {
 
     private static final Logger LOG = LoggerFactory.getLogger(RDFRestController.class);

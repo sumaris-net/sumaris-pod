@@ -41,11 +41,10 @@
     <server.account.register.confirm.url>${server.url}/confirm/{email}/{code}</server.account.register.confirm.url>
     <admin.email>sumaris.net@gmail.com</admin.email>
 
-        <maven.jar.main.class>net.sumaris.server.config.Application</maven.jar.main.class>
+    <maven.jar.main.class>net.sumaris.server.config.Application</maven.jar.main.class>
 
-        <jena.version>3.10.0</jena.version>
 
-    </properties>
+  </properties>
 
   <dependencies>
 
@@ -58,6 +57,11 @@
     <dependency>
       <groupId>net.sumaris</groupId>
       <artifactId>sumaris-core-extraction</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sumaris</groupId>
+      <artifactId>sumaris-core-rdf</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -145,59 +149,31 @@
       <scope>runtime</scope>
     </dependency>
 
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <version>2.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-core</artifactId>
-            <version>2.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <version>${logback.version}</version>
-        </dependency>
-
-      <!-- Jena (RDF) and OWL -->
-      <dependency>
-          <groupId>org.apache.jena</groupId>
-          <artifactId>jena-core</artifactId>
-          <version>${jena.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.jena</groupId>
-          <artifactId>apache-jena-libs</artifactId>
-          <version>${jena.version}</version>
-          <type>pom</type>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.jena</groupId>
-          <artifactId>jena-arq</artifactId>
-          <version>${jena.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.visualdataweb.vowl.owl2vowl</groupId>
-          <artifactId>OWL2VOWL</artifactId>
-          <version>0.3.1</version>
-      </dependency>
-      <!--<dependency>-->
-      <!--<groupId>com.thewebsemantic</groupId>-->
-      <!--<artifactId>jenabean</artifactId>-->
-      <!--<version>1.0.6</version>-->
-      <!--</dependency>-->
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>3.1.0</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.sun.xml.bind</groupId>
+        <artifactId>jaxb-impl</artifactId>
+        <version>2.3.0</version>
+    </dependency>
+    <dependency>
+        <groupId>com.sun.xml.bind</groupId>
+        <artifactId>jaxb-core</artifactId>
+        <version>2.3.0</version>
+    </dependency>
+    <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>${logback.version}</version>
+    </dependency>
 
     <!-- Unit test -->
     <dependency>

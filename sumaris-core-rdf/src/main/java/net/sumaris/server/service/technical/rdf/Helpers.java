@@ -10,6 +10,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
@@ -348,7 +349,7 @@ public interface Helpers extends O2BConfig {
      * @param format output format if null then output to RDF/XML
      * @return a string representation of the model
      */
-    static String doWrite(Model model, String format) {
+    static String toString(Model model, String format) {
 
         try (final ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             if (format == null) {
@@ -362,6 +363,7 @@ public interface Helpers extends O2BConfig {
         }
         return "there was an error writing the model ";
     }
+
 
 
     static LocalDate convertToLocalDateViaMilisecond(Date dateToConvert) {

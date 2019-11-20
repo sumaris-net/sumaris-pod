@@ -10,12 +10,12 @@ package net.sumaris.core.model.administration.programStrategy;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -82,4 +82,17 @@ public class PmfmStrategy implements IEntity<Integer> {
                     @JoinColumn(name = "gear_fk", nullable = false, updatable = false) })
     private Set<Gear> gears = Sets.newHashSet();
 
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @JoinTable(name = "pmfm_strategy2taxon_group", joinColumns = {
+            @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "taxon_group_fk", nullable = false, updatable = false) })
+    private Set<TaxonGroup> taxonGroups = Sets.newHashSet();
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @JoinTable(name = "pmfm_strategy2reference_taxon", joinColumns = {
+            @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "reference_taxon_fk", nullable = false, updatable = false) })
+    private Set<ReferenceTaxon> referenceTaxons = Sets.newHashSet();
 }
