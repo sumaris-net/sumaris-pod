@@ -42,7 +42,7 @@ public interface VesselDao {
 
     List<VesselRegistrationVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
-    VesselVO save(VesselVO vessel);
+    VesselVO save(VesselVO vessel, boolean checkUpdateDate);
 
     void delete(int id);
 

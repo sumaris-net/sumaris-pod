@@ -66,6 +66,8 @@ public interface VesselService {
 
 	VesselVO save(VesselVO source);
 
+	VesselVO save(VesselVO source, boolean checkUpdateDate);
+
 	List<VesselVO> save(List<VesselVO> sources);
 
 	void delete(int id);

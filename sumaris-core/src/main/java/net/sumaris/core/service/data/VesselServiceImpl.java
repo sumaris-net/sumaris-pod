@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -96,6 +97,11 @@ public class VesselServiceImpl implements VesselService {
 
 	@Override
 	public VesselVO save(VesselVO source) {
+		return save(source, true);
+	}
+
+	@Override
+	public VesselVO save(VesselVO source, boolean checkUpdateDate) {
 		Preconditions.checkNotNull(source);
 		Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
 		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
@@ -110,7 +116,7 @@ public class VesselServiceImpl implements VesselService {
 		Preconditions.checkArgument(StringUtils.isNotBlank(source.getRegistration().getRegistrationCode()), "Missing registration code");
 		Preconditions.checkNotNull(source.getRegistration().getRegistrationLocation().getId(), "Missing registration location");
 
-		VesselVO savedVesselFeatures = vesselDao.save(source);
+		VesselVO savedVesselFeatures = vesselDao.save(source, checkUpdateDate);
 
 		// Save measurements
 		if (savedVesselFeatures.getFeatures().getMeasurementValues() != null) {
@@ -129,6 +135,16 @@ public class VesselServiceImpl implements VesselService {
 	@Override
 	public List<VesselVO> save(List<VesselVO> sources) {
 		Preconditions.checkNotNull(sources);
+
+		// special case if a vessel is saved twice: it means a features or registration change
+		if (sources.size() == 2 && Objects.equals(sources.get(0).getId(), sources.get(1).getId())) {
+			List<VesselVO> result = new ArrayList<>();
+			// save the first vo normally
+			result.add(save(sources.get(0)));
+			// save the second without checking update date
+			result.add(save(sources.get(1), false));
+			return result;
+		}
 
 		return sources.stream()
 				.map(this::save)

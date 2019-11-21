@@ -90,6 +90,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
         // filter by active features and registration
         query.where(builder.and(
+            builder.equal(vesselRoot.get(Vessel.Fields.ID), id),
             builder.isNull(featuresJoin.get(VesselFeatures.Fields.END_DATE)),
             builder.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
         ));
@@ -197,7 +198,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     }
 
     @Override
-    public VesselVO save(VesselVO vessel) {
+    public VesselVO save(VesselVO vessel, boolean checkUpdateDate) {
         Preconditions.checkNotNull(vessel);
 
         Vessel vesselEntity = null;
@@ -211,8 +212,11 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         }
 
         if (!isNew) {
-            // Check update date
-            checkUpdateDateForUpdate(vessel, vesselEntity);
+
+            if (checkUpdateDate) {
+                // Check update date
+                checkUpdateDateForUpdate(vessel, vesselEntity);
+            }
 
             // Lock entityName
             lockForUpdate(vesselEntity);
@@ -443,6 +447,10 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         ReferentialVO vesselType = referentialDao.toReferentialVO(source.getVessel().getVesselType());
         target.setVesselType(vesselType);
 
+        // Recorder department
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getVessel().getRecorderDepartment(), DepartmentVO.class).orElse(null);
+        target.setRecorderDepartment(recorderDepartment);
+
         // Vessel features
         target.setFeatures(toVesselFeaturesVO(source.getVesselFeatures()));
 
@@ -471,7 +479,6 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             target.setGrossTonnageGt(source.getGrossTonnageGt().doubleValue() / 100);
         }
 
-        target.setId(source.getVessel().getId());
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // base port location
