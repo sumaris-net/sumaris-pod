@@ -66,7 +66,7 @@ public class ImageServiceImpl implements ImageService {
 
     public void fillAvatar(PersonVO person) {
         if (person == null) return;
-        if (person.getHasAvatar() != null && person.getHasAvatar().booleanValue() && org.apache.commons.lang3.StringUtils.isNotBlank(person.getPubkey())) {
+        if (person.getHasAvatar() != null && person.getHasAvatar() && org.apache.commons.lang3.StringUtils.isNotBlank(person.getPubkey())) {
             person.setAvatar(personAvatarUrl.replace("{pubkey}", person.getPubkey()));
         }
         // Use gravatar URL
@@ -77,7 +77,7 @@ public class ImageServiceImpl implements ImageService {
 
     public void fillLogo(DepartmentVO department) {
         if (department == null) return;
-        if (department.getHasLogo() != null && department.getHasLogo().booleanValue() && org.apache.commons.lang3.StringUtils.isNotBlank(department.getLabel())) {
+        if (department.getHasLogo() != null && department.getHasLogo() && org.apache.commons.lang3.StringUtils.isNotBlank(department.getLabel())) {
             department.setLogo(departmentLogoUrl.replace("{label}", department.getLabel()));
         }
     }

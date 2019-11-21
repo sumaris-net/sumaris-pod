@@ -1,4 +1,26 @@
-package net.sumaris.server.service.technical.rdf;
+/*
+ * #%L
+ * SUMARiS
+ * %%
+ * Copyright (C) 2019 SUMARiS Consortium
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+package net.sumaris.rdf.util;
 
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
@@ -10,6 +32,7 @@ import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import javax.persistence.Id;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -19,12 +42,22 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Stream;
 
-public interface Bean2Owl extends Helpers {
+public class Bean2Owl extends OwlUtils {
 
     /**
      * Logger.
      */
-    Logger LOG = LoggerFactory.getLogger(Bean2Owl.class);
+    private static Logger LOG = LoggerFactory.getLogger(Bean2Owl.class);
+
+    private String modelPrefix;
+
+    public Bean2Owl(String modelPrefix) {
+        this.modelPrefix = modelPrefix;
+    }
+
+    protected String getModelPrefix() {
+        return modelPrefix;
+    }
 
     /**
      * Returns and adds OntClass to the model
@@ -33,7 +66,7 @@ public interface Bean2Owl extends Helpers {
      * @param clazz
      * @return
      */
-    default OntClass classToOwl(OntModel ontology, Class clazz, Map<OntClass, List<OntClass>> mutualyDisjoint, boolean addInterface, boolean addMethods) {
+    public OntClass classToOwl(OntModel ontology, Class clazz, Map<OntClass, List<OntClass>> mutuallyDisjoint, boolean addInterface, boolean addMethods) {
 
         Resource schema = ontology.listSubjectsWithProperty(RDF.type, OWL.Ontology).nextResource();
 
@@ -57,16 +90,16 @@ public interface Bean2Owl extends Helpers {
                 aClass.addComment(entityName, "en");
 
 
-            if (mutualyDisjoint != null && addInterface) {
+            if (mutuallyDisjoint != null && addInterface) {
                 Stream.of(clazz.getGenericInterfaces())
                         .filter(interfaze -> !ParameterizedType.class.equals(interfaze))
                         .forEach(interfaze -> {
                             // LOG.info(interfaze+" "+Class.class + " " +  interfaze.getClass() );
                             OntClass r = typeToUri(schema, interfaze);
-                            if (!mutualyDisjoint.containsKey(r)) {
-                                mutualyDisjoint.put(r, new ArrayList<>());
+                            if (!mutuallyDisjoint.containsKey(r)) {
+                                mutuallyDisjoint.put(r, new ArrayList<>());
                             }
-                            mutualyDisjoint.get(r).add(aClass);
+                            mutuallyDisjoint.get(r).add(aClass);
 
                             aClass.addSuperClass(r);
                         });
@@ -134,7 +167,7 @@ public interface Bean2Owl extends Helpers {
                             Type contained = getListType(field.getGenericType());
                             OntProperty list = null;
                             Resource resou = null;
-                            LOG.info("List property " + fieldName + " " + contained.getTypeName());
+                            //LOG.info("List property " + fieldName + " " + contained.getTypeName());
 
                             if (isJavaType(contained)) {
                                 list = ontology.createDatatypeProperty(fieldName, true);
@@ -170,7 +203,7 @@ public interface Bean2Owl extends Helpers {
         return null;
     }
 
-    default OntClass typeToUri(Resource schema, Type t) {
+    protected OntClass typeToUri(Resource schema, Type t) {
 
         OntModel model = ((OntModel) schema.getModel());
 
@@ -199,15 +232,17 @@ public interface Bean2Owl extends Helpers {
 
     }
 
-    default OntClass interfaceToOwl(OntModel model, Type type) {
+    protected OntClass interfaceToOwl(OntModel model, Type type) {
 
         String name = type.getTypeName();
         name = name.substring(name.lastIndexOf(".") + 1);
 
-        return model.createClass(MY_PREFIX + name);
+        return model.createClass(getModelPrefix() + name);
     }
 
-    default Resource bean2Owl(OntModel model, Object obj, int depth) {
+    public Resource bean2Owl(OntModel model, Object obj, int depth,
+                             List<Method> includes,
+                             List<Method> excludes) {
         Resource schema = model.listSubjectsWithProperty(RDF.type, OWL.Ontology).nextResource();
 
         if (obj == null) {
@@ -245,13 +280,13 @@ public interface Bean2Owl extends Helpers {
         // Handle Methods
         Stream.of(obj.getClass().getMethods())
                 .filter(this::isGetter)
-                .filter(met -> BLACKLIST.stream().noneMatch(x -> x.equals(met)))
+                .filter(met -> excludes.stream().noneMatch(x -> x.equals(met)))
                 .filter(met -> {
                     //LOG.info(" filtering on " + met +"  " +  WHITELIST.contains(met) + " "+ !isManyToOne(met) ) ;
 
                     // LOG.info(" -- " + WHITELIST.size() + "  " + BLACKLIST.size() + "  " + URI_2_CLASS.size());
 
-                    return (!isManyToOne(met) || WHITELIST.contains(met));
+                    return (!isManyToOne(met) || includes.contains(met));
                 })
                 .forEach(met -> {
 
@@ -273,7 +308,7 @@ public interface Bean2Owl extends Helpers {
                         } else if (!isJavaType(met)) {
                             //LOG.warn("recurse for " + met.getName());
                             //LOG.info("not java generic, recurse on node..." + invoked);
-                            Resource recurse = bean2Owl(model, invoked, (depth - 1));
+                            Resource recurse = bean2Owl(model, invoked, (depth - 1), includes, excludes);
                             if (recurse != null)
                                 individual.addProperty(pred, recurse);
                         } else if (met.getGenericReturnType() instanceof ParameterizedType) {
@@ -281,7 +316,9 @@ public interface Bean2Owl extends Helpers {
                             Resource anonId = model.createResource(new AnonId("params" + new Random().nextInt(1000000)));
                             //individual.addProperty( pred, anonId);
 
-                            Optional<Resource> listNode = fillDataList(model, met.getGenericReturnType(), invoked, pred, anonId, depth - 1);
+                            Optional<Resource> listNode = fillDataList(model, met.getGenericReturnType(), invoked, pred, anonId, depth - 1,
+                                    includes,
+                                    excludes);
                             if (listNode.isPresent()) {
                                 LOG.info(" --and res  : " + listNode.get().getURI());
                                 individual.addProperty(pred, listNode.get());
@@ -307,7 +344,7 @@ public interface Bean2Owl extends Helpers {
     }
 
 
-    default Method findGetterAnnotatedID(Class clazz) {
+    protected Method findGetterAnnotatedID(Class clazz) {
         for (Field f : clazz.getDeclaredFields())
             for (Annotation an : f.getDeclaredAnnotations())
                 if (an instanceof Id)
@@ -316,19 +353,9 @@ public interface Bean2Owl extends Helpers {
         return null;
     }
 
-
-    static Method getterOfField(Class t, String field) {
-        try {
-            Method res = t.getMethod("get" + field.substring(0, 1).toUpperCase() + field.substring(1));
-            return res;
-        } catch (NoSuchMethodException e) {
-            LOG.error("error in the declaration of allowed ManyToOne " + e.getMessage());
-        }
-        return null;
-    }
-
-
-    default Optional<Resource> fillDataList(OntModel model, Type type, Object listObject, Property prop, Resource fieldId, int depth) {
+    protected Optional<Resource> fillDataList(OntModel model, Type type, Object listObject, Property prop, Resource fieldId, int depth,
+                                            List<Method> includes,
+                                            List<Method> excludes) {
 
         if (isListType(type)) {
 
@@ -342,7 +369,7 @@ public interface Bean2Owl extends Helpers {
                 return Optional.empty();
             }
             for (Object x : asList) {
-                Resource listItem = bean2Owl(model, x, (depth - 1));
+                Resource listItem = bean2Owl(model, x, (depth - 1), includes, excludes);
                 nodes.add(listItem);
 
             }
@@ -368,7 +395,7 @@ public interface Bean2Owl extends Helpers {
      * @param data     The list to cast.
      * @param listType The type of list to cast to.
      */
-    default <T> List<? super T> castListSafe(List<?> data, Class<T> listType) {
+    protected <T> List<? super T> castListSafe(List<?> data, Class<T> listType) {
         List<T> retval = null;
         //This test could be skipped if you trust the callers, but it wouldn't be safe then.
         if (data != null && !data.isEmpty() && listType.isInstance(data.iterator().next().getClass())) {

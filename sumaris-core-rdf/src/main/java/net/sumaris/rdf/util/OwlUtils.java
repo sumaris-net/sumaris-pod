@@ -1,6 +1,27 @@
-package net.sumaris.server.service.technical.rdf;
+/*
+ * #%L
+ * SUMARiS
+ * %%
+ * Copyright (C) 2019 SUMARiS Consortium
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
 
-import net.sumaris.server.config.O2BConfig;
+package net.sumaris.rdf.util;
+
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
@@ -10,8 +31,10 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.*;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import java.io.ByteArrayOutputStream;
@@ -22,19 +45,41 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface Helpers extends O2BConfig {
+public abstract class OwlUtils {
 
-    Map<Class, Resource> Class2Resources = new HashMap<>();
-    Map<Resource, Class> Resources2Class = initStandardTypeMapper();
+    private static Logger log = LoggerFactory.getLogger(OwlUtils.class);
 
-    static Map<Resource, Class> initStandardTypeMapper() {
+    public static String ADAGIO_PREFIX = "http://www.e-is.pro/2019/03/adagio/";
+    public static ZoneId ZONE_ID = ZoneId.systemDefault();
+    public static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
+    public static SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+
+    public static Method getterOfField(Class t, String field) {
+        try {
+            Method res = t.getMethod("get" + field.substring(0, 1).toUpperCase() + field.substring(1));
+            return res;
+        } catch (NoSuchMethodException e) {
+            log.error("error in the declaration of allowed ManyToOne " + e.getMessage());
+        }
+        return null;
+    }
+
+
+    protected Map<Class, Resource> Class2Resources = new HashMap<>();
+    protected  Map<Resource, Class> Resources2Class = initStandardTypeMapper();
+
+
+    protected Map<Resource, Class> initStandardTypeMapper() {
         Map<Class, Resource> res = new HashMap<>();
         res.put(Date.class, XSD.date);
         res.put(LocalDateTime.class, XSD.dateTime);
@@ -58,118 +103,43 @@ public interface Helpers extends O2BConfig {
 
     }
 
-
-    default Optional<Class> ontToJavaClass(OntClass ontClass) {
-        String uri = ontClass.getURI();
-        if (uri != null) {
-            if (uri.contains("#")) {
-                uri = uri.substring(0, uri.indexOf("#"));
-                LOG.warn(" tail '#'  " + uri);
-            }
-            if (uri.contains("<")) {
-                uri = uri.substring(0, uri.indexOf("<"));
-                LOG.warn(" tail <parametrized> " + uri);
-            }
-        }
-
-        if (uri == null) {
-            LOG.error(" uri null for OntClass " + ontClass);
-            return Optional.empty();
-        }
-
-
-        String cName = uri.substring(uri.lastIndexOf("/") + 1);
-        Class clazz = URI_2_CLASS.get(cName);
-
-        if (clazz == null) {
-            LOG.warn(" clazz not mapped for class " + cName);
-            return Optional.empty();
-        }
-
-        if (clazz.isInterface()) {
-            LOG.warn(" corresponding Type is interface, skip instances " + clazz);
-            return Optional.empty();
-        }
-        return Optional.of(clazz);
-    }
-
-    default OntModel ontError(String uri) {
-        uri += (uri.endsWith("/") || uri.endsWith("#")) ? "" : "/";
-
-        OntModel ontology = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
-        ontology.setNsPrefix("this", uri);
-        ontology.setNsPrefix("foaf", FOAF.getURI());
-        ontology.setNsPrefix("purl", DC_11.getURI()); // http://purl.org/dc/elements/1.1/
-
-
-        return ontology;
-    }
-
-    default OntModel ontModelWithMetadata(String uri) {
-
-        uri += (uri.endsWith("/") || uri.endsWith("#")) ? "" : "/";
-
-        OntModel ontology = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
-        ontology.setNsPrefix("this", uri);
-        ontology.setNsPrefix("foaf", FOAF.getURI());
-        ontology.setNsPrefix("purl", DC_11.getURI()); // http://purl.org/dc/elements/1.1/
-
-        Resource schema = ontology.createResource(uri)
-                .addProperty(RDF.type, OWL.Ontology.asResource())
-                .addProperty(OWL2.versionInfo, "1.1.0")
-                .addProperty(OWL2.versionIRI, uri)
-                .addProperty(RDFS.label, TITLE)
-                .addProperty(RDFS.comment, LABEL)
-                .addProperty(DC.title, TITLE)
-                .addProperty(DC.date, "2019-03-05")
-                .addProperty(DC.rights, LICENCE)
-                .addProperty(DC.description, LABEL);
-
-        for (String a : AUTHORS)
-            schema.addProperty(DC.creator, a);
-
-        return ontology;
-
-    }
-
-
-    default Optional<Method> setterOfField(Resource schema, Class t, String field) {
+    protected Optional<Method> setterOfField(Resource schema, Class t, String field, OwlTransformContext context) {
         try {
-            Optional<Field> f = fieldOf(schema, t, field);
+            Optional<Field> f = fieldOf(schema, t, field, context);
             if (f.isPresent()) {
                 String setterName = "set" + f.get().getName().substring(0, 1).toUpperCase() + f.get().getName().substring(1);
-                //LOG.info("setterName " + setterName);
+                //log.info("setterName " + setterName);
                 Method met = t.getMethod(setterName, f.get().getType());
                 return Optional.of(met);
             }
 
         } catch (NoSuchMethodException e) {
-            LOG.warn("NoSuchMethodException setterOfField " + field);
+            log.warn("NoSuchMethodException setterOfField " + field);
         } catch (NullPointerException e) {
-            LOG.warn("NullPointerException setterOfField " + field);
+            log.warn("NullPointerException setterOfField " + field);
         }
         return Optional.empty();
     }
 
-    default Optional<Field> fieldOf(Resource schema, Class t, String name) {
+    protected Optional<Field> fieldOf(Resource schema, Class t, String name, OwlTransformContext context) {
         try {
 
-            Class ret = URI_2_CLASS.get(t.getSimpleName());
+            Class ret = context.URI_2_CLASS.get(t.getSimpleName());
             if (ret == null) {
-                LOG.info("error fieldOf " + classToURI(schema, t) + " " + name);
+                log.info("error fieldOf " + classToURI(schema, t) + " " + name);
                 return Optional.empty();
             } else {
                 return Optional.of(ret.getDeclaredField(name));
 
             }
         } catch (NoSuchFieldException e) {
-            LOG.error("error fieldOf " + t.getSimpleName() + " " + name + " - " + e.getMessage());
+            log.error("error fieldOf " + t.getSimpleName() + " " + name + " - " + e.getMessage());
         }
         return null;
     }
 
 
-    default String classToURI(Resource ont, Class c) {
+    protected String classToURI(Resource ont, Class c) {
         String uri = ont + c.getSimpleName();
         if (uri.substring(1).contains("<")) {
             uri = uri.substring(0, uri.indexOf("<"));
@@ -179,22 +149,22 @@ public interface Helpers extends O2BConfig {
 //        }
 
         if (uri.contains("$")) {
-            LOG.error("Inner classes not handled " + uri);
+            log.error("Inner classes not handled " + uri);
         }
 
         return uri;
     }
 
 
-    default boolean isJavaType(Type type) {
+    protected boolean isJavaType(Type type) {
         return Class2Resources.keySet().stream().anyMatch(type::equals);
     }
 
-    default boolean isJavaType(Method getter) {
+    protected boolean isJavaType(Method getter) {
         return isJavaType(getter.getGenericReturnType());
     }
 
-    default boolean isJavaType(Field field) {
+    protected boolean isJavaType(Field field) {
         return isJavaType(field.getType());
     }
 
@@ -205,24 +175,24 @@ public interface Helpers extends O2BConfig {
      * @param met the getter method to test
      * @return true if it is a technical id to exclude from the model
      */
-    default boolean isId(Method met) {
+    protected boolean isId(Method met) {
         return "getId".equals(met.getName())
                 && Stream.concat(annotsOfField(getFieldOfGetter(met)), Stream.of(met.getAnnotations()))
                 .anyMatch(annot -> annot instanceof Id || annot instanceof org.springframework.data.annotation.Id);
     }
 
-    default boolean isManyToOne(Method met) {
+    protected boolean isManyToOne(Method met) {
         return annotsOfField(getFieldOfGetter(met)).anyMatch(annot -> annot instanceof ManyToOne) // check the corresponding field's annotations
                 ||
                 Stream.of(met.getAnnotations()).anyMatch(annot -> annot instanceof ManyToOne)  // check the method's annotations
                 ;
     }
 
-    default Stream<Annotation> annotsOfField(Optional<Field> field) {
+    protected Stream<Annotation> annotsOfField(Optional<Field> field) {
         return field.map(field1 -> Stream.of(field1.getAnnotations())).orElseGet(Stream::empty);
     }
 
-    default boolean isGetter(Method met) {
+    protected boolean isGetter(Method met) {
         return met.getName().startsWith("get") // only getters
                 && !"getBytes".equals(met.getName()) // ignore ugly
                 && met.getParameterCount() == 0 // ignore getters that are not getters
@@ -231,11 +201,11 @@ public interface Helpers extends O2BConfig {
     }
 
 
-    default boolean isSetter(Method met) {
+    protected boolean isSetter(Method met) {
         return met.getName().startsWith("set");
     }
 
-    default Field getFieldOfGetteR(Method getter) {
+    protected Field getFieldOfGetteR(Method getter) {
         String fieldName = getter.getName().substring(3, 4).toLowerCase() + getter.getName().substring(4);
         try {
             return getter.getDeclaringClass().getDeclaredField(fieldName);
@@ -245,19 +215,19 @@ public interface Helpers extends O2BConfig {
     }
 
 
-    default Optional<Field> getFieldOfGetter(Method getter) {
+    protected Optional<Field> getFieldOfGetter(Method getter) {
 
         String fieldName = getter.getName().substring(3, 4).toLowerCase() + getter.getName().substring(4);
-        //LOG.info("searching field : " + fieldName);
+        //log.info("searching field : " + fieldName);
         try {
             return Optional.of(getter.getDeclaringClass().getDeclaredField(fieldName));
         } catch (Exception e) {
-            //LOG.error("field not found : " + fieldName + " for class " + getter.getDeclaringClass() + "  " + e.getMessage());
+            //log.error("field not found : " + fieldName + " for class " + getter.getDeclaringClass() + "  " + e.getMessage());
             return Optional.empty();
         }
     }
 
-    default Resource getStdType(Field f) {
+    protected Resource getStdType(Field f) {
         return Class2Resources.getOrDefault(f.getType(), RDFS.Literal);
 //        return Class2Resources.entrySet().stream()
 //                .filter((entry) -> entry.getKey().getTypeName().equals(f.getStdType().getSimpleName()))
@@ -266,7 +236,7 @@ public interface Helpers extends O2BConfig {
 //                .orElse(RDFS.Literal);
     }
 
-    default Resource getStdType(Type type) {
+    protected Resource getStdType(Type type) {
         return Class2Resources.getOrDefault(type, RDFS.Literal);
 //        return Class2Resources.entrySet().stream()
 //                .filter((entry) -> entry.getKey().getTypeName().equals(type.getTypeName()))
@@ -278,9 +248,9 @@ public interface Helpers extends O2BConfig {
 
     // =============== List handling ===============
 
-    List<Class> ACCEPTED_LIST_CLASS = Arrays.asList(List.class, ArrayList.class);
+    protected List<Class> ACCEPTED_LIST_CLASS = Arrays.asList(List.class, ArrayList.class);
 
-    default boolean isListType(Type type) {
+    public boolean isListType(Type type) {
 
 
         if (type instanceof ParameterizedType) {
@@ -295,7 +265,7 @@ public interface Helpers extends O2BConfig {
 
     }
 
-    default Type getListType(Type type) {
+    public Type getListType(Type type) {
         if (type instanceof ParameterizedType) {
             ParameterizedType parameterized = (ParameterizedType) type;// This would be Class<List>, say
             Type raw = parameterized.getRawType();
@@ -313,22 +283,22 @@ public interface Helpers extends O2BConfig {
 
     // =============== Define relation  ===============
 
-    default void createOneToMany(OntModel ontoModel, OntClass ontoClass, OntProperty prop, Resource resource) {
+    public void createOneToMany(OntModel ontoModel, OntClass ontoClass, OntProperty prop, Resource resource) {
         OntClass minCardinalityRestriction = ontoModel.createMinCardinalityRestriction(null, prop, 1);
         ontoClass.addSuperClass(minCardinalityRestriction);
     }
 
-    default void createZeroToMany(OntModel ontoModel, OntClass ontoClass, OntProperty prop, Resource resource) {
+    public void createZeroToMany(OntModel ontoModel, OntClass ontoClass, OntProperty prop, Resource resource) {
         OntClass minCardinalityRestriction = ontoModel.createMinCardinalityRestriction(null, prop, 0);
         ontoClass.addSuperClass(minCardinalityRestriction);
     }
 
-    default void createZeroToOne(OntModel ontoModel, OntClass ontoClass1, OntProperty prop, OntClass ontoClass2) {
+    public void createZeroToOne(OntModel ontoModel, OntClass ontoClass1, OntProperty prop, OntClass ontoClass2) {
         OntClass maxCardinalityRestriction = ontoModel.createMaxCardinalityRestriction(null, prop, 1);
         ontoClass1.addSuperClass(maxCardinalityRestriction);
     }
 
-    default void createOneToOne(OntModel ontoModel, OntClass ontoClass1, OntProperty prop, OntClass ontoClass2) {
+    public void createOneToOne(OntModel ontoModel, OntClass ontoClass1, OntProperty prop, OntClass ontoClass2) {
         OntClass maxCardinalityRestriction = ontoModel.createMaxCardinalityRestriction(null, prop, 1);
         ontoClass1.addSuperClass(maxCardinalityRestriction);
     }
@@ -336,7 +306,7 @@ public interface Helpers extends O2BConfig {
 
     // ==== pur utils ====
 
-    static String delta(long nanoStart) {
+    public static String delta(long nanoStart) {
         long elapsedTime = System.nanoTime() - nanoStart;
         double seconds = (double) elapsedTime / 1_000_000_000.0;
         return " elapsed " + seconds;
@@ -349,7 +319,7 @@ public interface Helpers extends O2BConfig {
      * @param format output format if null then output to RDF/XML
      * @return a string representation of the model
      */
-    static String toString(Model model, String format) {
+    public static String toString(Model model, String format) {
 
         try (final ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             if (format == null) {
@@ -361,26 +331,26 @@ public interface Helpers extends O2BConfig {
             os.close();
             return new String(os.toByteArray(), "UTF8");
         } catch (IOException e) {
-            LOG.error("doWrite ", e);
+            log.error("doWrite ", e);
         }
         return "there was an error writing the model ";
     }
 
 
 
-    static LocalDate convertToLocalDateViaMilisecond(Date dateToConvert) {
+    public LocalDate convertToLocalDateViaMilisecond(Date dateToConvert) {
         return Instant.ofEpochMilli(dateToConvert.getTime())
                 .atZone(ZONE_ID)
                 .toLocalDate();
     }
 
-    static LocalDate convertToLocalDateViaInstant(Date dateToConvert) {
+    public LocalDate convertToLocalDateViaInstant(Date dateToConvert) {
         return dateToConvert.toInstant()
                 .atZone(ZONE_ID)
                 .toLocalDate();
     }
 
-    static Date convertToDateViaInstant(LocalDateTime dateToConvert) {
+    public Date convertToDateViaInstant(LocalDateTime dateToConvert) {
         return java.util.Date
                 .from(dateToConvert.atZone(ZONE_ID)
                         .toInstant());

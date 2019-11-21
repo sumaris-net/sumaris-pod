@@ -49,8 +49,6 @@ import org.springframework.web.servlet.view.RedirectView;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 @RestController
 public class ImageRestController implements ResourceLoaderAware {

@@ -95,6 +95,7 @@
 
     <slf4j.version>1.7.26</slf4j.version>
     <logback.version>1.2.3</logback.version>
+    <log4j.version>2.12.1</log4j.version>
     <jansi.version>1.8</jansi.version>
     <guava.version>23.0</guava.version>
     <xml-apis.version>2.0.2</xml-apis.version>
@@ -818,6 +819,16 @@
         <groupId>org.fusesource.jansi</groupId>
         <artifactId>jansi</artifactId>
         <version>${jansi.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-to-slf4j</artifactId>
+        <version>${log4j.version}</version>
       </dependency>
 
       <!-- Unit tests -->

@@ -48,6 +48,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @SpringBootApplication(
         scanBasePackages = {
                 "net.sumaris.core",
+                "net.sumaris.rdf",
                 "net.sumaris.server"
         },
         exclude = {
@@ -108,7 +109,7 @@ public class Application extends SpringBootServletInitializer {
                 registry.addViewController("/graphql/websocket/test")
                         .setViewName("forward:/websocket/index.html");
 
-                // define path to RDF explorer
+                // define path to RDF test page
                 registry.addRedirectViewController("/rdf/test/", "/rdf/test");
                 registry.addViewController("/rdf/test")
                         .setViewName("forward:/rdf/index.html");

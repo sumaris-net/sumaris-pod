@@ -210,10 +210,16 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "https://www.sumaris.net",
             URL.class),
 
+    SITE_DOC_URL(
+            "sumaris.site.doc.url",
+            n("sumaris.config.option.site.doc.url.description"),
+            "http://doc.e-is.pro/sumaris",
+            URL.class),
+
     ORGANIZATION_NAME(
             "sumaris.organizationName",
             n("sumaris.config.option.organizationName.description"),
-            "Ifremer",
+            "SUMARiS consortium, E-IS.pro",
             String.class),
 
     INCEPTION_YEAR(

@@ -51,12 +51,13 @@ public class CacheConfiguration {
 
     @PostConstruct
     protected void init() {
-        if (this.cacheManager == null)
+        if (this.cacheManager == null) {
             log.info("Starting cache manager...");
             this.cacheManager = ehcache();
+        }
     }
 
-    @Bean
+    @Bean(name="ehcacheFactory")
     @ConditionalOnMissingBean({CacheManager.class, EhCacheManagerFactoryBean.class, EhCacheCacheManager.class})
     public EhCacheManagerFactoryBean ehcacheFactory(){
         EhCacheManagerFactoryBean factoryBean = new EhCacheManagerFactoryBean();

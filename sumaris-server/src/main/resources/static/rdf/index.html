@@ -31,13 +31,15 @@
 
     <script language="javascript" type="text/javascript">
 
-        var baseUri = "http://localhost:8080/jena"; // DEV default URL
+        var restBasePath = 'api';
+        var baseUri;
 
         var buttonConnect;
         var inputUri;
         var inputFormat;
-        var inputQ;
-        var inputName;
+        var inputModelType;
+        var inputOntologyName;
+        var inputReferentialName;
         var inputDisjoints;
         var inputMethods;
         var inputPackages;
@@ -52,17 +54,20 @@
         function init()
         {
             if (window.location && window.location.origin) {
-                baseUri = window.location.origin + '/jena';
+                baseUri = window.location.origin;
             }
 
             inputUri = document.getElementById("baseUri");
             inputUri.value = baseUri;
 
             inputFormat = document.getElementById("format");
-            inputQ = document.getElementById("q");
-            inputName = document.getElementById("name");
+            inputModelType = document.getElementById("type");
+            inputOntologyName = document.getElementById("ontologyName");
+            inputReferentialName = document.getElementById("referentialName");
             inputDisjoints = document.getElementById("disjoints");
             inputMethods = document.getElementById("methods");
+            inputMethods.checked = false;
+
             inputPackages = document.getElementById("packages");
 
             buttonConnect = document.getElementById("buttonConnect");
@@ -96,14 +101,36 @@
 
         function createRequestUri()
         {
-            baseUri = (inputUri.value) || baseUri;
+            baseUri = inputUri.value || baseUri;
             if (baseUri.lastIndexOf('/') !== baseUri.length - 1) {
                 baseUri += '/';
+                inputUri.value = baseUri;
             }
 
-            var path = baseUri + inputFormat.value + '/' + inputQ.value + '/' + inputName.value ;
+            var path = baseUri;
+            var format = inputFormat.value || 'rdf';
+
+            // If NOT the default format: use /api/<format>/<type>
+            if (format !== 'rdf') {
+                path = baseUri
+                    + restBasePath + '/' + format + '/';
+            }
+
+            var modelType = inputModelType.value;
+            path +=  modelType + '/';
+
+            // Add name
+            if (modelType === 'ontologies') {
+                path += inputOntologyName.value + '/' ;
+            }
+            else if (modelType === 'referentials') {
+                path += inputReferentialName.value  + '/' ;
+            }
 
             var params = [];
+            if (inputFormat.value) {
+               // params.push('format=' + inputFormat.value)
+            }
             if (inputDisjoints.checked) {
                 params.push('disjoints=true')
             }
@@ -113,9 +140,10 @@
             if (inputPackages && inputPackages.value) {
                 params.push('packages=' + inputPackages.value)
             }
-
-            if (!params.length) return path;
-            return path + '?' + params.join('&');
+            if (params.length) {
+                path += '?' + params.join('&');
+            }
+            return path;
         }
 
 
@@ -128,6 +156,7 @@
                 logInfo("GET: " + requestUri, "text-muted");
                 var xmlhttp = new XMLHttpRequest();
                 var now = Date.now();
+                output.value = 'Loading...';
                 xmlhttp.onreadystatechange = function() {
                         if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
                             if (xmlhttp.status == 200) {
@@ -191,53 +220,52 @@
         <h1>RDF test</h1>
 
         <div class="form-group">
-            <label for="baseUri">Server URI</label>
-            <div class="form-inline">
-                <input type="text" name="baseUri" id="baseUri" class="form-control" placeholder="http://server/path" style="width: 80%;">
-                &nbsp;
-                <button id="buttonConnect" type="button" onclick="doOpenOrClose()" class="btn btn-primary" tabindex="-1" style="width: 15%; min-width: 150px;">Disconnect</button>
-            </div>
+            <label for="baseUri">REST endpoint URL</label>
+            <input type="text" name="baseUri" id="baseUri" class="form-control" placeholder="http://server/path">
         </div>
 
         <div class="form-group">
         <!-- format -->
         <label for="format">Format</label>
         <select name="format" id="format">
+            <option value="">RDF (XML)</option>
             <option value="json">RDF (JSON)</option>
-            <option value="rdf">RDF (XML)</option>
-            <option value="jsonld">JSON-LD (Linked data)</option>
-
+            <option value="jsonld">JSON-LD (JSON Linked data)</option>
             <option value="ntriple">N-TRIPLE</option>
-            <option value="ttl">Turtle</option>
-            <option value="n3">N3 (text)</option>
+            <option value="ttl">Turtle (TTL)</option>
+            <option value="n3">N3 (plain text)</option>
             <option value="trig">TriG</option>
             <option value="trix">Trix format</option>
 
             <option value="vowl">VOWL-JSON (Visual Notation for OWL Ontologies)</option>
         </select>
 
-        <!-- data type -->
-        <label for="q">Request type</label>
-        <select name="q" id="q">
-            <option value="ontology">Ontology model</option>
+        <!-- model type -->
+        <label for="type">Model type</label>
+        <select name="type" id="type">
+            <option value="ontologies">Ontology</option>
             <option value="referentials">Referential items</option>
-            <option value="sync">Synchronize from a remote server</option>
+<!--            <option value="sync">Synchronize from a remote server</option>-->
         </select>
 
         <!-- type -->
-        <label for="name">Request type</label>
-        <select name="name" id="name">
+        <label for="ontologyName">Model name</label>
+        <select name="ontologyName" id="ontologyName">
             <option value="entities">Model entities</option>
             <option value="vo">Value Object (for transport)</option>
-            <option value="module">RDF module itself</option>
         </select>
 
         <!-- class -->
-        <label for="className">Class</label>
-        <select name="className" id="className">
+        <label for="referentialName">Model name</label>
+        <select name="referentialName" id="referentialName">
             <option value="Status">Status</option>
+
+            <option value="Department">Department</option>
+
             <option value="Location">Location</option>
-            <option value="TaxonName">TaxonName</option>
+            <option value="Gear">Gear</option>
+            <option value="Taxon">Taxon</option>
+            <option value="Transcription">Transcription</option>
         </select>
 
 <!--            <div class="form-inline">-->
