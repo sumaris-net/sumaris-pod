@@ -225,8 +225,13 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         // VO -> Entity
         vesselVOToEntity(vessel, vesselEntity, true);
 
-        // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        if (isNew) {
+            // Force creation date
+            vesselEntity.setCreationDate(newUpdateDate);
+            vessel.setCreationDate(newUpdateDate);
+        }
+        // Update update_dt
         vesselEntity.setUpdateDate(newUpdateDate);
         vessel.setUpdateDate(newUpdateDate);
 
@@ -253,6 +258,8 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             // Update entity
             getEntityManager().merge(featuresEntity);
         }
+        // update source feature update also
+        features.setUpdateDate(newUpdateDate);
 
         // Save Registration period
         VesselRegistrationVO registration = vessel.getRegistration();
@@ -277,10 +284,6 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
         // Save entity
         if (isNew) {
-            // Force creation date
-            vesselEntity.setCreationDate(newUpdateDate);
-            vessel.setCreationDate(newUpdateDate);
-
             getEntityManager().persist(vesselEntity);
             vessel.setId(vesselEntity.getId());
         } else {

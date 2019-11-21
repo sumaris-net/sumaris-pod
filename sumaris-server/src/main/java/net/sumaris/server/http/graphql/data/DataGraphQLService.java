@@ -136,6 +136,13 @@ public class DataGraphQLService {
         return vesselService.countVesselsByFilter(filter);
     }
 
+    @GraphQLQuery(name = "vessel", description = "Get a vessel")
+    @Transactional(readOnly = true)
+    @IsUser
+    public VesselVO getVesselById(@GraphQLArgument(name = "vesselId") int vesselId) {
+        return vesselService.getVesselById(vesselId);
+    }
+
     @GraphQLQuery(name = "vesselFeaturesHistory", description = "Get vessel features history")
     @Transactional(readOnly = true)
     @IsUser
