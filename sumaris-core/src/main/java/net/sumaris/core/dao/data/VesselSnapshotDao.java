@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.data;
+package net.sumaris.core.dao.data;
 
 /*-
  * #%L
@@ -22,25 +22,17 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
-import lombok.Data;
-import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 
 import java.util.Date;
+import java.util.List;
 
-@Data
-@FieldNameConstants
-public class VesselRegistrationVO implements IEntity<Integer> {
+public interface VesselSnapshotDao {
 
-    private Integer id;
-    private String registrationCode;
-    private String intRegistrationCode;
-    private LocationVO registrationLocation;
+    VesselSnapshotVO getByIdAndDate(int vesselId, Date date);
 
-    private Date startDate;
-    private Date endDate;
-
-    private Integer qualityFlagId;
+    List<VesselSnapshotVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 }

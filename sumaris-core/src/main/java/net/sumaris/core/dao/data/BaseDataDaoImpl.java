@@ -2,6 +2,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -18,7 +19,9 @@ import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.persistence.criteria.*;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
@@ -174,5 +177,59 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
                 throw new SumarisTechnicalException("Missing program.id !");
             }
         }
+    }
+
+    /**
+     * Add a orderBy on query
+     *
+     * @param query the query
+     * @param cb criteria builder
+     * @param root the root of the query
+     * @param sortAttribute the sort attribute (can be a nested attribute)
+     * @param sortDirection the direction
+     * @param <T> type of query
+     * @return the query itself
+     */
+    protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
+                                              CriteriaBuilder cb,
+                                              Root<?> root, String sortAttribute, SortDirection sortDirection) {
+        // Add sorting
+        if (StringUtils.isNotBlank(sortAttribute)) {
+            Expression<?> sortExpression = composePath(root, sortAttribute);
+            query.orderBy(SortDirection.DESC.equals(sortDirection) ?
+                cb.desc(sortExpression) :
+                cb.asc(sortExpression)
+            );
+        }
+        return query;
+    }
+
+    /**
+     * Compose a Path from root, accepting nested property name
+     *
+     * @param root the root expression
+     * @param attributePath the attribute path, can contains '.'
+     * @param <X> Type of Path
+     * @return the composed Path
+     */
+    protected <X> Path<X> composePath(Root<?> root, String attributePath) {
+
+        String[] paths = attributePath.split("\\.");
+        From<?, ?> from = root; // starting from root
+        Path<X> result = null;
+
+        for (int i = 0; i < paths.length; i++) {
+            String path = paths[i];
+
+            if (i == paths.length - 1) {
+                // last path, get it
+                result = from.get(path);
+            } else {
+                // need a join
+                from = from.join(path);
+            }
+        }
+
+        return result;
     }
 }

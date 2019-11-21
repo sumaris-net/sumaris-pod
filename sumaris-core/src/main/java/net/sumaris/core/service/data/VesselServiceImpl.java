@@ -26,15 +26,12 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.VesselDao;
+import net.sumaris.core.dao.data.VesselSnapshotDao;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselPhysicalMeasurement;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
-import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.VesselFeaturesVO;
-import net.sumaris.core.vo.data.VesselSnapshotVO;
-import net.sumaris.core.vo.data.VesselRegistrationVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -56,17 +53,20 @@ public class VesselServiceImpl implements VesselService {
 	protected VesselDao vesselDao;
 
 	@Autowired
+	protected VesselSnapshotDao vesselSnapshotDao;
+
+	@Autowired
 	protected MeasurementDao measurementDao;
 
 
 	@Override
 	public List<VesselSnapshotVO> findSnapshotByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-		return vesselDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
+		return vesselSnapshotDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
 	}
 
 	@Override
-	public List<VesselSnapshotVO> getSnapshotByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-		return vesselDao.getByVesselId(vesselId, offset, size, sortAttribute, sortDirection);
+	public List<VesselFeaturesVO> getFeaturesByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+		return vesselDao.getFeaturesByVesselId(vesselId, offset, size, sortAttribute, sortDirection);
 	}
 
 	@Override
@@ -76,41 +76,58 @@ public class VesselServiceImpl implements VesselService {
 
 	@Override
 	public VesselSnapshotVO getSnapshotByIdAndDate(int vesselId, Date date) {
-		return vesselDao.getSnapshotByIdAndDate(vesselId, date);
+		return vesselSnapshotDao.getByIdAndDate(vesselId, date);
 	}
 
 	@Override
-	public VesselFeaturesVO save(VesselFeaturesVO source) {
+	public List<VesselVO> findVesselsByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+		return vesselDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
+	}
+
+	@Override
+	public Long countVesselsByFilter(VesselFilterVO filter) {
+		return vesselDao.countByFilter(filter);
+	}
+
+	@Override
+	public VesselVO getVesselById(int vesselId) {
+		return vesselDao.get(vesselId);
+	}
+
+	@Override
+	public VesselVO save(VesselVO source) {
 		Preconditions.checkNotNull(source);
 		Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
 		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+		Preconditions.checkNotNull(source.getVesselType(), "Missing vesselId or vesselTypeId");
 
-		Preconditions.checkNotNull(source.getBasePortLocation().getId(), "Missing basePortLocation.id");
-		Preconditions.checkArgument(source.getVesselId() != null && source.getVesselType() != null, "Missing vesselId or vesselTypeId");
+		Preconditions.checkNotNull(source.getFeatures(), "Missing features object");
+		Preconditions.checkNotNull(source.getFeatures().getBasePortLocation().getId(), "Missing basePortLocation.id");
+		Preconditions.checkNotNull(source.getFeatures().getStartDate(), "Missing start date");
+		Preconditions.checkArgument(StringUtils.isNotBlank(source.getFeatures().getExteriorMarking()), "Missing exterior marking");
 
-		Preconditions.checkNotNull(source.getStartDate(), "Missing start date");
-		Preconditions.checkArgument(StringUtils.isNotBlank(source.getExteriorMarking()), "Missing exterior marking");
-		Preconditions.checkArgument(StringUtils.isNotBlank(source.getRegistrationCode()), "Missing registration code");
-		Preconditions.checkNotNull(source.getRegistrationLocation().getId(), "Missing registration location");
+		Preconditions.checkNotNull(source.getRegistration(), "Missing registration object");
+		Preconditions.checkArgument(StringUtils.isNotBlank(source.getRegistration().getRegistrationCode()), "Missing registration code");
+		Preconditions.checkNotNull(source.getRegistration().getRegistrationLocation().getId(), "Missing registration location");
 
-		VesselFeaturesVO savedVesselFeatures = vesselDao.save(source);
+		VesselVO savedVesselFeatures = vesselDao.save(source);
 
 		// Save measurements
-		if (savedVesselFeatures.getMeasurementValues() != null) {
-			measurementDao.saveVesselPhysicalMeasurementsMap(savedVesselFeatures.getId(), savedVesselFeatures.getMeasurementValues());
+		if (savedVesselFeatures.getFeatures().getMeasurementValues() != null) {
+			measurementDao.saveVesselPhysicalMeasurementsMap(savedVesselFeatures.getId(), savedVesselFeatures.getFeatures().getMeasurementValues());
 		}
 		else {
-			List<MeasurementVO> measurements = Beans.getList(savedVesselFeatures.getMeasurements());
-			measurements.forEach(m -> fillDefaultProperties(savedVesselFeatures, m));
+			List<MeasurementVO> measurements = Beans.getList(savedVesselFeatures.getFeatures().getMeasurements());
+			measurements.forEach(m -> fillDefaultProperties(savedVesselFeatures.getFeatures(), m));
 			measurements = measurementDao.saveVesselPhysicalMeasurements(savedVesselFeatures.getId(), measurements);
-			savedVesselFeatures.setMeasurements(measurements);
+			savedVesselFeatures.getFeatures().setMeasurements(measurements);
 		}
 
 		return savedVesselFeatures;
 	}
 
 	@Override
-	public List<VesselFeaturesVO> save(List<VesselFeaturesVO> sources) {
+	public List<VesselVO> save(List<VesselVO> sources) {
 		Preconditions.checkNotNull(sources);
 
 		return sources.stream()
