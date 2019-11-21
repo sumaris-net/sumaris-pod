@@ -14,8 +14,10 @@ import {ReferentialFragments} from "./referential.queries";
 import {FetchPolicy} from "apollo-client";
 import {isEmptyArray} from "../../shared/functions";
 import {EntityAsObjectOptions, MINIFY_OPTIONS} from "../../core/services/model";
-import {VesselFeaturesFragments} from "./vessel-features.service";
-import {RegistrationFragments} from "./vessel-registration.service";
+import {LoadFeaturesQuery, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";
+import {LoadRegistrationsQuery, RegistrationFragments, VesselRegistrationService} from "./vessel-registration.service";
+import {SAVE_AS_OBJECT_OPTIONS} from "../../trip/services/model/base.model";
+import {reject} from "async";
 
 export class VesselFilter {
   date?: Date | Moment;
@@ -79,8 +81,8 @@ const LoadAllQuery: any = gql`
     ${ReferentialFragments.referential}
 `;
 const LoadQuery: any = gql`
-    query Vessel($vesselId: Int) {
-        vessels(filter: {vesselId: $vesselId}) {
+    query Vessel($vesselId: Int!) {
+        vessel(vesselId: $vesselId) {
             ...VesselFragment
         }
     }
@@ -94,7 +96,7 @@ const LoadQuery: any = gql`
 `;
 
 const SaveVessels: any = gql`
-    mutation saveVessels($vessels:[VesselVOInput]){
+    mutation SaveVessels($vessels:[VesselVOInput]){
         saveVessels(vessels: $vessels){
             ...VesselFragment
         }
@@ -122,6 +124,8 @@ export class VesselService
   constructor(
     protected graphql: GraphqlService,
     private accountService: AccountService,
+    private vesselFeatureService: VesselFeaturesService,
+    private vesselRegistrationService: VesselRegistrationService,
   ) {
     super(graphql);
   }
@@ -152,6 +156,10 @@ export class VesselService
         statusIds: isNotNil(filter.statusId) ? [filter.statusId] : filter.statusIds
       }
     };
+
+    this._lastVariables.loadAll = variables;
+    this._lastVariables.load = undefined;
+
     const now = Date.now();
     if (this._debug) console.debug("[vessel-service] Getting vessels using options:", variables);
 
@@ -179,17 +187,20 @@ export class VesselService
   }): Promise<Vessel | null> {
     console.debug("[vessel-service] Loading vessel " + id);
 
-    const data = await this.graphql.query<{ vessels: any }>({
+    const variables: any = {vesselId: id};
+
+    this._lastVariables.load = variables;
+    this._lastVariables.loadAll = undefined;
+
+    const data = await this.graphql.query<{ vessel: any }>({
       query: LoadQuery,
-      variables: {
-        vesselId: id
-      },
+      variables: variables,
       fetchPolicy: opts && opts.fetchPolicy || undefined
     });
 
-    if (data && data.vessels && data.vessels.length) {
+    if (data && data.vessel) {
       const res = new Vessel();
-      res.fromObject(data.vessels[0]);
+      res.fromObject(data.vessel);
       return res;
     }
     return null;
@@ -199,7 +210,7 @@ export class VesselService
    * Save many vessels
    * @param vessels
    */
-  async saveAll(vessels: Vessel[]): Promise<Vessel[]> {
+  async saveAll(vessels: Vessel[], options?: any): Promise<Vessel[]> {
 
     if (!vessels) return vessels;
 
@@ -212,75 +223,136 @@ export class VesselService
     const now = Date.now();
     console.debug("[vessel-service] Saving vessels...", json);
 
-    await this.graphql.mutate<{ saveVessels: Vessel[] }>({
-      mutation: SaveVessels,
-      variables: {
-        vessels: json
-      },
-      error: {code: ErrorCodes.SAVE_VESSELS_ERROR, message: "VESSEL.ERROR.SAVE_VESSELS_ERROR"},
-      update: (proxy, {data}) => {
+    return new Promise<Vessel[]>((resolve, reject) => {
+      this.graphql.mutate<{ saveVessels: Vessel[] }>({
+        mutation: SaveVessels,
+        variables: {
+          vessels: json
+        },
+        error: { reject, code: ErrorCodes.SAVE_VESSELS_ERROR, message: "VESSEL.ERROR.SAVE_VESSELS_ERROR"},
+        update: async (proxy, {data}) => {
 
-        if (this._debug) console.debug(`[vessel-service] Vessels saved remotely in ${Date.now() - now}ms`, vessels);
+          if (this._debug) console.debug(`[vessel-service] Vessels saved remotely in ${Date.now() - now}ms`, vessels);
 
-        (data && data.saveVessels && vessels || [])
-          .forEach(vessel => {
-            const savedVessel = data.saveVessels.find(v => vessel.equals(v));
-            if (savedVessel && savedVessel !== vessel) {
-              this.copyIdAndUpdateDate(savedVessel, vessel);
+          if (data && data.saveVessels) {
+            (vessels || []).forEach(vessel => {
+              const savedVessel = data.saveVessels.find(v => vessel.equals(v));
+              if (savedVessel && savedVessel !== vessel) {
+                this.copyIdAndUpdateDate(savedVessel, vessel);
+              }
+            });
+
+            // update features history FIXME: marche pas
+            if (options && options.isNewFeatures && this.vesselFeatureService.lastVariables()) {
+              const lastFeatures = vessels[vessels.length - 1].features;
+              this.graphql.addToQueryCache(proxy, {
+                query: LoadFeaturesQuery,
+                variables: this.vesselFeatureService.lastVariables()
+              }, 'vesselFeaturesHistory', lastFeatures);
             }
-          });
-      }
-    });
 
-    return vessels;
+            // update registration history FIXME: marche pas
+            if (options && options.isNewRegistration && this.vesselRegistrationService.lastVariables()) {
+              const lastRegistration = vessels[vessels.length - 1].registration;
+              this.graphql.addToQueryCache(proxy, {
+                query: LoadRegistrationsQuery,
+                variables: this.vesselRegistrationService.lastVariables()
+              }, 'vesselRegistrationHistory', lastRegistration);
+            }
+
+          }
+
+          resolve(vessels);
+        }
+      });
+    });
   }
 
   /**
    * Save a trip
    * @param vessel
+   * @param options
    */
-  async save(vessel: Vessel): Promise<Vessel> {
+  async save(vessel: Vessel, options?: any): Promise<Vessel> {
+
+    // prepare previous vessel to save if present
+    if (options && isNotNil(options.previousVessel)) {
+
+      // update previous features
+      if (options.isNewFeatures) {
+        // set end date = new start date - 1
+        const newStartDate = vessel.features.startDate.clone();
+        newStartDate.subtract(1, "seconds");
+        options.previousVessel.features.endDate = newStartDate;
+
+      } else
+      // prepare previous registration period
+      if (options.isNewRegistration) {
+        // set registration end date = new registration start date - 1
+        const newRegistrationStartDate = vessel.registration.startDate.clone();
+        newRegistrationStartDate.subtract(1, "seconds");
+        options.previousVessel.registration.endDate = newRegistrationStartDate;
+      }
+
+      // save both by calling saveAll
+      const savedVessels: Vessel[] = await this.saveAll([options.previousVessel, vessel], options);
+      // return last
+      return Promise.resolve(savedVessels.pop());
+    }
 
     // Prepare to save
     this.fillDefaultProperties(vessel);
     const isNew = isNil(vessel.id);
 
     // Transform into json
-    const json = vessel.asObject();
+    const json = vessel.asObject({
+      minify: true,
+      keepTypename: false
+    });
 
     const now = Date.now();
     console.debug("[vessel-service] Saving vessel: ", json);
 
-    await this.graphql.mutate<{ saveVessels: any }>({
-      mutation: SaveVessels,
-      variables: {
-        vessels: [json]
-      },
-      error: {code: ErrorCodes.SAVE_VESSEL_ERROR, message: "VESSEL.ERROR.SAVE_VESSEL_ERROR"},
-      update: (proxy, {data}) => {
-        const savedVessel = data && data.saveVessels && data.saveVessels[0];
+    return new Promise<Vessel>((resolve, reject) => {
+      this.graphql.mutate<{ saveVessels: any }>({
+        mutation: SaveVessels,
+        variables: {
+          vessels: [json]
+        },
+        error: {reject, code: ErrorCodes.SAVE_VESSEL_ERROR, message: "VESSEL.ERROR.SAVE_VESSEL_ERROR"},
+        update: (proxy, {data}) => {
+          const savedVessel = data && data.saveVessels && data.saveVessels[0];
 
-        if (savedVessel) {
+          if (savedVessel) {
 
-          // Copy id and update Date
-          if (savedVessel !== vessel) {
+            // Copy id and update Date
             this.copyIdAndUpdateDate(savedVessel, vessel);
+
             if (this._debug) console.debug(`[vessel-service] Vessel Feature saved in ${Date.now() - now}ms`, savedVessel);
+
+            // Add to cache
+            if (isNew && this._lastVariables.loadAll) {
+              this.graphql.addToQueryCache(proxy, {
+                query: LoadAllQuery,
+                variables: this._lastVariables.loadAll
+              }, 'vessels', savedVessel);
+            }
+            // Update cache
+            else if (this._lastVariables.load) {
+              this.graphql.updateToQueryCache(proxy, {
+                query: LoadQuery,
+                variables: this._lastVariables.load
+              }, 'vessel', savedVessel);
+            }
+
           }
 
-          // Add to cache
-          if (isNew && this._lastVariables.loadAll) {
-            this.graphql.addToQueryCache(proxy, {
-              query: LoadAllQuery,
-              variables: this._lastVariables.loadAll
-            }, 'vessels', savedVessel);
-          }
-
+          resolve(vessel);
         }
-      }
+
+      });
     });
 
-    return vessel;
   }
 
   delete(data: Vessel, options?: any): Promise<any> {
@@ -314,9 +386,6 @@ export class VesselService
 
   protected fillDefaultProperties(vessel: Vessel): void {
 
-    // If new
-    // if (!vessel.id || vessel.id < 0) {
-
     const person: Person = this.accountService.account;
 
     // Recorder department
@@ -325,6 +394,12 @@ export class VesselService
         vessel.recorderDepartment = new Department();
       }
       vessel.recorderDepartment.id = person.department.id;
+      if (vessel.features) {
+        if (!vessel.features.recorderDepartment) {
+          vessel.features.recorderDepartment = new Department();
+        }
+        vessel.features.recorderDepartment.id = person.department.id;
+      }
     }
 
     // Recorder person
@@ -333,14 +408,21 @@ export class VesselService
         vessel.recorderPerson = new Person();
       }
       vessel.recorderPerson.id = person.id;
+      if (vessel.features) {
+        if (!vessel.features.recorderPerson) {
+          vessel.features.recorderPerson = new Person();
+        }
+        vessel.features.recorderPerson.id = person.id;
+      }
     }
 
-    // }
   }
 
   copyIdAndUpdateDate(source: Vessel | undefined, target: Vessel) {
 
     EntityUtils.copyIdAndUpdateDate(source, target);
+    EntityUtils.copyIdAndUpdateDate(source.features, target.features);
+    EntityUtils.copyIdAndUpdateDate(source.registration, target.registration);
 
   }
 }

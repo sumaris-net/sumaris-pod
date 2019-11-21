@@ -23,7 +23,7 @@ export const RegistrationFragments = {
   }`,
 };
 
-const LoadAllQuery: any = gql`
+export const LoadRegistrationsQuery: any = gql`
     query VesselRegistrationHistory($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $vesselId: Int){
         vesselRegistrationHistory(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, vesselId: $vesselId){
             ...RegistrationFragment
@@ -42,6 +42,10 @@ export class VesselRegistrationService
     protected graphql: GraphqlService
   ) {
     super(graphql);
+  }
+
+  lastVariables() {
+    return this._lastVariables;
   }
 
   /**
@@ -65,11 +69,14 @@ export class VesselRegistrationService
       sortDirection: sortDirection || 'asc',
       vesselId: filter.vesselId
     };
+
+    this._lastVariables.loadAll = variables;
+
     const now = Date.now();
     if (this._debug) console.debug("[vessel-registration-history-service] Getting vessel registration history using options:", variables);
 
     return this.graphql.watchQuery<{ vesselRegistrationHistory: any[] }>({
-      query: LoadAllQuery,
+      query: LoadRegistrationsQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"}
     })

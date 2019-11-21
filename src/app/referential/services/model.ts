@@ -220,9 +220,9 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
 
-    target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  ...NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
-    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
-    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
+    target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     target.registrationStartDate = toDateISOString(this.registrationStartDate);
@@ -304,12 +304,12 @@ export class Vessel extends Entity<Vessel> {
     return target;
   }
 
-  asObject(options?: EntityAsObjectOptions): any {
+  asObject(options?: ReferentialAsObjectOptions): any {
     const target: any = super.asObject(options);
 
-    target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
-    target.features = this.features && this.features.asObject({ ...options,  NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
-    target.registration = this.registration && this.registration.asObject({ ...options,  NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
+    target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.features = this.features && this.features.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.registration = this.registration && this.registration.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
     target.creationDate = toDateISOString(this.creationDate);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
@@ -327,6 +327,12 @@ export class Vessel extends Entity<Vessel> {
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
     return this;
+  }
+
+  equals(other: Vessel): boolean {
+    return super.equals(other)
+      && (this.features.id === other.features.id || this.features.startDate.isSame(other.features.startDate))
+      && (this.registration.id === other.registration.id || this.registration.startDate.isSame(other.registration.startDate));
   }
 }
 
@@ -383,7 +389,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     const target: any = super.asObject(options);
 
     target.vesselId = this.vesselId;
-    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS } as ReferentialAsObjectOptions) || undefined;
+    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     target.creationDate = toDateISOString(this.creationDate);
@@ -450,7 +456,7 @@ export class VesselRegistration extends Entity<VesselRegistration> {
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
 
-    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject(options) || undefined;
+    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
 

@@ -14,6 +14,7 @@ import {Moment} from "moment";
 import {control} from "leaflet";
 import {DateAdapter} from "@angular/material";
 import {TranslateService} from "@ngx-translate/core";
+import {AppFormUtils} from "../../../core/form/form.utils";
 
 @Component({
   selector: 'page-vessel',
@@ -22,13 +23,14 @@ import {TranslateService} from "@ngx-translate/core";
 })
 export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterViewInit {
 
-  previousData: Vessel;
+  previousVessel: Vessel;
   isNewFeatures = false;
   isNewRegistration = false;
   private _editing = false;
   get editing(): boolean {
     return this._editing || this.isNewFeatures || this.isNewRegistration;
   }
+
   set editing(value: boolean) {
     if (!value) {
       this.isNewFeatures = false;
@@ -37,11 +39,11 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
     this._editing = value;
   }
 
-  @ViewChild('vesselForm', { static: true }) private vesselForm: VesselForm;
+  @ViewChild('vesselForm', {static: true}) private vesselForm: VesselForm;
 
-  @ViewChild('featuresHistoryTable', { static: true }) private featuresHistoryTable: VesselFeaturesHistoryComponent;
+  @ViewChild('featuresHistoryTable', {static: true}) private featuresHistoryTable: VesselFeaturesHistoryComponent;
 
-  @ViewChild('registrationHistoryTable', { static: true }) private registrationHistoryTable: VesselRegistrationHistoryComponent;
+  @ViewChild('registrationHistoryTable', {static: true}) private registrationHistoryTable: VesselRegistrationHistoryComponent;
 
   protected get form(): FormGroup {
     return this.vesselForm.form;
@@ -93,7 +95,7 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
 
     this.form.disable();
     this.editing = false;
-    this.previousData = undefined;
+    this.previousVessel = undefined;
   }
 
   protected canUserWrite(data: Vessel): boolean {
@@ -111,11 +113,11 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
 
   protected async computeTitle(data: Vessel): Promise<string> {
 
-      if (this.isNewData) {
-        return await this.translate.get('VESSEL.NEW.TITLE').toPromise();
-      }
+    if (this.isNewData) {
+      return await this.translate.get('VESSEL.NEW.TITLE').toPromise();
+    }
 
-      return await this.translate.get('VESSEL.EDIT.TITLE', data.features).toPromise();
+    return await this.translate.get('VESSEL.EDIT.TITLE', data.features).toPromise();
   }
 
   async cancel(): Promise<void> {
@@ -130,7 +132,7 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
   editFeatures() {
 
     this.editing = true;
-    this.previousData = undefined;
+    this.previousVessel = undefined;
     this.form.enable();
 
     // disable start date
@@ -146,14 +148,14 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
     this.isNewFeatures = true;
 
     const json = this.form.value;
-    this.previousData = Vessel.fromObject(json);
+    this.previousVessel = Vessel.fromObject(json);
 
-    this.form.setValue({ ...json , ...{id: null, startDate: null, endDate: null} } );
+    this.form.setValue({...json, ...{features: { ...json.features, id: null, startDate: null, endDate: null}}});
 
-    this.form.get("startDate").setValidators(Validators.compose([
+    this.form.get("features.startDate").setValidators(Validators.compose([
       Validators.required,
-      SharedValidators.dateIsAfter(this.previousData.features.startDate,
-        this.dateAdapter.format(this.previousData.features.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
+      SharedValidators.dateIsAfter(this.previousVessel.features.startDate,
+        this.dateAdapter.format(this.previousVessel.features.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
     ]));
     this.form.enable();
 
@@ -164,7 +166,7 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
   editRegistration() {
 
     this.editing = true;
-    this.previousData = undefined;
+    this.previousVessel = undefined;
     this.form.enable();
 
     // disable registration start date
@@ -172,6 +174,7 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
 
     // disable features controls
     this.form.get("features").disable();
+    this.form.get("vesselType").disable();
     this.form.get("statusId").disable();
 
   }
@@ -181,18 +184,29 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
     this.isNewRegistration = true;
 
     const json = this.form.value;
-    this.previousData = Vessel.fromObject(json);
+    this.previousVessel = Vessel.fromObject(json);
 
-    this.form.setValue({ ...json , ...{registrationId: null, registrationCode: null, registrationStartDate: null, registrationEndDate: null} } );
+    this.form.setValue({
+      ...json, ...{
+        registration: {
+          ...json.registration,
+          id: null,
+          registrationCode: null,
+          startDate: null,
+          endDate: null
+        }
+      }
+    });
 
-    this.form.get("registrationStartDate").setValidators(Validators.compose([
+    this.form.get("registration.startDate").setValidators(Validators.compose([
       Validators.required,
-      SharedValidators.dateIsAfter(this.previousData.registration.startDate,
-        this.dateAdapter.format(this.previousData.registration.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
+      SharedValidators.dateIsAfter(this.previousVessel.registration.startDate,
+        this.dateAdapter.format(this.previousVessel.registration.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
     ]));
     this.form.enable();
 
     this.form.get("features").disable();
+    this.form.get("vesselType").disable();
     this.form.get("statusId").disable();
 
   }
@@ -200,12 +214,13 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
   editStatus() {
 
     this.editing = true;
-    this.previousData = undefined;
+    this.previousVessel = undefined;
     this.form.enable();
 
     // disable features controls
     this.form.get("features").disable();
     this.form.get("registration").disable();
+    this.form.get("vesselType").disable();
   }
 
   protected getJsonValueToSave(): Promise<any> {
@@ -215,45 +230,11 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
 
   async save(event): Promise<boolean> {
 
-    // save previous form first
-    if (this.previousData && (this.isNewFeatures || this.isNewRegistration)) {
+    return super.save(event, {
+      previousVessel: this.previousVessel,
+      isNewFeatures: this.isNewFeatures,
+      isNewRegistration: this.isNewRegistration
+    });
 
-      // save previous features
-      if (this.isNewFeatures) {
-
-        // set end date = new start date - 1
-        const newStartDate = fromDateISOString(this.form.get("features.startDate").value);
-        newStartDate.subtract(1, "seconds");
-        this.previousData.features.endDate = newStartDate;
-
-      } else if (this.isNewRegistration) {
-
-        // set registration end date = new registration start date - 1
-        const newRegistrationStartDate = fromDateISOString(this.form.get("registration.startDate").value);
-        newRegistrationStartDate.subtract(1, "seconds");
-        this.previousData.registration.endDate = newRegistrationStartDate;
-
-      }
-
-      this.saving = true;
-      try {
-
-        // save previous data first
-        const saved = await this.vesselService.save(this.previousData);
-
-        // copy update date to new data
-        this.form.get('updateDate').setValue(toDateISOString(saved.updateDate));
-
-      } catch (err) {
-        console.error(err);
-        this.error = err && err.message || err;
-        return false;
-      } finally {
-        this.saving = false;
-      }
-    }
-
-    // then save new data
-    return super.save(event);
   }
 }

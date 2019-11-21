@@ -504,7 +504,7 @@ export class ReferentialRef<T = any> extends Entity<T> implements IReferentialRe
       };
     }
     const target: any = super.asObject(options);
-    if (!options || options.keepEntityName !== true) delete target.entityName;
+    if (options && options.keepEntityName === false) delete target.entityName;
 
     return target;
   }

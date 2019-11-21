@@ -42,7 +42,7 @@ export const VesselFeaturesFragments = {
     }`,
 };
 
-const LoadAllQuery: any = gql`
+export const LoadFeaturesQuery: any = gql`
     query VesselFeaturesHistory($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $vesselId: Int){
         vesselFeaturesHistory(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, vesselId: $vesselId){
             ...VesselFeaturesFragment
@@ -63,6 +63,10 @@ export class VesselFeaturesService
     protected graphql: GraphqlService
   ) {
     super(graphql);
+  }
+
+  lastVariables() {
+    return this._lastVariables;
   }
 
   /**
@@ -93,7 +97,7 @@ export class VesselFeaturesService
     if (this._debug) console.debug("[vessel-features-history-service] Getting vessel features history using options:", variables);
 
     return this.graphql.watchQuery<{ vesselFeaturesHistory: any[] }>({
-      query: LoadAllQuery,
+      query: LoadFeaturesQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"}
     })
