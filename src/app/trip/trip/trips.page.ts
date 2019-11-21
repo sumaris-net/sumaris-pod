@@ -7,7 +7,7 @@ import {
   isNil,
   personsToString,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS, StatusIds
 } from "../../core/core.module";
 import {TripValidatorService} from "../services/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
@@ -30,6 +30,7 @@ import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
+import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 
 @Component({
   selector: 'app-trips-page',
@@ -59,7 +60,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected accountService: AccountService,
     protected dataService: TripService,
     protected referentialRefService: ReferentialRefService,
-    protected vesselService: VesselService,
+    protected vesselService: VesselSnapshotService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
@@ -130,7 +131,10 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     // Combo: vessels
     this.registerAutocompleteField('vesselSnapshot', {
       service: this.vesselService,
-      attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
+      attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key)),
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
     });
 
     // Update filter when changes

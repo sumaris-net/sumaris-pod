@@ -1,44 +1,34 @@
-import { Injectable } from "@angular/core";
-import { ValidatorService } from "angular4-material-table";
-import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { VesselSnapshot } from "./model";
-import { SharedValidators } from "../../shared/validator/validators";
-
-const decimalPattern = new RegExp('^[0-9]+(\.[0-9]{1,2})?$');
+import {Injectable} from "@angular/core";
+import {ValidatorService} from "angular4-material-table";
+import {FormGroup, Validators, FormBuilder} from "@angular/forms";
+import {Vessel} from "./model";
+import {SharedValidators} from "../../shared/validator/validators";
+import {VesselFeaturesValidatorService} from "./vessel-features.validator";
+import {VesselRegistrationValidatorService} from "./vessel-registration.validator";
 
 @Injectable()
 export class VesselValidatorService implements ValidatorService {
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor(
+    private formBuilder: FormBuilder,
+    private featuresValidator: VesselFeaturesValidatorService,
+    private registrationValidator: VesselRegistrationValidatorService) {
   }
 
   getRowValidator(): FormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: VesselSnapshot): FormGroup {
+  getFormGroup(data?: Vessel): FormGroup {
     return this.formBuilder.group({
-      'id': [null],
-      'vesselId': [null],
-      'updateDate': [null],
-      'creationDate': [null],
-      'startDate': [null, Validators.required],
-      'endDate': [null],
-      'name': ['', Validators.required],
-      'exteriorMarking': ['', Validators.required],
-      'registrationId': [null],
-      'registrationCode': ['', Validators.required],
-      'registrationStartDate': [null, Validators.required],
-      'registrationEndDate': [null],
-      'administrativePower': ['', Validators.compose([Validators.min(0), SharedValidators.integer])],
-      'lengthOverAll': ['', Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
-      'grossTonnageGrt': ['', Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
-      'grossTonnageGt': ['', Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
-      'basePortLocation': ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      'registrationLocation': ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      'comments': ['', Validators.maxLength(2000)],
-      'vesselStatusId': [null, Validators.required],
-      'vesselType': ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      __typename: ['VesselVO'],
+      id: [null],
+      updateDate: [null],
+      creationDate: [null],
+      features: this.featuresValidator.getFormGroup(null),
+      registration: this.registrationValidator.getFormGroup(null, {required: true}), // TODO add config option ?
+      statusId: [null, Validators.required],
+      vesselType: ['', Validators.compose([Validators.required, SharedValidators.entity])],
     });
   }
 }

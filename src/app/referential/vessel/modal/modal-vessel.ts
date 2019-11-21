@@ -1,18 +1,22 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import { VesselSnapshot } from "../../services/model";
+import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Vessel} from "../../services/model";
 import { ModalController } from "@ionic/angular";
 import { VesselForm } from '../form/form-vessel';
 import { VesselService } from '../../services/vessel-service';
 import { AppFormUtils } from '../../../core/core.module';
+import {ConfigService} from "../../../core/services/config.service";
+import {Subscription} from "rxjs";
+import {AccountService} from "../../../core/services/account.service";
 
 
 @Component({
   selector: 'modal-vessel',
   templateUrl: './modal-vessel.html'
 })
-export class VesselModal implements OnInit {
+export class VesselModal implements OnInit, OnDestroy {
 
   loading = false;
+  subscription = new Subscription();
 
   get disabled() {
     return this.formVessel.disabled;
@@ -30,11 +34,27 @@ export class VesselModal implements OnInit {
 
   constructor(
     private vesselService: VesselService,
-    private viewCtrl: ModalController) {
+    private viewCtrl: ModalController,
+    private configService: ConfigService) {
   }
 
   ngOnInit(): void {
     this.enable(); // Enable the vessel form, by default
+
+    this.subscription.add(
+      this.configService.config.subscribe(config => {
+        if (config && config.properties) {
+          const defaultStatus = config.properties['sumaris.defaultNewVesselStatus'];
+          if (defaultStatus) {
+            this.formVessel.defaultStatus = +defaultStatus;
+          }
+        }
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   async onSave(event: any): Promise<any> {
@@ -55,7 +75,7 @@ export class VesselModal implements OnInit {
 
     try {
       const json = this.formVessel.value;
-      const data = VesselSnapshot.fromObject(json);
+      const data = Vessel.fromObject(json);
 
       this.disable();
 
@@ -83,7 +103,7 @@ export class VesselModal implements OnInit {
   }
 
   onReset(event: any) {
-    this.formVessel.setValue(VesselSnapshot.fromObject({}));
+    this.formVessel.setValue(Vessel.fromObject({}));
     this.formVessel.markAsPristine();
     this.formVessel.markAsUntouched();
   }

@@ -23,7 +23,7 @@
     <!-- Start date column -->
     <ng-container matColumnDef="startDate">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.REGISTRATION_START_DATE</span>
+        <span translate>VESSEL.REGISTRATION.START_DATE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.startDate|dateFormat:{time:false} }}</ion-text>
@@ -33,7 +33,7 @@
     <!-- End date column -->
     <ng-container matColumnDef="endDate">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.REGISTRATION_END_DATE</span>
+        <span translate>VESSEL.REGISTRATION.END_DATE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.endDate|dateFormat:{time:false} }}</ion-text>
@@ -43,7 +43,7 @@
     <!-- Registration code column -->
     <ng-container matColumnDef="registrationCode">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.REGISTRATION_CODE</span>
+        <span translate>VESSEL.REGISTRATION.REGISTRATION_CODE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.registrationCode}}</ion-text>
@@ -53,7 +53,7 @@
     <!-- Registration location -->
     <ng-container matColumnDef="registrationLocation">
       <mat-header-cell *matHeaderCellDef>
-        <span translate>VESSEL.REGISTRATION_LOCATION</span>
+        <span translate>VESSEL.REGISTRATION.REGISTRATION_LOCATION</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         {{referentialToString(row.currentData.registrationLocation)}}
@@ -64,10 +64,10 @@
     <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled"></mat-row>
   </mat-table>
 
-  <ion-row class="ion-no-padding">
-    <ion-col></ion-col>
-    <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="resultsLength" [pageSize]="5" [pageSizeOptions]="[5, 10, 50]" showFirstLastButtons>
-      </mat-paginator>
-    </ion-col>
-  </ion-row>
+<!--  <ion-row class="ion-no-padding">-->
+<!--    <ion-col></ion-col>-->
+<!--    <ion-col class="ion-no-padding" size="auto">-->
+<!--      <mat-paginator [length]="resultsLength" [pageSize]="5" [pageSizeOptions]="[5, 10, 50]" showFirstLastButtons>-->
+<!--      </mat-paginator>-->
+<!--    </ion-col>-->
+<!--  </ion-row>-->

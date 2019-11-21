@@ -1,6 +1,13 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {TripValidatorService} from "../services/trip.validator";
-import {LocationLevelIds, Referential, Trip, VesselSnapshot, vesselSnapshotToString} from "../services/trip.model";
+import {
+  LocationLevelIds,
+  Referential,
+  StatusIds,
+  Trip,
+  VesselSnapshot,
+  vesselSnapshotToString
+} from "../services/trip.model";
 import {ModalController} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
@@ -14,6 +21,7 @@ import {
 } from "../../referential/referential.module";
 import {UsageMode} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 
 @Component({
   selector: 'form-trip',
@@ -47,7 +55,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: TripValidatorService,
-    protected vesselService: VesselService,
+    protected vesselService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
@@ -73,7 +81,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Combo: vessels
     this.registerAutocompleteField('vesselSnapshot', {
       service: this.vesselService,
-      attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
+      attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key)),
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
     });
 
     // Combo location

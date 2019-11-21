@@ -41,6 +41,7 @@ import {ModalController} from "@ionic/angular";
 import {UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
+import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 
 @Component({
   selector: 'app-landing-form',
@@ -92,7 +93,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected validatorService: LandingValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
-    protected vesselService: VesselService,
+    protected vesselService: VesselSnapshotService,
     protected settings: LocalSettingsService,
     protected modalCtrl: ModalController,
     protected cd: ChangeDetectorRef
@@ -140,7 +141,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     // Combo: vessels
     this.registerAutocompleteField('vesselSnapshot', {
       service: this.vesselService,
-      attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
+      attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key)),
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
     });
 
     // Propagate program

@@ -234,7 +234,7 @@ type LandingVO {
   updateDate: Date
   validationDate: Date
   vesselDateTime: Date
-  vesselFeatures: VesselFeaturesVO
+  vesselSnapshot: VesselSnapshotVO
 }
 
 type LocationAssociationVO {
@@ -351,6 +351,8 @@ type Mutation {
   deleteVessel(id: Int): Boolean
   "Delete many vessels (by vessel features ids)"
   deleteVessels(ids: [Int]): Boolean
+  "Qualify a trip"
+  qualifyTrip(trip: TripVOInput): TripVO
   "Create or update an account"
   saveAccount(account: AccountVOInput): AccountVO
   "Create or update a data aggregation"
@@ -384,9 +386,9 @@ type Mutation {
   "Create or update many trips"
   saveTrips(trips: [TripVOInput]): [TripVO]
   "Create or update a vessel"
-  saveVessel(vessel: VesselFeaturesVOInput): VesselFeaturesVO
+  saveVessel(vessel: VesselVOInput): VesselVO
   "Create or update many vessels"
-  saveVessels(vessels: [VesselFeaturesVOInput]): [VesselFeaturesVO]
+  saveVessels(vessels: [VesselVOInput]): [VesselVO]
   "Resent confirmation email"
   sendAccountConfirmationEmail(email: String, locale: String = "en_GB"): Boolean
   "Unvalidate an observed location"
@@ -634,8 +636,12 @@ type Query {
   vesselFeaturesHistory(offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselFeaturesVO]
   "Get vessel registration history"
   vesselRegistrationHistory(offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselRegistrationVO]
+  "Search in vessel snapshots"
+  vesselSnapshots(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "exteriorMarking", sortDirection: String = "asc"): [VesselSnapshotVO]
   "Search in vessels"
-  vessels(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "exteriorMarking", sortDirection: String = "asc"): [VesselFeaturesVO]
+  vessels(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc"): [VesselVO]
+  "Get total vessels count"
+  vesselsCount(filter: VesselFilterVOInput): Long
 }
 
 type ReferentialTypeVO {
@@ -682,7 +688,7 @@ type SaleVO {
   updateDate: Date
   validationDate: Date
   vesselDateTime: Date
-  vesselFeatures: VesselFeaturesVO
+  vesselSnapshot: VesselSnapshotVO
 }
 
 type SampleVO {
@@ -773,8 +779,8 @@ type Subscription {
 }
 
 type TaxonGroupStrategyVO {
-  strategyId: Int
   priorityLevel: Int
+  strategyId: Int
   taxonGroup: TaxonGroupVO
 }
 
@@ -796,10 +802,10 @@ type TaxonGroupVO {
 }
 
 type TaxonNameStrategyVO {
-  strategyId: Int
-  priorityLevel: Int
   isReferent: Boolean
+  priorityLevel: Int
   referenceTaxonId: Int
+  strategyId: Int
   taxonName: TaxonNameVO
 }
 
@@ -851,8 +857,8 @@ type TripVO {
   updateDate: Date
   validationDate: Date
   vesselDateTime: Date
-  "Get trip vessel features"
-  vesselFeatures: VesselFeaturesVO
+  "Get trip vessel snapshot"
+  vesselSnapshot: VesselSnapshotVO
 }
 
 type UserSettingsVO {
@@ -872,15 +878,12 @@ type VesselFeaturesVO {
   controlDate: Date
   creationDate: Date
   endDate: Date
-  entityName: String
   exteriorMarking: String
   grossTonnageGrt: Float
   grossTonnageGt: Float
   id: Int
   lengthOverAll: Float
-  "Get vessel's physical measurements"
   measurementValues: Map_Integer_StringScalar
-  "Get vessel's physical measurements"
   measurements: [MeasurementVO]
   name: String
   program: ProgramVO
@@ -889,17 +892,9 @@ type VesselFeaturesVO {
   qualityFlagId: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
-  registrationCode: String
-  registrationEndDate: Date
-  registrationId: Int
-  registrationLocation: LocationVO
-  registrationStartDate: Date
   startDate: Date
   updateDate: Date
   validationDate: Date
-  vesselId: Int
-  vesselStatusId: Int
-  vesselType: ReferentialVO
 }
 
 type VesselPositionVO {
@@ -919,11 +914,61 @@ type VesselPositionVO {
 type VesselRegistrationVO {
   endDate: Date
   id: Int
+  intRegistrationCode: String
   qualityFlagId: Int
   registrationCode: String
   registrationLocation: LocationVO
   startDate: Date
-  vesselId: Int
+}
+
+type VesselSnapshotVO {
+  administrativePower: Int
+  basePortLocation: LocationVO
+  comments: String
+  controlDate: Date
+  creationDate: Date
+  endDate: Date
+  exteriorMarking: String
+  grossTonnageGrt: Float
+  grossTonnageGt: Float
+  id: Int
+  lengthOverAll: Float
+  "Get vessel's physical measurements"
+  measurementValues: Map_Integer_StringScalar
+  "Get vessel's physical measurements"
+  measurements: [MeasurementVO]
+  name: String
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+  recorderDepartment: DepartmentVO
+  recorderPerson: PersonVO
+  registrationCode: String
+  registrationLocation: LocationVO
+  startDate: Date
+  updateDate: Date
+  validationDate: Date
+  vesselStatusId: Int
+  vesselType: ReferentialVO
+}
+
+type VesselVO {
+  comments: String
+  controlDate: Date
+  creationDate: Date
+  features: VesselFeaturesVO
+  id: Int
+  program: ProgramVO
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+  recorderDepartment: DepartmentVO
+  recorderPerson: PersonVO
+  registration: VesselRegistrationVO
+  statusId: Int
+  updateDate: Date
+  validationDate: Date
+  vesselType: ReferentialVO
 }
 
 input AccountVOInput {
@@ -1190,7 +1235,7 @@ input LandingVOInput {
   tripId: Int
   updateDate: Date
   validationDate: Date
-  vesselFeatures: VesselFeaturesVOInput
+  vesselSnapshot: VesselSnapshotVOInput
 }
 
 input LocationAssociationVOInput {
@@ -1482,7 +1527,7 @@ input SaleVOInput {
   tripId: Int
   updateDate: Date
   validationDate: Date
-  vesselFeatures: VesselFeaturesVOInput
+  vesselSnapshot: VesselSnapshotVOInput
 }
 
 input SampleVOInput {
@@ -1538,6 +1583,7 @@ input StrategyVOInput {
 
 input TaxonGroupStrategyVOInput {
   priorityLevel: Int
+  strategyId: Int
   taxonGroup: TaxonGroupVOInput
 }
 
@@ -1569,6 +1615,7 @@ input TaxonNameStrategyVOInput {
   isReferent: Boolean
   priorityLevel: Int
   referenceTaxonId: Int
+  strategyId: Int
   taxonName: TaxonNameVOInput
 }
 
@@ -1620,7 +1667,7 @@ input TripVOInput {
   sales: [SaleVOInput]
   updateDate: Date
   validationDate: Date
-  vesselFeatures: VesselFeaturesVOInput
+  vesselSnapshot: VesselSnapshotVOInput
 }
 
 input UserSettingsVOInput {
@@ -1640,7 +1687,6 @@ input VesselFeaturesVOInput {
   controlDate: Date
   creationDate: Date
   endDate: Date
-  entityName: String
   exteriorMarking: String
   grossTonnageGrt: Float
   grossTonnageGt: Float
@@ -1655,17 +1701,9 @@ input VesselFeaturesVOInput {
   qualityFlagId: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
-  registrationCode: String
-  registrationEndDate: Date
-  registrationId: Int
-  registrationLocation: LocationVOInput
-  registrationStartDate: Date
   startDate: Date
   updateDate: Date
   validationDate: Date
-  vesselId: Int
-  vesselStatusId: Int
-  vesselType: ReferentialVOInput
 }
 
 input VesselFilterVOInput {
@@ -1688,6 +1726,64 @@ input VesselPositionVOInput {
   recorderDepartment: DepartmentVOInput
   updateDate: Date
   validationDate: Date
+}
+
+input VesselRegistrationVOInput {
+  endDate: Date
+  id: Int
+  intRegistrationCode: String
+  qualityFlagId: Int
+  registrationCode: String
+  registrationLocation: LocationVOInput
+  startDate: Date
+}
+
+input VesselSnapshotVOInput {
+  administrativePower: Int
+  basePortLocation: LocationVOInput
+  comments: String
+  controlDate: Date
+  creationDate: Date
+  endDate: Date
+  exteriorMarking: String
+  grossTonnageGrt: Float
+  grossTonnageGt: Float
+  id: Int
+  lengthOverAll: Float
+  measurementValues: Map_Integer_StringScalar
+  measurements: [MeasurementVOInput]
+  name: String
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+  recorderDepartment: DepartmentVOInput
+  recorderPerson: PersonVOInput
+  registrationCode: String
+  registrationLocation: LocationVOInput
+  startDate: Date
+  updateDate: Date
+  validationDate: Date
+  vesselStatusId: Int
+  vesselType: ReferentialVOInput
+}
+
+input VesselVOInput {
+  comments: String
+  controlDate: Date
+  creationDate: Date
+  features: VesselFeaturesVOInput
+  id: Int
+  program: ProgramVOInput
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+  recorderDepartment: DepartmentVOInput
+  recorderPerson: PersonVOInput
+  registration: VesselRegistrationVOInput
+  statusId: Int
+  updateDate: Date
+  validationDate: Date
+  vesselType: ReferentialVOInput
 }
 
 

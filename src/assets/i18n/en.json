@@ -123,6 +123,9 @@
         "USER": "Label for User profile",
         "SUPERVISOR": "Label for Supervisor profile",
         "GUEST": "Label for Guest profile"
+      },
+      "VESSEL": {
+        "DEFAULT_NEW_VESSEL_STATUS": "Default status for new vessel"
       }
     }
   },
@@ -627,25 +630,29 @@
   },
   "VESSEL": {
     "VESSEL_ID": "Internal code",
-    "NAME": "Name",
-    "EXTERIOR_MARKING": "Exterior Marking",
-    "REGISTRATION_CODE": "Registration Code",
-    "REGISTRATION_LOCATION": "Registration Location",
-    "REGISTRATION_START_DATE": "Registration start date",
-    "REGISTRATION_END_DATE": "Registration end date",
-    "BASE_PORT_LOCATION": "Base port",
     "VESSEL_TYPE": "Type",
-    "VESSEL_STATUS_ID": "Status",
-    "COUNTRY": "Country",
-    "COMMENTS": "Comments",
-    "START_DATE": "Validity start date",
-    "END_DATE": "Validity end date",
+    "STATUS_ID": "Status",
     "TAB_GENERAL": "General information",
     "TAB_HISTORY": "History",
-    "GROSS_TONNAGE_GT": "Gross tonnage (GT)",
-    "GROSS_TONNAGE_GRT": "Gross registered tonnage (GRT)",
-    "ADMINISTRATIVE_POWER": "Administrative power (kW)",
-    "LENGTH_OVER_ALL": "Length over all (m)",
+    "FEATURES": {
+      "START_DATE": "Validity start date",
+      "END_DATE": "Validity end date",
+      "NAME": "Name",
+      "EXTERIOR_MARKING": "Exterior Marking",
+      "BASE_PORT_LOCATION": "Base port",
+      "GROSS_TONNAGE_GT": "Gross tonnage (GT)",
+      "GROSS_TONNAGE_GRT": "Gross registered tonnage (GRT)",
+      "ADMINISTRATIVE_POWER": "Administrative power (kW)",
+      "LENGTH_OVER_ALL": "Length over all (m)",
+      "COMMENTS": "Comments"
+    },
+    "REGISTRATION": {
+      "START_DATE": "Registration start date",
+      "END_DATE": "Registration end date",
+      "REGISTRATION_CODE": "Registration Code",
+      "INT_REGISTRATION_CODE": "International Registration Code",
+      "REGISTRATION_LOCATION": "Registration Location"
+    },
     "HISTORY": {
       "FEATURES": "Vessel features",
       "REGISTRATIONS": "Registrations"

@@ -16,7 +16,7 @@ export const RegistrationFragments = {
     startDate
     endDate
     registrationCode
-    vesselId
+    intRegistrationCode
     registrationLocation {
       ...LocationFragment
     }

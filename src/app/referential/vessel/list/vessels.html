@@ -110,7 +110,7 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <mat-table #table [dataSource]="dataSource" class="trips-table " matSort matSortActive="exteriorMarking"
+  <mat-table #table [dataSource]="dataSource" class="trips-table" matSort matSortActive="features.exteriorMarking"
     matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
@@ -132,86 +132,86 @@
         <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-        {{ row.currentData.vesselId }}
+        {{ row.currentData.id }}
         <mat-icon *ngIf="row.validator.hasErrors">search</mat-icon>
       </mat-cell>
     </ng-container>
 
     <!-- Start date column -->
-    <ng-container matColumnDef="startDate">
+    <ng-container matColumnDef="features.startDate">
       <mat-header-cell class="hidden-xs hidden-sm mat-cell-date-time" *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.START_DATE</span>
+        <span translate>VESSEL.FEATURES.START_DATE</span>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm mat-cell-date-time" *matCellDef="let row">
-        <mat-date-time floatLabel="never" [formControl]="row.validator.controls['startDate']" [displayTime]="false"
+        <mat-date-time floatLabel="never" [formControl]="row.validator.get('features.startDate')" [displayTime]="false"
           required>
         </mat-date-time>
       </mat-cell>
     </ng-container>
 
     <!-- End date column -->
-    <ng-container matColumnDef="endDate">
+    <ng-container matColumnDef="features.endDate">
       <mat-header-cell class="hidden-xs hidden-sm mat-cell-date-time" *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.END_DATE</span>
+        <span translate>VESSEL.FEATURES.END_DATE</span>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm mat-cell-date-time" *matCellDef="let row">
-        <mat-date-time floatLabel="never" [formControl]="row.validator.controls['endDate']" [displayTime]="false"
+        <mat-date-time floatLabel="never" [formControl]="row.validator.get('features.endDate')" [displayTime]="false"
           required>
         </mat-date-time>
       </mat-cell>
     </ng-container>
 
     <!-- Exterior marking column -->
-    <ng-container matColumnDef="exteriorMarking">
+    <ng-container matColumnDef="features.exteriorMarking">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.EXTERIOR_MARKING</span>
+        <span translate>VESSEL.FEATURES.EXTERIOR_MARKING</span>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['exteriorMarking']" [placeholder]="'VESSEL.EXTERIOR_MARKING'|translate"
+          <input matInput [formControl]="row.validator.get('features.exteriorMarking')" [placeholder]="'VESSEL.FEATURES.EXTERIOR_MARKING'|translate"
             [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing">
-          <mat-error *ngIf="row.validator.controls['exteriorMarking'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="row.validator.get('features.exteriorMarking').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </mat-cell>
     </ng-container>
 
     <!-- Registration Code column -->
-    <ng-container matColumnDef="registrationCode">
+    <ng-container matColumnDef="registration.registrationCode">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.REGISTRATION_CODE</span>
+        <span translate>VESSEL.REGISTRATION.REGISTRATION_CODE</span>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['registrationCode']" [placeholder]="'VESSEL.REGISTRATION_CODE'|translate"
+          <input matInput [formControl]="row.validator.get('registration.registrationCode')" [placeholder]="'VESSEL.REGISTRATION.REGISTRATION_CODE'|translate"
             [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing">
-          <mat-error *ngIf="row.validator.controls['registrationCode'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="row.validator.get('registration.registrationCode').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </mat-cell>
     </ng-container>
 
     <!-- Name column -->
-    <ng-container matColumnDef="name">
+    <ng-container matColumnDef="features.name">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.NAME</span>
+        <span translate>VESSEL.FEATURES.NAME</span>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['name']" [placeholder]="'VESSEL.NAME'|translate"
+          <input matInput [formControl]="row.validator.get('features.name')" [placeholder]="'VESSEL.FEATURES.NAME'|translate"
             [readonly]="!row.editing">
-          <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="row.validator.get('features.name').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </mat-cell>
     </ng-container>
 
     <!-- Vessel Type -->
     <ng-container matColumnDef="vesselType">
-      <mat-header-cell *matHeaderCellDef>
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
         <span translate>VESSEL.VESSEL_TYPE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['vesselType']" [matAutocomplete]="autoVesselType" [readonly]="!row.editing" required>
-          <mat-error *ngIf="row.validator.controls['vesselType'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <input matInput [formControl]="row.validator.get('vesselType')" [matAutocomplete]="autoVesselType" [readonly]="!row.editing" required>
+          <mat-error *ngIf="row.validator.get('vesselType').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
         <mat-autocomplete #autoVesselType="matAutocomplete" [displayWith]="referentialToString">
           <mat-option *ngFor="let vesselType of vesselTypes | async" [value]="vesselType">
@@ -222,15 +222,15 @@
     </ng-container>
 
     <!-- base port location -->
-    <ng-container matColumnDef="basePortLocation">
-      <mat-header-cell *matHeaderCellDef>
-        <span translate>VESSEL.BASE_PORT_LOCATION</span>
+    <ng-container matColumnDef="features.basePortLocation">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>VESSEL.FEATURES.BASE_PORT_LOCATION</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['basePortLocation']" [matAutocomplete]="autoLocation"
+          <input matInput [formControl]="row.validator.get('features.basePortLocation')" [matAutocomplete]="autoLocation"
             [readonly]="!row.editing" required>
-          <mat-error *ngIf="row.validator.controls['basePortLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="row.validator.get('features.basePortLocation').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
         <mat-autocomplete #autoLocation="matAutocomplete" [displayWith]="referentialToString">
           <mat-option *ngFor="let location of locations | async" [value]="location">
@@ -241,44 +241,43 @@
     </ng-container>
 
     <!-- Comments column -->
-    <ng-container matColumnDef="comments">
+    <ng-container matColumnDef="features.comments">
       <mat-header-cell *matHeaderCellDef>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-icon color="primary" name="chatboxes" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
+        <ion-icon color="primary" name="chatboxes" *ngIf="row.currentData.features.comments" slot="icon-only" [title]="row.currentData.features.comments"></ion-icon>
       </mat-cell>
     </ng-container>
 
     <!-- Status column  -->
-    <ng-container matColumnDef="vesselStatusId">
+    <ng-container matColumnDef="statusId">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
         <span translate>REFERENTIAL.STATUS</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
-          <ion-icon matPrefix *ngIf="row.validator.controls['vesselStatusId'].value &gt;=0" [name]="statusById[row.validator.controls['vesselStatusId'].value]?.icon"></ion-icon>
-
-          <mat-select [formControl]="row.validator.controls['vesselStatusId']" [placeholder]="'REFERENTIAL.STATUS'|translate">
+          <ion-icon matPrefix *ngIf="row.validator.get('statusId').value &gt;=0" [name]="statusById[row.validator.get('statusId').value]?.icon"></ion-icon>
+          <mat-select [formControl]="row.validator.get('statusId')" [placeholder]="'REFERENTIAL.STATUS'|translate">
             <mat-select-trigger>
-              <span *ngIf="row.validator.controls['vesselStatusId'].value &gt;=0">
-                {{ statusById[row.validator.controls['vesselStatusId'].value]?.label | translate}}</span>
+              <span *ngIf="row.validator.get('statusId').value &gt;=0">
+                {{ statusById[row.validator.get('statusId').value]?.label | translate}}</span>
             </mat-select-trigger>
             <mat-option *ngFor="let item of statusList" [value]="item.id">
               <ion-icon [name]="item.icon"></ion-icon>
               {{ item.label |translate }}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="row.validator.controls['vesselStatusId'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="row.validator.get('statusId').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </mat-cell>
     </ng-container>
 
     <!-- Actions buttons column -->
     <ng-container matColumnDef="actions">
-      <mat-header-cell *matHeaderCellDef>
+      <mat-header-cell *matHeaderCellDef [class.hidden]="inlineEdition">
         <span></span>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row">
+      <mat-cell *matCellDef="let row" [class.hidden]="inlineEdition">
         <button mat-icon-button small color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
           <mat-icon>undo</mat-icon>
         </button>
@@ -291,9 +290,7 @@
 
   <!-- Bottom buttons -->
   <ion-row class="ion-no-padding">
-
     <ion-col></ion-col>
-
     <ion-col class="ion-no-padding" size="auto">
       <mat-paginator [length]="resultsLength" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>
