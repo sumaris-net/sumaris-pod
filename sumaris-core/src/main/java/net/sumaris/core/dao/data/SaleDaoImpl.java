@@ -72,7 +72,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
     private PersonDao personDao;
 
     @Autowired
-    private VesselDao vesselDao;
+    private VesselSnapshotDao vesselSnapshotDao;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -207,7 +207,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
         target.setSaleType(saleType);
 
         if (allFields) {
-            target.setVesselSnapshot(vesselDao.getSnapshotByIdAndDate(source.getVessel().getId(), source.getStartDateTime()));
+            target.setVesselSnapshot(vesselSnapshotDao.getByIdAndDate(source.getVessel().getId(), source.getStartDateTime()));
             target.setQualityFlagId(source.getQualityFlag().getId());
 
             // Recorder department

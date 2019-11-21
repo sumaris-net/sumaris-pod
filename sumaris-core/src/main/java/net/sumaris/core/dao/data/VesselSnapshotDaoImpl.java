@@ -1,0 +1,259 @@
+package net.sumaris.core.dao.data;
+
+import com.google.common.base.Preconditions;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.model.data.VesselRegistrationPeriod;
+import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+/**
+ * @author peck7 on 19/11/2019.
+ */
+@Repository("vesselSnapshotDao")
+public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnapshotDao {
+
+    /** Logger. */
+    private static final Logger log = LoggerFactory.getLogger(VesselSnapshotDaoImpl.class);
+
+    @Autowired
+    private LocationDao locationDao;
+
+    @Autowired
+    private ReferentialDao referentialDao;
+
+    @Override
+    public VesselSnapshotVO getByIdAndDate(int vesselId, Date date) {
+        VesselFilterVO filter = new VesselFilterVO();
+        filter.setVesselId(vesselId);
+        filter.setDate(date);
+        List<VesselSnapshotVO> res = findByFilter(filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC);
+
+        // No result for this date
+        if (res.size() == 0) {
+            // Retry using only vessel id (and limit to most recent features)
+            filter.setDate(null);
+            res = findByFilter(filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC);
+            if (res.size() == 0) {
+                VesselSnapshotVO unknownVessel = new VesselSnapshotVO();
+                unknownVessel.setId(vesselId);
+                unknownVessel.setName("Unknown vessel " + vesselId); // TODO remove string
+                return unknownVessel;
+            }
+        }
+        return res.get(0);
+    }
+
+    @Override
+    public List<VesselSnapshotVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        Preconditions.checkArgument(offset >= 0);
+        Preconditions.checkArgument(size > 0);
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<VesselSnapshotResult> query = cb.createQuery(VesselSnapshotResult.class);
+        Root<VesselFeatures> root = query.from(VesselFeatures.class);
+
+        Join<VesselFeatures, Vessel> vesselJoin = root.join(VesselFeatures.Fields.VESSEL, JoinType.INNER);
+        Join<Vessel, VesselRegistrationPeriod> vrpJoin = vesselJoin.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
+
+        query.multiselect(root, vrpJoin);
+
+        // Apply sorting
+        addSorting(query, cb, root, sortAttribute, sortDirection);
+
+        // No tripFilter: execute request
+        if (filter == null) {
+            TypedQuery<VesselSnapshotResult> q = getEntityManager().createQuery(query)
+                .setFirstResult(offset)
+                .setMaxResults(size);
+            return toVesselSnapshotVOs(q.getResultList());
+        }
+
+        List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds())
+            ? null
+            : filter.getStatusIds();
+
+        // Apply vessel Filter
+        ParameterExpression<Date> dateParam = cb.parameter(Date.class);
+        ParameterExpression<Integer> vesselIdParam = cb.parameter(Integer.class);
+        ParameterExpression<Integer> vesselFeaturesIdParam = cb.parameter(Integer.class);
+        ParameterExpression<String> searchNameParam = cb.parameter(String.class);
+        ParameterExpression<String> searchExteriorMarkingParam = cb.parameter(String.class);
+        ParameterExpression<String> searchRegistrationCodeParam = cb.parameter(String.class);
+        ParameterExpression<Boolean> hasStatusIdsParam = cb.parameter(Boolean.class);
+        ParameterExpression<Collection> statusIdsParam = cb.parameter(Collection.class);
+
+        query.where(cb.and(
+            // Filter: date
+            cb.or(
+                cb.and(
+                    // if no date in filter, will return only active period
+                    cb.isNull(dateParam),
+                    cb.isNull(root.get(VesselFeatures.Fields.END_DATE)),
+                    cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE))
+                ),
+                cb.and(
+                    cb.isNotNull(dateParam),
+                    cb.and(
+                        cb.or(
+                            cb.isNull(root.get(VesselFeatures.Fields.END_DATE)),
+                            cb.greaterThan(root.get(VesselFeatures.Fields.END_DATE), dateParam)
+                        ),
+                        cb.lessThan(root.get(VesselFeatures.Fields.START_DATE), dateParam)
+                    ),
+                    cb.and(
+                        cb.or(
+                            cb.isNull(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE)),
+                            cb.greaterThan(vrpJoin.get(VesselRegistrationPeriod.Fields.END_DATE), dateParam)
+                        ),
+                        cb.lessThan(vrpJoin.get(VesselRegistrationPeriod.Fields.START_DATE), dateParam)
+                    )
+                )
+            ),
+
+            // Filter: vessel features id
+            cb.or(
+                cb.isNull(vesselFeaturesIdParam),
+                cb.equal(root.get(VesselFeatures.Fields.ID), vesselFeaturesIdParam)
+            ),
+
+            // Filter: vessel id
+            cb.or(
+                cb.isNull(vesselIdParam),
+                cb.equal(vesselJoin.get(Vessel.Fields.ID), vesselIdParam))
+            ),
+
+            // Filter: search text (on exterior marking OR id)
+            cb.or(
+                cb.isNull(searchNameParam),
+                cb.like(cb.lower(root.get(VesselFeatures.Fields.NAME)), cb.lower(searchNameParam)),
+                cb.like(cb.lower(root.get(VesselFeatures.Fields.EXTERIOR_MARKING)), cb.lower(searchExteriorMarkingParam)),
+                cb.like(cb.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), cb.lower(searchRegistrationCodeParam))
+            ),
+
+            // Status
+            cb.or(
+                cb.isFalse(hasStatusIdsParam),
+                cb.in(vesselJoin.get(Vessel.Fields.STATUS).get(Status.Fields.ID)).value(statusIdsParam)
+            )
+        );
+
+
+        String searchText = StringUtils.trimToNull(filter.getSearchText());
+        String searchTextAsPrefix = null;
+        if (StringUtils.isNotBlank(searchText)) {
+            searchTextAsPrefix = (searchText + "*"); // add trailing escape char
+            searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]+", "*"); // group escape chars
+            searchTextAsPrefix = searchTextAsPrefix.replaceAll("[%]", "\\%"); // protected '%' chars
+            searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]", "%"); // replace asterix
+        }
+        String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
+
+        TypedQuery<VesselSnapshotResult> q = entityManager.createQuery(query)
+            .setParameter(dateParam, filter.getDate())
+            .setParameter(vesselFeaturesIdParam, filter.getVesselFeaturesId())
+            .setParameter(vesselIdParam, filter.getVesselId())
+            .setParameter(searchExteriorMarkingParam, searchTextAsPrefix)
+            .setParameter(searchRegistrationCodeParam, searchTextAsPrefix)
+            .setParameter(searchNameParam, searchTextAnyMatch)
+            .setParameter(hasStatusIdsParam, CollectionUtils.isNotEmpty(statusIds))
+            .setParameter(statusIdsParam, statusIds)
+            .setFirstResult(offset)
+            .setMaxResults(size);
+        List<VesselSnapshotResult> result = q.getResultList();
+        return toVesselSnapshotVOs(result);
+    }
+
+    private List<VesselSnapshotVO> toVesselSnapshotVOs(List<VesselSnapshotResult> source) {
+        return source.stream()
+            .map(this::toVesselSnapshotVO)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    }
+
+    private VesselSnapshotVO toVesselSnapshotVO(VesselSnapshotResult source) {
+        if (source == null)
+            return null;
+
+        VesselSnapshotVO target = new VesselSnapshotVO();
+
+        // Vessel features
+        VesselFeatures features = source.getVesselFeatures();
+
+        Beans.copyProperties(features, target);
+
+        // Convert from cm to m
+        if (features.getLengthOverAll() != null) {
+            target.setLengthOverAll(features.getLengthOverAll().doubleValue() /100);
+        }
+        // Convert tonnage (divide by 100)
+        if (features.getGrossTonnageGrt() != null) {
+            target.setGrossTonnageGrt(features.getGrossTonnageGrt().doubleValue() / 100);
+        }
+        if (features.getGrossTonnageGt() != null) {
+            target.setGrossTonnageGt(features.getGrossTonnageGt().doubleValue() / 100);
+        }
+
+        target.setId(features.getVessel().getId());
+        target.setVesselStatusId(features.getVessel().getStatus().getId());
+        target.setQualityFlagId(features.getQualityFlag().getId());
+
+        // Vessel type
+        ReferentialVO vesselType = referentialDao.toReferentialVO(features.getVessel().getVesselType());
+        target.setVesselType(vesselType);
+
+        // base port location
+        LocationVO basePortLocation = locationDao.toLocationVO(features.getBasePortLocation());
+        target.setBasePortLocation(basePortLocation);
+
+        // Recorder department
+        DepartmentVO recorderDepartment = referentialDao.toTypedVO(features.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+        target.setRecorderDepartment(recorderDepartment);
+
+        // Registration period
+        VesselRegistrationPeriod period = source.getVesselRegistrationPeriod();
+        if (period != null) {
+
+            // Registration code
+            target.setRegistrationCode(period.getRegistrationCode());
+            // Registration location
+            LocationVO registrationLocation = locationDao.toLocationVO(period.getRegistrationLocation());
+            target.setRegistrationLocation(registrationLocation);
+        }
+
+        return target;
+
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class VesselSnapshotResult {
+        VesselFeatures vesselFeatures;
+        VesselRegistrationPeriod vesselRegistrationPeriod;
+    }
+
+}

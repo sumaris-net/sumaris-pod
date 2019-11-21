@@ -103,29 +103,55 @@ public class DataGraphQLService {
 
     /* -- Vessel -- */
 
-
-    @GraphQLQuery(name = "vessels", description = "Search in vessels")
+    @GraphQLQuery(name = "vesselSnapshots", description = "Search in vessel snapshots")
     @Transactional(readOnly = true)
     @IsUser
-    public List<VesselSnapshotVO> findVesselsByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
-                                                      @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                      @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                      @GraphQLArgument(name = "sortBy", defaultValue = VesselSnapshotVO.Fields.EXTERIOR_MARKING) String sort,
-                                                      @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
+    public List<VesselSnapshotVO> findVesselSnapshotsByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
+                                                              @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                              @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                              @GraphQLArgument(name = "sortBy", defaultValue = VesselSnapshotVO.Fields.EXTERIOR_MARKING) String sort,
+                                                              @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
         return vesselService.findSnapshotByFilter(filter, offset, size, sort,
                 direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
+    @GraphQLQuery(name = "vessels", description = "Search in vessels")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<VesselVO> findVesselByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
+                                                              @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                              @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                              @GraphQLArgument(name = "sortBy") String sort,
+                                                              @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
+    ) {
+        return vesselService.findVesselsByFilter(filter, offset, size, sort,
+                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+    }
+
+    @GraphQLQuery(name = "vesselsCount", description = "Get total vessels count")
+    @Transactional(readOnly = true)
+    @IsUser
+    public long getVesselsCount(@GraphQLArgument(name = "filter") VesselFilterVO filter) {
+        return vesselService.countVesselsByFilter(filter);
+    }
+
+    @GraphQLQuery(name = "vessel", description = "Get a vessel")
+    @Transactional(readOnly = true)
+    @IsUser
+    public VesselVO getVesselById(@GraphQLArgument(name = "vesselId") int vesselId) {
+        return vesselService.getVesselById(vesselId);
+    }
+
     @GraphQLQuery(name = "vesselFeaturesHistory", description = "Get vessel features history")
     @Transactional(readOnly = true)
     @IsUser
-    public List<VesselSnapshotVO> getVesselFeaturesHistory(@GraphQLArgument(name = "vesselId") Integer vesselId,
+    public List<VesselFeaturesVO> getVesselFeaturesHistory(@GraphQLArgument(name = "vesselId") Integer vesselId,
                                                            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                           @GraphQLArgument(name = "sortBy", defaultValue = VesselSnapshotVO.Fields.START_DATE) String sort,
+                                                           @GraphQLArgument(name = "sortBy", defaultValue = VesselFeaturesVO.Fields.START_DATE) String sort,
                                                            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        return vesselService.getSnapshotByVesselId(vesselId, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        return vesselService.getFeaturesByVesselId(vesselId, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
     @GraphQLQuery(name = "vesselRegistrationHistory", description = "Get vessel registration history")
@@ -141,13 +167,13 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "saveVessel", description = "Create or update a vessel")
     @IsUser
-    public VesselFeaturesVO saveVessel(@GraphQLArgument(name = "vessel") VesselFeaturesVO vessel) {
+    public VesselVO saveVessel(@GraphQLArgument(name = "vessel") VesselVO vessel) {
         return vesselService.save(vessel);
     }
 
     @GraphQLMutation(name = "saveVessels", description = "Create or update many vessels")
     @IsUser
-    public List<VesselFeaturesVO> saveVessels(@GraphQLArgument(name = "vessels") List<VesselFeaturesVO> vessels) {
+    public List<VesselVO> saveVessels(@GraphQLArgument(name = "vessels") List<VesselVO> vessels) {
         return vesselService.save(vessels);
     }
 

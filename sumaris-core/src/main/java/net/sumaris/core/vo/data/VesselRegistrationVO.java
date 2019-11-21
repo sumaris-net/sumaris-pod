@@ -35,14 +35,12 @@ public class VesselRegistrationVO implements IEntity<Integer> {
 
     private Integer id;
     private String registrationCode;
+    private String intRegistrationCode;
     private LocationVO registrationLocation;
 
     private Date startDate;
     private Date endDate;
 
     private Integer qualityFlagId;
-
-    // From parent Entity
-    private Integer vesselId;
 
 }
