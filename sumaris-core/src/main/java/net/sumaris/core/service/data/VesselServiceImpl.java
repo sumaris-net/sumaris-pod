@@ -116,20 +116,22 @@ public class VesselServiceImpl implements VesselService {
 		Preconditions.checkArgument(StringUtils.isNotBlank(source.getRegistration().getRegistrationCode()), "Missing registration code");
 		Preconditions.checkNotNull(source.getRegistration().getRegistrationLocation().getId(), "Missing registration location");
 
-		VesselVO savedVesselFeatures = vesselDao.save(source, checkUpdateDate);
+		VesselVO savedVessel = vesselDao.save(source, checkUpdateDate);
 
-		// Save measurements
-		if (savedVesselFeatures.getFeatures().getMeasurementValues() != null) {
-			measurementDao.saveVesselPhysicalMeasurementsMap(savedVesselFeatures.getId(), savedVesselFeatures.getFeatures().getMeasurementValues());
-		}
-		else {
-			List<MeasurementVO> measurements = Beans.getList(savedVesselFeatures.getFeatures().getMeasurements());
-			measurements.forEach(m -> fillDefaultProperties(savedVesselFeatures.getFeatures(), m));
-			measurements = measurementDao.saveVesselPhysicalMeasurements(savedVesselFeatures.getId(), measurements);
-			savedVesselFeatures.getFeatures().setMeasurements(measurements);
+		if (savedVessel.getFeatures() != null) {
+			VesselFeaturesVO savedVesselFeatures = savedVessel.getFeatures();
+			// Save measurements
+			if (savedVesselFeatures.getMeasurementValues() != null) {
+				measurementDao.saveVesselPhysicalMeasurementsMap(savedVesselFeatures.getId(), savedVesselFeatures.getMeasurementValues());
+			} else {
+				List<MeasurementVO> measurements = Beans.getList(savedVesselFeatures.getMeasurements());
+				measurements.forEach(m -> fillDefaultProperties(savedVesselFeatures, m));
+				measurements = measurementDao.saveVesselPhysicalMeasurements(savedVesselFeatures.getId(), measurements);
+				savedVesselFeatures.setMeasurements(measurements);
+			}
 		}
 
-		return savedVesselFeatures;
+		return savedVessel;
 	}
 
 	@Override
