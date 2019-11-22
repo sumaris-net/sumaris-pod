@@ -22,6 +22,7 @@
 
 package net.sumaris.rdf.config;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import net.sumaris.core.config.SumarisConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -36,12 +37,23 @@ public class RdfConfiguration {
     @Resource(name = "sumarisConfiguration")
     private SumarisConfiguration config;
 
+    private String modelPrefix;
+
     public boolean isRdfEnable() {
         return config.getApplicationConfig().getOptionAsBoolean(RdfConfigurationOption.RDF_ENABLE.getKey());
     }
 
     public String getModelPrefix() {
-        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_PREFIX.getKey());
+        if (this.modelPrefix != null) return this.modelPrefix;
+
+        // Init property, if not init yet
+        String modelPrefix = config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_PREFIX.getKey());
+        Preconditions.checkNotNull(modelPrefix, String.format("Missing configuration option {%s}", RdfConfigurationOption.RDF_MODEL_PREFIX.getKey()));
+        if (modelPrefix.lastIndexOf('/') != modelPrefix.length() - 1) {
+            modelPrefix += "/";
+        }
+        this.modelPrefix = modelPrefix;
+        return modelPrefix;
     }
 
     public String getModelTitle() {

@@ -462,4 +462,12 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
         calendar.add(Calendar.SECOND, -1);
         return calendar.getTime();
     }
+
+    public static String elapsedTime(long timeInMs) {
+        long elapsedTime = System.currentTimeMillis() - timeInMs;
+        double seconds = (double) elapsedTime / 1_000;
+        return "in " + seconds + "s";
+    }
+
+
 }

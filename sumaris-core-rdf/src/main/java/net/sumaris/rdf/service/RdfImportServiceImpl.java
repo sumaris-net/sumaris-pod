@@ -23,24 +23,32 @@
 package net.sumaris.rdf.service;
 
 
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
+import net.sumaris.core.util.Dates;
+import net.sumaris.rdf.config.RdfConfiguration;
+import net.sumaris.rdf.dao.RdfModelDao;
+import net.sumaris.rdf.model.ModelEntities;
+import net.sumaris.rdf.util.Bean2Owl;
 import net.sumaris.rdf.util.Owl2Bean;
-import net.sumaris.rdf.util.OwlTransformContext;
+import net.sumaris.rdf.util.RdfImportContext;
 import net.sumaris.rdf.util.OwlUtils;
-import org.apache.jena.ontology.OntClass;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntResource;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdfxml.xmlinput.JenaReader;
+import org.apache.jena.shared.JenaException;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,72 +56,102 @@ import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 
 @Service("rdfSynchroService")
-public class RdfSynchroService extends RdfModelExportServiceImpl{
+public class RdfImportServiceImpl {
 
-    public static Logger log = LoggerFactory.getLogger(RdfSynchroService.class);
+    public static Logger log = LoggerFactory.getLogger(RdfImportServiceImpl.class);
 
     public static String BASE_SYNCHRONIZE_MODEL_PACKAGE = "net.sumaris.core.model.referential";
-
 
     protected Owl2Bean owlConverter;
     protected List tl = new ArrayList();
     protected List statuses= new ArrayList();
 
+    @Autowired
+    protected EntityManager entityManager;
+
+    @Autowired
+    protected RdfConfiguration config;
+
+    @Autowired
+    protected RdfModelDao modelDao;
+
+    @Autowired
+    private RdfExportService exportService;
+
+    protected Bean2Owl beanConverter;
+
     @PostConstruct
     protected void afterPropertiesSet() {
-        initConfig();
 
-        owlConverter = new Owl2Bean(this.entityManager, getModelPrefix()) {
+        beanConverter = new Bean2Owl(config.getModelPrefix());
+
+        owlConverter = new Owl2Bean(this.entityManager, config.getModelPrefix()) {
             @Override
             protected List getCacheStatus() {
-                return RdfSynchroService.this.getCacheStatus();
+                return RdfImportServiceImpl.this.getCacheStatus();
             }
 
             @Override
             protected List getCacheTL() {
-                return RdfSynchroService.this.getCacheTL();
+                return RdfImportServiceImpl.this.getCacheTL();
             }
         };
     }
 
-    @Transactional
-    public OntModel overwriteFromRemote(String url, String ontIRI) {
+    public OntModel getRemoteModel(String url) {
 
-        OwlTransformContext context = createContext();
-
-        long start = System.nanoTime();
-
+        log.info(String.format("Reading ontology model at {%s}...", url));
+        long start = System.currentTimeMillis();
         OntModel model = ModelFactory.createOntologyModel();
-        new JenaReader().read(model, url);
-        log.info("Found " + model.size() + " triples remotely, reconstructing model now " + OwlUtils.delta(start));
 
-        List<? extends Object> recomposed = objectsFromOnt(model, context);
-        log.info("Mapped ont to list of " + recomposed.size() + " objects, Making it OntClass again " + OwlUtils.delta(start));
+        try {
+            new JenaReader().read(model, url);
+            log.info(String.format("Model successfully read %s. %s triples found.", Dates.elapsedTime(start), model.size()));
+        } catch (JenaException e) {
+            throw new SumarisTechnicalException(String.format("Error while reading ontology model at {%s}: %s", url, e.getMessage()), e);
+        }
 
+        return model;
+    }
 
-        Stream<Class> classes = Stream.of();
+    @Transactional
+    public OntModel importFromRemote(String remoteUrl, String remoteOntUri,
+                                     String domain,
+                                     String baseTargetPackage) {
 
-        OntModel m2 = generateOntologyFromClasses(ontIRI, classes, RdfModelExportOptions.builder()
+        // Reading remote model
+        OntModel sourceModel = getRemoteModel(remoteUrl);
+
+        // Recomposed object, from the remote model
+        RdfImportContext context = createImportContext(domain, baseTargetPackage);
+
+        long start = System.currentTimeMillis();
+        List<? extends Object> recomposed = objectsFromOnt(sourceModel, context);
+        if (CollectionUtils.isEmpty(recomposed)) {
+            log.info("Remote model has no instance ! Make sure the remote URL is valid");
+            return null;
+        }
+        log.info(String.format("Mapped ont to list of %s objects, Making it OntClass again %s", recomposed.size(), Dates.elapsedTime(start)));
+
+        OntModel targetModel = exportService.getOntModelWithClasses(domain, RdfExportOptions.builder()
                 .withInterfaces(true)
                 .build());
 
-        recomposed.forEach(r -> beanConverter.bean2Owl(m2, r, 2, propertyIncludes, propertyExcludes));
+        recomposed.forEach(r -> beanConverter.bean2Owl(targetModel, r, 2, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes));
 
-        log.info("Recomposed list of " + recomposed.size() + " objects is " + m2.size() + " triples.  " + OwlUtils.delta(start) + " - " + (100.0 * m2.size() / model.size()) + "%");
-        log.info("Recomposed list of " + recomposed.size() + " objects is " + m2.size() + " triples.  " + OwlUtils.delta(start) + " - " + (100.0 * m2.size() / model.size()) + "%");
+        float successPct = Math.round((targetModel.size() / sourceModel.size()) * 10000) / 100;
+        log.info(String.format("Recomposed list of %s objects from %s triples. %s - %s%%", recomposed.size(), targetModel.size(), Dates.elapsedTime(start), successPct));
 
-        if (model.size() == m2.size()) {
+        if (sourceModel.size() == targetModel.size()) {
             log.info(" QUANTITATIVE SUCCESS   ");
-            if (model.isIsomorphicWith(m2)) {
-                log.info(" ISOMORPHIC SUCCESS " + OwlUtils.delta(start));
+            if (sourceModel.isIsomorphicWith(targetModel)) {
+                log.info(" ISOMORPHIC SUCCESS " + Dates.elapsedTime(start));
 
             }
         }
@@ -127,40 +165,44 @@ public class RdfSynchroService extends RdfModelExportServiceImpl{
 //            }
 //        });
 
-        entityManager.flush();
+        //entityManager.flush();
 
-        return m2;
+        return targetModel;
     }
 
-    protected List<Object> objectsFromOnt(OntModel m, OwlTransformContext context) {
+    protected List<Object> objectsFromOnt(OntModel m, RdfImportContext context) {
 
         Resource schema = m.listSubjectsWithProperty(RDF.type, OWL.Ontology).nextResource();
 
         List<Object> ret = new ArrayList<>();
 
-        for (OntClass ontClass : m.listClasses().toList()) {
-            log.info("objectsFromOnt " + ontClass + " " + ontClass.listInstances().toList().size());
-            owlConverter.ontToJavaClass(ontClass, context).ifPresent(clazz -> {
-                for (OntResource ontResource : ontClass.listInstances().toList()) {
-                    log.info("  ontResource " +ontResource);
+        m.listClasses().toList().forEach(ontClass -> {
 
-                    Function<OntResource, Object> f = context.B2O_ARBITRARY_MAPPER.get(ontClass.getURI());
-                    if (f != null) {
-                        ret.add(f.apply(ontResource));
-                    } else {
-                        owlConverter.owl2Bean(schema, ontResource, clazz, context).ifPresent(ret::add);
-                    }
-                }
+            if (log.isTraceEnabled())
+                log.trace(String.format("Deserialize %s objects from %s ", ontClass, CollectionUtils.size(ontClass.listInstances().toList())));
+
+            owlConverter.ontToJavaClass(ontClass, context)
+                .ifPresent(clazz -> {
+                    ontClass.listInstances().toList().forEach(ontResource -> {
+                        if (log.isTraceEnabled()) log.trace("  ontResource " + ontResource);
+
+                        Function<OntResource, Object> f = context.B2O_ARBITRARY_MAPPER.get(ontClass.getURI());
+                        if (f != null) {
+                            ret.add(f.apply(ontResource));
+                        } else {
+                            owlConverter.owl2Bean(schema, ontResource, clazz, context).ifPresent(ret::add);
+                        }
+                    });
             });
-        }
+        });
         return ret;
     }
 
-    protected OwlTransformContext createContext() {
-        OwlTransformContext context = new OwlTransformContext();
+    protected RdfImportContext createImportContext(String domain, String basePackage) {
+        RdfImportContext context = new RdfImportContext();
 
 
-        new Reflections(BASE_SYNCHRONIZE_MODEL_PACKAGE, new SubTypesScanner(false))
+        new Reflections(basePackage, new SubTypesScanner(false))
                 .getSubTypesOf(Object.class)
                 .forEach(c -> context.URI_2_CLASS.put(c.getSimpleName(), c));
 
@@ -201,7 +243,7 @@ public class RdfSynchroService extends RdfModelExportServiceImpl{
                 Property cd = ontResource.getModel().getProperty(clName + "#CreationDate");
                 LocalDateTime ld = LocalDateTime.parse(ontResource.asIndividual().getPropertyValue(cd).asLiteral().getString(), OwlUtils.DATE_TIME_FORMATTER);
 
-                tl.setCreationDate(owlConverter.convertToDateViaInstant(ld));
+                tl.setCreationDate(OwlUtils.convertToDateViaInstant(ld));
 
                 Property order = ontResource.getModel().getProperty(clName + "#RankOrder");
                 tl.setRankOrder(ontResource.asIndividual().getPropertyValue(order).asLiteral().getInt());
@@ -251,7 +293,7 @@ public class RdfSynchroService extends RdfModelExportServiceImpl{
 
                 LocalDateTime ld = LocalDateTime.parse(ontResource.asIndividual().getPropertyValue(cd).asLiteral().getString(), OwlUtils.DATE_TIME_FORMATTER);
 
-                st.setUpdateDate(owlConverter.convertToDateViaInstant(ld));
+                st.setUpdateDate(OwlUtils.convertToDateViaInstant(ld));
 
                 st.setId(max + 1);
 
@@ -283,4 +325,6 @@ public class RdfSynchroService extends RdfModelExportServiceImpl{
                     .getResultList());
         return tl;
     }
+
+
 }

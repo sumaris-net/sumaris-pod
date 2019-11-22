@@ -62,6 +62,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 })
 @EnableJpaRepositories(basePackages = {
         "net.sumaris.core.dao",
+        "net.sumaris.rdf.dao",
         "net.sumaris.core.extraction.dao"
 })
 @EnableEmailTools
@@ -91,11 +92,15 @@ public class Application extends SpringBootServletInitializer {
             public void addViewControllers(ViewControllerRegistry registry) {
 
                 // define path /
-                registry.addViewController("/").setViewName(
-                        "forward:/core/index.html");
+                registry.addRedirectViewController("/", "/api");
+                registry.addRedirectViewController("/api/", "/api");
+                registry.addViewController("/api")
+                        .setViewName("forward:/core/index.html");
 
                 // define path /graphiql
                 registry.addRedirectViewController("/graphiql/", "/graphiql");
+                registry.addRedirectViewController("/api/graphiql", "/graphiql");
+                registry.addRedirectViewController("/api/graphiql/", "/graphiql");
                 registry.addViewController("/graphiql").setViewName(
                         "forward:/graphiql/index.html");
                 // define path /error
@@ -104,14 +109,16 @@ public class Application extends SpringBootServletInitializer {
                         .setViewName("forward:/core/error.html");
                 registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
 
-                // define path to websocket test page
+                // define path to /graphql/websocket test page
                 registry.addRedirectViewController("/graphql/websocket/test/", "/graphql/websocket/test");
+                registry.addRedirectViewController("/api/graphql/websocket/test", "/graphql/websocket/test");
+                registry.addRedirectViewController("/api/graphql/websocket/test/", "/graphql/websocket/test");
                 registry.addViewController("/graphql/websocket/test")
                         .setViewName("forward:/websocket/index.html");
 
-                // define path to RDF test page
-                registry.addRedirectViewController("/rdf/test/", "/rdf/test");
-                registry.addViewController("/rdf/test")
+                // define path to /api/rdf test page
+                registry.addRedirectViewController("/api/rdf/test/", "/api/rdf/test");
+                registry.addViewController("/api/rdf/test")
                         .setViewName("forward:/rdf/index.html");
             }
 

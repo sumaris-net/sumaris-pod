@@ -25,8 +25,8 @@ package net.sumaris.server.http.rest;
 import com.google.common.base.Splitter;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.rdf.service.RdfModelExportOptions;
-import net.sumaris.rdf.service.RdfModelExportService;
+import net.sumaris.rdf.service.RdfExportOptions;
+import net.sumaris.rdf.service.RdfExportService;
 import net.sumaris.rdf.util.ModelUtils;
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
@@ -46,56 +46,77 @@ public class RdfRestController {
     private static final Logger log = LoggerFactory.getLogger(RdfRestController.class);
 
     @Resource(name = "rdfModelExportService")
-    private RdfModelExportService service;
+    private RdfExportService service;
 
     @PostConstruct
     public void afterPropertySet() {
-        log.info(String.format("Starting RDF rest controller at {%s}...", RdfRestPaths.RDF_API_BASE_PATH));
+        log.info(String.format("Starting RDF rest controller at {%s}...", RdfRestPaths.RDF_BASE_PATH));
     }
 
     @GetMapping(value = RdfRestPaths.ONTOLOGY_PATH, produces = { MediaType.APPLICATION_XML_VALUE, RdfMediaType.APPLICATION_RDF_XML_VALUE })
     @ResponseBody
-    public String getOntology(@PathVariable(name = "name")  String name,
-                              @RequestParam(name = "format", defaultValue = "rdf") String format,
+    public String getOwl(@PathVariable  String name,
+                         @RequestParam(defaultValue = "rdf") String format,
+                         @RequestParam(defaultValue = "false") String disjoints,
+                         @RequestParam(defaultValue = "false") String methods,
+                         @RequestParam(required = false) String packages) {
+
+        RdfExportOptions options = buildOptions(disjoints, methods, packages);
+        Model model = service.getOntModelWithClasses(name, options);
+        return ModelUtils.modelToString(model, format);
+    }
+
+    @GetMapping(value = RdfRestPaths.ONTOLOGY_CLASS_PATH,
+            produces = { MediaType.APPLICATION_XML_VALUE, RdfMediaType.APPLICATION_RDF_XML_VALUE })
+    @ResponseBody
+    public String getOwlClass(@PathVariable String name,
+                              @PathVariable(name = "class") String className,
+                              @RequestParam(defaultValue = "rdf") String format,
                               @RequestParam(defaultValue = "false") String disjoints,
                               @RequestParam(defaultValue = "false") String methods,
                               @RequestParam(required = false) String packages) {
 
-        return getModelByTypeAndName(format, "ontologies", name, disjoints, methods, packages);
+        RdfExportOptions options = buildOptions(disjoints, methods, packages);
+        options.setClassname(className);
+        Model model = service.getOntModelWithClasses(name, options);
+        return ModelUtils.modelToString(model, format);
     }
 
-    @GetMapping(value = RdfRestPaths.REFERENTIAL_PATH, produces = { MediaType.APPLICATION_XML_VALUE, RdfMediaType.APPLICATION_RDF_XML_VALUE })
+    @GetMapping(value = RdfRestPaths.DATA_CLASS_PATH,
+            produces = { MediaType.APPLICATION_XML_VALUE, RdfMediaType.APPLICATION_RDF_XML_VALUE })
     @ResponseBody
-    public String getReferentials(@PathVariable(name = "name")  String name,
-                              @RequestParam(name = "format", defaultValue = "rdf") String format,
-                              @RequestParam(defaultValue = "false") String disjoints,
-                              @RequestParam(defaultValue = "false") String methods,
-                              @RequestParam(required = false) String packages) {
-
-        return getModelByTypeAndName(format, "referentials", name, disjoints, methods, packages);
+    public String getOwlWithInstance(@PathVariable String name,
+                                     @PathVariable(name = "class")  String className,
+                                     @RequestParam(defaultValue = "rdf") String format,
+                                     @RequestParam(defaultValue = "false") String disjoints,
+                                     @RequestParam(defaultValue = "false") String methods,
+                                     @RequestParam(required = false) String packages) {
+        RdfExportOptions options = buildOptions(disjoints, methods, packages);
+        options.setClassname(className);
+        Model model = service.getOntModelWithInstances(name, options);
+        return ModelUtils.modelToString(model, format);
     }
 
-    @GetMapping(value = RdfRestPaths.RDF_API_TYPE_AND_NAME_PATH, produces = { MediaType.APPLICATION_XML_VALUE, RdfMediaType.APPLICATION_RDF_XML_VALUE })
+
+    @GetMapping(value = RdfRestPaths.RDF_TYPE_NAME_PATH, produces = { MediaType.APPLICATION_XML_VALUE, RdfMediaType.APPLICATION_RDF_XML_VALUE })
     @ResponseBody
-    public String getModelByTypeAndName(@PathVariable(name = "format") String format,
-                                        @PathVariable(name = "type")  String type,
-                                        @PathVariable(name = "name")  String name,
+    public String getModelByTypeAndName(@PathVariable String format,
+                                        @PathVariable String type,
+                                        @PathVariable String name,
                                         @RequestParam(defaultValue = "false") String disjoints,
                                         @RequestParam(defaultValue = "false") String methods,
                                         @RequestParam(required = false) String packages) {
 
-        RdfModelExportOptions options = buildOptions(disjoints, methods, packages);
+        RdfExportOptions options = buildOptions(disjoints, methods, packages);
         Model model;
         switch (type) {
             case "ontologies":
             case "ontology":
-                model = service.generateOntology(name, options);
-                break;
-            case "referentials":
-                model = service.generateReferentialItems(name, options);
+                model = service.getOntModelWithClasses(name, options);
                 break;
             case "data":
-
+                model = service.getOntModelWithInstances(name, options);
+                break;
             default:
                 throw new SumarisTechnicalException(String.format("Unknown model type {%s}", type));
         }
@@ -103,27 +124,55 @@ public class RdfRestController {
         return ModelUtils.modelToString(model, format);
     }
 
-    /*
+    @GetMapping(value = RdfRestPaths.RDF_TYPE_NAME_CLASS_PATH, produces = { MediaType.APPLICATION_XML_VALUE, RdfMediaType.APPLICATION_RDF_XML_VALUE })
+    @ResponseBody
+    public String getModelByTypeAndNameAndClass(@PathVariable String format,
+                                                @PathVariable String type,
+                                                @PathVariable String name,
+                                                @PathVariable(name = "class")  String className,
+                                                @RequestParam(defaultValue = "false") String disjoints,
+                                                @RequestParam(defaultValue = "false") String methods,
+                                                @RequestParam(required = false) String packages) {
+
+        RdfExportOptions options = buildOptions(disjoints, methods, packages);
+        options.setClassname(className);
+
+        Model model;
+        switch (type) {
+            case "ontologies":
+            case "ontology":
+                model = service.getOntModelWithClasses(name, options);
+                break;
+            case "data":
+                model = service.getOntModelWithInstances(name, options);
+                break;
+            default:
+                throw new SumarisTechnicalException(String.format("Unknown model type {%s}", type));
+        }
+
+        return ModelUtils.modelToString(model, format);
+    }
+        /*
      * ************* Service methods *************
      */
 
-//    @GetMapping(value = RestPaths.NTRIPLE_PATH, produces = {RdfMediaType.APPLICATION_N_TRIPLES_VALUE, RdfMediaType.TEXT_N_TRIPLES_VALUE})
-//    @ResponseBody
-//    public String getModelAsNTriples(@PathVariable(name = "query") String query,
-//                                     @PathVariable(name = "name")  String name,
-//                                     @RequestParam(defaultValue = "false") String disjoints,
-//                                     @RequestParam(defaultValue = "false") String methods,
-//                                     @RequestParam String packages) {
-//
-//        return ModelUtils.modelToString(generateModel(query, name, disjoints, methods, packages), "N-TRIPLE");
-//    }
+    @GetMapping(value = RdfRestPaths.RDF_NTRIPLE_PATH, produces = {RdfMediaType.APPLICATION_N_TRIPLES_VALUE, RdfMediaType.TEXT_N_TRIPLES_VALUE})
+    @ResponseBody
+    public String getModelAsNTriples(@PathVariable(name = "type") String type,
+                                     @PathVariable(name = "name")  String name,
+                                     @RequestParam(defaultValue = "false") String disjoints,
+                                     @RequestParam(defaultValue = "false") String methods,
+                                     @RequestParam(required = false) String packages) {
+
+        return getModelByTypeAndName("ntriple", type, name, disjoints, methods, packages);
+    }
 //
 //    @GetMapping(value = "/ttl/{q}/{name}", produces = {"text/turtle"})
 //    @ResponseBody
 //    public String getModelAsTurtle(@PathVariable String q, @PathVariable String name,
 //                                   @RequestParam(defaultValue = "false") String disjoints,
 //                                   @RequestParam(defaultValue = "false") String methods,
-//                                   @RequestParam String packages) {
+//                                   @RequestParam(required = false) String packages) {
 //        return ModelUtils.modelToString(generateModel(q, name, disjoints, methods, packages), "TURTLE");
 //    }
 //
@@ -132,7 +181,7 @@ public class RdfRestController {
 //    public String getModelAsN3(@PathVariable String q, @PathVariable String name,
 //                               @RequestParam(defaultValue = "false") String disjoints,
 //                               @RequestParam(defaultValue = "false") String methods,
-//                               @RequestParam String packages) {
+//                               @RequestParam(required = false) String packages) {
 //        return ModelUtils.modelToString(generateModel(q, name, disjoints, methods, packages), "N3");
 //    }
 //
@@ -141,7 +190,7 @@ public class RdfRestController {
 //    public String getModelAsrdfjson(@PathVariable String q, @PathVariable String name,
 //                                    @RequestParam(defaultValue = "false") String disjoints,
 //                                    @RequestParam(defaultValue = "false") String methods,
-//                                    @RequestParam String packages) {
+//                                    @RequestParam(required = false) String packages) {
 //        return ModelUtils.modelToString(generateModel(q, name, disjoints, methods, packages), "RDF/JSON");
 //    }
 //
@@ -150,7 +199,7 @@ public class RdfRestController {
 //    public String getModelAsTrig(@PathVariable String q, @PathVariable String name,
 //                                 @RequestParam(defaultValue = "false") String disjoints,
 //                                 @RequestParam(defaultValue = "false") String methods,
-//                                 @RequestParam String packages) {
+//                                 @RequestParam(required = false) String packages) {
 //        return ModelUtils.modelToString(generateModel(q, name, disjoints, methods, packages), "TriG");
 //    }
 //
@@ -159,7 +208,7 @@ public class RdfRestController {
 //    public String getModelAsJson(@PathVariable String q, @PathVariable String name,
 //                                 @RequestParam(defaultValue = "false") String disjoints,
 //                                 @RequestParam(defaultValue = "false") String methods,
-//                                 @RequestParam String packages) {
+//                                 @RequestParam(required = false) String packages) {
 //        return ModelUtils.modelToString(generateModel(q, name, disjoints, methods, packages), "JSON-LD");
 //    }
 //
@@ -167,7 +216,7 @@ public class RdfRestController {
 //    public String getModelAsXml(@PathVariable String q, @PathVariable String name,
 //                                @RequestParam(defaultValue = "false") String disjoints,
 //                                @RequestParam(defaultValue = "false") String methods,
-//                                @RequestParam String packages) {
+//                                @RequestParam(required = false) String packages) {
 //
 //        Model model = generateModel(q, name, disjoints, methods, packages);
 //        return ModelUtils.modelToString(model, "RDF/XML");
@@ -178,7 +227,7 @@ public class RdfRestController {
 //    public String getModelAsTrix(@PathVariable String q, @PathVariable String name,
 //                                 @RequestParam(defaultValue = "false") String disjoints,
 //                                 @RequestParam(defaultValue = "false") String methods,
-//                                 @RequestParam String packages) {
+//                                 @RequestParam(required = false) String packages) {
 //        fillObjectWithStdAttribute(null,null,null);
 //        return ModelUtils.modelToString(generateModel(q, name, disjoints, methods, packages), "TriX");
 //    }
@@ -189,7 +238,7 @@ public class RdfRestController {
 //                                 @PathVariable String name,
 //                                 @RequestParam(defaultValue = "false") String disjoints,
 //                                 @RequestParam(defaultValue = "false") String methods,
-//                                 @RequestParam String packages) {
+//                                 @RequestParam(required = false) String packages) {
 //        Model res =  generateModel(query, name, disjoints, methods, packages);
 //        return ModelUtils.modelToString(res, "VOWL");
 //    }
@@ -197,9 +246,9 @@ public class RdfRestController {
     /* -- protected methods -- */
 
 
-    protected RdfModelExportOptions buildOptions(String disjoints, String methods, String packages) {
+    protected RdfExportOptions buildOptions(String disjoints, String methods, String packages) {
 
-        return RdfModelExportOptions.builder()
+        return RdfExportOptions.builder()
                 .withDisjoints("true".equalsIgnoreCase(disjoints))
                 .withMethods("true".equalsIgnoreCase(methods))
                 .packages(StringUtils.isNotBlank(packages) ? Splitter.on(',').omitEmptyStrings().splitToList(packages) : null)

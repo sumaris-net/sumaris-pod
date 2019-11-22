@@ -33,12 +33,11 @@
 
         var restBasePath = 'api';
 
-        var buttonConnect;
         var inputUri;
         var inputFormat;
         var inputModelType;
-        var inputOntologyName;
-        var inputReferentialName;
+        var inputDomain;
+        var inputClassName;
         var inputDisjoints;
         var inputMethods;
         var inputPackages;
@@ -63,8 +62,8 @@
             inputModelType = document.getElementById("type");
             inputModelType.onchange = onModelTypeChanged;
 
-            inputOntologyName = document.getElementById("ontologyName");
-            inputReferentialName = document.getElementById("referentialName");
+            inputDomain = document.getElementById("domain");
+            inputClassName = document.getElementById("className");
 
             inputDisjoints = document.getElementById("disjoints");
             inputDisjoints.onchange = computeParams;
@@ -148,13 +147,11 @@
             var modelType = inputModelType.value;
             console.info("Model type changed to: " + modelType);
 
-            if (modelType === 'ontologies') {
-                inputOntologyName.classList.remove('d-none');
-                inputReferentialName.classList.add('d-none');
+            if (modelType === 'data') {
+                inputClassName.classList.remove('d-none');
             }
             else {
-                inputOntologyName.classList.add('d-none');
-                inputReferentialName.classList.remove('d-none');
+                inputClassName.classList.add('d-none');
             }
         }
 
@@ -168,12 +165,12 @@
             var modelType = inputModelType.value;
             path +=  modelType + '/';
 
-            // Add name
-            if (modelType === 'ontologies') {
-                path += inputOntologyName.value + '/' ;
-            }
-            else if (modelType === 'referentials') {
-                path += inputReferentialName.value  + '/' ;
+            // Add domain
+            path += inputDomain.value + '/' ;
+
+            // Add classname (if domain = data)
+            if (modelType === 'data') {
+                path += inputClassName.value  + '/' ;
             }
 
             // Add params
@@ -286,25 +283,30 @@
                 <!-- model type -->
                 <select name="type" id="type">
                     <option value="ontologies" selected>Ontologies (ontologies))</option>
-                    <option value="referentials">Ontologies &amp; data</option>
+                    <option value="data">Ontologies &amp; data</option>
                 </select>
                 <span>&nbsp;/&nbsp;</span>
 
                 <!-- model name -->
-                <select name="ontologyName" id="ontologyName">
+                <select name="domain" id="domain">
                     <option value="referential" selected>Referential</option>
                     <option value="data">Data</option>
                     <option value="social">Social</option>
                     <option value="technical">Technical</option>
                     <option value="vo">Value Object</option>
                 </select>
-                <select name="referentialName" id="referentialName" class="d-none">
+
+                <span>&nbsp;/&nbsp;</span>
+
+                <select name="className" id="className" class="d-none">
                     <option value="Location">Location</option>
                     <option value="Gear">Gear</option>
                     <option value="Taxon" selected>Taxon</option>
                     <option value="Transcription">Transcription</option>
 
                     <option value="Department">Department</option>
+
+                    <option value="Trip">Trip</option>
                 </select>
                 <span>&nbsp;/</span>
 

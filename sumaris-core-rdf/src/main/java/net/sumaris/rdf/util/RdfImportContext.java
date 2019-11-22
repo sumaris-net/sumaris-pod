@@ -20,27 +20,19 @@
  * #L%
  */
 
-package net.sumaris.rdf.dao;
+package net.sumaris.rdf.util;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
-import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.rdf.util.OwlUtils;
+import com.google.common.collect.Maps;
+import org.apache.jena.ontology.OntResource;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
-public interface RdfModelDao {
+public class RdfImportContext {
 
-    <T> Stream<T> streamAll(String entityName, Class<T> aClass);
-
-    <T> List<T> loadAll(String entityName, Class<T> aClass);
-
-
+    public Map<String, Class> URI_2_CLASS = new HashMap<>();
+    public Map<String, Object> URI_2_OBJ_REF = Maps.newHashMap();
+    public  Map<String, Function<OntResource, Object>> B2O_ARBITRARY_MAPPER = new HashMap<>();
+    public  Map<String, Function<Object, OntResource>> O2B_ARBITRARY_MAPPER = new HashMap<>();
 }

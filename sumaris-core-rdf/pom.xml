@@ -12,6 +12,15 @@
     <artifactId>sumaris-core-rdf</artifactId>
 
     <properties>
+        <!-- i18n configuration -->
+        <i18n.bundleOutputName>sumaris-core-rdf-i18n</i18n.bundleOutputName>
+        <i18n.generateCsvFile>true</i18n.generateCsvFile>
+        <i18n.bundleCsvFile>
+            ${project.build.directory}/generated-sources/resources/META-INF/${i18n.bundleOutputName}.csv
+        </i18n.bundleCsvFile>
+        <config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
+
+        <!-- Jena (RDF) -->
         <jena.version>3.10.0</jena.version>
     </properties>
 
@@ -22,7 +31,12 @@
             <artifactId>sumaris-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>net.sumaris</groupId>
+            <artifactId>sumaris-test-shared</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -73,4 +87,41 @@
         <!--<version>1.0.6</version>-->
         <!--</dependency>-->
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.nuiton.i18n</groupId>
+                <artifactId>i18n-maven-plugin</artifactId>
+
+                <executions>
+                    <execution>
+                        <id>scan-sources</id>
+                        <configuration>
+                            <entries>
+                                <entry>
+                                    <specificGoal>parserValidation</specificGoal>
+                                    <basedir>${maven.src.dir}/main/java/</basedir>
+                                    <includes>
+                                        <param>**/**-validation.xml</param>
+                                    </includes>
+                                </entry>
+                            </entries>
+                        </configuration>
+                        <goals>
+                            <goal>parserJava</goal>
+                            <goal>parserValidation</goal>
+                            <goal>gen</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>make-bundle</id>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

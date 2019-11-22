@@ -22,19 +22,16 @@
 
 package net.sumaris.rdf.util;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import java.io.ByteArrayOutputStream;
@@ -74,36 +71,7 @@ public abstract class OwlUtils {
         return null;
     }
 
-
-    protected Map<Class, Resource> Class2Resources = new HashMap<>();
-    protected  Map<Resource, Class> Resources2Class = initStandardTypeMapper();
-
-
-    protected Map<Resource, Class> initStandardTypeMapper() {
-        Map<Class, Resource> res = new HashMap<>();
-        res.put(Date.class, XSD.date);
-        res.put(LocalDateTime.class, XSD.dateTime);
-        res.put(Timestamp.class, XSD.dateTimeStamp);
-        res.put(Integer.class, XSD.integer);
-        res.put(Short.class, XSD.xshort);
-        res.put(Long.class, XSD.xlong);
-        res.put(Double.class, XSD.xdouble);
-        res.put(Float.class, XSD.xfloat);
-        res.put(Boolean.class, XSD.xboolean);
-        res.put(long.class, XSD.xlong);
-        res.put(int.class, XSD.integer);
-        res.put(float.class, XSD.xfloat);
-        res.put(double.class, XSD.xdouble);
-        res.put(short.class, XSD.xshort);
-        res.put(boolean.class, XSD.xboolean);
-        res.put(String.class, XSD.xstring);
-        res.put(void.class, RDFS.Literal);
-        Class2Resources.putAll(res);
-        return res.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey, (x, y) -> x));
-
-    }
-
-    protected Optional<Method> setterOfField(Resource schema, Class t, String field, OwlTransformContext context) {
+    public static Optional<Method> setterOfField(Resource schema, Class t, String field, RdfImportContext context) {
         try {
             Optional<Field> f = fieldOf(schema, t, field, context);
             if (f.isPresent()) {
@@ -121,12 +89,37 @@ public abstract class OwlUtils {
         return Optional.empty();
     }
 
-    protected Optional<Field> fieldOf(Resource schema, Class t, String name, OwlTransformContext context) {
+    public static Map<Class, Resource> Class2Resources = ImmutableMap.<Class, Resource>builder()
+            .put(Date.class, XSD.date)
+            .put(LocalDateTime.class, XSD.dateTime)
+            .put(Timestamp.class, XSD.dateTimeStamp)
+            .put(Integer.class, XSD.integer)
+            .put(Short.class, XSD.xshort)
+            .put(Long.class, XSD.xlong)
+            .put(Double.class, XSD.xdouble)
+            .put(Float.class, XSD.xfloat)
+            .put(Boolean.class, XSD.xboolean)
+            .put(long.class, XSD.xlong)
+            .put(int.class, XSD.integer)
+            .put(float.class, XSD.xfloat)
+            .put(double.class, XSD.xdouble)
+            .put(short.class, XSD.xshort)
+            .put(boolean.class, XSD.xboolean)
+            .put(String.class, XSD.xstring)
+            .put(void.class, RDFS.Literal)
+            .build();
+
+    public static Map<Resource, Class> Resource2Classes = Class2Resources.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey, (x, y) -> x));
+
+    public static List<Class> ACCEPTED_LIST_CLASS = Arrays.asList(List.class, ArrayList.class, Set.class);
+
+
+    public static Optional<Field> fieldOf(Resource schema, Class t, String name, RdfImportContext context) {
         try {
 
             Class ret = context.URI_2_CLASS.get(t.getSimpleName());
             if (ret == null) {
-                log.info("error fieldOf " + classToURI(schema, t) + " " + name);
+                log.error("error fieldOf " + classToURI(schema, t) + " " + name);
                 return Optional.empty();
             } else {
                 return Optional.of(ret.getDeclaredField(name));
@@ -139,7 +132,7 @@ public abstract class OwlUtils {
     }
 
 
-    protected String classToURI(Resource ont, Class c) {
+    public static String classToURI(Resource ont, Class c) {
         String uri = ont + c.getSimpleName();
         if (uri.substring(1).contains("<")) {
             uri = uri.substring(0, uri.indexOf("<"));
@@ -156,15 +149,15 @@ public abstract class OwlUtils {
     }
 
 
-    protected boolean isJavaType(Type type) {
+    public static boolean isJavaType(Type type) {
         return Class2Resources.keySet().stream().anyMatch(type::equals);
     }
 
-    protected boolean isJavaType(Method getter) {
+    public static boolean isJavaType(Method getter) {
         return isJavaType(getter.getGenericReturnType());
     }
 
-    protected boolean isJavaType(Field field) {
+    public static boolean isJavaType(Field field) {
         return isJavaType(field.getType());
     }
 
@@ -175,24 +168,24 @@ public abstract class OwlUtils {
      * @param met the getter method to test
      * @return true if it is a technical id to exclude from the model
      */
-    protected boolean isId(Method met) {
+    public static boolean isId(Method met) {
         return "getId".equals(met.getName())
                 && Stream.concat(annotsOfField(getFieldOfGetter(met)), Stream.of(met.getAnnotations()))
                 .anyMatch(annot -> annot instanceof Id || annot instanceof org.springframework.data.annotation.Id);
     }
 
-    protected boolean isManyToOne(Method met) {
+    public static boolean isManyToOne(Method met) {
         return annotsOfField(getFieldOfGetter(met)).anyMatch(annot -> annot instanceof ManyToOne) // check the corresponding field's annotations
                 ||
                 Stream.of(met.getAnnotations()).anyMatch(annot -> annot instanceof ManyToOne)  // check the method's annotations
                 ;
     }
 
-    protected Stream<Annotation> annotsOfField(Optional<Field> field) {
+    public static Stream<Annotation> annotsOfField(Optional<Field> field) {
         return field.map(field1 -> Stream.of(field1.getAnnotations())).orElseGet(Stream::empty);
     }
 
-    protected boolean isGetter(Method met) {
+    public static boolean isGetter(Method met) {
         return met.getName().startsWith("get") // only getters
                 && !"getBytes".equals(met.getName()) // ignore ugly
                 && met.getParameterCount() == 0 // ignore getters that are not getters
@@ -201,11 +194,11 @@ public abstract class OwlUtils {
     }
 
 
-    protected boolean isSetter(Method met) {
+    public static boolean isSetter(Method met) {
         return met.getName().startsWith("set");
     }
 
-    protected Field getFieldOfGetteR(Method getter) {
+    public static Field getFieldOfGetteR(Method getter) {
         String fieldName = getter.getName().substring(3, 4).toLowerCase() + getter.getName().substring(4);
         try {
             return getter.getDeclaringClass().getDeclaredField(fieldName);
@@ -215,7 +208,7 @@ public abstract class OwlUtils {
     }
 
 
-    protected Optional<Field> getFieldOfGetter(Method getter) {
+    public static Optional<Field> getFieldOfGetter(Method getter) {
 
         String fieldName = getter.getName().substring(3, 4).toLowerCase() + getter.getName().substring(4);
         //log.info("searching field : " + fieldName);
@@ -227,7 +220,7 @@ public abstract class OwlUtils {
         }
     }
 
-    protected Resource getStdType(Field f) {
+    public static Resource getStdType(Field f) {
         return Class2Resources.getOrDefault(f.getType(), RDFS.Literal);
 //        return Class2Resources.entrySet().stream()
 //                .filter((entry) -> entry.getKey().getTypeName().equals(f.getStdType().getSimpleName()))
@@ -236,7 +229,7 @@ public abstract class OwlUtils {
 //                .orElse(RDFS.Literal);
     }
 
-    protected Resource getStdType(Type type) {
+    public static Resource getStdType(Type type) {
         return Class2Resources.getOrDefault(type, RDFS.Literal);
 //        return Class2Resources.entrySet().stream()
 //                .filter((entry) -> entry.getKey().getTypeName().equals(type.getTypeName()))
@@ -248,11 +241,8 @@ public abstract class OwlUtils {
 
     // =============== List handling ===============
 
-    protected List<Class> ACCEPTED_LIST_CLASS = Arrays.asList(List.class, ArrayList.class);
 
-    public boolean isListType(Type type) {
-
-
+    public static boolean isListType(Type type) {
         if (type instanceof ParameterizedType) {
             ParameterizedType parameterized = (ParameterizedType) type;// This would be Class<List>, say
             Type raw = parameterized.getRawType();
@@ -265,7 +255,7 @@ public abstract class OwlUtils {
 
     }
 
-    public Type getListType(Type type) {
+    public static Type getListType(Type type) {
         if (type instanceof ParameterizedType) {
             ParameterizedType parameterized = (ParameterizedType) type;// This would be Class<List>, say
             Type raw = parameterized.getRawType();
@@ -283,34 +273,26 @@ public abstract class OwlUtils {
 
     // =============== Define relation  ===============
 
-    public void createOneToMany(OntModel ontoModel, OntClass ontoClass, OntProperty prop, Resource resource) {
+    public static void createOneToMany(OntModel ontoModel, OntClass ontoClass, OntProperty prop, Resource resource) {
         OntClass minCardinalityRestriction = ontoModel.createMinCardinalityRestriction(null, prop, 1);
         ontoClass.addSuperClass(minCardinalityRestriction);
     }
 
-    public void createZeroToMany(OntModel ontoModel, OntClass ontoClass, OntProperty prop, Resource resource) {
+    public static void createZeroToMany(OntModel ontoModel, OntClass ontoClass, OntProperty prop, Resource resource) {
         OntClass minCardinalityRestriction = ontoModel.createMinCardinalityRestriction(null, prop, 0);
         ontoClass.addSuperClass(minCardinalityRestriction);
     }
 
-    public void createZeroToOne(OntModel ontoModel, OntClass ontoClass1, OntProperty prop, OntClass ontoClass2) {
+    public static void createZeroToOne(OntModel ontoModel, OntClass ontoClass1, OntProperty prop, OntClass ontoClass2) {
         OntClass maxCardinalityRestriction = ontoModel.createMaxCardinalityRestriction(null, prop, 1);
         ontoClass1.addSuperClass(maxCardinalityRestriction);
     }
 
-    public void createOneToOne(OntModel ontoModel, OntClass ontoClass1, OntProperty prop, OntClass ontoClass2) {
+    public static void createOneToOne(OntModel ontoModel, OntClass ontoClass1, OntProperty prop, OntClass ontoClass2) {
         OntClass maxCardinalityRestriction = ontoModel.createMaxCardinalityRestriction(null, prop, 1);
         ontoClass1.addSuperClass(maxCardinalityRestriction);
     }
 
-
-    // ==== pur utils ====
-
-    public static String delta(long nanoStart) {
-        long elapsedTime = System.nanoTime() - nanoStart;
-        double seconds = (double) elapsedTime / 1_000_000_000.0;
-        return " elapsed " + seconds;
-    }
 
     /**
      * Serialize model in requested format
@@ -338,19 +320,19 @@ public abstract class OwlUtils {
 
 
 
-    public LocalDate convertToLocalDateViaMilisecond(Date dateToConvert) {
+    public static LocalDate convertToLocalDateViaMilisecond(Date dateToConvert) {
         return Instant.ofEpochMilli(dateToConvert.getTime())
                 .atZone(ZONE_ID)
                 .toLocalDate();
     }
 
-    public LocalDate convertToLocalDateViaInstant(Date dateToConvert) {
+    public static LocalDate convertToLocalDateViaInstant(Date dateToConvert) {
         return dateToConvert.toInstant()
                 .atZone(ZONE_ID)
                 .toLocalDate();
     }
 
-    public Date convertToDateViaInstant(LocalDateTime dateToConvert) {
+    public static Date convertToDateViaInstant(LocalDateTime dateToConvert) {
         return java.util.Date
                 .from(dateToConvert.atZone(ZONE_ID)
                         .toInstant());

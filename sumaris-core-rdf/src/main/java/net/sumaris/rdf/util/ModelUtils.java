@@ -22,13 +22,11 @@
 
 package net.sumaris.rdf.util;
 
-import com.google.common.base.Preconditions;
 import de.uni_stuttgart.vis.vowl.owl2vowl.Owl2Vowl;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.StringUtils;
 import org.apache.jena.rdf.model.Model;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -40,7 +38,7 @@ public class ModelUtils {
     }
 
 
-    public static String toModelWriteFormat(String userFormat) {
+    public static String toJenaOutputFormat(String userFormat) {
         if (StringUtils.isBlank(userFormat)) {
             return "RDF/XML";
         }
@@ -75,7 +73,7 @@ public class ModelUtils {
      */
     public static String modelToString(Model model, String format) {
 
-        format = toModelWriteFormat(format);
+        format = toJenaOutputFormat(format);
 
         // Special case for VOWL format
         if ("VOWL".equalsIgnoreCase(format)) {

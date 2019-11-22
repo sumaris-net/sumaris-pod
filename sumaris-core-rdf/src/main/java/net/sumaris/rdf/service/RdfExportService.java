@@ -22,7 +22,6 @@
 
 package net.sumaris.rdf.service;
 
-import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.rdf.dao.cache.RdfCacheNames;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
@@ -32,10 +31,15 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Nullable;
 
 @Transactional(readOnly = true)
-public interface RdfModelExportService {
+public interface RdfExportService {
 
-    @Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#modelSuffix + #options.hashCode()", unless = "#result == null || #options == null")
-    OntModel generateOntology(String modelSuffix, @Nullable RdfModelExportOptions options);
+    OntModel createOntModel(String uri);
 
-    Model generateReferentialItems(String entityName, RdfModelExportOptions options);
+    @Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#domain + #options.hashCode()", condition = " #options != null", unless = "#result == null")
+    OntModel getOntModelWithClasses(String domain, @Nullable RdfExportOptions options);
+
+    //@Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#modelSuffix + #options.hashCode()", unless = "#result == null || #options == null")
+    //OntModel getOntologyByDomainAndClass(String modelSuffix, String className, @Nullable RdfModelExportOptions options);
+
+    Model getOntModelWithInstances(String domain, RdfExportOptions options);
 }

@@ -20,31 +20,21 @@
  * #L%
  */
 
-package net.sumaris.rdf.service;
+package net.sumaris.rdf.dao;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.experimental.FieldNameConstants;
+/**
+ * Fixtures for RDF tests
+ * 
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
+ * @since 1.0
+ */
+public class DatabaseFixtures {
 
-import java.lang.annotation.Annotation;
-import java.util.List;
+	public String getRemoteOntologyUrl() {
+		return "http://192.168.0.45:8080/ontologies/referentials/";
+	}
 
-@Data
-@Builder
-@FieldNameConstants
-@EqualsAndHashCode
-@ToString(onlyExplicitlyIncluded = false)
-public class RdfModelExportOptions {
-
-    private boolean withMethods = false;
-    private boolean withDisjoints = false;
-    private boolean withInterfaces = false;
-
-    private Class<? extends Annotation> annotatedType;
-    private Class<? extends Object> type;
-
-
-    private List<String> packages;
+	public String getRemoteOntologyIri() {
+		return "http://192.168.0.45:8080/ontologies/referentials/";
+	}
 }

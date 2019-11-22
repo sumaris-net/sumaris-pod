@@ -20,27 +20,34 @@
  * #L%
  */
 
-package net.sumaris.rdf.dao;
+package net.sumaris.rdf.service;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
-import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.rdf.util.OwlUtils;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.stream.Stream;
 
-public interface RdfModelDao {
+@Data
+@Builder
+@FieldNameConstants
+@EqualsAndHashCode
+@ToString(onlyExplicitlyIncluded = false)
+public class RdfExportOptions {
 
-    <T> Stream<T> streamAll(String entityName, Class<T> aClass);
+    private String domain;
+    private String classname;
+    private String id;
 
-    <T> List<T> loadAll(String entityName, Class<T> aClass);
+    private boolean withMethods = false;
+    private boolean withDisjoints = false;
+    private boolean withInterfaces = false;
 
+    private Class<? extends Annotation> annotatedType;
+    private Class type;
 
+    private List<String> packages;
 }

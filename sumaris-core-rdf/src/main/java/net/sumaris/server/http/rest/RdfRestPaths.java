@@ -27,12 +27,20 @@ public interface RdfRestPaths {
 
     String ONTOLOGY_PATH = "/ontologies/{name}/";
 
-    String REFERENTIAL_PATH = "/referentials/{name}/";
+    String ONTOLOGY_CLASS_PATH = "/ontologies/{name}/{class}/";
+
+    String DATA_CLASS_PATH = "/data/{name}/{class}/";
 
     // Base path
-    String RDF_API_BASE_PATH = "/api/{format}";
+    String BASE_PATH = "/api";
 
-    String RDF_API_TYPE_AND_NAME_PATH = RDF_API_BASE_PATH + "/{type}/{name}/";
+    String RDF_BASE_PATH = BASE_PATH + "/{format}";
+
+    String RDF_TYPE_NAME_PATH = RDF_BASE_PATH + "/{type}/{name}/";
+
+    String RDF_NTRIPLE_PATH = BASE_PATH + "/ntriple/{type}/{name}/";
+
+    String RDF_TYPE_NAME_CLASS_PATH = RDF_BASE_PATH + "/{type}/{name}/{class}/";
 
     //String NTRIPLE_PATH = RDF_API_BASE_PATH + "/ntriple/{query}/{name}";
 

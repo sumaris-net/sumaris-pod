@@ -26,11 +26,14 @@ import com.google.common.collect.Maps;
 import net.sumaris.core.dao.referential.ReferentialDaoImpl;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.TypedQuery;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -38,15 +41,16 @@ import java.util.stream.Stream;
 @Repository("rdfModelDao")
 public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao {
 
-    private Map<String, String> selectQueriesByName = Maps.newHashMap();
+    private static final Logger log = LoggerFactory.getLogger(RdfModelDaoImpl.class);
+
+    protected Map<String, String> selectQueriesByName = Maps.newHashMap();
+
+    protected List<Method> propertyIncludes;
+
+    protected List<Method> propertyExcludes;
 
     @Autowired
     protected ReferentialDaoImpl referentialDao;
-
-    @PostConstruct
-    protected void afterPropertiesSet() {
-        this.fillNamedQueries();
-    }
 
     @Override
     public <T> Stream<T> streamAll(String entityName, Class<T> aClass) {
@@ -83,6 +87,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
         return hqlQuery;
     }
 
+    @PostConstruct
     protected void fillNamedQueries() {
         selectQueriesByName.put("taxon", "select tn from TaxonName as tn" +
                 " left join fetch tn.taxonomicLevel as tl" +
@@ -109,4 +114,6 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
         });
 
     }
+
+
 }

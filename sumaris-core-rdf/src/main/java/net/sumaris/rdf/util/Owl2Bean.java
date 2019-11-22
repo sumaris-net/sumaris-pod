@@ -38,8 +38,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import static net.sumaris.rdf.util.OwlUtils.*;
 
-public abstract class Owl2Bean extends OwlUtils {
+public abstract class Owl2Bean {
     /**
      * Logger.
      */
@@ -62,7 +63,7 @@ public abstract class Owl2Bean extends OwlUtils {
         return entityManager;
     }
 
-    public Optional<Class> ontToJavaClass(OntClass ontClass, OwlTransformContext context) {
+    public Optional<Class> ontToJavaClass(OntClass ontClass, RdfImportContext context) {
         String uri = ontClass.getURI();
         if (uri != null) {
             if (uri.contains("#")) {
@@ -103,7 +104,7 @@ public abstract class Owl2Bean extends OwlUtils {
     protected abstract List getCacheTL();
     protected abstract List getCacheStatus();
 
-    protected Object getTranslatedReference(RDFNode val, Class<?> setterParam, Object obj, OwlTransformContext context) {
+    protected Object getTranslatedReference(RDFNode val, Class<?> setterParam, Object obj, RdfImportContext context) {
 
         String identifier = val.toString();
         String ontClass = null;
@@ -156,7 +157,6 @@ public abstract class Owl2Bean extends OwlUtils {
         return fName;
     }
 
-
     protected void fillObjectWithStdAttribute(Method setter, Object obj, RDFNode val) {
         String value = val.isURIResource() ? val.toString().substring(val.toString().lastIndexOf("#") + 1) : val.toString();
         Class<?> setterParam = setter.getParameterTypes()[0];
@@ -169,7 +169,7 @@ public abstract class Owl2Bean extends OwlUtils {
             } else if (classEquals(setterParam, Integer.class) || classEquals(setterParam, int.class)) {
                 setter.invoke(obj, Integer.parseInt(value));
             } else if (classEquals(setterParam, Date.class)) {
-                setter.invoke(obj, SIMPLE_DATE_FORMAT.parse(val.asLiteral().getString()));
+                setter.invoke(obj, OwlUtils.SIMPLE_DATE_FORMAT.parse(val.asLiteral().getString()));
             } else if (classEquals(setterParam, Boolean.class) || classEquals(setterParam, boolean.class)) {
                 setter.invoke(obj, val.asLiteral().getBoolean());
             }
@@ -179,7 +179,7 @@ public abstract class Owl2Bean extends OwlUtils {
         }
     }
 
-    public Optional<Object> owl2Bean(Resource ont, OntResource ontResource, Class clazz, OwlTransformContext context) {
+    public Optional<Object> owl2Bean(Resource ont, OntResource ontResource, Class clazz, RdfImportContext context) {
         log.info("processing ont Instance " + ontResource + " - " +
                 ontResource
                         .asIndividual()
@@ -195,11 +195,11 @@ public abstract class Owl2Bean extends OwlUtils {
                     .forEach(stmt -> {
                         String pred = stmt.getPredicate().getURI();
                         RDFNode val = stmt.getObject();
-                        if ((pred.startsWith(getModelPrefix()) || pred.startsWith(ADAGIO_PREFIX)) && pred.contains("#")) {
+                        if ((pred.startsWith(getModelPrefix()) || pred.startsWith(OwlUtils.ADAGIO_PREFIX)) && pred.contains("#")) {
                             String fName = attributeOf(pred);
                             try {
-                                Optional<Method> setter = null;
 
+                                Optional<Method> setter;
                                 if ("setId".equals(fName)) {
                                     setter = findSetterAnnotatedID(ont, clazz, context);
                                 } else {
@@ -208,7 +208,8 @@ public abstract class Owl2Bean extends OwlUtils {
 
                                 if (setter.isPresent()) {
                                     Class<?> setterParam = setter.get().getParameterTypes()[0];
-                                    // LOG.info("trying to insert  " + fName + " => " + val + " using method " + me + " !!  " + huhu);
+
+                                    if (log.isTraceEnabled()) log.trace("Trying to insert  " + fName + " => " + val + " using method ??");
 
                                     if (isJavaType(setterParam)) {
                                         fillObjectWithStdAttribute(setter.get(), obj, val);
@@ -216,12 +217,11 @@ public abstract class Owl2Bean extends OwlUtils {
                                         //FIXME if entity  is different we shouldn't use the invoked method
                                         setter.get().invoke(obj, getTranslatedReference(val, setterParam, obj, context));
                                     }
-
                                 }
 
-
                             } catch (Exception e) {
-                                log.error(e.getClass().getSimpleName() + " on field " + fName + " => " + val + " using class " + clazz + " using method " + setterOfField(ont, clazz, fName, context) + " " + e.getMessage(), e);
+                                log.error(String.format("%s on field %s => %s using class %s using method %s %s",
+                                        e.getClass().getSimpleName(), fName, val, clazz, setterOfField(ont, clazz, fName, context), e.getMessage()), e);
                             }
 
                             //values.put(fName, safeCastRDFNode(val, fName, clazz));
@@ -244,7 +244,7 @@ public abstract class Owl2Bean extends OwlUtils {
     }
 
 
-    protected Optional<Method> findSetterAnnotatedID(Resource ont, Class clazz, OwlTransformContext context) {
+    protected Optional<Method> findSetterAnnotatedID(Resource ont, Class clazz, RdfImportContext context) {
         for (Field f : clazz.getDeclaredFields())
             for (Annotation an : f.getDeclaredAnnotations())
                 if (an instanceof Id) {

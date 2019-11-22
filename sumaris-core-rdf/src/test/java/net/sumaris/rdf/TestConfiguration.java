@@ -20,19 +20,27 @@
  * #L%
  */
 
-package net.sumaris.rdf.util;
+package net.sumaris.rdf;
 
-import com.google.common.collect.Maps;
-import org.apache.jena.ontology.OntResource;
+import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.rdf.dao.DatabaseFixtures;
+import org.springframework.context.annotation.Bean;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
+/**
+ * @author peck7 on 05/12/2018.
+ */
 
-public class OwlTransformContext {
+@org.springframework.boot.test.context.TestConfiguration
+public abstract class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
 
-    public Map<String, Class> URI_2_CLASS = new HashMap<>();
-    public Map<String, Object> URI_2_OBJ_REF = Maps.newHashMap();
-    public  Map<String, Function<OntResource, Object>> B2O_ARBITRARY_MAPPER = new HashMap<>();
-    public  Map<String, Function<Object, OntResource>> O2B_ARBITRARY_MAPPER = new HashMap<>();
+    @Bean
+    public DatabaseFixtures databaseFixtures() {
+        return new DatabaseFixtures();
+    }
+
+    @Bean
+    public static SumarisConfiguration sumarisConfiguration() {
+        return initConfiguration("sumaris-core-rdf-test.properties");
+    }
+
 }

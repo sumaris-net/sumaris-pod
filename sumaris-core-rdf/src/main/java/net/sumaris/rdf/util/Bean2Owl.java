@@ -41,8 +41,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Stream;
+import static net.sumaris.rdf.util.OwlUtils.*;
 
-public class Bean2Owl extends OwlUtils {
+public class Bean2Owl {
 
     /**
      * Logger.
@@ -142,8 +143,8 @@ public class Bean2Owl extends OwlUtils {
 
 
             Stream.of(clazz.getMethods())
-                    .filter(this::isGetter)
-                    .map(this::getFieldOfGetteR)
+                    .filter(OwlUtils::isGetter)
+                    .map(OwlUtils::getFieldOfGetteR)
                     .forEach(field -> {
                         //LOG.info("processing Field : " + field + " - type?" + isJavaType(field) + " - list?" + isListType(field.getGenericType()));
                         String fieldName = classToURI(schema, clazz) + "#" + field.getName();
@@ -279,7 +280,7 @@ public class Bean2Owl extends OwlUtils {
 
         // Handle Methods
         Stream.of(obj.getClass().getMethods())
-                .filter(this::isGetter)
+                .filter(OwlUtils::isGetter)
                 .filter(met -> excludes.stream().noneMatch(x -> x.equals(met)))
                 .filter(met -> {
                     //LOG.info(" filtering on " + met +"  " +  WHITELIST.contains(met) + " "+ !isManyToOne(met) ) ;
