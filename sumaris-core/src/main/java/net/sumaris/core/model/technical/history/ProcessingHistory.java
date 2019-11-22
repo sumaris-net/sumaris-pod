@@ -1,4 +1,4 @@
-package net.sumaris.core.model.data.history;
+package net.sumaris.core.model.technical.history;
 
 /*-
  * #%L

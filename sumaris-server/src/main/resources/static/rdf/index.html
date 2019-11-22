@@ -24,7 +24,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>SUMARiS - RDF test</title>
+    <title>SUMARiS - RDF test page</title>
 
     <link rel="stylesheet" href="/core/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/core/css/bootstrap-grid.min.css" />
@@ -32,7 +32,6 @@
     <script language="javascript" type="text/javascript">
 
         var restBasePath = 'api';
-        var baseUri;
 
         var buttonConnect;
         var inputUri;
@@ -44,8 +43,10 @@
         var inputMethods;
         var inputPackages;
 
-        var output;
+        var uriDiv;
+        var paramsDiv;
         var logDiv;
+        var outputTextarea;
 
         var requests_examples = {
 
@@ -53,27 +54,39 @@
 
         function init()
         {
-            if (window.location && window.location.origin) {
-                baseUri = window.location.origin;
-            }
-
             inputUri = document.getElementById("baseUri");
-            inputUri.value = baseUri;
+            inputUri.oninput = computeBaseUri;
 
             inputFormat = document.getElementById("format");
+            inputFormat.onchange = computeBaseUri;
+
             inputModelType = document.getElementById("type");
+            inputModelType.onchange = onModelTypeChanged;
+
             inputOntologyName = document.getElementById("ontologyName");
             inputReferentialName = document.getElementById("referentialName");
+
             inputDisjoints = document.getElementById("disjoints");
+            inputDisjoints.onchange = computeParams;
+
             inputMethods = document.getElementById("methods");
+            inputMethods.onchange = computeParams;
             inputMethods.checked = false;
 
             inputPackages = document.getElementById("packages");
+            if (inputPackages) inputPackages.oninput = computeParams;
 
-            buttonConnect = document.getElementById("buttonConnect");
+            uriDiv = document.getElementById("uriDiv");
+            paramsDiv = paramsDiv = document.getElementById("paramsDiv");
+            outputTextarea = document.getElementById("outputTextarea");
+            logDiv = document.getElementById("logDiv");
 
-            output = document.getElementById("output");
-            logDiv = document.getElementById("log");
+            if (window.location && window.location.origin) {
+                inputUri.value = window.location.origin + '/' + restBasePath + '/';
+            }
+            computeBaseUri();
+            computeParams();
+            onModelTypeChanged();
         }
 
         function logInfo(message, cssClass)
@@ -99,22 +112,58 @@
             }
         }
 
-        function createRequestUri()
-        {
-            baseUri = inputUri.value || baseUri;
+        function computeBaseUri() {
+            var baseUri = inputUri.value;
             if (baseUri.lastIndexOf('/') !== baseUri.length - 1) {
                 baseUri += '/';
-                inputUri.value = baseUri;
             }
 
-            var path = baseUri;
+            console.info("New base URI: " + baseUri);
+
+            uriDiv.innerHTML = baseUri;
+
+            return baseUri;
+        }
+
+        function computeParams() {
+            var params = [];
+            if (inputDisjoints.checked) {
+                params.push('disjoints=true')
+            }
+            if (inputMethods.checked) {
+                params.push('methods=true')
+            }
+            if (inputPackages && inputPackages.value) {
+                params.push('packages=' + inputPackages.value)
+            }
+            var paramsString = (params.length) ? ('?' + params.join('&')) : '';
+
+            paramsDiv.innerHTML = paramsString;
+
+            return paramsString;
+        }
+
+        function onModelTypeChanged() {
+
+            var modelType = inputModelType.value;
+            console.info("Model type changed to: " + modelType);
+
+            if (modelType === 'ontologies') {
+                inputOntologyName.classList.remove('d-none');
+                inputReferentialName.classList.add('d-none');
+            }
+            else {
+                inputOntologyName.classList.add('d-none');
+                inputReferentialName.classList.remove('d-none');
+            }
+        }
+
+        function createRequestUri()
+        {
+            var path = computeBaseUri();
+
             var format = inputFormat.value || 'rdf';
-
-            // If NOT the default format: use /api/<format>/<type>
-            if (format !== 'rdf') {
-                path = baseUri
-                    + restBasePath + '/' + format + '/';
-            }
+            path += format + '/';
 
             var modelType = inputModelType.value;
             path +=  modelType + '/';
@@ -127,22 +176,9 @@
                 path += inputReferentialName.value  + '/' ;
             }
 
-            var params = [];
-            if (inputFormat.value) {
-               // params.push('format=' + inputFormat.value)
-            }
-            if (inputDisjoints.checked) {
-                params.push('disjoints=true')
-            }
-            if (inputMethods.checked) {
-                params.push('methods=true')
-            }
-            if (inputPackages && inputPackages.value) {
-                params.push('packages=' + inputPackages.value)
-            }
-            if (params.length) {
-                path += '?' + params.join('&');
-            }
+            // Add params
+            path += computeParams();
+
             return path;
         }
 
@@ -156,12 +192,12 @@
                 logInfo("GET: " + requestUri, "text-muted");
                 var xmlhttp = new XMLHttpRequest();
                 var now = Date.now();
-                output.value = 'Loading...';
+                outputTextarea.value = 'Loading...';
                 xmlhttp.onreadystatechange = function() {
                         if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
                             if (xmlhttp.status == 200) {
                                 var execTimeMs = Date.now() - now;
-                                output.value = xmlhttp.responseText;
+                                outputTextarea.value = xmlhttp.responseText;
                                 logInfo('Response received in ' + execTimeMs + 'ms');
                             }
                             else if (xmlhttp.status == 400 || xmlhttp.status == 404) {
@@ -200,7 +236,7 @@
         function clearScreen()
         {
             logDiv.innerHTML = "";
-            output.value = "";
+            outputTextarea.value = "";
         }
 
         function showExample(name) {
@@ -217,72 +253,71 @@
 <body>
     <div class="container">
 
-        <h1>RDF test</h1>
+        <h1>RDF test page</h1>
 
         <div class="form-group">
-            <label for="baseUri">REST endpoint URL</label>
+            <label for="baseUri">Server API URL</label>
             <input type="text" name="baseUri" id="baseUri" class="form-control" placeholder="http://server/path">
         </div>
 
         <div class="form-group">
-        <!-- format -->
-        <label for="format">Format</label>
-        <select name="format" id="format">
-            <option value="">RDF (XML)</option>
-            <option value="json">RDF (JSON)</option>
-            <option value="jsonld">JSON-LD (JSON Linked data)</option>
-            <option value="ntriple">N-TRIPLE</option>
-            <option value="ttl">Turtle (TTL)</option>
-            <option value="n3">N3 (plain text)</option>
-            <option value="trig">TriG</option>
-            <option value="trix">Trix format</option>
+            <label for="baseUri">Request URL</label>
 
-            <option value="vowl">VOWL-JSON (Visual Notation for OWL Ontologies)</option>
-        </select>
+            <div class="form-inline">
 
-        <!-- model type -->
-        <label for="type">Model type</label>
-        <select name="type" id="type">
-            <option value="ontologies">Ontology</option>
-            <option value="referentials">Referential items</option>
-<!--            <option value="sync">Synchronize from a remote server</option>-->
-        </select>
+                <div id="uriDiv"></div>
+                <span>&nbsp;</span>
 
-        <!-- type -->
-        <label for="ontologyName">Model name</label>
-        <select name="ontologyName" id="ontologyName">
-            <option value="entities">Model entities</option>
-            <option value="vo">Value Object (for transport)</option>
-        </select>
+                <!-- format -->
+                <select name="format" id="format">
+                    <option value="rdf" selected>RDF (XML)</option>
+                    <option value="json">RDF (JSON)</option>
+                    <option value="vowl">VOWL</option>
 
-        <!-- class -->
-        <label for="referentialName">Model name</label>
-        <select name="referentialName" id="referentialName">
-            <option value="Status">Status</option>
+                    <option value="jsonld">JSON-LD (JSON Linked data)</option>
+                    <option value="ntriple">N-TRIPLE</option>
+                    <option value="ttl">Turtle (TTL)</option>
+                    <option value="n3">N3 (plain text)</option>
+                    <option value="trig">TriG</option>
+                    <option value="trix">Trix format</option>
+                </select>
+                <span>&nbsp;/&nbsp;</span>
 
-            <option value="Department">Department</option>
+                <!-- model type -->
+                <select name="type" id="type">
+                    <option value="ontologies" selected>Ontologies (ontologies))</option>
+                    <option value="referentials">Ontologies &amp; data</option>
+                </select>
+                <span>&nbsp;/&nbsp;</span>
 
-            <option value="Location">Location</option>
-            <option value="Gear">Gear</option>
-            <option value="Taxon">Taxon</option>
-            <option value="Transcription">Transcription</option>
-        </select>
+                <!-- model name -->
+                <select name="ontologyName" id="ontologyName">
+                    <option value="referential" selected>Referential</option>
+                    <option value="data">Data</option>
+                    <option value="social">Social</option>
+                    <option value="technical">Technical</option>
+                    <option value="vo">Value Object</option>
+                </select>
+                <select name="referentialName" id="referentialName" class="d-none">
+                    <option value="Location">Location</option>
+                    <option value="Gear">Gear</option>
+                    <option value="Taxon" selected>Taxon</option>
+                    <option value="Transcription">Transcription</option>
 
-<!--            <div class="form-inline">-->
-<!--                Examples:-->
-<!--                <a href="#" onclick="showExample('connection_init');">connection</a> |-->
-<!--                <a href="#" onclick="showExample('account_changes');">account changes</a> |-->
-<!--                <a href="#" onclick="showExample('trip_changes');">trip changes</a>-->
-<!--            </div>-->
+                    <option value="Department">Department</option>
+                </select>
+                <span>&nbsp;/</span>
 
+                <div id="paramsDiv"></div>
+            </div>
+        </div>
+
+        <div class="form-group">
             <input type="checkbox" id="disjoints" name="disjoints"
                    checked>
             <label for="disjoints">Disjoints ?</label>
-            <input type="checkbox" id="methods" name="methods"
-                   checked>
+            <input type="checkbox" id="methods" name="methods">
             <label for="methods">Export methods ?</label>
-
-
         </div>
 
         <div class="form-group text-center">
@@ -306,11 +341,11 @@
             <div class="row">
                 <!-- Output -->
                 <div class="col col-8">
-                    <textarea name="output" id="output" rows="30" class="form-control" placeholder="Output result"></textarea><br/>
+                    <textarea name="output" id="outputTextarea" rows="30" class="form-control" placeholder="Output result"></textarea><br/>
                 </div>
 
                 <!-- Log -->
-                <div class="col col-4" id="log">
+                <div class="col col-4" id="logDiv">
                 </div>
             </div>
         </div>

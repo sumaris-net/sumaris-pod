@@ -43,6 +43,8 @@ public class RdfModelExportOptions {
     private boolean withInterfaces = false;
 
     private Class<? extends Annotation> annotatedType;
+    private Class<? extends Object> type;
+
 
     private List<String> packages;
 }

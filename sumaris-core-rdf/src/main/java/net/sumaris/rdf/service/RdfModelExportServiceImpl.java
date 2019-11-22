@@ -25,6 +25,7 @@ package net.sumaris.rdf.service;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
@@ -32,12 +33,12 @@ import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.core.vo.IValueObject;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;
 import net.sumaris.rdf.dao.RdfModelDao;
 import net.sumaris.rdf.dao.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.util.Bean2Owl;
-import net.sumaris.rdf.util.Owl2Bean;
 import net.sumaris.rdf.util.OwlUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -117,8 +118,14 @@ public class RdfModelExportServiceImpl implements RdfModelExportService {
         String uri = this.getModelPrefix() + modelSuffix;
         if (options != null) log.info("model=" + uri +" hash= " + options.hashCode() + " options=" + options.toString());
 
-        if (options.getAnnotatedType() != null) {
+        if (options.getType() != null) {
             return generateOntologyFromType(uri,
+                    options.getType(),
+                    options);
+
+        }
+        else if (options.getAnnotatedType() != null) {
+            return generateOntologyFromAnnotatedType(uri,
                     options.getAnnotatedType(),
                     options);
 
@@ -132,11 +139,33 @@ public class RdfModelExportServiceImpl implements RdfModelExportService {
         else {
             // Set options defaults, by model Suffix
             switch (modelSuffix) {
-                case "entities":
+                case "data":
                     options.setAnnotatedType(Entity.class);
-                    options.setPackages(Lists.newArrayList("net.sumaris.core.model"));
+                    options.setPackages(Lists.newArrayList("net.sumaris.core.model.data"));
+                    break;
+                case "referential":
+                    options.setAnnotatedType(Entity.class);
+                    options.setPackages(ImmutableList.of(
+                            "net.sumaris.core.model.administration",
+                            "net.sumaris.core.model.referential"
+                    ));
+                    break;
+                case "social":
+                    options.setAnnotatedType(Entity.class);
+                    options.setPackages(ImmutableList.of(
+                            "net.sumaris.core.model.administration.user",
+                            "net.sumaris.core.model.social"
+                    ));
+                    break;
+                case "technical":
+                    options.setAnnotatedType(Entity.class);
+                    options.setPackages(ImmutableList.of(
+                            "net.sumaris.core.model.file",
+                            "net.sumaris.core.model.technical"
+                    ));
                     break;
                 case "vo":
+                    options.setType(IValueObject.class);
                     options.setPackages(Lists.newArrayList("net.sumaris.core.vo"));
                     break;
                 default:
@@ -243,23 +272,44 @@ public class RdfModelExportServiceImpl implements RdfModelExportService {
 
     }
 
-    protected OntModel generateOntologyFromType(String uri, Class<? extends Annotation> type, RdfModelExportOptions options) {
+    protected OntModel generateOntologyFromAnnotatedType(String uri, Class<? extends Annotation> annotatedType, RdfModelExportOptions options) {
+
+        OntModel model = createOntologyModel(uri);
+        Map<OntClass, List<OntClass>> mutuallyDisjoint = options.isWithDisjoints() ? new HashMap<>() : null;
+
+        if (CollectionUtils.isNotEmpty(options.getPackages())) {
+            log.info(String.format("Generating {%s} on annotated type {%s} and packages {%s}", uri, annotatedType.getSimpleName(), options.getPackages()));
+            Reflections reflections = new Reflections(options.getPackages(), new SubTypesScanner(false), new TypeAnnotationsScanner());
+            reflections.getTypesAnnotatedWith(annotatedType).stream()
+                    .forEach(ent  -> beanConverter.classToOwl(model, ent, mutuallyDisjoint, options.isWithInterfaces(), options.isWithMethods()));
+
+        }
+        else{
+            log.info(String.format("Generating {%s} on annotated type {%s}", uri, annotatedType.getSimpleName()));
+            Reflections.collect().getTypesAnnotatedWith(annotatedType).stream()
+                    .forEach(ent -> beanConverter.classToOwl(model, ent, mutuallyDisjoint, options.isWithInterfaces(), options.isWithMethods()));
+        }
+        withDisjoints(mutuallyDisjoint);
+        return model;
+
+    }
+
+
+    protected OntModel generateOntologyFromType(String uri, Class<? extends Object> type, RdfModelExportOptions options) {
 
         OntModel model = createOntologyModel(uri);
         Map<OntClass, List<OntClass>> mutuallyDisjoint = options.isWithDisjoints() ? new HashMap<>() : null;
 
         if (CollectionUtils.isNotEmpty(options.getPackages())) {
             log.info(String.format("Generating {%s} on type {%s} and packages {%s}", uri, type.getSimpleName(), options.getPackages()));
-
             Reflections reflections = new Reflections(options.getPackages(), new SubTypesScanner(false), new TypeAnnotationsScanner());
-            reflections.getTypesAnnotatedWith(type).stream()
+            reflections.getSubTypesOf(type).stream()
                     .forEach(ent  -> beanConverter.classToOwl(model, ent, mutuallyDisjoint, options.isWithInterfaces(), options.isWithMethods()));
 
         }
         else{
             log.info(String.format("Generating {%s} on type {%s}", uri, type.getSimpleName()));
-
-            Reflections.collect().getTypesAnnotatedWith(type).stream()
+            Reflections.collect().getSubTypesOf(type).stream()
                     .forEach(ent -> beanConverter.classToOwl(model, ent, mutuallyDisjoint, options.isWithInterfaces(), options.isWithMethods()));
         }
         withDisjoints(mutuallyDisjoint);
