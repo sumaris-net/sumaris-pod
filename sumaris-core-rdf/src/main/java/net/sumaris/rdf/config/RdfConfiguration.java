@@ -31,7 +31,10 @@ import org.springframework.context.annotation.Configuration;
 import javax.annotation.Resource;
 
 @Configuration
-@ConditionalOnProperty(name="rdf.enable", havingValue = "true")
+@ConditionalOnProperty(
+        prefix = "rdf",
+        name = {"enabled"},
+        matchIfMissing = true)
 public class RdfConfiguration {
 
     @Resource(name = "sumarisConfiguration")

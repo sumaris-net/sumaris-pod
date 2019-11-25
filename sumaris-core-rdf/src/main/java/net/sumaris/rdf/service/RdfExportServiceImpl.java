@@ -29,18 +29,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
-import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.vo.IValueObject;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.RdfModelDao;
 import net.sumaris.rdf.dao.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.model.ModelEntities;
 import net.sumaris.rdf.util.Bean2Owl;
-import net.sumaris.rdf.util.OwlUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.ontology.OntClass;
@@ -58,18 +52,19 @@ import org.reflections.scanners.TypeAnnotationsScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.persistence.Entity;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 @Service("rdfModelExportService")
+@ConditionalOnBean({RdfConfiguration.class})
 public class RdfExportServiceImpl implements RdfExportService {
 
     private static final Logger log = LoggerFactory.getLogger(RdfExportServiceImpl.class);

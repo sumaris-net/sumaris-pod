@@ -25,12 +25,14 @@ package net.sumaris.server.http.rest;
 import com.google.common.base.Splitter;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.service.RdfExportOptions;
 import net.sumaris.rdf.service.RdfExportService;
 import net.sumaris.rdf.util.ModelUtils;
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +42,7 @@ import javax.annotation.Resource;
 
 
 @RestController
-@ConditionalOnProperty(name="rdf.enable", havingValue = "true")
+@ConditionalOnBean({RdfConfiguration.class})
 public class RdfRestController {
 
     private static final Logger log = LoggerFactory.getLogger(RdfRestController.class);

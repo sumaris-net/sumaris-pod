@@ -29,25 +29,22 @@ import net.sumaris.core.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.TypedQuery;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 @Repository("rdfModelDao")
+@Lazy
 public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao {
 
     private static final Logger log = LoggerFactory.getLogger(RdfModelDaoImpl.class);
 
     protected Map<String, String> selectQueriesByName = Maps.newHashMap();
-
-    protected List<Method> propertyIncludes;
-
-    protected List<Method> propertyExcludes;
 
     @Autowired
     protected ReferentialDaoImpl referentialDao;
