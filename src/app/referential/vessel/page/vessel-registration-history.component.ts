@@ -12,6 +12,7 @@ import {VesselFilter} from "../../services/vessel-service";
 import {AppTableDataSource} from "../../../core/table/table-datasource.class";
 import {environment} from "../../../../environments/environment";
 import {VesselRegistrationService} from "../../services/vessel-registration.service";
+import {VesselRegistrationValidatorService} from "../../services/vessel-registration.validator";
 
 @Component({
   selector: 'app-vessel-registration-history-table',
@@ -34,8 +35,8 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
-    protected vesselValidatorService: VesselValidatorService,
-    protected vesselService: VesselRegistrationService,
+    protected vesselRegistrationValidator: VesselRegistrationValidatorService,
+    protected vesselRegistrationService: VesselRegistrationService,
     protected cd: ChangeDetectorRef) {
 
     super(route, router, platform, location, modalCtrl, settings,
@@ -46,7 +47,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
         'registrationCode',
         'registrationLocation']
       ,
-      new AppTableDataSource<VesselRegistration, VesselFilter>(VesselRegistration, vesselService, vesselValidatorService, {
+      new AppTableDataSource<VesselRegistration, VesselFilter>(VesselRegistration, vesselRegistrationService, vesselRegistrationValidator, {
         prependNewElements: false,
         suppressErrors: environment.production,
         serviceOptions: {

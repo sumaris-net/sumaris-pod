@@ -204,7 +204,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
   }
 
-  async save(event): Promise<boolean> {
+  async save(event, options?: any): Promise<boolean> {
     console.debug("[root-data-editor] Asking to save...");
     if (this.loading || this.saving || !this.dirty) return false;
 
@@ -233,7 +233,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     try {
       // Save saleControl form (with sale)
-      const updatedData = await this.dataService.save(data);
+      const updatedData = await this.dataService.save(data, options);
 
       // Update the view (e.g metadata)
       this.updateView(updatedData, {openSecondTab: isNew});

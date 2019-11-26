@@ -19,6 +19,7 @@ import {Observable} from "rxjs";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {VesselService} from "../../referential/services/vessel-service";
 import {PlatformService} from "../../core/services/platform.service";
+import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 
 @Component({
   selector: 'app-landing-page',
@@ -32,7 +33,7 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
   protected observedLocationService: ObservedLocationService;
   protected tripService: TripService;
   protected referentialRefService: ReferentialRefService;
-  protected vesselService: VesselService;
+  protected vesselService: VesselSnapshotService;
   protected platform: PlatformService;
 
   mobile: boolean;
@@ -51,7 +52,7 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
     this.observedLocationService = injector.get(ObservedLocationService);
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.vesselService = injector.get(VesselService);
+    this.vesselService = injector.get(VesselSnapshotService);
     this.platform = injector.get(PlatformService);
     this.idAttribute = 'landingId';
 

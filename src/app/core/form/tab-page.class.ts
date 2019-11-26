@@ -110,7 +110,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
   abstract async load(id?: number, options?: F);
 
-  abstract async save(event): Promise<any>;
+  abstract async save(event, options?: any): Promise<any>;
 
   registerForm(form: AppForm<any>): AppTabPage<T, F> {
     if (!form) throw 'Trying to register an invalid form';

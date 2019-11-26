@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {Department, EntityUtils, isNotNil, Person, VesselSnapshot} from "./model";
+import {Department, EntityUtils, isNil, isNotNil, Person, Vessel} from "./model";
 import {EditorDataService, isNilOrBlank, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {map} from "rxjs/operators";
@@ -9,13 +9,15 @@ import {Moment} from "moment";
 
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {FetchPolicy} from "apollo-client";
 import {isEmptyArray} from "../../shared/functions";
-import {VesselFeaturesService} from "./vessel-features.service";
 import {EntityAsObjectOptions, MINIFY_OPTIONS} from "../../core/services/model";
+import {LoadFeaturesQuery, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";
+import {LoadRegistrationsQuery, RegistrationFragments, VesselRegistrationService} from "./vessel-registration.service";
+import {SAVE_AS_OBJECT_OPTIONS} from "../../trip/services/model/base.model";
+import {reject} from "async";
 
 export class VesselFilter {
   date?: Date | Moment;
@@ -31,126 +33,99 @@ export class VesselFilter {
   }
 }
 
-export const VesselSnapshotFragments = {
-  lightVessel: gql`fragment LightVesselFragment on VesselSnapshotVO {
-    id
-    startDate
-    endDate
-    name
-    exteriorMarking
-    registrationCode
-    administrativePower
-    lengthOverAll
-    grossTonnageGt
-    grossTonnageGrt
-    creationDate
-    updateDate
-    comments
-    vesselType {
-      ...ReferentialFragment
-    }
-    vesselStatusId
-    basePortLocation {
-      ...LocationFragment
-    }
-    registrationLocation {
-      ...LocationFragment
-    }
-    recorderDepartment {
-     ...LightDepartmentFragment
-    }
-    entityName
-  }`,
-  vessel: gql`fragment VesselFragment on VesselSnapshotVO {
-    id
-    startDate
-    endDate
-    name
-    exteriorMarking
-    registrationId
-    registrationCode
-    registrationStartDate
-    registrationEndDate
-    administrativePower
-    lengthOverAll
-    grossTonnageGt
-    grossTonnageGrt
-    creationDate
-    updateDate
-    comments
-    vesselId
-    vesselType {
-        ...ReferentialFragment
-    }
-    vesselStatusId
-    basePortLocation {
-      ...LocationFragment
-    }
-    registrationLocation {
-      ...LocationFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    recorderPerson {
-      ...LightPersonFragment
-    }
-    entityName
-  }`,
+export const VesselFragments = {
+    vessel: gql`fragment VesselFragment on VesselVO {
+        id
+        comments
+        statusId
+        #        qualityFlagId
+        #        program
+        creationDate
+        controlDate
+        validationDate
+        qualificationDate
+        qualificationComments
+        updateDate
+        comments
+        vesselType {
+            ...ReferentialFragment
+        }
+        features {
+            ...VesselFeaturesFragment
+        }
+        registration{
+            ...RegistrationFragment
+        }
+        recorderDepartment {
+            ...LightDepartmentFragment
+        }
+        recorderPerson {
+            ...LightPersonFragment
+        }
+    }`,
 };
 
 const LoadAllQuery: any = gql`
-  query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
-    vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...LightVesselFragment
+    query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
+        vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+            ...VesselFragment
+        }
+        vesselsCount(filter: $filter)
     }
-  }
-  ${VesselSnapshotFragments.lightVessel}
-  ${ReferentialFragments.location}
-  ${ReferentialFragments.lightDepartment}
-  ${ReferentialFragments.referential}
+    ${VesselFragments.vessel}
+    ${VesselFeaturesFragments.vesselFeatures}
+    ${RegistrationFragments.registration}
+    ${ReferentialFragments.location}
+    ${ReferentialFragments.lightDepartment}
+    ${ReferentialFragments.lightPerson}
+    ${ReferentialFragments.referential}
 `;
 const LoadQuery: any = gql`
-  query Vessel($vesselId: Int, $vesselFeaturesId: Int) {
-    vessels(filter: {vesselId: $vesselId, vesselFeaturesId: $vesselFeaturesId}) {
-      ...VesselFragment
+    query Vessel($vesselId: Int!) {
+        vessel(vesselId: $vesselId) {
+            ...VesselFragment
+        }
     }
-  }
-  ${VesselSnapshotFragments.vessel}
-  ${ReferentialFragments.location}
-  ${ReferentialFragments.lightDepartment}
-  ${ReferentialFragments.lightPerson}
-  ${ReferentialFragments.referential}
+    ${VesselFragments.vessel}
+    ${VesselFeaturesFragments.vesselFeatures}
+    ${RegistrationFragments.registration}
+    ${ReferentialFragments.location}
+    ${ReferentialFragments.lightDepartment}
+    ${ReferentialFragments.lightPerson}
+    ${ReferentialFragments.referential}
 `;
 
 const SaveVessels: any = gql`
-  mutation saveVessels($vessels:[VesselSnapshotVOInput]){
-    saveVessels(vessels: $vessels){
-      ...VesselFragment
+    mutation SaveVessels($vessels:[VesselVOInput]){
+        saveVessels(vessels: $vessels){
+            ...VesselFragment
+        }
     }
-  }
-  ${VesselSnapshotFragments.vessel}
-  ${ReferentialFragments.location}
-  ${ReferentialFragments.lightDepartment}
-  ${ReferentialFragments.lightPerson}
-  ${ReferentialFragments.referential}
+    ${VesselFragments.vessel}
+    ${VesselFeaturesFragments.vesselFeatures}
+    ${RegistrationFragments.registration}
+    ${ReferentialFragments.location}
+    ${ReferentialFragments.lightDepartment}
+    ${ReferentialFragments.lightPerson}
+    ${ReferentialFragments.referential}
 `;
 
 const DeleteVessels: any = gql`
-  mutation deleteVessels($ids:[Int]){
-    deleteVessels(ids: $ids)
-  }
+    mutation deleteVessels($ids:[Int]){
+        deleteVessels(ids: $ids)
+    }
 `;
 
 @Injectable({providedIn: 'root'})
 export class VesselService
   extends BaseDataService
-  implements SuggestionDataService<VesselSnapshot>, TableDataService<VesselSnapshot, VesselFilter>, EditorDataService<VesselSnapshot, VesselFilter> {
+  implements TableDataService<Vessel, VesselFilter>, EditorDataService<Vessel, VesselFilter> {
 
   constructor(
     protected graphql: GraphqlService,
     private accountService: AccountService,
-    private vesselFeatureService: VesselFeaturesService
+    private vesselFeatureService: VesselFeaturesService,
+    private vesselRegistrationService: VesselRegistrationService,
   ) {
     super(graphql);
   }
@@ -167,140 +142,65 @@ export class VesselService
            size: number,
            sortBy?: string,
            sortDirection?: string,
-           filter?: VesselFilter): Observable<LoadResult<VesselSnapshot>> {
+           filter?: VesselFilter): Observable<LoadResult<Vessel>> {
 
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
-      sortBy: sortBy || 'exteriorMarking',
+      sortBy: sortBy || 'features.exteriorMarking',
       sortDirection: sortDirection || 'asc',
       filter: filter && {
         date: filter.date,
         vesselId: filter.vesselId,
         searchText: filter.searchText,
-        statusIds: isNotNil(filter.statusId) ?  [filter.statusId] : filter.statusIds
+        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : filter.statusIds
       }
     };
+
+    this._lastVariables.loadAll = variables;
+    this._lastVariables.load = undefined;
+
     const now = Date.now();
     if (this._debug) console.debug("[vessel-service] Getting vessels using options:", variables);
 
-    return this.graphql.watchQuery<{ vessels: any[] }>({
+    return this.graphql.watchQuery<{ vessels: any[]; vesselsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"}
     })
       .pipe(
-        map(({vessels}) => {
-            const data = (vessels || []).map(VesselSnapshot.fromObject);
+        map(({vessels, vesselsCount}) => {
+            const data = (vessels || []).map(Vessel.fromObject);
+            const total = vesselsCount || undefined;
             if (this._debug) console.debug(`[vessel-service] Vessels loaded in ${Date.now() - now}ms`, data);
             return {
-              data: data
+              data: data,
+              total: total
             };
           }
         )
       );
   }
 
-  /**
-   * Load many vessels
-   * @param offset
-   * @param size
-   * @param sortBy
-   * @param sortDirection
-   * @param filter
-   */
-  async loadAll(offset: number,
-                size: number,
-                sortBy?: string,
-                sortDirection?: string,
-                filter?: VesselFilter): Promise<LoadResult<VesselSnapshot>> {
-
-    const variables: any = {
-      offset: offset || 0,
-      size: size || 100,
-      sortBy: sortBy || 'exteriorMarking',
-      sortDirection: sortDirection || 'asc',
-      filter: {
-        date: filter.date,
-        vesselId: filter.vesselId,
-        searchText: filter.searchText,
-        statusIds: isNotNil(filter.statusId) ?  [filter.statusId] : filter.statusIds
-      }
-    };
-    console.debug("[vessel-service] Getting vessels using options:", variables);
-    const res = await this.graphql.query<{ vessels: any[] }>({
-      query: LoadAllQuery,
-      variables: variables,
-      error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"}
-    });
-
-    const data = (res && res.vessels || []).map(VesselSnapshot.fromObject);
-    return {
-      data: data
-    };
-  }
-
-  async suggest(value: any, options?: {
-    date: Date | Moment;
-  }): Promise<VesselSnapshot[]> {
-    if (EntityUtils.isNotEmpty(value)) return [value];
-    value = (typeof value === "string" && value !== '*') && value || undefined;
-    const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
-      {
-        date: options && options.date || undefined,
-        searchText: value as string
-      }
-    );
-    return res.data;
-  }
-
-  // loadAll(offset: number,
-  //         size: number,
-  //         sortBy?: string,
-  //         sortDirection?: string,
-  //         filter?: VesselFilter): Promise<LoadResult<VesselFeatures>> {
-  //   console.warn("TODO: implement loadAll");
-  //   // TODO
-  //   return this.watchAll(offset, size, sortBy, sortDirection, filter)
-  //     .pipe(first()).toPromise();
-  // }
-
   async load(id: number, opts?: {
     fetchPolicy?: FetchPolicy
-  }): Promise<VesselSnapshot | null> {
+  }): Promise<Vessel | null> {
     console.debug("[vessel-service] Loading vessel " + id);
 
-    const data = await this.graphql.query<{ vessels: any }>({
+    const variables: any = {vesselId: id};
+
+    this._lastVariables.load = variables;
+    this._lastVariables.loadAll = undefined;
+
+    const data = await this.graphql.query<{ vessel: any }>({
       query: LoadQuery,
-      variables: {
-        vesselId: id,
-        vesselFeaturesId: null
-      },
+      variables: variables,
       fetchPolicy: opts && opts.fetchPolicy || undefined
     });
 
-    if (data && data.vessels && data.vessels.length) {
-      const res = new VesselSnapshot();
-      res.fromObject(data.vessels[0]);
-      return res;
-    }
-    return null;
-  }
-
-  async loadByVesselFeaturesId(id: number): Promise<VesselSnapshot | null> {
-    console.debug("[vessel-service] Loading vessel by features " + id);
-
-    const data = await this.graphql.query<{ vessels: any }>({
-      query: LoadQuery,
-      variables: {
-        vesselId: null,
-        vesselFeaturesId: id
-      }
-    });
-
-    if (data && data.vessels && data.vessels.length) {
-      const res = new VesselSnapshot();
-      res.fromObject(data.vessels[0]);
+    if (data && data.vessel) {
+      const res = new Vessel();
+      res.fromObject(data.vessel);
       return res;
     }
     return null;
@@ -308,49 +208,158 @@ export class VesselService
 
   /**
    * Save many vessels
-   * @param data
+   * @param vessels
    */
-  async saveAll(vessels: VesselSnapshot[]): Promise<VesselSnapshot[]> {
+  async saveAll(vessels: Vessel[], options?: any): Promise<Vessel[]> {
 
     if (!vessels) return vessels;
 
-    // Fill default properties (as recorder department and person)
-    vessels.forEach(t => this.fillDefaultProperties(t));
-
-    const json = vessels.map(t => this.asObject(t));
-    console.debug("[vessel-service] Saving vessels: ", json);
-
-    const res = await this.graphql.mutate<{ saveVessels: any }>({
-      mutation: SaveVessels,
-      variables: {
-        vessels: json
-      },
-      error: {code: ErrorCodes.SAVE_VESSELS_ERROR, message: "VESSEL.ERROR.SAVE_VESSELS_ERROR"}
+    const json = vessels.map(vessel => {
+      // Fill default properties (as recorder department and person)
+      this.fillDefaultProperties(vessel);
+      return this.asObject(vessel);
     });
-    return (res && res.saveVessels && vessels || [])
-      .map(t => {
-        const data = res.saveVessels.find(res => res.id == t.id);
-        t.updateDate = data && data.updateDate || t.updateDate;
-        t.id = data && isNotNil(data.id) ? data.id : t.id;
-        return t;
+
+    const now = Date.now();
+    console.debug("[vessel-service] Saving vessels...", json);
+
+    return new Promise<Vessel[]>((resolve, reject) => {
+      this.graphql.mutate<{ saveVessels: Vessel[] }>({
+        mutation: SaveVessels,
+        variables: {
+          vessels: json
+        },
+        error: { reject, code: ErrorCodes.SAVE_VESSELS_ERROR, message: "VESSEL.ERROR.SAVE_VESSELS_ERROR"},
+        update: async (proxy, {data}) => {
+
+          if (this._debug) console.debug(`[vessel-service] Vessels saved remotely in ${Date.now() - now}ms`, vessels);
+
+          if (data && data.saveVessels) {
+            (vessels || []).forEach(vessel => {
+              const savedVessel = data.saveVessels.find(v => vessel.equals(v));
+              if (savedVessel && savedVessel !== vessel) {
+                this.copyIdAndUpdateDate(savedVessel, vessel);
+              }
+            });
+
+            // update features history FIXME: marche pas
+            if (options && options.isNewFeatures && this.vesselFeatureService.lastVariables()) {
+              const lastFeatures = vessels[vessels.length - 1].features;
+              this.graphql.addToQueryCache(proxy, {
+                query: LoadFeaturesQuery,
+                variables: this.vesselFeatureService.lastVariables()
+              }, 'vesselFeaturesHistory', lastFeatures);
+            }
+
+            // update registration history FIXME: marche pas
+            if (options && options.isNewRegistration && this.vesselRegistrationService.lastVariables()) {
+              const lastRegistration = vessels[vessels.length - 1].registration;
+              this.graphql.addToQueryCache(proxy, {
+                query: LoadRegistrationsQuery,
+                variables: this.vesselRegistrationService.lastVariables()
+              }, 'vesselRegistrationHistory', lastRegistration);
+            }
+
+          }
+
+          resolve(vessels);
+        }
       });
+    });
   }
 
   /**
    * Save a trip
-   * @param data
+   * @param vessel
+   * @param options
    */
-  async save(vessel: VesselSnapshot): Promise<VesselSnapshot> {
+  async save(vessel: Vessel, options?: any): Promise<Vessel> {
 
-    throw new Error("Not implemented. Use vesselFeatures service instead");
-    //return this.vesselFeatureService.save(vessel);
+    // prepare previous vessel to save if present
+    if (options && isNotNil(options.previousVessel)) {
+
+      // update previous features
+      if (options.isNewFeatures) {
+        // set end date = new start date - 1
+        const newStartDate = vessel.features.startDate.clone();
+        newStartDate.subtract(1, "seconds");
+        options.previousVessel.features.endDate = newStartDate;
+
+      } else
+      // prepare previous registration period
+      if (options.isNewRegistration) {
+        // set registration end date = new registration start date - 1
+        const newRegistrationStartDate = vessel.registration.startDate.clone();
+        newRegistrationStartDate.subtract(1, "seconds");
+        options.previousVessel.registration.endDate = newRegistrationStartDate;
+      }
+
+      // save both by calling saveAll
+      const savedVessels: Vessel[] = await this.saveAll([options.previousVessel, vessel], options);
+      // return last
+      return Promise.resolve(savedVessels.pop());
+    }
+
+    // Prepare to save
+    this.fillDefaultProperties(vessel);
+    const isNew = isNil(vessel.id);
+
+    // Transform into json
+    const json = vessel.asObject({
+      minify: true,
+      keepTypename: false
+    });
+
+    const now = Date.now();
+    console.debug("[vessel-service] Saving vessel: ", json);
+
+    return new Promise<Vessel>((resolve, reject) => {
+      this.graphql.mutate<{ saveVessels: any }>({
+        mutation: SaveVessels,
+        variables: {
+          vessels: [json]
+        },
+        error: {reject, code: ErrorCodes.SAVE_VESSEL_ERROR, message: "VESSEL.ERROR.SAVE_VESSEL_ERROR"},
+        update: (proxy, {data}) => {
+          const savedVessel = data && data.saveVessels && data.saveVessels[0];
+
+          if (savedVessel) {
+
+            // Copy id and update Date
+            this.copyIdAndUpdateDate(savedVessel, vessel);
+
+            if (this._debug) console.debug(`[vessel-service] Vessel Feature saved in ${Date.now() - now}ms`, savedVessel);
+
+            // Add to cache
+            if (isNew && this._lastVariables.loadAll) {
+              this.graphql.addToQueryCache(proxy, {
+                query: LoadAllQuery,
+                variables: this._lastVariables.loadAll
+              }, 'vessels', savedVessel);
+            }
+            // Update cache
+            else if (this._lastVariables.load) {
+              this.graphql.updateToQueryCache(proxy, {
+                query: LoadQuery,
+                variables: this._lastVariables.load
+              }, 'vessel', savedVessel);
+            }
+
+          }
+
+          resolve(vessel);
+        }
+
+      });
+    });
+
   }
 
-  delete(data: VesselSnapshot, options?: any): Promise<any> {
+  delete(data: Vessel, options?: any): Promise<any> {
     return this.deleteAll([data]);
   }
 
-  deleteAll(vessels: VesselSnapshot[]): Promise<any> {
+  deleteAll(vessels: Vessel[]): Promise<any> {
     const ids = vessels && vessels
       .map(t => t.id)
       .filter(id => (id > 0));
@@ -365,46 +374,55 @@ export class VesselService
     });
   }
 
-  listenChanges(id: number, options?: any): Observable<VesselSnapshot> {
+  listenChanges(id: number, options?: any): Observable<Vessel> {
     throw new Error("Method not implemented.");
   }
 
   /* -- protected methods -- */
 
-  protected asObject(vessel: VesselSnapshot, options?: EntityAsObjectOptions): any {
-    const copy: any = vessel.asObject({ ...MINIFY_OPTIONS, options } as EntityAsObjectOptions);
-
-    // If no vessel: set the default vessel type
-    // if (!copy.vesselTypeId) {
-    //   copy.vesselTypeId = (!copy.vesselTypeId && !copy.vesselId) ? 1 /*TODO ?*/ : undefined;
-    // }
-
-    return copy;
+  protected asObject(vessel: Vessel, options?: EntityAsObjectOptions): any {
+    return vessel.asObject({...MINIFY_OPTIONS, options} as EntityAsObjectOptions);
   }
 
-  protected fillDefaultProperties(vessel: VesselSnapshot): void {
+  protected fillDefaultProperties(vessel: Vessel): void {
 
-    // If new
-    // if (!vessel.id || vessel.id < 0) {
+    const person: Person = this.accountService.account;
 
-      const person: Person = this.accountService.account;
-
-      // Recorder department
-      if (person && person.department && (!vessel.recorderDepartment || vessel.recorderDepartment.id !== person.department.id)) {
-        if (!vessel.recorderDepartment) {
-          vessel.recorderDepartment = new Department();
-        }
-        vessel.recorderDepartment.id = person.department.id;
+    // Recorder department
+    if (person && person.department && (!vessel.recorderDepartment || vessel.recorderDepartment.id !== person.department.id)) {
+      if (!vessel.recorderDepartment) {
+        vessel.recorderDepartment = new Department();
       }
-
-      // Recorder person
-      if (person && (!vessel.recorderPerson || vessel.recorderPerson.id !== person.id)) {
-        if (!vessel.recorderPerson) {
-          vessel.recorderPerson = new Person();
+      vessel.recorderDepartment.id = person.department.id;
+      if (vessel.features) {
+        if (!vessel.features.recorderDepartment) {
+          vessel.features.recorderDepartment = new Department();
         }
-        vessel.recorderPerson.id = person.id;
+        vessel.features.recorderDepartment.id = person.department.id;
       }
+    }
 
-    // }
+    // Recorder person
+    if (person && (!vessel.recorderPerson || vessel.recorderPerson.id !== person.id)) {
+      if (!vessel.recorderPerson) {
+        vessel.recorderPerson = new Person();
+      }
+      vessel.recorderPerson.id = person.id;
+      if (vessel.features) {
+        if (!vessel.features.recorderPerson) {
+          vessel.features.recorderPerson = new Person();
+        }
+        vessel.features.recorderPerson.id = person.id;
+      }
+    }
+
+  }
+
+  copyIdAndUpdateDate(source: Vessel | undefined, target: Vessel) {
+
+    EntityUtils.copyIdAndUpdateDate(source, target);
+    EntityUtils.copyIdAndUpdateDate(source.features, target.features);
+    EntityUtils.copyIdAndUpdateDate(source.registration, target.registration);
+
   }
 }

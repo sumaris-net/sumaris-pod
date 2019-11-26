@@ -17,6 +17,7 @@ import {Observable, of} from 'rxjs';
 import {debounceTime, map, mergeMap, switchMap} from 'rxjs/operators';
 import {ReferentialRefService, VesselService} from '../../referential/referential.module';
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 
 @Component({
   selector: 'form-sale',
@@ -52,7 +53,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected saleValidatorService: SaleValidatorService,
-    protected vesselService: VesselService,
+    // protected vesselService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
     protected settings: LocalSettingsService
   ) {
@@ -65,21 +66,21 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
     // Set if required or not
     this.saleValidatorService.setRequired(this.form, this.required);
 
-    // Combo: vessels (if need)
-    if (this.showVessel) {
-      this.vessels = this.form.controls['vesselSnapshot']
-        .valueChanges
-        .pipe(
-          mergeMap(value => {
-            if (EntityUtils.isNotEmpty(value)) return of([value]);
-            value = (typeof value === "string") && value || undefined;
-            return this.vesselService.watchAll(0, 10, undefined, undefined,
-              {searchText: value as string}
-            ).pipe(map(({data}) => data));
-          }));
-    } else {
+    // TODO Combo: vessels (if need)
+    // if (this.showVessel) {
+    //   this.vessels = this.form.controls['vesselSnapshot']
+    //     .valueChanges
+    //     .pipe(
+    //       mergeMap(value => {
+    //         if (EntityUtils.isNotEmpty(value)) return of([value]);
+    //         value = (typeof value === "string") && value || undefined;
+    //         return this.vesselService.watchAll(0, 10, undefined, undefined,
+    //           {searchText: value as string}
+    //         ).pipe(map(({data}) => data));
+    //       }));
+    // } else {
       this.form.controls['vesselSnapshot'].clearValidators();
-    }
+    // }
 
     // Combo: sale locations
     this.locations = this.form.controls['saleLocation']

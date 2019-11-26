@@ -1,12 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {VesselValidatorService} from "../../services/vessel.validator";
-import {LocationLevelIds, referentialToString, StatusIds, VesselSnapshot} from "../../services/model";
+import {LocationLevelIds, referentialToString, StatusIds, Vessel} from "../../services/model";
 import {DefaultStatusList} from "../../../core/services/model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {AppForm, AppFormUtils} from '../../../core/core.module';
 import {ReferentialRefService} from '../../services/referential-ref.service';
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {AccountService} from "../../../core/services/account.service";
 
 
 @Component({
@@ -15,9 +16,11 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
   styleUrls: ['./form-vessel.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselForm extends AppForm<VesselSnapshot> implements OnInit {
+export class VesselForm extends AppForm<Vessel> implements OnInit {
 
-  data: VesselSnapshot;
+  @Input() defaultStatus: number;
+
+  data: Vessel;
   statusList = DefaultStatusList;
   statusById: any;
 
@@ -26,7 +29,8 @@ export class VesselForm extends AppForm<VesselSnapshot> implements OnInit {
     protected vesselValidatorService: VesselValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef,
-    protected settings: LocalSettingsService
+    protected settings: LocalSettingsService,
+    private accountService: AccountService
   ) {
 
     super(dateAdapter, vesselValidatorService.getFormGroup(), settings);
@@ -65,6 +69,16 @@ export class VesselForm extends AppForm<VesselSnapshot> implements OnInit {
     });
 
     this.form.reset();
+
+    // set default values
+    if (this.defaultStatus) {
+      this.form.get('statusId').setValue(this.defaultStatus);
+    }
+
+  }
+
+  isAdmin(): boolean {
+    return this.accountService.isAdmin();
   }
 
   referentialToString = referentialToString;

@@ -10,7 +10,14 @@ import {
 import { VesselValidatorService } from "../../services/vessel.validator";
 import { VesselService, VesselFilter } from "../../services/vessel-service";
 import { VesselModal } from "../modal/modal-vessel";
-import { VesselSnapshot, Referential, toDateISOString, fromDateISOString, referentialToString, ReferentialRef } from "../../services/model";
+import {
+  Referential,
+  toDateISOString,
+  fromDateISOString,
+  referentialToString,
+  ReferentialRef,
+  Vessel
+} from "../../services/model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { AccountService } from "../../../core/services/account.service";
@@ -31,7 +38,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselsPage extends AppTable<VesselSnapshot, VesselFilter> implements OnInit {
+export class VesselsPage extends AppTable<Vessel, VesselFilter> implements OnInit {
 
   canEdit: boolean;
   canDelete: boolean;
@@ -60,17 +67,17 @@ export class VesselsPage extends AppTable<VesselSnapshot, VesselFilter> implemen
       // columns
       RESERVED_START_COLUMNS
         .concat([
-          'exteriorMarking',
-          'registrationCode',
-          'startDate',
-          'endDate',
-          'name',
+          'features.exteriorMarking',
+          'registration.registrationCode',
+          'features.startDate',
+          'features.endDate',
+          'features.name',
           'vesselType',
-          'basePortLocation',
-          'comments',
-          'vesselStatusId'])
+          'features.basePortLocation',
+          'features.comments',
+          'statusId'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<VesselSnapshot, VesselFilter>(VesselSnapshot, vesselService, vesselValidatorService, {
+      new AppTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, vesselValidatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         serviceOptions: {
@@ -143,10 +150,9 @@ export class VesselsPage extends AppTable<VesselSnapshot, VesselFilter> implemen
     return modal.present();
   }
 
-  protected async openRow(id: number, row?: TableElement<VesselSnapshot>): Promise<boolean> {
+  protected async openRow(id: number, row?: TableElement<Vessel>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    // return await this.router.navigateByUrl(`/referential/vessels/${row.currentData.vesselId}?vesselFeatureId=${id}` );
     return await this.router.navigateByUrl(`/referential/vessels/${row.currentData.id}` );
   }
 

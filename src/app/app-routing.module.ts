@@ -89,7 +89,7 @@ const routes: Routes = [
             }
           },
           {
-            path: ':vesselId',
+            path: ':id',
             component: VesselPage,
             data: {
               profile: 'USER'

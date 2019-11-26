@@ -108,6 +108,21 @@ export const ConfigOptions: FormFieldDefinitionMap = {
       }
     ]
   },
+  DEFAULT_NEW_VESSEL_STATUS: {
+    key: 'sumaris.defaultNewVesselStatus',
+    label: 'CONFIGURATION.OPTIONS.VESSEL.DEFAULT_NEW_VESSEL_STATUS',
+    type: 'enum',
+    values: [
+      {
+        key: StatusIds.ENABLE.toString(),
+        value: 'REFERENTIAL.STATUS_ENUM.ENABLE'
+      },
+      {
+        key: StatusIds.TEMPORARY.toString(),
+        value: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
+      }
+    ]
+  },
   LOGO_LARGE: {
     key: 'sumaris.logo.large',
     label: 'CONFIGURATION.OPTIONS.HOME.LOGO_LARGE',
@@ -489,7 +504,7 @@ export class ReferentialRef<T = any> extends Entity<T> implements IReferentialRe
       };
     }
     const target: any = super.asObject(options);
-    if (!options || options.keepEntityName !== true) delete target.entityName;
+    if (options && options.keepEntityName === false) delete target.entityName;
 
     return target;
   }
