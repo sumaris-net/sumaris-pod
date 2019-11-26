@@ -225,8 +225,14 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
                 // last path, get it
                 result = from.get(path);
             } else {
-                // need a join
-                from = from.join(path);
+                // need a join (find it from existing joins of from)
+                Join join = from.getJoins().stream()
+                    .filter(j -> j.getAttribute().getName().equals(path))
+                    .findFirst().orElse(null);
+                if (join == null) {
+                    throw new IllegalArgumentException(String.format("the join %s from %s doesn't exists", path, from.getClass().getSimpleName()));
+                }
+                from = join;
             }
         }
 
