@@ -581,12 +581,13 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
       // get sub-samples, from tables
       const subSamples = (this.individualMonitoringTable.value || [])
         .concat(this.individualReleaseTable.value || []);
-      this.data.samples = (this.samplesTable.value || [])
+      data.samples = (this.samplesTable.value || [])
         .map(sample => {
           // Add children
           sample.children = subSamples.filter(childSample => childSample.parent && sample.equals(childSample.parent));
           return sample;
         });
+
     } else {
       data.samples = undefined;
     }
