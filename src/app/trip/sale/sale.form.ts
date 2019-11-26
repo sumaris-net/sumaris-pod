@@ -6,7 +6,7 @@ import {
   LocationLevelIds,
   ReferentialRef,
   referentialToString,
-  Sale,
+  Sale, StatusIds,
   VesselSnapshot,
   vesselSnapshotToString
 } from "../services/trip.model";
@@ -26,16 +26,12 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 })
 export class SaleForm extends AppForm<Sale> implements OnInit {
 
-  vessels: Observable<VesselSnapshot[]>;
-  locations: Observable<ReferentialRef[]>;
-  saleTypes: Observable<ReferentialRef[]>;
-
-  @Input() required: boolean = true;
-  @Input() showError: boolean = true;
-  @Input() showVessel: boolean = true;
-  @Input() showEndDateTime: boolean = true;
-  @Input() showComment: boolean = true;
-  @Input() showButtons: boolean = true;
+  @Input() required = true;
+  @Input() showError = true;
+  @Input() showVessel = true;
+  @Input() showEndDateTime = true;
+  @Input() showComment = true;
+  @Input() showButtons = true;
 
   get empty(): any {
     const value = this.value;
@@ -53,7 +49,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected saleValidatorService: SaleValidatorService,
-    // protected vesselService: VesselSnapshotService,
+    protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
     protected settings: LocalSettingsService
   ) {
@@ -66,43 +62,41 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
     // Set if required or not
     this.saleValidatorService.setRequired(this.form, this.required);
 
-    // TODO Combo: vessels (if need)
-    // if (this.showVessel) {
-    //   this.vessels = this.form.controls['vesselSnapshot']
-    //     .valueChanges
-    //     .pipe(
-    //       mergeMap(value => {
-    //         if (EntityUtils.isNotEmpty(value)) return of([value]);
-    //         value = (typeof value === "string") && value || undefined;
-    //         return this.vesselService.watchAll(0, 10, undefined, undefined,
-    //           {searchText: value as string}
-    //         ).pipe(map(({data}) => data));
-    //       }));
-    // } else {
-      this.form.controls['vesselSnapshot'].clearValidators();
-    // }
+    // Combo: vessels (if need)
+    if (this.showVessel) {
+      // Combo: vessels
+      const vesselField = this.registerAutocompleteField('vesselSnapshot', {
+        service: this.vesselSnapshotService,
+        attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
+        filter: {
+          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        }
+      });
+      // Add base port location
+      vesselField.attributes = vesselField.attributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key));
+
+    } else {
+      this.form.get('vesselSnapshot').clearValidators();
+    }
 
     // Combo: sale locations
-    this.locations = this.form.controls['saleLocation']
-      .valueChanges
-      .pipe(
-        debounceTime(250),
-        switchMap(value => this.referentialRefService.suggest(value, {
-          entityName: 'Location',
-          levelId: LocationLevelIds.PORT
-        }))
-      );
+    this.registerAutocompleteField('location', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelId: LocationLevelIds.PORT
+      }
+    });
 
     // Combo: sale types
-    this.saleTypes = this.form.controls['saleType']
-      .valueChanges
-      .pipe(
-        debounceTime(250),
-        switchMap(value => this.referentialRefService.suggest(value, {entityName: 'SaleType'}))
-      );
+    this.registerAutocompleteField('saleType', {
+      service: this.referentialRefService,
+      attributes: ['name'],
+      filter: {
+        entityName: 'SaleType'
+      }
+    });
   }
 
-  entityToString = entityToString;
-  vesselSnapshotToString = vesselSnapshotToString;
   referentialToString = referentialToString;
 }

@@ -1,50 +1,25 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Observable} from "rxjs";
-import {Department, EntityUtils, isNotNil, Person, VesselSnapshot} from "./model";
-import {DataService, EditorDataService, isNilOrBlank, LoadResult, TableDataService} from "../../shared/shared.module";
+import {EntityUtils, isNotNil, VesselSnapshot} from "./model";
+import {LoadResult} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
-import {map} from "rxjs/operators";
 import {Moment} from "moment";
 
 import {ErrorCodes} from "./errors";
-import {AccountService} from "../../core/services/account.service";
 import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {FetchPolicy} from "apollo-client";
-import {isEmptyArray} from "../../shared/functions";
-import {VesselFeaturesService} from "./vessel-features.service";
-import {EntityAsObjectOptions, MINIFY_OPTIONS} from "../../core/services/model";
-import {VesselFilter} from "./vessel-service";
+import {VesselFilter, VesselFragments} from "./vessel-service";
 
 export const VesselSnapshotFragments = {
   lightVesselSnapshot: gql`fragment LightVesselSnapshotFragment on VesselSnapshotVO {
     id
-    startDate
-    endDate
     name
     exteriorMarking
     registrationCode
-    administrativePower
-    lengthOverAll
-    grossTonnageGt
-    grossTonnageGrt
-    creationDate
-    updateDate
-    comments
-    vesselType {
-      ...ReferentialFragment
-    }
-    vesselStatusId
     basePortLocation {
       ...LocationFragment
-    }
-    registrationLocation {
-      ...LocationFragment
-    }
-    recorderDepartment {
-     ...LightDepartmentFragment
     }
   }`,
   vesselSnapshot: gql`fragment VesselSnapshotFragment on VesselSnapshotVO {
@@ -81,23 +56,21 @@ export const VesselSnapshotFragments = {
 };
 
 const LoadAllQuery: any = gql`
-  query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
+  query VesselSnapshots($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
     vesselSnapshots(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       ...LightVesselSnapshotFragment
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${ReferentialFragments.location}
-  ${ReferentialFragments.lightDepartment}
-  ${ReferentialFragments.referential}
 `;
 const LoadQuery: any = gql`
-  query Vessel($vesselId: Int, $vesselFeaturesId: Int) {
+  query VesselSnapshot($vesselId: Int, $vesselFeaturesId: Int) {
     vesselSnapshots(filter: {vesselId: $vesselId, vesselFeaturesId: $vesselFeaturesId}) {
-      ...VesselSnapshotFragment
+      ...VesselFragment
     }
   }
-  ${VesselSnapshotFragments.vesselSnapshot}
+  ${VesselFragments.vessel}
   ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.lightPerson}
@@ -107,7 +80,7 @@ const LoadQuery: any = gql`
 @Injectable({providedIn: 'root'})
 export class VesselSnapshotService
   extends BaseDataService
-  implements SuggestionDataService<VesselSnapshot>, DataService<VesselSnapshot, VesselFilter> {
+  implements SuggestionDataService<VesselSnapshot> {
 
   constructor(
     protected graphql: GraphqlService
@@ -192,13 +165,6 @@ export class VesselSnapshotService
     return null;
   }
 
-  async saveAll(vessels: VesselSnapshot[]): Promise<VesselSnapshot[]> {
-    throw new Error("Not implemented.");
-  }
-
-  deleteAll(vessels: VesselSnapshot[]): Promise<any> {
-    throw new Error("Not implemented.");
-  }
 
   /* -- protected methods -- */
 

@@ -9,7 +9,7 @@
   <ion-grid>
 
     <!-- Registration -->
-    <ion-row [formGroup]="form.get('registration')">
+    <ion-row [formGroup]="form.controls.registration">
       <ion-col>
         <mat-form-field>
           <input matInput [placeholder]="'VESSEL.REGISTRATION.REGISTRATION_CODE'|translate" formControlName="registrationCode"
@@ -37,7 +37,7 @@
     </ion-row>
 
     <!-- Exterior marking -->
-    <ion-row [formGroup]="form.get('features')">
+    <ion-row [formGroup]="form.controls.features">
       <ion-col>
         <mat-form-field>
           <input matInput [placeholder]="'VESSEL.FEATURES.EXTERIOR_MARKING'|translate" formControlName="exteriorMarking"
@@ -56,7 +56,7 @@
     </ion-row>
 
     <!-- Name -->
-    <ion-row [formGroup]="form.get('features')">
+    <ion-row [formGroup]="form.controls.features">
       <ion-col>
         <mat-form-field>
           <input matInput [placeholder]="'VESSEL.FEATURES.NAME'|translate" formControlName="name" required autocomplete="off">
@@ -79,7 +79,7 @@
     </ion-row>
 
     <!-- Base port location -->
-    <ion-row [formGroup]="form.get('features')">
+    <ion-row [formGroup]="form.controls.features">
       <ion-col>
         <mat-autocomplete-field
           [placeholder]="'VESSEL.FEATURES.BASE_PORT_LOCATION'|translate"
@@ -92,7 +92,7 @@
     </ion-row>
 
     <!-- Features -->
-    <ion-row [formGroup]="form.get('features')">
+    <ion-row [formGroup]="form.controls.features">
       <!-- length over all -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
@@ -150,22 +150,24 @@
     <ion-row *ngIf="isAdmin() || !defaultStatus">
       <ion-col>
         <mat-form-field>
-          <mat-select formControlName="statusId" [placeholder]="'REFERENTIAL.STATUS'|translate">
+          <mat-select [placeholder]="'REFERENTIAL.STATUS'|translate"
+                      formControlName="statusId"
+                      required>
             <mat-select-trigger>
-              <span *ngIf="form.get('statusId').value &gt;= 0">{{ statusById[form.get('statusId').value]?.label | translate}}</span>
+              <span *ngIf="form.controls.statusId.value &gt;= 0">{{ statusById[form.controls.statusId.value]?.label | translate}}</span>
             </mat-select-trigger>
             <mat-option *ngFor="let item of statusList" [value]="item.id">
               <ion-icon [name]="item.icon"></ion-icon>
               {{ item.label | translate }}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="form.get('statusId').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
 
     <!-- Comments -->
-    <ion-row [formGroup]="form.get('features')">
+    <ion-row [formGroup]="form.controls.features">
       <ion-col>
         <mat-form-field appearance="outline">
           <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'VESSEL.FEATURES.COMMENTS'|translate"

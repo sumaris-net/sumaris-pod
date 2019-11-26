@@ -172,7 +172,7 @@
         <ion-label translate>OBSERVED_LOCATION.TABLE.LOCATION</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{referentialToString(row.currentData.location)}}
+        {{referentialToString(row.currentData.location, autocompleteFields.location.attributes)}}
       </mat-cell>
     </ng-container>
 

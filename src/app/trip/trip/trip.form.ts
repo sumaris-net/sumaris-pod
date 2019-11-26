@@ -1,24 +1,11 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {TripValidatorService} from "../services/trip.validator";
-import {
-  LocationLevelIds,
-  Referential,
-  StatusIds,
-  Trip,
-  VesselSnapshot,
-  vesselSnapshotToString
-} from "../services/trip.model";
+import {LocationLevelIds, StatusIds, Trip, VesselSnapshot,} from "../services/trip.model";
 import {ModalController} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {AppForm} from '../../core/core.module';
-import {
-  ProgramService,
-  ReferentialRefService,
-  referentialToString,
-  VesselModal,
-  VesselService
-} from "../../referential/referential.module";
+import {ReferentialRefService, referentialToString, VesselModal} from "../../referential/referential.module";
 import {UsageMode} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -55,7 +42,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: TripValidatorService,
-    protected vesselService: VesselSnapshotService,
+    protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
@@ -79,13 +66,15 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     });
 
     // Combo: vessels
-    this.registerAutocompleteField('vesselSnapshot', {
-      service: this.vesselService,
-      attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key)),
+    const vesselField = this.registerAutocompleteField('vesselSnapshot', {
+      service: this.vesselSnapshotService,
+      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }
     });
+    // Add base port location
+    vesselField.attributes = vesselField.attributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key));
 
     // Combo location
     this.registerAutocompleteField('location', {
@@ -113,10 +102,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     return modal.present();
   }
 
+  referentialToString = referentialToString;
+
   /* -- protected methods-- */
 
-  vesselSnapshotToString = vesselSnapshotToString;
-  referentialToString = referentialToString;
 
   protected markForCheck() {
     this.cd.markForCheck();

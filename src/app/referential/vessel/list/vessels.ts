@@ -16,7 +16,7 @@ import {
   fromDateISOString,
   referentialToString,
   ReferentialRef,
-  Vessel
+  Vessel, statusToColor
 } from "../../services/model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
@@ -67,6 +67,7 @@ export class VesselsPage extends AppTable<Vessel, VesselFilter> implements OnIni
       // columns
       RESERVED_START_COLUMNS
         .concat([
+          'status',
           'features.exteriorMarking',
           'registration.registrationCode',
           'features.startDate',
@@ -74,10 +75,9 @@ export class VesselsPage extends AppTable<Vessel, VesselFilter> implements OnIni
           'features.name',
           'vesselType',
           'features.basePortLocation',
-          'features.comments',
-          'statusId'])
+          'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, vesselValidatorService, {
+      new AppTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         serviceOptions: {
@@ -157,6 +157,7 @@ export class VesselsPage extends AppTable<Vessel, VesselFilter> implements OnIni
   }
 
   referentialToString = referentialToString;
+  statusToColor = statusToColor;
 
   /* -- protected methods -- */
 

@@ -216,7 +216,7 @@ export class AppComponent {
     console.debug("[app] Add additional settings fields...");
 
     this.settings.registerAdditionalFields(
-      // Configurable fields
+      // Configurable fields, with label and name
       ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear']
         // Map into option definition
         .map(fieldName => {
@@ -232,6 +232,15 @@ export class AppComponent {
           ]
         } as FormFieldDefinition;
       }));
+
+    this.settings.registerAdditionalField({
+      key: 'sumaris.field.vesselSnapshot.attributes',
+      label: 'SETTINGS.FIELDS.VESSEL.NAME',
+      type: 'enum',
+      values: [
+        {key: 'exteriorMarking,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.EXTERIOR_MARKING_NAME'},
+        {key: 'registrationCode,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.REGISTRATION_CODE_NAME'}
+      ]});
   }
 
 }

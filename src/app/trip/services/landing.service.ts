@@ -12,14 +12,14 @@ import gql from "graphql-tag";
 import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {map, throttleTime} from "rxjs/operators";
-import {fromDateISOString, isNil, isNilOrBlank, isNotNil, isNotNilOrNaN} from "../../shared/functions";
+import {fromDateISOString, isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {RootDataService} from "./root-data-service.class";
 import {TripFilter} from "./trip.service";
 import {Sample} from "./model/sample.model";
 import {EntityUtils} from "../../core/services/model";
 import {DataRootEntityUtils} from "./model/base.model";
 import {WatchQueryFetchPolicy} from "apollo-client";
-import {Operation} from "./model/trip.model";
+import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 
 
 export class LandingFilter extends TripFilter {
@@ -48,7 +48,7 @@ export const LandingFragments = {
     observedLocationId
     tripId
     vesselSnapshot {
-      ...VesselSnapshotFragment
+      ...LightVesselSnapshotFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -63,7 +63,7 @@ export const LandingFragments = {
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
-  ${DataFragments.vesselSnapshot}
+  ${VesselSnapshotFragments.lightVesselSnapshot}
   `,
   landing: gql`fragment LandingFragment on LandingVO {
     id
@@ -84,7 +84,7 @@ export const LandingFragments = {
     observedLocationId
     tripId
     vesselSnapshot {
-      ...VesselSnapshotFragment
+      ...LightVesselSnapshotFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -103,7 +103,7 @@ export const LandingFragments = {
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
-  ${DataFragments.vesselSnapshot}
+  ${VesselSnapshotFragments.lightVesselSnapshot}
   ${DataFragments.sample}
   `
 };
@@ -120,7 +120,7 @@ const LoadAllQuery: any = gql`
 `;
 
 const LoadQuery: any = gql`
-  query Landing($id: Int){
+  query Landing($id: Int!){
     landing(id: $id){
       ...LandingFragment
     }
@@ -138,13 +138,13 @@ const SaveAllQuery: any = gql`
 `;
 
 const DeleteByIdsMutation: any = gql`
-  mutation DeleteLandings($ids:[Int]){
+  mutation DeleteLandings($ids:[Int!]){
     deleteLandings(ids: $ids)
   }
 `;
 
 const UpdateSubscription = gql`
-  subscription UpdateLanding($id: Int, $interval: Int){
+  subscription UpdateLanding($id: Int!, $interval: Int){
     updateLanding(id: $id, interval: $interval) {
       ...LandingFragment
     }

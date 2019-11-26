@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {environment} from "../../core/core.module";
+import {environment, StatusIds} from "../../core/core.module";
 import {
   Landing,
   ObservedLocation,
@@ -14,6 +14,7 @@ import {LandingValidatorService} from "../services/landing.validator";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {measurementValueToString} from "../services/model/measurement.model";
 import {AcquisitionLevelCodes} from "../../referential/referential.module";
+import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'dateTime', 'observers'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -29,6 +30,7 @@ export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
 
   protected cd: ChangeDetectorRef;
+  protected vesselSnapshotService: VesselSnapshotService;
 
   @Input() canEdit = true;
   @Input() canDelete = true;
@@ -73,6 +75,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.confirmBeforeDelete = true;
     this._enable = this.canEdit;
     this.pageSize = 1000; // Do not use paginator
+    this.vesselSnapshotService = injector.get(VesselSnapshotService);
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
@@ -83,6 +86,14 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.registerAutocompleteField('vesselSnapshot', {
+      service: this.vesselSnapshotService,
+      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
+    });
   }
 
   setParent(data: ObservedLocation | Trip) {

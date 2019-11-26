@@ -157,7 +157,7 @@ export class ReferentialRefService extends BaseDataService
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || "cache-first"
+      fetchPolicy: options && options.fetchPolicy || 'cache-first'
     });
     const data = (res && res.referentials || []).map(ReferentialRef.fromObject);
     if (this._debug) console.debug(`[referential-ref-service] References on ${entityName} loaded in ${Date.now() - now}ms`, data);

@@ -47,7 +47,7 @@ export const DefaultStatusList: StatusValue[] = [
   },
   {
     id: StatusIds.TEMPORARY,
-    icon: 'warning',
+    icon: 'help',
     label: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
   }
 ];

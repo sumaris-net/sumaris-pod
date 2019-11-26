@@ -29,6 +29,7 @@ import {isNotNil} from "../../shared/functions";
 export class GraphqlService {
 
   private _started = false;
+  private _startPromise: Promise<any>;
   private _subscription = new Subscription();
   private _$networkStatusChanged: Observable<ConnectionType>;
 
@@ -76,6 +77,35 @@ export class GraphqlService {
         filter(type => isNotNil(type)),
         distinctUntilChanged()
       );
+  }
+
+  ready(): Promise<void> {
+    if (this._started) return Promise.resolve();
+    if (this._startPromise) return this._startPromise;
+    return this.start();
+  }
+
+  start(): Promise<void> {
+    if (this._startPromise) return this._startPromise;
+    if (this._started) return;
+
+    console.info("[graphql] Starting graphql...");
+
+    // Waiting for network service
+    this._startPromise = this.network.ready()
+      .then(() => this.initApollo())
+      .then(() => {
+        this._started = true;
+        this._startPromise = undefined;
+
+        // Emit event
+        this.onStart.next();
+      })
+      .catch((err) => {
+        console.error(err && err.message || err, err);
+        this._startPromise = undefined;
+      });
+    return this._startPromise;
   }
 
   setAuthToken(authToken: string) {
@@ -391,22 +421,10 @@ export class GraphqlService {
     if (this._debug) console.debug("[graphql] Unable to update entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  async ready(): Promise<void> {
-    if (this._started) return;
-    await this.onStart.toPromise();
-  }
-
-
   /* -- protected methods -- */
 
+  protected async initApollo() {
 
-  protected async start() {
-    if (this._started) return;
-
-    console.info("[graphql] Starting graphql...");
-
-    // Waiting for network service
-    await this.network.ready();
     const peer = this.network.peer;
     if (!peer) throw Error("[graphql] Missing peer. Unable to start graphql service");
 
@@ -493,7 +511,7 @@ export class GraphqlService {
 
       // Enable cache persistence
       if ((environment.offline || this.platform.is('mobile')) && environment.persistCache) {
-        console.debug("[apollo] Starting persistence cache...");
+        console.debug("[graphql] Starting persistence cache...");
         await persistCache({
           cache,
           storage,
@@ -524,7 +542,7 @@ export class GraphqlService {
             ]),
 
             ApolloLink.split(
-            (operation) => {
+              (operation) => {
                 const def = getMainDefinition(operation.query);
                 return def.kind === 'OperationDefinition' && def.operation === 'subscription';
               },
@@ -539,19 +557,14 @@ export class GraphqlService {
                 authLink,
                 httpLink
               ])
-          )
-        ),
+            )
+          ),
         cache,
         connectToDevTools: !environment.production
       }, 'default');
 
       client = this.apollo.getClient();
     }
-
-    this._started = true;
-
-    // Emit event
-    this.onStart.next();
 
     // Enable tracked queries persistence
     if ((environment.offline || this.platform.is('mobile')) && environment.persistCache) {
@@ -569,15 +582,19 @@ export class GraphqlService {
   }
 
   protected async stop() {
+    console.info('[graphql] Stopping graphql service...');
     this._subscription.unsubscribe();
     this._subscription = new Subscription();
     await this.resetClient();
     this._started = false;
+    this._startPromise = undefined;
   }
 
-  protected async restart() {
-    if (this._started) await this.stop();
-    await this.start();
+  protected async restart(): Promise<void> {
+    if (this.started) {
+      return this.stop().then(() => this.start());
+    }
+    return this.start();
   }
 
 

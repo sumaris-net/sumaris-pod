@@ -4,7 +4,7 @@ import {BaseDataService} from "./base.data-service.class";
 import {ConfigOptions, Configuration} from "./model";
 import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {ErrorCodes} from "./errors";
 import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "./graphql.service";
@@ -74,6 +74,7 @@ export class ConfigService extends BaseDataService {
 
   private _started = false;
   private _startPromise: Promise<any>;
+  private _subscription = new Subscription();
   private _optionDefs: FormFieldDefinition[];
 
   private $data = new BehaviorSubject<Configuration>(null);
@@ -94,14 +95,15 @@ export class ConfigService extends BaseDataService {
     protected storage: Storage,
     @Optional() @Inject(APP_CONFIG_OPTIONS) private defaultOptionsMap: FormFieldDefinitionMap
   ) {
-
     super(graphql);
+    console.debug("[config] Creating configuration service");
 
     this.defaultOptionsMap = {...ConfigOptions, ...defaultOptionsMap};
     this._optionDefs = Object.keys(this.defaultOptionsMap).map(name => defaultOptionsMap[name]);
 
     // Restart if graphql service restart
-    this.graphql.onStart.subscribe(() => this.restart());
+    this._subscription.add(
+      this.graphql.onStart.subscribe(() => this.restart()));
 
 
     // Start
@@ -111,15 +113,14 @@ export class ConfigService extends BaseDataService {
 
   }
 
-  async start(): Promise<void> {
+  start(): Promise<void> {
     if (this._startPromise) return this._startPromise;
     if (this._started) return;
 
     console.info("[config] Starting configuration...");
 
-    await this.graphql.ready();
-
-    this._startPromise = this.loadOrRestoreLocally()
+    this._startPromise = this.graphql.ready()
+      .then(() => this.loadOrRestoreLocally())
       .then(() => {
         this._started = true;
         this._startPromise = undefined;
@@ -133,13 +134,15 @@ export class ConfigService extends BaseDataService {
   }
 
   stop() {
+    this._subscription.unsubscribe();
+    this._subscription = new Subscription();
     this._started = false;
     this._startPromise = undefined;
   }
 
-  restart() {
+  restart(): Promise<void> {
     if (this.started) this.stop();
-    this.start();
+    return this.start();
   }
 
   ready(): Promise<void> {
@@ -249,6 +252,8 @@ export class ConfigService extends BaseDataService {
     // Reset name if same
     data.name = (data.name !== data.label) ? data.name : undefined;
 
+    this.overrideEnums(data);
+
     this.$data.next(data);
 
   }
@@ -288,6 +293,10 @@ export class ConfigService extends BaseDataService {
       const jsonStr = JSON.stringify(data);
       await this.storage.set(CONFIGURATION_STORAGE_KEY, jsonStr);
     }
+  }
+
+  private overrideEnums(config: Configuration) {
+    console.log("[config] Overriding model enumerations...");
   }
 
 }

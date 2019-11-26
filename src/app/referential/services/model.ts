@@ -22,11 +22,13 @@ import {
 import {Moment} from "moment/moment";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
+import {isNilOrBlank} from "../../shared/functions";
+import {PredefinedColors} from "@ionic/core";
 
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 6,
+  PORT: 2, // TODO SFA=6
   AUCTION: 3
 };
 
@@ -122,7 +124,7 @@ export {
 
 export function vesselSnapshotToString(obj: VesselSnapshot | any): string | undefined {
   // TODO may be SFA will prefer 'registrationCode' instead of 'exteriorMarking' ?
-  return obj && obj.vesselId && joinPropertiesPath(obj, ['exteriorMarking', 'name']) || undefined;
+  return obj && isNotNil(obj.id) && joinPropertiesPath(obj, ['exteriorMarking', 'name']) || undefined;
 }
 
 export function getPmfmName(pmfm: PmfmStrategy, opts?: {
@@ -136,10 +138,10 @@ export function getPmfmName(pmfm: PmfmStrategy, opts?: {
   return name;
 }
 
-export function qualityFlagToColor(qualityFlagId: number) {
+export function qualityFlagToColor(qualityFlagId: number): PredefinedColors {
   switch (qualityFlagId) {
     case QualityFlagIds.NOT_QUALIFIED:
-      return 'tertiary';
+      return 'secondary';
     case QualityFlagIds.GOOD:
     case QualityFlagIds.FIXED:
       return 'success';
@@ -149,6 +151,20 @@ export function qualityFlagToColor(qualityFlagId: number) {
     case QualityFlagIds.BAD:
     case QualityFlagIds.MISSING:
     case QualityFlagIds.NOT_COMPLETED:
+      return 'danger';
+    default:
+      return 'secondary';
+  }
+}
+
+
+export function statusToColor(statusId: number): PredefinedColors {
+  switch (statusId) {
+    case StatusIds.ENABLE:
+      return 'tertiary';
+    case StatusIds.TEMPORARY:
+      return 'secondary';
+    case StatusIds.DISABLE:
       return 'danger';
     default:
       return 'secondary';
@@ -308,8 +324,8 @@ export class Vessel extends Entity<Vessel> {
     const target: any = super.asObject(options);
 
     target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.features = this.features && this.features.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.registration = this.registration && this.registration.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.features = this.features && !this.features.empty && this.features.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.registration = this.registration && !this.registration.empty && this.registration.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
     target.creationDate = toDateISOString(this.creationDate);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
@@ -417,6 +433,10 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
     return this;
   }
+
+  get empty(): boolean {
+    return isNil(this.id) && isNilOrBlank(this.exteriorMarking) && isNilOrBlank(this.name) && isNil(this.startDate);
+  }
 }
 
 export class VesselRegistration extends Entity<VesselRegistration> {
@@ -473,6 +493,12 @@ export class VesselRegistration extends Entity<VesselRegistration> {
     this.registrationLocation = source.registrationLocation && ReferentialRef.fromObject(source.registrationLocation) || undefined;
     return this;
   }
+
+  get empty(): boolean {
+    return isNil(this.id) && isNilOrBlank(this.registrationCode) && isNilOrBlank(this.intRegistrationCode)
+      && EntityUtils.isEmpty(this.registrationLocation)
+      && isNil(this.startDate);
+  }
 }
 
 export const ProgramProperties: FormFieldDefinitionMap = {
@@ -484,7 +510,7 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     type: 'boolean'
   },
   TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE: {
-    key: "false",
+    key: "sumaris.trip.gear.rankOrder.enable",
     label: "PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE",
     defaultValue: "false",
     type: 'boolean'
@@ -914,3 +940,4 @@ export class PmfmUtils {
     return qvPmfm;
   }
 }
+

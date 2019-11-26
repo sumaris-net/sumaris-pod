@@ -365,7 +365,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.markForCheck();
+    this.cd.markForCheck();
   }
 
   selectInputContent = selectInputContent;
@@ -408,7 +408,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   private checkIfTouched() {
     if (this.formControl.touched) {
-      this.markForCheck();
+      this.cd.markForCheck();
       this._onTouchedCallback();
     }
   }

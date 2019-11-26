@@ -110,12 +110,5 @@ export const DataFragments = {
     __typename
   }
   ${Fragments.referential}
-  ${ReferentialFragments.taxonName}`,
-  vesselSnapshot: gql`fragment VesselSnapshotFragment on VesselSnapshotVO {
-    id
-    name
-    exteriorMarking
-    registrationCode
-  }
-  `
+  ${ReferentialFragments.taxonName}`
 };

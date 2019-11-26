@@ -255,6 +255,13 @@
         "NAME": "Libellé",
         "LABEL_NAME": "Code - Libellé",
         "NAME_LABEL": "Libellé - Code"
+      },
+      "VESSEL": {
+        "NAME": "Liste déroulante > Navires",
+        "ATTRIBUTES": {
+          "EXTERIOR_MARKING_NAME": "Marquage extérieur - Nom",
+          "REGISTRATION_CODE_NAME": "Code d'immatriculation - Nom"
+        }
       }
     },
     "ERROR": {
@@ -683,7 +690,7 @@
       "NEW_FEATURES": "Declarer un changement de caratéristiques",
       "EDIT_REGISTRATION": "Corriger l'immatriculation",
       "NEW_REGISTRATION": "Declarer une nouvelle immatriculation",
-      "EDIT_STATUS": "Modifier le status"
+      "EDIT_STATUS": "Modifier l'état de saisie"
     },
     "EDIT": {
       "TITLE": "Navire {{exteriorMarking}}"
@@ -712,7 +719,8 @@
     "COMMENTS": "Commentaires",
     "STATUS": "Etat",
     "RANK_ORDER": "#",
-    "EXTERIOR_MARKING": "Immatriculation",
+    "EXTERIOR_MARKING": "Marquage extérieur",
+    "REGISTRATION_CODE": "Immatriculation",
     "BASE_PORT_LOCATION": {
       "LABEL": "Code port d'attache",
       "NAME": "Libellé port d'attache"
@@ -737,8 +745,8 @@
       }
     },
     "STATUS_ENUM": {
-      "ENABLE": "Actif",
-      "DISABLE": "Inactif",
+      "ENABLE": "Actif à la saisie",
+      "DISABLE": "Inactif à la saisie",
       "TEMPORARY": "Temporaire",
       "DELETED": "En cours de suppression"
     },

@@ -60,7 +60,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected accountService: AccountService,
     protected dataService: TripService,
     protected referentialRefService: ReferentialRefService,
-    protected vesselService: VesselSnapshotService,
+    protected vesselSnapshotService: VesselSnapshotService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
@@ -130,8 +130,8 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     // Combo: vessels
     this.registerAutocompleteField('vesselSnapshot', {
-      service: this.vesselService,
-      attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key)),
+      service: this.vesselSnapshotService,
+      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }
@@ -183,7 +183,6 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.onRefresh.emit();
   }
 
-  vesselSnapshotToString = vesselSnapshotToString;
   referentialToString = referentialToString;
   personsToString = personsToString;
   qualityFlagToColor = qualityFlagToColor;

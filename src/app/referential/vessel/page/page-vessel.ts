@@ -79,7 +79,7 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
   }
 
   protected registerFormsAndTables() {
-    this.registerForm(this.vesselForm); //.registerTables([this.featuresHistoryTable, this.registrationHistoryTable]);
+    this.registerForm(this.vesselForm);
   }
 
   protected async onNewEntity(data: Vessel, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -108,7 +108,7 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
   }
 
   protected getFirstInvalidTabIndex(): number {
-    return this.vesselForm.invalid ? 0 : 0; // no other tab for now
+    return this.vesselForm.invalid ? 0 : -1;
   }
 
   protected async computeTitle(data: Vessel): Promise<string> {
@@ -223,18 +223,16 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
     this.form.get("vesselType").disable();
   }
 
-  protected getJsonValueToSave(): Promise<any> {
-    this.form.enable();
-    return super.getJsonValueToSave();
-  }
-
-  async save(event): Promise<boolean> {
-
-    return super.save(event, {
+  async save(event, options?: any): Promise<boolean> {
+    const res = await super.save(event, {
       previousVessel: this.previousVessel,
       isNewFeatures: this.isNewFeatures,
       isNewRegistration: this.isNewRegistration
     });
+    return res;
+  }
 
+  protected getJsonValueToSave(): Promise<any> {
+    return this.form.getRawValue();
   }
 }

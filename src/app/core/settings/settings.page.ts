@@ -14,6 +14,7 @@ import {NetworkService} from "../services/network.service";
 import {isNil, isNilOrBlank, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
+import {merge} from "rxjs";
 
 @Component({
   selector: 'page-settings',
@@ -95,8 +96,12 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     // Load settings
     await this.load();
 
-    this.accountService.onLogin.subscribe(() => this.setAccountInheritance(this.accountInheritance));
-    this.accountService.onLogout.subscribe(() => this.setAccountInheritance(this.accountInheritance));
+    this.registerSubscription(
+      merge(
+        this.accountService.onLogin,
+        this.accountService.onLogout
+      )
+      .subscribe(() => this.setAccountInheritance(this.accountInheritance)));
   }
 
   getPropertyDefinition(index: number): FormFieldDefinition {

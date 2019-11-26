@@ -85,7 +85,6 @@
               [placeholder]="'TRIP.TABLE.FILTER.VESSEL'|translate"
               formControlName="vesselSnapshot"
               [config]="autocompleteFields.vesselSnapshot"
-              [displayWith]="vesselSnapshotToString"
               clearable="true">
               <ion-icon matPrefix name="boat"></ion-icon>
             </mat-autocomplete-field>
@@ -204,7 +203,7 @@
         <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-label>{{vesselSnapshotToString(row.currentData.vesselSnapshot)}}</ion-label>
+        <ion-label>{{referentialToString(row.currentData.vesselSnapshot, autocompleteFields.vesselSnapshot.attributes)}}</ion-label>
       </mat-cell>
     </ng-container>
 
@@ -214,7 +213,7 @@
         <ion-label translate>TRIP.TABLE.DEPARTURE_LOCATION</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{referentialToString(row.currentData.departureLocation)}}
+        {{referentialToString(row.currentData.departureLocation, autocompleteFields.location.attributes)}}
       </mat-cell>
     </ng-container>
 
@@ -263,7 +262,7 @@
       <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-        <button mat-icon-button small color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
+        <button mat-icon-button color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
           <mat-icon>undo</mat-icon>
         </button>
       </mat-cell>

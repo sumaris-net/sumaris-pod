@@ -101,7 +101,7 @@ const LoadAllQuery: any = gql`
 `;
 // Load query
 const LoadQuery: any = gql`
-  query ObservedLocation($id: Int) {
+  query ObservedLocation($id: Int!) {
     observedLocation(id: $id) {
       ...ObservedLocationFragment
     }
@@ -124,7 +124,7 @@ const DeleteByIdsMutation: any = gql`
 `;
 
 const UpdateSubscription = gql`
-  subscription UpdateObservedLocation($id: Int, $interval: Int){
+  subscription UpdateObservedLocation($id: Int!, $interval: Int){
     updateObservedLocation(id: $id, interval: $interval) {
       ...ObservedLocationFragment
     }

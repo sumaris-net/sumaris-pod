@@ -93,7 +93,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected validatorService: LandingValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
-    protected vesselService: VesselSnapshotService,
+    protected vesselSnapshotService: VesselSnapshotService,
     protected settings: LocalSettingsService,
     protected modalCtrl: ModalController,
     protected cd: ChangeDetectorRef
@@ -139,13 +139,15 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     });
 
     // Combo: vessels
-    this.registerAutocompleteField('vesselSnapshot', {
-      service: this.vesselService,
-      attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key)),
+    const vesselField = this.registerAutocompleteField('vesselSnapshot', {
+      service: this.vesselSnapshotService,
+      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }
     });
+    // Add base port location
+    vesselField.attributes = vesselField.attributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key));
 
     // Propagate program
     this.registerSubscription(
@@ -242,7 +244,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   entityToString = entityToString;
   referentialToString = referentialToString;
-  vesselSnapshotToString = vesselSnapshotToString;
+  VesselSnapshotToString = vesselSnapshotToString;
 
 
   protected markForCheck() {

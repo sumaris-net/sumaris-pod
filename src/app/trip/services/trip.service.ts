@@ -14,7 +14,7 @@ import {map} from "rxjs/operators";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
-import {DataFragments, Fragments} from "./trip.queries";
+import {Fragments} from "./trip.queries";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
@@ -31,7 +31,7 @@ import {Observable} from "rxjs";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {isEmptyArray} from "../../shared/functions";
 import {DataQualityService} from "./trip.services";
-import * as moment from "moment";
+import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -73,7 +73,7 @@ export const TripFragments = {
       ...LocationFragment
     }
     vesselSnapshot {
-        ...VesselSnapshotFragment
+        ...LightVesselSnapshotFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -88,7 +88,7 @@ export const TripFragments = {
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
-  ${DataFragments.vesselSnapshot}
+  ${VesselSnapshotFragments.lightVesselSnapshot}
   `,
   trip: gql`fragment TripFragment on TripVO {
     id
@@ -112,7 +112,7 @@ export const TripFragments = {
       ...LocationFragment
     }
     vesselSnapshot {
-      ...VesselSnapshotFragment
+      ...LightVesselSnapshotFragment
     }
     sale {
       id
@@ -148,7 +148,7 @@ export const TripFragments = {
   ${Fragments.measurement}
   ${Fragments.referential}
   ${Fragments.location}
-  ${DataFragments.vesselSnapshot}
+  ${VesselSnapshotFragments.lightVesselSnapshot}
   ${physicalGearFragment}
   `
 };

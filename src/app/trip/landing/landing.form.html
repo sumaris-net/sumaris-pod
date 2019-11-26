@@ -6,10 +6,10 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <ion-grid class="ion-no-padding">
+  <ion-grid>
 
     <!-- PROGRAM -->
-    <ion-row class="ion-no-padding" *ngIf="showProgram">
+    <ion-row *ngIf="showProgram">
       <ion-col size="12" size-md="2" size-lg="3" hidden-xs hidden-sm>
         <ion-label>&nbsp;</ion-label>
       </ion-col>
@@ -25,7 +25,7 @@
     </ion-row>
 
     <!-- VESSEL -->
-    <ion-row class="ion-no-padding" *ngIf="showVessel">
+    <ion-row *ngIf="showVessel">
       <ion-col size="12" size-md="2" size-lg="3" hidden-xs hidden-sm>
         <ion-label>&nbsp;</ion-label>
       </ion-col>
@@ -34,7 +34,6 @@
           [placeholder]="'TRIP.VESSEL'|translate"
           formControlName="vesselSnapshot"
           [config]="autocompleteFields.vesselSnapshot"
-          [displayWith]="VesselSnapshotToString"
           required>
           <ion-icon matPrefix name="boat"></ion-icon>
         </mat-autocomplete-field>
@@ -48,7 +47,7 @@
     </ion-row>
 
     <!-- LOCATION + date/time-->
-    <ion-row class="ion-no-padding" *ngIf="showLocation || showDateTime">
+    <ion-row *ngIf="showLocation || showDateTime">
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label class="ion-float-end" translate>LANDING.LANDING</ion-label>
       </ion-col>

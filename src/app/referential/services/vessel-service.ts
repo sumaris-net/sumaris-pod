@@ -34,6 +34,35 @@ export class VesselFilter {
 }
 
 export const VesselFragments = {
+  lightVessel: gql`fragment VesselFragment on VesselVO {
+      id
+      comments
+      statusId
+      #        qualityFlagId
+      #        program
+      creationDate
+      controlDate
+      validationDate
+      qualificationDate
+      qualificationComments
+      updateDate
+      comments
+      vesselType {
+        ...ReferentialFragment
+      }
+      features {
+        ...VesselFeaturesFragment
+      }
+      registration{
+        ...RegistrationFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      recorderPerson {
+        ...LightPersonFragment
+      }
+    }`,
     vessel: gql`fragment VesselFragment on VesselVO {
         id
         comments

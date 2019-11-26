@@ -11,6 +11,7 @@ import {GraphqlService} from "../../core/services/graphql.service";
 import {WatchQueryFetchPolicy} from "apollo-client";
 import {AccountService} from "../../core/services/account.service";
 import {SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
+import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment on SaleVO {
@@ -24,7 +25,7 @@ export const SaleFragments = {
       ...LocationFragment
     }
     vesselSnapshot {
-      ...VesselSnapshotFragment
+      ...LightVesselSnapshotFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -32,7 +33,7 @@ export const SaleFragments = {
   }
   ${Fragments.location}
   ${Fragments.lightDepartment}
-  ${DataFragments.vesselSnapshot}
+  ${VesselSnapshotFragments.lightVesselSnapshot}
   `,
   sale: gql`fragment SaleFragment on SaleVO {
     id
@@ -51,7 +52,7 @@ export const SaleFragments = {
       ...SampleFragment
     }
     vesselSnapshot {
-      ...VesselSnapshotFragment
+      ...LightVesselSnapshotFragment
     }
     recorderPerson {
         ...LightPersonFragment
@@ -68,7 +69,7 @@ export const SaleFragments = {
   ${Fragments.measurement}
   ${Fragments.location}
   ${DataFragments.sample}
-  ${DataFragments.vesselSnapshot}
+  ${VesselSnapshotFragments.lightVesselSnapshot}
   `
 };
 
