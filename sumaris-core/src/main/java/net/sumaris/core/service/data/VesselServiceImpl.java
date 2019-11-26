@@ -107,14 +107,16 @@ public class VesselServiceImpl implements VesselService {
 		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
 		Preconditions.checkNotNull(source.getVesselType(), "Missing vesselId or vesselTypeId");
 
-		Preconditions.checkNotNull(source.getFeatures(), "Missing features object");
-		Preconditions.checkNotNull(source.getFeatures().getBasePortLocation().getId(), "Missing basePortLocation.id");
-		Preconditions.checkNotNull(source.getFeatures().getStartDate(), "Missing start date");
-		Preconditions.checkArgument(StringUtils.isNotBlank(source.getFeatures().getExteriorMarking()), "Missing exterior marking");
+		if (source.getFeatures() != null) {
+			Preconditions.checkNotNull(source.getFeatures().getBasePortLocation().getId(), "Missing basePortLocation.id");
+			Preconditions.checkNotNull(source.getFeatures().getStartDate(), "Missing start date");
+			Preconditions.checkArgument(StringUtils.isNotBlank(source.getFeatures().getExteriorMarking()), "Missing exterior marking");
+		}
 
-		Preconditions.checkNotNull(source.getRegistration(), "Missing registration object");
-		Preconditions.checkArgument(StringUtils.isNotBlank(source.getRegistration().getRegistrationCode()), "Missing registration code");
-		Preconditions.checkNotNull(source.getRegistration().getRegistrationLocation().getId(), "Missing registration location");
+		if (source.getRegistration() != null) {
+			Preconditions.checkArgument(StringUtils.isNotBlank(source.getRegistration().getRegistrationCode()), "Missing registration code");
+			Preconditions.checkNotNull(source.getRegistration().getRegistrationLocation().getId(), "Missing registration location");
+		}
 
 		VesselVO savedVessel = vesselDao.save(source, checkUpdateDate);
 

@@ -237,49 +237,53 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
         // Save Vessel features
         VesselFeaturesVO features = vessel.getFeatures();
-        if (features.getId() == null) {
-            // New features
-            VesselFeatures featuresEntity = new VesselFeatures();
-            vesselFeaturesVOToEntity(features, featuresEntity, false);
-            featuresEntity.setCreationDate(newUpdateDate);
-            featuresEntity.setUpdateDate(newUpdateDate);
-            // Affect the vessel
-            featuresEntity.setVessel(vesselEntity);
-            // Create new entity
-            getEntityManager().persist(featuresEntity);
-            // Get new Id
-            features.setId(featuresEntity.getId());
-        } else {
-            // Update features
-            VesselFeatures featuresEntity = get(VesselFeatures.class, features.getId());
-            lockForUpdate(featuresEntity);
-            vesselFeaturesVOToEntity(features, featuresEntity, true);
-            featuresEntity.setUpdateDate(newUpdateDate);
-            // Update entity
-            getEntityManager().merge(featuresEntity);
+        if (features != null) {
+            if (features.getId() == null) {
+                // New features
+                VesselFeatures featuresEntity = new VesselFeatures();
+                vesselFeaturesVOToEntity(features, featuresEntity, false);
+                featuresEntity.setCreationDate(newUpdateDate);
+                featuresEntity.setUpdateDate(newUpdateDate);
+                // Affect the vessel
+                featuresEntity.setVessel(vesselEntity);
+                // Create new entity
+                getEntityManager().persist(featuresEntity);
+                // Get new Id
+                features.setId(featuresEntity.getId());
+            } else {
+                // Update features
+                VesselFeatures featuresEntity = get(VesselFeatures.class, features.getId());
+                lockForUpdate(featuresEntity);
+                vesselFeaturesVOToEntity(features, featuresEntity, true);
+                featuresEntity.setUpdateDate(newUpdateDate);
+                // Update entity
+                getEntityManager().merge(featuresEntity);
+            }
+            // update source feature update also
+            features.setUpdateDate(newUpdateDate);
         }
-        // update source feature update also
-        features.setUpdateDate(newUpdateDate);
 
         // Save Registration period
         VesselRegistrationVO registration = vessel.getRegistration();
-        if (registration.getId() == null) {
-            // New period
-            VesselRegistrationPeriod periodEntity = new VesselRegistrationPeriod();
-            vesselRegistrationPeriodVOToEntity(registration, periodEntity, false);
-            // Affect Vessel
-            periodEntity.setVessel(vesselEntity);
-            // Create new entity
-            getEntityManager().persist(periodEntity);
-            // Get new Id
-            vessel.getRegistration().setId(periodEntity.getId());
-        } else {
-            // Update period
-            VesselRegistrationPeriod registrationEntity = get(VesselRegistrationPeriod.class, registration.getId());
-            lockForUpdate(registrationEntity);
-            vesselRegistrationPeriodVOToEntity(registration, registrationEntity, true);
-            // Update entity
-            getEntityManager().merge(registrationEntity);
+        if (registration != null) {
+            if (registration.getId() == null) {
+                // New period
+                VesselRegistrationPeriod periodEntity = new VesselRegistrationPeriod();
+                vesselRegistrationPeriodVOToEntity(registration, periodEntity, false);
+                // Affect Vessel
+                periodEntity.setVessel(vesselEntity);
+                // Create new entity
+                getEntityManager().persist(periodEntity);
+                // Get new Id
+                vessel.getRegistration().setId(periodEntity.getId());
+            } else {
+                // Update period
+                VesselRegistrationPeriod registrationEntity = get(VesselRegistrationPeriod.class, registration.getId());
+                lockForUpdate(registrationEntity);
+                vesselRegistrationPeriodVOToEntity(registration, registrationEntity, true);
+                // Update entity
+                getEntityManager().merge(registrationEntity);
+            }
         }
 
         // Save entity
@@ -566,6 +570,15 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 target.setBasePortLocation(null);
             } else {
                 target.setBasePortLocation(load(Location.class, source.getBasePortLocation().getId()));
+            }
+        }
+
+        // Quality flag
+        if (copyIfNull || source.getQualityFlagId() != null) {
+            if (source.getQualityFlagId() == null) {
+                target.setQualityFlag(null);
+            } else {
+                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
             }
         }
     }
