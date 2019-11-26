@@ -32,8 +32,8 @@ import net.sumaris.rdf.dao.RdfModelDao;
 import net.sumaris.rdf.model.ModelEntities;
 import net.sumaris.rdf.util.Bean2Owl;
 import net.sumaris.rdf.util.Owl2Bean;
-import net.sumaris.rdf.util.RdfImportContext;
 import net.sumaris.rdf.util.OwlUtils;
+import net.sumaris.rdf.util.RdfImportContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntResource;
@@ -59,7 +59,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 
 @Service("rdfSynchroService")
