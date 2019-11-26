@@ -94,8 +94,8 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>
-        {{ row.currentData.startPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
-        {{ row.currentData.startPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
+        {{ row.currentData.startPosition && row.currentData.startPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
+        {{ row.currentData.startPosition && row.currentData.startPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
       </ion-text>
     </mat-cell>
   </ng-container>
@@ -117,8 +117,8 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-label>
-        {{row.currentData.endPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
-        {{row.currentData.endPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
+        {{row.currentData.endPosition && row.currentData.endPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
+        {{row.currentData.endPosition && row.currentData.endPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
       </ion-label>
     </mat-cell>
   </ng-container>

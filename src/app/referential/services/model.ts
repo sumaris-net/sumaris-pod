@@ -511,6 +511,12 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "true",
     type: 'boolean'
   },
+  TRIP_OBSERVERS_ENABLE: {
+    key: "sumaris.trip.observers.enable",
+    label: "PROGRAM.OPTIONS.TRIP_OBSERVERS_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE: {
     key: "sumaris.trip.gear.rankOrder.enable",
     label: "PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE",
@@ -558,6 +564,21 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     label: "PROGRAM.OPTIONS.TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE",
     defaultValue: "true",
     type: 'boolean'
+  },
+  TRIP_EDITOR: {
+    key: 'sumaris.trip.editor',
+    label: 'PROGRAM.OPTIONS.TRIP_EDITOR',
+    type: 'enum',
+    values: [
+      {
+        key: 'observed',
+        value: 'PROGRAM.OPTIONS.TRIP_EDITOR_OBSERVED_TRIP'
+      },
+      {
+        key: 'landing',
+        value: 'PROGRAM.OPTIONS.TRIP_EDITOR_TRIP_FROM_LANDING'
+      }],
+    defaultValue: 'observed'
   },
 
   // Observed location

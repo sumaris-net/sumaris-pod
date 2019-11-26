@@ -305,6 +305,8 @@
     "RETURN": "Retour :",
     "RETURN_DATE_TIME": "Date de retour",
     "RETURN_LOCATION": "Port de retour",
+    "OBSERVER_PLACEHOLDER": "Observateur #",
+    "OBSERVERS": "Observateurs :",
     "COMMENTS": "Commentaires",
     "QUALITY": "État de saisie",
     "TAB_GENERAL": "Détails",
@@ -792,7 +794,7 @@
   },
   "PROGRAM": {
     "TAB_GENERAL": "Détails",
-    "TAB_STRATEGIES": "Strategies",
+    "TAB_STRATEGIES": "Stratégies",
     "TAB_ACCESS_RIGHTS": "Droits d'accès",
     "PROPERTIES_DIVIDER": "Paramètres du programme :",
     "PROPERTY_KEY": "Paramètre",
@@ -805,7 +807,11 @@
       "TITLE": "Programme {{label}} - {{name}}"
     },
     "OPTIONS": {
+      "TRIP_EDITOR": "Marée : Editeur",
+      "TRIP_EDITOR_OBSERVED_TRIP": "Marée observée",
+      "TRIP_EDITOR_TRIP_FROM_LANDING": "Marée au débarquement",
       "TRIP_SALE_ENABLE": "Marée : Saisir la vente ?",
+      "TRIP_OBSERVERS_ENABLE": "Marée : Saisir les observateurs ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin : Saisir le numéro d'engin ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce : Espèces commerciales ?",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce : Espèces scientiques ?",
