@@ -572,6 +572,15 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 target.setBasePortLocation(load(Location.class, source.getBasePortLocation().getId()));
             }
         }
+
+        // Quality flag
+        if (copyIfNull || source.getQualityFlagId() != null) {
+            if (source.getQualityFlagId() == null) {
+                target.setQualityFlag(null);
+            } else {
+                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
+            }
+        }
     }
 
     private void vesselRegistrationPeriodVOToEntity(VesselRegistrationVO source, VesselRegistrationPeriod target, boolean copyIfNull) {
