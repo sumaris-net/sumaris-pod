@@ -61,7 +61,7 @@ public class Sample implements IRootDataEntity<Integer> {
     @Column(name = "individual_count")
     private Integer individualCount;
 
-    @Column
+    @Column(name = "sample_size")
     private Double size;
 
     @ManyToOne(fetch = FetchType.LAZY)
