@@ -127,7 +127,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     this.loading = true;
     console.debug("[settings] Loading settings...");
 
-    const data = this.settings.settings || {};
+    const data = this.settings.settings;
 
     // Set defaults
     data.accountInheritance = toBoolean(data.accountInheritance, true);

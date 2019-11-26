@@ -875,16 +875,15 @@ export declare interface PropertiesMap {
 export declare interface LocalSettings {
   pages?: any;
   peerUrl?: string;
-  latLongFormat?: 'DDMMSS' | 'DDMM' | 'DD';
+  latLongFormat: 'DDMMSS' | 'DDMM' | 'DD';
   accountInheritance?: boolean;
-  locale?: string;
+  locale: string;
   usageMode?: UsageMode;
-  defaultPrograms?: string[];
   mobile?: boolean;
   touchUi?: boolean;
   properties?: PropertiesMap;
   pageHistory?: HistoryPageReference[];
-  pageHistoryMaxSize?: number;
+  pageHistoryMaxSize: number;
 }
 
 

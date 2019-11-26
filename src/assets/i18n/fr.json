@@ -131,7 +131,8 @@
     "TRIPS": "Marées",
     "DATA_ENTRY_DIVIDER": "Saisie de données",
     "EXTRACTION_DIVIDER": "Extractions",
-    "OBSERVED_LOCATIONS": "Contrôles criée",
+    "OBSERVED_LOCATIONS": "Observations",
+    "AUCTION_CONTROL": "Contrôles en criée",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Référentiels",
     "USERS": "Utilisateurs",
@@ -557,6 +558,10 @@
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période"
       }
+    },
+    "OPTIONS": {
+      "ENABLE": "Observations > Activer ?",
+      "NAME": "Observations > Titre (menu, etc.)"
     },
     "ERROR": {
       "LOAD_ERROR": "Erreur de chargement du contrôle en criée",

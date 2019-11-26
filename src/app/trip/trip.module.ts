@@ -66,6 +66,7 @@ import {AggregationTypeValidatorService} from "./services/validator/aggregation-
 import {ReferentialModule} from "../referential/referential.module";
 import {SampleForm} from "./sample/sample.form";
 import {SampleModal} from "./sample/sample.modal";
+import {APP_CONFIG_OPTIONS} from "../core/services/config.service";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -186,4 +187,5 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     ]
 })
 export class TripModule {
+
 }

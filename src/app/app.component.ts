@@ -7,18 +7,12 @@ import {DOCUMENT} from "@angular/common";
 import {Configuration} from "./core/services/model";
 import {PlatformService} from "./core/services/platform.service";
 import {throttleTime} from "rxjs/operators";
-import {changeCaseToUnderscore, ColorScale} from "./shared/shared.module";
+import {changeCaseToUnderscore} from "./shared/shared.module";
 import {FormFieldDefinition} from "./shared/form/field.model";
-import {
-  getColorContrast,
-  getColorShade,
-  getColorTint,
-  hexToRgbArray,
-  mixHex,
-  rgbToHex
-} from "./shared/graph/colors.utils";
+import {getColorContrast, getColorShade, getColorTint, hexToRgbArray, mixHex} from "./shared/graph/colors.utils";
 import {AccountService} from "./core/services/account.service";
 import {LocalSettingsService} from "./core/services/local-settings.service";
+import {TripConfigOptions} from "./trip/services/config/trip.config";
 
 
 @Component({
@@ -30,7 +24,7 @@ export class AppComponent {
 
   logo: String;
   appName: String;
-  menuItems: Array<MenuItem> = [
+  menuItems: MenuItem[] = [
     {title: 'MENU.HOME', path: '/', icon: 'home'},
 
     // Data entry
@@ -39,7 +33,9 @@ export class AppComponent {
     {
       title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
       matIcon: 'verified_user',
-      profile: 'USER'
+      profile: 'USER',
+      ifProperty: 'sumaris.observedLocation.enable',
+      titleProperty: 'sumaris.observedLocation.name'
     },
 
     // Data extraction
@@ -67,14 +63,14 @@ export class AppComponent {
     private platform: PlatformService,
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
-    private configurationService: ConfigService,
+    private configService: ConfigService,
     private settings: LocalSettingsService
   ) {
 
     this.platform.ready().then(() => {
 
       // Listen for config changed
-      this.configurationService.config.subscribe(config => this.onConfigChanged(config));
+      this.configService.config.subscribe(config => this.onConfigChanged(config));
 
       // Add additional account fields
       this.addAccountFields();
@@ -124,9 +120,7 @@ export class AppComponent {
         }
       });
     }
-
   }
-
 
   protected updateTheme(options: { colors?: { [color: string]: string; } }) {
     if (!options) return;
@@ -176,8 +170,6 @@ export class AppComponent {
       });
     }
   }
-
-
 
   protected addAccountFields() {
 

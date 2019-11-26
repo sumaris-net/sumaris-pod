@@ -5,8 +5,8 @@
 
 <mat-form-field *ngIf="!readonly && !compact"
                 class="mat-boolean-field mat-boolean-field-radio"
-                [floatLabel]="showRadio && (!floatLabel || floatLabel == 'auto') ? 'always': floatLabel">
-  <mat-label *ngIf="placeholder">
+                [floatLabel]="showRadio && (!floatLabel || floatLabel === 'auto') ? 'always': floatLabel">
+  <mat-label *ngIf="placeholder && floatLabel!=='never'">
     {{placeholder}}
     <span [hidden]="showRadio">({{'COMMON.YES'|translate}}/{{'COMMON.NO'|translate}})</span>
   </mat-label>

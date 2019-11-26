@@ -36,7 +36,7 @@
 
     <!-- Properties -->
     <ion-grid formArrayName="properties" class="ion-no-padding">
-      <ng-container *ngFor="let propertyForm of propertiesForm?.controls; let i=index">
+      <ng-container *ngFor="let propertyForm of propertiesForm.controls; let i=index">
         <ion-row class="ion-no-padding" [formGroupName]="i">
 
           <!-- property key -->

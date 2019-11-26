@@ -47,21 +47,21 @@ import {
   Cloneable,
   Department,
   Entity,
+  EntityAsObjectOptions,
   entityToString,
   EntityUtils,
   IReferentialRef,
   joinPropertiesPath,
+  NOT_MINIFY_OPTIONS,
   Person,
   personsToString,
   personToString,
+  PropertiesMap,
   Referential,
+  ReferentialAsObjectOptions,
   ReferentialRef,
   referentialToString,
-  StatusIds,
-  EntityAsObjectOptions,
-  PropertiesMap,
-  ReferentialAsObjectOptions,
-  NOT_MINIFY_OPTIONS
+  StatusIds
 } from './services/model';
 // import ngx-translate and the http loader
 import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';

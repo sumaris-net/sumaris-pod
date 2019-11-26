@@ -15,8 +15,14 @@ import {PlatformService} from "./platform.service";
 export const SETTINGS_STORAGE_KEY = "settings";
 export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
 
+const DEFAULT_SETTINGS: LocalSettings = {
+  accountInheritance: true,
+  locale: environment.defaultLocale,
+  latLongFormat: environment.defaultLatLongFormat || 'DDMM',
+  pageHistoryMaxSize: 3
+};
 
-export const APP_LOCAL_SETTINGS_OPTIONS = new InjectionToken<LocalSettings>('LocalSettingsOptions');
+export const APP_LOCAL_SETTINGS_OPTIONS = new InjectionToken<Partial<LocalSettings>>('LocalSettingsOptions');
 
 @Injectable({
   providedIn: 'root',
@@ -35,7 +41,7 @@ export class LocalSettingsService {
   public onChange = new Subject<LocalSettings>();
 
   get settings(): LocalSettings {
-    return this.data;
+    return this.data || this.defaultSettings;
   }
 
   get locale(): string {
@@ -66,27 +72,17 @@ export class LocalSettingsService {
     this.data.mobile = value;
   }
 
-  get defaultPrograms(): string[] {
-    return (this.data && this.data.defaultPrograms || []);
-  }
-
   get pageHistory(): HistoryPageReference[] {
     return (this.data && this.data.pageHistory || []);
   }
 
-  private _id: number;
   constructor(
     private translate: TranslateService,
     private platform: Platform,
     private storage: Storage,
-    @Inject(APP_LOCAL_SETTINGS_OPTIONS) private defaultSettings: LocalSettings
+    @Optional() @Inject(APP_LOCAL_SETTINGS_OPTIONS) private readonly defaultSettings: LocalSettings
   ) {
-
-    this.defaultSettings = Object.assign({
-      pageHistoryMaxSize: 3,
-      accountInheritance: true,
-      latLongFormat: environment.defaultLatLongFormat || 'DDMM'
-    }, this.defaultSettings || {});
+    this.defaultSettings = {...DEFAULT_SETTINGS, ...this.defaultSettings};
 
     // Register default options
     //this.registerFields(Object.getOwnPropertyNames(CoreOptions).map(key => CoreOptions[key]));
@@ -164,10 +160,8 @@ export class LocalSettingsService {
     return this.data && isNotNil(this.data[key]) && this.data[key] || defaultValue;
   }
 
-  async apply(settings: LocalSettings) {
-    this.data = this.data || {};
-
-    Object.assign(this.data, settings || {});
+  async apply(settings: Partial<LocalSettings>) {
+    this.data = { ...this.data, ...settings};
 
     // Save locally
     this.saveLocally();
@@ -192,10 +186,10 @@ export class LocalSettingsService {
   }
 
   async savePageSetting(pageId: string, value: any, propertyName?: string) {
-    const key = pageId.replace(/[/]/g, '__');
-
-    this.data = this.data || {};
+    this.data = this.data || this.defaultSettings;
     this.data.pages = this.data.pages || {};
+
+    const key = pageId.replace(/[/]/g, '__');
     if (propertyName) {
       this.data.pages[key] = this.data.pages[key] || {};
       this.data.pages[key][propertyName] = value;
@@ -318,7 +312,7 @@ export class LocalSettingsService {
   /* -- Protected methods -- */
 
   private resetData() {
-    this.data = this.data || {};
+    this.data = {...this.data, ...this.defaultSettings};
 
     this.data.locale = this.translate.currentLang || this.translate.defaultLang;
     this.data.mobile = undefined;
@@ -327,8 +321,6 @@ export class LocalSettingsService {
 
     const defaultPeer = environment.defaultPeer && Peer.fromObject(environment.defaultPeer);
     this.data.peerUrl = defaultPeer && defaultPeer.url || undefined;
-
-    Object.assign(this.data, this.defaultSettings);
 
     if (this._started) this.onChange.next(this.data);
   }

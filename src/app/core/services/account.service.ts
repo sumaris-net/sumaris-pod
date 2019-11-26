@@ -229,8 +229,6 @@ export class AccountService extends BaseDataService {
       }
     });
 
-    console.debug('::: AccountService constructor');
-
     // For DEV only
     this._debug = !environment.production;
   }
@@ -260,7 +258,7 @@ export class AccountService extends BaseDataService {
     return this._startPromise;
   }
 
-  public isStarted(): boolean {
+  public get started(): boolean {
     return this._started;
   }
 

@@ -2,7 +2,7 @@ import "./vendor";
 
 import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
-import {NgModule} from "@angular/core";
+import {LOCALE_ID, NgModule} from "@angular/core";
 import {IonicModule} from "@ionic/angular";
 import {DateAdapter, MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material";
 import {DATE_ISO_PATTERN} from "./core/constants";
@@ -26,10 +26,12 @@ import {CacheModule} from "ionic-cache";
 import {Network} from "@ionic-native/network/ngx";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
 import {APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
-import {LocalSettings} from "./core/services/model";
+import {ConfigOptions, LocalSettings} from "./core/services/model";
 import {ReferentialModule} from "./referential/referential.module";
 import {TripModule} from "./trip/trip.module";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
+import {APP_CONFIG_OPTIONS, ConfigService} from "./core/services/config.service";
+import {TripConfigOptions} from "./trip/services/config/trip.config";
 
 
 @NgModule({
@@ -81,12 +83,12 @@ import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
         autoActiveFirstOption: true
       }
     },
-    { provide: APP_LOCAL_SETTINGS_OPTIONS,
-      useValue: {
+    { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: {
         pageHistoryMaxSize: 3
       } as LocalSettings
-    }
-
+    },
+    { provide: APP_CONFIG_OPTIONS, useValue: {...ConfigOptions, ...TripConfigOptions}},
+    ConfigService
   ]
 })
 export class AppModule {

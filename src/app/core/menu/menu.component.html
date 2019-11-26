@@ -49,7 +49,7 @@
     <ion-content [class.has-user-header]="isLogin">
 
       <ion-list lines="none">
-        <ion-menu-toggle auto-hide="false" *ngFor="let item of filteredItems; trackBy: getItemTitle"
+        <ion-menu-toggle auto-hide="false" *ngFor="let item of $filteredItems | async"
                          [class]="item.cssClass">
 
           <!-- link -->

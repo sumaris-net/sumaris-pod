@@ -1,8 +1,8 @@
-import {ChangeDetectionStrategy, Component, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {BehaviorSubject, Subject} from 'rxjs';
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {ConfigOptions, Configuration, Department, EntityUtils, StatusIds, DefaultStatusList} from '../../core/services/model';
+import {Configuration, DefaultStatusList, Department, EntityUtils} from '../../core/services/model';
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
 import {AppFormUtils, FormArrayHelper} from "../../core/form/form.utils";
@@ -15,7 +15,6 @@ import {TranslateService} from "@ngx-translate/core";
 
 
 @Component({
-  moduleId: module.id.toString(),
   selector: 'app-software-page',
   templateUrl: 'software.page.html',
   styleUrls: ['./software.page.scss'],
@@ -31,7 +30,7 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
   $title = new Subject<string>();
   statusList = DefaultStatusList;
   statusById;
-  propertyDefinitions: FormFieldDefinition[] = Object.getOwnPropertyNames(ConfigOptions).map(name => ConfigOptions[name]);
+  propertyDefinitions: FormFieldDefinition[];
   propertyDefinitionsByKey: FormFieldDefinitionMap = {};
   propertyDefinitionsByIndex: { [index: number]: FormFieldDefinition } = {};
   propertiesFormHelper: FormArrayHelper<FormFieldValue>;
@@ -48,20 +47,20 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
     protected dateAdapter: DateAdapter<Moment>,
     protected route: ActivatedRoute,
     protected router: Router,
-    protected service: ConfigService,
+    protected configService: ConfigService,
     protected validator: ConfigValidatorService,
     protected formBuilder: FormBuilder,
     protected platform: PlatformService,
-    protected translate: TranslateService
+    protected translate: TranslateService,
+    protected cd: ChangeDetectorRef
       ) {
     super(dateAdapter, validator.getFormGroup());
-
-    // Fill propertyDefinitionMap
-    this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o);
 
     // Fill statusById
     this.statusById = {};
     this.statusList.forEach((status) => this.statusById[status.id] = status);
+
+    this._enable = false;
   }
 
   async ngOnInit() {
@@ -75,8 +74,13 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
       (value) => isNil(value) || (isNil(value.key) && isNil(value.value))
     );
 
-    // Wait plateform is ready
+    // Wait platform is ready
     await this.platform.ready();
+    await this.configService.ready();
+
+    // Fill propertyDefinitionMap
+    this.propertyDefinitions = this.configService.optionDefs;
+    this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o);
 
     // Then, load
     this.load();
@@ -94,7 +98,7 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
     // Get data
     let data;
     try {
-      data = await this.service.load(label, {fetchPolicy: "network-only"});
+      data = await this.configService.load(label, {fetchPolicy: "network-only"});
 
       // Check if load [id + label] are those existing in the URL
       if (isNotNil(label) && data && data.id !== id) {
@@ -129,6 +133,7 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
 
     this.partners.next(json.partners);
     this.loading = false;
+    this.markForCheck();
   }
 
   async save($event: any, json?: any) {
@@ -150,7 +155,7 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
     try {
 
       // Call save service
-      const updatedData = await this.service.save(this.data);
+      const updatedData = await this.configService.save(this.data);
       // Update the view
       this.updateView(updatedData);
       this.form.markAsUntouched();
@@ -202,6 +207,10 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
 
   async cancel() {
     await this.load();
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 
 }

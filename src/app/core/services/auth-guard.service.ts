@@ -24,7 +24,7 @@ export class AuthGuardService implements CanActivate {
   ): Observable<boolean> | Promise<boolean | UrlTree> | boolean | UrlTree {
 
     // If account not started: loop after started
-    if (!this.accountService.isStarted()) {
+    if (!this.accountService.started) {
       return this.accountService.ready()
         // Iterate
         .then(() => this.canActivate(next, state) as Promise<boolean | UrlTree>);

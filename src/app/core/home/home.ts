@@ -112,7 +112,7 @@ export class HomePage implements OnDestroy {
 
     // Listen settings changes
     const settings = await this.settings.ready();
-    this.pageHistory = settings && settings.pageHistory || [];
+    this.pageHistory = this.settings.pageHistory || [];
     this.subscription.add(
       this.settings.onChange
         .pipe(
@@ -157,6 +157,7 @@ export class HomePage implements OnDestroy {
   protected onLogout() {
     this.isLogin = false;
     this.displayName = "";
+    this.pageHistory = [];
     this.markForCheck();
   }
 

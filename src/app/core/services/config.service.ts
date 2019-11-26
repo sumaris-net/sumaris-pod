@@ -1,15 +1,16 @@
-import {Injectable} from "@angular/core";
+import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
 import gql from "graphql-tag";
 import {BaseDataService} from "./base.data-service.class";
-import {Configuration} from "./model";
+import {ConfigOptions, Configuration} from "./model";
 import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
 import {BehaviorSubject, Observable} from "rxjs";
 import {ErrorCodes} from "./errors";
-import {filter} from "rxjs/operators";
 import {FetchPolicy} from "apollo-client";
-import {NetworkService} from "./network.service";
 import {GraphqlService} from "./graphql.service";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
+import {filterNotNil} from "../../shared/observables";
+import {isNotNil} from "../../shared/functions";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -63,11 +64,17 @@ const SaveMutation: any = gql`
 `;
 
 
-@Injectable({providedIn: 'root'})
+export const APP_CONFIG_OPTIONS = new InjectionToken<FormFieldDefinitionMap>('defaultOptions');
+
+@Injectable({
+  providedIn: 'root',
+  deps: [APP_CONFIG_OPTIONS]
+})
 export class ConfigService extends BaseDataService {
 
   private _started = false;
   private _startPromise: Promise<any>;
+  private _optionDefs: FormFieldDefinition[];
 
   private $data = new BehaviorSubject<Configuration>(null);
 
@@ -77,25 +84,31 @@ export class ConfigService extends BaseDataService {
 
   get config(): Observable<Configuration> {
     // If first call: start loading
-    if (!this._started) {
-      this.start();
-    }
-    return this.$data.pipe(filter(config => config != null));
+    if (!this._started) this.start();
+
+    return filterNotNil(this.$data);
   }
 
   constructor(
     protected graphql: GraphqlService,
-    protected storage: Storage
+    protected storage: Storage,
+    @Optional() @Inject(APP_CONFIG_OPTIONS) private defaultOptionsMap: FormFieldDefinitionMap
   ) {
+
     super(graphql);
+
+    this.defaultOptionsMap = {...ConfigOptions, ...defaultOptionsMap};
+    this._optionDefs = Object.keys(this.defaultOptionsMap).map(name => defaultOptionsMap[name]);
+
+    // Restart if graphql service restart
+    this.graphql.onStart.subscribe(() => this.restart());
+
 
     // Start
     if (this.graphql.started) {
       this.start();
     }
 
-    // Restart if graphql service restart
-    this.graphql.onStart.subscribe(() => this.restart());
   }
 
   async start(): Promise<void> {
@@ -127,6 +140,12 @@ export class ConfigService extends BaseDataService {
   restart() {
     if (this.started) this.stop();
     this.start();
+  }
+
+  ready(): Promise<void> {
+    if (this._started) return Promise.resolve();
+    if (this._startPromise) return this._startPromise;
+    return this.start();
   }
 
   async loadDefault(
@@ -190,9 +209,18 @@ export class ConfigService extends BaseDataService {
     console.debug("[config] Configuration saved!");
 
     const reloadedConfig = await this.load(config.label,{ fetchPolicy: "network-only" });
-    this.$data.next(reloadedConfig); // emit
+
+    // Emit update event when is default config
+    const defaultConfig = this.$data.getValue();
+    if (isNotNil(defaultConfig) && reloadedConfig.label === defaultConfig.label) {
+      this.$data.next(reloadedConfig);
+    }
 
     return reloadedConfig;
+  }
+
+  get optionDefs(): FormFieldDefinition[] {
+    return this._optionDefs;
   }
 
   /* -- private method -- */

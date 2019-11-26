@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Vi
 import {AlertController, IonSplitPane, MenuController, ModalController} from "@ionic/angular";
 
 import {Router} from "@angular/router";
-import {Account, UserProfileLabel} from "../services/model";
+import {Account, Configuration, UserProfileLabel} from "../services/model";
 import {AccountService} from "../services/account.service";
 import {AboutModal} from '../about/modal-about';
 
@@ -10,6 +10,10 @@ import {environment} from '../../../environments/environment';
 import {HomePage} from '../home/home';
 import {fadeInAnimation} from '../../shared/material/material.animations';
 import {TranslateService} from "@ngx-translate/core";
+import {isNotNilOrBlank} from "../../shared/functions";
+import {BehaviorSubject, merge, Subscription} from "rxjs";
+import {ConfigService} from "../services/config.service";
+import {filter, mergeMap, tap, throttleTime} from "rxjs/operators";
 
 export interface MenuItem {
   title: string;
@@ -21,6 +25,10 @@ export interface MenuItem {
   profile?: UserProfileLabel;
   exactProfile?: UserProfileLabel;
   cssClass?: string;
+  // A config property, to enable the menu item
+  ifProperty?: string;
+  // A config property, to override the title
+  titleProperty?: string;
 }
 
 const SPLIT_PANE_SHOW_WHEN = 'lg';
@@ -34,16 +42,18 @@ const SPLIT_PANE_SHOW_WHEN = 'lg';
 })
 export class MenuComponent implements OnInit {
 
+  private _subscription = new Subscription();
   public loading = true;
   public isLogin = false;
   public account: Account;
   public splitPaneOpened: boolean;
+  public config: Configuration;
 
   @Input() logo: String;
 
   @Input() appName: String;
 
-  filteredItems: MenuItem[];
+  $filteredItems = new BehaviorSubject<MenuItem[]>(undefined);
 
   @Input()
   appVersion: String = environment.version;
@@ -66,23 +76,41 @@ export class MenuComponent implements OnInit {
     protected modalCtrl: ModalController,
     protected alertController: AlertController,
     protected translate: TranslateService,
+    protected configService: ConfigService,
     protected cd: ChangeDetectorRef
   ) {
 
   }
 
-  async ngOnInit() {
-    // subscriptions
-    this.accountService.onLogin.subscribe(account => this.onLogin(account));
-    this.accountService.onLogout.subscribe(() => this.onLogout());
-
+  ngOnInit() {
     this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
+
+    // Update component when refresh is need (=login events or config changed)
+    this._subscription.add(
+      merge(
+        this.accountService.onLogin,
+        this.accountService.onLogout,
+        this.configService.config
+          .pipe(
+            tap(config => this.config = config)
+          )
+        )
+        .pipe(
+          mergeMap(() => this.accountService.ready()),
+          throttleTime(200),
+          filter(() => !!this.config)
+        )
+        .subscribe(account => this.updateView()));
+
+  }
+
+  protected async updateView() {
 
     if (this.accountService.isLogin()) {
       this.onLogin(this.accountService.account);
 
     } else {
-      await this.onLogout(true);
+      this.onLogout(true);
     }
   }
 
@@ -157,28 +185,52 @@ export class MenuComponent implements OnInit {
   }
 
   updateItems() {
+
+    console.debug("[menu] Updating menu items...");
+
+    let filteredItems: MenuItem[];
     if (!this.isLogin) {
-      this.filteredItems = (this.items || []).filter(i => !i.profile);
+      filteredItems = (this.items || []).filter(i => !i.profile);
     } else {
-      this.filteredItems = (this.items || []).filter(i => {
-        let res;
+      filteredItems = (this.items || []).filter(i => {
+        let isInclude: boolean;
         if (i.profile) {
-          res = this.accountService.hasMinProfile(i.profile);
-          if (!res) {
+          isInclude = this.accountService.hasMinProfile(i.profile);
+          if (!isInclude) {
             console.debug("[menu] User does not have minimal profile '" + i.profile + "' need by ", (i.path || i.page));
           }
         } else if (i.exactProfile) {
-          res = !i.profile || this.accountService.hasExactProfile(i.profile);
-          if (!res) {
+          isInclude = !i.profile || this.accountService.hasExactProfile(i.profile);
+          if (!isInclude) {
             console.debug("[menu] User does not have exact profile '" + i.profile + "' need by ", (i.path || i.page));
           }
         } else {
-          res = true;
+          isInclude = true;
         }
 
-        return res;
+        return isInclude;
       });
     }
+
+    // Filter by property
+    if (this.config) {
+      filteredItems = filteredItems
+        .filter(item => {
+          if (isNotNilOrBlank(item.ifProperty) && this.config.properties[item.ifProperty] !== 'true') {
+            return false;
+          }
+          return true;
+        });
+      // Replace title using properties
+      filteredItems
+        .forEach(item => {
+          if (isNotNilOrBlank(item.titleProperty)) {
+            item.title = this.config.properties[item.titleProperty] || item.title;
+          }
+        });
+    }
+
+    this.$filteredItems.next(filteredItems);
 
     this.cd.markForCheck();
   }
