@@ -374,6 +374,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   recorderDepartment: Department;
   recorderPerson: Person;
   comments: string;
+  qualityFlagId: number;
 
   // Parent
   vesselId: number;
@@ -411,7 +412,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     target.creationDate = toDateISOString(this.creationDate);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
-
+    target.qualityFlagId = isNotNil(this.qualityFlagId) ? this.qualityFlagId : undefined;
     return target;
   }
 
@@ -428,6 +429,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.grossTonnageGrt = source.grossTonnageGrt || undefined;
     this.creationDate = fromDateISOString(source.creationDate);
     this.vesselId  = source.vesselId;
+    this.qualityFlagId = source.qualityFlagId;
     this.basePortLocation = source.basePortLocation && ReferentialRef.fromObject(source.basePortLocation);
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);

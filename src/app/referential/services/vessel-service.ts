@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {Department, EntityUtils, isNil, isNotNil, Person, Vessel} from "./model";
+import {Department, EntityUtils, isNil, isNotNil, Person, QualityFlagIds, Vessel} from "./model";
 import {EditorDataService, isNilOrBlank, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {map} from "rxjs/operators";
@@ -16,8 +16,6 @@ import {isEmptyArray} from "../../shared/functions";
 import {EntityAsObjectOptions, MINIFY_OPTIONS} from "../../core/services/model";
 import {LoadFeaturesQuery, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";
 import {LoadRegistrationsQuery, RegistrationFragments, VesselRegistrationService} from "./vessel-registration.service";
-import {SAVE_AS_OBJECT_OPTIONS} from "../../trip/services/model/base.model";
-import {reject} from "async";
 
 export class VesselFilter {
   date?: Date | Moment;
@@ -443,6 +441,11 @@ export class VesselService
         }
         vessel.features.recorderPerson.id = person.id;
       }
+    }
+
+    // Quality flag (set default)
+    if (vessel.features && isNil(vessel.features.qualityFlagId)) {
+      vessel.features.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
     }
 
   }

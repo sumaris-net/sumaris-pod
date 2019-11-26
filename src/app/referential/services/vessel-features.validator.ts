@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormGroup, Validators, FormBuilder} from "@angular/forms";
-import {VesselFeatures} from "./model";
+import {QualityFlagIds, VesselFeatures} from "./model";
 import {SharedValidators} from "../../shared/validator/validators";
 
 @Injectable()
@@ -30,6 +30,7 @@ export class VesselFeaturesValidatorService implements ValidatorService {
       grossTonnageGt: ['', Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
       basePortLocation: ['', Validators.compose([Validators.required, SharedValidators.entity])],
       comments: ['', Validators.maxLength(2000)],
+      qualityFlagId: [data && data.qualityFlagId || QualityFlagIds.NOT_QUALIFIED]
     });
   }
 }
