@@ -586,6 +586,16 @@
                              referencedTableName="STATUS" referencedColumnNames="ID"/>
   </changeSet>
 
+  <!--  Rename SAMPLE.SIZE to SAMPLE.SAMPLE_SIZE-->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="15710637169756-15">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="SAMPLE" columnName="SAMPLE_SIZE"/>
+      </not>
+    </preConditions>
+    <renameColumn tableName="SAMPLE" oldColumnName="SIZE" newColumnName="SAMPLE_SIZE"/>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-500" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
