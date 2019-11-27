@@ -270,7 +270,6 @@
                   <classpath refid="maven.plugin.classpath" />
                 </taskdef>
 
-
                 <echo level="info">Generate Hibernate files [hibernate.cfg.xml] and [hibernate.properties]</echo>
                 <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="generate-hibernate-cfg" inheritRefs="true" />
               </target>
@@ -394,7 +393,7 @@
 
       <properties>
         <jdbc.url>jdbc:oracle:thin:@192.168.0.6:1521:ORCL</jdbc.url>
-        <jdbc.driver.jar>${settings.localRepository}/com/oracle/ojdbc7/${ojdbc7.version}/ojdbc7-${ojdbc7.version}.jar</jdbc.driver.jar>
+        <jdbc.driver.jar>${settings.localRepository}/com/oracle/ojdbc8/${ojdbc8.version}/ojdbc8-${ojdbc8.version}.jar</jdbc.driver.jar>
         <jdbc.username>SUMARIS_TU</jdbc.username>
         <jdbc.password>SUMARIS_TU</jdbc.password>
         <jdbc.schema>SUMARIS_TU</jdbc.schema>
@@ -406,7 +405,7 @@
       <dependencies>
         <dependency>
           <groupId>com.oracle</groupId>
-          <artifactId>ojdbc7</artifactId>
+          <artifactId>ojdbc8</artifactId>
         </dependency>
       </dependencies>
     </profile>
@@ -586,8 +585,8 @@
               </dependency>
               <dependency>
                 <groupId>com.oracle</groupId>
-                <artifactId>ojdbc7</artifactId>
-                <version>${ojdbc7.version}</version>
+                <artifactId>ojdbc8</artifactId>
+                <version>${ojdbc8.version}</version>
               </dependency>
             </dependencies>
             <executions>

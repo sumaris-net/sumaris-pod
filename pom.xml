@@ -188,15 +188,15 @@
     <helperPluginVersion>2.3.2</helperPluginVersion>
 
     <!-- apache maven plugins version -->
-    <jarPluginVersion>3.0.2</jarPluginVersion>
-    <sitePluginVersion>3.7.1</sitePluginVersion>
+    <jarPluginVersion>3.1.2</jarPluginVersion>
+    <sitePluginVersion>3.8.2</sitePluginVersion>
     <changesPluginVersion>2.12.1</changesPluginVersion>
     <changelogPluginVersion>2.3</changelogPluginVersion>
-    <projectInfoReportsPluginVersion>3.0.0</projectInfoReportsPluginVersion>
-    <jrxPluginVersion>2.5</jrxPluginVersion>
+    <projectInfoReportsPluginVersion>2.9</projectInfoReportsPluginVersion>
+    <jrxPluginVersion>3.0.0</jrxPluginVersion>
     <surefirePluginVersion>2.21.0</surefirePluginVersion>
     <surefireReportPluginVersion>2.20.1</surefireReportPluginVersion>
-    <markdownPluginVersion>1.8</markdownPluginVersion>
+    <markdownPluginVersion>1.9</markdownPluginVersion>
     <enforcerPluginVersion>1.4.1</enforcerPluginVersion>
     <sourcePluginVersion>3.0.1</sourcePluginVersion>
     <releasePluginVersion>2.5.3</releasePluginVersion>
@@ -753,6 +753,7 @@
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>${pgsql.version}</version>
+        <classifier>jar</classifier>
       </dependency>
 
 
@@ -1086,12 +1087,11 @@
         <plugin>
           <artifactId>maven-site-plugin</artifactId>
           <version>${sitePluginVersion}</version>
+          <extensions>true</extensions>
+          <configuration>
+            <locales>en,fr</locales>
+          </configuration>
           <dependencies>
-            <dependency>
-              <groupId>org.apache.maven.doxia</groupId>
-              <artifactId>doxia-module-markdown</artifactId>
-              <version>${markdownPluginVersion}</version>
-            </dependency>
             <dependency>
               <groupId>org.hsqldb</groupId>
               <artifactId>hsqldb</artifactId>
@@ -1123,6 +1123,11 @@
               <artifactId>guava</artifactId>
               <version>${guava.version}</version>
             </dependency>
+            <dependency>
+              <groupId>org.apache.felix</groupId>
+              <artifactId>maven-bundle-plugin</artifactId>
+              <version>4.2.1</version>
+            </dependency>
           </dependencies>
         </plugin>
 
@@ -1148,6 +1153,12 @@
             <parallel>classes</parallel>
             <threadCount>10</threadCount>-->
           </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>4.2.1</version>
         </plugin>
 
       </plugins>
@@ -1222,11 +1233,16 @@
       <plugin>
         <artifactId>maven-site-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+      </plugin>
 
       <plugin>
         <groupId>org.nuiton</groupId>
         <artifactId>nuiton-config-maven-plugin</artifactId>
         <version>${nuitonConfigVersion}</version>
+        <extensions>true</extensions>
       </plugin>
 
       <plugin>
@@ -1463,11 +1479,11 @@
                   <excludes>
                     <exclude>**/*.json</exclude>
                     <exclude>**/*.properties</exclude>
+                    <exclude>**/*.yml</exclude>
                     <exclude>**/*.xml</exclude>
                     <exclude>**/*.sh</exclude>
+                    <exclude>**/*.md</exclude>
                     <exclude>**/site/**/*.*</exclude>
-                    <exclude>**/misc/**/*.*</exclude>
-                    <exclude>**/es-home/**/*.*</exclude>
                   </excludes>
                 </configuration>
                 <phase>process-resources</phase>
@@ -1487,27 +1503,74 @@
         </property>
       </activation>
 
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <!-- copy doc images -->
+              <execution>
+                <id>copy-svg-files</id>
+                <phase>pre-site</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <taskdef resource="net/sf/antcontrib/antlib.xml">
+                      <classpath refid="maven.plugin.classpath" />
+                    </taskdef>
+
+                    <available file="src/site/markdown/doc" type="dir" property="doc.submodule.exists"></available>
+                    <if>
+                      <equals arg1="${doc.submodule.exists}" arg2="true" />
+                      <then>
+                        <echo>Copying images from the sumaris-doc submodule, into target/site/doc ...</echo>
+
+                        <mkdir dir="target/site/doc"/>
+
+                        <copy todir="target/site/doc">
+                          <fileset dir="src/site/markdown/doc">
+                            <exclude name="**/*.md"/>
+                            <include name="**/*.svg"/>
+                            <include name="**/*.png"/>
+                          </fileset>
+                        </copy>
+                      </then>
+                    </if>
+
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
       <reporting>
         <plugins>
           <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-project-info-reports-plugin</artifactId>
             <version>${projectInfoReportsPluginVersion}</version>
+            <configuration>
+              <showAvatarImages>true</showAvatarImages>
+              <webAccessUrl>http://doc.e-is.pro/sumaris/</webAccessUrl>
+            </configuration>
             <reportSets>
               <reportSet>
                 <reports>
-                  <!--<report>project-team</report>-->
-                  <!--<report>mailing-list</report>-->
-                  <!--<report>cim</report>
+                  <report>project-team</report>
+                  <report>mailing-list</report>
                   <report>issue-tracking</report>
                   <report>license</report>
                   <report>scm</report>
-                  <report>dependency-info</report>
                   <report>dependencies</report>
                   <report>dependency-convergence</report>
+                  <report>dependency-info</report>
                   <report>plugin-management</report>
                   <report>plugins</report>
                   <report>dependency-management</report>
-                  <report>summary</report>-->
+                  <report>summary</report>
                 </reports>
               </reportSet>
             </reportSets>
@@ -1517,14 +1580,21 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-changelog-plugin</artifactId>
             <version>${changelogPluginVersion}</version>
+            <!-- FIXME BL : waiting capturing group to be enable (see https://jira.codehaus.org/browse/MCHANGELOG-125) <configuration> <issueLinkUrl>https://forge.ifremer.fr/mantis/view.php?id=%ISSUE%</issueLinkUrl>
+            -->
+            <configuration>
+              <issueIDRegexPattern>[#]([0-9]+)</issueIDRegexPattern>
+            </configuration>
           </plugin>
 
           <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-jxr-plugin</artifactId>
             <version>${jrxPluginVersion}</version>
           </plugin>
 
           <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-report-plugin</artifactId>
             <version>${surefireReportPluginVersion}</version>
           </plugin>

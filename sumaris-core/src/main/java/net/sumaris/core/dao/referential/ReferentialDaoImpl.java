@@ -121,7 +121,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     ExtractionProduct.class,
                     ExtractionProductTable.class,
                     // Software
-                    Software.class
+                    Software.class,
+                    // Program
+                    ProgramPrivilege.class
             ), Class::getSimpleName);
 
     private Map<String, PropertyDescriptor> levelPropertyNameMap = initLevelPropertyNameMap();

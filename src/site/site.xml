@@ -76,13 +76,18 @@
 
     <menu name="${project.name}" inherit="top">
         <item name="Home" href="index.html"/>
-        <item name="Releases history" href="changes-report.html"/>
+<!--        <item name="Releases history" href="changes-report.html"/>-->
     </menu>
 
-    <menu name="Technical Documentation" inherit="top">
-      <item name="Client API" href="./client.html"/>
-      <item name="Server API" href="./server.html"/>
-      <item name="Configuration options" href="./config-report.html"/>
+  <menu name="User documentation" inherit="top">
+      <item name="User manual" href="doc/user-manual/index.html"/>
+      <item name="Use cases" href="doc/use-case/index_en.html"/>
+  </menu>
+
+    <menu name="Technical documentation" inherit="top">
+      <item name="App" href="app.html"/>
+      <item name="Pod - Database" href="pod.html"/>
+      <item name="Pod - Configuration options" href="config-report.html"/>
     </menu>
 
     <menu name="Community" inherit="bottom">
@@ -90,8 +95,6 @@
             href="http://github.com/sumaris-net/"/>
       <item name="Issue Tracking"
             href="https://github.com/sumaris-net/sumaris-app/issues"/>
-      <item name="Files"
-            href="http://github.com/sumaris-net/sumaris-pod"/>
     </menu>
 
     <menu ref="reports" inherit="bottom"/>

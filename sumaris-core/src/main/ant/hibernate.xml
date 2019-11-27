@@ -67,7 +67,12 @@
 
 				<for param="entity.fullPath">
 					<path>
-						<fileset dir="${src.cleanPath}" includes="${entities.package.dir}/**/*.java" />
+						<fileset dir="${src.cleanPath}" casesensitive="yes">
+							<include name="${entities.package.dir}/**/*.java"/>
+							<exclude name="${entities.package.dir}/**/I*.java"/>
+							<exclude name="${entities.package.dir}/**/*Enum.java"/>
+							<exclude name="${entities.package.dir}/**/*Id.java"/>
+						</fileset>
 					</path>
 					<sequential>
 						<propertyregex property="entity.fullPath" input="@{entity.fullPath}" regexp="\\" replace="/" override="true" defaultValue="@{entity.fullPath}" />

@@ -6,9 +6,9 @@ package net.sumaris.core.dao.administration.programStrategy;
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
- * This program is free program: you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
- * published by the Free Program Foundation, either version 3 of the
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful,

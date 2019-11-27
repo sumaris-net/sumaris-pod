@@ -10,6 +10,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>sumaris-core-rdf</artifactId>
+    <packaging>jar</packaging>
+    <name>SUMARiS:: RDF features</name>
+    <description>SUMARiS RDF library</description>
 
     <properties>
         <!-- i18n configuration -->

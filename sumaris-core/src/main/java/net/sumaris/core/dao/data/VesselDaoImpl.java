@@ -29,6 +29,7 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.QualityFlagEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
@@ -580,6 +581,10 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             } else {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
             }
+        }
+        else if (copyIfNull) {
+            // Set default
+            target.setQualityFlag(load(QualityFlag.class, QualityFlagEnum.NOT_QUALIFED.getId()));
         }
     }
 
