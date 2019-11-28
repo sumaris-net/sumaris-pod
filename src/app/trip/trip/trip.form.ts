@@ -1,14 +1,24 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {TripValidatorService} from "../services/trip.validator";
-import {LocationLevelIds, StatusIds, Trip, VesselSnapshot,} from "../services/trip.model";
+import {
+  EntityUtils,
+  LocationLevelIds,
+  Person,
+  personToString,
+  StatusIds,
+  Trip,
+  VesselSnapshot,
+} from "../services/trip.model";
 import {ModalController} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {AppForm} from '../../core/core.module';
+import {AppForm, FormArrayHelper} from '../../core/core.module';
 import {ReferentialRefService, referentialToString, VesselModal} from "../../referential/referential.module";
-import {UsageMode} from "../../core/services/model";
+import {UsageMode, UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
+import {FormArray, FormBuilder} from "@angular/forms";
+import {PersonService} from "../../admin/services/person.service";
 
 @Component({
   selector: 'form-trip',
@@ -18,6 +28,11 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 })
 export class TripForm extends AppForm<Trip> implements OnInit {
 
+  observersHelper: FormArrayHelper<Person>;
+  observerFocusIndex = -1;
+  mobile: boolean;
+
+  @Input() showObservers = false;
   @Input() showComment = true;
   @Input() showError = true;
   @Input() usageMode: UsageMode;
@@ -32,24 +47,47 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   }
 
   set value(json: any) {
-    super.setValue(json);
+    this.setValue(json);
   }
 
   get isOnFieldMode(): boolean {
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
 
+  get observersForm(): FormArray {
+    return this.form.get('observers') as FormArray;
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
+    protected formBuilder: FormBuilder,
     protected validatorService: TripValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
+    protected personService: PersonService,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
 
     super(dateAdapter, validatorService.getFormGroup(), settings);
+    this.mobile = this.settings.mobile;
+
+    this.observersHelper = new FormArrayHelper<Person>(
+      this.formBuilder,
+      this.form,
+      'observers',
+      (person) => validatorService.getObserverControl(person),
+      EntityUtils.equals,
+      EntityUtils.isEmpty,
+      {
+        allowEmptyArray: false
+      }
+    );
+
+    // Create at least one observer
+    this.observersHelper.resize(1);
+
   }
 
   ngOnInit() {
@@ -84,6 +122,33 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         levelId: LocationLevelIds.PORT
       }
     });
+
+    // Combo: observers
+    const profileLabels: UserProfileLabel[] = ['SUPERVISOR', 'USER', 'GUEST'];
+    this.registerAutocompleteField('person', {
+      service: this.personService,
+      filter: {
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+        userProfiles: profileLabels
+      },
+      attributes: ['lastName', 'firstName', 'department.name'],
+      displayWith: personToString
+    });
+
+  }
+
+  setValue(value: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+
+    if (!value) return;
+
+    // Make sure to have (at least) one observer
+    value.observers = value.observers && value.observers.length ? value.observers : [null];
+
+    // Resize observers array
+    this.observersHelper.resize(Math.max(1, value.observers.length));
+
+    // Send value for form
+    super.setValue(value, opts);
   }
 
   async addVesselModal(): Promise<any> {
@@ -100,6 +165,13 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       }
     });
     return modal.present();
+  }
+
+  addObserver() {
+    this.observersHelper.add();
+    if (!this.mobile) {
+      this.observerFocusIndex = this.observersHelper.size() - 1;
+    }
   }
 
   referentialToString = referentialToString;

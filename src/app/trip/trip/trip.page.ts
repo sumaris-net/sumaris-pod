@@ -65,6 +65,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
         .subscribe(program => {
           if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
           this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
+          this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
         })
     );
   }

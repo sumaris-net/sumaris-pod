@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AppTable,
   AppTableDataSource,
@@ -148,7 +148,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
             startDate: json.startDate,
             endDate: json.endDate,
             locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
-            vesselId:  json.vesselSnapshot && typeof json.vesselSnapshot === "object" && json.vesselSnapshot.vesselId || undefined,
+            vesselId:  json.vesselSnapshot && typeof json.vesselSnapshot === "object" && json.vesselSnapshot.id || undefined,
           }, {emitEvent: this.mobile || isNil(this.filter)})),
         // Save filter in settings (after a debounce time)
         debounceTime(1000),
