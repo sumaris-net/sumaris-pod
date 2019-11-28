@@ -101,7 +101,7 @@
 
         <ion-buttons slot="end">
           <ion-button color="accent" (click)="toggleSplitPane($event)"
-                      hidden-xs hidden-sm
+                      class="hidden-xs hidden-sm hidden-md"
                       [title]="(splitPaneOpened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
             <h2 slot="icon-only">{{splitPaneOpened ? '&#xab;' : '&#xbb;'}}</h2>
           </ion-button>

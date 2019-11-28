@@ -42,6 +42,7 @@ const SPLIT_PANE_SHOW_WHEN = 'lg';
 })
 export class MenuComponent implements OnInit {
 
+  private _debug = false;
   private _subscription = new Subscription();
   public loading = true;
   public isLogin = false;
@@ -80,12 +81,15 @@ export class MenuComponent implements OnInit {
     protected cd: ChangeDetectorRef
   ) {
 
+    this._debug = !environment.production;
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
+    this.splitPaneOpened = true;
 
     // Update component when refresh is need (=login events or config changed)
+
     this._subscription.add(
       merge(
         this.accountService.onLogin,
@@ -97,35 +101,29 @@ export class MenuComponent implements OnInit {
         )
         .pipe(
           mergeMap(() => this.accountService.ready()),
-          throttleTime(200),
-          filter(() => !!this.config)
+          throttleTime(200)
         )
-        .subscribe(account => this.updateView()));
+        .subscribe(account => {
+          if (this.accountService.isLogin()) {
+            this.onLogin(this.accountService.account);
 
+          } else {
+            this.onLogout(true);
+          }
+        }));
   }
 
-  protected async updateView() {
-
-    if (this.accountService.isLogin()) {
-      this.onLogin(this.accountService.account);
-
-    } else {
-      this.onLogout(true);
-    }
-  }
-
-  onLogin(account: Account) {
+  async onLogin(account: Account) {
     console.info('[menu] Update using logged account');
     this.account = account;
     this.isLogin = true;
     //this.splitPaneOpened = true;
     //this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
-    this.updateItems();
-    this.cd.markForCheck();
+    await this.refreshMenuItems();
 
     setTimeout(() => {
       this.loading = false;
-      this.cd.markForCheck();
+      this.markForCheck();
     }, 500);
   }
 
@@ -135,8 +133,7 @@ export class MenuComponent implements OnInit {
     //this.splitPaneOpened = false;
     //this.splitPane.when = false;
     this.account = null;
-    this.updateItems();
-    this.cd.markForCheck();
+    await this.refreshMenuItems();
 
     // Wait the end of fadeout, to reset the account
     if (!skipRedirect) {
@@ -145,7 +142,7 @@ export class MenuComponent implements OnInit {
 
     //setTimeout(() => {
       this.loading = false;
-      this.cd.markForCheck();
+      this.markForCheck();
     //}, 1000);
 
   }
@@ -184,61 +181,6 @@ export class MenuComponent implements OnInit {
     return modal.present();
   }
 
-  updateItems() {
-
-    console.debug("[menu] Updating menu items...");
-
-    let filteredItems: MenuItem[];
-    if (!this.isLogin) {
-      filteredItems = (this.items || []).filter(i => !i.profile);
-    } else {
-      filteredItems = (this.items || []).filter(i => {
-        let isInclude: boolean;
-        if (i.profile) {
-          isInclude = this.accountService.hasMinProfile(i.profile);
-          if (!isInclude) {
-            console.debug("[menu] User does not have minimal profile '" + i.profile + "' need by ", (i.path || i.page));
-          }
-        } else if (i.exactProfile) {
-          isInclude = !i.profile || this.accountService.hasExactProfile(i.profile);
-          if (!isInclude) {
-            console.debug("[menu] User does not have exact profile '" + i.profile + "' need by ", (i.path || i.page));
-          }
-        } else {
-          isInclude = true;
-        }
-
-        return isInclude;
-      });
-    }
-
-    // Filter by property
-    if (this.config) {
-      filteredItems = filteredItems
-        .filter(item => {
-          if (isNotNilOrBlank(item.ifProperty) && this.config.properties[item.ifProperty] !== 'true') {
-            return false;
-          }
-          return true;
-        });
-      // Replace title using properties
-      filteredItems
-        .forEach(item => {
-          if (isNotNilOrBlank(item.titleProperty)) {
-            item.title = this.config.properties[item.titleProperty] || item.title;
-          }
-        });
-    }
-
-    this.$filteredItems.next(filteredItems);
-
-    this.cd.markForCheck();
-  }
-
-  getItemTitle(index, item) {
-    return item.title;
-  }
-
   toggleSplitPane($event: MouseEvent) {
     if ($event.defaultPrevented) return;
     this.splitPaneOpened = !this.splitPaneOpened;
@@ -261,6 +203,58 @@ export class MenuComponent implements OnInit {
       default:
         throw new Error('Unknown action: ' + action);
     }
+  }
+
+  /* -- protected methods -- */
+
+  protected refreshMenuItems() {
+    if (this._debug) console.debug("[menu] Updating menu...");
+
+    const filteredItems = (this.items || [])
+      .filter((item) => this.filterMenuItem(item))
+      .map(item => {
+        // Replace title using properties
+        if (isNotNilOrBlank(item.titleProperty) && this.config) {
+          const title = this.config.properties[item.titleProperty];
+          if (title) return { ...item, title}; // Create a copy, to keep the original item.title
+        }
+        return item;
+      });
+
+    this.$filteredItems.next(filteredItems);
+  }
+
+  protected filterMenuItem(item: MenuItem): boolean {
+    if (item.profile) {
+      const hasProfile = this.isLogin && this.accountService.hasMinProfile(item.profile);
+      if (!hasProfile) {
+        if (this._debug) console.debug("[menu] User does not have minimal profile '" + item.profile + "' for ", (item.path || item.page));
+        return false;
+      }
+    }
+
+    else if (item.exactProfile) {
+      const hasExactProfile =  this.isLogin && this.accountService.hasExactProfile(item.profile);
+      if (!hasExactProfile) {
+        if (this._debug) console.debug("[menu] User does not have exact profile '" + item.exactProfile + "' for ", (item.path || item.page));
+        return false;
+      }
+    }
+
+    // If enable by config
+    if (item.ifProperty) {
+      const isEnableByConfig = this.config && this.config.properties[item.ifProperty] === 'true';
+      if (!isEnableByConfig) {
+        if (this._debug) console.debug("[menu] Config property '" + item.ifProperty + "' not 'true' for ", (item.path || item.page));
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }
 
