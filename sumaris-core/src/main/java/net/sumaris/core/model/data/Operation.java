@@ -37,6 +37,8 @@ import java.util.List;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "operation")
+@Cacheable
 public class Operation implements IDataEntity<Integer> {
 
     @Id

@@ -41,6 +41,22 @@ import java.util.Set;
 @Entity
 @Table(name = "person")
 @Cacheable
+@NamedQueries({
+        @NamedQuery(name = "Person.count", query = "SELECT\n" +
+                "        count(distinct t.id)\n" +
+                "      FROM\n" +
+                "        Person t\n" +
+                "        inner join t.status s\n" +
+                "        left outer join t.userProfiles up\n" +
+                "      WHERE\n" +
+                "        (:userProfileId is null OR up.id = :userProfileId)\n" +
+                "        AND (:statusIds is null OR s.id IN (:statusIds))\n" +
+                "        AND (:email is null OR upper(t.email) = upper(:email))\n" +
+                "        AND (:pubkey is null OR t.pubkey = :pubkey)\n" +
+                "        AND (:firstName is null OR upper(t.firstName) = upper(:firstName))\n" +
+                "        AND (:lastName is null OR upper(t.lastName) = upper(:lastName))"
+        )
+})
 public class Person implements IReferentialEntity {
 
     @Id

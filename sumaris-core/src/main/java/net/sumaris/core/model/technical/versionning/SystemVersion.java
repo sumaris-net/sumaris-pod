@@ -34,6 +34,14 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "system_version")
+@NamedQueries({
+        @NamedQuery(name = "SystemVersion.last", query = "SELECT \n" +
+                "      label as schemaVersion\n" +
+                "    FROM \n" +
+                "      SystemVersion\n" +
+                "    WHERE\n" +
+                "      id = (select max(id) from SystemVersion)" )
+})
 public class SystemVersion implements IUpdateDateEntityBean<Integer, Date> {
 
     @Id

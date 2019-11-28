@@ -38,6 +38,7 @@ import java.util.List;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "file")
 public class File implements Serializable, IUpdateDateEntityBean<Integer, Date> {
 
     @Id

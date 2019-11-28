@@ -216,7 +216,7 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         List<Integer> statusIds = ArrayUtils.isEmpty(filter.getStatusIds()) ?
                 null : ImmutableList.copyOf(filter.getStatusIds());
 
-        return getEntityManager().createNamedQuery("countPersons", Long.class)
+        return getEntityManager().createNamedQuery("Person.count", Long.class)
                 .setParameter("userProfileId", filter.getUserProfileId())
                 .setParameter("statusIds", statusIds)
                 .setParameter("email", StringUtils.trimToNull(filter.getEmail()))

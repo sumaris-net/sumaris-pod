@@ -39,6 +39,7 @@ import java.util.Set;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "strategy")
 public class Strategy implements IItemReferentialEntity {
 
     @Id

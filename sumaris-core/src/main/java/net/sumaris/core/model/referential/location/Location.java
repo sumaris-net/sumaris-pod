@@ -35,6 +35,7 @@ import java.util.Date;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "location")
 @Cacheable
 public class Location implements IItemReferentialEntity, Serializable {
 

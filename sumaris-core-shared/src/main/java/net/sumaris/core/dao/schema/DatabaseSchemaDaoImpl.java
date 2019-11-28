@@ -282,12 +282,8 @@ public class DatabaseSchemaDaoImpl
     public Version getSchemaVersion() throws VersionNotFoundException {
         String systemVersion;
         try {
-            systemVersion = getEntityManager().createQuery(" SELECT \n" +
-                    "      label as schemaVersion\n" +
-                    "    FROM \n" +
-                    "      SystemVersion\n" +
-                    "    WHERE\n" +
-                    "      id = (select max(id) from SystemVersion)", String.class).getSingleResult();
+            systemVersion = getEntityManager().createNamedQuery("SystemVersion.last", String.class)
+                    .getSingleResult();
             if (StringUtils.isBlank(systemVersion)) {
                 throw new VersionNotFoundException("Could not get the schema version. No version found in SYSTEM_VERSION table.");
             }

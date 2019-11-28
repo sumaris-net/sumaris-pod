@@ -37,6 +37,8 @@ import java.util.Set;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "pmfm")
+@Cacheable
 public class Pmfm implements IReferentialEntity {
 
     @Id

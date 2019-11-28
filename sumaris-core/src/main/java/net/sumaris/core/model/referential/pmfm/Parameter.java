@@ -39,6 +39,8 @@ import java.util.List;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "parameter")
+@Cacheable
 public class Parameter implements IItemReferentialEntity {
 
     @Id

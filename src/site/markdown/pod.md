@@ -3,9 +3,11 @@
 
 # SUMARiS Pod
 
-## Introduction
+**SUMARiS Pod** is a [server software](https://en.wikipedia.org/wiki/Server_(computing)) used to manage a SUMARiS database.
 
-**SUMARiS Pod** is a [server software](https://en.wikipedia.org/wiki/Server_(computing)) used to manage a SUMARiS database:
+## Main features
+
+The SUMARiS Pod has several objectives:
 
  - Create the SUMARiS database and manage schema updates:
     * Compatible with [HSQLDB](http://hsqldb.org/), PostgreSQL and Oracle;
@@ -15,19 +17,16 @@
     * Publish a RDF API for semantic web, including OWL (Ontoligy Web Language);
     * CSV files input/output (using the ICES RDB exchange data format)
 
-## Documentation
+## Database & model
 
- - Documentation on the database:
-    * Database conceptual model:
-      * [Simplified conceptual model](./doc/model/index.md);
-      * [Full entities specification](./sumaris-core/hibernate/entities/index.html) (Hibernate mapping);
-    * Database physical model:
-      * [Full tables specification](./sumaris-core/hibernate/tables/index.html);
-  
- - Other technical documentation: 
+ - [Conceptual model](doc/model/index.md) of the SUMARiS database:
+ - [Tables list](./sumaris-core/hibernate/tables/index.html) with all associated columns;
+
+ - Useful documentation, for IT developers: 
+    * [Entities](./sumaris-core/hibernate/entities/index.html) (Hibernate mapping);
     * [Built-in queries](./sumaris-core/hibernate/queries/index.html) (HQL and SQL) used in the source code.
 
-## Installation
+## Pod Installation
 
 - Install LibSodium (Unix only) : https://download.libsodium.org/doc/installation/
 
@@ -60,7 +59,7 @@ mkdir -p /home/<USER>/.config/sumaris/
 java -server -Xms512m -Xmx1024m -Dspring.config.additional-location=/home/<USER>/.config/sumaris/ -jar sumaris-pod-x.y.z.jar
 ``` 
 
-## Compile from source
+## Compile Pod from source
 
 - Install Build tools (Make, GCC, Git)
 

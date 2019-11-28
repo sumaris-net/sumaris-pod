@@ -39,6 +39,8 @@ import java.util.Date;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "matrix")
+@Cacheable
 public class Matrix implements IItemReferentialEntity {
 
     @Id

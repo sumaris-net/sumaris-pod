@@ -42,6 +42,7 @@ import java.util.List;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "sample")
 public class Sample implements IRootDataEntity<Integer> {
 
     @Id

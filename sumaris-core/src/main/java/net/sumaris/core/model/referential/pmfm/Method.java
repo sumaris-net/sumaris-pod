@@ -58,6 +58,8 @@ import java.util.Date;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "method")
+@Cacheable
 public class Method implements IItemReferentialEntity {
 
     @Id

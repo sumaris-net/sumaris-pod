@@ -33,6 +33,7 @@ import java.util.Date;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "unit")
 @Cacheable
 public class Unit implements IItemReferentialEntity {
 

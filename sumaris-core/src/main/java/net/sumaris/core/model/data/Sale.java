@@ -42,6 +42,7 @@ import java.util.Set;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "sale")
 public class Sale implements IRootDataEntity<Integer>,
         IWithVesselEntity<Integer, Vessel> {
 

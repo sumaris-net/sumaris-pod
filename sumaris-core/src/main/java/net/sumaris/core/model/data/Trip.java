@@ -57,6 +57,7 @@ import java.util.*;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "trip")
 public class Trip implements IRootDataEntity<Integer>,
         IWithObserversEntity<Integer, Person>,
         IWithVesselEntity<Integer, Vessel> {

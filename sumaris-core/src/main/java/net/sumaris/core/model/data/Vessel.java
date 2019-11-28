@@ -41,6 +41,10 @@ import java.util.List;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "vessel")
+/**
+ * A vessel is fishing vessel or scientific vessel, or any halieutic resources user
+ */
 public class Vessel implements IRootDataEntity<Integer> {
 
     @Id

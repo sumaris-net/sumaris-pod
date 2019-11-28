@@ -38,6 +38,7 @@ import java.util.List;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "batch")
 public class Batch implements IDataEntity<Integer> {
 
     @Id

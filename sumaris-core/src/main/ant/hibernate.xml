@@ -34,7 +34,7 @@
 				<property name="hibernate.generated.properties.path" location="${outputDirectory}/hibernate.properties" />
 			</then>
 		</if>
-		
+
 		<!-- Check properties -->
 		<fail unless="java.generated.dir" message="property 'java.generated.dir' must be set (directory with *.hbm.xml files)" />
 		<fail unless="jdbc.driver" message="property 'jdbc.driver' must be set" />
@@ -60,40 +60,127 @@
 		<property name="hibernate.cache.use_second_level_cache">false</property>
 
 ]]></echo>
-				<propertyregex property="src.cleanPath" input="${project.build.sourceDirectory}" regexp="\\" replace="/" override="true" defaultValue="${project.build.sourceDirectory}" />
-				<property name="entities.package.dir" value="${hibernate.entities.package}" />
-				<propertyregex input="${entities.package.dir}" regexp="[.]" replace="/" property="entities.package.dir" override="true" defaultValue="${entities.package.dir}" />
-				<property name="newLine" value="&#10;" />
+		<propertyregex property="src.cleanPath" input="${project.build.sourceDirectory}" regexp="\\" replace="/" override="true" defaultValue="${project.build.sourceDirectory}" />
+		<property name="entities.package.dir" value="${hibernate.entities.package}" />
+		<propertyregex input="${entities.package.dir}" regexp="[.]" replace="/" property="entities.package.dir" override="true" defaultValue="${entities.package.dir}" />
+		<property name="newLine" value="&#10;" />
 
-				<for param="entity.fullPath">
-					<path>
-						<fileset dir="${src.cleanPath}" casesensitive="yes">
-							<include name="${entities.package.dir}/**/*.java"/>
-							<exclude name="${entities.package.dir}/**/I*.java"/>
-							<exclude name="${entities.package.dir}/**/*Enum.java"/>
-							<exclude name="${entities.package.dir}/**/*Id.java"/>
-						</fileset>
-					</path>
-					<sequential>
-						<propertyregex property="entity.fullPath" input="@{entity.fullPath}" regexp="\\" replace="/" override="true" defaultValue="@{entity.fullPath}" />
-						<propertyregex property="entity.name" input="${entity.fullPath}" regexp="${src.cleanPath}[\\/](.*).java$" replace="\1" override="true" />
-						<propertyregex property="entity.name" input="${entity.name}" regexp="[\\/]" replace="." override="true" defaultValue="${entity.name}" />
+		<for param="entity.fullPath">
+			<path>
+				<fileset dir="${src.cleanPath}" casesensitive="yes">
+					<include name="${entities.package.dir}/**/*.java"/>
+					<exclude name="${entities.package.dir}/**/I*Entity*.java"/>
+					<exclude name="${entities.package.dir}/**/*Enum.java"/>
+					<exclude name="${entities.package.dir}/**/*Id.java"/>
+				</fileset>
+			</path>
+			<sequential>
+				<propertyregex property="entity.fullPath" input="@{entity.fullPath}" regexp="\\" replace="/" override="true" defaultValue="@{entity.fullPath}" />
+				<propertyregex property="entity.name" input="${entity.fullPath}" regexp="${src.cleanPath}[\\/](.*).java$" replace="\1" override="true" />
+				<propertyregex property="entity.name" input="${entity.name}" regexp="[\\/]" replace="." override="true" defaultValue="${entity.name}" />
 
-						<echo file="${hibernate.cfg.path}" append="true" encoding="UTF-8"><![CDATA[${newLine}		<mapping class="${entity.name}" />]]></echo>
-					</sequential>
-				</for>
-		
-				<echo file="${hibernate.cfg.path}" append="true" encoding="UTF-8"><![CDATA[${newLine}	</session-factory>${newLine}</hibernate-configuration>]]></echo>
+				<echo file="${hibernate.cfg.path}" append="true" encoding="UTF-8"><![CDATA[${newLine}		<mapping class="${entity.name}" />]]></echo>
+			</sequential>
+		</for>
 
-			<!-- Generate the hibernate.properties file -->
-			<propertyregex property="jdbc.cleanUrl" input="${jdbc.url}" regexp="\\" replace="/" override="true" defaultValue="${jdbc.url}" />
-			<property name="hibernate.properties.path" location="${hibernate.generated.properties.path}" />
-			<echo file="${hibernate.properties.path}" append="false" encoding="UTF-8"><![CDATA[connection.url=${jdbc.cleanUrl}
+		<echo file="${hibernate.cfg.path}" append="true" encoding="UTF-8"><![CDATA[${newLine}	</session-factory>${newLine}</hibernate-configuration>]]></echo>
+
+		<!-- Generate the hibernate.properties file -->
+		<propertyregex property="jdbc.cleanUrl" input="${jdbc.url}" regexp="\\" replace="/" override="true" defaultValue="${jdbc.url}" />
+		<property name="hibernate.properties.path" location="${hibernate.generated.properties.path}" />
+		<echo file="${hibernate.properties.path}" append="false" encoding="UTF-8"><![CDATA[connection.url=${jdbc.cleanUrl}
 connection.driver_class=${jdbc.driver}
 connection.username=${jdbc.username}
 connection.password=${jdbc.password}
+hibernate.dialect=${hibernate.dialect}
 ]]>
-			</echo>
-		</target>
+		</echo>
+	</target>
 
-	</project>
+	<target name="generate-persistence-xml">
+		<!-- If not already set, try to compute output files path using ${outputDirectory} -->
+		<if>
+			<available file="${outputDirectory}" type="dir"/>
+			<then>
+				<property name="persistence.xml.generated.path" location="${outputDirectory}/META-INF/persistence.xml" />
+			</then>
+		</if>
+
+		<!-- Check properties -->
+		<fail unless="java.generated.dir" message="property 'java.generated.dir' must be set (directory with *.hbm.xml files)" />
+		<fail unless="jdbc.driver" message="property 'jdbc.driver' must be set" />
+		<fail unless="jdbc.schema" message="property 'jdbc.schema' must be set" />
+		<fail unless="hibernate.dialect" message="property 'hibernate.dialect' must be set" />
+		<fail unless="persistence.xml.generated.path" message="One of this property must be set : 'persistence.xml.generated.path' or 'outputDirectory'" />
+
+		<echo level="warning">WARN: writing file ${persistence.xml.generated.path}</echo>
+		<!-- Create hibernate.cfg.xml file -->
+		<property name="persistence.xml.path" location="${persistence.xml.generated.path}" />
+		<echo file="${persistence.xml.path}" append="false" encoding="UTF-8"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<!-- WARNING - This is a generated file: DO NOT modify manually.
+               See Ant build file for details, at '/src/main/ant/hibernate.xml' -->
+<persistence version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
+             http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
+
+  <persistence-unit name="sumaris" transaction-type="RESOURCE_LOCAL" >
+
+]]></echo>
+		<propertyregex property="src.cleanPath" input="${project.build.sourceDirectory}" regexp="\\" replace="/" override="true" defaultValue="${project.build.sourceDirectory}" />
+		<property name="entities.package.dir" value="${hibernate.entities.package}" />
+		<propertyregex input="${entities.package.dir}" regexp="[.]" replace="/" property="entities.package.dir" override="true" defaultValue="${entities.package.dir}" />
+		<property name="newLine" value="&#10;" />
+
+		<for param="entity.fullPath">
+			<path>
+				<fileset dir="${src.cleanPath}" casesensitive="yes">
+					<include name="${entities.package.dir}/**/*.java"/>
+					<exclude name="${entities.package.dir}/**/I*Entity*.java"/>
+					<exclude name="${entities.package.dir}/**/*Enum.java"/>
+					<exclude name="${entities.package.dir}/**/*Id.java"/>
+				</fileset>
+			</path>
+			<sequential>
+				<propertyregex property="entity.fullPath" input="@{entity.fullPath}" regexp="\\" replace="/" override="true" defaultValue="@{entity.fullPath}" />
+				<propertyregex property="entity.name" input="${entity.fullPath}" regexp="${src.cleanPath}[\\/](.*).java$" replace="\1" override="true" />
+				<propertyregex property="entity.name" input="${entity.name}" regexp="[\\/]" replace="." override="true" defaultValue="${entity.name}" />
+
+				<echo file="${persistence.xml.path}" append="true" encoding="UTF-8"><![CDATA[${newLine}    <class>${entity.name}</class>]]></echo>
+			</sequential>
+		</for>
+
+		<!-- Add properties -->
+		<echo file="${persistence.xml.path}" append="true" encoding="UTF-8"><![CDATA[${newLine}
+    <properties>
+      <property name="hibernate.bytecode.provider" value="javassist"/>
+      <property name="hibernate.check_nullability" value="false"/>
+      <property name="hibernate.connection.driver_class" value="${jdbc.driver}"/>
+      <property name="hibernate.default_schema" value="${jdbc.schema}"/>
+      <property name="hibernate.dialect" value="${hibernate.dialect}"/>
+      <property name="hibernate.search.autoregister_listeners" value="false"/>
+      <property name="hibernate.show_sql" value="false"/>
+      <property name="hibernate.cache.use_query_cache" value="false"/>
+      <property name="hibernate.cache.use_second_level_cache" value="false"/>
+    </properties>
+  </persistence-unit>
+</persistence>]]>
+		</echo>
+	</target>
+
+
+	<target name="hbm2doc">
+
+		<echo level="warning">STARTING Hbm2doc ant build</echo>
+
+		<hibernatetool>
+			<classpath>
+				<path location="${outputDirectory}" />
+			</classpath>
+
+			<jpaconfiguration persistenceunit="sumaris" />
+
+			<hbm2doc destdir="${project.reporting.outputDirectory}/hibernate" />
+		</hibernatetool>
+	</target>
+</project>

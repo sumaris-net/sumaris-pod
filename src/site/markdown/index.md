@@ -1,27 +1,37 @@
 ![SUMARiS Logo](./images/logos/logo_sumaris.png)
 
-## Presentation
-
 Welcome to the documentation web site of the SUMARiS project.
 
 **SUMARiS** is a completed skate stocks shared database.
 
-The official web portal is available at [sumaris.net](https://www.sumaris.net)   
+<u>Official web site</u>: [www.sumaris.net](https://www.sumaris.net)   
+
+## Main features
+
+ - Web forms, for desktop: 
+    * **halieutic data entry** for scientific purpose (concept of trip, fishing operation, species catch, vessel...);
+    * manage users (access rights per data collection program) ;
+    * manage referential: protocols (program and strategies), locations, gears, taxons, ...;
+
+ - An Android App, for tablets and mobile phones: 
+    * On board data entry;
+    * Offline mode, with a full synchronization when detecting network;
+    * Built-in GPS sensor support;
+    * Built-in camera support (coming soon);
 
 ## License
 
-Source code and documentation are under [License GPL v3](./LICENSE), except user manual that apply the CC-by-SA license.
+Source code and documentation are under [License GPL v3](./LICENSE.md), except user manual that apply the CC-by-SA license.
 
-## User documentation  
+## Documentation  
 
 - [User manual](doc/user-manual/table-of-contents.md)
-- [Use cases](doc/use-case/index_en.md) ([EN](doc/use-case/index_en.md) | [FR](doc/use-case/index.md))
+- [Functional use cases](doc/use-case/index_en.md) ([EN](doc/use-case/index_en.md) | [FR](doc/use-case/index.md))
 
-## Technical documentation  
+## Installation
   
-- [SUMARiS App](app.md) 
-- [SUMARiS Pod and database](server.md)
-- [Pod - Configuration options](config-report.html)
+- [App installation](app.md) 
+- [Pod and database installation](server.md)
 
 
 ## How You Can Help

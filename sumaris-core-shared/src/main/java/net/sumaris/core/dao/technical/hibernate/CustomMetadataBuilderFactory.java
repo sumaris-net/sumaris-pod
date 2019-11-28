@@ -1,26 +1,26 @@
-package net.sumaris.core.dao.technical.schema;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 - 2019 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+
+package net.sumaris.core.dao.technical.hibernate;
 
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -35,7 +35,6 @@ import org.hibernate.id.PersistentIdentifierGenerator;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.GenerationType;
 import javax.persistence.SequenceGenerator;
@@ -47,7 +46,6 @@ import javax.persistence.TableGenerator;
  *
  * @author peck7 on 18/11/2019.
  */
-@Component
 public class CustomMetadataBuilderFactory implements MetadataBuilderFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(CustomMetadataBuilderFactory.class);
@@ -59,8 +57,10 @@ public class CustomMetadataBuilderFactory implements MetadataBuilderFactory {
     @Override
     public MetadataBuilderImplementor getMetadataBuilder(MetadataSources metadatasources, MetadataBuilderImplementor defaultBuilder) {
 
+        SumarisConfiguration config = SumarisConfiguration.getInstance();
+
         // Read sumaris.persistence.sequence.increment option
-        int allocationSize = SumarisConfiguration.getInstance().getSequenceIncrementValue();
+        int allocationSize = config != null ? config.getSequenceIncrementValue() : 0;
         if (allocationSize <= 0) {
             LOG.debug(String.format("invalid allocationSize : %s, fallback to default MetadataBuilderImplementor", allocationSize));
             return null;

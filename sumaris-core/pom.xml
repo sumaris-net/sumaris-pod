@@ -27,6 +27,11 @@
     <hibernate.generated.cfg.path>${hibernate.generated.cfg.dir}/hibernate.cfg.xml</hibernate.generated.cfg.path>
     <hibernate.generated.properties.path>${hibernate.generated.cfg.dir}/hibernate.properties</hibernate.generated.properties.path>
 
+    <persistence.xml.generated.dir>
+      ${project.build.directory}/generated-sources/resources/META-INF
+    </persistence.xml.generated.dir>
+    <persistence.xml.generated.path>${persistence.xml.generated.dir}/persistence.xml</persistence.xml.generated.path>
+
     <hibernate.entities.package>net.sumaris.core.model</hibernate.entities.package>
 
     <test>AllTests</test>
@@ -42,6 +47,12 @@
       <groupId>net.sumaris</groupId>
       <artifactId>sumaris-core-shared</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-tools</artifactId>
+      <version>${hibernate-tools.version}</version>
+      <scope>runtime</scope>
     </dependency>
 
     <!-- hibernate, spring... -->
@@ -272,6 +283,9 @@
 
                 <echo level="info">Generate Hibernate files [hibernate.cfg.xml] and [hibernate.properties]</echo>
                 <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="generate-hibernate-cfg" inheritRefs="true" />
+
+                <echo level="info">Generate JPA file [persistence.xml]</echo>
+                <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="generate-persistence-xml" inheritRefs="true" />
               </target>
             </configuration>
           </execution>
@@ -460,6 +474,22 @@
           <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
             <dependencies>
+              <!-- project dependencies -->
+              <dependency>
+                <groupId>net.sumaris</groupId>
+                <artifactId>sumaris-core-shared</artifactId>
+                <version>${project.version}</version>
+                <exclusions>
+                  <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                  </exclusion>
+                  <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-entitymanager</artifactId>
+                  </exclusion>
+                </exclusions>
+              </dependency>
               <!-- need for hibernate tools -->
               <dependency>
                 <groupId>org.hibernate</groupId>
@@ -481,11 +511,11 @@
                 <artifactId>hibernate-core</artifactId>
                 <version>${hibernate.version}</version>
               </dependency>
-              <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-entitymanager</artifactId>
-                <version>${hibernate.version}</version>
-              </dependency>
+<!--              <dependency>-->
+<!--                <groupId>org.hibernate</groupId>-->
+<!--                <artifactId>hibernate-entitymanager</artifactId>-->
+<!--                <version>${hibernate.version}</version>-->
+<!--              </dependency>-->
               <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-spatial</artifactId>
@@ -546,21 +576,21 @@
                       <classpath refid="maven.plugin.classpath" />
                     </taskdef>
 
-                    <!-- workaround (when no jdbc schema defined) -->
+<!--                    <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="hbm2doc" inheritRefs="true" />-->
+
+                    <!-- workaround (when no jdbc schema defined)-->
                     <replaceregexp match="hibernate.default_schema&quot;&gt;[^&lt;]*&lt;" replace="hibernate.default_schema&quot;&gt;${jdbc.reporting.schema}&lt;" flags="g" byline="false">
                       <fileset file="${hibernate.generated.cfg.path}" />
                     </replaceregexp>
 
-
-                    <hibernatetool>
+                    <hibernatetool destdir="${project.reporting.outputDirectory}/hibernate">
                       <classpath>
                         <path location="${project.build.outputDirectory}" />
                       </classpath>
 
                       <jpaconfiguration persistenceunit="sumaris" />
-                      <!--<configuration configurationfile="${hibernate.generated.cfg.path}" />-->
-                      <!--<hbm2ddl destdir="${project.reporting.outputDirectory}/hibernate/sql" outputfilename="sumaris-ddl.sql" drop="true" export="false" delimiter=";" format="true" />-->
-                      <hbm2doc destdir="${project.reporting.outputDirectory}/hibernate" />
+
+                      <hbm2doc  />
                     </hibernatetool>
 
                     <!-- restore the hibernate.cfg.xml -->
@@ -576,19 +606,7 @@
           <plugin>
             <groupId>de.juplo</groupId>
             <artifactId>hibernate-maven-plugin</artifactId>
-            <version>2.0.1.IFR</version>
-            <dependencies>
-              <dependency>
-                <groupId>org.hsqldb</groupId>
-                <artifactId>hsqldb</artifactId>
-                <version>${hsqldb.version}</version>
-              </dependency>
-              <dependency>
-                <groupId>com.oracle</groupId>
-                <artifactId>ojdbc8</artifactId>
-                <version>${ojdbc8.version}</version>
-              </dependency>
-            </dependencies>
+            <version>2.0.2.IFR</version>
             <executions>
               <execution>
                 <id>queries2doc</id>
@@ -612,7 +630,7 @@
               <password>${jdbc.password}</password>
               <!-- add queries files-->
               <mappings>
-                ${project.build.outputDirectory}/queries.hbm.xml
+                ${project.build.outputDirectory}/META-INF/orm.xml
               </mappings>
             </configuration>
           </plugin>

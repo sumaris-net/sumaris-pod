@@ -36,6 +36,7 @@ import java.util.List;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "gear")
 @Cacheable
 public class Gear implements IItemReferentialEntity {
 

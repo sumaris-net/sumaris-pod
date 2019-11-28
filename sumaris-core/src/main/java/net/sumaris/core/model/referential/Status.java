@@ -32,6 +32,7 @@ import java.util.Date;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "status")
 @Cacheable
 public class Status implements IUpdateDateEntityBean<Integer, Date> {
 

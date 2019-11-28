@@ -36,6 +36,7 @@ import java.util.Objects;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "department")
 @Cacheable
 public class Department implements IItemReferentialEntity {
 
