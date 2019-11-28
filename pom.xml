@@ -1564,6 +1564,7 @@
                   <addSvnKeyWords>false</addSvnKeyWords>
                   <excludes>
                     <exclude>**/*.json</exclude>
+                    <exclude>**/*.min.js</exclude>
                     <exclude>**/*.properties</exclude>
                     <exclude>**/*.yml</exclude>
                     <exclude>**/*.xml</exclude>

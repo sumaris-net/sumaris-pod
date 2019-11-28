@@ -75,7 +75,7 @@
 
     <menu name="${project.name}" inherit="top">
         <item name="Accueil" href="index.html"/>
-<!--        <item name="Historique des versions" href="changes-report.html"/>-->
+        <item name="Historique des versions" href="changes-report.html"/>
     </menu>
 
   <menu name="Documentation utilisateur" inherit="top">
@@ -84,9 +84,9 @@
   </menu>
 
     <menu name="Documentation technique" inherit="top">
-      <item name="App (logiciel client)" href="app.html"/>
-      <item name="Pod - Base de données" href="pod.html"/>
-      <item name="Pod - Options de configuration" href="config-report.html"/>
+      <item name="Installation (App)" href="app.html"/>
+      <item name="Base de données et Pod" href="pod.html"/>
+      <item name="Options de configuration (Pod)" href="config-report.html"/>
     </menu>
 
     <menu name="Communauté" inherit="bottom">

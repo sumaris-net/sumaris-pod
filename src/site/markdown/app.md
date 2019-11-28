@@ -1,28 +1,34 @@
 
 
 
-# SUMARiS App
+# Installation (App)
 
-**SUMARiS App** is a [client software](https://en.wikipedia.org/wiki/Client_(computing)) connecting to any [SUMARiS Pod](./pod.md):
+The **SUMARiS App** is a [client software](https://en.wikipedia.org/wiki/Client_(computing)) connecting to any [SUMARiS Pod](./pod.md):
+
+### Install on a mobile device (Android)
+
+ - Install the last stable release:
  
-## Installation
+    * From your mobile device, open the Play Stoore app;
+    * Search "Sumaris.net" or visit this page: https://play.google.com/store/apps/details?id=net.sumaris.app
+  
+ - Install the last unstable release  :
 
-### Web forms
+    * On your mobile device, visit this page: https://github.com/sumaris-net/sumaris-app/releases
+    * Choose a version, then open the "assets" section;
+    * Download the APK file (a file with the extension `.apk`);
+    * Open the APK file, and start the installation wizard (WARN: sometimes, you will need to **uninstall** the previous installed version)
+
+ - That's it !
+ - After opening the App, select the right Pod (database) and login, as explain in the [user guide](doc/user-manual/index.md). 
+ 
+### Install on a desktop computer (web forms)
 
  - Download the last ZIP archive at: https://github.com/sumaris-net/sumaris-app/releases;
  - Unzip the downloaded archive anywhere;
- - Open the files `ìndex.html` in a web browser (Firefox or Chome).
- 
-You will need to select a SUMARiS Pod (See [user manual](doc/user-manual/index.md)) 
+ - Open the files `ìndex.html` in a web browser (Firefox or Chome);
+ - That's it !
+ - You will need to select a Pod, as explain in the [user guide](doc/user-manual/index.md). 
 
-### Android App
-
-- Last stable version : 
-    * Get it from [Google Play store](https://play.google.com/store/apps/details?id=net.sumaris.app)
-  
-- Last build (unstable) :
-    * On your Android phoen or tablet, open: https://github.com/sumaris-net/sumaris-app/releases
-    * Download the APK file of the expected version;
-    * Open the APK file, and start the installation (WARN: sometimes, you will need to **uninstall** the previous installed version)
 
 
