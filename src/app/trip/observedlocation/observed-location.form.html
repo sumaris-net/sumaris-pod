@@ -30,7 +30,7 @@
         <ion-label class="ion-float-end" translate>OBSERVED_LOCATION.LOCATION_AND_DATE</ion-label>
       </ion-col>
       <!-- location -->
-      <ion-col size="12" size-md="5" size-lg="6">
+      <ion-col size="12" size-sm="">
         <mat-autocomplete-field formControlName="location"
                                 [placeholder]="'OBSERVED_LOCATION.LOCATION'|translate"
                                 [config]="autocompleteFields.location"
@@ -41,12 +41,13 @@
       </ion-col>
 
       <!-- start date time -->
-      <ion-col size="12" size-md="5" size-lg="2">
+      <ion-col size="12" size-sm="auto">
         <mat-date-time formControlName="startDateTime"
                        [placeholder]="'OBSERVED_LOCATION.DATE_TIME'|translate"
                        [displayTime]="true"
                        [tabindex]="tabindex+2"
                        required>
+          <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
         </mat-date-time>
       </ion-col>
     </ion-row>

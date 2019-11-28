@@ -159,6 +159,7 @@ form.form-container {
     }
   }
 
+
   /* -- Computed field -- */
 
   // Set color on computed field (if enable or disable)
@@ -196,10 +197,7 @@ form.form-container {
 
     }
   }
-
-
 }
-
 
 mat-form-field {
   mat-error {
@@ -211,6 +209,7 @@ mat-form-field {
   }
 }
 
+// --- mat-date-time
 mat-date-time {
   // Need for errors injected using the <ng-content> tag
   mat-error {
@@ -218,8 +217,18 @@ mat-date-time {
   }
 }
 
-// --- mat-autocomplete and mat-select panel
+@media screen and (min-width: $screen-sm) {
+  form.form-container {
+    ion-grid {
+      ion-col[size-sm="auto"] > mat-date-time {
+        // When inside a form + grid : fix <ion-col size-sm="auto"> alignment in some screen resolution
+        max-width: 190px;
+      }
+    }
+  }
+}
 
+// --- mat-autocomplete and mat-select panel
 mat-option {
   .mat-option-text:not(:has(ion-row)) {
     padding: 0 16px;
