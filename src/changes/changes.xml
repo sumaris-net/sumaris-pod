@@ -31,8 +31,8 @@
 
 	<body>
 		<release version="0.18.2" date="2019-11-01" description="Stable Release">
-			<action dev="benoit.lavenier@e-is.pro" type="add" issue="1">
-				Last stable release - see issue #1
+			<action dev="benoit.lavenier@e-is.pro" type="add">
+				Last stable release
 			</action>
 		</release>
 	</body>

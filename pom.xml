@@ -246,7 +246,7 @@
     <assembly.skip>false</assembly.skip>
 
     <!-- to deploy with scpexe for maven 3 -->
-    <wagonSshVersion>2.12</wagonSshVersion>
+    <wagonSshVersion>3.0.0</wagonSshVersion>
 
   </properties>
 
@@ -1545,6 +1545,7 @@
             </executions>
           </plugin>
         </plugins>
+
       </build>
       <reporting>
         <plugins>
@@ -1582,9 +1583,6 @@
             <version>${changelogPluginVersion}</version>
             <!-- FIXME BL : waiting capturing group to be enable (see https://jira.codehaus.org/browse/MCHANGELOG-125) <configuration> <issueLinkUrl>https://forge.ifremer.fr/mantis/view.php?id=%ISSUE%</issueLinkUrl>
             -->
-            <configuration>
-              <issueIDRegexPattern>[#]([0-9]+)</issueIDRegexPattern>
-            </configuration>
           </plugin>
 
           <plugin>

@@ -76,11 +76,11 @@
 
     <menu name="${project.name}" inherit="top">
         <item name="Home" href="index.html"/>
-<!--        <item name="Releases history" href="changes-report.html"/>-->
+        <item name="Releases history" href="changes-report.html"/>
     </menu>
 
   <menu name="User documentation" inherit="top">
-      <item name="User manual" href="doc/user-manual/index.html"/>
+      <item name="Quick start guide" href="doc/user-manual/index.html"/>
       <item name="Use cases" href="doc/use-case/index_en.html"/>
   </menu>
 
