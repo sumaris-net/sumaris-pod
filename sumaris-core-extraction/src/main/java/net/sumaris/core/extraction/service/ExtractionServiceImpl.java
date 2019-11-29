@@ -338,6 +338,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         if (target == null) {
             target = new ExtractionProductVO();
             target.setLabel(type.getLabel());
+            target.setRecorderDepartment(type.getRecorderDepartment());
         }
 
         // Execute the aggregation

@@ -62,7 +62,6 @@ public class TripServiceQualityTest extends AbstractServiceTest {
         trip = service.control(trip);
 
         Assert.assertNotNull(trip.getControlDate());
-
     }
 
     @Test

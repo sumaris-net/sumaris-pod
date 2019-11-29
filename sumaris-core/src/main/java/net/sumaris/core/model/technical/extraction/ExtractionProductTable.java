@@ -23,6 +23,7 @@ package net.sumaris.core.model.technical.extraction;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -42,6 +43,7 @@ public class ExtractionProductTable implements IItemReferentialEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_TABLE_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_TABLE_SEQ", sequenceName="EXTRACTION_PRODUCT_TABLE_SEQ")
+    @EqualsAndHashCode.Exclude
     private Integer id;
 
     @Column(nullable = false, length = LENGTH_LABEL)
@@ -76,6 +78,7 @@ public class ExtractionProductTable implements IItemReferentialEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_product_fk", nullable = false)
+    @EqualsAndHashCode.Exclude
     private ExtractionProduct product;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductColumn.class, mappedBy = ExtractionProductColumn.Fields.TABLE)

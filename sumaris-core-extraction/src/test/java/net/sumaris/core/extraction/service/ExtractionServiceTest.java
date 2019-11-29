@@ -34,6 +34,7 @@ import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ZipUtils;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -94,6 +95,10 @@ public class ExtractionServiceTest extends AbstractServiceTest {
         type.setCategory(ExtractionCategoryEnum.LIVE.name());
         type.setLabel(ExtractionRawFormatEnum.RDB.name() + "-ext");
         type.setStatusId(StatusEnum.TEMPORARY.getId());
+
+        DepartmentVO recDep = new DepartmentVO();
+        recDep.setId(dbResource.getFixtures().getDepartmentId(0));
+        type.setRecorderDepartment(recDep);
 
         ExtractionTypeVO savedType = service.save(type, null);
 

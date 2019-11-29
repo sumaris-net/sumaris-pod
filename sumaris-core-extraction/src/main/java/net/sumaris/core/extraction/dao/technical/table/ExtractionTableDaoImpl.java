@@ -187,12 +187,26 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
                 })
                 .collect(Collectors.toList());
 
-        String sql = SumarisTableMetadatas.getSelectGroupByQuery(
-                SumarisTableMetadatas.getAliasedTableName(tableAlias, tableName),
+        Collection<String> groupByColumns = SumarisTableMetadatas.getAliasedColumns(tableAlias, groupByColumnNames);
+        String tableWithAlias = SumarisTableMetadatas.getAliasedTableName(tableAlias, tableName);
+
+        String sql = SumarisTableMetadatas.getCountGroupByQuery(
+                tableWithAlias,
+                columnNamesWithFunction,
+                whereBuilder.toString(),
+                groupByColumns);
+        long count = queryCount(sql);
+        result.setTotal(count);
+
+        // No data: stop here
+        if (count == 0) return result;
+
+        sql = SumarisTableMetadatas.getSelectGroupByQuery(
+                tableWithAlias,
                 columnNamesWithFunction,
                 whereBuilder.toString(),
                 // Group by
-                SumarisTableMetadatas.getAliasedColumns(tableAlias, groupByColumnNames),
+                groupByColumns,
                 // Sort by same columns, because of pageable
                 SumarisTableMetadatas.getAliasedColumns(tableAlias, groupByColumnNames),
                 direction);

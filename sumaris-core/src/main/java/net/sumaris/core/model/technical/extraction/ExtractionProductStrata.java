@@ -23,6 +23,7 @@
 package net.sumaris.core.model.technical.extraction;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -35,11 +36,13 @@ import java.util.Date;
 @Entity
 @Cacheable
 @Table(name = "extraction_product_strata")
+@EqualsAndHashCode
 public class ExtractionProductStrata implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_STRATA_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_STRATA_SEQ", sequenceName="EXTRACTION_PRODUCT_STRATA_SEQ")
+    @EqualsAndHashCode.Exclude
     private Integer id;
 
     @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
@@ -65,10 +68,12 @@ public class ExtractionProductStrata implements IItemReferentialEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_product_fk", nullable = false)
+    @EqualsAndHashCode.Exclude
     private ExtractionProduct product;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_table_fk")
+    @EqualsAndHashCode.Exclude
     private ExtractionProductTable table;
 
     @ManyToOne(fetch = FetchType.LAZY)

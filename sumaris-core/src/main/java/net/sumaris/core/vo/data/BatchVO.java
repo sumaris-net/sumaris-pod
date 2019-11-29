@@ -81,9 +81,9 @@ public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
 
 
     @EqualsAndHashCode.Exclude
-    private Map<Integer, String> sortingMeasurementValues;     // TODO: remove (not used anymore)
+    private Map<Integer, String> sortingMeasurementValues;     // TODO: remove (not used anymore - now using measurementValues)
     @EqualsAndHashCode.Exclude
-    private Map<Integer, String> quantificationMeasurementValues;     // TODO: remove (not used anymore)
+    private Map<Integer, String> quantificationMeasurementValues;     // TODO: remove (not used anymore - now using measurementValues)
 
 
     public String toString() {

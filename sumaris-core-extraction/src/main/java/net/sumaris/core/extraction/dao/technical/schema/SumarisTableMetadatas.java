@@ -231,6 +231,18 @@ public class SumarisTableMetadatas {
         return sb.toString();
     }
 
+    public static String getCountGroupByQuery(String tableName,
+                                               Collection<String> columnNames,
+                                               String whereClause,
+                                               Collection<String> groupByColumnNames) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT COUNT(*) FROM (")
+            .append(getSelectGroupByQuery(tableName, columnNames, whereClause, groupByColumnNames, null, null))
+            .append(")");
+
+        return sb.toString();
+    }
+
     public static Collection<String> getAliasedColumns(String tableAlias,
                                            Collection<String> columnNames) {
         if (StringUtils.isBlank(tableAlias)) return columnNames;
