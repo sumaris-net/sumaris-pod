@@ -14,6 +14,7 @@ ARG=$1
 # Make sure test DB exists
 if [[ ! -f "${TEST_DB}/${DB_NAME}.script" ]]; then
     echo "Test DB not exists. Please run InitTest first !"
+
     exit
 fi;
 

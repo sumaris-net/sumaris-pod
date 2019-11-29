@@ -7,12 +7,14 @@ The **SUMARiS App** is a [client software](https://en.wikipedia.org/wiki/Client_
 
 ### Install on a mobile device (Android)
 
- - Install the last stable release:
+ - To install the **last stable** release:
  
     * From your mobile device, open the Play Stoore app;
     * Search "Sumaris.net" or visit this page: https://play.google.com/store/apps/details?id=net.sumaris.app
-  
- - Install the last unstable release  :
+
+.. 
+
+ - To install any other release (unstable builds):
 
     * On your mobile device, visit this page: https://github.com/sumaris-net/sumaris-app/releases
     * Choose a version, then open the "assets" section;

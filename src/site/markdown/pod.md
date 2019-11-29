@@ -2,11 +2,15 @@
 
 # Database and Pod
 
-SUMARiS use a database engine to store data. It can exists various SUMARiS database instances on the web.
-Those are accessible throw a [server software](https://en.wikipedia.org/wiki/Server_(computing)) called **SUMARiS Pod**,
-that manage one database instance.
+SUMARiS use a database engine to store data.
 
-## Main features
+
+It can exists many SUMARiS databases instances on the web.
+Each databases instance is accessible through a [server software](https://en.wikipedia.org/wiki/Server_(computing)), called **SUMARiS Pod**.
+
+A Pod manage only one database instance.
+
+## Main features of the Pod
 
 The SUMARiS Pod has several features:
 
@@ -29,9 +33,11 @@ The SUMARiS Pod has several features:
  - For IT developers: 
  
     * [Entities](./sumaris-core/hibernate/entities/index.html) (Hibernate mapping);
-    * [Built-in queries](./sumaris-core/hibernate/queries/index.html) (HQL and SQL) used in the source code.
+    * [HQL named queries](./sumaris-core/hibernate/queries/index.html) declared in the source code.
+      We also use JPA Criteria API to build queries dynamically (see source code for more details).
 
-## Installation (Database and Pod)
+
+## Installation of the Pod
 
 ### On Linux systems (Debian, Ubuntu)
 
@@ -96,3 +102,40 @@ cd sumaris-pod
 ``` 
 mvn install -DskipTests
 ```
+
+## Installation of the database
+
+### HSQLDB
+
+- Copy the file [sumaris-db-hsqldb.sh](https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh) locally
+
+```bash
+wget -kL https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh
+# Or using curl: 
+# curl https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh > sumaris-db-hsqldb.sh  
+
+# Give execution rights
+chmod u+x sumaris-db-hsqldb.sh
+```
+
+- Edit this file, to set the `SUMARIS_HOME` variable :
+```bash
+#!/bin/bash
+# --- User variables (can be redefined): ---------------------------------------
+#SUMARIS_HOME=/path/to/sumaris/home
+SERVICE_NAME=sumaris-db
+DB_NAME=sumaris
+DB_PORT=9000
+(...)
+```
+
+- Start the database, using the command (in a terminal): 
+```
+./sumaris-db-hsqldb.sh start
+```  
+
+- That's it !
+  
+  Your database is ready, and should be accessible.  
+ 
+  To make sure everything is OK, please check logs at: `<SUMARIS_HOME>/logs/` 

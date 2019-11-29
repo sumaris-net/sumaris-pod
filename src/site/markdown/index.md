@@ -1,27 +1,39 @@
-![SUMARiS Logo](./images/logos/logo_sumaris.png)
+# Home
 
-Welcome to the documentation web site of the SUMARiS project.
+![](./images/logos/logo-sumaris-large.png)
 
-**SUMARiS** is a completed skate stocks shared database.
+Welcome to the **documentation web site of SUMARiS tools**!
 
-<u>Official web site</u>: [www.sumaris.net](https://www.sumaris.net)   
+Originally, the [SUMARiS project](www.sumaris.net) aimed to build a shared database of complete skate stocks.
+
+However, these tools are now reusable **to collect many kind of halieutic data**, for many purposes such as fisheries stock assessment.
+
+<u>SUMARiS project web site</u>: [www.sumaris.net](https://www.sumaris.net)
+
+
 
 ## Main features
 
- - Web forms, for desktop: 
+SUMARiS tools comes with:
+
+ - Data entry web forms for desktop:
+  
     * **halieutic data entry** for scientific purpose (concept of trip, fishing operation, species catch, vessel...);
+    
     * manage users (access rights per data collection program) ;
+    
     * manage referential: protocols (program and strategies), locations, gears, taxons, ...;
 
- - An Android App, for tablets and mobile phones: 
-    * On board data entry;
-    * Offline mode, with a full synchronization when detecting network;
+ - Shipboard data entry for Android mobile devices (tablets and phones): 
+ 
+    * Optimized data entry, with a burst mode;
+    
+    * Offline usage, with data synchronization features;
+    
     * Built-in GPS sensor support;
+    
     * Built-in camera support (coming soon);
 
-## License
-
-Source code and documentation are under [License GPL v3](./LICENSE.md), except user manual that apply the CC-by-SA license.
 
 ## Documentation  
 
@@ -33,6 +45,10 @@ Source code and documentation are under [License GPL v3](./LICENSE.md), except u
 - [App installation](app.md) 
 - [Pod and database installation](server.md)
 
+## License
+
+Source code and documentation are under [License GPL v3](./LICENSE.md).
+User guide is under CC-by-SA license.
 
 ## How You Can Help
 
@@ -43,19 +59,31 @@ Please consider the time you give in assistance to others as payment.
 
 Ways in which you can help:
 
-- [report bugs](https://github.com/sumaris-net/sumaris-app/issues) (errors in the program),
+ - Test existing features and provide feedback,
 
-- test existing features and provide feedback,
+ - [Report bugs or ask for enhancements](https://github.com/sumaris-net/sumaris-app/issues),
 
-- add documentation,
+ - Add documentation,
 
-- translate SUMARiS to your own language,
+ - Translate SUMARiS to your own language,
 
-- translate the documentation,
+ - Translate the documentation,
 
-- improve this website,
+ - Improve this website,
 
-- help others to learn to use SUMARiS, etc.
+ - Help others to learn to use SUMARiS, etc.
 
 
-![logo sumaris](https://www.sumaris.net/assets/img/logo/logo-sumaris.png)
+
+## Partners
+
+SUMARiS tools are developed with the help of:
+
+[![](./images/logos/logo-eis.png)](www.e-is.pro)
+[![](./images/logos/logo-ifremer.png)](www.ifremer.fr)
+[![](./images/logos/logo-ilvo.png)]()
+[![](./images/logos/logo-interreg2seas.png)]()
+[![](./images/logos/logo-nausicaa.png)]()
+[![](./images/logos/logo-fromnord.png)]()
+[![](./images/logos/logo-redercentrale.png)]()
+[![](./images/logos/logo-lpdb.png)]()

@@ -85,7 +85,7 @@
   </menu>
 
     <menu name="Technical documentation" inherit="top">
-      <item name="Installation (App)" href="app.html"/>
+      <item name="App installation" href="app.html"/>
       <item name="Database and Pod" href="pod.html"/>
       <item name="Configuration options (Pod)" href="config-report.html"/>
     </menu>
