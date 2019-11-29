@@ -79,11 +79,11 @@ Ways in which you can help:
 
 SUMARiS tools are developed with the help of:
 
-[![](./images/logos/logo-eis.png)](www.e-is.pro)
-[![](./images/logos/logo-ifremer.png)](www.ifremer.fr)
-[![](./images/logos/logo-ilvo.png)]()
-[![](./images/logos/logo-interreg2seas.png)]()
-[![](./images/logos/logo-nausicaa.png)]()
-[![](./images/logos/logo-fromnord.png)]()
-[![](./images/logos/logo-redercentrale.png)]()
-[![](./images/logos/logo-lpdb.png)]()
+[![](./images/logos/logo-eis.png)](https://www.e-is.pro)
+[![](./images/logos/logo-ifremer.png)](https://www.ifremer.fr)
+[![](./images/logos/logo-ilvo.png)](https://www.ilvo.vlaanderen.be)
+[![](./images/logos/logo-interreg2seas.png)](https://www.interreg2seas.eu)
+[![](./images/logos/logo-nausicaa.png)](https://www.nausicaa.fr)
+[![](./images/logos/logo-fromnord.png)](http://www.fromnord.fr)
+[![](./images/logos/logo-redercentrale.png)](https://www.rederscentrale.be/)
+[![](./images/logos/logo-lpdb.png)](https://www.pecheursdebretagne.eu)

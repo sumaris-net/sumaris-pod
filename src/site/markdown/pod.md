@@ -15,11 +15,9 @@ A Pod manage only one database instance.
 The SUMARiS Pod has several features:
 
  - Create a database instance, then manage schema updates.
- 
     * The Pod is compliant with many database engines: [HSQLDB](http://hsqldb.org/), PostgreSQL and Oracle;
 
- - Allow data access (read/write) to a database instance. Such API is used by client software, like the [SUMARiS App](./app.md)):
- 
+ - Allow data access (read/write) to a database instance. Such API is used by client software (like the [SUMARiS App](./app.md)):
     * Publish data as GraphQL API;
     * Publish data as RDF API for semantic web, including OWL (Ontoligy Web Language);
     * CSV files input/output (using the ICES RDB exchange data format)
@@ -31,81 +29,13 @@ The SUMARiS Pod has several features:
  - [Tables list](./sumaris-core/hibernate/tables/index.html) with all associated columns;
 
  - For IT developers: 
- 
     * [Entities](./sumaris-core/hibernate/entities/index.html) (Hibernate mapping);
     * [HQL named queries](./sumaris-core/hibernate/queries/index.html) declared in the source code.
       We also use JPA Criteria API to build queries dynamically (see source code for more details).
 
-
-## Installation of the Pod
-
-### On Linux systems (Debian, Ubuntu)
-
-- Install LibSodium (Unix only) : https://download.libsodium.org/doc/installation/
-
-- Install Java SDK 8
-
-- Download the latest JAR file at : https://github.com/sumaris-net/sumaris-pod/releases
-
-- In a terminal, start the pod:
-```bash
-java -jar sumaris-pod-x.y.z.jar
-``` 
-### On MS Windows
-
-TODO: complete this installation guide for windows
-
-### Configuration
-
-- Create a directory for your configuration (e.g. `/home/<USER>/.config/sumaris/`): 
-```bash
-mkdir -p /home/<USER>/.config/sumaris/
-```
- 
-- Create a file `application.yml` inside this directory;
-- Define all options to override, in this file (see [all available options](./config-report.html)):
-  ```yml
-  server.address: 127.0.0.1
-  server.port: 8080  
-  sumaris.basedir: /home/<USER>/.config/sumaris
-  ```
-
- - In a terminal, start the pod:
-```bash
-java -server -Xms512m -Xmx1024m -Dspring.config.additional-location=/home/<USER>/.config/sumaris/ -jar sumaris-pod-x.y.z.jar
-``` 
-
-## Build from source
-
-- Install Build tools (Make, GCC, Git)
-
-``` 
-sudo apt-get install build-essential
-```
-
-- Install LibSodium (Unix only) : https://download.libsodium.org/doc/installation/
-
-- Install Java SDK 8
-
-- Install Apache Maven 3
-
-
-- Get the source code
-
-``` 
-git clone git@github.com:sumaris-net/sumaris-pod.git
-cd sumaris-pod
-```
-
-- Compile the source code :
-
-``` 
-mvn install -DskipTests
-```
-
 ## Installation of the database
 
-### HSQLDB
+### HSQLDB engine (default)
 
 - Copy the file [sumaris-db-hsqldb.sh](https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-server/src/main/assembly/bin/sumaris-db-hsqldb.sh) locally
 
@@ -136,6 +66,107 @@ DB_PORT=9000
 
 - That's it !
   
-  Your database is ready, and should be accessible.  
+  Your database is ready, and should be accessible (e.g. through a JDBC client software).
  
-  To make sure everything is OK, please check logs at: `<SUMARIS_HOME>/logs/` 
+  To make sure everything is running well, check logs at: `<SUMARIS_HOME>/logs/` 
+
+### Oracle
+
+`TODO: write this part`
+
+### PostgreSQL
+
+`TODO: write this part`
+
+## Installation of the Pod
+
+### On Linux systems (Debian, Ubuntu)
+
+ 1. Install Pod's dependencies: 
+    * Install LibSodium (Unix only) : https://download.libsodium.org/doc/installation/
+    * Install Java SDK 8
+    
+ 2. Download the latest JAR file at: https://github.com/sumaris-net/sumaris-pod/releases
+
+ 3. Copy the JAR file anywhere;
+ 
+ 4. In a terminal, start the pod using the command:
+    ```bash
+    java -jar sumaris-pod-x.y.z.jar
+    ``` 
+
+  5. Congratulations ! 
+  
+     Your Pod should now be running..
+     
+     A welcome page should also be visible at the address [http://localhost:8080](http://localhost:8080):
+     
+     ![](./images/pod-screenshot-api.png)
+
+<u>Note for IT developers:</u> 
+
+Your running Pod give access to useful dev tools : 
+  - A GraphQL live query editor, at `<server_url>/grapiql` (WARN some query will need authorization) 
+  - A GraphQL subscription query editor (GraphQL + websocket), at `<server_url>/subscription/test`
+    
+### On MS Windows
+
+`TODO: write this part`
+
+### Configuration
+
+To change the Pod's configuration, follow this steps:
+
+ 1. Create a directory for your configuration (e.g. `/home/<USER>/.config/sumaris/`): 
+    ```bash
+    mkdir -p /home/<USER>/.config/sumaris/
+    ```
+ 
+ 2. Create a file `application.yml` inside this directory;
+ 
+ 3. Edit the file, and add options you want to override (see the [list of available options](./config-report.html)):
+ 
+    A basic example:
+    ```yml
+    server.address: 127.0.0.1
+    server.port: 8080  
+    sumaris.basedir: /home/<USER>/.config/sumaris
+    ```
+
+ 4. In a terminal, start the pod with the command:
+    ```bash
+    java -server -Xms512m -Xmx1024m -Dspring.config.additional-location=/home/<USER>/.config/sumaris/ -jar sumaris-pod-x.y.z.jar
+    ``` 
+
+ 5. That's it !
+ 
+    Your configuration file should have been processed.
+
+
+## Build from source (database + Pod) 
+
+ 1. Installe project dependencies:
+    * Install build tools (Make, GCC, Git)
+      ```bash 
+      sudo apt-get install build-essential
+      ```
+   * Install LibSodium (Unix only):
+     https://download.libsodium.org/doc/installation/
+
+   * Install Java SDK 8
+
+   * Install Apache Maven 3
+
+ 2. Get the source code
+    ```bash 
+    git clone git@github.com:sumaris-net/sumaris-pod.git
+    cd sumaris-pod
+    ```
+
+ 3. Run the compilation:
+    ```bash
+    cd sumaris-pod
+    mvn install -DskipTests
+    ```
+
+ 4. The final JAR file should have been created inside the directory: `<PROJECT_DIR>/sumaris-server/target/`  
