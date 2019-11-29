@@ -43,6 +43,7 @@ public class SynchroServiceTest extends AbstractServiceTest{
     private RdfImportServiceImpl service;
 
     @Test
+    @Ignore
     public void getRemoteModel() {
         String ontologyUrl = dbResource.getFixtures().getRemoteOntologyUrl();
         OntModel remoteModel = service.getRemoteModel(ontologyUrl);
