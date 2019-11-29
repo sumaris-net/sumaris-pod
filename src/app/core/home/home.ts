@@ -32,7 +32,7 @@ export class HomePage implements OnDestroy {
   displayName: String = '';
   isLogin: boolean;
   subscription = new Subscription();
-  partners = new BehaviorSubject<Department[]>(null);
+  $partners = new BehaviorSubject<Department[]>(null);
   loadingBanner = true;
   logo: String;
   description: String;
@@ -133,7 +133,7 @@ export class HomePage implements OnDestroy {
     this.description = config.name;
 
     const partners = (config.partners || []).filter(p => p && p.logo);
-    this.partners.next(partners);
+    this.$partners.next(partners);
     this.loadingBanner = (partners.length === 0);
 
     if (config.backgroundImages && config.backgroundImages.length) {

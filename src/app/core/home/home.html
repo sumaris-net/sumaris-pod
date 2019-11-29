@@ -158,7 +158,7 @@
   <!-- Display configured Departments logos -->
   <ng-template #bottomBanner>
     <div class="bottom-banner ion-text-center ion-padding" *ngIf="!loadingBanner" @fadeInAnimation>
-      <a href="{{ item.siteUrl }}" *ngFor="let item of partners | async ">
+      <a href="{{ item.siteUrl }}" *ngFor="let item of $partners | async ">
         <img class="logo" src="{{ item.logo }}" alt="{{item.label}}"  [title]="item.label" />
       </a>
     </div>
