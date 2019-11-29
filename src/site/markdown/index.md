@@ -37,22 +37,31 @@ SUMARiS tools comes with:
 
 ## Documentation  
 
-- [User manual](doc/user-manual/table-of-contents.md)
-- [Functional use cases](doc/use-case/index_en.md) ([EN](doc/use-case/index_en.md) | [FR](doc/use-case/index.md))
+ - User manual: [A quick start guide](doc/user-manual/index.md) (EN);
+ 
+ - [Functional use cases](doc/use-case/index_en.md) ([EN](doc/use-case/index_en.md) | [FR](doc/use-case/index.md));
+ 
+ - [Database conceptual model](doc/use-case/index_en.md);
+ 
+ - [Database conceptual model](doc/model/index.md) of the database;
+ 
+ - [Database tables](./sumaris-core/hibernate/tables/index.html) with all associated columns;
 
 ## Installation
   
 - [App installation](app.md) 
-- [Pod and database installation](server.md)
+- [Pod and database installation](pod.md)
 
 ## License
 
-Source code and documentation are under [License GPL v3](./LICENSE.md).
+SUMARiS is Free Software (GPL License).
+
+Source code and documentation are under [License GPL v3](LICENSE.md).
+
 User guide is under CC-by-SA license.
 
 ## How You Can Help
 
-SUMARiS is Free Software (GPL License).
 In the free software world, there is generally no distinction between users and developers.
 As in a friendly neighbourhood, everybody pitches in to help their neighbors.
 Please consider the time you give in assistance to others as payment.
