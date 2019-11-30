@@ -17,8 +17,8 @@ export interface ProgressionModel {
 export class ProgressionModelImpl implements ProgressionModel {
 
   private _$changes: BehaviorSubject<ProgressionModel>;
+  private _message = '';
 
-  message = '';
   value = 0;
   step = 1;
   maxProgression: number;
@@ -36,11 +36,20 @@ export class ProgressionModelImpl implements ProgressionModel {
       this.value = this.maxProgression;
     }
     if (opts && isNotNil(opts.message)) {
-      this.message = opts.message;
+      this._message = opts.message;
     }
     if (this._$changes) this._$changes.next(this);
 
     return this;
+  }
+
+  get message(): string {
+    return this._message;
+  }
+
+  set message(message: string) {
+    this._message = message;
+    if (this._$changes) this._$changes.next(this);
   }
 
   asObservable(): Observable<ProgressionModel> {
@@ -65,7 +74,7 @@ export class SynchroService {
 
   executeImport(opts?: Partial<ProgressionModel>): Observable<ProgressionModel> {
 
-    const progression: ProgressionModel = new ProgressionModelImpl(opts);
+    const progression = new ProgressionModelImpl(opts);
     const stepCount = 1;
     progression.step = (progression.maxProgression - (opts && opts.value || 0)) / stepCount;
 
@@ -83,7 +92,7 @@ export class SynchroService {
   /* protected methods */
 
   protected async importAllVessels(progression: ProgressionModel) {
-    progression.message("Importing vessels");
+    progression.message = "Importing vessels";
 
     progression.increment();
 
