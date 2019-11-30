@@ -93,17 +93,16 @@
       <ion-col class="ion-no-padding">
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
-            <ion-col size="12" size-lg="4">
-              <mat-date-time formControlName="endDateTime"
+            <ion-col size="12" size-lg="4" *ngIf="form.controls.endDateTime as endDateTimeControl">
+              <mat-date-time [formControl]="endDateTimeControl"
                              [placeholder]="'COMMON.DATE'|translate"
                              [tabindex]="tabindex+6"
                              [startDate]="form.controls.startDateTime.value"
                              [required]="isOnFieldMode">
 
-                <mat-error *ngIf="form.controls.endDateTime.hasError('invalid')" translate>TRIP.OPERATION.ERROR.FIELD_DATE_OUTSIDE_TRIP</mat-error>
-                <mat-hint align="end" *ngIf="form.controls.endDateTime.value">
+                <mat-hint align="end" *ngIf="endDateTimeControl.value && !endDateTimeControl.errors">
                   <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.controls.startDateTime.value,
-                  endValue: form.controls.endDateTime.value} | dateDiffDuration }}
+                  endValue: endDateTimeControl.value} | dateDiffDuration }}
                 </mat-hint>
               </mat-date-time>
             </ion-col>

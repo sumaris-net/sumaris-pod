@@ -14,7 +14,7 @@ import {
 import {Moment} from 'moment/moment';
 import {FormArrayHelper} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
-import {debounceTime, distinctUntilChanged, filter, pluck, tap} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {AcquisitionLevelCodes, ProgramService, ReferentialRefService} from '../../referential/referential.module';
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {PersonService} from "../../admin/services/person.service";
@@ -23,6 +23,7 @@ import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {toBoolean} from "../../shared/functions";
 
 @Component({
   selector: 'form-observed-location',
@@ -32,6 +33,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 })
 export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation> implements OnInit {
 
+  _showObservers: boolean;
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
   mobile: boolean;
@@ -42,6 +44,19 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() showComment = true;
   @Input() showButtons = true;
   @Input() locationLevelIds: number[];
+
+  @Input()
+  set showObservers(value: boolean) {
+    if (this._showObservers !== value) {
+      this._showObservers = value;
+      this.initObserversHelper();
+      this.markForCheck();
+    }
+  }
+
+  get showObservers(): boolean {
+    return this._showObservers;
+  }
 
   get empty(): any {
     const value = this.value;
@@ -73,23 +88,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     this._enable = false;
     this.mobile = this.settings.mobile;
 
-    this.observersHelper = new FormArrayHelper<Person>(
-      this.formBuilder,
-      this.form,
-      'observers',
-      (person) => validatorService.getObserverControl(person),
-      EntityUtils.equals,
-      EntityUtils.isEmpty,
-      {
-        allowEmptyArray: false
-      }
-    );
-
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_LOCATION;
-
-    // Create at least one observer
-    this.observersHelper.resize(1);
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -99,6 +99,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     super.ngOnInit();
 
     // Default values
+    this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     if (isNil(this.locationLevelIds)) {
       this.locationLevelIds = [LocationLevelIds.PORT];
@@ -152,7 +153,12 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     value.observers = value.observers && value.observers.length ? value.observers : [null];
 
     // Resize observers array
-    this.observersHelper.resize(Math.max(1, value.observers.length));
+    if (this._showObservers) {
+      this.observersHelper.resize(Math.max(1, value.observers.length));
+    }
+    else {
+      this.observersHelper.removeAllEmpty();
+    }
 
     // Propagate the program
     if (value.program && value.program.label) {
@@ -187,12 +193,35 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     }
   }
 
-
-  entityToString = entityToString;
   referentialToString = referentialToString;
 
-
   /* -- protected method -- */
+
+  protected initObserversHelper() {
+    if (isNil(this._showObservers)) return; // skip if not loading yet
+
+    this.observersHelper = new FormArrayHelper<Person>(
+      this.formBuilder,
+      this.form,
+      'observers',
+      (person) => this.validatorService.getObserverControl(person),
+      EntityUtils.equals,
+      EntityUtils.isEmpty,
+      {
+        allowEmptyArray: !this._showObservers
+      }
+    );
+
+    if (this._showObservers) {
+      // Create at least one observer
+      if (this.observersHelper.size() === 0) {
+        this.observersHelper.resize(1);
+      }
+    }
+    else if (this.observersHelper.size() > 0) {
+      this.observersHelper.resize(0);
+    }
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

@@ -13,6 +13,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {isNilOrBlank, suggestFromArray} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {PlatformService} from "../../core/services/platform.service";
+import {SharedValidators} from "../../shared/validator/validators";
 
 @Component({
   selector: 'form-operation',
@@ -51,11 +52,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
       // Add validator on trip date
       this.form.get('endDateTime').setAsyncValidators(async (control) => {
+        if (!control.touched) return;
+        console.log(control.value);
         const endDateTime = fromDateISOString(control.value);
         // Make sure: departureDateTime < endDateTime < returnDateTime
         if (endDateTime && ((trip.departureDateTime && endDateTime.isBefore(trip.departureDateTime))
           || (trip.returnDateTime && endDateTime.isAfter(trip.returnDateTime)))) {
           return {msg: await this.translate.get('TRIP.OPERATION.ERROR.FIELD_DATE_OUTSIDE_TRIP').toPromise() };
+        }
+        else {
+          SharedValidators.clearError(control, 'msg');
         }
         return null;
       });

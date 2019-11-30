@@ -1,47 +1,37 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {
-  entityToString,
-  EntityUtils, isNil,
+  EntityUtils,
+  isNil,
   isNotNil,
-  LocationLevelIds,
   Landing,
+  LocationLevelIds,
   Person,
   personToString,
-  Referential,
-  ReferentialRef,
-  referentialToString, vesselSnapshotToString, VesselSnapshot, StatusIds
+  referentialToString,
+  StatusIds,
+  VesselSnapshot
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {FormArrayHelper} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {
-  debounceTime,
-  distinctUntilChanged,
-  filter,
-  map,
-  mergeMap,
-  pluck,
-  startWith,
-  switchMap,
-  tap
-} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {
   AcquisitionLevelCodes,
   ProgramService,
-  ReferentialRefService, VesselModal,
-  VesselService
+  ReferentialRefService,
+  VesselModal
 } from '../../referential/referential.module';
 import {LandingValidatorService} from "../services/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {FormArray, FormBuilder, FormControl} from "@angular/forms";
+import {FormArray, FormBuilder} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
 import {UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
+import {toBoolean} from "../../shared/functions";
 
 @Component({
   selector: 'app-landing-form',
@@ -51,6 +41,7 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 })
 export class LandingForm extends MeasurementValuesForm<Landing> implements OnInit {
 
+  private _showObservers: boolean;
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
   mobile: boolean;
@@ -61,14 +52,23 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() showVessel = true;
   @Input() showDateTime = true;
   @Input() showLocation = true;
-  @Input() showObservers = true;
   @Input() showComment = true;
   @Input() showMeasurements = true;
   @Input() showError = true;
-
   @Input() showButtons = true;
-
   @Input() locationLevelIds: number[];
+
+  @Input() set showObservers(value: boolean) {
+    if (this._showObservers !== value) {
+      this._showObservers = value;
+      this.initObserversHelper();
+      this.markForCheck();
+    }
+  }
+
+  get showObservers(): boolean {
+    return this._showObservers;
+  }
 
   get empty(): any {
     const value = this.value;
@@ -82,7 +82,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
 
   get observersForm(): FormArray {
-    return this.form.get('observers') as FormArray;
+    return this.form.controls.observers as FormArray;
   }
 
   constructor(
@@ -102,29 +102,15 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this._enable = false;
     this.mobile = this.settings.mobile;
 
-    this.observersHelper = new FormArrayHelper<Person>(
-      this.formBuilder,
-      this.form,
-      'observers',
-      (person) => validatorService.getObserverControl(person),
-      EntityUtils.equals,
-      EntityUtils.isEmpty,
-      {
-        allowEmptyArray: false
-      }
-    );
-
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
-
-    // Create at least one observer
-    this.observersHelper.resize(1);
   }
 
   ngOnInit() {
     super.ngOnInit();
 
     // Default values
+    this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     if (isNil(this.locationLevelIds)) {
       this.locationLevelIds = [LocationLevelIds.PORT];
@@ -189,7 +175,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     value.observers = value.observers && value.observers.length ? value.observers : [null];
 
     // Resize observers array
-    this.observersHelper.resize(Math.max(1, value.observers.length));
+    if (this._showObservers) {
+      this.observersHelper.resize(Math.max(1, value.observers.length));
+    }
+    else {
+      this.observersHelper.removeAllEmpty();
+    }
 
     // Propagate the program
     if (value.program && value.program.label) {
@@ -240,12 +231,35 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return super.registerAutocompleteField(fieldName, options);
   }
 
+  referentialToString = referentialToString;
+
   /* -- protected method -- */
 
-  entityToString = entityToString;
-  referentialToString = referentialToString;
-  VesselSnapshotToString = vesselSnapshotToString;
+  protected initObserversHelper() {
+    if (isNil(this._showObservers)) return; // skip if not loading yet
 
+    this.observersHelper = new FormArrayHelper<Person>(
+      this.formBuilder,
+      this.form,
+      'observers',
+      (person) => this.validatorService.getObserverControl(person),
+      EntityUtils.equals,
+      EntityUtils.isEmpty,
+      {
+        allowEmptyArray: !this._showObservers
+      }
+    );
+
+    if (this._showObservers) {
+      // Create at least one observer
+      if (this.observersHelper.size() === 0) {
+        this.observersHelper.resize(1);
+      }
+    }
+    else if (this.observersHelper.size() > 0) {
+      this.observersHelper.resize(0);
+    }
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

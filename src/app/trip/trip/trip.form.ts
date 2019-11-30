@@ -2,6 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {TripValidatorService} from "../services/trip.validator";
 import {
   EntityUtils,
+  isNil,
   LocationLevelIds,
   Person,
   personToString,
@@ -19,6 +20,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {PersonService} from "../../admin/services/person.service";
+import {toBoolean} from "../../shared/functions";
 
 @Component({
   selector: 'form-trip',
@@ -28,14 +30,27 @@ import {PersonService} from "../../admin/services/person.service";
 })
 export class TripForm extends AppForm<Trip> implements OnInit {
 
+  private _showObservers: boolean;
+
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
   mobile: boolean;
 
-  @Input() showObservers = false;
   @Input() showComment = true;
   @Input() showError = true;
   @Input() usageMode: UsageMode;
+
+  @Input() set showObservers(value: boolean) {
+    if (this._showObservers !== value) {
+      this._showObservers = value;
+      this.initObserversHelper();
+      this.markForCheck();
+    }
+  }
+
+  get showObservers(): boolean {
+    return this._showObservers;
+  }
 
   get value(): any {
     const json = this.form.value;
@@ -55,7 +70,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   }
 
   get observersForm(): FormArray {
-    return this.form.get('observers') as FormArray;
+    return this.form.controls.observers as FormArray;
   }
 
   constructor(
@@ -72,27 +87,13 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
     super(dateAdapter, validatorService.getFormGroup(), settings);
     this.mobile = this.settings.mobile;
-
-    this.observersHelper = new FormArrayHelper<Person>(
-      this.formBuilder,
-      this.form,
-      'observers',
-      (person) => validatorService.getObserverControl(person),
-      EntityUtils.equals,
-      EntityUtils.isEmpty,
-      {
-        allowEmptyArray: false
-      }
-    );
-
-    // Create at least one observer
-    this.observersHelper.resize(1);
-
   }
 
   ngOnInit() {
     super.ngOnInit();
 
+    // Default values
+    this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
     this.usageMode = this.usageMode || this.settings.usageMode;
 
     // Combo: programs
@@ -145,7 +146,12 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     value.observers = value.observers && value.observers.length ? value.observers : [null];
 
     // Resize observers array
-    this.observersHelper.resize(Math.max(1, value.observers.length));
+    if (this._showObservers) {
+      this.observersHelper.resize(Math.max(1, value.observers.length));
+    }
+    else {
+      this.observersHelper.removeAllEmpty();
+    }
 
     // Send value for form
     super.setValue(value, opts);
@@ -178,6 +184,31 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   /* -- protected methods-- */
 
+  protected initObserversHelper() {
+    if (isNil(this._showObservers)) return; // skip if not loading yet
+
+    this.observersHelper = new FormArrayHelper<Person>(
+      this.formBuilder,
+      this.form,
+      'observers',
+      (person) => this.validatorService.getObserverControl(person),
+      EntityUtils.equals,
+      EntityUtils.isEmpty,
+      {
+        allowEmptyArray: !this._showObservers
+      }
+    );
+
+    if (this._showObservers) {
+      // Create at least one observer
+      if (this.observersHelper.size() === 0) {
+        this.observersHelper.resize(1);
+      }
+    }
+    else if (this.observersHelper.size() > 0) {
+      this.observersHelper.resize(0);
+    }
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

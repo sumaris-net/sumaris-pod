@@ -11,6 +11,7 @@ import {BaseDataService} from "../../core/core.module";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/services/graphql.service";
 
+
 export abstract class RootDataService<T extends DataRootEntity<T>, F = any> extends BaseDataService<T, F> {
 
   protected accountService: AccountService;

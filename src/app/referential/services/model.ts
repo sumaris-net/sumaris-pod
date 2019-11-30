@@ -514,7 +514,7 @@ export const ProgramProperties: FormFieldDefinitionMap = {
   TRIP_OBSERVERS_ENABLE: {
     key: "sumaris.trip.observers.enable",
     label: "PROGRAM.OPTIONS.TRIP_OBSERVERS_ENABLE",
-    defaultValue: "false",
+    defaultValue: "true",
     type: 'boolean'
   },
   TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE: {
@@ -700,7 +700,7 @@ export class Program extends Entity<Program> {
 
   getPropertyAsBoolean(definition: FormFieldDefinition): boolean {
     const value = this.getProperty(definition);
-    return value && value !== "false";
+    return isNotNil(value) ? (value && value !== "false") : undefined;
   }
 
   getPropertyAsNumbers(definition: FormFieldDefinition): number[] {

@@ -1,18 +1,17 @@
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from "@angular/forms";
 import {
+  filterNumberInput,
   isNil,
   nullIfUndefined,
   selectInputContent,
   toBoolean,
-  filterNumberInput,
   toDateISOString
 } from "../../shared/shared.module";
-import {DATE_ISO_PATTERN} from "../../shared/constants";
 import {isMoment} from "moment";
 import {Entity} from "../services/model";
-import {Observable, timer} from "rxjs";
-import {filter, first, tap} from "rxjs/operators";
-import {AppForm} from "./form.class";
+import {timer} from "rxjs";
+import {filter, first} from "rxjs/operators";
+import {SharedValidators} from "../../shared/validator/validators";
 
 export {selectInputContent};
 
@@ -367,6 +366,14 @@ export class FormArrayHelper<T = Entity<any>> {
     }
 
     this.allowEmptyArray = toBoolean(options && options.allowEmptyArray, false);
+
+    // Set required (or reste) min length validator
+    if (this.allowEmptyArray) {
+      this.arrayControl.setValidators(null);
+    }
+    else {
+      this.arrayControl.setValidators(SharedValidators.requiredArrayMinLength(1));
+    }
   }
 
   add(value?: T, options?: { emitEvent: boolean }): boolean {

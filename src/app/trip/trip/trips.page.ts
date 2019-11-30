@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "angular4-material-table";
 import {
   AppTable,
   AppTableDataSource,
@@ -7,7 +7,8 @@ import {
   isNil,
   personsToString,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, StatusIds
+  RESERVED_START_COLUMNS,
+  StatusIds
 } from "../../core/core.module";
 import {TripValidatorService} from "../services/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
@@ -16,14 +17,8 @@ import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {
-  qualityFlagToColor,
-  ReferentialRefService,
-  referentialToString,
-  vesselSnapshotToString,
-  VesselService
-} from "../../referential/referential.module";
-import {debounceTime, filter, tap} from "rxjs/operators";
+import {qualityFlagToColor, ReferentialRefService, referentialToString} from "../../referential/referential.module";
+import {debounceTime, filter, tap, throttleTime} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 import {SharedValidators} from "../../shared/validator/validators";
 import {PlatformService} from "../../core/services/platform.service";
@@ -31,7 +26,10 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {ProgressionModel, SynchroService} from "../services/synchro-service";
+import {Subject} from "rxjs";
+import {SynchronizationStatus} from "../services/model/base.model";
+import {SynchroService} from "../services/synchro-service";
+
 
 @Component({
   selector: 'app-trips-page',
@@ -50,6 +48,14 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   filterForm: FormGroup;
   filterIsEmpty = true;
 
+  importing = false;
+  $importProgression = new Subject<number>();
+  showSyncStatusButton = false;
+
+  get synchronizationStatus(): SynchronizationStatus {
+    return this.filterForm.controls.synchronizationStatus.value;
+  }
+
   constructor(
     protected injector: Injector,
     protected route: ActivatedRoute,
@@ -59,7 +65,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected accountService: AccountService,
-    protected dataService: TripService,
+    protected service: TripService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected formBuilder: FormBuilder,
@@ -82,7 +88,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Trip, TripFilter>(Trip, dataService, null, {
+      new AppTableDataSource<Trip, TripFilter>(Trip, service, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         serviceOptions: {
@@ -92,11 +98,12 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     );
     this.i18nColumnPrefix = 'TRIP.TABLE.';
     this.filterForm = formBuilder.group({
-      'program': [null, SharedValidators.entity],
-      'vesselSnapshot': [null, SharedValidators.entity],
-      'location': [null, SharedValidators.entity],
-      'startDate': [null, SharedValidators.validDate],
-      'endDate': [null, SharedValidators.validDate]
+      program: [null, SharedValidators.entity],
+      vesselSnapshot: [null, SharedValidators.entity],
+      location: [null, SharedValidators.entity],
+      startDate: [null, SharedValidators.validDate],
+      endDate: [null, SharedValidators.validDate],
+      synchronizationStatus: [null]
     });
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
@@ -151,6 +158,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
             endDate: json.endDate,
             locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
             vesselId:  json.vesselSnapshot && typeof json.vesselSnapshot === "object" && json.vesselSnapshot.id || undefined,
+            synchronizationStatus: json.synchronizationStatus || undefined,
           }, {emitEvent: this.mobile || isNil(this.filter)})),
         // Save filter in settings (after a debounce time)
         debounceTime(1000),
@@ -174,43 +182,90 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.filterIsEmpty = TripFilter.isEmpty(json);
   }
 
-  async toggleOfflineMode(event?: UIEvent) {
+  toggleOfflineMode(event?: UIEvent) {
     if (this.network.offline) {
       this.network.setConnectionType('unknown');
     }
     else {
-      await this.prepareOfflineMode();
-      // If no error: then disable network
-      // TODO
-
-      //this.network.setConnectionType('none');
+      this.network.setConnectionType('none');
     }
-
-
     // Refresh table
     this.onRefresh.emit();
   }
 
-  async prepareOfflineMode() {
-    if (this.network.offline) throw new Error("ERROR.UNKNOWN_NETWORK_ERROR");
+  async initOfflineMode(event?: UIEvent) {
+    if (this.importing) return; // skip
 
-    const progression = this.synchro.executeImport({maxProgression: 100});
+    if (this.network.offline) {
+      this.error = "ERRORS.IMPORT_NEED_ONLINE_NETWORK";
+      this.markForCheck();
 
-    progression.subscribe().add(() => {
-      console.info("[trips] Import finished !")
-    });
-
-    try {
-      await progression.pipe(filter((p: ProgressionModel) => p.value >= 100)).toPromise();
-    }
-    catch(err) {
-      this.error = err && err.message || err;
-      console.error(this.error, err);
+      // Reset error after 10s
+      setTimeout(() => {
+        this.error = null;
+        this.markForCheck();
+      }, 10000);
+      this.showSyncStatusButton = !!this.synchronizationStatus;
       return;
     }
 
-    // Refresh table
-    this.onRefresh.emit();
+    const now = Date.now();
+    console.debug("[trips] Preparing network offline mode...");
+    this.$importProgression.next(0);
+
+    const minExecDelay = 2000; // min time (to have time to show the progress bar !)
+    let success = false;
+    try {
+
+      // Run the import
+      const $progression = this.service.initOfflineMode(100);
+
+      // Update the progress indicator, every 200 ms
+      $progression.pipe(
+        throttleTime(200),
+        tap((progress) => {
+          this.importing = true;
+          progress = progress > 100 ? 100 : Math.trunc(progress);
+          this.$importProgression.next(progress);
+          this.markForCheck();
+        })
+      ).subscribe();
+
+      // Wait finish
+      await $progression.pipe(filter(progress => progress >= 100)).toPromise();
+
+      // Enable sync status button
+      this.filterForm.patchValue({synchronizationStatus: 'SYNC'}, {emitEvent: false/*avoid refresh*/});
+      success = true;
+    }
+    catch (err) {
+      this.error = err && err.message || err;
+    }
+    finally {
+      const execTime = Date.now() - now;
+      if (execTime >= minExecDelay) {
+        this.importing = false;
+        this.showSyncStatusButton = success;
+        this.markForCheck();
+      }
+      else {
+        this.$importProgression.next(90);
+        this.markForCheck();
+        setTimeout(() => {
+          this.importing = false;
+          this.showSyncStatusButton = success;
+          this.markForCheck();
+        }, minExecDelay - execTime);
+      }
+    }
+
+
+
+  }
+
+  setSynchronizationStatus(synchronizationStatus: SynchronizationStatus) {
+    console.debug("[trips] Applying filter to synchronization status: " + synchronizationStatus);
+    this.filterForm.patchValue({synchronizationStatus}, {emitEvent: true /*will refresh the table*/});
   }
 
   referentialToString = referentialToString;

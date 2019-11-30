@@ -120,12 +120,16 @@ export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDe
 
 }
 
+
+export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC';
+
 export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRecorderPersonEntity<T>, IWithProgramEntity<T> {
   creationDate: Moment;
   validationDate: Moment;
   comments: string = null;
   recorderPerson: Person;
   program: ReferentialRef;
+  synchronizationStatus?: SynchronizationStatus;
 
   protected constructor() {
     super();
@@ -142,6 +146,9 @@ export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRe
     target.validationDate = toDateISOString(this.validationDate);
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
     target.program = this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for trips list*/ } as ReferentialAsObjectOptions) || undefined;
+    if (options && options.minify) {
+      delete target.synchronizationStatus; // Not exists in the Pod's model
+    }
     return target;
   }
 

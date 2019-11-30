@@ -95,7 +95,7 @@
       </ion-col>
     </ion-row>
 
-    <!-- Observers -->
+    <!-- Observers  -->
     <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first"
              [hidden]="!showObservers">
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
@@ -108,7 +108,7 @@
                                 [config]="autocompleteFields.person"
                                 [tabindex]="tabindex+10+i*3"
                                 [i18nPrefix]="'USER.'"
-                                [required]="first">
+                                [required]="showObservers && first">
           <ion-icon matPrefix name="person"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>

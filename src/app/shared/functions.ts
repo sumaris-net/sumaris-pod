@@ -85,6 +85,12 @@ export function noTrailingSlash(path: string): string {
   return path;
 }
 
+export function replaceAll(value: string, searchString: any, replacement): string | undefined {
+  while (value && value.indexOf(searchString) !== -1) {
+    value = value.replace(searchString, replacement);
+  }
+  return value;
+}
 /**
  * Replace case change by an underscore (.e.g 'myString' becomes 'my_string')
  * @param value

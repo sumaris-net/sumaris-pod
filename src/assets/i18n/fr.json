@@ -32,6 +32,7 @@
     "BTN_SHOW_MENU": "Afficher le menu",
     "BTN_SHOW_MORE": "Afficher plus",
     "BTN_LOGOUT": "Quitter",
+    "BTN_INIT_OFFLINE_MODE": "Activer le mode hors-ligne",
     "CREATED_ON": "Créé le ",
     "COMMENTS": "Commentaires",
     "EMPTY_OPTION": "(Vide)",
@@ -995,7 +996,13 @@
         "TITLE": "Noeud réseau",
         "HELP": "Veuillez choisir un noeud réseau auquel vous connecter :"
       }
-    }
+    },
+    "SYNCHRONIZATION_STATUS": {
+      "DIRTY": "Non synchronisées",
+      "READY_TO_SYNC": "Terminée",
+      "SYNC": "Synchronisées"
+    },
+    "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%"
   },
   "ERROR": {
     "FIELD_REQUIRED": "Champ obligatoire.",
@@ -1046,7 +1053,9 @@
     "AUTH_CHALLENGE_ERROR": "Erreur lors de l'authentification sur le serveur (récupration du challenge)",
     "TABLE_INVALID_ROW_ERROR": "Il existe une ligne en erreur",
     "SAVE_DATA_ERROR": "Erreur lors de la sauvegarde.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
-    "LOAD_DATA_ERROR": "Erreur de chargement des données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
+    "LOAD_DATA_ERROR": "Erreur de chargement des données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
+    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors ligne."
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

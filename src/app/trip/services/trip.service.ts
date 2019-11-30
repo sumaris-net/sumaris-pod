@@ -10,7 +10,7 @@ import {
   TableDataService
 } from "../../shared/shared.module";
 import {environment} from "../../core/core.module";
-import {map} from "rxjs/operators";
+import {filter, map} from "rxjs/operators";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
@@ -24,7 +24,8 @@ import {
   DataRootEntityUtils,
   MINIFY_OPTIONS,
   OPTIMISTIC_AS_OBJECT_OPTIONS,
-  SAVE_AS_OBJECT_OPTIONS
+  SAVE_AS_OBJECT_OPTIONS,
+  SynchronizationStatus
 } from "./model/base.model";
 import {NetworkService} from "../../core/services/network.service";
 import {Observable} from "rxjs";
@@ -32,6 +33,7 @@ import {EntityStorage} from "../../core/services/entities-storage.service";
 import {isEmptyArray} from "../../shared/functions";
 import {DataQualityService} from "./trip.services";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -158,7 +160,9 @@ export class TripFilter {
   static isEmpty(filter: TripFilter|any): boolean {
     return !filter || (isNilOrBlank(filter.programLabel) && isNilOrBlank(filter.vesselId) && isNilOrBlank(filter.locationId)
       && !filter.startDate && !filter.endDate
-      && isNil(filter.recorderDepartmentId));
+      && isNil(filter.recorderDepartmentId))
+      // && !filter.synchronizationStatus -- not includes, because separated button
+      ;
   }
 
   programLabel?: string;
@@ -167,6 +171,7 @@ export class TripFilter {
   startDate?: Date | Moment;
   endDate?: Date | Moment;
   recorderDepartmentId?: number;
+  synchronizationStatus?: SynchronizationStatus;
 
 }
 const LoadAllQuery: any = gql`
@@ -254,6 +259,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
     protected graphql: GraphqlService,
     protected network: NetworkService,
     protected accountService: AccountService,
+    protected referentialRefService: ReferentialRefService,
     protected entities: EntityStorage
   ) {
     super(injector);
@@ -268,13 +274,13 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
    * @param size
    * @param sortBy
    * @param sortDirection
-   * @param filter
+   * @param tripFilter
    */
   watchAll(offset: number,
            size: number,
            sortBy?: string,
            sortDirection?: string,
-           filter?: TripFilter,
+           tripFilter?: TripFilter,
            options?: {
              fetchPolicy?: WatchQueryFetchPolicy
            }): Observable<LoadResult<Trip>> {
@@ -283,11 +289,11 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
       size: size || 20,
       sortBy: sortBy || 'departureDateTime',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: { ...tripFilter, synchronizationStatus: undefined}
     };
 
-    // Offline
-    if (this.network.offline) {
+    // Offline, or ask for dirty trips
+    if (this.network.offline || (tripFilter && tripFilter.synchronizationStatus === 'DIRTY')) {
       return this.entities.watchAll<Trip>('TripVO')
         .pipe(
           map(trips => {
@@ -309,6 +315,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
       fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
     })
       .pipe(
+        filter(() => !this.loading),
         map(res => {
           const data = (res && res.trips || []).map(Trip.fromObject);
           const total = res && isNotNil(res.tripsCount) ? res.tripsCount : undefined;
@@ -332,6 +339,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
 
     const now = Date.now();
     if (this._debug) console.debug(`[trip-service] Loading trip #${id}...`);
+    this.loading = true;
 
     // If local entity
     if (id < 0) {
@@ -349,6 +357,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
     });
     const data = res && res.trip && Trip.fromObject(res.trip);
     if (data && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, data);
+    this.loading = false;
 
     return data;
   }
@@ -772,7 +781,13 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
     return this.accountService.canUserWriteDataForDepartment(trip.recorderDepartment);
   }
 
+  initOfflineMode(maxProgression?: number): Observable<number>{
+
+    return this.referentialRefService.importAll({maxProgression});
+  }
+
   /* -- protected methods -- */
+
 
   protected asObject(entity: Trip, options?: DataEntityAsObjectOptions): any {
     options = { ...MINIFY_OPTIONS, ...options };

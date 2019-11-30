@@ -12,10 +12,38 @@
     <ion-label translate>COMMON.DISPLAYED_COLUMNS</ion-label>
   </button>
 
+  <!-- Init offline mode -->
+  <button mat-menu-item *ngIf="network.online"
+          (click)="initOfflineMode($event)">
+    <ion-label translate>COMMON.BTN_INIT_OFFLINE_MODE</ion-label>
+  </button>
+
   <!-- menu items for DEV ONLY -->
   <button mat-menu-item *ngIf="debug && network.online"
           (click)="toggleOfflineMode($event)">
     <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
+  </button>
+</mat-menu>
+
+<!-- Synchronisation status menu -->
+<mat-menu #syncStatusMenu="matMenu" xPosition="after" color="tertiary">
+
+  <!-- Show dirty -->
+  <button mat-menu-item *ngIf="synchronizationStatus !== 'DIRTY'"
+          (click)="setSynchronizationStatus('DIRTY')">
+    <ion-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</ion-label>
+  </button>
+
+  <!-- Show ready to sync
+  <button mat-menu-item
+          (click)="setSynchronisationStatus('READY_TO_SYNC')">
+    <ion-label translate>NETWORK.SYNCHRONIZATION_STATUS.READY_TO_SYNC</ion-label>
+  </button> -->
+
+  <!-- Show synchronized -->
+  <button mat-menu-item *ngIf="synchronizationStatus !== 'SYNC'"
+          (click)="setSynchronizationStatus('SYNC')">
+    <ion-label translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-label>
   </button>
 </mat-menu>
 
@@ -43,8 +71,13 @@
       <button mat-icon-button hidden-xs hidden-sm
               *ngIf="canDelete" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
         <mat-icon>delete</mat-icon>
-      </button>
+      </button>?enuTriggerFor]
     </ng-template>
+
+    <ion-button size="small" color="secondary" *ngIf="synchronizationStatus" [matMenuTriggerFor]="syncStatusMenu">
+      <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
+      <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+    </ion-button>
 
     <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
       <ion-icon color="danger" slot="start" name="alert"></ion-icon>
@@ -143,6 +176,14 @@
       </ion-button>
     </mat-action-row>
   </mat-expansion-panel>
+
+  <!-- progress bar -->
+  <ion-list *ngIf="importing" lines="none">
+    <ion-list-header>
+      <ion-label>{{'NETWORK.IMPORTATION_PCT_DOTS'|translate: {pct: $importProgression | async } }}</ion-label>
+    </ion-list-header>
+    <ion-progress-bar [value]="($importProgression | async) / 100"></ion-progress-bar>
+  </ion-list>
 
   <!-- error -->
   <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
