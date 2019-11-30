@@ -67,6 +67,7 @@ import {ReferentialModule} from "../referential/referential.module";
 import {SampleForm} from "./sample/sample.form";
 import {SampleModal} from "./sample/sample.modal";
 import {APP_CONFIG_OPTIONS} from "../core/services/config.service";
+import {SynchroService} from "./services/synchro-service";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -183,7 +184,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       SampleValidatorService,
       SubSampleValidatorService,
       {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
-      AggregationTypeValidatorService
+      AggregationTypeValidatorService,
+      SynchroService
     ]
 })
 export class TripModule {

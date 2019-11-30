@@ -31,6 +31,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
+import {ProgressionModel, SynchroService} from "../services/synchro-service";
 
 @Component({
   selector: 'app-trips-page',
@@ -65,6 +66,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected network: NetworkService,
+    protected synchro: SynchroService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -172,13 +174,41 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.filterIsEmpty = TripFilter.isEmpty(json);
   }
 
-  toggleOfflineMode(event?: UIEvent) {
+  async toggleOfflineMode(event?: UIEvent) {
     if (this.network.offline) {
       this.network.setConnectionType('unknown');
     }
     else {
-      this.network.setConnectionType('none');
+      await this.prepareOfflineMode();
+      // If no error: then disable network
+      // TODO
+
+      //this.network.setConnectionType('none');
     }
+
+
+    // Refresh table
+    this.onRefresh.emit();
+  }
+
+  async prepareOfflineMode() {
+    if (this.network.offline) throw new Error("ERROR.UNKNOWN_NETWORK_ERROR");
+
+    const progression = this.synchro.executeImport({maxProgression: 100});
+
+    progression.subscribe().add(() => {
+      console.info("[trips] Import finished !")
+    });
+
+    try {
+      await progression.pipe(filter((p: ProgressionModel) => p.value >= 100)).toPromise();
+    }
+    catch(err) {
+      this.error = err && err.message || err;
+      console.error(this.error, err);
+      return;
+    }
+
     // Refresh table
     this.onRefresh.emit();
   }
