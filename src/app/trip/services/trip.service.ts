@@ -471,7 +471,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
            if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', savedEntity);
 
            // Save response locally
-           await this.entities.save(savedEntity);
+           await this.entities.save<Trip>(savedEntity);
          }
 
          // Update the entity and update GraphQL cache
