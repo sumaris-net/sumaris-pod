@@ -77,6 +77,12 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	@Override
+	public Long countByFilter(String entityName, ReferentialFilterVO filter) {
+		Preconditions.checkNotNull(entityName);
+		return referentialDao.countByFilter(entityName, filter != null ? filter : new ReferentialFilterVO());
+	}
+
+	@Override
 	public ReferentialVO findByUniqueLabel(String entityName, String label) {
 		Preconditions.checkNotNull(entityName);
 		Preconditions.checkNotNull(label);

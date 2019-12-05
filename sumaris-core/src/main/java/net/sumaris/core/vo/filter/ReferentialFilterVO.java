@@ -22,11 +22,17 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
 @Data
 @FieldNameConstants
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ReferentialFilterVO {
 
     private String label;

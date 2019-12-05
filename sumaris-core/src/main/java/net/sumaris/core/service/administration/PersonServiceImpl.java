@@ -29,12 +29,16 @@ import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +46,11 @@ import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,7 +73,7 @@ public class PersonServiceImpl implements PersonService {
 
 	@Override
 	public Long countByFilter(final PersonFilterVO filter) {
-		return personDao.countByFilter(filter);
+		return personDao.countByFilter(filter != null ? filter : new PersonFilterVO());
 	}
 
 	@Override
@@ -139,7 +148,6 @@ public class PersonServiceImpl implements PersonService {
 	}
 
 	/* -- protected methods -- */
-
 	protected void checkValid(PersonVO person) {
 		Preconditions.checkNotNull(person);
 		Preconditions.checkNotNull(person.getEmail(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.email")));

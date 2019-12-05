@@ -31,7 +31,6 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.UserProfile;
 import net.sumaris.core.model.referential.UserProfileEnum;
@@ -56,6 +55,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.sql.Timestamp;
 import java.util.*;
@@ -98,131 +98,28 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         Root<Person> root = query.from(Person.class);
         Join<Person, UserProfile> upJ = root.join(Person.Fields.USER_PROFILES, JoinType.LEFT);
 
-        ParameterExpression<Boolean> hasUserProfileIdsParam = builder.parameter(Boolean.class);
-        ParameterExpression<Collection> userProfileIdsParam = builder.parameter(Collection.class);
-        ParameterExpression<Boolean> hasStatusIdsParam = builder.parameter(Boolean.class);
-        ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
-        ParameterExpression<String> pubkeyParam = builder.parameter(String.class);
-        ParameterExpression<String> firstNameParam = builder.parameter(String.class);
-        ParameterExpression<String> lastNameParam = builder.parameter(String.class);
-        ParameterExpression<String> emailParam = builder.parameter(String.class);
-        ParameterExpression<String> searchTextParam = builder.parameter(String.class);
+        query.select(root).distinct(true);
 
-        // Prepare status ids
-        Collection<Integer> statusIds = ArrayUtils.isEmpty(filter.getStatusIds()) ?
-                null : ImmutableList.copyOf(filter.getStatusIds());
+        addSorting(query, builder, root, sortAttribute, sortDirection);
 
-        // Prepare user profile ids
-        Collection<Integer> userProfileIds;
-        if (ArrayUtils.isNotEmpty(filter.getUserProfiles())) {
-            userProfileIds = Arrays.stream(filter.getUserProfiles())
-                    .map(UserProfileEnum::valueOf)
-                    .map(profile -> profile.id)
-                    .collect(Collectors.toList());
-        }
-        else if (ArrayUtils.isNotEmpty(filter.getUserProfileIds())) {
-            userProfileIds = ImmutableList.copyOf(filter.getUserProfileIds());
-        }
-        else if (filter.getUserProfileId() != null) {
-            userProfileIds = ImmutableList.of(filter.getUserProfileId());
-        }
-        else {
-            userProfileIds = null;
-        }
-
-        query.select(root).distinct(true)
-             .where(
-                builder.and(
-                    // user profile Ids
-                    builder.or(
-                            builder.isFalse(hasUserProfileIdsParam),
-                            upJ.get(UserProfile.Fields.ID).in(userProfileIdsParam)
-                    ),
-                    // status Ids
-                    builder.or(
-                        builder.isFalse(hasStatusIdsParam),
-                        root.get(Person.Fields.STATUS).get(Status.Fields.ID).in(statusIdsParam)
-                    ),
-                    // pubkey
-                    builder.or(
-                            builder.isNull(pubkeyParam),
-                            builder.equal(root.get(Person.Fields.PUBKEY), pubkeyParam)
-                    ),
-                    // email
-                    builder.or(
-                            builder.isNull(emailParam),
-                            builder.equal(root.get(Person.Fields.EMAIL), emailParam)
-                    ),
-                    // firstName
-                    builder.or(
-                            builder.isNull(firstNameParam),
-                            builder.equal(builder.upper(root.get(Person.Fields.FIRST_NAME)), builder.upper(firstNameParam))
-                    ),
-                    // lastName
-                    builder.or(
-                            builder.isNull(lastNameParam),
-                            builder.equal(builder.upper(root.get(Person.Fields.LAST_NAME)), builder.upper(lastNameParam))
-                    ),
-                    // search text
-                    builder.or(
-                            builder.isNull(searchTextParam),
-                            builder.like(builder.upper(root.get(Person.Fields.PUBKEY)), builder.upper(searchTextParam)),
-                            builder.like(builder.upper(root.get(Person.Fields.EMAIL)), builder.upper(searchTextParam)),
-                            builder.like(builder.upper(root.get(Person.Fields.FIRST_NAME)), builder.upper(searchTextParam)),
-                            builder.like(builder.upper(root.get(Person.Fields.LAST_NAME)), builder.upper(searchTextParam))
-                    )
-                ));
-        if (StringUtils.isNotBlank(sortAttribute)) {
-            if (sortDirection == SortDirection.ASC) {
-                query.orderBy(builder.asc(root.get(sortAttribute)));
-            } else {
-                query.orderBy(builder.desc(root.get(sortAttribute)));
-            }
-        }
-
-        String searchText = StringUtils.trimToNull(filter.getSearchText());
-        String searchTextAnyMatch = null;
-        if (StringUtils.isNotBlank(searchText)) {
-            searchTextAnyMatch = ("*" + searchText + "*"); // add trailing escape char
-            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]+", "*"); // group escape chars
-            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[%]", "\\%"); // protected '%' chars
-            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]", "%"); // replace asterix
-        }
-
-
-        return entityManager.createQuery(query)
-                .setParameter(hasUserProfileIdsParam, CollectionUtils.isNotEmpty(userProfileIds))
-                .setParameter(userProfileIdsParam,  userProfileIds)
-                .setParameter(hasStatusIdsParam, CollectionUtils.isNotEmpty(statusIds))
-                .setParameter(statusIdsParam, statusIds)
-                .setParameter(pubkeyParam, filter.getPubkey())
-                .setParameter(emailParam, filter.getEmail())
-                .setParameter(firstNameParam, filter.getFirstName())
-                .setParameter(lastNameParam, filter.getLastName())
-                .setParameter(searchTextParam, searchTextAnyMatch)
+        return toPersonVOs(createPersonQuery(builder,query, root, upJ, filter)
                 .setFirstResult(offset)
                 .setMaxResults(size)
-                .getResultList()
-                .stream()
-                .map(this::toPersonVO)
-                .collect(Collectors.toList());
+                .getResultList());
     }
 
 
     @Override
     public Long countByFilter(PersonFilterVO filter) {
-        Preconditions.checkNotNull(filter);
 
-        List<Integer> statusIds = ArrayUtils.isEmpty(filter.getStatusIds()) ?
-                null : ImmutableList.copyOf(filter.getStatusIds());
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Long> query = builder.createQuery(Long.class);
+        Root<Person> root = query.from(Person.class);
+        Join<Person, UserProfile> upJ = root.join(Person.Fields.USER_PROFILES, JoinType.LEFT);
 
-        return getEntityManager().createNamedQuery("Person.count", Long.class)
-                .setParameter("userProfileId", filter.getUserProfileId())
-                .setParameter("statusIds", statusIds)
-                .setParameter("email", StringUtils.trimToNull(filter.getEmail()))
-                .setParameter("pubkey", StringUtils.trimToNull(filter.getPubkey()))
-                .setParameter("firstName", StringUtils.trimToNull(filter.getFirstName()))
-                .setParameter("lastName", StringUtils.trimToNull(filter.getLastName()))
+        query.select(builder.count(root));
+
+        return createPersonQuery(builder, query, root, upJ, filter)
                 .getSingleResult();
     }
 
@@ -412,6 +309,110 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
 
 
     /* -- protected methods -- */
+
+
+    private <R> TypedQuery<R> createPersonQuery(CriteriaBuilder builder,
+                                                CriteriaQuery<R> query,
+                                                Root<Person> root,
+                                                Join<Person, UserProfile> upJ,
+                                                PersonFilterVO filter) {
+        EntityManager entityManager = getEntityManager();
+
+        ParameterExpression<Boolean> hasUserProfileIdsParam = builder.parameter(Boolean.class);
+        ParameterExpression<Collection> userProfileIdsParam = builder.parameter(Collection.class);
+        ParameterExpression<Boolean> hasStatusIdsParam = builder.parameter(Boolean.class);
+        ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
+        ParameterExpression<String> pubkeyParam = builder.parameter(String.class);
+        ParameterExpression<String> firstNameParam = builder.parameter(String.class);
+        ParameterExpression<String> lastNameParam = builder.parameter(String.class);
+        ParameterExpression<String> emailParam = builder.parameter(String.class);
+        ParameterExpression<String> searchTextParam = builder.parameter(String.class);
+
+        // Prepare status ids
+        Collection<Integer> statusIds = ArrayUtils.isEmpty(filter.getStatusIds()) ?
+                null : ImmutableList.copyOf(filter.getStatusIds());
+
+        // Prepare user profile ids
+        Collection<Integer> userProfileIds;
+        if (ArrayUtils.isNotEmpty(filter.getUserProfiles())) {
+            userProfileIds = Arrays.stream(filter.getUserProfiles())
+                    .map(UserProfileEnum::valueOf)
+                    .map(profile -> profile.id)
+                    .collect(Collectors.toList());
+        }
+        else if (ArrayUtils.isNotEmpty(filter.getUserProfileIds())) {
+            userProfileIds = ImmutableList.copyOf(filter.getUserProfileIds());
+        }
+        else if (filter.getUserProfileId() != null) {
+            userProfileIds = ImmutableList.of(filter.getUserProfileId());
+        }
+        else {
+            userProfileIds = null;
+        }
+
+        query.where(
+                builder.and(
+                        // user profile Ids
+                        builder.or(
+                                builder.isFalse(hasUserProfileIdsParam),
+                                upJ.get(UserProfile.Fields.ID).in(userProfileIdsParam)
+                        ),
+                        // status Ids
+                        builder.or(
+                                builder.isFalse(hasStatusIdsParam),
+                                root.get(Person.Fields.STATUS).get(Status.Fields.ID).in(statusIdsParam)
+                        ),
+                        // pubkey
+                        builder.or(
+                                builder.isNull(pubkeyParam),
+                                builder.equal(root.get(Person.Fields.PUBKEY), pubkeyParam)
+                        ),
+                        // email
+                        builder.or(
+                                builder.isNull(emailParam),
+                                builder.equal(root.get(Person.Fields.EMAIL), emailParam)
+                        ),
+                        // firstName
+                        builder.or(
+                                builder.isNull(firstNameParam),
+                                builder.equal(builder.upper(root.get(Person.Fields.FIRST_NAME)), builder.upper(firstNameParam))
+                        ),
+                        // lastName
+                        builder.or(
+                                builder.isNull(lastNameParam),
+                                builder.equal(builder.upper(root.get(Person.Fields.LAST_NAME)), builder.upper(lastNameParam))
+                        ),
+                        // search text
+                        builder.or(
+                                builder.isNull(searchTextParam),
+                                builder.like(builder.upper(root.get(Person.Fields.PUBKEY)), builder.upper(searchTextParam)),
+                                builder.like(builder.upper(root.get(Person.Fields.EMAIL)), builder.upper(searchTextParam)),
+                                builder.like(builder.upper(root.get(Person.Fields.FIRST_NAME)), builder.upper(searchTextParam)),
+                                builder.like(builder.upper(root.get(Person.Fields.LAST_NAME)), builder.upper(searchTextParam))
+                        )
+                ));
+
+        String searchText = StringUtils.trimToNull(filter.getSearchText());
+        String searchTextAnyMatch = null;
+        if (StringUtils.isNotBlank(searchText)) {
+            searchTextAnyMatch = ("*" + searchText + "*"); // add trailing escape char
+            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]+", "*"); // group escape chars
+            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[%]", "\\%"); // protected '%' chars
+            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]", "%"); // replace asterix
+        }
+
+
+        return entityManager.createQuery(query)
+                .setParameter(hasUserProfileIdsParam, CollectionUtils.isNotEmpty(userProfileIds))
+                .setParameter(userProfileIdsParam,  userProfileIds)
+                .setParameter(hasStatusIdsParam, CollectionUtils.isNotEmpty(statusIds))
+                .setParameter(statusIdsParam, statusIds)
+                .setParameter(pubkeyParam, filter.getPubkey())
+                .setParameter(emailParam, filter.getEmail())
+                .setParameter(firstNameParam, filter.getFirstName())
+                .setParameter(lastNameParam, filter.getLastName())
+                .setParameter(searchTextParam, searchTextAnyMatch);
+    }
 
     protected List<PersonVO> toPersonVOs(List<Person> source) {
         return source.stream()

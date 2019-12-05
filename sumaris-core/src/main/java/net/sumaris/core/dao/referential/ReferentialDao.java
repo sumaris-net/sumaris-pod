@@ -42,8 +42,8 @@ import java.util.Optional;
 
 public interface ReferentialDao {
 
-    interface QueryVisitor<T> {
-        Expression<Boolean> apply(CriteriaQuery<T> query, Root<T> root);
+    interface QueryVisitor<R, T> {
+        Expression<Boolean> apply(CriteriaQuery<R> query, Root<T> root);
     }
 
     @Cacheable(cacheNames = CacheNames.REFERENTIAL_TYPES)
@@ -59,6 +59,8 @@ public interface ReferentialDao {
                                      int size,
                                      String sortAttribute,
                                      SortDirection sortDirection);
+
+    Long countByFilter(final String entityName, ReferentialFilterVO filter);
 
     @Cacheable(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, key = "#entityName+':'+#label", condition = "#entityName == 'LocationLevel'")
     ReferentialVO findByUniqueLabel(String entityName, String label);
@@ -97,12 +99,8 @@ public interface ReferentialDao {
     Long countByLevelId(String entityName, Integer... levelIds);
 
     <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
-                                      Integer levelId,
-                                      Integer[] levelIds,
-                                      String searchText,
-                                      String searchAttribute,
-                                      Integer[] statusIds,
+                                      ReferentialFilterVO filter,
                                       String sortAttribute,
                                       SortDirection sortDirection,
-                                      QueryVisitor<T> queryVisitor);
+                                      QueryVisitor<T, T> queryVisitor);
 }

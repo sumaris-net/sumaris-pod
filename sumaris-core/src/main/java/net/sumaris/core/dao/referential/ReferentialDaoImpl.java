@@ -28,7 +28,10 @@ import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.programStrategy.*;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
+import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -204,19 +207,29 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
 
         return createFindQuery(entityClass,
-                    filter.getLevelId(),
-                    filter.getLevelIds(),
-                    StringUtils.trimToNull(filter.getSearchText()),
-                    StringUtils.trimToNull(filter.getSearchAttribute()),
-                    filter.getStatusIds(),
-                    sortAttribute,
-                    sortDirection, null)
-                .setFirstResult(offset)
-                .setMaxResults(size)
-                .getResultStream()
-                .map(s -> toReferentialVO(entityName, s))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                filter,
+                sortAttribute,
+                sortDirection,
+                null
+        )
+        .setFirstResult(offset)
+        .setMaxResults(size)
+        .getResultStream()
+        .map(s -> toReferentialVO(entityName, s))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+    }
+
+    @Override
+    public Long countByFilter(final String entityName, ReferentialFilterVO filter) {
+        Preconditions.checkNotNull(entityName, "Missing entityName argument");
+        Preconditions.checkNotNull(filter);
+
+        // Get entity class from entityName
+        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+
+        return createCountQuery(entityClass,filter)
+                .getSingleResult();
     }
 
     @Override
@@ -248,7 +261,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         }
 
         String levelEntityName = levelDescriptor.getPropertyType().getSimpleName();
-        return findByFilter(levelEntityName, new ReferentialFilterVO(), 0, 100,
+        return findByFilter(levelEntityName, ReferentialFilterVO.builder().build(), 0, 100,
                 IItemReferentialEntity.Fields.NAME, SortDirection.ASC);
     }
 
@@ -454,19 +467,52 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                 .collect(Collectors.toList());
     }
 
+    @Override
     public <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
-                                             Integer levelId,
-                                             Integer[] levelIds,
-                                             String searchText,
-                                             String searchAttribute,
-                                             Integer[] statusIds,
-                                             String sortAttribute,
-                                             SortDirection sortDirection,
-                                             QueryVisitor<T> queryVisitor) {
+                                      ReferentialFilterVO filter,
+                                      String sortAttribute,
+                                      SortDirection sortDirection,
+                                      QueryVisitor<T, T> queryVisitor) {
+
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(entityClass);
         Root<T> entityRoot = query.from(entityClass);
         query.select(entityRoot).distinct(true);
+
+        addSorting(query, builder, entityRoot, sortAttribute, sortDirection);
+
+        return createFilteredQuery(builder, entityClass,
+                query, entityRoot,
+                filter,
+                queryVisitor);
+    }
+
+    protected <T> TypedQuery<Long> createCountQuery(Class<T> entityClass,
+                                             ReferentialFilterVO filter) {
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Long> query = builder.createQuery(Long.class);
+        Root<T> root = query.from(entityClass);
+        query.select(builder.count(root));
+
+        return createFilteredQuery(builder, entityClass,
+                query, root,
+                filter,
+                null);
+    }
+
+    protected <R, T> TypedQuery<R> createFilteredQuery(CriteriaBuilder builder,
+                                                    Class<T> entityClass,
+                                                    CriteriaQuery<R> query,
+                                                    Root<T> entityRoot,
+                                                    ReferentialFilterVO filter,
+                                                    QueryVisitor<R, T> queryVisitor) {
+
+        Integer levelId = filter.getLevelId();
+        Integer[] levelIds = filter.getLevelIds();
+        String searchText = StringUtils.trimToNull(filter.getSearchText());
+        String searchAttribute = StringUtils.trimToNull(filter.getSearchAttribute());
+        Integer[] statusIds = filter.getStatusIds();
 
         // Level Ids
         Predicate levelClause = null;
@@ -566,39 +612,16 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
             query.where(whereClause);
         }
 
-        // Add sorting
-        if (StringUtils.isNotBlank(sortAttribute)) {
-
-            // Convert level into the correct property name
-            if (IReferentialVO.Fields.LEVEL.equals(sortAttribute)) {
-                PropertyDescriptor levelDescriptor = levelPropertyNameMap.get(entityClass.getSimpleName());
-                if (levelDescriptor != null) {
-                    sortAttribute = levelDescriptor.getName();
-                }
-                else {
-                    sortAttribute = null;
-                }
-            }
-
-            if (StringUtils.isNotBlank(sortAttribute)) {
-                Expression<?> sortExpression = entityRoot.get(sortAttribute);
-                query.orderBy(SortDirection.DESC.equals(sortDirection) ?
-                        builder.desc(sortExpression) :
-                        builder.asc(sortExpression)
-                );
-            }
-        }
-
-        TypedQuery<T> typedQuery = getEntityManager().createQuery(query);
+        TypedQuery<R> typedQuery = getEntityManager().createQuery(query);
 
         // Bind parameters
         if (searchTextClause != null) {
             String searchTextAsPrefix = null;
             if (StringUtils.isNotBlank(searchText)) {
                 searchTextAsPrefix = (searchText + "*") // add trailing escape char
-                    .replaceAll("[*]+", "*") // group escape chars
-                    .replaceAll("[%]", "\\%") // protected '%' chars
-                    .replaceAll("[*]", "%"); // replace asterix
+                        .replaceAll("[*]+", "*") // group escape chars
+                        .replaceAll("[%]", "\\%") // protected '%' chars
+                        .replaceAll("[*]", "%"); // replace asterix
             }
             String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
             typedQuery.setParameter(searchAsPrefixParam, searchTextAsPrefix);
@@ -639,7 +662,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         // Get entity class from entityName
         Class<? extends IReferentialEntity> entityClass = entityClassMap.get(entityName);
         if (entityClass == null)
-            throw new IllegalArgumentException(String.format("No entity with name [%s]", entityName));
+            throw new IllegalArgumentException(String.format("Referential entity [%s] not exists", entityName));
         return entityClass;
     }
 

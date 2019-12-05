@@ -139,13 +139,13 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Long> query = builder.createQuery(Long.class);
-        Root<Vessel> vesselRoot = query.from(Vessel.class);
-        Join<Vessel, VesselFeatures> featuresJoin = vesselRoot.join(Vessel.Fields.VESSEL_FEATURES, JoinType.LEFT);
-        Join<Vessel, VesselRegistrationPeriod> vrpJoin = vesselRoot.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
+        Root<Vessel> root = query.from(Vessel.class);
+        Join<Vessel, VesselFeatures> featuresJoin = root.join(Vessel.Fields.VESSEL_FEATURES, JoinType.LEFT);
+        Join<Vessel, VesselRegistrationPeriod> vrpJoin = root.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
 
-        query.select(builder.count(vesselRoot));
+        query.select(builder.count(root));
 
-        return createVesselQuery(builder, query, vesselRoot, featuresJoin, vrpJoin, filter).getSingleResult();
+        return createVesselQuery(builder, query, root, featuresJoin, vrpJoin, filter).getSingleResult();
     }
 
     @Override

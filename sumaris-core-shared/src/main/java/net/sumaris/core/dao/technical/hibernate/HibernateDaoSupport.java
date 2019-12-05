@@ -28,6 +28,7 @@ package net.sumaris.core.dao.technical.hibernate;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.BadUpdateDateException;
@@ -49,6 +50,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.LockTimeoutException;
 import javax.persistence.Query;
+import javax.persistence.criteria.*;
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -392,4 +394,64 @@ public abstract class HibernateDaoSupport {
         entityManager.remove(entity);
     }
 
+
+    /**
+     * Add a orderBy on query
+     *
+     * @param query the query
+     * @param cb criteria builder
+     * @param root the root of the query
+     * @param sortAttribute the sort attribute (can be a nested attribute)
+     * @param sortDirection the direction
+     * @param <T> type of query
+     * @return the query itself
+     */
+    protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
+                                              CriteriaBuilder cb,
+                                              Root<?> root, String sortAttribute, SortDirection sortDirection) {
+        // Add sorting
+        if (StringUtils.isNotBlank(sortAttribute)) {
+            Expression<?> sortExpression = composePath(root, sortAttribute);
+            query.orderBy(SortDirection.DESC.equals(sortDirection) ?
+                    cb.desc(sortExpression) :
+                    cb.asc(sortExpression)
+            );
+        }
+        return query;
+    }
+
+    /**
+     * Compose a Path from root, accepting nested property name
+     *
+     * @param root the root expression
+     * @param attributePath the attribute path, can contains '.'
+     * @param <X> Type of Path
+     * @return the composed Path
+     */
+    protected <X> Path<X> composePath(Root<?> root, String attributePath) {
+
+        String[] paths = attributePath.split("\\.");
+        From<?, ?> from = root; // starting from root
+        Path<X> result = null;
+
+        for (int i = 0; i < paths.length; i++) {
+            String path = paths[i];
+
+            if (i == paths.length - 1) {
+                // last path, get it
+                result = from.get(path);
+            } else {
+                // need a join (find it from existing joins of from)
+                Join join = from.getJoins().stream()
+                        .filter(j -> j.getAttribute().getName().equals(path))
+                        .findFirst().orElse(null);
+                if (join == null) {
+                    throw new IllegalArgumentException(String.format("the join %s from %s doesn't exists", path, from.getClass().getSimpleName()));
+                }
+                from = join;
+            }
+        }
+
+        return result;
+    }
 }

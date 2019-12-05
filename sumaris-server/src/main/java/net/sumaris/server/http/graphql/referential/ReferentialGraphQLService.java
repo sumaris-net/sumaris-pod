@@ -103,8 +103,9 @@ public class ReferentialGraphQLService {
 
     @GraphQLQuery(name = "referentialsCount", description = "Get referentials count")
     @Transactional(readOnly = true)
-    public Long getReferentialsCount(@GraphQLArgument(name = "entityName") String entityName) {
-        return referentialService.count(entityName);
+    public Long getReferentialsCount(@GraphQLArgument(name = "entityName") String entityName,
+                                     @GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
+        return referentialService.countByFilter(entityName, filter);
     }
 
     @GraphQLQuery(name = "referentialLevels", description = "Get all levels from entityName")

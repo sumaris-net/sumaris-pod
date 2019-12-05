@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.taxon.*;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -69,7 +70,7 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
         ParameterExpression<Collection> taxonGroupIdsParam = builder.parameter(Collection.class);
 
         // Where clause visitor
-        ReferentialDao.QueryVisitor<TaxonName> queryVisitor = (query, root) -> {
+        ReferentialDao.QueryVisitor<TaxonName, TaxonName> queryVisitor = (query, root) -> {
 
             Expression<Boolean> whereClause = null;
             if (!withSynonyms) {
@@ -88,15 +89,16 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
             return whereClause;
         };
 
-        TypedQuery<TaxonName> typedQuery = referentialDao.createFindQuery(TaxonName.class,
-                null,
-                filter.getTaxonomicLevelIds(),
-                StringUtils.trimToNull(filter.getSearchText()),
-                StringUtils.trimToNull(filter.getSearchAttribute()),
-                filter.getStatusIds(),
-                sortAttribute,
-                sortDirection,
-                queryVisitor);
+        ReferentialFilterVO referentialFilter = ReferentialFilterVO.builder()
+                .levelIds(filter.getTaxonomicLevelIds())
+                .searchText(StringUtils.trimToNull(filter.getSearchText()))
+                .searchAttribute(StringUtils.trimToNull(filter.getSearchAttribute()))
+                .statusIds(filter.getStatusIds())
+                .build();
+
+
+        TypedQuery<TaxonName> typedQuery = referentialDao.createFindQuery(TaxonName.class, referentialFilter,
+                sortAttribute, sortDirection, queryVisitor);
 
         if (ArrayUtils.isNotEmpty(filter.getTaxonGroupIds())) {
             typedQuery.setParameter(taxonGroupIdsParam,  ImmutableList.copyOf(filter.getTaxonGroupIds()));

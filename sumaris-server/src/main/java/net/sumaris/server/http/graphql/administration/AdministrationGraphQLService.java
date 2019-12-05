@@ -110,6 +110,13 @@ public class AdministrationGraphQLService {
         return result;
     }
 
+    @GraphQLQuery(name = "personsCount", description = "Get total persons count")
+    @Transactional(readOnly = true)
+    @IsUser
+    public long countPersonsByFilter(@GraphQLArgument(name = "filter") PersonFilterVO filter) {
+        return personService.countByFilter(filter);
+    }
+
     @GraphQLMutation(name = "savePersons", description = "Create or update many persons")
     @IsAdmin
     public List<PersonVO> savePersons(

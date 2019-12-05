@@ -31,7 +31,7 @@ import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.*;
-import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -42,6 +42,7 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -118,6 +119,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
         Join<Program, ProgramProperty> upJ = root.join(Program.Fields.PROPERTIES, JoinType.LEFT);
 
         ParameterExpression<String> withPropertyParam = builder.parameter(String.class);
+        ParameterExpression<Boolean> hasStatusIdsParam = builder.parameter(Boolean.class);
         ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
         ParameterExpression<String> searchTextParam = builder.parameter(String.class);
 
@@ -131,8 +133,8 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
                                 ),
                                 // status Ids
                                 builder.or(
-                                        builder.isNull(statusIdsParam),
-                                        root.get(Program.Fields.STATUS).get(IReferentialEntity.Fields.ID).in(statusIdsParam)
+                                        builder.isFalse(hasStatusIdsParam),
+                                        builder.in(root.get(Vessel.Fields.STATUS).get(Status.Fields.ID)).value(statusIdsParam)
                                 ),
                                 // search text
                                 builder.or(
@@ -159,9 +161,13 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
             searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]", "%"); // replace asterix
         }
 
+        List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds()) ?
+                null : filter.getStatusIds();
+
         return entityManager.createQuery(query)
                 .setParameter(withPropertyParam, filter.getWithProperty())
-                .setParameter(statusIdsParam, filter.getStatusIds())
+                .setParameter(hasStatusIdsParam, CollectionUtils.isNotEmpty(statusIds))
+                .setParameter(statusIdsParam, statusIds)
                 .setParameter(searchTextParam, searchTextAnyMatch)
                 .setFirstResult(offset)
                 .setMaxResults(size)

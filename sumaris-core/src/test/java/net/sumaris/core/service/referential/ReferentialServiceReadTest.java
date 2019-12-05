@@ -46,10 +46,11 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void findByFilter() {
-        ReferentialFilterVO filter = new ReferentialFilterVO();
-
-        filter.setSearchText("FRA");
-        filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId()});
+        ReferentialFilterVO filter = ReferentialFilterVO
+                .builder()
+                .searchText("FRA")
+                .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
+                .build();
 
         List<ReferentialVO> results = service.findByFilter(Location.class.getSimpleName(), filter, 0, 100);
         Assert.assertNotNull(results);
