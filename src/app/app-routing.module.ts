@@ -6,7 +6,6 @@ import {AccountPage} from './core/account/account';
 import {VesselsPage} from './referential/vessel/list/vessels';
 import {VesselPage} from './referential/vessel/page/page-vessel';
 import {ReferentialsPage} from './referential/list/referentials';
-import {TripPage, TripsPage} from './trip/trip.module';
 import {OperationPage} from './trip/operation/operation.page';
 import {SoftwarePage} from './referential/software/software.page';
 import {ObservedLocationPage} from "./trip/observedlocation/observed-location.page";
@@ -19,6 +18,9 @@ import {IonicRouteStrategy} from "@ionic/angular";
 import {ProgramPage} from "./referential/program/program.page";
 import {BatchGroupPage} from "./trip/batch/batch-group.page";
 import {AuthGuardService} from "./core/services/auth-guard.service";
+import {TripsPage} from "./trip/trip/trips.page";
+import {TripPage} from "./trip/trip/trip.page";
+import {LandedTripPage} from "./trip/landedtrip/landed-trip.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -252,6 +254,21 @@ const routes: Routes = [
                 path: '',
                 pathMatch: 'full',
                 component: AuctionControlPage,
+                runGuardsAndResolvers: 'pathParamsChange'
+              }
+            ]
+          },
+          {
+            path: 'landed_trip/:landingId/:tripId',
+            runGuardsAndResolvers: 'pathParamsChange',
+            data: {
+              pathIdParam: 'tripId'
+            },
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                component: LandedTripPage,
                 runGuardsAndResolvers: 'pathParamsChange'
               }
             ]

@@ -1,9 +1,10 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Trip} from "./trip.model";
+import {ReferentialRef, Trip} from "./trip.model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {DataRootEntityValidatorService} from "./validator/base.validator";
+import {IWithObserversEntity} from "./model/base.model";
 
 @Injectable()
 export class TripValidatorService extends DataRootEntityValidatorService<Trip> {
@@ -27,7 +28,8 @@ export class TripValidatorService extends DataRootEntityValidatorService<Trip> {
         departureLocation: ['', Validators.compose([Validators.required, SharedValidators.entity])],
         returnDateTime: ['', isOnFieldMode ? null : Validators.required],
         returnLocation: ['', isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])],
-        observers: this.getObserversArray(data)
+        observers: this.getObserversArray(data),
+        metiers: this.getMetiersArray(data)
       });
   }
 
@@ -62,6 +64,17 @@ export class TripValidatorService extends DataRootEntityValidatorService<Trip> {
         SharedValidators.dateMaxDuration('departureDateTime', 'returnDateTime', 100, 'days')
       ])
     });
+  }
+
+  getMetiersArray(data?: Trip) {
+    return this.formBuilder.array(
+      (data && data.metiers || []).map(this.getMetierControl),
+      SharedValidators.requiredArrayMinLength(1)
+    );
+  }
+
+  getMetierControl(metier: ReferentialRef) {
+    return this.formBuilder.control(metier || '', [Validators.required, SharedValidators.entity]);
   }
 }
 

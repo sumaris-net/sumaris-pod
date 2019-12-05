@@ -5,7 +5,7 @@ import {
   isNil,
   LocationLevelIds,
   Person,
-  personToString,
+  personToString, ReferentialRef,
   StatusIds,
   Trip,
   VesselSnapshot,
@@ -20,6 +20,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {PersonService} from "../../admin/services/person.service";
+import {MetierRef} from "../../referential/services/model/taxon.model";
 import {toBoolean} from "../../shared/functions";
 
 @Component({
@@ -31,9 +32,12 @@ import {toBoolean} from "../../shared/functions";
 export class TripForm extends AppForm<Trip> implements OnInit {
 
   private _showObservers: boolean;
+  private _showMetiers: boolean;
 
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
+  metiersHelper: FormArrayHelper<ReferentialRef>;
+  metierFocusIndex = -1;
   mobile: boolean;
 
   @Input() showComment = true;
@@ -51,6 +55,19 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   get showObservers(): boolean {
     return this._showObservers;
   }
+
+  @Input() set showMetiers(value: boolean) {
+    if (this._showMetiers !== value) {
+      this._showMetiers = value;
+      this.initMetiersHelper();
+      this.markForCheck();
+    }
+  }
+
+  get showMetiers(): boolean {
+    return this._showMetiers;
+  }
+
 
   get value(): any {
     const json = this.form.value;
@@ -71,6 +88,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   get observersForm(): FormArray {
     return this.form.controls.observers as FormArray;
+  }
+
+  get metiersForm(): FormArray {
+    return this.form.controls.metiers as FormArray;
   }
 
   constructor(
@@ -94,6 +115,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
     // Default values
     this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
+    this.showMetiers = toBoolean(this.showMetiers, false); // Will init the metiers helper
+
     this.usageMode = this.usageMode || this.settings.usageMode;
 
     // Combo: programs
@@ -136,6 +159,15 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       displayWith: personToString
     });
 
+    // Combo: metiers
+    this.registerAutocompleteField('metier', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Metier',
+        statusId: StatusIds.ENABLE
+      }
+    });
+
   }
 
   setValue(value: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
@@ -144,13 +176,22 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
     // Make sure to have (at least) one observer
     value.observers = value.observers && value.observers.length ? value.observers : [null];
-
     // Resize observers array
     if (this._showObservers) {
       this.observersHelper.resize(Math.max(1, value.observers.length));
     }
     else {
       this.observersHelper.removeAllEmpty();
+    }
+
+    // Make sure to have (at least) one metier
+    value.metiers = value.metiers && value.metiers.length ? value.metiers : [null];
+    // Resize metiers array
+    if (this._showMetiers) {
+      this.metiersHelper.resize(Math.max(1, value.metiers.length));
+    }
+    else {
+      this.metiersHelper.removeAllEmpty();
     }
 
     // Send value for form
@@ -177,6 +218,13 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     this.observersHelper.add();
     if (!this.mobile) {
       this.observerFocusIndex = this.observersHelper.size() - 1;
+    }
+  }
+
+  addMetier() {
+    this.metiersHelper.add();
+    if (!this.mobile) {
+      this.metierFocusIndex = this.metiersHelper.size() - 1;
     }
   }
 
@@ -207,6 +255,32 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     }
     else if (this.observersHelper.size() > 0) {
       this.observersHelper.resize(0);
+    }
+  }
+
+  protected initMetiersHelper() {
+    if (isNil(this._showMetiers)) return; // skip if not loading yet
+
+    this.metiersHelper = new FormArrayHelper<ReferentialRef>(
+      this.formBuilder,
+      this.form,
+      'metiers',
+      (metier) => this.validatorService.getMetierControl(metier),
+      EntityUtils.equals,
+      EntityUtils.isEmpty,
+      {
+        allowEmptyArray: !this._showMetiers
+      }
+    );
+
+    if (this._showMetiers) {
+      // Create at least one metier
+      if (this.metiersHelper.size() === 0) {
+        this.metiersHelper.resize(1);
+      }
+    }
+    else if (this.metiersHelper.size() > 0) {
+      this.metiersHelper.resize(0);
     }
   }
 

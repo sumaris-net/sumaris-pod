@@ -28,7 +28,7 @@ import {PredefinedColors} from "@ionic/core";
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 2, // TODO SFA=6
+  PORT: 6,
   AUCTION: 3
 };
 
@@ -565,21 +565,6 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "true",
     type: 'boolean'
   },
-  TRIP_EDITOR: {
-    key: 'sumaris.trip.editor',
-    label: 'PROGRAM.OPTIONS.TRIP_EDITOR',
-    type: 'enum',
-    values: [
-      {
-        key: 'observed',
-        value: 'PROGRAM.OPTIONS.TRIP_EDITOR_OBSERVED_TRIP'
-      },
-      {
-        key: 'landing',
-        value: 'PROGRAM.OPTIONS.TRIP_EDITOR_TRIP_FROM_LANDING'
-      }],
-    defaultValue: 'observed'
-  },
 
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: {
@@ -606,6 +591,12 @@ export const ProgramProperties: FormFieldDefinitionMap = {
   },
 
   // Landing
+  LANDING_DATE_TIME_ENABLE: {
+    key: 'sumaris.landing.dateTime.enable',
+    label: "PROGRAM.OPTIONS.LANDING_DATE_TIME_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   LANDING_EDITOR: {
     key: 'sumaris.landing.editor',
     label: 'PROGRAM.OPTIONS.LANDING_EDITOR',
@@ -618,13 +609,17 @@ export const ProgramProperties: FormFieldDefinitionMap = {
       {
         key: 'control',
         value: 'PROGRAM.OPTIONS.LANDING_EDITOR_CONTROL'
+      },
+      {
+        key: 'landed_trip',
+        value: 'PROGRAM.OPTIONS.LANDING_EDITOR_LANDED_TRIP'
       }],
     defaultValue: 'landing'
   }
 
 };
 
-export type LandingEditor = 'landing' | 'control';
+export type LandingEditor = 'landing' | 'control' | 'landed_trip';
 
 export class Program extends Entity<Program> {
 

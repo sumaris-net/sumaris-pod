@@ -29,7 +29,4 @@ export class LandingValidatorService extends DataRootVesselEntityValidatorServic
     });
   }
 
-  getObserverControl(observer?: any): FormControl {
-    return this.formBuilder.control(observer || '', [Validators.required, SharedValidators.entity]);
-  }
 }

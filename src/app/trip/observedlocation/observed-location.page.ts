@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {fadeInOutAnimation, isNil} from '../../shared/shared.module';
+import {fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
 import {EntityUtils, Landing, ObservedLocation} from "../services/trip.model";
@@ -13,6 +13,7 @@ import {ModalController} from "@ionic/angular";
 import {LandingsTablesModal} from "../landing/landings-table.modal";
 import {environment} from "../../core/core.module";
 import {HistoryPageReference} from "../../core/services/model";
+import {TableElement} from "angular4-material-table";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -57,9 +58,10 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
         if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
         this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
         this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+        this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
 
         const landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
-        this.landingEditor = (landingEditor === 'landing' || landingEditor === 'control') ? landingEditor : 'landing';
+        this.landingEditor = (landingEditor === 'landing' || landingEditor === 'control' || landingEditor === 'landed_trip') ? landingEditor : 'landing';
       });
   }
 
@@ -125,10 +127,16 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
         : -1);
   }
 
-  async onOpenLanding({id}) {
+  async onOpenLanding({ id, row }) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
-      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${id}`);
+      // default url
+      let url = `/observations/${this.data.id}/${this.landingEditor}/${id}`;
+      // specific parameter for landed_trip : /landingId/tripId
+      if (this.landingEditor === 'landed_trip') {
+        url = isNotNil(row.currentData.tripId) ? url.concat(`/${row.currentData.tripId}`) : url.concat('/new');
+      }
+      await this.router.navigateByUrl(url);
     }
   }
 

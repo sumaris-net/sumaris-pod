@@ -93,7 +93,7 @@
       <span translate>LANDING.TABLE.DATE_TIME</span>
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      {{ row.currentData.dateTime | dateFormat: {time: true} }}
+      {{ getLandingDate(row.currentData) | dateFormat: {time: true} }}
     </mat-cell>
   </ng-container>
 

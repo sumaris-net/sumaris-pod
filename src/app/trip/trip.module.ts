@@ -68,6 +68,11 @@ import {SampleForm} from "./sample/sample.form";
 import {SampleModal} from "./sample/sample.modal";
 import {APP_CONFIG_OPTIONS} from "../core/services/config.service";
 import {SynchroService} from "./services/synchro-service";
+import {LandedTripPage} from "./landedtrip/landed-trip.page";
+import {OperationGroupForm} from "./operationgroup/operation-group.form";
+import {OperationGroupPage} from "./operationgroup/operation-group.page";
+import {OperationGroupTable} from "./operationgroup/operation-groups.table";
+import {OperationGroupValidatorService} from "./services/operation-group.validator";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -82,6 +87,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       TripsPage,
       TripPage,
       TripForm,
+      LandedTripPage,
       PhysicalGearModal,
       SaleForm,
       PhysicalGearForm,
@@ -89,6 +95,9 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       OperationForm,
       OperationPage,
       OperationTable,
+      OperationGroupForm,
+      OperationGroupPage,
+      OperationGroupTable,
       ObservedLocationForm,
       ObservedLocationPage,
       ObservedLocationsPage,
@@ -123,6 +132,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       TripsPage,
       TripPage,
       TripForm,
+      LandedTripPage,
       PhysicalGearModal,
       SaleForm,
       PhysicalGearForm,
@@ -130,6 +140,9 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       OperationForm,
       OperationPage,
       OperationTable,
+      OperationGroupForm,
+      OperationGroupPage,
+      OperationGroupTable,
       MeasurementsForm,
       MeasurementQVFormField,
       EntityQualityFormComponent,
@@ -169,6 +182,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       PhysicalGearValidatorService,
       OperationService,
       OperationValidatorService,
+      OperationGroupValidatorService,
       ObservedLocationService,
       ObservedLocationValidatorService,
       LandingService,

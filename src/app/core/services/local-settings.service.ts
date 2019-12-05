@@ -100,6 +100,8 @@ export class LocalSettingsService {
     if (this._startPromise) return this._startPromise;
     if (this._started) return;
 
+    console.info('[settings] Starting local settings...')
+
     // Restoring local settings
     this._startPromise = this.platform.ready()
       .then(() => {

@@ -38,6 +38,7 @@ import {
   SAVE_AS_OBJECT_OPTIONS
 } from "./model/base.model";
 import {EntityStorage} from "../../core/services/entities-storage.service";
+import {OperationGroup} from "./model/trip.model";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -151,7 +152,7 @@ const DeleteOperations: any = gql`
 `;
 
 const UpdateSubscription = gql`
-  subscription updateOperation($id: Int, $interval: Int){
+  subscription updateOperation($id: Int!, $interval: Int){
     updateOperation(id: $id, interval: $interval) {
       ...OperationFragment
     }
@@ -193,6 +194,7 @@ export class OperationService extends BaseDataService
    * @param sortBy
    * @param sortDirection
    * @param filter
+   * @param options
    */
   watchAll(offset: number,
            size: number,
@@ -284,7 +286,7 @@ export class OperationService extends BaseDataService
   public listenChanges(id: number): Observable<Operation> {
     if (isNil(id)) throw new Error("Missing argument 'id' ");
 
-    if (this._debug) console.debug(`[operation-service] [WS] Listening changes for trip {${id}}...`);
+    if (this._debug) console.debug(`[operation-service] [WS] Listening changes for operation {${id}}...`);
 
     return this.graphql.subscribe<{ updateOperation: Operation }, { id: number, interval: number }>({
       query: UpdateSubscription,
@@ -358,7 +360,7 @@ export class OperationService extends BaseDataService
 
   /**
    * Save an operation
-   * @param data
+   * @param entity
    */
   async save(entity: Operation): Promise<Operation> {
 
@@ -434,7 +436,7 @@ export class OperationService extends BaseDataService
               }, 'operations', savedEntity);
             }
             else if (this._lastVariables.load) {
-              this.graphql.updateToQueryCache(proxy,{
+              this.graphql.updateToQueryCache(proxy, {
                 query: LoadQuery,
                 variables: this._lastVariables.load
               }, 'operation', savedEntity);
@@ -454,7 +456,7 @@ export class OperationService extends BaseDataService
    */
   async deleteAll(entities: Operation[]): Promise<any> {
 
-    let ids = entities && entities
+    const ids = entities && entities
       .map(t => t.id)
       .filter(id => (id > 0));
 

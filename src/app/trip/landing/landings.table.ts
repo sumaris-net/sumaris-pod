@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {environment, StatusIds} from "../../core/core.module";
+import {environment, isNil, StatusIds} from "../../core/core.module";
 import {
   Landing,
   ObservedLocation,
@@ -15,6 +15,7 @@ import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {measurementValueToString} from "../services/model/measurement.model";
 import {AcquisitionLevelCodes} from "../../referential/referential.module";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
+import {Moment} from "moment";
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'dateTime', 'observers'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -29,6 +30,7 @@ export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 })
 export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
 
+  private _parent: ObservedLocation | Trip;
   protected cd: ChangeDetectorRef;
   protected vesselSnapshotService: VesselSnapshotService;
 
@@ -97,6 +99,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   }
 
   setParent(data: ObservedLocation | Trip) {
+    this._parent = data;
     if (!data) {
       this.setFilter({});
     } else if (data instanceof ObservedLocation) {
@@ -114,6 +117,20 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   vesselSnapshotToString = vesselSnapshotToString;
   personsToString = personsToString;
   measurementValueToString = measurementValueToString;
+
+  getLandingDate(landing?: Landing): Moment {
+    if (isNil(landing) || isNil(landing.dateTime)) return undefined;
+
+    // return nothing if the landing date equals parent date
+    if (this._parent && this._parent instanceof ObservedLocation) {
+      if (landing.dateTime.isSame(this._parent.startDateTime)) {
+        return undefined;
+      }
+    }
+
+    // default
+    return landing.dateTime;
+  }
 
   /* -- protected methods -- */
 

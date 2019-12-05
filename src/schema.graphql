@@ -336,6 +336,10 @@ type Mutation {
   deleteObservedLocations(ids: [Int]): Boolean!
   "Delete an operation"
   deleteOperation(id: Int!): Boolean!
+  "Delete an operation group"
+  deleteOperationGroup(id: Int!): Boolean!
+  "Delete many operation groups"
+  deleteOperationGroups(ids: [Int]): Boolean!
   "Delete many operations"
   deleteOperations(ids: [Int]): Boolean!
   "Delete many person (by ids)"
@@ -374,6 +378,10 @@ type Mutation {
   saveObservedLocations(observedLocations: [ObservedLocationVOInput]): [ObservedLocationVO]
   "Create or update an operation"
   saveOperation(operation: OperationVOInput): OperationVO
+  "Create or update an operation group"
+  saveOperationGroup(operationGroup: OperationGroupVOInput): OperationGroupVO
+  "Save operation groups"
+  saveOperationGroups(operationGroups: [OperationGroupVOInput]): [OperationGroupVO]
   "Save operations"
   saveOperations(operations: [OperationVOInput]): [OperationVO]
   "Create or update many persons"
@@ -423,6 +431,34 @@ type ObservedLocationVO {
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
   startDateTime: Date
+  updateDate: Date
+  validationDate: Date
+}
+
+type OperationGroupVO {
+  batches: [BatchVO]
+  catchBatch: BatchVO
+  comments: String
+  controlDate: Date
+  "Get operation group's gear measurements"
+  gearMeasurementValues: Map_Integer_StringScalar
+  "Get operation group's gear measurements"
+  gearMeasurements: [MeasurementVO]
+  hasCatch: Boolean
+  id: Int
+  "Get operation group's measurements"
+  measurementValues: Map_Integer_StringScalar
+  "Get operation group's measurements"
+  measurements: [MeasurementVO]
+  metier: MetierVO
+  physicalGear: PhysicalGearVO
+  physicalGearId: Int
+  products: [ProductVO]
+  qualityFlagId: Int
+  rankOrderOnPeriod: Int
+  recorderDepartment: DepartmentVO
+  trip: TripVO
+  tripId: Int
   updateDate: Date
   validationDate: Date
 }
@@ -552,6 +588,21 @@ type PmfmVO {
   updateDate: Date
 }
 
+type ProductVO {
+  comments: String
+  controlDate: Date
+  creationDate: Date
+  id: Int
+  program: ProgramVO
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+  recorderDepartment: DepartmentVO
+  recorderPerson: PersonVO
+  updateDate: Date
+  validationDate: Date
+}
+
 type ProgramVO {
   comments: String
   creationDate: Date
@@ -612,6 +663,10 @@ type Query {
   observedLocationsCount(filter: ObservedLocationFilterVOInput): Long!
   "Get an operation"
   operation(id: Int!): OperationVO
+  "Get an operation group"
+  operationGroup(id: Int!): OperationGroupVO
+  "Get trip's operation groups"
+  operationGroups(filter: OperationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "rankOrderOnPeriod", sortDirection: String = "asc"): [OperationGroupVO]
   "Get trip's operations"
   operations(filter: OperationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "asc"): [OperationVO]
   "Search in persons"
@@ -776,6 +831,12 @@ type Subscription {
     #Minimum interval to get changes, in seconds.
     interval: Int = 30
   ): OperationVO
+  "Subscribe to changes on an operation group"
+  updateOperationGroup(
+    id: Int!,
+    #Minimum interval to get changes, in seconds.
+    interval: Int = 30
+  ): OperationGroupVO
   "Subscribe to changes on a trip"
   updateTrip(
     id: Int!,
@@ -845,6 +906,7 @@ type TripVO {
   measurementValues: Map_Integer_StringScalar
   "Get trip's measurements"
   measurements: [MeasurementVO]
+  metiers: [MetierVO]
   observers: [PersonVO]
   "Get trip's operations"
   operations: [OperationVO]
@@ -1343,6 +1405,30 @@ input OperationFilterVOInput {
   tripId: Int
 }
 
+input OperationGroupVOInput {
+  batches: [BatchVOInput]
+  catchBatch: BatchVOInput
+  comments: String
+  controlDate: Date
+  gearMeasurementValues: Map_Integer_StringScalar
+  gearMeasurements: [MeasurementVOInput]
+  hasCatch: Boolean
+  id: Int
+  measurementValues: Map_Integer_StringScalar
+  measurements: [MeasurementVOInput]
+  metier: MetierVOInput
+  physicalGear: PhysicalGearVOInput
+  physicalGearId: Int
+  products: [ProductVOInput]
+  qualityFlagId: Int
+  rankOrderOnPeriod: Int
+  recorderDepartment: DepartmentVOInput
+  trip: TripVOInput
+  tripId: Int
+  updateDate: Date
+  validationDate: Date
+}
+
 input OperationVOInput {
   batches: [BatchVOInput]
   catchBatch: BatchVOInput
@@ -1465,6 +1551,21 @@ input PmfmVOInput {
   type: String
   unit: String
   updateDate: Date
+}
+
+input ProductVOInput {
+  comments: String
+  controlDate: Date
+  creationDate: Date
+  id: Int
+  program: ProgramVOInput
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+  recorderDepartment: DepartmentVOInput
+  recorderPerson: PersonVOInput
+  updateDate: Date
+  validationDate: Date
 }
 
 input ProgramFilterVOInput {
@@ -1659,6 +1760,7 @@ input TripVOInput {
   id: Int
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVOInput]
+  metiers: [MetierVOInput]
   observers: [PersonVOInput]
   operations: [OperationVOInput]
   program: ProgramVOInput

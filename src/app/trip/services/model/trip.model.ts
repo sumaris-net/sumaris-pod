@@ -9,7 +9,13 @@ import {
   ReferentialRef,
   NOT_MINIFY_OPTIONS
 } from "./base.model";
-import {IEntityWithMeasurement, Measurement, MeasurementUtils} from "./measurement.model";
+import {
+  IEntityWithMeasurement,
+  Measurement,
+  MeasurementFormValues,
+  MeasurementModelValues,
+  MeasurementUtils
+} from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
@@ -20,7 +26,7 @@ import {isEmptyArray} from "../../../shared/functions";
 
 /* -- Helper function -- */
 
-const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => { return n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1); };
+const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
 
 /* -- Data -- */
 
@@ -41,6 +47,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   gears: PhysicalGear[];
   measurements: Measurement[];
   observers: Person[];
+  metiers: MetierRef[];
 
   constructor() {
     super();
@@ -49,6 +56,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.returnLocation = null;
     this.measurements = [];
     this.observers = [];
+    this.metiers = [];
   }
 
   clone(): Trip {
@@ -71,6 +79,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.gears = this.gears && this.gears.map(p => p && p.asObject(options)) || undefined;
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
     target.observers = this.observers && this.observers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.metiers = this.metiers && this.metiers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS })) || undefined;
     return target;
   }
 
@@ -88,12 +97,12 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
+    this.metiers = source.metiers && source.metiers.map(MetierRef.fromObject) || [];
 
     // Remove fake dates (e.g. if returnDateTime = departureDateTime)
     if (this.returnDateTime && this.returnDateTime.isSameOrBefore(this.departureDateTime)) {
       this.returnDateTime = undefined;
     }
-
 
     return this;
   }
@@ -279,7 +288,7 @@ export class Operation extends DataEntity<Operation> {
       if (positions.length >= 1 && positions.length <= 2) {
         this.startPosition = positions[0];
         if (positions.length > 1) {
-          this.endPosition = positions[positions.length-1];
+          this.endPosition = positions[positions.length - 1];
         }
         this.positions = undefined;
       }
@@ -319,6 +328,106 @@ export class Operation extends DataEntity<Operation> {
       );
   }
 }
+
+export class OperationGroup extends DataEntity<OperationGroup> implements IEntityWithMeasurement<OperationGroup> {
+
+  static fromObject(source: any): OperationGroup {
+    const res = new OperationGroup();
+    res.fromObject(source);
+    return res;
+  }
+
+  comments: string;
+  rankOrderOnPeriod: number;
+  hasCatch: boolean;
+
+  metier: MetierRef;
+  physicalGear: PhysicalGear;
+  tripId: number;
+  trip: Trip;
+
+  measurementValues: MeasurementModelValues | MeasurementFormValues;
+
+  get rankOrder() {
+    return this.rankOrderOnPeriod;
+  }
+  set rankOrder(value: number) {
+    this.rankOrderOnPeriod = value;
+  }
+
+  samples: Sample[];
+  catchBatch: Batch;
+  // TODO products: any[];
+
+  constructor() {
+    super();
+    this.__typename = 'OperationVO';
+    this.metier = null;
+    this.physicalGear = null;
+    this.samples = [];
+    this.catchBatch = null;
+    this.measurementValues = {};
+  }
+
+  clone(): OperationGroup {
+    const target = new OperationGroup();
+    target.fromObject(this.asObject());
+    return target;
+  }
+
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
+
+    target.metier = this.metier && this.metier.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/ } as ReferentialAsObjectOptions) || undefined;
+
+    // Physical gear: keep id
+    target.physicalGearId = this.physicalGear && this.physicalGear.id;
+    delete target.physicalGear;
+
+    // Measurements
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
+
+    // Samples
+    target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;
+
+    // Batch
+    target.catchBatch = this.catchBatch && this.catchBatch.asObject(options) || undefined;
+
+    return target;
+  }
+
+  fromObject(source: any): OperationGroup {
+    super.fromObject(source);
+    this.hasCatch = source.hasCatch;
+    this.comments = source.comments;
+    this.tripId = source.tripId;
+    this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
+    this.rankOrderOnPeriod = source.rankOrderOnPeriod;
+    this.metier = source.metier && MetierRef.fromObject(source.metier, false) || undefined;
+
+    // Measurements
+    const physicalGearMeasurementValues = this.physicalGear.measurementValues;
+    this.measurementValues = {...source.measurementValues, ...source.gearMeasurementValues, ...physicalGearMeasurementValues};
+    // if (this.measurementValues === undefined) {
+    //   console.warn("Source as no measurementValues. Should never occur ! ", source);
+    // }
+
+    // Samples
+    this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
+
+    // Batches list to tree
+    this.catchBatch = Batch.fromObjectArrayAsTree(source.batches);
+
+    return this;
+  }
+
+  equals(other: OperationGroup): boolean {
+    return super.equals(other)
+        && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
+      ;
+  }
+}
+
 
 export class VesselPosition extends DataEntity<VesselPosition> {
 
