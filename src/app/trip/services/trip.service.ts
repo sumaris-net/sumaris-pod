@@ -32,6 +32,7 @@ import {concat, defer, Observable, of} from "rxjs";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {isEmptyArray} from "../../shared/functions";
 import {DataQualityService} from "./trip.services";
+import {OperationService} from "./operation.service";
 import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PersonService} from "../../admin/services/person.service";
@@ -313,7 +314,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
     protected vesselSnapshotService: VesselSnapshotService,
     protected personService: PersonService,
     protected programService: ProgramService,
-    protected entities: EntityStorage
+    protected entities: EntityStorage,
+    protected operationService: OperationService
   ) {
     super(injector);
 
@@ -592,10 +594,18 @@ export class TripService extends RootDataService<Trip, TripFilter>
       throw new Error("Could not synchronize if network if offline");
     }
 
+    const tripId = entity.id;
+
     entity = await this.save(entity);
 
     if (entity.id < 0) {
       throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
+    }
+
+
+    const operationsRes = await this.operationService.watchAll(0, 1000, null, null, {tripId}).toPromise();
+    if (operationsRes.total) {
+      (operationsRes.data || []).forEach(operation => this.operationService.synchronize(operation));
     }
 
     return this.control(entity);

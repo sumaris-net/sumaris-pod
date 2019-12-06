@@ -533,6 +533,23 @@ export class OperationService extends BaseDataService
     });
   }
 
+  async synchronize(entity: Operation): Promise<Operation> {
+    if (isNil(entity.id) || entity.id >= 0) {
+      throw new Error("Entity must be a local entity");
+    }
+    if (this.network.offline) {
+      throw new Error("Could not synchronize if network if offline");
+    }
+
+    entity = await this.save(entity);
+
+    if (entity.id < 0) {
+      throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_OPERATION_ERROR"};
+    }
+
+    return entity;
+  }
+
   /* -- protected methods -- */
 
   protected asObject(entity: Operation, options?: DataEntityAsObjectOptions): any {
