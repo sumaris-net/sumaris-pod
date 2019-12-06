@@ -65,6 +65,7 @@ export class PlatformService {
         }),
       this.cache.ready()
         .then(() => {
+          console.info("[platform] Configuring cache... [TimeToLeave: 1h, offlineInvalidate: false)");
           this.cache.setDefaultTTL(60 * 60); // 1 hour
           this.cache.setOfflineInvalidate(false); // Do not invalidate cache when offline
         }),

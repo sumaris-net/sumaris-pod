@@ -177,29 +177,36 @@ export class GraphqlService {
   }
 
   async mutate<T, V = R>(opts: {
-    mutation: any,
-    variables: V,
-    error?: ServiceError,
+    mutation: any;
+    variables: V;
+    error?: ServiceError;
     context?: {
       serializationKey?: string;
       tracked?: boolean;
-    },
-    optimisticResponse?: T,
-    offlineResponse?: T | ((context: any) => Promise<T>),
-    update?: MutationUpdaterFn<T>
+    };
+    optimisticResponse?: T;
+    offlineResponse?: T | ((context: any) => Promise<T>);
+    update?: MutationUpdaterFn<T>;
+    forceOffline?: boolean;
   }): Promise<T> {
 
     // If offline, compute an optimistic response for tracked queries
-    if (this.network.offline && opts.offlineResponse) {
+    if ((opts.forceOffline || this.network.offline) && opts.offlineResponse) {
       if (typeof opts.offlineResponse === 'function') {
         opts.context = opts.context || {};
         const optimisticResponseFn = (opts.offlineResponse as ((context: any) => Promise<T>));
         opts.optimisticResponse = await optimisticResponseFn(opts.context);
         if (this._debug) console.debug("[graphql] [offline] Using an optimistic response: ", opts.optimisticResponse);
-
       }
       else {
         opts.optimisticResponse = opts.offlineResponse as T;
+      }
+      if (opts.forceOffline) {
+        const res = {data: opts.optimisticResponse};
+        if (opts.update) {
+          opts.update(this.apollo.getClient(), res);
+        }
+        return res.data;
       }
     }
 

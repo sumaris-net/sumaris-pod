@@ -337,7 +337,8 @@
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période",
         "LOCATION": "Port (départ ou retour)",
-        "VESSEL": "Navire"
+        "VESSEL": "Navire",
+        "SYNCHRONIZATION_STATUS": "Etat de la données"
       }
     },
     "ERROR": {
@@ -998,8 +999,8 @@
       }
     },
     "SYNCHRONIZATION_STATUS": {
-      "DIRTY": "Non synchronisées",
-      "READY_TO_SYNC": "Terminée",
+      "DIRTY": "En cours",
+      "READY_TO_SYNC": "En attente d'envoi",
       "SYNC": "Synchronisées"
     },
     "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%"

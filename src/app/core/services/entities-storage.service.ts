@@ -1,33 +1,27 @@
-import {BehaviorSubject, merge, Observable, of, Subject, Subscription, timer} from "rxjs";
+import {BehaviorSubject, concat, defer, merge, Observable, of, Subject, Subscription, timer} from "rxjs";
 import {Injectable} from "@angular/core";
 import {Storage} from "@ionic/storage";
 import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
-import {map, switchMap, tap, throttleTime} from "rxjs/operators";
-import {Entity} from "./model";
-import {isEmptyArray, isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
+import {catchError, map, switchMap, tap, throttleTime} from "rxjs/operators";
+import {Entity, EntityUtils, joinPropertiesPath} from "./model";
+import {getPropertyByPath, isEmptyArray, isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {DataStore} from "apollo-client/data/store";
+import {ReferentialFilter} from "../../referential/services/referential.service";
+import {LoadResult} from "../../shared/services/data-service.class";
 
 
 export const ENTITIES_STORAGE_KEY = "entities";
 
 export class EntityStore<T extends Entity<T>> {
 
-  static fromEntities<T extends Entity<T>>(json: any[], opts?: {emitEvent?: boolean}): EntityStore<T> {
-    const target = new EntityStore<T>();
-
-    target._entities = (json || []).filter(item => isNotNil(item) && item.id < 0);
-    target.sequence = target._entities.reduce((res, item) => Math.min(res, item.id), 0);
-    target.indexById = target._entities.reduce((res, item, index) => {
-      res[item.id] = index;
-      return res;
-    }, {});
-
-    // Emit update event
-    if (!opts || opts.emitEvent !== false) {
-      target.emitEvent();
-    }
-
+  static fromEntities<T extends Entity<T>>(json: any[], opts?: {
+    name?: string;
+    emitEvent?: boolean;
+    onlyTemporaryId?: boolean;
+  }): EntityStore<T> {
+    const target = new EntityStore<T>(opts && opts.name || undefined);
+    target.setEntities(json, opts);
     return target;
   }
 
@@ -35,6 +29,7 @@ export class EntityStore<T extends Entity<T>> {
 
   dirty = false;
   sequence: number;
+  name: string;
   dataType?: () => T;
   indexById: { [key: number]: number };
   entitiesSubject = new BehaviorSubject<T[]>([]);
@@ -43,7 +38,8 @@ export class EntityStore<T extends Entity<T>> {
     return this._entities;
   }
 
-  constructor() {
+  constructor(name?: string) {
+    this.name = name;
     this._entities = [];
     this.sequence = 0;
     this.indexById = {};
@@ -72,12 +68,14 @@ export class EntityStore<T extends Entity<T>> {
       if (isNil(entity.id)) {
         entity.id = this.nextValue();
       }
-      else if (entity.id > this.sequence) {
-        console.warn("Trying to save a entity with an invalid id (outside the current sequence). Will replace the input id, by sequence next value");
+      else if (entity.id < 0 && entity.id > this.sequence) {
+        console.warn("Trying to save a local entity with an id > sequence. Will replace id by sequence next value");
         entity.id = this.nextValue();
       }
       else {
-        // OK: use a valid id (less than the sequence, and not exists in the index map)
+        // OK: use a valid id :
+        // - id >= 0 (should be a remote id)
+        // - OR < sequence, and not exists in the index map
       }
     }
 
@@ -98,6 +96,27 @@ export class EntityStore<T extends Entity<T>> {
     }
 
     return entity;
+  }
+
+  saveAll(entities: T[], opts? : {emitEvent?: boolean}): T[] {
+    if (isEmptyArray(entities)) return entities; // Nothing to save
+
+    let result: T[];
+
+    // First save
+    if (isEmptyArray(this._entities)) {
+      this.setEntities(entities);
+    }
+    else {
+      result = entities.map((entity) => this.save(entity, {emitEvent: false}));
+    }
+
+    // Emit update event
+    if (!opts || opts.emitEvent !== false) {
+      this.emitEvent();
+    }
+
+    return result || this.entities;
   }
 
   delete(id: number, opts?: {emitEvent?: boolean}): T | undefined {
@@ -141,6 +160,30 @@ export class EntityStore<T extends Entity<T>> {
 
   /* -- protected methods -- */
 
+  protected setEntities(entities: T[], opts?: {emitEvent?: boolean, filterTemporary?: boolean;}) {
+    this._entities = entities && (
+      opts && opts.filterTemporary
+        // Filter NOT nil and only local id
+        ? entities.filter(item => isNotNil(item) && item.id < 0)
+        // Filter NOT nil
+        : entities.filter(isNotNil)) || [];
+
+    // Update the sequence with min(id) of all temporary ids
+    this.sequence = this._entities.reduce((res, item) => item.id < 0 ? Math.min(res, item.id) : res, 0);
+
+    this.indexById = this._entities.reduce((res, item, index) => {
+      res[item.id] = index;
+      return res;
+    }, {});
+
+    this.dirty = false;
+
+    // Emit update event
+    if (!opts || opts.emitEvent !== false) {
+      this.emitEvent();
+    }
+  }
+
   /**
    * Update the entitiesSubject.
    *
@@ -166,6 +209,7 @@ export class EntityStorage {
 
   private _$save = new Subject();
   private _dirty = false;
+  private _saving = false;
 
   public onStart = new Subject<void>();
 
@@ -186,21 +230,46 @@ export class EntityStorage {
     this._debug = !environment.production;
   }
 
-  watchAll<T extends Entity<T>>(entityName: string): Observable<T[]> {
-    return of(this.ready())
+  watchAll<T extends Entity<T>>(entityName: string,
+                                opts?: {
+                                  offset?: number;
+                                  size?: number;
+                                  sortBy?: string;
+                                  sortDirection?: string;
+                                  filter?: (T) => boolean;
+                                }): Observable<LoadResult<T>> {
+    // Make sure store is ready
+    if (!this._started) {
+      return defer(() => this.ready())
+        .pipe(switchMap(() => this.watchAll<T>(entityName, opts))); // Loop
+    }
+
+    const entityStore = this.getEntityStore<T>(entityName, {create: true});
+    return entityStore.entitiesSubject
+      .asObservable()
       .pipe(
-        switchMap(() => {
-          const entityStore = this.getEntityStore<T>(entityName, {create: true});
-          return entityStore.entitiesSubject.asObservable();
-        })
+        map(data => this.reduceAndSort(data, opts))
       );
   }
 
-  async loadAll<T extends Entity<T>>(entityName: string): Promise<T[]> {
-    await this.ready();
+  async loadAll<T extends Entity<T>>(entityName: string,
+                                     opts?: {
+                                       offset?: number;
+                                       size?: number;
+                                       sortBy?: string;
+                                       sortDirection?: string;
+                                       filter?: (T) => boolean;
+                                    }): Promise<LoadResult<T>> {
+
+    // Make sure store is ready
+    if (!this._started) await this.ready();
+
+    if (!environment.production) console.debug(`[entity-store] Loading ${name || ''}...`);
+
     const entityStore = this.getEntityStore<T>(entityName, {create: false});
-    if (!entityStore) return [];
-    return entityStore.entities;
+    if (!entityStore) return {data: [], total: 0}; // No store for this entity name
+
+    return this.reduceAndSort(entityStore.entities, opts);
   }
 
   async load<T extends Entity<T>>(id: number, entityName: string): Promise<T> {
@@ -216,22 +285,51 @@ export class EntityStorage {
     return this.getEntityStore(this.detectEntityName(entityOrName)).nextValue();
   }
 
+  async nextValues(entityOrName: string | any, entityCount: number): Promise<number> {
+    await this.ready();
+    this._dirty = true;
+    const store = this.getEntityStore(this.detectEntityName(entityOrName));
+    const firstValue = store.nextValue();
+    for (let i = 0; i < entityCount - 1; i++) {
+      store.nextValue();
+    }
+    if (!environment.production) console.debug(`[local-entities] Reserving range [${firstValue},${store.currentValue()}] for ${name || ''}'s sequence`);
+    return firstValue;
+  }
+
   async currentValue(entityOrName: string | any): Promise<number> {
     await this.ready();
     return this.getEntityStore(this.detectEntityName(entityOrName)).currentValue();
   }
 
-  async save<T extends Entity<T>>(entity: T, entityName?: string): Promise<T> {
+  async save<T extends Entity<T>>(entity: T, opts?: {
+    entityName?: string;
+    emitEvent?: boolean;
+  }): Promise<T> {
     if (!entity) return; // skip
 
     await this.ready();
 
     this._dirty = true;
-    entityName = entityName || this.detectEntityName(entity);
+    const entityName = opts && opts.entityName || this.detectEntityName(entity);
     this.getEntityStore<T>(entityName)
-      .save(entity);
+      .save(entity, opts);
 
     return entity;
+  }
+
+  async saveAll<T extends Entity<T>>(entities: T[], opts?: {
+    entityName?: string;
+    emitEvent?: boolean;
+  }): Promise<T[]> {
+    if (isEmptyArray(entities)) return; // skip
+
+    await this.ready();
+
+    this._dirty = true;
+    const entityName = opts && opts.entityName || this.detectEntityName(entities[0]);
+    return this.getEntityStore<T>(entityName)
+      .saveAll(entities, opts);
   }
 
   async delete<T extends Entity<T>>(entity: T, entityName?: string): Promise<T> {
@@ -269,14 +367,71 @@ export class EntityStorage {
     return deletedEntities;
   }
 
+  async persist(): Promise<any> {
+    if (this._dirty) {
+      return this.storeLocally();
+    }
+  }
+
   /* -- protected methods -- */
+
+  /**
+   * WIll apply a filter, then a sort, then a page slice
+   * @param data
+   * @param opts
+   */
+  protected reduceAndSort<T extends Entity<T>>(data: T[],
+                                               opts?: {
+                              offset?: number;
+                              size?: number;
+                              sortBy?: string;
+                              sortDirection?: string;
+                              filter?: (T) => boolean;
+                            }): LoadResult<T> {
+
+    if (!opts || !data.length) return {data, total: data.length};
+
+    // Apply the filter, if any
+    if (opts.filter) {
+      data = data.filter(opts.filter);
+    }
+
+    // Compute the total length
+    const total = data.length;
+
+    // If page size<=0 (e.g. only need total)
+    if (opts.size && opts.size < 0 || opts.size === 0) return {data: [], total};
+
+    // Sort by
+    if (data.length && opts.sortBy) {
+      EntityUtils.sort(data, opts.sortBy, opts.sortDirection);
+    }
+
+    // Slice in a page (using offset and size)
+    if (opts.offset) {
+
+      // Offset after the end: no result
+      if (opts.offset >= data.length) {
+        data = [];
+      }
+      else {
+        data = (opts.size && (opts.offset + opts.size <= data.length)) ?
+          // Slice using limit to size
+          data.slice(opts.offset, (opts.offset + opts.size)) :
+          // Slice without limit
+          data.slice(opts.offset);
+      }
+    }
+
+    return {data, total};
+  }
 
   protected getEntityStore<T extends Entity<T>>(entityName: string, opts?: {
     create?: boolean;
   }): EntityStore<T> {
     let res = this._stores[entityName];
     if (!res && (!opts || opts.create !== false)) {
-      res = new EntityStore<T>();
+      res = new EntityStore<T>(entityName);
       this._stores[entityName] = res;
     }
     return res;
@@ -353,30 +508,40 @@ export class EntityStorage {
         return this.storage.get(ENTITIES_STORAGE_KEY + '#' + entityName)
           .then(entities => {
             if (entities instanceof Array) {
-              this._stores[entityName] = EntityStore.fromEntities<any>(entities);
+              this._stores[entityName] = EntityStore.fromEntities<any>(entities, {
+                name: entityName
+              });
             }
           });
       })
     );
   }
 
-  protected async storeLocally() {
-    if (!this.dirty) return; // skip
+  protected async storeLocally(): Promise<any> {
+    if (!this.dirty || this._saving) return; // skip
 
-    const entityNames = Object.keys(this._stores);
+    this._saving = true;
     this._dirty = false;
+    const entityNames = Object.keys(this._stores) || [];
 
-    await Promise.all(
-      (entityNames.slice() /*copy, to be able to remove items in the original array*/ || [])
-          .map(entityName => {
-            if (this._debug) console.debug("[local-entities] Saving entities " + entityName + "...");
+    const now = Date.now();
+    if (this._debug) console.debug("[local-entities] Saving to local storage...");
+
+    let currentEntityName;
+    concat(
+      ...(entityNames.slice()) // copy to enable changes in the original array (e.g. remove an item)
+        .map(entityName => {
+          return defer(() => {
+            currentEntityName = entityName;
             const entityStore = this.getEntityStore(entityName, {create: false});
             // Save only dirty entity storage
             if (!entityStore || !entityStore.dirty) return;
             entityStore.dirty = false;
+            const entities = entityStore.entities.slice(); // Copy it!
+            if (this._debug) console.debug(`[local-entities] Saving ${entities.length} ${entityName}(s)...`);
 
             // If no entity found
-            if (isEmptyArray(entityStore.entities)) {
+            if (isEmptyArray(entities)) {
 
               // Remove from the entity names array
               entityNames.splice(entityNames.findIndex(e => e === entityName), 1);
@@ -386,10 +551,32 @@ export class EntityStorage {
             }
 
             // Save in the local storage
-            return this.storage.set(ENTITIES_STORAGE_KEY + '#' + entityName, entityStore.entities);
-          }));
-
-    return this.storage.set(ENTITIES_STORAGE_KEY, entityNames);
+            return this.storage.set(ENTITIES_STORAGE_KEY + '#' + entityName, entities);
+          });
+        }),
+      defer(() =>  {
+        currentEntityName = undefined;
+        return isEmptyArray(entityNames) ?
+          this.storage.remove(ENTITIES_STORAGE_KEY) :
+          this.storage.set(ENTITIES_STORAGE_KEY, entityNames);
+      }),
+      defer(() =>  {
+        if (this._debug) console.debug(`[local-entities] Entities saved in local storage, in ${Date.now() - now}ms...`);
+        this._saving = false;
+      })
+    )
+      .pipe(
+        catchError(err => {
+          this._saving = false;
+          if (currentEntityName) {
+            console.error(`[local-entities] Error while saving entities ${currentEntityName}`, err);
+          }
+          else {
+            console.error("[local-entities] Error while saving entities: " + (err && err.message || err), err);
+          }
+          return err;
+        })
+      ).subscribe();
   }
 
 }

@@ -5,7 +5,7 @@ import {
   Batch,
   DataEntity,
   Department,
-  EntityUtils,
+  EntityUtils, fromDateISOString,
   isNil, isNotNil,
   Measurement,
   Operation,
@@ -13,10 +13,10 @@ import {
   Sample, Trip,
   VesselPosition
 } from "./trip.model";
-import {map, throttleTime} from "rxjs/operators";
+import {filter, map, throttleTime} from "rxjs/operators";
 import {
   EditorDataService,
-  EditorDataServiceLoadOptions,
+  EditorDataServiceLoadOptions, isNotEmptyArray,
   LoadResult,
   TableDataService,
   toBoolean
@@ -38,6 +38,9 @@ import {
   SAVE_AS_OBJECT_OPTIONS
 } from "./model/base.model";
 import {EntityStorage} from "../../core/services/entities-storage.service";
+import {TripFilter} from "./trip.service";
+import {BatchUtils} from "./model/batch.model";
+import {SampleUtils} from "./model/sample.model";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -116,7 +119,19 @@ export const OperationFragments = {
 };
 
 
-export declare class OperationFilter {
+export class OperationFilter {
+
+  static searchFilter<T extends Operation>(f: OperationFilter): (T) => boolean {
+    return (t: T) => {
+      // Program
+      if (isNotNil(f.tripId) && f.tripId !== t.tripId && t.trip && f.tripId !== t.trip.id) {
+        return false;
+      }
+
+      return true;
+    };
+  }
+
   tripId?: number;
 }
 
@@ -174,6 +189,8 @@ export class OperationService extends BaseDataService
   implements TableDataService<Operation, OperationFilter>,
              EditorDataService<Operation, OperationFilter>{
 
+  loading = false;
+
   constructor(
     protected graphql: GraphqlService,
     protected network: NetworkService,
@@ -192,19 +209,19 @@ export class OperationService extends BaseDataService
    * @param size
    * @param sortBy
    * @param sortDirection
-   * @param filter
+   * @param dataFilter
    */
   watchAll(offset: number,
            size: number,
            sortBy?: string,
            sortDirection?: string,
-           filter?: OperationFilter,
+           dataFilter?: OperationFilter,
            options?: {
             fetchPolicy?: WatchQueryFetchPolicy
            }
   ): Observable<LoadResult<Operation>> {
 
-    if (!filter || isNil(filter.tripId)) {
+    if (!dataFilter || isNil(dataFilter.tripId)) {
       console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
       return EMPTY;
     }
@@ -214,8 +231,23 @@ export class OperationService extends BaseDataService
       size: size || 1000,
       sortBy: (sortBy != 'id' && sortBy) || 'endDateTime',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: dataFilter
     };
+
+    const offlineData = this.network.offline || (dataFilter && dataFilter.tripId < 0) || false;
+    if (offlineData) {
+      return this.entities.watchAll<Operation>('OperationVO', {
+        ...variables,
+        filter: OperationFilter.searchFilter<Operation>(dataFilter)
+      })
+        .pipe(
+          map(res => {
+            const data = (res && res.data || []).map(Operation.fromObject);
+            const total = res && isNotNil(res.total) ? res.total : undefined;
+            return {data, total};
+          }));
+    }
+
     this._lastVariables.loadAll = variables;
 
     if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
@@ -227,12 +259,13 @@ export class OperationService extends BaseDataService
     })
       .pipe(
         throttleTime(200), // avoid multiple call
+        filter(() => !this.loading),
         map((res) => {
           const data = (res && res.operations || []).map(Operation.fromObject);
           if (this._debug) console.debug(`[operation-service] Loaded ${data.length} operations`);
 
           // Compute rankOrderOnPeriod, by tripId
-          if (filter && filter.tripId) {
+          if (dataFilter && dataFilter.tripId) {
             let rankOrderOnPeriod = 1;
             // apply a sorted copy (do NOT change original order), then compute rankOrder
             data.slice().sort(sortByEndDateOrStartDateFn)
@@ -261,6 +294,14 @@ export class OperationService extends BaseDataService
 
     const now = Date.now();
     if (this._debug) console.debug(`[operation-service] Loading operation #${id}...`);
+    this.loading = true;
+
+    // If local entity
+    if (id < 0) {
+      const json = await this.entities.load<Operation>(id, 'OperationVO');
+      this.loading = false;
+      return json && Operation.fromObject(json);
+    }
 
     const res = await this.graphql.query<{ operation: Operation }>({
       query: LoadQuery,
@@ -272,8 +313,9 @@ export class OperationService extends BaseDataService
     });
 
     const data = res && res.operation && Operation.fromObject(res.operation);
-
     if (data && this._debug) console.debug(`[operation-service] Operation #${id} loaded in ${Date.now() - now}ms`, data);
+    this.loading = false;
+
     return data;
   }
 
@@ -371,22 +413,33 @@ export class OperationService extends BaseDataService
     // If new, create a temporary if (for offline mode)
     const isNew = isNil(entity.id);
 
+    // If parent is a local entity: force a local save
+    if (entity.tripId < 0) {
+      // Make sure to fill id, with local ids
+      await this.fillOfflineDefaultProperties(entity);
+
+      const json = entity.asObject({minify: true, keepTypename: true, keepEntityName: true, batchAsTree: false});
+      if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', json);
+
+      // Save response locally
+      await this.entities.save(json);
+
+      return entity;
+    }
+
     const offlineResponse = async (context) => {
-      if (isNew) {
-        entity.id = await this.entities.nextValue('Operation');
-        if (this._debug) console.debug(`[operation-service] New  Using local entity id {${entity.id}`);
-      }
+      // Make sure to fill id, with local ids
+      await this.fillOfflineDefaultProperties(entity);
 
       // For the query to be tracked (see tracked query link) with a unique serialization key
-      context.tracked = true;
+      context.tracked = (entity.tripId >= 0);
       if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
 
       return { saveOperations: [this.asObject(entity, OPTIMISTIC_AS_OBJECT_OPTIONS)] };
     };
 
     // Transform into json
-    const json11 = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
-    const json = this.asObject(entity, {minify: true, keepEntityName: true});
+    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug("[operation-service] Using minify object, to send:", json);
 
     return new Promise<Operation>((resolve, reject) => {
@@ -405,7 +458,7 @@ export class OperationService extends BaseDataService
             if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', savedEntity);
 
             // Save response locally
-            this.entities.save(savedEntity);
+            this.entities.save(savedEntity.asObject());
           }
 
           // Update the entity and update GraphQL cache
@@ -509,7 +562,7 @@ export class OperationService extends BaseDataService
     entity.endPosition.dateTime = entity.fishingEndDateTime || entity.endDateTime || entity.startPosition.dateTime;
 
     // Fill trip ID
-    if (!entity.tripId && options) {
+    if (isNil(entity.tripId) && options) {
       entity.tripId = options.tripId;
     }
 
@@ -531,7 +584,41 @@ export class OperationService extends BaseDataService
     }
   }
 
-  copyIdAndUpdateDate(source: Operation | undefined | any, target: Operation) {
+  protected async fillOfflineDefaultProperties(entity: Operation) {
+    const isNew = isNil(entity.id);
+
+    // If new, generate a local id
+    if (isNew) {
+      entity.id =  await this.entities.nextValue(entity);
+    }
+
+    // Fill all sample id
+    const samples = entity.samples && EntityUtils.listOfTreeToArray(entity.samples) || [];
+    if (samples) {
+      const samplesNoId = samples.filter(s => isNil(s.id) || s.id === 0/*FIXME*/);
+      if (samplesNoId.length) {
+        // Find min(sample.id)
+        let minSampleId = samples.map(s => s.id)
+          .filter(id => isNotNil(id) && id < 0)
+          .reduce((res, id) => Math.min(res, id), 0);
+        samplesNoId.forEach(s => s.id = --minSampleId);
+      }
+    }
+
+    // Fill all batches id
+    const batches = entity.catchBatch && EntityUtils.treeToArray(entity.catchBatch) || [];
+    if (batches) {
+      const batchesNoId = batches.filter(s => isNil(s.id) || s.id === 0/*FIXME*/);
+      if (batchesNoId.length) {
+        // Find min(batch.id)
+        let batchId = batches.map(s => s.id).filter(id => isNotNil(id) && id < 0).reduce((res, id) => Math.min(res, id), 0);
+        batchesNoId.forEach(b => b.id = --batchId);
+      }
+    }
+  }
+
+
+  protected copyIdAndUpdateDate(source: Operation | undefined | any, target: Operation) {
     if (!source) return;
 
     // Update (id and updateDate)
@@ -569,7 +656,7 @@ export class OperationService extends BaseDataService
    * @param sources
    * @param targets
    */
-  copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
+  protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
     // Update samples
     if (sources && targets) {
       targets.forEach(target => {
@@ -589,7 +676,7 @@ export class OperationService extends BaseDataService
    * @param sources
    * @param targets
    */
-  copyIdAndUpdateDateOnBatch(sources: (Batch | any)[], targets: Batch[]) {
+  protected copyIdAndUpdateDateOnBatch(sources: (Batch | any)[], targets: Batch[]) {
     if (sources && targets) {
       targets.forEach(target => {
         const index = sources.findIndex(json => target.equals(json));

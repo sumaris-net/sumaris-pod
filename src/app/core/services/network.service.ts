@@ -249,7 +249,7 @@ export class NetworkService {
       });
   }
 
-  async clearCache() {
+  async clearCache(): Promise<any> {
     console.info("[network] Clearing cache...");
 
     await this.cache.clearAll();

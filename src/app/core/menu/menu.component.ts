@@ -81,7 +81,7 @@ export class MenuComponent implements OnInit {
     protected cd: ChangeDetectorRef
   ) {
 
-    this._debug = !environment.production;
+    //this._debug = !environment.production;
   }
 
   async ngOnInit() {

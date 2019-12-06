@@ -26,25 +26,14 @@
 </mat-menu>
 
 <!-- Synchronisation status menu -->
-<mat-menu #syncStatusMenu="matMenu" xPosition="after" color="tertiary">
-
-  <!-- Show dirty -->
-  <button mat-menu-item *ngIf="synchronizationStatus !== 'DIRTY'"
-          (click)="setSynchronizationStatus('DIRTY')">
-    <ion-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</ion-label>
-  </button>
-
-  <!-- Show ready to sync
-  <button mat-menu-item
-          (click)="setSynchronisationStatus('READY_TO_SYNC')">
-    <ion-label translate>NETWORK.SYNCHRONIZATION_STATUS.READY_TO_SYNC</ion-label>
-  </button> -->
-
-  <!-- Show synchronized -->
-  <button mat-menu-item *ngIf="synchronizationStatus !== 'SYNC'"
-          (click)="setSynchronizationStatus('SYNC')">
-    <ion-label translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-label>
-  </button>
+<mat-menu #syncStatusMenu="matMenu" xPosition="after" color="transparent" class="ion-text-center">
+  <ion-label class="ion-padding" translate>TRIP.TABLE.FILTER.SYNCHRONIZATION_STATUS</ion-label>
+  <ion-button *ngFor="let status of synchronizationStatusList"
+              [disabled]="synchronizationStatus === status"
+              size="small" expand="block" color="tertiary"
+              (click)="setSynchronizationStatus(status)">
+    <ion-label>{{'NETWORK.SYNCHRONIZATION_STATUS.' + status.toUpperCase() | translate}}</ion-label>
+  </ion-button>
 </mat-menu>
 
 <ion-content class="ion-no-padding">
@@ -71,10 +60,10 @@
       <button mat-icon-button hidden-xs hidden-sm
               *ngIf="canDelete" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
         <mat-icon>delete</mat-icon>
-      </button>?enuTriggerFor]
+      </button>
     </ng-template>
 
-    <ion-button size="small" color="secondary" *ngIf="synchronizationStatus" [matMenuTriggerFor]="syncStatusMenu">
+    <ion-button size="small" color="secondary" *ngIf="hasOfflineData" [matMenuTriggerFor]="syncStatusMenu">
       <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
       <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
     </ion-button>
@@ -92,6 +81,14 @@
       <mat-icon>more_vert</mat-icon>
     </button>
   </mat-toolbar>
+
+  <!-- progress bar -->
+  <ion-list *ngIf="importing" lines="none">
+    <ion-list-header>
+      <ion-label>{{'NETWORK.IMPORTATION_PCT_DOTS'|translate: {pct: $importProgression | async} }}</ion-label>
+    </ion-list-header>
+    <ion-progress-bar [value]="($importProgression | async) / 100"></ion-progress-bar>
+  </ion-list>
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel class="ion-no-padding">
@@ -140,7 +137,8 @@
             <!-- Start date -->
             <mat-date-time [placeholder]="'TRIP.TABLE.FILTER.START_DATE'|translate"
                            [formControl]="filterForm.controls.startDate"
-                           [displayTime]="false">
+                           [displayTime]="false"
+                           clearable="true">
               <ion-icon matPrefix name="calendar"></ion-icon>
             </mat-date-time>
           </ion-col>
@@ -149,7 +147,8 @@
             <!-- End date -->
             <mat-date-time [placeholder]="'TRIP.TABLE.FILTER.END_DATE'|translate"
                            [formControl]="filterForm.controls.endDate"
-                           [displayTime]="false">
+                           [displayTime]="false"
+                           clearable="true">
             </mat-date-time>
           </ion-col>
         </ion-row>
@@ -177,13 +176,6 @@
     </mat-action-row>
   </mat-expansion-panel>
 
-  <!-- progress bar -->
-  <ion-list *ngIf="importing" lines="none">
-    <ion-list-header>
-      <ion-label>{{'NETWORK.IMPORTATION_PCT_DOTS'|translate: {pct: $importProgression | async } }}</ion-label>
-    </ion-list-header>
-    <ion-progress-bar [value]="($importProgression | async) / 100"></ion-progress-bar>
-  </ion-list>
 
   <!-- error -->
   <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
@@ -210,7 +202,7 @@
     <!-- Id Column -->
     <ng-container matColumnDef="id">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.hidden]="!isAdmin">
-        <span *ngIf="!($loading|async); else loadingSpinner">#</span>
+        <span *ngIf="!loading; else loadingSpinner">#</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
     </ng-container>

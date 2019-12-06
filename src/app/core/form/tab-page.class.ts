@@ -391,13 +391,21 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   protected logFormErrors() {
     if (this.debug) console.debug("[root-editor-form] Page not valid. Checking where (forms, tables)...");
     (this._forms || []).forEach(appForm => {
-      if (!appForm.empty && appForm.invalid) {
-        AppFormUtils.logFormErrors(appForm.form, `"[root-editor-form] [${appForm.constructor.name.toLowerCase()}] `);
+      if (!appForm.empty && !appForm.valid) {
+        if (appForm.pending) {
+          console.warn( `[root-editor-form] [${appForm.constructor.name.toLowerCase()}] - pending form state`);
+          AppFormUtils.waitWhilePending(appForm).then(() =>
+            appForm.invalid &&
+            AppFormUtils.logFormErrors(appForm.form, `[root-editor-form] [${appForm.constructor.name.toLowerCase()}] `));
+        }
+        else {
+          AppFormUtils.logFormErrors(appForm.form, `[root-editor-form] [${appForm.constructor.name.toLowerCase()}] `);
+        }
       }
     });
     (this._tables || []).forEach(appTable => {
       if (appTable.invalid && appTable.editedRow && appTable.editedRow.validator) {
-        AppFormUtils.logFormErrors(appTable.editedRow.validator, `"[root-editor-form] [${appTable.constructor.name.toLowerCase()}] `);
+        AppFormUtils.logFormErrors(appTable.editedRow.validator, `[root-editor-form] [${appTable.constructor.name.toLowerCase()}] `);
       }
     });
   }

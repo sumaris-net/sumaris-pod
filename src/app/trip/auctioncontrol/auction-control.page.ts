@@ -98,7 +98,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
           this.samplesTable.defaultTaxonGroup = taxonGroup;
           this.samplesTable.showTaxonGroupColumn = EntityUtils.isEmpty(taxonGroup);
           this.samplesTable.program = this.data.program && this.data.program.label;
-          this.samplesTable.markForCheck();
+          //this.samplesTable.markForCheck();
         })
     );
   }
@@ -139,8 +139,11 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this.markForCheck();
   }
 
-  updateView(data: Landing | null) {
-    super.updateView(data);
+  updateView(data: Landing | null, opts?: {
+    openSecondTab?: boolean;
+    updateTabAndRoute?: boolean;
+  }) {
+    super.updateView(data, opts);
 
     // Configure landing form
     this.landingForm.showLocation = false;

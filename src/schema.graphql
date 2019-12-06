@@ -627,7 +627,7 @@ type Query {
   "Search in referentials"
   referentials(entityName: String, filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [ReferentialVO]
   "Get referentials count"
-  referentialsCount(entityName: String): Long
+  referentialsCount(entityName: String, filter: ReferentialFilterVOInput): Long
   "Search in taxon names"
   taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
   "Get a trip, by id"

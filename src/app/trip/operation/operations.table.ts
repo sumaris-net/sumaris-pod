@@ -98,6 +98,12 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
       this.settings.onChange.subscribe((settings) => {
         if (this.loading) return; // skip
         this.latLongPattern = settings.latLongFormat;
+
+        this.displayAttributes = {
+          gear: this.settings.getFieldDisplayAttributes('gear'),
+          taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
+        };
+
         this.markForCheck();
       }));
 

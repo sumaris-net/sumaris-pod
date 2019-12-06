@@ -12,7 +12,7 @@ import {
 import {IEntityWithMeasurement, Measurement, MeasurementUtils} from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Sample} from "./sample.model";
-import {Batch} from "./batch.model";
+import {Batch, BatchUtils} from "./batch.model";
 import {MetierRef} from "../../../referential/services/model/taxon.model";
 import {ReferentialAsObjectOptions} from "../../../core/services/model";
 import {isEmptyArray} from "../../../shared/functions";
@@ -145,6 +145,7 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
   asObject(options?: DataEntityAsObjectOptions): any {
     const target = super.asObject(options);
     target.gear = this.gear && this.gear.asObject(options) || undefined;
+    target.rankOrder = this.rankOrder;
 
     // Measurements
     target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap( this.measurementValues, options);
@@ -218,8 +219,8 @@ export class Operation extends DataEntity<Operation> {
     return target;
   }
 
-  asObject(options?: DataEntityAsObjectOptions): any {
-    const target = super.asObject(options);
+  asObject(opts?: DataEntityAsObjectOptions & {batchAsTree?: boolean}): any {
+    const target = super.asObject(opts);
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
@@ -231,12 +232,12 @@ export class Operation extends DataEntity<Operation> {
       target.endPosition.dateTime = target.endPosition.dateTime || target.fishingEndDateTime || target.endDateTime;
     }
 
-    target.metier = this.metier && this.metier.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/ } as ReferentialAsObjectOptions) || undefined;
+    target.metier = this.metier && this.metier.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/ } as ReferentialAsObjectOptions) || undefined;
 
     // Create an array of position, instead of start/end
     target.positions = [this.startPosition, this.endPosition]
       .filter(p => p && p.dateTime)
-      .map(p => p && p.asObject(options)) || undefined;
+      .map(p => p && p.asObject(opts)) || undefined;
     delete target.startPosition;
     delete target.endPosition;
 
@@ -245,13 +246,23 @@ export class Operation extends DataEntity<Operation> {
     delete target.physicalGear;
 
     // Measurements
-    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
+    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
 
     // Samples
-    target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;
+    target.samples = this.samples && this.samples.map(s => s.asObject(opts)) || undefined;
 
     // Batch
-    target.catchBatch = this.catchBatch && this.catchBatch.asObject(options) || undefined;
+    if (target.catchBatch) {
+      // Serialize batches in tree (will keep only children arrays, and removed parentId and parent)
+      if (!opts || opts.batchAsTree !== false) {
+        target.catchBatch = this.catchBatch && this.catchBatch.asObject(opts) || undefined;
+      }
+      // Serialize as batches array (this will fill parentId, and remove children and parent properties)
+      else {
+        target.batches = Batch.treeAsObjectArray(target.catchBatch, opts);
+        delete target.catchBatch;
+      }
+    }
 
     return target;
   }
@@ -294,8 +305,12 @@ export class Operation extends DataEntity<Operation> {
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
 
-    // Batches list to tree
-    this.catchBatch = Batch.fromObjectArrayAsTree(source.batches);
+    // Batches
+    this.catchBatch = source.catchBatch && !source.batches ?
+      // Reuse existing catch batch (useful for local entity)
+      Batch.fromObject(source.catchBatch, {withChildren: true}) :
+      // Convert list to tree (useful when fetching from a pod)
+      Batch.fromObjectArrayAsTree(source.batches);
 
     // Remove fake dates (e.g. if endDateTime = startDateTime)
     if (this.endDateTime && this.endDateTime.isSameOrBefore(this.startDateTime)) {

@@ -661,6 +661,12 @@ mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
     }
   }
 }
+.mat-menu-panel {
+  //  Reduce the font size, on label just inside a mat-menu (e.g. see trips.page.html)
+  .mat-menu-content > ion-label {
+    font-size: 12px;
+  }
+}
 
 // --------------------------------------------------
 // Alert

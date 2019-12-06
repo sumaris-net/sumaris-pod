@@ -179,7 +179,6 @@ export class MetierRef extends ReferentialRef<MetierRef> {
       target.gear = this.gear && this.gear.asObject(options) || undefined;
       target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(options) || undefined;
     }
-    console.log("TODO check asObject on Metier:", target)
     return target;
   }
 }

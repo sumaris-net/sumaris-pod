@@ -32,6 +32,7 @@ import {TripModule} from "./trip/trip.module";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {APP_CONFIG_OPTIONS, ConfigService} from "./core/services/config.service";
 import {TripConfigOptions} from "./trip/services/config/trip.config";
+import {IonicStorageModule} from "@ionic/storage";
 
 
 @NgModule({
@@ -49,7 +50,11 @@ import {TripConfigOptions} from "./trip/services/config/trip.config";
     // functional modules
     CoreModule,
     ReferentialModule,
-    TripModule
+    TripModule,
+    IonicStorageModule.forRoot({
+      name: 'sumaris',
+      driverOrder: ['indexeddb', 'sqlite', 'websql']
+    })
   ],
   bootstrap: [AppComponent],
   providers: [

@@ -26,8 +26,8 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {Subject} from "rxjs";
-import {SynchronizationStatus} from "../services/model/base.model";
+import {BehaviorSubject, Subject} from "rxjs";
+import {SynchronizationStatus, SynchronizationStatusEnum} from "../services/model/base.model";
 import {SynchroService} from "../services/synchro-service";
 
 
@@ -49,8 +49,10 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   filterIsEmpty = true;
 
   importing = false;
-  $importProgression = new Subject<number>();
-  showSyncStatusButton = false;
+  $importProgression = new BehaviorSubject<number>(0);
+  hasOfflineData = false;
+
+  synchronizationStatusList: SynchronizationStatus[] = ['DIRTY', 'SYNC'];
 
   get synchronizationStatus(): SynchronizationStatus {
     return this.filterForm.controls.synchronizationStatus.value;
@@ -188,6 +190,8 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     }
     else {
       this.network.setConnectionType('none');
+      this.filterForm.patchValue({synchronizationStatus: 'DIRTY'}, {emitEvent: false/*avoid refresh*/});
+      this.hasOfflineData = true;
     }
     // Refresh table
     this.onRefresh.emit();
@@ -205,7 +209,6 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
         this.error = null;
         this.markForCheck();
       }, 10000);
-      this.showSyncStatusButton = !!this.synchronizationStatus;
       return;
     }
 
@@ -213,16 +216,15 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     console.debug("[trips] Preparing network offline mode...");
     this.$importProgression.next(0);
 
-    const minExecDelay = 2000; // min time (to have time to show the progress bar !)
     let success = false;
     try {
 
       // Run the import
-      const $progression = this.service.initOfflineMode(100);
+      const $progression = this.service.executeImport({maxProgression: 100});
 
       // Update the progress indicator, every 200 ms
       $progression.pipe(
-        throttleTime(200),
+        //throttleTime(200),
         tap((progress) => {
           this.importing = true;
           progress = progress > 100 ? 100 : Math.trunc(progress);
@@ -237,29 +239,22 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       // Enable sync status button
       this.filterForm.patchValue({synchronizationStatus: 'SYNC'}, {emitEvent: false/*avoid refresh*/});
       success = true;
+
     }
     catch (err) {
       this.error = err && err.message || err;
     }
     finally {
-      const execTime = Date.now() - now;
-      if (execTime >= minExecDelay) {
-        this.importing = false;
-        this.showSyncStatusButton = success;
-        this.markForCheck();
-      }
-      else {
-        this.$importProgression.next(90);
-        this.markForCheck();
-        setTimeout(() => {
-          this.importing = false;
-          this.showSyncStatusButton = success;
-          this.markForCheck();
-        }, minExecDelay - execTime);
-      }
+      this.hasOfflineData = this.hasOfflineData || success;
+      this.importing = false;
+      this.markForCheck();
     }
 
-
+    if (success && !environment.production) {
+      this.network.setConnectionType('none');
+      this.markForCheck();
+      this.onRefresh.emit();
+    }
 
   }
 
@@ -279,15 +274,29 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   /* -- protected methods -- */
 
   protected async restoreFilterOrLoad() {
+    console.log("TODO: restoreFilterOrLoad")
     const json = this.settings.getPageSettings(this.settingsId, 'filter');
 
+    const synchronizationStatus = json && json.synchronizationStatus;
+    const tripFilter = json && typeof json === 'object' && {...json, synchronizationStatus: undefined} || undefined;
+
     // No default filter: load all trips
-    if (isNil(json) || typeof json !== 'object') {
-      this.onRefresh.emit();
+    if (!tripFilter || TripFilter.isEmpty(tripFilter)) {
+      this.hasOfflineData = await this.service.hasOfflineData();
+      if (this.hasOfflineData) {
+        this.filterForm.patchValue({
+          synchronizationStatus: 'DIRTY'
+        });
+      }
+      else {
+        this.onRefresh.emit();
+      }
     }
     // Restore the filter (will apply it)
     else {
-      this.filterForm.patchValue(json);
+      this.hasOfflineData = synchronizationStatus !== 'SYNC' || (await this.service.hasOfflineData());
+      tripFilter.synchronizationStatus = synchronizationStatus;
+      this.filterForm.patchValue(tripFilter);
     }
   }
 

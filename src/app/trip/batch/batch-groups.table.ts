@@ -227,7 +227,7 @@ export class BatchGroupsTable extends BatchesTable {
       const weightPmfmId = isEstimatedWeight ? this.estimatedWeightPmfm.pmfmId : this.defaultWeightPmfm.pmfmId;
 
       const childLabel = `${batch.label}.${qv.label}`;
-      const child: Batch = batch.id && (batch.children || []).find(b => b.label === childLabel) || new Batch();
+      const child: Batch = isNotNil(batch.id) && (batch.children || []).find(b => b.label === childLabel) || new Batch();
       child.rankOrder = qvIndex + 1;
       child.measurementValues = {};
       child.measurementValues[this.qvPmfm.pmfmId.toString()] = qv.id.toString();
@@ -238,7 +238,7 @@ export class BatchGroupsTable extends BatchesTable {
       // If sampling
       if (isNotNil(samplingRatio) || isNotNil(samplingIndividualCount) || isNotNil(samplingWeight)) {
         const samplingLabel = childLabel + Batch.SAMPLE_BATCH_SUFFIX;
-        const samplingChild: Batch = child.id && (child.children || []).find(b => b.label === samplingLabel) || new Batch();
+        const samplingChild: Batch = isNotNil(child.id) && (child.children || []).find(b => b.label === samplingLabel) || new Batch();
         samplingChild.rankOrder = 1;
         samplingChild.label = samplingLabel;
         samplingChild.samplingRatio = isNotNil(samplingRatio) ? samplingRatio / 100 : undefined;
@@ -337,7 +337,8 @@ export class BatchGroupsTable extends BatchesTable {
             name: translations['TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT'],
             minValue: 0,
             maxValue: 1000,
-            maximumNumberDecimals: 0
+            maximumNumberDecimals: 0,
+            methodId: MethodIds.CALCULATED
           }
         ]
       );

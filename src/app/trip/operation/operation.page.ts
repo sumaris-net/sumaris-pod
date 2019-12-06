@@ -94,7 +94,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programService.watchByLabel(programLabel, true))
+          switchMap(programLabel => this.programService.watchByLabel(programLabel))
         )
         .subscribe(program => this.onProgramChanged.next(program)));
   }
@@ -563,6 +563,11 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
         this.batchGroupsTable,
         this.subBatchesTable
       ]);
+  }
+
+  protected async waitWhilePending(): Promise<void> {
+    this.form.updateValueAndValidity();
+    return super.waitWhilePending();
   }
 
   protected async getValue(): Promise<Operation> {

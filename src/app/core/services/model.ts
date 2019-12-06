@@ -2,15 +2,16 @@ import {Moment} from "moment/moment";
 import {
   fromDateISOString,
   isNil,
-  isNilOrBlank,
+  isNilOrBlank, isNotEmptyArray,
   isNotNil,
   joinPropertiesPath,
   propertyComparator,
   sort,
   toDateISOString
 } from "../../shared/shared.module";
-import {noTrailingSlash} from "../../shared/functions";
+import {isEmptyArray, noTrailingSlash} from "../../shared/functions";
 import {FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
+import {Batch} from "../../trip/services/model/batch.model";
 
 export {
   joinPropertiesPath,
@@ -254,7 +255,7 @@ export abstract class Entity<T> implements Cloneable<T> {
   abstract clone(): T;
 
   asObject(options?: EntityAsObjectOptions): any {
-    const target: any = Object.assign({}, this);
+    const target: any = Object.assign({}, this); //= {...this};
     if (!options || options.keepTypename !== true) delete target.__typename;
     target.updateDate = toDateISOString(this.updateDate);
     return target;
@@ -350,19 +351,104 @@ export class EntityUtils {
     }
   }
 
+  static async fillLocalIds<T extends Entity<T>>(items: T[], sequenceFactory: (firstEntity: T, incrementSize: number) => Promise<number>) {
+    const newItems = (items || []).filter(item => isNil(item.id) || item.id === 0);
+    if (isEmptyArray(newItems)) return;
+    let itemId = await sequenceFactory(newItems[0], newItems.length);
+    newItems.forEach(item => item.id = itemId++);
+  }
+
   static sort<T extends Entity<T> | any>(data: T[], sortBy?: string, sortDirection?: string): T[] {
     return data.sort(this.sortComparator(sortBy, sortDirection));
   }
 
   static sortComparator<T extends Entity<T> | any>(sortBy?: string, sortDirection?: string): (a: T, b: T) => number {
     const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-    return (a, b) => {
-      const valueA = EntityUtils.getPropertyByPath(a, sortBy);
-      const valueB = EntityUtils.getPropertyByPath(b, sortBy);
-      return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-    };
+    const isSimplePath = !sortBy || sortBy.indexOf('.') === -1;
+    if (isSimplePath) {
+      return (a, b) => {
+        const valueA = isNotNil(a) && a[sortBy] || undefined;
+        const valueB = isNotNil(b) && b[sortBy] || undefined;
+        return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+      };
+    }
+    else {
+      return (a, b) => {
+        const valueA = EntityUtils.getPropertyByPath(a, sortBy);
+        const valueB = EntityUtils.getPropertyByPath(b, sortBy);
+        return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+      };
+    }
+  }
+
+  static filter<T extends Entity<T> | any>(data: T[],
+                                           searchAttribute: string,
+                                           searchText: string): T[] {
+    const filterFn = this.searchTextFilter(searchAttribute, searchText);
+    return data.filter(filterFn);
+  }
+
+  static searchTextFilter<T extends Entity<T> | any>(searchAttribute: string | string[],
+                                                     searchText: string): (T) => boolean {
+    if (isNilOrBlank(searchAttribute) || isNilOrBlank(searchText)) return undefined; // filter not need
+
+    const searchRegexp = searchText.replace(/[.]/g, '[.]').replace(/[*]+/g, '.*');
+    if (searchRegexp === '.*') return undefined; // filter not need
+
+    const flags = 'gi';
+    const asPrefixPattern = '^' + searchRegexp;
+    const anyMatchPattern = '^.*' + searchRegexp;
+
+    // Only one search attributes
+    if (typeof searchAttribute === 'string') {
+      const isSimplePath = !searchAttribute || searchAttribute.indexOf('.') === -1;
+      const searchAsPrefix =  searchAttribute.toLowerCase().endsWith('label') || searchAttribute.toLowerCase().endsWith('code');
+      const regexp = new RegExp(searchAsPrefix && asPrefixPattern || anyMatchPattern, flags);
+      if (isSimplePath) {
+        return a => regexp.test( a[searchAttribute]);
+      }
+      else {
+        return a => regexp.test(EntityUtils.getPropertyByPath(a, searchAttribute));
+      }
+    }
+
+    // many search attributes
+    else {
+      const regexps = searchAttribute.map(path => {
+        const searchAsPrefix =  path.toLowerCase().endsWith('label') || path.toLowerCase().endsWith('code');
+        return new RegExp( searchAsPrefix && asPrefixPattern || anyMatchPattern, flags);
+      });
+      return a => !!searchAttribute.find((path, index) => regexps[index].test(EntityUtils.getPropertyByPath(a, path)));
+    }
+  }
+
+  /**
+   * Transform a batch entity tree into a array list. This method keep links parent/children.
+   *
+   * Method used to find batch without id (e.g. before local storage)
+   * @param source
+   */
+  static treeToArray<T extends ITreeItemEntity<any>>(source: T): T[] {
+    if (!source) return null;
+    return (source.children || []).reduce((res, batch) => {
+      batch.parent = source;
+      return res.concat(this.treeToArray(batch)); // recursive call
+    }, [source]);
+  }
+
+  static listOfTreeToArray<T extends ITreeItemEntity<any>>(sources: T[]): T[] {
+    if (!sources || !sources.length) return null;
+    return sources.reduce((res, source) => res.concat(this.treeToArray<T>(source)), []);
   }
 }
+
+
+export declare interface ITreeItemEntity<T extends Entity<T>> {
+  parentId: number;
+  parent: T;
+  children: T[];
+}
+
 
 /* -- Referential -- */
 

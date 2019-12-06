@@ -136,10 +136,10 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     openSecondTab?: boolean;
     updateTabAndRoute?: boolean;
   }) {
-    const idChanged = this.previousDataId && isNotNil(data.id) && this.previousDataId !== data.id || false;
+    const idChanged = isNotNil(data.id) && (isNil(this.previousDataId) || this.previousDataId !== data.id) || false;
 
     opts = opts || {};
-    opts.updateTabAndRoute = toBoolean(opts.updateTabAndRoute, idChanged);
+    opts.updateTabAndRoute = toBoolean(opts.updateTabAndRoute, idChanged && !this.loading);
     opts.openSecondTab = toBoolean(opts.openSecondTab, idChanged && isNil(this.previousDataId));
 
     this.data = data;
@@ -187,6 +187,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
       if (this.selectedTabIndex === 0) {
         this.selectedTabIndex = 1;
         Object.assign(this.queryParams, {tab: this.selectedTabIndex});
+        this.markForCheck();
       }
     }
 
@@ -209,7 +210,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     if (this.loading || this.saving || !this.dirty) return false;
 
     // Wait end of async validation
-    await AppFormUtils.waitWhilePending(this);
+    await this.waitWhilePending();
 
     // Not valid
     if (!this.valid) {
@@ -331,6 +332,10 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
   protected computeUsageMode(data: T): UsageMode {
     return this.settings.isUsageMode('FIELD') ? 'FIELD' : 'DESK';
+  }
+
+  protected async waitWhilePending(): Promise<void> {
+    return await AppFormUtils.waitWhilePending(this);
   }
 
   protected async getValue(): Promise<T> {

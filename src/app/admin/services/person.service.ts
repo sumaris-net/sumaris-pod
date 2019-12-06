@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Observable} from 'rxjs';
+import {BehaviorSubject, defer, Observable} from 'rxjs';
 import {Person} from './model';
 import {DataService, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/services/base.data-service.class";
@@ -9,6 +9,10 @@ import {map} from "rxjs/operators";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {EntityUtils, StatusIds} from "../../core/services/model";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
+import {environment} from "../../core/core.module";
+import {fetchAllPagesWithProgress} from "../../shared/services/data-service.class";
+import {NetworkService} from "../../core/services/network.service";
+import {EntityStorage} from "../../core/services/entities-storage.service";
 //import {environment} from "../../../environments/environment";
 
 export const PersonFragments = {
@@ -45,6 +49,17 @@ const LoadAllQuery = gql`
   ${PersonFragments.person}
 `;
 
+// Load persons query
+const LoadAllWithCountQuery = gql`
+  query PersonsWithCount($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: PersonFilterVOInput){
+    persons(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...PersonFragment
+    }
+    personsCount(filter: $filter)
+  }
+  ${PersonFragments.person}
+`;
+
 export declare class PersonFilter {
   email?: string;
   pubkey?: string;
@@ -71,12 +86,14 @@ const DeletePersons: any = gql`
 export class PersonService extends BaseDataService<Person, PersonFilter> implements TableDataService<Person, PersonFilter>, DataService<Person, PersonFilter> {
 
   constructor(
-    protected graphql: GraphqlService
+    protected graphql: GraphqlService,
+    protected network: NetworkService,
+    protected entities: EntityStorage
   ) {
     super(graphql);
 
     // for DEV only -----
-    //this._debug = !environment.production;
+    this._debug = !environment.production;
   }
 
   /**
@@ -87,14 +104,15 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
    * @param sortDirection
    * @param filter
    */
-  public watchAll(
+  watchAll(
     offset: number,
     size: number,
     sortBy?: string,
     sortDirection?: string,
     filter?: PersonFilter,
-    options?: {
-      fetchPolicy?: WatchQueryFetchPolicy
+    opts?: {
+      fetchPolicy?: WatchQueryFetchPolicy;
+      withCount?: boolean;
     }
   ): Observable<LoadResult<Person>> {
 
@@ -108,12 +126,14 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
 
     this._lastVariables.loadAll = variables;
 
-    console.debug("[person-service] Watching persons, using filter: ", variables);
+    if (this._debug) console.debug("[person-service] Watching persons, using filter: ", variables);
+    const query = (!opts || opts.withCount !== false) ? LoadAllWithCountQuery : LoadAllQuery;
+
     return this.graphql.watchQuery<{ persons: Person[]; personsCount: number }>({
-      query: LoadAllQuery,
-      variables: variables,
+      query,
+      variables,
       error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
+      fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
       .pipe(
         map(({persons, personsCount}) => {
@@ -125,8 +145,12 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
       );
   }
 
-  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: string, filter?: PersonFilter, options?: {
-    fetchPolicy?: FetchPolicy
+  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: string, filter?: PersonFilter, opts?: {
+    [key: string]: any;
+    fetchPolicy?: FetchPolicy;
+    debug?: boolean;
+    withTotal?: boolean;
+    toEntity?: boolean;
   }): Promise<LoadResult<Person>> {
     const variables = {
       offset: offset || 0,
@@ -136,21 +160,50 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
       filter: filter
     };
 
-    this._lastVariables.loadAll = variables;
 
-    console.debug("[person-service] Loading persons, using filter: ", variables);
-    const res = await this.graphql.query<{ persons: Person[]; personsCount: number }>({
-      query: LoadAllQuery,
-      variables: variables,
-      error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
-      fetchPolicy: (options && options.fetchPolicy || 'network-only')
-    });
 
-    const data = res && res.persons;
-    return {
-      data: (data || []).map(Person.fromObject),
-      total: res && res.personsCount || (data && data.length) || 0
-    };
+    const debug = this._debug && (!opts || opts.debug !== false);
+    const now = debug && Date.now();
+    if (debug) console.debug("[person-service] Loading persons, using filter: ", variables);
+
+    // Offline: use local store
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+      const res = await this.entities.loadAll('PersonVO',
+        {
+          ...variables,
+          filter: EntityUtils.searchTextFilter(['lastName', 'firstName', 'department.name'], filter.searchText)
+        }
+      );
+      const data = (!opts || opts.toEntity !== false) ?
+        (res && res.data || []).map(Person.fromObject) :
+        (res && res.data || []) as Person[];
+      if (debug) console.debug(`[referential-ref-service] Persons loaded (from offline storage) in ${Date.now() - now}ms`);
+      return {
+        data: data,
+        total: res.total
+      };
+    }
+
+    // Online: use GraphQL
+    else {
+      this._lastVariables.loadAll = variables;
+
+      const query = opts && opts.withTotal ? LoadAllWithCountQuery : LoadAllQuery;
+      const res = await this.graphql.query<{ persons: Person[]; personsCount: number }>({
+        query,
+        variables,
+        error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
+        fetchPolicy: opts && opts.fetchPolicy || undefined
+      });
+      const data = (!opts || opts.toEntity !== false) ?
+        (res && res.persons || []).map(Person.fromObject) :
+        (res && res.persons || []) as Person[];
+      return {
+        data,
+        total: res && res.personsCount
+      };
+    }
   }
 
   async suggest(value: any, options?: {
@@ -164,6 +217,8 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
         searchText: value as string,
         statusIds: options && options.statusIds || [StatusIds.ENABLE],
         userProfiles: options && options.userProfiles
+      }, {
+        withTotal: false // not need
       });
     return res.data;
   }
@@ -190,7 +245,7 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
     });
     (res && res.savePersons && data)
       .forEach(entity => {
-        const savedPerson = res.savePersons.find(res => entity.equals(res));
+        const savedPerson = res.savePersons.find(p => entity.equals(p));
         EntityUtils.copyIdAndUpdateDate(savedPerson, entity);
       });
 
@@ -201,7 +256,7 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
 
   async deleteAll(entities: Person[]): Promise<any> {
 
-    let ids = entities && entities
+    const ids = entities && entities
       .map(t => t.id)
       .filter(id => (id > 0));
 
@@ -216,6 +271,7 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
       error: {code: ErrorCodes.DELETE_PERSONS_ERROR, message: "REFERENTIAL.ERROR.DELETE_PERSONS_ERROR"},
       update: (proxy) => {
         if (this._debug) console.debug(`[person-service] Trips deleted in ${Date.now() - now}ms`);
+
         // Update the cache
         if (this._lastVariables.loadAll) {
           this.graphql.removeToQueryCacheByIds(proxy, {
@@ -223,10 +279,48 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
             variables: this._lastVariables.loadAll
           }, 'persons', ids);
         }
-
       }
     });
 
+  }
+
+  executeImport(opts?: {
+    maxProgression?: number;
+  }): Observable<number>{
+
+    return defer(() => {
+      const maxProgression = opts && opts.maxProgression || 100;
+      const progression = new BehaviorSubject<number>(0);
+      const filter = {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        userProfiles: ['SUPERVISOR', 'USER', 'GUEST']
+      };
+
+      const now = Date.now();
+      console.info("[person-service] Importing persons...");
+
+      fetchAllPagesWithProgress((offset, size) =>
+          this.loadAll(offset, size, 'id', null, filter, {
+            debug: false,
+            fetchPolicy: "network-only",
+            withTotal: (offset === 0), // Compute total only once
+            toEntity: false
+          }),
+        progression,
+        maxProgression
+      )
+        // Save result locally
+        .then(res => this.entities.saveAll(res.data, {entityName: 'PersonVO'}))
+        .then(res => {
+          console.info(`[person-service] Successfully import persons in ${Date.now() - now}ms`);
+          progression.complete();
+        })
+        .catch((err: any) => {
+          console.error("[person-service] Error during importation: " + (err && err.message || err), err);
+          progression.error(err);
+        });
+      return progression;
+    });
   }
 
   /* -- protected methods -- */

@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {OperationValidatorService} from "../services/operation.validator";
-import {fromDateISOString, Operation, PhysicalGear, Trip} from "../services/trip.model";
+import {fromDateISOString, isNotNil, Operation, PhysicalGear, Trip} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {AppForm, IReferentialRef} from '../../core/core.module';
@@ -42,18 +42,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     if (trip) {
       // Use trip physical gear Object (if possible)
-      let physicalGear = this.form.get("physicalGear").value;
-      if (physicalGear && physicalGear.id) {
+      const physicalGearControl = this.form.get("physicalGear");
+      let physicalGear = physicalGearControl.value;
+      if (physicalGear && isNotNil(physicalGear.id)) {
         physicalGear = (trip.gears || []).find(g => g.id === physicalGear.id) || physicalGear;
-        if (physicalGear) {
-          this.form.controls["physicalGear"].patchValue(physicalGear);
-        }
+        if (physicalGear) physicalGearControl.patchValue(physicalGear);
       }
 
       // Add validator on trip date
       this.form.get('endDateTime').setAsyncValidators(async (control) => {
         if (!control.touched) return;
-        console.log(control.value);
         const endDateTime = fromDateISOString(control.value);
         // Make sure: departureDateTime < endDateTime < returnDateTime
         if (endDateTime && ((trip.departureDateTime && endDateTime.isBefore(trip.departureDateTime))
@@ -67,7 +65,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       });
     }
   }
-
 
   get isOnFieldMode(): boolean {
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
@@ -162,6 +159,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   /* -- protected methods -- */
 
   protected async suggestPhysicalGear(value: any, options?: any): Promise<PhysicalGear[]> {
+    console.log("TODO check suggestPhysicalGear")
     // Display the selected object
     if (EntityUtils.isNotEmpty(value)) {
       if (this.form.enabled) this.form.controls["metier"].enable();

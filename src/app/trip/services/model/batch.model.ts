@@ -1,4 +1,4 @@
-import {EntityUtils, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../../core/core.module";
+import {Entity, EntityUtils, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../../core/core.module";
 import {AcquisitionLevelCodes, PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {DataEntity, DataEntityAsObjectOptions, NOT_MINIFY_OPTIONS} from "./base.model";
 import {
@@ -10,7 +10,7 @@ import {
 import {isNilOrBlank, isNotNilOrBlank} from "../../../shared/functions";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {ReferentialAsObjectOptions} from "../../../core/services/model";
+import {ITreeItemEntity, ReferentialAsObjectOptions} from "../../../core/services/model";
 
 export declare interface BatchWeight {
   methodId: number;
@@ -19,7 +19,8 @@ export declare interface BatchWeight {
   value: number;
 }
 
-export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<Batch> {
+
+export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<Batch>, ITreeItemEntity<Batch> {
 
   static SAMPLE_BATCH_SUFFIX = '.%';
 
@@ -50,6 +51,38 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
 
     //console.debug("[trip-model] Operation.catchBatch as tree:", this.catchBatch);
     return catchBatch;
+  }
+
+  /**
+   * Transform a batch entity tree, into a array of object.
+   * Parent/.children link are removed, to keep only a parentId/
+   * @param source
+   * @param opts
+   * @throw Error if a batch has no id
+   */
+  static treeAsObjectArray(source: Batch,
+                           opts?: DataEntityAsObjectOptions & {
+                              parent?: any;
+                            }): any[] {
+    if (!source) return null;
+
+    // Convert entity into object, WITHOUT children (will be add later)
+    const target = source.asObject({...opts, withChildren: false});
+
+    // Link target with the given parent
+    const parent = opts && opts.parent;
+    if (parent) {
+      if (isNil(parent.id)) {
+        throw new Error(`Cannot convert batch tree into array: No id found for batch ${parent.label}!`);
+      }
+      target.parentId = parent.id;
+      delete target.parent; // not need
+    }
+
+    return (source.children || []).reduce((res, batch) => {
+        return res.concat(this.treeAsObjectArray(batch, {...opts, parent: target}) || []);
+      },
+      [target]) || undefined;
   }
 
   public static equals(b1: Batch | any, b2: Batch | any): boolean {
@@ -109,22 +142,22 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     return target;
   }
 
-  asObject(options?: DataEntityAsObjectOptions): any {
+  asObject(opts?: DataEntityAsObjectOptions & {withChildren?: boolean}): any {
     let parent = this.parent;
     this.parent = null; // avoid parent conversion
-    const target = super.asObject(options);
+    const target = super.asObject(opts);
     delete target.parentBatch;
     this.parent = parent;
 
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
-    target.taxonName = this.taxonName && this.taxonName.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
     target.samplingRatio = isNotNil(this.samplingRatio) ? this.samplingRatio : null;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
-    target.children = this.children && this.children.map(c => c.asObject(options)) || undefined;
+    target.children = this.children && (!opts || opts.withChildren !== false) && this.children.map(c => c.asObject(opts)) || undefined;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, opts);
 
-    if (options && options.minify) {
+    if (opts && opts.minify) {
       // Parent Id not need, as the tree batch will be used by pod
       delete target.parent;
       delete target.parentId;
@@ -360,4 +393,6 @@ export class BatchUtils {
       });
     }
   }
+
+
 }

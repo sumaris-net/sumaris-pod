@@ -74,7 +74,7 @@ export class BatchGroupPage extends AppEditorPage<Batch, any> implements OnInit 
       this.programSubject.asObservable()
         .pipe(
           filter(isNotNilOrBlank),
-          switchMap(programLabel => this.programService.watchByLabel(programLabel, true))
+          switchMap(programLabel => this.programService.watchByLabel(programLabel))
         )
       .subscribe(program => {
         if (this.debug) console.debug(`[batch-group-page] Program ${program.label} loaded, with properties: `, program.properties);

@@ -9,10 +9,11 @@ import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.mod
 import {Moment} from "moment/moment";
 import {DataEntityAsObjectOptions, DataRootEntity} from "./base.model";
 import {IEntityWithMeasurement, MeasurementUtils} from "./measurement.model";
-import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model";
+import {ITreeItemEntity, NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model";
 
 
-export class Sample extends DataRootEntity<Sample> implements IEntityWithMeasurement<Sample> {
+export class Sample extends DataRootEntity<Sample>
+  implements IEntityWithMeasurement<Sample>, ITreeItemEntity<Sample>{
 
   static fromObject(source: any): Sample {
     const res = new Sample();

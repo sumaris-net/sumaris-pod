@@ -1,8 +1,9 @@
 import {GraphqlService} from "./graphql.service";
+import {FetchPolicy} from "apollo-client";
+import {LoadResult} from "../../shared/services/data-service.class";
+import {BehaviorSubject} from "rxjs";
+import {isNil, isNotNil} from "../../shared/functions";
 
-export const OPTIMISTIC_AS_OBJECT_OPTIONS = {
-
-}
 
 export abstract class BaseDataService<T = any, F = any> {
 
@@ -27,4 +28,6 @@ export abstract class BaseDataService<T = any, F = any> {
     // for DEV only
    // this._debug = !environment.production;
   }
+
+
 }

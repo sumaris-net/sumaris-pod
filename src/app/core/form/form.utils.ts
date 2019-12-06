@@ -126,7 +126,7 @@ export function logFormErrors(control: AbstractControl, logPrefix?: string, path
   if (control instanceof FormGroup) {
     if (!path) console.warn(`${logPrefix} Form errors:`);
     for (let error in control.errors) {
-      console.warn(`'${logPrefix} -> ${path||''} (${error})`);
+      console.warn(`${logPrefix} -> ${path||''} (${error})`);
     }
     for (let key in control.controls) {
       logFormErrors(control.controls[key], logPrefix, (path ? `${path}/${key}` : key)); // Recursive call
@@ -140,9 +140,9 @@ export function logFormErrors(control: AbstractControl, logPrefix?: string, path
   }
   // Other control
   else {
-    for (let error in control.errors) {
-      console.warn(`'${logPrefix} -> ${path||''} (${error})`);
-    }
+    Object.keys(control.errors).forEach(error =>
+      console.warn(`${logPrefix} -> ${path || ''} (${error})`)
+    );
   }
 }
 

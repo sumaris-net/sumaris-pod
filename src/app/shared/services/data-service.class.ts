@@ -1,5 +1,7 @@
-import {Observable} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 import {FetchPolicy} from "apollo-client";
+import {isNil, isNotNil} from "../functions";
+import {Entity} from "../../core/services/model";
 
 export declare interface LoadResult<T> {
   data: T[];
@@ -10,6 +12,7 @@ export declare type SuggestFn<T, F = any> = (value: any, filter?: F) => Promise<
 export declare interface SuggestionDataService<T, F = any> {
   suggest: SuggestFn<T, F>;
 }
+
 export declare interface DataService<T, F> {
 
   loadAll(
@@ -59,4 +62,77 @@ export declare interface TableDataService<T, F> {
   saveAll(data: T[], options?: any): Promise<T[]>;
 
   deleteAll(data: T[], options?: any): Promise<any>;
+}
+
+export declare interface ImportDataService<T, F> {
+
+  executeImport(opts?: {
+    maxProgression?: number;
+  }): Observable<number>;
+}
+
+export declare type LoadResultByPageFn<T> = (offset: number, size: number) => Promise<LoadResult<T>>;
+
+export async function fetchAllPagesWithProgress<T>(
+  loadPageFn: LoadResultByPageFn<T>,
+  progression: BehaviorSubject<number>,
+  progressionStep?: number,
+  onPageLoaded?: (pageResult: LoadResult<T>) => any): Promise<LoadResult<T>> {
+
+  //const now = Date.now();
+  const lastProgressionValue = progressionStep && (progression.getValue() + progressionStep) || undefined;
+
+  let total, loopCount, loopProgressionStepSize, loopDataCount: number;
+  const fetchSize = 1000;
+  let offset = 0;
+  let data: T[] = [];
+  do {
+    if (offset === 0) console.log("Startin fecthing a page...");
+
+    // Get some items, using paging
+    const res = await loadPageFn(offset, fetchSize);
+    data = data.concat(res.data);
+    loopDataCount = res.data && res.data.length || 0;
+    offset += loopDataCount;
+
+    // Set total count (only if not already set)
+    if (isNil(total) && isNotNil(res.total)) {
+      total = res.total;
+      loopCount = Math.round(res.total / fetchSize + 0.5); // Round to next integer
+      loopProgressionStepSize = progressionStep ? progressionStep / loopCount : undefined /*if 0 reset to undefined*/;
+    }
+
+    // Increment progression on each iteration (if possible)
+    if (isNotNil(loopProgressionStepSize)) {
+      progression.next(progression.getValue() + loopProgressionStepSize);
+    }
+
+    if (onPageLoaded) onPageLoaded(res);
+
+  } while (loopDataCount > 0 && ((isNil(total) && loopDataCount === fetchSize) || (isNotNil(total) && (offset < total))));
+
+  // Complete progression to reach progressionStep value (because of round)
+  if (isNotNil(loopProgressionStepSize)) {
+
+    // If total return by loadAll was bad !
+    if (isNotNil(total) && data.length < total) {
+      console.warn(`A function loadAll() returned a bad total (less than all page's data)! Expected ${total} but fetch ${data.length}`);
+      total = data.length;
+      loopCount = Math.round(data.length / fetchSize + 0.5);
+    }
+
+    const lastProgressionStep = progressionStep - (loopProgressionStepSize * loopCount);
+    if (lastProgressionStep !== 0) {
+      progression.next(progression.getValue() + progressionStep);
+    }
+  }
+  // Or increment once
+  else if (progressionStep) {
+    progression.next(progression.getValue() + progressionStep);
+  }
+
+  return {
+    data,
+    total
+  };
 }

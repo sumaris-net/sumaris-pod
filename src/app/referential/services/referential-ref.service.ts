@@ -2,18 +2,52 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
-import {BaseDataService, EntityUtils, environment, StatusIds} from "../../core/core.module";
+import {isNotNil, LoadResult} from "../../shared/shared.module";
+import {BaseDataService, EntityUtils, environment, Referential, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialRef} from "../../core/services/model";
 
 import {FetchPolicy} from "apollo-client";
-import {ReferentialFilter, TaxonNameFilter} from "./referential.service";
-import {SuggestionDataService} from "../../shared/services/data-service.class";
+import {ReferentialFilter, ReferentialService, TaxonNameFilter} from "./referential.service";
+import {fetchAllPagesWithProgress, SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {LocationLevelIds, TaxonomicLevelIds} from "./model";
+import {LocationLevelIds, TaxonGroupIds, TaxonomicLevelIds} from "./model";
 import {TaxonNameRef} from "./model/taxon.model";
+import {NetworkService} from "../../core/services/network.service";
+import {EntityStorage} from "../../core/services/entities-storage.service";
+
+export class ReferentialRefFilter extends ReferentialFilter {
+
+  static searchFilter<T extends Referential>(f: ReferentialRefFilter): (T) => boolean {
+
+    const filterFns: ((T) => boolean)[] = [];
+
+    // Filter by levels ids
+    const levelIds = f.levelIds || (isNotNil(f.levelId) && [f.levelId]) || undefined;
+    if (levelIds) {
+      filterFns.push((entity) => !!levelIds.find(v => entity.levelId === v));
+    }
+
+    // Filter by status
+    const statusIds = f.statusIds || (isNotNil(f.statusId) && [f.statusId]) || undefined;
+    if (statusIds) {
+      filterFns.push((entity) => !!statusIds.find(v => entity.statusId === v));
+    }
+
+    const searchTextFilter = EntityUtils.searchTextFilter(f.searchAttribute || f.searchAttributes, f.searchText)
+    if (searchTextFilter) filterFns.push(searchTextFilter);
+
+    if (!filterFns.length) return undefined;
+
+    return (entity) => {
+      return !filterFns.find(fn => !fn(entity));
+    };
+  }
+
+  searchAttributes?: string[];
+}
+
 
 const LoadAllQuery: any = gql`
   query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -27,6 +61,19 @@ const LoadAllQuery: any = gql`
   }
 `;
 
+const LoadAllWithCountQuery: any = gql`
+  query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+    referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+      id
+      label
+      name
+      statusId
+      entityName
+    }
+    referentialsCount(entityName: $entityName, filter: $filter)
+  }
+`;
+
 const LoadAllTaxonNamesQuery: any = gql`
   query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
     taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -35,6 +82,7 @@ const LoadAllTaxonNamesQuery: any = gql`
       name
       statusId
       referenceTaxonId
+      entityName
     }
   }
 `;
@@ -43,13 +91,14 @@ const LoadAllTaxonNamesQuery: any = gql`
 export class ReferentialRefService extends BaseDataService
   implements SuggestionDataService<ReferentialRef> {
 
-
-  private _importProgress: BehaviorSubject<number>;
   private _importedEntities: string[];
 
   constructor(
     protected graphql: GraphqlService,
-    protected accountService: AccountService
+    protected referentialService: ReferentialService,
+    protected accountService: AccountService,
+    protected network: NetworkService,
+    protected entities: EntityStorage
   ) {
     super(graphql);
 
@@ -73,6 +122,7 @@ export class ReferentialRefService extends BaseDataService
            opts?: {
              [key: string]: any;
              fetchPolicy?: FetchPolicy;
+             withCount?: boolean;
            }): Observable<LoadResult<ReferentialRef>> {
 
     if (!filter || !filter.entityName) {
@@ -86,24 +136,25 @@ export class ReferentialRefService extends BaseDataService
       entityName: entityName,
       offset: offset || 0,
       size: size || 100,
-      sortBy: sortBy || 'label',
+      sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
       filter: {
         label: filter.label,
         name: filter.name,
         searchText: filter.searchText,
         searchAttribute: filter.searchAttribute,
-        levelId: filter.levelId,
-        levelIds: filter.levelIds,
-        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : [StatusIds.ENABLE]
+        searchJoin: filter.searchJoin,
+        levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
+        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
       }
     };
 
     const now = Date.now();
-    if (this._debug) console.debug(`[referential-ref-service] Watching references on ${entityName}...`, variables);
+    if (this._debug) console.debug(`[referential-ref-service] Watching ${entityName} items...`, variables);
 
+    const query = (!opts || opts.withCount !== false) ? LoadAllWithCountQuery : LoadAllQuery;
     return this.graphql.watchQuery<{ referentials: any[]; referentialsCount: number }>({
-      query: LoadAllQuery,
+      query,
       variables: variables,
       error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || "cache-first"
@@ -124,11 +175,13 @@ export class ReferentialRefService extends BaseDataService
                 size: number,
                 sortBy?: string,
                 sortDirection?: string,
-                filter?: ReferentialFilter,
+                filter?: ReferentialRefFilter,
                 opts?: {
                   [key: string]: any;
                   fetchPolicy?: FetchPolicy;
                   debug?: boolean;
+                  withCount?: boolean;
+                  transformToEntity?: boolean;
                 }): Promise<LoadResult<ReferentialRef>> {
 
     if (!filter || !filter.entityName) {
@@ -137,6 +190,7 @@ export class ReferentialRefService extends BaseDataService
     }
 
     const entityName = filter.entityName;
+    const debug = this._debug && (!opts || opts.debug !== false);
 
     const variables: any = {
       entityName: entityName,
@@ -156,20 +210,47 @@ export class ReferentialRefService extends BaseDataService
     };
 
     const now = Date.now();
-    if (this._debug && (!opts || opts.debug !== false)) console.debug(`[referential-ref-service] Loading references on ${entityName}...`, variables);
+    if (debug) console.debug(`[referential-ref-service] Loading ${entityName} items...`, variables);
 
-    const res = await this.graphql.query<{ referentials: any[]; referentialsCount: number }>({
-      query: LoadAllQuery,
-      variables: variables,
-      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
-      fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
-    });
-    const data = (res && res.referentials || []).map(ReferentialRef.fromObject);
-    if (this._debug && (!opts || opts.debug !== false)) console.debug(`[referential-ref-service] References on ${entityName} loaded in ${Date.now() - now}ms`);
-    return {
-      data: data,
-      total: res.referentialsCount
-    };
+    // Offline mode: read from the entities storage
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+      const filterFn = ReferentialRefFilter.searchFilter(filter);
+      const res = await this.entities.loadAll(filter.entityName + 'VO',
+        {
+          ...variables,
+          filter: filterFn
+        }
+      );
+      const data = (!opts || opts.transformToEntity !== false) ?
+        (res && res.data || []).map(ReferentialRef.fromObject) :
+        (res && res.data || []) as ReferentialRef[];
+      if (debug) console.debug(`[referential-ref-service] ${entityName} items loaded (from offline storage) in ${Date.now() - now}ms`);
+      return {
+        data: data,
+        total: res.total
+      };
+    }
+
+    // Online mode: use graphQL
+    else {
+      const query = (!opts || opts.withCount !== false) ? LoadAllWithCountQuery : LoadAllQuery;
+      const res = await this.graphql.query<{ referentials: any[]; referentialsCount: number }>({
+        query,
+        variables,
+        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+        fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
+      });
+      const data = (!opts || opts.transformToEntity !== false) ?
+        (res && res.referentials || []).map(ReferentialRef.fromObject) :
+        (res && res.referentials || []) as ReferentialRef[];
+      if (debug) console.debug(`[referential-ref-service] ${entityName} items loaded in ${Date.now() - now}ms`);
+      return {
+        data: data,
+        total: res.referentialsCount
+      };
+    }
+
   }
 
   async suggest(value: any, opts: {
@@ -184,28 +265,23 @@ export class ReferentialRefService extends BaseDataService
     if (EntityUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
-      {
-        entityName: opts.entityName,
-        levelId: opts.levelId,
-        levelIds: opts.levelIds,
-        searchText: value as string,
-        searchJoin: opts.searchJoin,
-        searchAttribute: opts.searchAttribute,
-        statusId: opts.statusId,
-        statusIds: opts.statusIds
+      { ...opts, searchText: value}, {
+        withCount: false // not need
       });
     return res.data;
   }
 
   async loadAllTaxonNames(offset: number,
-               size: number,
-               sortBy?: string,
-               sortDirection?: string,
-               filter?: TaxonNameFilter,
-               options?: {
-                 [key: string]: any;
-                 fetchPolicy?: FetchPolicy;
-               }): Promise<TaxonNameRef[]> {
+                          size: number,
+                          sortBy?: string,
+                          sortDirection?: string,
+                          filter?: TaxonNameFilter,
+                          opts?: {
+                            [key: string]: any;
+                            fetchPolicy?: FetchPolicy;
+                            debug?: boolean;
+                            transformToEntity?: boolean;
+                          }): Promise<TaxonNameRef[]> {
 
     if (!filter) {
       console.error("[referential-ref-service] Missing filter");
@@ -227,16 +303,19 @@ export class ReferentialRefService extends BaseDataService
     };
 
     const now = Date.now();
-    if (this._debug) console.debug(`[referential-ref-service] Loading taxon names...`, variables);
+    const debug = this._debug && (!opts || opts.debug !== false);
+    if (debug) console.debug(`[referential-ref-service] Loading TaxonName items...`, variables);
 
     const res = await this.graphql.query<{ taxonNames: any[]}>({
       query: LoadAllTaxonNamesQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || "cache-first"
+      fetchPolicy: opts && opts.fetchPolicy || "cache-first"
     });
-    const data = (res && res.taxonNames || []).map(TaxonNameRef.fromObject);
-    if (this._debug) console.debug(`[referential-ref-service] Taxon names loaded in ${Date.now() - now}ms`, data);
+    const data = (!opts || opts.transformToEntity !== false) ?
+      (res && res.taxonNames || []).map(TaxonNameRef.fromObject) :
+      (res && res.taxonNames || []) as TaxonNameRef[];
+    if (debug) console.debug(`[referential-ref-service] TaxonName items loaded in ${Date.now() - now}ms`, data);
     return data;
   }
 
@@ -258,113 +337,116 @@ export class ReferentialRefService extends BaseDataService
       });
   }
 
-  importAll(opts?: {
+  executeImport(opts?: {
     entityNames?: string[],
+    statusIds?: number[];
     maxProgression?: number;
   }): Observable<number>{
 
-    if (this._importProgress) return this._importProgress; // Skip if already running
-
-    this._importProgress = new BehaviorSubject<number>(0);
-
-    this.importAllWithProgress(this._importProgress, opts)
-      .then(() => {
-        this._importProgress.complete();
-        this._importProgress = null;
-      })
+    const progress = new BehaviorSubject(0);
+    this.executeImportWithProgress(progress, opts)
+      .then(() => progress.complete())
       .catch((err: any) => {
-        console.error("[referential-ref-service] [synchro] Error during importation: " + (err && err.message || err), err);
-        //this._importProgress.complete();
-        this._importProgress.error(err);
-        this._importProgress = null;
+        console.error("[referential-ref-service] Error during importation: " + (err && err.message || err), err);
+        progress.error(err);
       });
-    return this._importProgress;
+
+    return progress;
   }
 
   /* -- protected methods -- */
 
-  protected async importAllWithProgress(progress: BehaviorSubject<number>,
-    opts?: {
-      entityNames?: string[],
-      maxProgression?: number;
-      statusIds?: number[];
-    }) {
+  protected async executeImportWithProgress(progress: BehaviorSubject<number>,
+                                            opts?: {
+                                              entityNames?: string[],
+                                              maxProgression?: number;
+                                              statusIds?: number[];
+                                            }) {
 
-    const entityNames = opts && opts.entityNames || ['Location', 'Gear', 'Metier', 'TaxonGroup', 'TaxonName', 'Department'];
+    const entityNames = opts && opts.entityNames || ['Location', 'Gear', 'Metier', 'TaxonGroup', 'TaxonName', 'Department', 'QualityFlag', 'SaleType'];
+
     const statusIds = opts && opts.statusIds || [StatusIds.ENABLE, StatusIds.TEMPORARY];
 
     const maxProgression = opts && opts.maxProgression || 100;
-    const progressionStepCount = entityNames.length;
-    const progressionStep = (maxProgression - progress.getValue()) / progressionStepCount;
+    const stepCount = entityNames.length;
+    const progressionStep = maxProgression ? (maxProgression / (stepCount + 1)) : undefined;
 
     const now = Date.now();
-    console.info("[referential-ref-service] [synchro] Starting to import...");
+    console.info(`[referential-ref-service] Importing ${entityNames.length} referential...`);
 
-    const entityFilters = entityNames.map(entityName => {
+    const importedEntities = [];
+    const jobs = entityNames.map(entityName => {
+      let filter: ReferentialFilter;
+      let promise: Promise<LoadResult<any>>;
       switch (entityName) {
+        case 'TaxonName':
+          promise = fetchAllPagesWithProgress<any>((offset, size) =>
+              this.loadAllTaxonNames(offset, size, 'id', null,  {
+                statusIds: [StatusIds.ENABLE],
+                taxonomicLevelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
+              }, {
+                fetchPolicy: "network-only",
+                debug: false
+              }).
+              then(data => {
+                return {data};
+              }),
+            progress,
+            progressionStep);
+          break;
+        case 'Metier':
+          filter = {entityName, statusIds, searchJoin: "TaxonGroup" };
+          break;
+        case 'TaxonGroup':
+          filter = {entityName, statusIds, levelIds: [TaxonGroupIds.FAO] };
+          break;
         case 'Location':
-          const locationLevelIds = Object.keys(LocationLevelIds).map(key => LocationLevelIds[key]);
-          return {entityName: 'Location', levelIds: locationLevelIds, statusIds};
+          filter = {entityName, statusIds, levelIds: Object.keys(LocationLevelIds).map(key => LocationLevelIds[key]) };
+          break;
         default:
-          return {entityName, statusIds};
+          filter = {entityName, statusIds};
+          break;
       }
+      if (!promise) {
+        promise = fetchAllPagesWithProgress<any>((offset, size) =>
+            this.referentialService.loadAll(offset, size, 'id', null, filter, {
+              debug: false,
+              fetchPolicy: "network-only",
+              withTotal: (offset === 0), // Compute total only once
+              toEntity: false
+            }),
+          progress,
+          progressionStep);
+      }
+      return promise
+        .then((res) => {
+          importedEntities.push(entityName);
+          return this.entities.saveAll(res.data, {
+            entityName: entityName + 'VO'
+          });
+        })
+        .catch(err => {
+          console.error(`[referential-ref-service] Failed to import ${entityName}: ${err && err.message || err}`, err);
+          throw err;
+        });
     });
 
     // Import by filter
-    const importedEntities = [];
-    await Promise.all(entityFilters.map(filter => this.importByFilter(filter, progress, progressionStep)
-      .then(() => {
-        importedEntities.push(filter.entityName);
-      })
-      .catch(err => {
-        console.error(`[referential-ref-service] [synchro] Failed to import ${filter.entityName}: ${err && err.message || err}`, err);
-      })
-    ));
+    await Promise.all(jobs);
 
     // Not all entity imported: error
     if (importedEntities.length < entityNames.length) {
-      console.error(`[referential-ref-service] [synchro] Importation failed in ${Date.now() - now}ms`);
+      console.error(`[referential-ref-service] Importation failed in ${Date.now() - now}ms`);
       progress.error({code: ErrorCodes.IMPORT_REFERENTIAL_ERROR, message: 'ERROR.IMPORT_REFERENTIAL_ERROR'});
     }
+    else {
+      // Success
+      console.info(`[referential-ref-service] Successfully import ${entityNames.length} entities in ${Date.now() - now}ms`);
+      this._importedEntities = importedEntities;
+    }
 
-    // Success
-    console.info(`[referential-ref-service] [synchro] Successfully import ${entityNames.length} referential in ${Date.now() - now}ms`);
-    this._importedEntities = importedEntities;
+    // Fill the progression to max
     progress.next(maxProgression);
-
   }
 
-  async importByFilter(filter: ReferentialFilter, progression: BehaviorSubject<number>, stepSize: number) {
-
-    if (this._debug) console.debug(`[referential-ref-service] [synchro] Loading ${filter.entityName}s...`);
-
-    const now = Date.now();
-    let offset = 0;
-    let total: number = undefined;
-    let size: number;
-    const fetchSize = 1000;
-    do {
-      if (this._debug && offset > 0) {
-        console.debug(`[referential-ref-service] [synchro] Loading ${filter.entityName}s... (${offset / fetchSize})`);
-      }
-
-      // Get some items, using paging
-      const res = await this.loadAll(offset, fetchSize, null, null, filter, {
-        fetchPolicy: "network-only",
-        debug: false // avoid too many logs
-      });
-      size = res.data && res.data.length || 0;
-      offset += size;
-
-      // Set total count (only if not already set)
-      if (isNil(total) && isNotNil(res.total)) {
-        total = res.total;
-      }
-    } while ((isNil(total) && size === fetchSize) || (isNotNil(total) && offset < total));
-
-    console.info(`[referential-ref-service] [synchro] ${offset} ${filter.entityName}s loaded in ${Date.now() - now}ms`);
-
-
-    progression.next(progression.getValue() + stepSize);
-  }
 }

@@ -1,6 +1,6 @@
 import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
-import {EntityUtils, fillRankOrder, isNil, Trip} from "./trip.model";
+import {EntityUtils, fillRankOrder, fromDateISOString, isNil, Trip} from "./trip.model";
 import {
   EditorDataService,
   isNilOrBlank,
@@ -10,7 +10,7 @@ import {
   TableDataService
 } from "../../shared/shared.module";
 import {environment} from "../../core/core.module";
-import {filter, map} from "rxjs/operators";
+import {catchError, filter, map, tap} from "rxjs/operators";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
@@ -28,12 +28,14 @@ import {
   SynchronizationStatus
 } from "./model/base.model";
 import {NetworkService} from "../../core/services/network.service";
-import {Observable} from "rxjs";
+import {concat, defer, Observable, of} from "rxjs";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {isEmptyArray} from "../../shared/functions";
 import {DataQualityService} from "./trip.services";
-import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
+import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {PersonService} from "../../admin/services/person.service";
+import {ProgramService} from "../../referential/services/program.service";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -165,6 +167,51 @@ export class TripFilter {
       ;
   }
 
+  static searchFilter<T extends Trip>(f: TripFilter): (T) => boolean {
+    if (this.isEmpty(f)) return undefined; // no filter need
+    return (t: T) => {
+
+      // Program
+      if (f.programLabel && (!t.program || t.program.label !== f.programLabel)) {
+        return false;
+      }
+
+      // Vessel
+      if (isNotNil(f.vesselId) && t.vesselSnapshot && t.vesselSnapshot.id !== f.vesselId) {
+        return false;
+      }
+
+      // Location
+      if (isNotNil(f.locationId) && ((t.departureLocation && t.departureLocation.id !== f.locationId) ? (t.returnLocation && t.returnLocation.id !== f.locationId) : true)) {
+        return false;
+      }
+
+      // Recorder department
+      if (isNotNil(f.recorderDepartmentId) && t.recorderDepartment && t.recorderDepartment.id !== f.recorderDepartmentId) {
+        return false;
+      }
+
+      // Start/end period
+      const startDate = fromDateISOString(f.startDate);
+      const endDate = fromDateISOString(f.endDate);
+      if (endDate) console.log("TODO: Check end dat filter", endDate);
+      if ((startDate && t.returnDateTime && startDate.isAfter(t.returnDateTime))
+        || (endDate && t.departureDateTime && endDate.add(1, 'day').isSameOrBefore(t.departureDateTime))) {
+        return false;
+      }
+
+      // Synchronization status
+      if (f.synchronizationStatus && (
+        t.synchronizationStatus !== f.synchronizationStatus
+        || (f.synchronizationStatus === 'SYNC' && !t.synchronizationStatus))
+      ) {
+        return false;
+      }
+
+      return true;
+    };
+  }
+
   programLabel?: string;
   vesselId?: number;
   locationId?: number;
@@ -172,8 +219,8 @@ export class TripFilter {
   endDate?: Date | Moment;
   recorderDepartmentId?: number;
   synchronizationStatus?: SynchronizationStatus;
-
 }
+
 const LoadAllQuery: any = gql`
   query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TripFilterVOInput){
     trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -239,7 +286,7 @@ const DeleteByIdsMutation: any = gql`
 `;
 
 const UpdateSubscription = gql`
-  subscription UpdateTrip($id: Int, $interval: Int){
+  subscription UpdateTrip($id: Int!, $interval: Int){
     updateTrip(id: $id, interval: $interval) {
       ...TripFragment
     }
@@ -248,10 +295,13 @@ const UpdateSubscription = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class TripService extends RootDataService<Trip, TripFilter> implements TableDataService<Trip, TripFilter>,
-  EditorDataService<Trip, TripFilter>,
-  DataQualityService<Trip> {
+export class TripService extends RootDataService<Trip, TripFilter>
+  implements
+    TableDataService<Trip, TripFilter>,
+    EditorDataService<Trip, TripFilter>,
+    DataQualityService<Trip> {
 
+  protected $importationProgress: Observable<number>;
   protected loading = false;
 
   constructor(
@@ -260,6 +310,9 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
     protected network: NetworkService,
     protected accountService: AccountService,
     protected referentialRefService: ReferentialRefService,
+    protected vesselSnapshotService: VesselSnapshotService,
+    protected personService: PersonService,
+    protected programService: ProgramService,
     protected entities: EntityStorage
   ) {
     super(injector);
@@ -274,13 +327,13 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
    * @param size
    * @param sortBy
    * @param sortDirection
-   * @param tripFilter
+   * @param dataFilter
    */
   watchAll(offset: number,
            size: number,
            sortBy?: string,
            sortDirection?: string,
-           tripFilter?: TripFilter,
+           dataFilter?: TripFilter,
            options?: {
              fetchPolicy?: WatchQueryFetchPolicy
            }): Observable<LoadResult<Trip>> {
@@ -289,19 +342,22 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
       size: size || 20,
       sortBy: sortBy || 'departureDateTime',
       sortDirection: sortDirection || 'asc',
-      filter: { ...tripFilter, synchronizationStatus: undefined}
+      filter: { ...dataFilter, synchronizationStatus: undefined}
     };
 
-    // Offline, or ask for dirty trips
-    if (this.network.offline || (tripFilter && tripFilter.synchronizationStatus === 'DIRTY')) {
-      return this.entities.watchAll<Trip>('TripVO')
+    // Offline
+    const offlineData = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    if (offlineData) {
+      return this.entities.watchAll<Trip>('TripVO', {
+        ...variables,
+        filter: TripFilter.searchFilter<Trip>(dataFilter)
+      })
         .pipe(
-          map(trips => {
-          return {
-            data: trips.map(Trip.fromObject),
-            total: trips.length
-          };
-        }));
+          map(res => {
+            const data = (res && res.data || []).map(Trip.fromObject);
+            const total = res && isNotNil(res.total) ? res.total : undefined;
+            return {data, total};
+          }));
     }
 
     this._lastVariables.loadAll = variables;
@@ -344,6 +400,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
     // If local entity
     if (id < 0) {
       const json = await this.entities.load<Trip>(id, 'TripVO');
+      this.loading = true;
       return json && Trip.fromObject(json);
     }
 
@@ -362,7 +419,16 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
     return data;
   }
 
-  public listenChanges(id: number): Observable<Trip> {
+  async hasOfflineData(): Promise<boolean> {
+    const res = await this.entities.loadAll('TripVO', {
+      offset: 0,
+      size: 0
+    });
+    console.log("TODO Check if data: " + (res && res.total > 0));
+    return res && res.total > 0;
+  }
+
+  listenChanges(id: number): Observable<Trip> {
     if (isNil(id)) throw new Error("Missing argument 'id' ");
 
     if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
@@ -447,13 +513,11 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
 
     // When offline, provide an optimistic response
     const offlineResponse = async (context) => {
-      if (isNew) {
-        entity.id = await this.entities.nextValue(entity);
-        if (this._debug) console.debug(`[trip-service] [offline] Using local entity id #${entity.id}`);
-      }
+      // Make sure to fill id, with local ids
+      await this.fillOfflineDefaultProperties(entity);
 
       // For the query to be tracked (see tracked query link) with a unique serialization key
-      context.tracked = true;
+      context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
       if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
 
       return { saveTrips: [this.asObject(entity, OPTIMISTIC_AS_OBJECT_OPTIONS)] };
@@ -781,9 +845,66 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
     return this.accountService.canUserWriteDataForDepartment(trip.recorderDepartment);
   }
 
-  initOfflineMode(maxProgression?: number): Observable<number>{
+  executeImport(opts?: {
+    maxProgression?: number;
+  }): Observable<number>{
+    if (this.$importationProgress) return this.$importationProgress; // Skip to may call
 
-    return this.referentialRefService.importAll({maxProgression});
+    const maxProgression = opts && opts.maxProgression || 100;
+
+    const jobOpts = {maxProgression: undefined};
+    const $jobs = [
+      defer(() => this.network.clearCache()),
+      defer(() => this.referentialRefService.executeImport({...jobOpts, entityNames: ['Location']})),
+      defer(() => this.personService.executeImport(jobOpts)),
+      defer(() => this.entities.persist()),
+      defer(() => this.vesselSnapshotService.executeImport(jobOpts)),
+      defer(() => this.entities.persist()),
+      defer(() => this.programService.executeImport(jobOpts)),
+      defer(() => this.entities.persist())
+    ];
+    const jobCount = $jobs.length;
+    jobOpts.maxProgression = Math.trunc(maxProgression / jobCount);
+
+    const now = Date.now();
+    console.info(`[trip-service] Starting ${$jobs.length} importation jobs...`);
+
+    // Execute all jobs, one by one
+    let jobIndex = 0;
+    this.$importationProgress = concat(
+      ...$jobs.map(($job, index) => {
+        return $job
+          .pipe(
+            map(jobProgression => {
+              jobIndex = index;
+              return index * jobOpts.maxProgression + (jobProgression || 0);
+            })
+          );
+      }),
+      // Finish (force to reach max value)
+      of(maxProgression)
+        .pipe(tap(() => {
+          this.$importationProgress = null;
+          console.info(`[trip-service] Importation finished in ${Date.now() - now}ms`);
+       }))
+    ).pipe(
+        catchError((err) => {
+          this.$importationProgress = null;
+          console.error(`[trip-service] Error during importation (job #${jobIndex + 1}): ${err && err.message || err}`, err);
+          throw err;
+        }),
+        // Compute total progression (= job offset + job progression)
+        // (and make ti always <= maxProgression)
+        map((jobProgression) => {
+          //if (jobProgression > jobOpts.maxProgression && this.$importationProgress) {
+          //  console.warn(`[trip-service] WARN job #${jobIndex+1} return a jobProgression > max (${jobProgression} > ${jobOpts.maxProgression})!`);
+          //}
+          return  Math.min(jobIndex * jobOpts.maxProgression
+              + Math.min(jobProgression || 0, jobOpts.maxProgression),
+            maxProgression);
+        })
+      );
+    return this.$importationProgress;
   }
 
   /* -- protected methods -- */
@@ -815,8 +936,9 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
 
   protected fillDefaultProperties(entity: Trip) {
 
-    // If new trip
-    if (!entity.id || entity.id < 0) {
+    const isNew = isNil(entity.id);
+    // If new
+    if (isNew) {
 
       const person = this.accountService.person;
 
@@ -836,6 +958,23 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
 
     // Measurement: compute rankOrder
     fillRankOrder(entity.measurements);
+  }
+
+  protected async fillOfflineDefaultProperties(entity: Trip) {
+    const isNew = isNil(entity.id);
+
+    // If new, generate a local id
+    if (isNew) {
+      entity.id =  await this.entities.nextValue(entity);
+
+      // Force synchronization status
+      entity.synchronizationStatus = 'DIRTY';
+    }
+
+    await Promise.all(
+      ['gears'].map(key => EntityUtils.fillLocalIds(entity[key],
+      (item, size) => this.entities.nextValues(item, size)))
+    );
   }
 
   copyIdAndUpdateDate(source: Trip | undefined, target: Trip) {

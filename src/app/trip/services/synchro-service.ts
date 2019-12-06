@@ -3,6 +3,9 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {environment} from "../../../environments/environment";
 import {Observable, BehaviorSubject} from "rxjs";
 import {isNil, isNotNil} from "../../shared/functions";
+import {ReferentialFilter} from "../../referential/services/referential.service";
+import {FetchPolicy} from "apollo-client";
+import {LoadResult} from "../../shared/services/data-service.class";
 
 
 export interface ProgressionModel {
@@ -73,6 +76,9 @@ export class SynchroService {
   }
 
   executeImport(opts?: Partial<ProgressionModel>): Observable<ProgressionModel> {
+
+
+    //return this.referentialRefService.importAll({maxProgression});
 
     const progression = new ProgressionModelImpl(opts);
     const stepCount = 1;

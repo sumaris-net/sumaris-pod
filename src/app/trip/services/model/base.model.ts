@@ -122,6 +122,11 @@ export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDe
 
 
 export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC';
+export const SynchronizationStatusEnum = {
+  DIRTY: 'DIRTY',
+  READY_TO_SYNC: 'READY_TO_SYNC',
+  SYNC: 'SYNC'
+};
 
 export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRecorderPersonEntity<T>, IWithProgramEntity<T> {
   creationDate: Moment;

@@ -1,7 +1,17 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {Department, EntityUtils, isNil, isNotNil, Person, QualityFlagIds, Vessel} from "./model";
+import {
+  Department,
+  EntityUtils,
+  fromDateISOString,
+  isNil,
+  isNotNil,
+  Person,
+  QualityFlagIds,
+  Vessel,
+  VesselSnapshot
+} from "./model";
 import {EditorDataService, isNilOrBlank, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {map} from "rxjs/operators";
@@ -16,6 +26,7 @@ import {isEmptyArray} from "../../shared/functions";
 import {EntityAsObjectOptions, MINIFY_OPTIONS} from "../../core/services/model";
 import {LoadFeaturesQuery, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";
 import {LoadRegistrationsQuery, RegistrationFragments, VesselRegistrationService} from "./vessel-registration.service";
+import {Trip} from "../../trip/services/model/trip.model";
 
 export class VesselFilter {
   date?: Date | Moment;
@@ -28,6 +39,27 @@ export class VesselFilter {
     return !filter || (
       !filter.date && isNilOrBlank(filter.vesselId) && isNilOrBlank(filter.searchText) && isNilOrBlank(filter.statusId) && isEmptyArray(filter.statusIds)
     );
+  }
+
+  static searchFilter<T extends VesselSnapshot>(f: VesselFilter): (T) => boolean {
+    if (this.isEmpty(f)) return undefined; // no filter need
+    const searchFilter = EntityUtils.searchTextFilter(['name', 'exteriorMarking', 'registrationCode'], f.searchText);
+    return (t: T) => {
+
+      // Vessel id
+      if (isNotNil(f.vesselId) && t.id !== f.vesselId) {
+        return false;
+      }
+
+      // Status
+      const statusIds = f.statusIds || (isNotNil(f.statusId) && [f.statusId]);
+      if (statusIds && statusIds.find(statusId => statusId === t.vesselStatusId)) {
+        return false;
+      }
+
+      // Search text
+      return searchFilter(t);
+    };
   }
 }
 

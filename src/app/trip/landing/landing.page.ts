@@ -199,8 +199,11 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
     this.samplesTable.value = data.samples || [];
   }
 
-  updateView(data: Landing | null) {
-    super.updateView(data);
+  updateView(data: Landing | null, opts?: {
+    openSecondTab?: boolean;
+    updateTabAndRoute?: boolean;
+  }) {
+    super.updateView(data, opts);
 
     if (this.parent) {
       if (this.parent instanceof ObservedLocation) {

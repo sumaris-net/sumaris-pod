@@ -107,6 +107,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
   @Input() startDate: Date;
 
+  @Input() clearable = false;
+
   @ViewChild('datePicker1', { static: false }) datePicker1: MatDatepicker<Moment>;
   @ViewChild('datePicker2', { static: false }) datePicker2: MatDatepicker<Moment>;
   @ViewChild('timePicker', { static: false }) timePicker: NgxTimePicker;
@@ -191,13 +193,19 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
         this.form.patchValue({day: null}, {emitEvent: false});
       }
       this._value = undefined;
+      if (this.formControl.value) {
+        this.formControl.patchValue(null, {emitEvent: false});
+        this._onChangeCallback(null);
+      }
       this.writing = false;
       this.markForCheck();
       return;
     }
 
     this._value = this.dateAdapter.parse(obj, DATE_ISO_PATTERN);
-    if (!this._value) return; // invalid date
+    if (!this._value) { // invalid date
+      return;
+    }
 
     this.writing = true;
 

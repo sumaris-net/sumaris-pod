@@ -47,7 +47,7 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends E
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programService.watchByLabel(programLabel, true))
+          switchMap(programLabel => this.programService.watchByLabel(programLabel))
         )
         .subscribe(program => this.onProgramChanged.next(program))
     );
