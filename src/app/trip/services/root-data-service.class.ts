@@ -24,12 +24,14 @@ export abstract class RootDataService<T extends DataRootEntity<T>, F = any> exte
     this.accountService = injector && injector.get(AccountService) || undefined;
   }
 
-  protected asObject(entity: T, options?: DataEntityAsObjectOptions): any {
-    const copy: any = entity.asObject({ ...MINIFY_OPTIONS, options } as DataEntityAsObjectOptions);
+  protected asObject(entity: T, opts?: DataEntityAsObjectOptions): any {
+    const copy: any = entity.asObject({ ...MINIFY_OPTIONS, ...opts } as DataEntityAsObjectOptions);
 
-    // Keep id only, on person and department
-    //copy.recorderPerson = {id: entity.recorderPerson && entity.recorderPerson.id};
-    //copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
+    if (opts && opts.minify) {
+      // Keep id only, on person and department
+      copy.recorderPerson = {id: entity.recorderPerson && entity.recorderPerson.id};
+      copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
+    }
 
     return copy;
   }

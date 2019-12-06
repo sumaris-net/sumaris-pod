@@ -16,8 +16,8 @@ import {fromDateISOString, isNil, isNilOrBlank, isNotNil} from "../../shared/fun
 import {RootDataService} from "./root-data-service.class";
 import {TripFilter} from "./trip.service";
 import {Sample} from "./model/sample.model";
-import {EntityUtils} from "../../core/services/model";
-import {DataRootEntityUtils} from "./model/base.model";
+import {EntityUtils, MINIFY_OPTIONS} from "../../core/services/model";
+import {DataEntityAsObjectOptions, DataRootEntityUtils, SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
 import {WatchQueryFetchPolicy} from "apollo-client";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 
@@ -296,15 +296,22 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
 
   async save(entity: Landing): Promise<Landing> {
 
+    const now = Date.now();
+    if (this._debug) console.debug("[landing-service] Saving a landing...");
+
     // Prepare to save
     this.fillDefaultProperties(entity);
 
-    // Transform into json
-    const json = this.asObject(entity);
+    // Reset the control date
+    entity.controlDate = undefined;
+
+    // If new, create a temporary if (for offline mode)
     const isNew = isNil(entity.id);
 
-    const now = Date.now();
-    if (this._debug) console.debug("[landing-service] Saving landing...", json);
+    // Transform into json
+    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
+    if (isNew) delete json.id; // Make to remove temporary id, before sending to graphQL
+    if (this._debug) console.debug("[landing-service] Using minify object, to send:", json);
 
     await this.graphql.mutate<{ saveLandings: any }>({
       mutation: SaveAllQuery,
@@ -401,8 +408,20 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
 
   /* -- private -- */
 
-  protected asObject(entity: Landing): any {
-    return super.asObject(entity);
+  protected asObject(entity: Landing, options?: DataEntityAsObjectOptions): any {
+    options = { ...MINIFY_OPTIONS, ...options };
+    const copy: any = entity.asObject(options);
+
+    if (options && options.minify) {
+      // Clean vessel features object, before saving
+      copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
+
+      // Keep id only, on person and department
+      copy.recorderPerson = {id: entity.recorderPerson && entity.recorderPerson.id};
+      copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
+    }
+
+    return copy;
   }
 
   protected fillDefaultProperties(entity: Landing, options?: any) {

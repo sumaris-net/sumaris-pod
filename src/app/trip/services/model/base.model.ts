@@ -72,18 +72,21 @@ export interface IWithObserversEntity<T> extends Entity<T> {
 }
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
+
 }
 
 export const OPTIMISTIC_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
  minify: false,
  keepTypename: true,
- keepEntityName: true
+ keepEntityName: true,
+ keepLocalId: true
 };
 
 export const SAVE_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
   minify: true,
   keepTypename: false,
-  keepEntityName: false
+  keepEntityName: false,
+  keepLocalId: false
 };
 
 export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDepartmentEntity<T> {
@@ -150,8 +153,9 @@ export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRe
     target.creationDate = toDateISOString(this.creationDate);
     target.validationDate = toDateISOString(this.validationDate);
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
-    target.program = this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for trips list*/ } as ReferentialAsObjectOptions) || undefined;
+    target.program = this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*always keep for table*/ } as ReferentialAsObjectOptions) || undefined;
     if (options && options.minify) {
+      if (target.program) delete target.program.entityName;
       delete target.synchronizationStatus; // Not exists in the Pod's model
     }
     return target;

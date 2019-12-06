@@ -244,7 +244,8 @@ export function personsToString(data: Person[], separator?: string): string {
 
 export interface EntityAsObjectOptions {
   minify?: boolean;
-  keepTypename?: boolean;
+  keepTypename?: boolean; // true by default
+  keepLocalId?: boolean; // true by default
 }
 
 export abstract class Entity<T> implements Cloneable<T> {
@@ -257,6 +258,7 @@ export abstract class Entity<T> implements Cloneable<T> {
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
     if (!options || options.keepTypename !== true) delete target.__typename;
+    if (target.id < 0 && (!options || options.keepLocalId !== true)) delete target.id;
     target.updateDate = toDateISOString(this.updateDate);
     return target;
   }

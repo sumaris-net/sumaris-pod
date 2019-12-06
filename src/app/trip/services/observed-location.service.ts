@@ -14,6 +14,7 @@ import {map, throttleTime} from "rxjs/operators";
 import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {RootDataService} from "./root-data-service.class";
+import {DataEntityAsObjectOptions, SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
 
 
 export declare class ObservedLocationFilter {
@@ -236,21 +237,22 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
   }
 
   async save(entity: ObservedLocation): Promise<ObservedLocation> {
+    const now = Date.now();
+    if (this._debug) console.debug("[observed-location-service] Saving an observed location...");
 
     // Prepare to save
     this.fillDefaultProperties(entity);
 
-    // Transform into json
-    const json = this.asObject(entity);
-    const isNew = isNil(entity.id);
-
-    const now = Date.now();
-    if (this._debug) console.debug("[observed-location-service] Saving observed location...", json);
-
     // Reset the control date
     entity.controlDate = undefined;
-    json.controlDate = undefined;
 
+    // If new, create a temporary if (for offline mode)
+    const isNew = isNil(entity.id);
+
+    // Transform into json
+    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
+    if (isNew) delete json.id; // Make to remove temporary id, before sending to graphQL
+    if (this._debug) console.debug("[observed-location-service] Using minify object, to send:", json);
 
     const res = await this.graphql.mutate<{ saveObservedLocations: any }>({
       mutation: SaveAllQuery,
@@ -344,13 +346,13 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
 
   /* -- private -- */
 
-  protected asObject(entity: ObservedLocation): any {
-    const json = super.asObject(entity);
+  protected asObject(entity: ObservedLocation, opts?: DataEntityAsObjectOptions): any {
+    const copy = super.asObject(entity, opts);
 
-    // Remove unused properties
-    delete json.landings;
+    // Remove not saved properties
+    delete copy.landings;
 
-    return json;
+    return copy;
   }
 
 }

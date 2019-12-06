@@ -910,9 +910,9 @@ export class TripService extends RootDataService<Trip, TripFilter>
   /* -- protected methods -- */
 
 
-  protected asObject(entity: Trip, options?: DataEntityAsObjectOptions): any {
-    options = { ...MINIFY_OPTIONS, ...options };
-    const copy: any = entity.asObject(options);
+  protected asObject(entity: Trip, opts?: DataEntityAsObjectOptions): any {
+    opts = { ...MINIFY_OPTIONS, ...opts };
+    const copy: any = entity.asObject(opts);
 
     // Fill return date using departure date
     copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
@@ -922,13 +922,9 @@ export class TripService extends RootDataService<Trip, TripFilter>
       copy.returnLocation = { ...copy.departureLocation };
     }
 
-    if (options && options.minify) {
+    if (opts.minify) {
       // Clean vessel features object, before saving
       copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
-
-      // Keep id only, on person and department
-      copy.recorderPerson = {id: entity.recorderPerson && entity.recorderPerson.id};
-      copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
     }
 
     return copy;

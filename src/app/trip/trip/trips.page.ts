@@ -154,14 +154,16 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
         debounceTime(250),
         filter(() => this.filterForm.valid),
         // Applying the filter
-        tap(json => this.setFilter({
+        tap(json => {
+          this.setFilter({
             programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
             startDate: json.startDate,
             endDate: json.endDate,
             locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
             vesselId:  json.vesselSnapshot && typeof json.vesselSnapshot === "object" && json.vesselSnapshot.id || undefined,
             synchronizationStatus: json.synchronizationStatus || undefined,
-          }, {emitEvent: this.mobile || isNil(this.filter)})),
+          }, {emitEvent: this.mobile || isNil(this.filter)});
+        }),
         // Save filter in settings (after a debounce time)
         debounceTime(1000),
         tap(json => this.settings.savePageSetting(this.settingsId, json, 'filter'))
@@ -178,7 +180,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.restoreFilterOrLoad();
   }
 
-  setFilter(json: TripFilter, opts?: { emitEvent: boolean }) {
+  setFilter(json: TripFilter, opts?: { emitEvent: boolean; }) {
     super.setFilter(json, opts);
 
     this.filterIsEmpty = TripFilter.isEmpty(json);
@@ -237,7 +239,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       await $progression.pipe(filter(progress => progress >= 100)).toPromise();
 
       // Enable sync status button
-      this.filterForm.patchValue({synchronizationStatus: 'SYNC'}, {emitEvent: false/*avoid refresh*/});
+      this.setSynchronizationStatus('DIRTY');
       success = true;
 
     }
@@ -249,18 +251,13 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.importing = false;
       this.markForCheck();
     }
-
-    if (success && !environment.production) {
-      this.network.setConnectionType('none');
-      this.markForCheck();
-      this.onRefresh.emit();
-    }
-
   }
 
   setSynchronizationStatus(synchronizationStatus: SynchronizationStatus) {
     console.debug("[trips] Applying filter to synchronization status: " + synchronizationStatus);
-    this.filterForm.patchValue({synchronizationStatus}, {emitEvent: true /*will refresh the table*/});
+    this.filterForm.patchValue({synchronizationStatus}, {emitEvent: false});
+    this.setFilter({ ...this.filter, synchronizationStatus}, {emitEvent: true});
+
   }
 
   referentialToString = referentialToString;

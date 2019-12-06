@@ -58,7 +58,7 @@ export class VesselFilter {
       }
 
       // Search text
-      return searchFilter(t);
+      return isNil(searchFilter) || searchFilter(t);
     };
   }
 }

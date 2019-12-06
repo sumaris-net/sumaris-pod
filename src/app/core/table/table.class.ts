@@ -290,7 +290,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     if (this._initialized) this.listenDatasource(datasource);
   }
 
-  setFilter(filter: F, opts?: { emitEvent: boolean }) {
+  setFilter(filter: F, opts?: { emitEvent: boolean; }) {
     opts = opts || {emitEvent: true};
     this._filter = filter;
     if (opts.emitEvent) {
