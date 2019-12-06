@@ -855,7 +855,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const jobOpts = {maxProgression: undefined};
     const $jobs = [
       defer(() => this.network.clearCache()),
-      defer(() => this.referentialRefService.executeImport({...jobOpts, entityNames: ['Location']})),
+      defer(() => this.referentialRefService.executeImport(jobOpts)),
       defer(() => this.personService.executeImport(jobOpts)),
       defer(() => this.entities.persist()),
       defer(() => this.vesselSnapshotService.executeImport(jobOpts)),

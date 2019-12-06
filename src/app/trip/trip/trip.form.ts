@@ -21,6 +21,7 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 import {FormArray, FormBuilder} from "@angular/forms";
 import {PersonService} from "../../admin/services/person.service";
 import {toBoolean} from "../../shared/functions";
+import {NetworkService} from "../../core/services/network.service";
 
 @Component({
   selector: 'form-trip',
@@ -82,6 +83,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     protected personService: PersonService,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
+    protected network: NetworkService,
     protected cd: ChangeDetectorRef
   ) {
 

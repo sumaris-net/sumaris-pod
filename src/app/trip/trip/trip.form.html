@@ -38,7 +38,9 @@
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="auto" class="ion-align-self-center">
-        <button type="button" mat-icon-button tabindex="-1" [title]="'TRIP.BTN_ADD_VESSEL'|translate"
+        <button type="button" mat-icon-button tabindex="-1"
+                *ngIf="network.online"
+                [title]="'TRIP.BTN_ADD_VESSEL'|translate"
                 (click)="addVesselModal()">
           <mat-icon>add</mat-icon>
         </button>
