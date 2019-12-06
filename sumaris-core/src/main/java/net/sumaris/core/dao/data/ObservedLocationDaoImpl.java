@@ -474,7 +474,9 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
             } else {
                 Map<Integer, Person> observersToRemove = Beans.splitById(target.getObservers());
                 source.getObservers().stream()
+                        .filter(Objects::nonNull)
                         .map(IEntity::getId)
+                        .filter(Objects::nonNull)
                         .forEach(personId -> {
                             if (observersToRemove.remove(personId) == null) {
                                 // Add new item

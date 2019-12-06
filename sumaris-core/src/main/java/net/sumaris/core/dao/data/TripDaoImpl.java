@@ -520,7 +520,8 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
         // Observers
         if ((fieldOptions == null || fieldOptions.isWithObservers()) && CollectionUtils.isNotEmpty(source.getObservers())) {
-            Set<PersonVO> observers = source.getObservers().stream().map(personDao::toPersonVO).collect(Collectors.toSet());
+            Set<PersonVO> observers = source.getObservers().stream()
+                    .map(personDao::toPersonVO).collect(Collectors.toSet());
             target.setObservers(observers);
         }
 

@@ -138,6 +138,7 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
                 Set<Person> observers = target.getId() != null ? target.getObservers() : Sets.newHashSet();
                 Map<Integer, Person> observersToRemove = Beans.splitById(observers);
                 source.getObservers().stream()
+                        .filter(Objects::nonNull)
                         .map(IEntity::getId)
                         .filter(Objects::nonNull)
                         .forEach(personId -> {
