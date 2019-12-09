@@ -32,6 +32,7 @@
     "BTN_SHOW_MENU": "Show menu",
     "BTN_SHOW_MORE": "Show more",
     "BTN_LOGOUT": "Log out",
+    "BTN_INIT_OFFLINE_MODE": "Enable offline mode",
     "CREATED_ON": "Created on ",
     "COMMENTS": "Comments",
     "EMPTY_OPTION": "(Empty)",
@@ -255,6 +256,13 @@
         "NAME": "Name",
         "LABEL_NAME": "Code - Name",
         "NAME_LABEL": "Name - Code"
+      },
+      "VESSEL": {
+        "NAME": "Dropdown list > Vessels",
+        "ATTRIBUTES": {
+          "EXTERIOR_MARKING_NAME": "Exterior marking - Name",
+          "REGISTRATION_CODE_NAME": "Registration code - Name"
+        }
       }
     },
     "ERROR": {
@@ -328,7 +336,9 @@
         "PROGRAM": "Data collection program",
         "START_DATE": "Start period",
         "END_DATE": "End period",
-        "LOCATION": "Port (departure or return)"
+        "LOCATION": "Port (departure or return)",
+        "VESSEL": "Vessel",
+        "SYNCHRONIZATION_STATUS": "Status"
       }
     },
     "ERROR": {
@@ -340,7 +350,8 @@
       "CONTROL_TRIP_ERROR": "Error while terminating the trip",
       "VALIDATE_TRIP_ERROR": "Error while validating the trip",
       "UNVALIDATE_TRIP_ERROR": "Error while unvalidating the trip",
-      "QUALIFY_TRIP_ERROR": "Error while qualify the trip"
+      "QUALIFY_TRIP_ERROR": "Error while qualify the trip",
+      "SYNCHRONIZE_TRIP_ERROR": "Synchronization error"
     },
     "MEASUREMENT": {
       "FEATURE_PLACEHOLDER" : "Feature #{{rankOrder}}"
@@ -560,6 +571,10 @@
         "LOCATION": "Location",
         "START_DATE": "Start period",
         "END_DATE": "End period"
+      },
+      "OPTIONS": {
+        "ENABLE": "Observations > Enable ?",
+        "NAME": "Observations > Title (menu)"
       }
     },
     "ERROR": {
@@ -572,7 +587,6 @@
   },
   "LANDING": {
     "TAB_GENERAL": "Details",
-    "TAB_SAMPLES": "Checkpoints",
     "PROGRAM": "Program",
     "VESSEL": "Vessel",
     "LANDING": "Landing:",
@@ -605,19 +619,33 @@
       "SUBSCRIBE_ERROR": "Error while subscribe to observed vessel changes."
     }
   },
+  "AUCTION_CONTROL": {
+    "TAB_SAMPLES": "Checkpoints",
+    "TAXON_GROUP_PLACEHOLDER": "Controlled species",
+    "SAMPLE": {
+      "NEW": {
+        "TITLE": "New controlled sample"
+      },
+      "EDIT": {
+        "TITLE": "Controlled sample {{label}}"
+      }
+    }
+  },
   "QUALITY": {
+    "BTN_CONTROL": "Complete input",
+    "BTN_VALIDATE": "Validate",
+    "BTN_UNVALIDATE": "Unvalidate",
+    "BTN_SYNCHRONIZE": "Synchronize",
+    "BTN_QUALIFY": "Qualify",
+    "NOT_SYNCHRONIZED": "Data not synchronized",
     "MODIFIED": "Being edited",
     "CONTROLLED": "Completed",
     "CONTROLLED_ON": "Completed on ",
-    "CONTROL": "Complete input",
     "VALIDATED": "Validated",
     "VALIDATED_ON": "Validated on ",
-    "VALIDATE": "Validate",
-    "UNVALIDATE": "Unvalidate",
     "QUALIFIED": "Qualified",
     "QUALIFIED_ON": "Qualified on ",
     "QUALIFICATION_COMMENT": "Qualification comment",
-    "QUALIFY": "Qualify",
     "QUALITY_FLAG": "Quality level",
     "QUALITY_FLAG_SHORT": "Quality :",
     "QUALITY_FLAGS": {
@@ -696,6 +724,7 @@
     "STATUS": "Status",
     "RANK_ORDER": "#",
     "EXTERIOR_MARKING": "Exterior marking",
+    "REGISTRATION_CODE": "Registration code",
     "BASE_PORT_LOCATION": {
       "LABEL": "Harbour code",
       "NAME": "Harbour name"
@@ -968,7 +997,13 @@
         "TITLE": "Network peer",
         "HELP": "Please choose a network peer to connect to:"
       }
-    }
+    },
+    "SYNCHRONIZATION_STATUS": {
+      "DIRTY": "Dirty",
+      "READY_TO_SYNC": "Ready to synchronize",
+      "SYNC": "Synchronized"
+    },
+    "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%"
   },
   "ERROR": {
     "FIELD_REQUIRED": "This field is required.",
@@ -995,6 +1030,7 @@
     "FIELD_NOT_VALID_DATE_TIME": "Invalid date/hour",
     "FIELD_NOT_VALID_LATITUDE": "Invalid latitude",
     "FIELD_NOT_VALID_LONGITUDE": "Invalid longitude",
+    "FIELD_NOT_VALID_PATTERN": "Invalid format",
     "FIELD_NOT_VALID_PUBKEY": "Invalid public key",
     "FIELD_NOT_UNIQUE": "Value already used",
     "SPACE_NOT_ALLOW": "Spaces or special characters not allowed",
@@ -1012,13 +1048,16 @@
     "ACCOUNT_NOT_EXISTS": "Your account does not appear to exist and can not be backed up.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Error sending account confirmation email.<small><br/>If the problem persists, please contact your administrator.</small>",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Error while confirming the email. This account may have already been confirmed?",
+    "CONFIRM_ACCOUNT_EMAIL_FAILED": "Error while confirming the email. This account may have already been confirmed?",
     "UNAUTHORIZED": "Access denied by server",
     "FORBIDDEN": "Forbidden access",
     "AUTH_SERVER_ERROR": "Error during authentication on the server",
     "AUTH_CHALLENGE_ERROR": "Error during authentication on the server (loading challenge failed)",
     "TABLE_INVALID_ROW_ERROR": "A row is invalid",
     "SAVE_DATA_ERROR": "Error while saving data.<small><br/>If the problem persists, please contact your administrator.</small>",
-    "LOAD_DATA_ERROR": "Error while loading data.<small><br/>If the problem persists, please contact your administrator.</small>"
+    "LOAD_DATA_ERROR": "Error while loading data.<small><br/>If the problem persists, please contact your administrator.</small>",
+    "IMPORT_NEED_ONLINE_NETWORK": "No network connection. Unable to synchronize.",
+    "IMPORT_REFERENTIAL_ERROR": "Error while loading referential lists. Could not enable the offline mode."
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
