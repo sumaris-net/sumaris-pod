@@ -77,8 +77,18 @@ public class OperationServiceImpl implements OperationService {
 	}
 
 	@Override
-	public List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations) {
-		return operationDao.saveAllByTripId(tripId, operations);
+	public List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> sources) {
+		// Check operation validity
+		sources.forEach(this::checkOperation);
+
+		// Save entities
+		List<OperationVO> savedOperations =
+				operationDao.saveAllByTripId(tripId, sources);
+
+		// Save children entities
+		savedOperations.forEach(this::saveChildrenEntities);
+
+		return savedOperations;
 	}
 
 	@Override
@@ -88,96 +98,16 @@ public class OperationServiceImpl implements OperationService {
 
 	@Override
 	public OperationVO save(final OperationVO source) {
-		Preconditions.checkNotNull(source);
-		Preconditions.checkNotNull(source.getStartDateTime(), "Missing startDateTime");
-		Preconditions.checkNotNull(source.getEndDateTime(), "Missing endDateTime");
-		Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
-		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+		// Check operation validity
+		checkOperation(source);
 
-		// Default properties
-		if (source.getQualityFlagId() == null) {
-			source.setQualityFlagId(config.getDefaultQualityFlagId());
-		}
+		// Save the entity
+		operationDao.save(source);
 
-		OperationVO savedOperation = operationDao.save(source);
+		// Save linked entities
+		saveChildrenEntities(source);
 
-		// Save positions
-		{
-			List<VesselPositionVO> positions = Beans.getList(source.getPositions());
-			positions.forEach(m -> fillDefaultProperties(savedOperation, m));
-			positions = vesselPositionDao.saveByOperationId(savedOperation.getId(), positions);
-			savedOperation.setPositions(positions);
-		}
-
-		// Save measurements (vessel use measurement)
-		{
-			if (source.getMeasurementValues() != null) {
-				measurementDao.saveOperationVesselUseMeasurementsMap(savedOperation.getId(), source.getMeasurementValues());
-			}
-			else {
-				List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
-				measurements.forEach(m -> fillDefaultProperties(savedOperation, m, VesselUseMeasurement.class));
-				measurements = measurementDao.saveOperationVesselUseMeasurements(savedOperation.getId(), measurements);
-				savedOperation.setMeasurements(measurements);
-			}
-		}
-
-		// Save gear measurements (gear use measurement)
-		{
-			if (source.getGearMeasurementValues() != null) {
-				measurementDao.saveOperationGearUseMeasurementsMap(savedOperation.getId(), source.getGearMeasurementValues());
-			}
-			else {
-				List<MeasurementVO> measurements = Beans.getList(source.getGearMeasurements());
-				measurements.forEach(m -> fillDefaultProperties(savedOperation, m, GearUseMeasurement.class));
-				measurements = measurementDao.saveOperationGearUseMeasurements(savedOperation.getId(), measurements);
-				savedOperation.setGearMeasurements(measurements);
-			}
-		}
-
-		// Save samples
-		{
-			List<SampleVO> samples = getSamplesAsList(savedOperation);
-			samples.forEach(s -> fillDefaultProperties(savedOperation, s));
-			samples = sampleService.saveByOperationId(savedOperation.getId(), samples);
-
-			// Prepare saved samples (e.g. to be used as graphQL query response)
-			samples.forEach(sample -> {
-				// Set parentId (instead of parent object)
-				if (sample.getParentId() == null && sample.getParent() != null) {
-					sample.setParentId(sample.getParent().getId());
-				}
-				// Remove link parent/children
-				sample.setParent(null);
-				sample.setChildren(null);
-			});
-			
-			savedOperation.setSamples(samples);
-		}
-
-		// Save batches
-		{
-
-			List<BatchVO> batches = getAllBatches(savedOperation);
-			batches.forEach(b -> fillDefaultProperties(savedOperation, b));
-			batches = batchService.saveByOperationId(savedOperation.getId(), batches);
-
-			// Transform saved batches into flat list (e.g. to be used as graphQL query response)
-			batches.forEach(batch -> {
-				// Set parentId (instead of parent object)
-				if (batch.getParentId() == null && batch.getParent() != null) {
-					batch.setParentId(batch.getParent().getId());
-				}
-				// Remove link parent/children
-				batch.setParent(null);
-				batch.setChildren(null);
-			});
-
-			savedOperation.setCatchBatch(null);
-			savedOperation.setBatches(batches);
-		}
-
-		return savedOperation;
+		return source;
 	}
 
 	@Override
@@ -202,6 +132,95 @@ public class OperationServiceImpl implements OperationService {
 	}
 
 	/* -- protected methods -- */
+
+	protected void checkOperation(final OperationVO source) {
+		Preconditions.checkNotNull(source);
+		Preconditions.checkNotNull(source.getStartDateTime(), "Missing startDateTime");
+		Preconditions.checkNotNull(source.getEndDateTime(), "Missing endDateTime");
+		Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
+		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+
+	}
+
+	protected void saveChildrenEntities(final OperationVO source) {
+
+		// Save positions
+		{
+			List<VesselPositionVO> positions = Beans.getList(source.getPositions());
+			positions.forEach(m -> fillDefaultProperties(source, m));
+			positions = vesselPositionDao.saveByOperationId(source.getId(), positions);
+			source.setPositions(positions);
+		}
+
+		// Save measurements (vessel use measurement)
+		{
+			if (source.getMeasurementValues() != null) {
+				measurementDao.saveOperationVesselUseMeasurementsMap(source.getId(), source.getMeasurementValues());
+			}
+			else {
+				List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
+				measurements.forEach(m -> fillDefaultProperties(source, m, VesselUseMeasurement.class));
+				measurements = measurementDao.saveOperationVesselUseMeasurements(source.getId(), measurements);
+				source.setMeasurements(measurements);
+			}
+		}
+
+		// Save gear measurements (gear use measurement)
+		{
+			if (source.getGearMeasurementValues() != null) {
+				measurementDao.saveOperationGearUseMeasurementsMap(source.getId(), source.getGearMeasurementValues());
+			}
+			else {
+				List<MeasurementVO> measurements = Beans.getList(source.getGearMeasurements());
+				measurements.forEach(m -> fillDefaultProperties(source, m, GearUseMeasurement.class));
+				measurements = measurementDao.saveOperationGearUseMeasurements(source.getId(), measurements);
+				source.setGearMeasurements(measurements);
+			}
+		}
+
+		// Save samples
+		{
+			List<SampleVO> samples = getSamplesAsList(source);
+			samples.forEach(s -> fillDefaultProperties(source, s));
+			samples = sampleService.saveByOperationId(source.getId(), samples);
+
+			// Prepare saved samples (e.g. to be used as graphQL query response)
+			samples.forEach(sample -> {
+				// Set parentId (instead of parent object)
+				if (sample.getParentId() == null && sample.getParent() != null) {
+					sample.setParentId(sample.getParent().getId());
+				}
+				// Remove link parent/children
+				sample.setParent(null);
+				sample.setChildren(null);
+			});
+
+			source.setSamples(samples);
+		}
+
+		// Save batches
+		{
+
+			List<BatchVO> batches = getAllBatches(source);
+			batches.forEach(b -> fillDefaultProperties(source, b));
+			batches = batchService.saveByOperationId(source.getId(), batches);
+
+			// Transform saved batches into flat list (e.g. to be used as graphQL query response)
+			batches.forEach(batch -> {
+				// Set parentId (instead of parent object)
+				if (batch.getParentId() == null && batch.getParent() != null) {
+					batch.setParentId(batch.getParent().getId());
+				}
+				// Remove link parent/children
+				batch.setParent(null);
+				batch.setChildren(null);
+			});
+
+			source.setCatchBatch(null);
+			source.setBatches(batches);
+		}
+
+	}
 
 	protected void fillDefaultProperties(OperationVO parent, VesselPositionVO position) {
 		if (position == null) return;

@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
@@ -42,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -121,13 +123,15 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
     @Override
     public List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> sources) {
+
+
         // Load parent entity
         Trip parent = get(Trip.class, tripId);
 
         // Remember existing entities
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getOperations()));
 
-        // Save each gears
+        // Save each operation
         List<OperationVO> result = sources.stream().map(source -> {
             source.setTripId(tripId);
             if (source.getId() != null) {
@@ -140,6 +144,11 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
         if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
             sourcesIdsToRemove.forEach(this::delete);
         }
+
+        // Update the parent entity
+        Daos.replaceEntities(parent.getOperations(),
+                result,
+                (vo) -> load(Operation.class, vo.getId()));
 
         return result;
     }
@@ -253,7 +262,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
                 target.setTrip(null);
             }
             else {
-                target.setTrip(load(Trip.class, tripId));
+                target.setTrip(get(Trip.class, tripId));
             }
         }
 
@@ -288,15 +297,31 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
         }
 
         // Physical gear
-        if (copyIfNull || source.getPhysicalGearId() != null || (source.getPhysicalGear() != null && source.getPhysicalGear().getId() != null)) {
+        {
+            // Read physical gear id
             Integer physicalGearId = source.getPhysicalGearId() != null ? source.getPhysicalGearId() : (
-                    source.getPhysicalGear() != null ? source.getPhysicalGear().getId() : null
-            );
-            if (physicalGearId == null) {
-                target.setPhysicalGear(null);
+                    source.getPhysicalGear() != null ? source.getPhysicalGear().getId() : null);
+
+            // If not found, try using the rankOrder
+            if (physicalGearId == null && source.getPhysicalGear() != null && source.getPhysicalGear().getRankOrder() != null && target.getTrip() != null) {
+                Integer rankOrder = source.getPhysicalGear().getRankOrder();
+                physicalGearId = target.getTrip().getPhysicalGears()
+                        .stream()
+                        .filter(g -> g.getRankOrder() == rankOrder)
+                        .map(g -> g.getId()).findFirst().orElse(null);
+                if (physicalGearId == null) {
+                    throw new DataIntegrityViolationException("An operation use a unknown PhysicalGear with rankOrder=" + source.getPhysicalGear().getRankOrder());
+                }
+                source.setPhysicalGearId(physicalGearId);
+                source.setPhysicalGear(null);
             }
-            else {
-                target.setPhysicalGear(load(PhysicalGear.class, physicalGearId));
+
+            if (copyIfNull || physicalGearId != null) {
+                if (physicalGearId == null) {
+                    target.setPhysicalGear(null);
+                } else {
+                    target.setPhysicalGear(load(PhysicalGear.class, physicalGearId));
+                }
             }
         }
     }

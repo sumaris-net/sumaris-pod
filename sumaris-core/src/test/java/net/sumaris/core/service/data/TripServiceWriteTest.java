@@ -22,11 +22,16 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableTable;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -37,6 +42,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
+import java.util.List;
 
 public class TripServiceWriteTest extends AbstractServiceTest{
 
@@ -45,6 +51,12 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
     @Autowired
     private TripService service;
+
+    @Autowired
+    private OperationService operationService;
+
+    @Autowired
+    private PmfmService pmfmService;
 
     @Test
     public void save() {
@@ -64,7 +76,39 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
     }
 
+    @Test
+    public void saveWithOperation() {
+        // Create a trip, with an physical gear
+        TripVO trip = createTrip();
 
+        // Create a operation, with an physical gear having a rankOrder, without id
+        // (can occur when saving a trip WITH operation for the first time)
+        OperationVO operation = createOperation(trip);
+        PhysicalGearVO opeGear = new PhysicalGearVO();
+        opeGear.setRankOrder(1);
+        operation.setPhysicalGear(opeGear);
+        operation.setPhysicalGearId(null);
+
+        trip.setOperations(ImmutableList.of(operation));
+
+        TripVO savedVO = service.save(trip, true);
+
+        Assert.assertNotNull(savedVO);
+        Assert.assertNotNull(savedVO.getId());
+
+        // Reload and check
+        List<OperationVO> savedOperations = operationService.getAllByTripId(savedVO.getId(), 0, 1000, null, null);
+        Assert.assertNotNull(savedOperations);
+        Assert.assertTrue(savedOperations.size() == 1);
+
+        OperationVO saveOperation = savedOperations.get(0);
+        Assert.assertNotNull(saveOperation.getPhysicalGear());
+        Assert.assertNotNull(saveOperation.getPhysicalGear().getId());
+
+        Assert.assertEquals("Operation's physical gear id should be equals to trip's physical gear",
+                savedVO.getGears().get(0).getId(), saveOperation.getPhysicalGear().getId());
+
+    }
 
     @Test
     public void delete() {
@@ -119,6 +163,18 @@ public class TripServiceWriteTest extends AbstractServiceTest{
         observer2.setId(dbResource.getFixtures().getPersonId(1));
         vo.setObservers(ImmutableSet.of(observer1, observer2));
 
+        // Physical gear
+        PhysicalGearVO gear = new PhysicalGearVO();
+        gear.setRankOrder(1);
+        gear.setGear(createReferentialVO(dbResource.getFixtures().getGearId(0)));
+        gear.setRecorderDepartment(recorderDepartment);
+        vo.setGears(ImmutableList.of(gear));
+
         return vo;
     }
+
+    protected OperationVO createOperation(TripVO parent) {
+        return DataTestUtils.createOperation(dbResource.getFixtures(), pmfmService, parent);
+    }
+
 }

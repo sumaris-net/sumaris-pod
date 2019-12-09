@@ -140,6 +140,17 @@ public class DatabaseFixtures {
 
 	/* -- Referential -- */
 
+	public Integer getGearId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1;
+
+			default:
+				return 1;
+		}
+	}
+
 	public Integer getLocationPortId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {

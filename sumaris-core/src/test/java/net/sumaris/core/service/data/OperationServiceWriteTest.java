@@ -22,22 +22,15 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.PmfmService;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.*;
-import net.sumaris.core.vo.referential.PmfmVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Calendar;
 import java.util.List;
 
 public class OperationServiceWriteTest extends AbstractServiceTest {
@@ -152,139 +145,9 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
     /* -- Protected -- */
 
     protected OperationVO createOperation() {
-        OperationVO vo = new OperationVO();
-        vo.setTripId(parent.getId());
-
-        // Set dates
-        Calendar date = Calendar.getInstance();
-        date.setTime(parent.getDepartureDateTime());
-        date.add(Calendar.HOUR, 1);
-        vo.setStartDateTime(date.getTime());
-
-        date.add(Calendar.MINUTE, 5);
-        vo.setFishingStartDateTime(date.getTime());
-
-        date.add(Calendar.MINUTE, 20);
-        vo.setFishingEndDateTime(date.getTime());
-
-        date.add(Calendar.MINUTE, 5);
-        vo.setEndDateTime(date.getTime());
-
-        // Positions
-        VesselPositionVO startPos = new VesselPositionVO();
-        startPos.setDateTime(vo.getFishingStartDateTime());
-        startPos.setLatitude(10.0);
-        startPos.setLongitude(0.0);
-
-        VesselPositionVO endPos = new VesselPositionVO();
-        endPos.setDateTime(vo.getFishingEndDateTime());
-        endPos.setLatitude(10.01);
-        endPos.setLongitude(0.01);
-
-        vo.setPositions(Lists.newArrayList(startPos, endPos));
-
-        // Recorder
-        DepartmentVO recorderDepartment = new DepartmentVO();
-        recorderDepartment.setId(fixtures.getDepartmentId(0));
-        vo.setRecorderDepartment(recorderDepartment);
-
-        // Physical gear
-        vo.setPhysicalGearId(1);
-
-        // Metier
-        vo.setMetier(createMetierVO(fixtures.getMetierIdForOTB(0)));
-
-        // Measurements (= vessel use measurements)
-        PmfmVO bottomDepthPmfm = pmfmService.getByLabel("BOTTOM_DEPTH_M");
-        MeasurementVO meas1 = new MeasurementVO();
-        meas1.setNumericalValue(15.0);
-        meas1.setPmfmId(bottomDepthPmfm.getId());
-        meas1.setRankOrder(1);
-
-        vo.setMeasurements(ImmutableList.of(meas1));
-
-        List<SampleVO> samples = Lists.newArrayList();
-        vo.setSamples(samples);
-
-        // Sample / Survival tests
-        {
-            SampleVO sample = new SampleVO();
-            sample.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAOId(0)));
-            date.add(Calendar.MINUTE, 5);
-            sample.setSampleDate(date.getTime());
-            sample.setRankOrder(1);
-            sample.setLabel(AcquisitionLevelEnum.SURVIVAL_TEST.label + "#1");
-            sample.setMatrix(createReferentialVO(fixtures.getMatrixIdForIndividual()));
-            sample.setComments("A survival test sample #1");
-            sample.setProgram(fixtures.getDefaultProgram());
-
-            // Measurements (as map)
-            sample.setMeasurementValues(
-                    ImmutableMap.<Integer, String>builder()
-                            .put(60, "155")
-                            .put(80, "185")
-                            .put(dbResource.getFixtures().getPmfmSampleTagId(), "TAG-1")
-                            .build());
-            samples.add(sample);
-
-            // Individual monitoring, as children
-            List<SampleVO> children = Lists.newArrayList();
-            sample.setChildren(children);
-            {
-                SampleVO childSample = new SampleVO();
-                childSample.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAOId(0)));
-                childSample.setRankOrder(1);
-                childSample.setLabel(AcquisitionLevelEnum.INDIVIDUAL_MONITORING.label + "#1");
-                childSample.setMatrix(createReferentialVO(fixtures.getMatrixIdForIndividual()));
-                childSample.setComments("A individual monitoring test sample #1");
-
-                // Measurements (as map)
-                childSample.setMeasurementValues(
-                        ImmutableMap.<Integer, String>builder()
-                                .put(fixtures.getPmfmSampleIsDead(), "0")
-                                .build());
-                children.add(childSample);
-            }
-        }
-
-        // Batch / catch
-        {
-            BatchVO catchBatch = new BatchVO();
-            catchBatch.setLabel("batch #1");
-            catchBatch.setRankOrder(1);
-            catchBatch.setComments("Catch batch on OPE #1");
-
-            // Measurements (as map)
-            catchBatch.setSortingMeasurementValues(
-                    ImmutableMap.<Integer, String>builder()
-                            .put(60, "155")
-                            .put(80, "185")
-                            .build());
-
-            vo.setCatchBatch(catchBatch);
-
-            // Children
-            List<BatchVO> children = Lists.newArrayList();
-            {
-                BatchVO batch = new BatchVO();
-                batch.setLabel("batch #1.1");
-                batch.setRankOrder(1);
-                batch.setComments("Batch 1.1 on OPE #1");
-                batch.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAOId(0)));
-
-                // Measurements (as map)
-                batch.setSortingMeasurementValues(
-                        ImmutableMap.<Integer, String>builder()
-                                .put(60, "155") // TODO: change this
-                                .put(80, "185")
-                                .build());
-                children.add(batch);
-            }
-            catchBatch.setChildren(children);
-        }
-
-        return vo;
+        return DataTestUtils.createOperation(fixtures, pmfmService, parent);
     }
+
 
     protected int countBatches(OperationVO vo) {
         if (vo.getCatchBatch() == null) return 0;

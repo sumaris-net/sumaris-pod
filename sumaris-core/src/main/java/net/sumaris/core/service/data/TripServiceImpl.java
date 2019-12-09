@@ -140,12 +140,7 @@ public class TripServiceImpl implements TripService {
         gears = physicalGearService.save(savedTrip.getId(), gears);
         savedTrip.setGears(gears);
 
-        // Save operations (only if asked)
-        if (withOperation) {
-            List<OperationVO> operations = Beans.getList(source.getOperations());
-            operations = operationService.saveAllByTripId(savedTrip.getId(), operations);
-            savedTrip.setOperations(operations);
-        }
+
 
         // Save measurements
         if (source.getMeasurementValues() != null) {
@@ -156,6 +151,13 @@ public class TripServiceImpl implements TripService {
             measurements.forEach(m -> fillDefaultProperties(savedTrip, m));
             measurements = measurementDao.saveTripVesselUseMeasurements(savedTrip.getId(), measurements);
             savedTrip.setMeasurements(measurements);
+        }
+
+        // Save operations (only if asked)
+        if (withOperation) {
+            List<OperationVO> operations = Beans.getList(source.getOperations());
+            operations = operationService.saveAllByTripId(savedTrip.getId(), operations);
+            savedTrip.setOperations(operations);
         }
 
         return savedTrip;

@@ -23,7 +23,9 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.PhysicalGearMeasurement;
@@ -100,9 +102,11 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
             gear.setTripId(tripId);
             gear.setProgram(parentProgram);
 
-            if (gear.getId() != null) {
-                sourcesToRemove.remove(gear.getId());
+            boolean isNew = (gear.getId() == null) || (sourcesToRemove.remove(gear.getId()) == null);
+            if (isNew) {
+                gear.setId(null);
             }
+
             return save(gear);
         }).collect(Collectors.toList());
 
@@ -110,6 +114,11 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
         if (MapUtils.isNotEmpty(sourcesToRemove)) {
             sourcesToRemove.values().forEach(this::delete);
         }
+
+        // Update the parent list
+        Daos.replaceEntities(parent.getPhysicalGears(),
+                result,
+                (vo) -> load(PhysicalGear.class, vo.getId()));
 
         // Save measurements on each gears
         // NOTE: using the savedGear to be sure to get an id

@@ -235,8 +235,10 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "saveTrip", description = "Create or update a trip")
     @IsUser
-    public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
-        final TripVO result = tripService.save(trip, false);
+    public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip,
+                           @GraphQLArgument(name = "withOperation", defaultValue = "false") boolean withOperation,
+                           @GraphQLEnvironment() Set<String> fields) {
+        final TripVO result = tripService.save(trip, withOperation);
 
         // Add additional properties if needed
         fillTripFields(result, fields);
@@ -246,8 +248,10 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "saveTrips", description = "Create or update many trips")
     @IsUser
-    public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips, @GraphQLEnvironment() Set<String> fields) {
-        final List<TripVO> result = tripService.save(trips, false);
+    public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips,
+                                  @GraphQLArgument(name = "withOperation", defaultValue = "false") boolean withOperation,
+                                  @GraphQLEnvironment() Set<String> fields) {
+        final List<TripVO> result = tripService.save(trips, withOperation);
 
         // Add additional properties if needed
         fillTrips(result, fields);
@@ -476,7 +480,10 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
     public List<OperationVO> getOperationsByTrip(@GraphQLContext TripVO trip) {
-        return operationService.getAllByTripId(trip.getId(), 0, 100, OperationVO.Fields.START_DATE_TIME, SortDirection.ASC);
+        if (CollectionUtils.isNotEmpty(trip.getOperations())) {
+            return trip.getOperations();
+        }
+        return operationService.getAllByTripId(trip.getId(), 0, 1000, OperationVO.Fields.START_DATE_TIME, SortDirection.ASC);
     }
 
     @GraphQLQuery(name = "operation", description = "Get an operation")
