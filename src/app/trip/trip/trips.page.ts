@@ -271,7 +271,6 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   /* -- protected methods -- */
 
   protected async restoreFilterOrLoad() {
-    console.log("TODO: restoreFilterOrLoad")
     const json = this.settings.getPageSettings(this.settingsId, 'filter');
 
     const synchronizationStatus = json && json.synchronizationStatus;

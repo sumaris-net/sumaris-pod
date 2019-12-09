@@ -68,6 +68,11 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
           this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
         })
     );
+
+    // Cascade refresh to operation tables
+    this.onRefresh.subscribe(() => {
+      this.operationTable.onRefresh.emit()
+    });
   }
 
   protected registerFormsAndTables() {
@@ -121,15 +126,18 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     }
   }
 
-  onOpenOperation({id, row}) {
-    this.loading = true;
-    this.saveIfDirtyAndConfirm()
-      .then((savedOrContinue) => {
-        if (savedOrContinue) {
-          return this.router.navigateByUrl(`/trips/${this.data.id}/operations/${id}`);
-        }
-      })
-      .then(() => this.loading = false);
+  async onOpenOperation({id, row}) {
+
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      this.loading = true;
+      try {
+        await this.router.navigateByUrl(`/trips/${this.data.id}/operations/${id}`);
+      }
+      finally {
+        this.loading = false;
+      }
+    }
   }
 
   async onNewOperation(event?: any) {

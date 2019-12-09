@@ -149,8 +149,8 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     delete target.parentBatch;
     this.parent = parent;
 
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
-    target.taxonName = this.taxonName && this.taxonName.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
     target.samplingRatio = isNotNil(this.samplingRatio) ? this.samplingRatio : null;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.children = this.children && (!opts || opts.withChildren !== false) && this.children.map(c => c.asObject(opts)) || undefined;
@@ -394,5 +394,27 @@ export class BatchUtils {
     }
   }
 
+  static logTree(batch: Batch, opts?: {indent?: string; nextIndent?: string}) {
+    const indent = opts && opts.indent || '';
+    const nextIndent = opts && opts.nextIndent || indent;
+    let message = indent + batch.label + ' id=' + batch.id;
+    if (batch.parent || isNotNil(batch.parentId)) {
+      message += ' - parentId=' + (batch.parent && batch.parent.id || batch.parentId);
+    }
+    console.debug(message);
+    const childrenCount = batch.children && batch.children.length || 0;
+    if (childrenCount) {
+      batch.children.forEach((b, index, ) => {
+        const opts = (index === childrenCount - 1) ? {
+          indent: nextIndent + ' \\- ',
+          nextIndent: nextIndent + '   '
+        } : {
+          indent: nextIndent + ' |- '
+        };
+
+        this.logTree(b, opts);
+      });
+    }
+  }
 
 }

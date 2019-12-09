@@ -258,7 +258,7 @@ export abstract class Entity<T> implements Cloneable<T> {
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
     if (!options || options.keepTypename !== true) delete target.__typename;
-    if (target.id < 0 && (!options || options.keepLocalId !== true)) delete target.id;
+    if (target.id < 0 && (!options || options.keepLocalId === false)) delete target.id;
     target.updateDate = toDateISOString(this.updateDate);
     return target;
   }
@@ -356,8 +356,11 @@ export class EntityUtils {
   static async fillLocalIds<T extends Entity<T>>(items: T[], sequenceFactory: (firstEntity: T, incrementSize: number) => Promise<number>) {
     const newItems = (items || []).filter(item => isNil(item.id) || item.id === 0);
     if (isEmptyArray(newItems)) return;
-    let itemId = await sequenceFactory(newItems[0], newItems.length);
-    newItems.forEach(item => item.id = itemId++);
+    // Get the sequence
+    let currentId = await sequenceFactory(newItems[0], newItems.length) + 1;
+    // Take the min (sequence, id), in case the sequence is corrupted
+    currentId = items.filter(item => isNotNil(item.id) && item.id < 0).reduce((res, item) => Math.min(res, item.id), currentId);
+    newItems.forEach(item => item.id = --currentId);
   }
 
   static sort<T extends Entity<T> | any>(data: T[], sortBy?: string, sortDirection?: string): T[] {

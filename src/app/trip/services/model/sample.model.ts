@@ -69,8 +69,8 @@ export class Sample extends DataRootEntity<Sample>
   asObject(options?: DataEntityAsObjectOptions): any {
     const target = super.asObject(options);
     target.sampleDate = toDateISOString(this.sampleDate);
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
-    target.taxonName = this.taxonName && this.taxonName.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...options, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject({ ...options, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     target.children = this.children && this.children.map(c => c.asObject(options)) || undefined;

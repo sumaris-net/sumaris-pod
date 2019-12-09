@@ -26,6 +26,8 @@ const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => { return n1
 
 export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEntity<Trip> {
 
+  static TYPENAME = 'TripVO';
+
   static fromObject(source: any): Trip {
     if (!source) return null;
     const res = new Trip();
@@ -41,10 +43,11 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   gears: PhysicalGear[];
   measurements: Measurement[];
   observers: Person[];
+  operations?: Operation[];
 
   constructor() {
     super();
-    this.__typename = 'TripVO';
+    this.__typename = Trip.TYPENAME;
     this.departureLocation = null;
     this.returnLocation = null;
     this.measurements = [];
@@ -71,6 +74,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.gears = this.gears && this.gears.map(p => p && p.asObject(options)) || undefined;
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
     target.observers = this.observers && this.observers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.operations = this.operations && this.operations.map(o => o.asObject(options)) || undefined;
     return target;
   }
 
@@ -175,6 +179,8 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
 
 export class Operation extends DataEntity<Operation> {
 
+  static TYPE_NAME = 'OperationVO';
+
   static fromObject(source: any): Operation {
     const res = new Operation();
     res.fromObject(source);
@@ -203,7 +209,7 @@ export class Operation extends DataEntity<Operation> {
 
   constructor() {
     super();
-    this.__typename = 'OperationVO';
+    this.__typename = Operation.TYPE_NAME;
     this.metier = null;
     this.startPosition = new VesselPosition();
     this.endPosition = new VesselPosition();
@@ -241,9 +247,17 @@ export class Operation extends DataEntity<Operation> {
     delete target.startPosition;
     delete target.endPosition;
 
-    // Physical gear: keep id
-    target.physicalGearId = this.physicalGear && this.physicalGear.id;
-    delete target.physicalGear;
+    // Physical gear
+    // Existing gear: keep only the id
+    if (opts && opts.minify && this.physicalGear && this.physicalGear.id >= 0) {
+      // Minify only if id is not local
+      target.physicalGearId = this.physicalGear && this.physicalGear.id;
+      delete target.physicalGear;
+    }
+    else if (this.physicalGear){
+      target.physicalGear = this.physicalGear.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/ });
+      delete target.physicalGear.measurementValues;
+    }
 
     // Measurements
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;

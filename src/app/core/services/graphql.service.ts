@@ -222,9 +222,13 @@ export class GraphqlService {
           catchError(error => this.onApolloError<T>(error)),
           first()
         )
-        .subscribe(({data, errors}) => {
-          if (errors) {
-            let error = errors[0] as any;
+        .subscribe(res => {
+          if (!res) {
+            reject('Unknown GraphQL error. Please check previous errors in console');
+            return;
+          }
+          else if (res.errors) {
+            let error = res.errors[0] as any;
 
             if (error && error.code && error.message) {
               if (error && error.code == ServerErrorCodes.BAD_UPDATE_DATE) {
@@ -241,7 +245,7 @@ export class GraphqlService {
               if (opts.error && opts.error.reject) opts.error.reject(error);
             }
           } else {
-            resolve(data as T);
+            resolve(res.data as T);
           }
         });
     });

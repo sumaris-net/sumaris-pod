@@ -81,6 +81,12 @@ export const OPTIMISTIC_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
  keepEntityName: true,
  keepLocalId: true
 };
+export const SAVE_LOCALLY_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
+  minify: true,
+  keepTypename: true,
+  keepEntityName: true,
+  keepLocalId: true
+};
 
 export const SAVE_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
   minify: true,

@@ -1,6 +1,6 @@
 import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
-import {EntityUtils, fillRankOrder, fromDateISOString, isNil, Trip} from "./trip.model";
+import {EntityUtils, fillRankOrder, fromDateISOString, isNil, Operation, Trip} from "./trip.model";
 import {
   EditorDataService,
   isNilOrBlank,
@@ -32,11 +32,12 @@ import {concat, defer, Observable, of} from "rxjs";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {isEmptyArray} from "../../shared/functions";
 import {DataQualityService} from "./trip.services";
-import {OperationService} from "./operation.service";
+import {OperationFilter, OperationService} from "./operation.service";
 import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PersonService} from "../../admin/services/person.service";
 import {ProgramService} from "../../referential/services/program.service";
+import {chainAllPromise, firstNotNilPromise} from "../../shared/observables";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -195,7 +196,7 @@ export class TripFilter {
       // Start/end period
       const startDate = fromDateISOString(f.startDate);
       const endDate = fromDateISOString(f.endDate);
-      if (endDate) console.log("TODO: Check end dat filter", endDate);
+      //if (endDate) console.log("TODO: Check end dat filter", endDate);
       if ((startDate && t.returnDateTime && startDate.isAfter(t.returnDateTime))
         || (endDate && t.departureDateTime && endDate.add(1, 'day').isSameOrBefore(t.departureDateTime))) {
         return false;
@@ -241,8 +242,8 @@ const LoadQuery: any = gql`
   ${TripFragments.trip}
 `;
 const SaveAllQuery: any = gql`
-  mutation saveTrips($trips:[TripVOInput]){
-    saveTrips(trips: $trips){
+  mutation saveTrips($trips:[TripVOInput], $withOperation: Boolean!){
+    saveTrips(trips: $trips, withOperation: $withOperation){
       ...TripFragment
     }
   }
@@ -347,42 +348,45 @@ export class TripService extends RootDataService<Trip, TripFilter>
       filter: { ...dataFilter, synchronizationStatus: undefined}
     };
 
+    let now = this._debug && Date.now();
+    let $loadResult: Observable<{ trips: Trip[]; tripsCount?: number; }>;
+    if (this._debug) console.debug("[trip-service] Watching trips... using options:", variables);
+
     // Offline
     const offlineData = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
     if (offlineData) {
-      return this.entities.watchAll<Trip>('TripVO', {
+      $loadResult = this.entities.watchAll<Trip>('TripVO', {
         ...variables,
         filter: TripFilter.searchFilter<Trip>(dataFilter)
       })
         .pipe(
           map(res => {
-            const data = (res && res.data || []).map(Trip.fromObject);
-            const total = res && isNotNil(res.total) ? res.total : undefined;
-            return {data, total};
+            return {trips: res && res.data, tripsCount: res && res.total};
           }));
     }
+    else {
 
-    this._lastVariables.loadAll = variables;
+      this._lastVariables.loadAll = variables;
 
-    let now = Date.now();
-    if (this._debug) console.debug("[trip-service] Watching trips... using options:", variables);
-    return this.graphql.watchQuery<{ trips: Trip[]; tripsCount: number }>({
-      query: LoadAllQuery,
-      variables: variables,
-      error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
-      fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
-    })
-      .pipe(
-        filter(() => !this.loading),
+      const query = LoadAllQuery;
+      $loadResult = this.graphql.watchQuery<{ trips: Trip[]; tripsCount: number; }>({
+        query,
+        variables,
+        error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
+        fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
+      })
+        .pipe(
+          filter(() => !this.loading)
+        );
+    }
+
+    return $loadResult.pipe(
         map(res => {
           const data = (res && res.trips || []).map(Trip.fromObject);
           const total = res && isNotNil(res.tripsCount) ? res.tripsCount : undefined;
-          if (/*this._debug &&*/ now) {
+          if (now) {
             console.debug(`[trip-service] Loaded {${data.length || 0}} trips in ${Date.now() - now}ms`, data);
             now = undefined;
-          }
-          else {
-            console.debug(`[trip-service] Refreshed {${data.length || 0}} trips`);
           }
           return {
             data: data,
@@ -395,30 +399,41 @@ export class TripService extends RootDataService<Trip, TripFilter>
   async load(id: number, options?: {fetchPolicy: FetchPolicy}): Promise<Trip | null> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
-    const now = Date.now();
+    const now = this._debug && Date.now();
     if (this._debug) console.debug(`[trip-service] Loading trip #${id}...`);
     this.loading = true;
 
-    // If local entity
-    if (id < 0) {
-      const json = await this.entities.load<Trip>(id, 'TripVO');
-      this.loading = true;
-      return json && Trip.fromObject(json);
+    try {
+      let json: any;
+
+      // If local entity
+      if (id < 0) {
+        json = await this.entities.load<Trip>(id, Trip.TYPENAME);
+      }
+
+      else {
+        // Load remotely
+        const res = await this.graphql.query<{ trip: Trip }>({
+          query: LoadQuery,
+          variables: {
+            id: id
+          },
+          error: { code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR" },
+          fetchPolicy: options && options.fetchPolicy || undefined
+        });
+        json = res && res.trip;
+      }
+
+      // Transform to entity
+      const data = Trip.fromObject(json);
+      if (data && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, data);
+      return data;
+    }
+    finally {
+      this.loading = false;
     }
 
-    const res = await this.graphql.query<{ trip: Trip }>({
-      query: LoadQuery,
-      variables: {
-        id: id
-      },
-      error: { code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR" },
-      fetchPolicy: options && options.fetchPolicy || undefined
-    });
-    const data = res && res.trip && Trip.fromObject(res.trip);
-    if (data && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, data);
-    this.loading = false;
 
-    return data;
   }
 
   async hasOfflineData(): Promise<boolean> {
@@ -426,7 +441,6 @@ export class TripService extends RootDataService<Trip, TripFilter>
       offset: 0,
       size: 0
     });
-    console.log("TODO Check if data: " + (res && res.total > 0));
     return res && res.total > 0;
   }
 
@@ -499,7 +513,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
    * Save a trip
    * @param data
    */
-  async save(entity: Trip): Promise<Trip> {
+  async save(entity: Trip, opts?: {withOperation?: boolean;}): Promise<Trip> {
 
     const now = Date.now();
     if (this._debug) console.debug("[trip-service] Saving a trip...");
@@ -534,7 +548,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
      this.graphql.mutate<{ saveTrips: any }>({
        mutation: SaveAllQuery,
        variables: {
-         trips: [json]
+         trips: [json],
+         withOperation: opts && opts.withOperation || false
        },
        offlineResponse,
        error: { reject,  code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" },
@@ -554,7 +569,18 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
            // Remove existing entity from the local storage
            if (entity.id < 0 && savedEntity.updateDate) {
+             if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
              await this.entities.delete(entity);
+
+             try {
+               // Remove linked operations
+               if (opts && opts.withOperation) {
+                 await this.operationService.deleteByTripId(entity.id);
+               }
+             }
+             catch(err) {
+               console.error(`[trip-service] Failed to locally delete operations of trip {${entity.id}}`, err);
+             }
            }
 
            // Copy id and update Date
@@ -594,18 +620,17 @@ export class TripService extends RootDataService<Trip, TripFilter>
       throw new Error("Could not synchronize if network if offline");
     }
 
-    const tripId = entity.id;
+    // Load operations
+    const res = await this.entities.loadAll<Operation>('OperationVO', {
+      filter: OperationFilter.searchFilter<Operation>({tripId: entity.id})
+    });
+    entity.operations = (res && res.data || []).map(Operation.fromObject);
 
-    entity = await this.save(entity);
 
-    if (entity.id < 0) {
+    const savedEntity = await this.save(entity, {withOperation: true});
+
+    if (savedEntity.id < 0) {
       throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
-    }
-
-
-    const operationsRes = await this.operationService.watchAll(0, 1000, null, null, {tripId}).toPromise();
-    if (operationsRes.total) {
-      (operationsRes.data || []).forEach(operation => this.operationService.synchronize(operation));
     }
 
     return this.control(entity);
@@ -790,14 +815,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
   async delete(data: Trip): Promise<any> {
     if (!data) return; // skip
-
-    // If local entity
-    if (data.id < 0) {
-      await this.entities.delete<Trip>(data);
-    }
-    else {
-      await this.deleteAll([data]);
-    }
+    await this.deleteAll([data]);
   }
 
   /**
@@ -813,11 +831,16 @@ export class TripService extends RootDataService<Trip, TripFilter>
     if (isNotEmptyArray(localIds)) {
       if (this._debug) console.debug("[trip-service] Deleting trips locally... ids:", localIds);
       await this.entities.deleteMany<Trip>(localIds, 'TripVO');
+
+      // Cascade to operation, trip by trip
+      await chainAllPromise(localIds.map(id => {
+          return () => this.operationService.deleteByTripId(id);
+        }));
     }
 
     const remoteIds = entities && entities
       .map(t => t.id)
-      .filter(isNotNil);
+      .filter(id => id >= 0);
     if (isEmptyArray(remoteIds)) return; // stop, if nothing else to do
 
     const now = Date.now();
@@ -977,10 +1000,9 @@ export class TripService extends RootDataService<Trip, TripFilter>
       entity.synchronizationStatus = 'DIRTY';
     }
 
-    await Promise.all(
-      ['gears'].map(key => EntityUtils.fillLocalIds(entity[key],
-      (item, size) => this.entities.nextValues(item, size)))
-    );
+    // Fill gear id
+    const gears = entity.gears || [];
+    await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues('GearVO', count));
   }
 
   copyIdAndUpdateDate(source: Trip | undefined, target: Trip) {

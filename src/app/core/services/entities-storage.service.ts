@@ -1,13 +1,11 @@
-import {BehaviorSubject, concat, defer, merge, Observable, of, Subject, Subscription, timer} from "rxjs";
-import {Injectable} from "@angular/core";
+import {BehaviorSubject, concat, defer, merge, Observable, Subject, Subscription, timer} from "rxjs";
+import {EventEmitter, Injectable} from "@angular/core";
 import {Storage} from "@ionic/storage";
 import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
 import {catchError, map, switchMap, tap, throttleTime} from "rxjs/operators";
-import {Entity, EntityUtils, joinPropertiesPath} from "./model";
-import {getPropertyByPath, isEmptyArray, isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
-import {DataStore} from "apollo-client/data/store";
-import {ReferentialFilter} from "../../referential/services/referential.service";
+import {Entity, EntityUtils} from "./model";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {LoadResult} from "../../shared/services/data-service.class";
 
 
@@ -207,7 +205,7 @@ export class EntityStorage {
 
   private _stores: { [key: string]: EntityStore<any> } = {};
 
-  private _$save = new Subject();
+  private _$save = new EventEmitter(true);
   private _dirty = false;
   private _saving = false;
 
@@ -315,6 +313,9 @@ export class EntityStorage {
     this.getEntityStore<T>(entityName)
       .save(entity, opts);
 
+    // Ask to save
+    this._$save.emit();
+
     return entity;
   }
 
@@ -350,6 +351,10 @@ export class EntityStorage {
     if (!entityStore) return undefined;
 
     this._dirty = true;
+
+    // Ask to save
+    this._$save.emit();
+
     return entityStore.delete(id);
   }
 
@@ -363,6 +368,9 @@ export class EntityStorage {
 
     const deletedEntities = entityStore.deleteMany(ids);
     this._dirty = this._dirty || deletedEntities.length > 0;
+
+    // Ask to save
+    if (this._dirty) this._$save.emit();
 
     return deletedEntities;
   }
@@ -408,19 +416,24 @@ export class EntityStorage {
     }
 
     // Slice in a page (using offset and size)
-    if (opts.offset) {
+    if (opts.offset > 0) {
 
       // Offset after the end: no result
-      if (opts.offset >= data.length) {
+      if (opts.offset >= data.length || opts.size === 0) {
         data = [];
       }
       else {
-        data = (opts.size && (opts.offset + opts.size <= data.length)) ?
+        data = (opts.size && ((opts.offset + opts.size) < data.length)) ?
           // Slice using limit to size
-          data.slice(opts.offset, (opts.offset + opts.size)) :
+          data.slice(opts.offset, (opts.offset + opts.size) - 1) :
           // Slice without limit
           data.slice(opts.offset);
       }
+    }
+    else if (opts.size > 0){
+      data = data.slice(0, opts.size - 1);
+    } else if (opts.size === 0){
+      data = [];
     }
 
     return {data, total};
@@ -534,24 +547,16 @@ export class EntityStorage {
           return defer(() => {
             currentEntityName = entityName;
             const entityStore = this.getEntityStore(entityName, {create: false});
-            // Save only dirty entity storage
-            if (!entityStore || !entityStore.dirty) return;
-            entityStore.dirty = false;
-            const entities = entityStore.entities.slice(); // Copy it!
-            if (this._debug) console.debug(`[local-entities] Saving ${entities.length} ${entityName}(s)...`);
 
-            // If no entity found
-            if (isEmptyArray(entities)) {
+            if (!entityStore || !entityStore.dirty) return; // Skip is not dirty
 
-              // Remove from the entity names array
-              entityNames.splice(entityNames.findIndex(e => e === entityName), 1);
-
-              // Clean the local storage
-              return this.storage.remove(ENTITIES_STORAGE_KEY + '#' + entityName);
-            }
-
-            // Save in the local storage
-            return this.storage.set(ENTITIES_STORAGE_KEY + '#' + entityName, entities);
+            return this.persistEntityStore<any>(entityStore)
+              .then(count => {
+                // If no entity found, remove from the entity names array
+                if (!count) {
+                  entityNames.splice(entityNames.findIndex(e => e === entityName), 1);
+                }
+              });
           });
         }),
       defer(() =>  {
@@ -577,6 +582,26 @@ export class EntityStorage {
           return err;
         })
       ).subscribe();
+  }
+
+  protected async persistEntityStore<T extends Entity<T>>(entityStore: EntityStore<T>): Promise<number> {
+    // Save only dirty entity storage
+    entityStore.dirty = false;
+    const entities = entityStore.entities.slice(); // Copy it!
+    if (this._debug) console.debug(`[local-entities] Saving ${entities.length} ${entityStore.name}(s)...`);
+
+    // If no entity found
+    if (isEmptyArray(entities)) {
+
+      // Clean the local storage
+      await this.storage.remove(ENTITIES_STORAGE_KEY + '#' + entityStore.name);
+    }
+    else {
+      // Save in the local storage
+      await this.storage.set(ENTITIES_STORAGE_KEY + '#' + entityStore.name, entities);
+    }
+
+    return entities.length;
   }
 
 }

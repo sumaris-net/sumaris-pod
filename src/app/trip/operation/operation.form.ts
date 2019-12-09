@@ -159,7 +159,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   /* -- protected methods -- */
 
   protected async suggestPhysicalGear(value: any, options?: any): Promise<PhysicalGear[]> {
-    console.log("TODO check suggestPhysicalGear")
     // Display the selected object
     if (EntityUtils.isNotEmpty(value)) {
       if (this.form.enabled) this.form.controls["metier"].enable();
