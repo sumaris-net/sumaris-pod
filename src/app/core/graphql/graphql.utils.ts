@@ -85,6 +85,7 @@ function dataIdFromObjectDebug (object: Object): string {
       if (object['__typename'] === 'OperationVO') console.debug(`[dataIdFromObject] Computing Operation cache id: {${res}}`);
       return res;
   }
+  return defaultDataIdFromObject(object);
 }
 
 export const dataIdFromObject = environment.production ? dataIdFromObjectProduction : dataIdFromObjectDebug;
