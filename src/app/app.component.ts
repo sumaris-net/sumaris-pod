@@ -12,7 +12,6 @@ import {FormFieldDefinition} from "./shared/form/field.model";
 import {getColorContrast, getColorShade, getColorTint, hexToRgbArray, mixHex} from "./shared/graph/colors.utils";
 import {AccountService} from "./core/services/account.service";
 import {LocalSettingsService} from "./core/services/local-settings.service";
-import {TripConfigOptions} from "./trip/services/config/trip.config";
 
 
 @Component({

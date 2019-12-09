@@ -90,7 +90,7 @@ case "$1" in
       echo "Uploading files to ${upload_url} ..."
       dirname=$(pwd)
 
-      ZIP_FILE="$dirname/www/${PROJECT_NAME}.zip"
+      ZIP_FILE="$dirname/${PROJECT_NAME}.zip"
       if [[ -f "${ZIP_FILE}" ]]; then
         result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${PROJECT_NAME}-v${current}-web.zip")
         browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")

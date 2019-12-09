@@ -104,8 +104,10 @@ echo "----------------------------------"
 echo "- Creating web artifact..."
 echo "----------------------------------"
 cd $DIRNAME/www
-test -e "${PROJECT_NAME}.zip" || rm ${PROJECT_NAME}.zip
-zip -q -r ${PROJECT_NAME}.zip .
+if [[ -f "${PROJECT_NAME}.zip" ]]; then
+  rm ${PROJECT_NAME}.zip
+fi
+zip -q -r ../${PROJECT_NAME}.zip .
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
@@ -113,8 +115,13 @@ fi
 echo "----------------------------------"
 echo "- Compiling sources for Android platform..."
 echo "----------------------------------"
+
 # Removing previous APK..."
 rm ${DIRNAME}/platforms/android/app/build/outputs/apk/release/*.apk
+
+# Copy generated i18n files, to make sure Android release will use it
+cp ${DIRNAME}/www/assets/i18n/*.json ${DIRNAME}/src/assets/i18n/
+
 # Launch the build script
 PROJECT_DIR=${DIRNAME}
 cd ${DIRNAME}/scripts || exit 1
