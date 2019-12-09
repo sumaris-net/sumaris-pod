@@ -83,7 +83,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     protected personService: PersonService,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
-    protected network: NetworkService,
+    public network: NetworkService,
     protected cd: ChangeDetectorRef
   ) {
 

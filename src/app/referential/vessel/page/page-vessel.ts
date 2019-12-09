@@ -98,7 +98,7 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
     this.previousVessel = undefined;
   }
 
-  protected canUserWrite(data: Vessel): boolean {
+  canUserWrite(data: Vessel): boolean {
     return !this.editing && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
   }
 

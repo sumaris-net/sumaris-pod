@@ -40,7 +40,7 @@
           <ion-col class="ion-no-padding" size="12" size-xl="3">
             <entity-metadata [value]="data">
               <entity-quality-form #qualityForm
-                                   [dataService]="dataService"
+                                   [dataService]="service"
                                    (onChange)="updateView(data)"
                                    (onControl)="onControl($event)">
               </entity-quality-form>

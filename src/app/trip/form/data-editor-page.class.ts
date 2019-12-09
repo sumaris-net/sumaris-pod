@@ -23,6 +23,10 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends E
 
   @ViewChild('qualityForm', { static: true }) qualityForm: EntityQualityFormComponent;
 
+  get service(): S {
+    return this.dataService;
+  }
+
   protected constructor(
     injector: Injector,
     protected dataType: new() => T,

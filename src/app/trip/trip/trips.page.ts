@@ -18,7 +18,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {qualityFlagToColor, ReferentialRefService, referentialToString} from "../../referential/referential.module";
-import {debounceTime, filter, tap, throttleTime} from "rxjs/operators";
+import {debounceTime, filter, tap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 import {SharedValidators} from "../../shared/validator/validators";
 import {PlatformService} from "../../core/services/platform.service";
@@ -26,9 +26,8 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {BehaviorSubject, Subject} from "rxjs";
-import {SynchronizationStatus, SynchronizationStatusEnum} from "../services/model/base.model";
-import {SynchroService} from "../services/synchro-service";
+import {BehaviorSubject} from "rxjs";
+import {SynchronizationStatus} from "../services/model/base.model";
 
 
 @Component({
@@ -73,8 +72,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    protected network: NetworkService,
-    protected synchro: SynchroService,
+    public network: NetworkService,
     protected cd: ChangeDetectorRef
   ) {
 
