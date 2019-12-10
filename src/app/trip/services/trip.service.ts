@@ -196,7 +196,6 @@ export class TripFilter {
       // Start/end period
       const startDate = fromDateISOString(f.startDate);
       const endDate = fromDateISOString(f.endDate);
-      //if (endDate) console.log("TODO: Check end dat filter", endDate);
       if ((startDate && t.returnDateTime && startDate.isAfter(t.returnDateTime))
         || (endDate && t.departureDateTime && endDate.add(1, 'day').isSameOrBefore(t.departureDateTime))) {
         return false;
@@ -532,7 +531,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const isNew = isNil(entity.id);
 
     // If parent is a local entity: force a local save
-    const offline = entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC';
+    const offline = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0;
     if (offline) {
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
@@ -632,7 +631,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
   }
 
   async synchronize(entity: Trip): Promise<Trip> {
-    if (isNil(entity.id) || entity.id >= 0) {
+    const localId = entity && entity.id;
+    if (isNil(localId) || localId >= 0) {
       throw new Error("Entity must be a local entity");
     }
     if (this.network.offline) {
@@ -641,18 +641,30 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     // Load operations
     const res = await this.entities.loadAll<Operation>('OperationVO', {
-      filter: OperationFilter.searchFilter<Operation>({tripId: entity.id})
+      filter: OperationFilter.searchFilter<Operation>({tripId: localId})
     });
     entity.operations = (res && res.data || []).map(Operation.fromObject);
-
+    entity.synchronizationStatus = 'SYNC';
+    entity.id = undefined;
 
     const savedEntity = await this.save(entity, {withOperation: true});
-
     if (savedEntity.id < 0) {
       throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
     }
 
-    return this.control(entity);
+    try {
+      if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
+
+      // Delete trip's operations
+      await this.operationService.deleteByTripId(localId);
+
+      // Delete trip
+      await this.entities.deleteById(localId, Trip.TYPENAME);
+    }
+    catch (err) {
+      console.error(`[trip-service] Failed to locally delete trip {${entity.id}} and its operations`, err);
+    }
+    return savedEntity;
   }
 
   /**

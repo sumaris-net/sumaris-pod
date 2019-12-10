@@ -566,7 +566,7 @@ export class OperationService extends BaseDataService
    * @param entities
    */
   async deleteByTripId(tripId: number): Promise<any> {
-    if (tripId >= 0) throw new Error('This function is only for local trip (id<0)!');
+    if (tripId >= 0) throw new Error('Invalid tripId: must be a local trip (id<0)!');
 
     try {
       const res = await this.entities.loadAll<Operation>('OperationVO', {

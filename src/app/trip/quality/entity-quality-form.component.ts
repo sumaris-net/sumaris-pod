@@ -80,7 +80,6 @@ export class EntityQualityFormComponent implements OnInit, OnDestroy {
       throw new Error("Missing mandatory 'dataService' input!");
     }
 
-    this.loadQualityFlags();
   }
 
   ngOnDestroy(): void {
@@ -176,6 +175,10 @@ export class EntityQualityFormComponent implements OnInit, OnDestroy {
       this.canUnqualify = canWrite && isSupervisor && isNotNil(this.data.validationDate) && isNotNil(this.data.qualificationDate);
     }
     this.markForCheck();
+
+    if (this.canQualify || this.canUnqualify && !this.qualityFlags) {
+      this.loadQualityFlags();
+    }
   }
 
   protected async loadQualityFlags() {
