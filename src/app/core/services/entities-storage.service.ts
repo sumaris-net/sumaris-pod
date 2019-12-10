@@ -375,10 +375,11 @@ export class EntityStorage {
     return deletedEntities;
   }
 
-  async persist(): Promise<any> {
+  persist(): Promise<void> {
     if (this._dirty) {
       return this.storeLocally();
     }
+    return Promise.resolve();
   }
 
   /* -- protected methods -- */
@@ -530,8 +531,8 @@ export class EntityStorage {
     );
   }
 
-  protected async storeLocally(): Promise<any> {
-    if (!this.dirty || this._saving) return; // skip
+  protected storeLocally(): Promise<any> {
+    if (!this.dirty || this._saving) return Promise.resolve(); // skip
 
     this._saving = true;
     this._dirty = false;
@@ -541,7 +542,7 @@ export class EntityStorage {
     if (this._debug) console.debug("[local-entities] Saving to local storage...");
 
     let currentEntityName;
-    concat(
+    return concat(
       ...(entityNames.slice()) // copy to enable changes in the original array (e.g. remove an item)
         .map(entityName => {
           return defer(() => {
@@ -581,27 +582,28 @@ export class EntityStorage {
           }
           return err;
         })
-      ).subscribe();
+      ).toPromise();
   }
 
-  protected async persistEntityStore<T extends Entity<T>>(entityStore: EntityStore<T>): Promise<number> {
+  protected persistEntityStore<T extends Entity<T>>(entityStore: EntityStore<T>): Promise<number> {
     // Save only dirty entity storage
     entityStore.dirty = false;
     const entities = entityStore.entities.slice(); // Copy it!
     if (this._debug) console.debug(`[local-entities] Saving ${entities.length} ${entityStore.name}(s)...`);
 
     // If no entity found
+    let promise;
     if (isEmptyArray(entities)) {
 
       // Clean the local storage
-      await this.storage.remove(ENTITIES_STORAGE_KEY + '#' + entityStore.name);
+      promise = this.storage.remove(ENTITIES_STORAGE_KEY + '#' + entityStore.name);
     }
     else {
       // Save in the local storage
-      await this.storage.set(ENTITIES_STORAGE_KEY + '#' + entityStore.name, entities);
+      promise = this.storage.set(ENTITIES_STORAGE_KEY + '#' + entityStore.name, entities);
     }
 
-    return entities.length;
+    return promise.then(() => entities.length);
   }
 
 }

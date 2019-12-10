@@ -140,45 +140,45 @@ export class VesselSnapshotService
 
     const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();
-    if (debug) console.debug("[vessel-snapshot-service] Getting vessel snapshots using options:", variables);
+    if (debug) console.debug("[vessel-snapshot-service] Loading vessel snapshots using options:", variables);
+
+    let loadResult: { vesselSnapshots: any[], vesselsCount?: number; };
 
     // Offline: use local store
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      const res = await this.entities.loadAll('VesselSnapshotVO',
+      loadResult = await this.entities.loadAll('VesselSnapshotVO',
         {
           ...variables,
           filter: VesselFilter.searchFilter(filter)
         }
-      );
-      const data = (!opts || opts.toEntity !== false) ?
-        (res && res.data || []).map(VesselSnapshot.fromObject) :
-        (res && res.data || []) as VesselSnapshot[];
-      if (debug) console.debug(`[referential-ref-service] Vessels loaded (from offline storage) in ${Date.now() - now}ms`);
-      return {
-        data: data,
-        total: res.total
-      };
+      ).then(res => {
+        return {
+          vesselSnapshots: data,
+          vesselsCount: res.total
+        };
+      });
     }
 
     // Online: use GraphQL
     else {
       const query = (opts && opts.withTotal) ? LoadAllWithCountQuery : LoadAllQuery;
-      const res = await this.graphql.query<{ vesselSnapshots: any[], vesselsCount?: number; }>({
+      loadResult = await this.graphql.query<{ vesselSnapshots: any[], vesselsCount?: number; }>({
         query,
         variables,
         error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || undefined /*use default*/
       });
-
-      const data = (!opts || opts.toEntity !== false) ?
-        (res && res.vesselSnapshots || []).map(VesselSnapshot.fromObject) :
-        (res && res.vesselSnapshots || []) as VesselSnapshot[];
-      return {
-        data: data,
-        total: res && res.vesselsCount
-      };
     }
+
+    const data = (!opts || opts.toEntity !== false) ?
+      (loadResult && loadResult.vesselSnapshots || []).map(VesselSnapshot.fromObject) :
+      (loadResult && loadResult.vesselSnapshots || []) as VesselSnapshot[];
+    if (debug) console.debug(`[referential-ref-service] Vessels loaded (from offline storage) in ${Date.now() - now}ms`);
+    return {
+      data: data,
+      total: loadResult && loadResult.vesselsCount
+    };
   }
 
   async suggest(value: any, options?: {
@@ -198,25 +198,33 @@ export class VesselSnapshotService
   }
 
   async load(id: number, opts?: {
-    fetchPolicy?: FetchPolicy
+    fetchPolicy?: FetchPolicy,
+    toEntity?: boolean;
   }): Promise<VesselSnapshot | null> {
+
     console.debug("[vessel-snapshot-service] Loading vessel snapshot " + id);
+    let json: any;
 
-    const data = await this.graphql.query<{ vesselSnapshots: any }>({
-      query: LoadQuery,
-      variables: {
-        vesselId: id,
-        vesselFeaturesId: null
-      },
-      fetchPolicy: opts && opts.fetchPolicy || undefined
-    });
-
-    if (data && data.vesselSnapshots && data.vesselSnapshots.length) {
-      const res = new VesselSnapshot();
-      res.fromObject(data.vesselSnapshots[0]);
-      return res;
+    // Offline mode
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+      json = await this.entities.load(id, 'VesselSnapshotVO');
     }
-    return null;
+
+    // Online mode
+    else {
+      const res = await this.graphql.query<{ vesselSnapshots: any[]; }>({
+        query: LoadQuery,
+        variables: {
+          vesselId: id,
+          vesselFeaturesId: null
+        },
+        fetchPolicy: opts && opts.fetchPolicy || undefined
+      });
+      json = res && res.vesselSnapshots && res.vesselSnapshots.length && res.vesselSnapshots[0];
+    }
+
+    return json && ((!opts || opts.toEntity !== false) ? VesselSnapshot.fromObject(json) : json as VesselSnapshot)  || null;
   }
 
   executeImport(opts?: {

@@ -180,7 +180,8 @@ export interface IWithProgramEntity<T> extends Entity<T> {
 export class VesselSnapshot extends Entity<VesselSnapshot> {
 
   static fromObject(source: any): VesselSnapshot {
-    if (!source || source instanceof VesselSnapshot) return source;
+    if (!source) return source;
+    if (source instanceof VesselSnapshot) return source.clone();
     const res = new VesselSnapshot();
     res.fromObject(source);
     return res;

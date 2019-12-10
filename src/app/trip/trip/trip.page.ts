@@ -2,19 +2,21 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@
 
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
-import {fromDateISOString, Trip} from '../services/trip.model';
+import {fromDateISOString, ReferentialRef, Trip, VesselSnapshot} from '../services/trip.model';
 import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {environment} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
+import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil} from '../../shared/shared.module';
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
 import * as moment from "moment";
 import {ProgramProperties} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
+import {TripsPageSettingsEnum} from "./trips.page";
+import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 
 @Component({
   selector: 'app-trip-page',
@@ -44,6 +46,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
 
   constructor(
     injector: Injector,
+    protected vesselSnapshotService: VesselSnapshotService,
     public network: NetworkService // Used for DEV (to debug OFFLINE mode)
   ) {
     super(injector,
@@ -70,9 +73,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     );
 
     // Cascade refresh to operation tables
-    this.onRefresh.subscribe(() => {
-      this.operationTable.onRefresh.emit()
-    });
+    this.onRefresh.subscribe(() => this.operationTable.onRefresh.emit());
   }
 
   protected registerFormsAndTables() {
@@ -84,8 +85,31 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
 
-      // TODO : get the default program from local settings ?
-      //data.program = ...
+      // Fil defaults, using filter applied on trips table
+      const tripFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
+      if (tripFilter) {
+
+        // Synchronization status
+        if (tripFilter.synchronizationStatus && tripFilter.synchronizationStatus !== 'SYNC') {
+          data.synchronizationStatus = 'DIRTY';
+        }
+
+        // program
+        if (tripFilter.program && tripFilter.program.label) {
+          data.program = ReferentialRef.fromObject(tripFilter.program);
+          this.programSubject.next(data.program.label);
+        }
+
+        // Vessel
+        if (tripFilter.vesselSnapshot) {
+          data.vesselSnapshot = VesselSnapshot.fromObject(tripFilter.vesselSnapshot);
+        }
+
+        // Location
+        if (tripFilter.location) {
+          data.departureLocation = ReferentialRef.fromObject(tripFilter.location);
+        }
+      }
     }
 
     this.showGearTable = false;

@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {BehaviorSubject, Observable, of, Subject} from "rxjs";
+import {BehaviorSubject, defer, Observable, of, Subject} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {
   AcquisitionLevelCodes,
@@ -314,9 +314,6 @@ export class ProgramService extends BaseDataService
   ) {
     super(graphql);
 
-    // Clear cache
-    network.onResetNetworkCache.subscribe(() => this.clearCache());
-
     // -- For DEV only
     this._debug = !environment.production;
   }
@@ -327,13 +324,13 @@ export class ProgramService extends BaseDataService
    * @param size
    * @param sortBy
    * @param sortDirection
-   * @param filter
+   * @param dataFilter
    */
   watchAll(offset: number,
            size: number,
            sortBy?: string,
            sortDirection?: string,
-           filter?: ProgramFilter,
+           dataFilter?: ProgramFilter,
            opts?: {
              fetchPolicy?: WatchQueryFetchPolicy;
              withTotal?: boolean;
@@ -344,7 +341,7 @@ export class ProgramService extends BaseDataService
       size: size || 100,
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: dataFilter
     };
     const now = Date.now();
     if (this._debug) console.debug("[program-service] Watching programs using options:", variables);
@@ -396,49 +393,48 @@ export class ProgramService extends BaseDataService
       sortDirection: sortDirection || 'asc',
       filter: filter
     };
-    const now = Date.now();
     const debug = this._debug && (!opts || opts.debug !== false);
-    if (debug) console.debug("[program-service] Loading programs using options:", variables);
+    const now = debug && Date.now();
+    if (debug) console.debug("[program-service] Loading programs... using options:", variables);
+
+    let loadResult: { programs: any[], referentialsCount?: number };
 
     // Offline mode
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      const res = await this.entities.loadAll('ProgramVO',
+      loadResult = await this.entities.loadAll('ProgramVO',
         {
           ...variables,
           filter: EntityUtils.searchTextFilter('label', filter.searchText)
         }
-      );
-      const data = (!opts || opts.toEntity !== false) ?
-        (res && res.data || []).map(Program.fromObject) :
-        (res && res.data || []) as Program[];
-      if (debug) console.debug(`[referential-ref-service] Programs loaded (from offline storage) in ${Date.now() - now}ms`);
-      return {
-        data: data,
-        total: res.total
-      };
+      ).then(res => {
+        return {
+          programs: res && res.data,
+          referentialsCount: res && res.total
+        };
+      });
     }
 
     // Online mode
     else {
-
       const query = opts && opts.withTotal ? LoadAllWithCountQuery : LoadAllQuery;
-      const res = await this.graphql.query<{ programs: any[], referentialsCount?: number }>({
+      loadResult = await this.graphql.query<{ programs: any[], referentialsCount?: number }>({
         query,
         variables,
         error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || undefined
       });
-
-      const data = (!opts || opts.toEntity !== false) ?
-        (res && res.programs || []).map(Program.fromObject) :
-        (res && res.programs || []) as Program[];
-      if (debug) console.debug(`[program-service] Programs loaded in ${Date.now() - now}ms`);
-      return {
-        data: data,
-        total: res.referentialsCount
-      };
     }
+
+    const data = (!opts || opts.toEntity !== false) ?
+      (loadResult && loadResult.programs || []).map(Program.fromObject) :
+      (loadResult && loadResult.programs || []) as Program[];
+    if (debug) console.debug(`[program-service] Programs loaded in ${Date.now() - now}ms`);
+    return {
+      data: data,
+      total: loadResult.referentialsCount
+    };
+
   }
 
   async saveAll(entities: Program[], options?: any): Promise<Program[]> {
@@ -460,22 +456,30 @@ export class ProgramService extends BaseDataService
     debug?: boolean;
   }): Observable<Program> {
 
-    const debug = this._debug && (!opts || opts !== false);
-    if (debug) console.debug(`[program-service] Watch program {${label}}...`);
+    let now;
     const cacheKey = [ProgramCacheKeys.PROGRAM_BY_LABEL, label].join('|');
     return this.cache.loadFromObservable(cacheKey,
-      this.graphql.watchQuery<{ program: any }>({
-        query: LoadRefQuery,
-        variables: {
-          label: label
-        },
-        error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
-      }).pipe(filter(isNotNil)),
+      defer(() => {
+        const debug = this._debug && (!opts || opts !== false);
+        now = debug && Date.now();
+        if (now) console.debug(`[program-service] Watch program {${label}}...`);
+
+        return this.graphql.watchQuery<{ program: any }>({
+          query: LoadRefQuery,
+          variables: {
+            label: label
+          },
+          error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
+        }).pipe(filter(isNotNil));
+      }),
       ProgramCacheKeys.CACHE_GROUP
     )
       .pipe(
         map(({program}) => {
-          if (debug) console.debug(`[program-service] Program loaded {${label}}`, program);
+          if (now) {
+            console.debug(`[program-service] Program loaded {${label}} in ${Date.now() - now} `, program);
+            now = undefined;
+          }
           return (!opts || opts.toEntity !== false) ? Program.fromObject(program) : program;
         })
       );
@@ -523,7 +527,6 @@ export class ProgramService extends BaseDataService
     return this.cache.loadFromObservable(cacheKey,
       this.watchByLabel(programLabel, {toEntity: false, debug: false}) // Watch the program
         .pipe(
-          filter(isNotNil),
           map(program => {
               // TODO: select valid strategy (from date and location)
               const strategy = program && program.strategies && program.strategies[0];
@@ -557,7 +560,8 @@ export class ProgramService extends BaseDataService
             }
           )), ProgramCacheKeys.CACHE_GROUP)
       .pipe(
-        map(res => res && res.map(PmfmStrategy.fromObject))
+        map(res => res && res.map(PmfmStrategy.fromObject)),
+        filter(isNotNil)
       );
   }
 
@@ -584,7 +588,6 @@ export class ProgramService extends BaseDataService
     return this.cache.loadFromObservable(cacheKey,
       this.watchByLabel(programLabel, {toEntity: false}) // Load the program
         .pipe(
-          filter(isNotNil),
           map(program => {
             // TODO: select valid strategy (from date and location)
             const strategy = program && program.strategies && program.strategies[0];
@@ -671,8 +674,8 @@ export class ProgramService extends BaseDataService
    */
   async suggestTaxonNames(value: any, options: {
     program?: string;
-    taxonomicLevelId?: number;
-    taxonomicLevelIds?: number[]
+    levelId?: number;
+    levelIds?: number[]
     searchAttribute?: string;
     taxonGroupId?: number;
   }): Promise<TaxonNameRef[]> {
@@ -690,22 +693,22 @@ export class ProgramService extends BaseDataService
       }
     }
 
-    // If nothing found in program, or species defined
+    // If nothing found in program: search on taxonGroup
     const res = await this.referentialRefService.suggestTaxonNames(value, {
-        taxonomicLevelId: options.taxonomicLevelId,
-        taxonomicLevelIds: options.taxonomicLevelIds,
-        taxonGroupId: options.taxonGroupId,
-        searchAttribute: options.searchAttribute
-      });
+      levelId: options.levelId,
+      levelIds: options.levelIds,
+      taxonGroupId: options.taxonGroupId,
+      searchAttribute: options.searchAttribute
+    });
 
     // If there result, use it
     if (res && res.length) return res;
 
-    // Then, retry without the taxon groups (e.g. when link in DB is missing)
+    // Then, retry in all taxon (without taxon groups - Is the link taxon<->taxonGroup missing ?)
     if (isNotNil(options.taxonGroupId)) {
       return await this.referentialRefService.suggestTaxonNames(value, {
-        taxonomicLevelId: options.taxonomicLevelId,
-        taxonomicLevelIds: options.taxonomicLevelIds,
+        levelId: options.levelId,
+        levelIds: options.levelIds,
         searchAttribute: options.searchAttribute
       });
     }

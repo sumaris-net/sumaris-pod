@@ -553,7 +553,8 @@ export const MINIFY_OPTIONS: ReferentialAsObjectOptions = {minify: true};
 export class ReferentialRef<T = any> extends Entity<T> implements IReferentialRef {
 
   static fromObject(source: any): ReferentialRef<any> {
-    if (!source || source instanceof ReferentialRef) return source;
+    if (!source) return source;
+    if (source instanceof ReferentialRef) return source.clone();
     const res = new ReferentialRef();
     res.fromObject(source);
     return res;

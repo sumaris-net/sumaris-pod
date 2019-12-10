@@ -7,7 +7,7 @@ import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
 import {Entity} from "../services/model";
 import {Subscription} from "rxjs";
-import {AlertController, ModalController, Platform} from "@ionic/angular";
+import {AlertController, ModalController, Platform, ToastController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
@@ -53,6 +53,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   protected _autocompleteHelper: MatAutocompleteConfigHolder;
   protected translate: TranslateService;
   protected alertCtrl: AlertController;
+  protected toastController: ToastController;
 
   excludesColumns = new Array<String>();
   inlineEdition: boolean;
@@ -184,6 +185,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     this.inlineEdition = false;
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
+    this.toastController = injector && injector.get(ToastController);
     this._autocompleteHelper = new MatAutocompleteConfigHolder({
       getUserAttributes: (a,b) => settings.getFieldDisplayAttributes(a, b)
     });
@@ -194,8 +196,8 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     if (this._initialized) return; // Init only once
     this._initialized = true;
 
-    // Defined unique id for settings
-    this.settingsId = this.generateTableId();
+    // Defined unique id for settings for the page
+    this.settingsId = this.settingsId || this.generateTableId();
 
     this.displayedColumns = this.getDisplayColumns();
 
@@ -771,6 +773,30 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     await alert.onDidDismiss();
 
     return confirm;
+  }
+
+  protected async showToast(
+    opts: {
+    header?: string
+    message: string;
+    position?: "bottom" | "middle" | "top";
+    duration?: number;
+  }) {
+
+    if (!this.toastController) throw new Error("Missing toastController in component's constructor");
+    const i18nKeys = [opts.message];
+    if (opts.header) i18nKeys.push(opts.header);
+
+    const translations = await this.translate.instant(i18nKeys);
+
+    const toast = await this.toastController.create({
+      position: !this.mobile && 'top' || undefined /*default*/,
+      duration: 3000,
+      ...opts,
+      message: translations[opts.message],
+      header: opts.header && translations[opts.header] || undefined
+    });
+    return toast.present();
   }
 }
 

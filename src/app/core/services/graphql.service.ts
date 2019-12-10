@@ -3,7 +3,7 @@ import {Apollo} from "apollo-angular";
 import {ApolloClient, ApolloQueryResult, FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";
 import {ErrorCodes, ServerErrorCodes, ServiceError} from "./errors";
-import {catchError, distinctUntilChanged, filter, first, map, mergeMap} from "rxjs/operators";
+import {catchError, distinctUntilChanged, filter, first, map, mergeMap, tap} from "rxjs/operators";
 
 import {environment} from '../../../environments/environment';
 import {Injectable} from "@angular/core";
@@ -77,6 +77,8 @@ export class GraphqlService {
         filter(type => isNotNil(type)),
         distinctUntilChanged()
       );
+
+    this._debug = !environment.production;
   }
 
   ready(): Promise<void> {
@@ -220,15 +222,13 @@ export class GraphqlService {
       })
         .pipe(
           catchError(error => this.onApolloError<T>(error)),
-          first()
+          first(),
+          // To debug, if need:
+          //tap((res) => (!res) && console.error('[graphql] Unknown error during mutation. Check errors in console (may be an invalid generated cache id ?)'))
         )
-        .subscribe(res => {
-          if (!res) {
-            reject('Unknown GraphQL error. Please check previous errors in console');
-            return;
-          }
-          else if (res.errors) {
-            let error = res.errors[0] as any;
+        .subscribe(({data, errors}) => {
+          if (errors) {
+            let error = errors[0] as any;
 
             if (error && error.code && error.message) {
               if (error && error.code == ServerErrorCodes.BAD_UPDATE_DATE) {
@@ -245,7 +245,7 @@ export class GraphqlService {
               if (opts.error && opts.error.reject) opts.error.reject(error);
             }
           } else {
-            resolve(res.data as T);
+            resolve(data as T);
           }
         });
     });
@@ -430,6 +430,16 @@ export class GraphqlService {
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
     }
     if (this._debug) console.debug("[graphql] Unable to update entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
+  }
+
+  async clearCache(client?: ApolloClient<any>): Promise<void> {
+    client = client || this.apollo.getClient();
+    if (client) {
+      let now = this._debug && Date.now();
+      console.debug("[graphql] Clearing Apollo client's cache... ");
+      await client.cache.reset();
+      if (this._debug) console.debug(`[graphql] Apollo client's cache cleared, in ${Date.now() - now}ms`);
+    }
   }
 
   /* -- protected methods -- */
@@ -678,12 +688,6 @@ export class GraphqlService {
     return this.apollo;
   }
 
-  private async clearCache(client?: ApolloClient<any>) {
-    client = client || this.apollo.getClient();
-    if (client) {
-      console.debug("[graphql] Clear apollo client cache... ");
-      await client.cache.reset();
-    }
-  }
+
 
 }

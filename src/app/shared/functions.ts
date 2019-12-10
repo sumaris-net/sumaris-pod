@@ -264,3 +264,7 @@ export function setTabIndex(element: ElementRef, tabIndex: number) {
     console.warn("Trying to change tabindex on this element:", element);
   }
 }
+
+export function delay(ms: number): Promise<void> {
+  return new Promise( resolve => setTimeout(resolve, ms) );
+}

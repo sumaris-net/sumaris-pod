@@ -10,7 +10,7 @@ import {
   TableDataService
 } from "../../shared/shared.module";
 import {environment} from "../../core/core.module";
-import {catchError, filter, map, tap} from "rxjs/operators";
+import {catchError, filter, map, switchMap, tap} from "rxjs/operators";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
@@ -28,7 +28,7 @@ import {
   SynchronizationStatus
 } from "./model/base.model";
 import {NetworkService} from "../../core/services/network.service";
-import {concat, defer, Observable, of} from "rxjs";
+import {concat, defer, Observable, of, timer} from "rxjs";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {isEmptyArray} from "../../shared/functions";
 import {DataQualityService} from "./trip.services";
@@ -37,7 +37,7 @@ import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PersonService} from "../../admin/services/person.service";
 import {ProgramService} from "../../referential/services/program.service";
-import {chainAllPromise, firstNotNilPromise} from "../../shared/observables";
+import {chainAllPromise} from "../../shared/observables";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -204,8 +204,12 @@ export class TripFilter {
 
       // Synchronization status
       if (f.synchronizationStatus && (
-        t.synchronizationStatus !== f.synchronizationStatus
-        || (f.synchronizationStatus === 'SYNC' && !t.synchronizationStatus))
+        // Check trip synchro status, if any
+        (t.synchronizationStatus && t.synchronizationStatus !== f.synchronizationStatus)
+        // Else, if SYNC is wanted: exclude if local id
+        || (f.synchronizationStatus === 'SYNC' && !t.synchronizationStatus && t.id < 0)
+        // Or else, if DIRTY or READY_TO_SYNC wanted: exclude if id is NOT local
+        || (f.synchronizationStatus !== 'SYNC' && !t.synchronizationStatus && t.id >= 0))
       ) {
         return false;
       }
@@ -353,8 +357,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
     if (this._debug) console.debug("[trip-service] Watching trips... using options:", variables);
 
     // Offline
-    const offlineData = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
-    if (offlineData) {
+    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    if (offline) {
       $loadResult = this.entities.watchAll<Trip>('TripVO', {
         ...variables,
         filter: TripFilter.searchFilter<Trip>(dataFilter)
@@ -886,31 +890,48 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const maxProgression = opts && opts.maxProgression || 100;
 
     const jobOpts = {maxProgression: undefined};
-    const $jobs = [
-      defer(() => this.network.clearCache()),
+    const jobDefers: Observable<number>[] = [
+      // Clear caches
+      defer(() => timer()
+        .pipe(
+          switchMap(() => this.network.clearCache()),
+          map(() => jobOpts.maxProgression as number)
+        )
+      ),
+      // Start to import data
       defer(() => this.referentialRefService.executeImport(jobOpts)),
-      defer(() => this.personService.executeImport(jobOpts)),
-      defer(() => this.entities.persist()),
+      defer(() =>  this.personService.executeImport(jobOpts)),
       defer(() => this.vesselSnapshotService.executeImport(jobOpts)),
-      defer(() => this.entities.persist()),
       defer(() => this.programService.executeImport(jobOpts)),
-      defer(() => this.entities.persist())
+      // Save date to local storage
+      defer(() =>
+        timer()
+          .pipe(
+            switchMap(() => this.entities.persist()),
+            map(() => jobOpts.maxProgression as number)
+          )
+      )
     ];
-    const jobCount = $jobs.length;
+    const jobCount = jobDefers.length;
     jobOpts.maxProgression = Math.trunc(maxProgression / jobCount);
 
     const now = Date.now();
-    console.info(`[trip-service] Starting ${$jobs.length} importation jobs...`);
+    console.info(`[trip-service] Starting ${jobDefers.length} importation jobs...`);
 
     // Execute all jobs, one by one
     let jobIndex = 0;
     this.$importationProgress = concat(
-      ...$jobs.map(($job, index) => {
-        return $job
+      ...jobDefers.map((jobDefer: Observable<number>, index) => {
+        return jobDefer
           .pipe(
+            //switchMap(() => jobDefer),
             map(jobProgression => {
               jobIndex = index;
-              return index * jobOpts.maxProgression + (jobProgression || 0);
+              if (this._debug && jobProgression > jobOpts.maxProgression) {
+                console.warn(`[trip-service] WARN job #${jobIndex} return a jobProgression > maxProgression (${jobProgression} > ${jobOpts.maxProgression})!`);
+              }
+              // Compute total progression
+              return index * jobOpts.maxProgression + Math.min(jobProgression || 0, jobOpts.maxProgression);
             })
           );
       }),
@@ -928,14 +949,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
         }),
         // Compute total progression (= job offset + job progression)
         // (and make ti always <= maxProgression)
-        map((jobProgression) => {
-          //if (jobProgression > jobOpts.maxProgression && this.$importationProgress) {
-          //  console.warn(`[trip-service] WARN job #${jobIndex+1} return a jobProgression > max (${jobProgression} > ${jobOpts.maxProgression})!`);
-          //}
-          return  Math.min(jobIndex * jobOpts.maxProgression
-              + Math.min(jobProgression || 0, jobOpts.maxProgression),
-            maxProgression);
-        })
+        map((progression) =>  Math.min(progression, maxProgression))
       );
     return this.$importationProgress;
   }

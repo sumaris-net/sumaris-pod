@@ -39,6 +39,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  delay,
   joinPropertiesPath,
   nullIfUndefined,
   propertyComparator,
@@ -68,7 +69,7 @@ export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
 export {
   DataService, SuggestionDataService, TableDataService, LoadResult,
   EditorDataService, EditorDataServiceLoadOptions,
-  isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotEmptyArray, nullIfUndefined,
+  isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotEmptyArray, nullIfUndefined, delay,
   toBoolean, toFloat, toInt,
   toDateISOString, fromDateISOString, filterNumberInput,
   startsWithUpperCase,

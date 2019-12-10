@@ -18,7 +18,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {qualityFlagToColor, ReferentialRefService, referentialToString} from "../../referential/referential.module";
-import {debounceTime, filter, tap} from "rxjs/operators";
+import {catchError, debounceTime, filter, map, tap, throttleTime} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 import {SharedValidators} from "../../shared/validator/validators";
 import {PlatformService} from "../../core/services/platform.service";
@@ -29,6 +29,10 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 import {BehaviorSubject} from "rxjs";
 import {SynchronizationStatus} from "../services/model/base.model";
 
+export const TripsPageSettingsEnum = {
+  PAGE_ID: "trips",
+  FILTER_KEY: "filter"
+};
 
 @Component({
   selector: 'app-trips-page',
@@ -58,6 +62,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   }
 
   constructor(
+    public network: NetworkService,
     protected injector: Injector,
     protected route: ActivatedRoute,
     protected router: Router,
@@ -72,7 +77,6 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    public network: NetworkService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -94,7 +98,9 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
         serviceOptions: {
           saveOnlyDirtyRows: true
         }
-      })
+      }),
+      null,
+      injector
     );
     this.i18nColumnPrefix = 'TRIP.TABLE.';
     this.filterForm = formBuilder.group({
@@ -108,6 +114,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.autoLoad = false;
+    this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fix value, to be able to reuse it in the trip page
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -164,7 +171,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
         }),
         // Save filter in settings (after a debounce time)
         debounceTime(1000),
-        tap(json => this.settings.savePageSetting(this.settingsId, json, 'filter'))
+        tap(json => this.settings.savePageSetting(this.settingsId, json, TripsPageSettingsEnum.FILTER_KEY))
       )
       .subscribe();
 
@@ -212,34 +219,37 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       return;
     }
 
-    const now = Date.now();
-    console.debug("[trips] Preparing network offline mode...");
     this.$importProgression.next(0);
 
     let success = false;
     try {
 
-      // Run the import
-      const $progression = this.service.executeImport({maxProgression: 100});
-
-      // Update the progress indicator, every 200 ms
-      $progression.pipe(
-        //throttleTime(200),
-        tap((progress) => {
-          this.importing = true;
-          progress = progress > 100 ? 100 : Math.trunc(progress);
-          this.$importProgression.next(progress);
-          this.markForCheck();
-        })
-      ).subscribe();
-
-      // Wait finish
-      await $progression.pipe(filter(progress => progress >= 100)).toPromise();
+      await new Promise((resolve, reject) => {
+        // Run the import
+        this.service.executeImport({maxProgression: 100})
+          .pipe(
+            filter(value => value > 0),
+            map((progress) => {
+              if (!this.importing) {
+                this.importing = true;
+                this.markForCheck();
+              }
+              return Math.min(Math.trunc(progress), 100);
+            }),
+            catchError(err => {
+              reject(err);
+              throw err;
+            }),
+            throttleTime(100)
+          )
+          .subscribe(progression => this.$importProgression.next(progression))
+          .add(() => resolve());
+      });
 
       // Enable sync status button
       this.setSynchronizationStatus('DIRTY');
+      this.showToast({message: 'NETWORK.IMPORTATION_SUCCEED'});
       success = true;
-
     }
     catch (err) {
       this.error = err && err.message || err;
@@ -269,7 +279,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   /* -- protected methods -- */
 
   protected async restoreFilterOrLoad() {
-    const json = this.settings.getPageSettings(this.settingsId, 'filter');
+    const json = this.settings.getPageSettings(this.settingsId, TripsPageSettingsEnum.FILTER_KEY);
 
     const synchronizationStatus = json && json.synchronizationStatus;
     const tripFilter = json && typeof json === 'object' && {...json, synchronizationStatus: undefined} || undefined;
@@ -297,5 +307,8 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+
+
 }
 

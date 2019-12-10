@@ -1003,7 +1003,8 @@
       "READY_TO_SYNC": "En attente d'envoi",
       "SYNC": "Synchronisées"
     },
-    "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%"
+    "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%",
+    "IMPORTATION_SUCCEED": "La <b>saisie hors-ligne</b> est opérationnelle !"
   },
   "ERROR": {
     "FIELD_REQUIRED": "Champ obligatoire.",

@@ -58,7 +58,7 @@ export class NetworkService {
 
   onStart = new Subject<Peer>();
   onNetworkStatusChanges = new BehaviorSubject<ConnectionType>(null);
-  onResetNetworkCache = new Subject();
+  onResetNetworkCache = new EventEmitter(true);
 
   get online(): boolean {
     return this._started && this._connectionType !== 'none';
@@ -103,7 +103,7 @@ export class NetworkService {
     this.start();
 
     // For DEV only
-    this._debug = true;
+    this._debug = !environment.production;
   }
 
   public async start(peer?: Peer): Promise<any> {
@@ -249,12 +249,24 @@ export class NetworkService {
       });
   }
 
-  async clearCache(): Promise<any> {
-    console.info("[network] Clearing cache...");
+  async clearCache(opts?: { emitEvent?: boolean; }): Promise<void> {
 
-    await this.cache.clearAll();
+    const now = this._debug && Date.now();
 
-    this.onResetNetworkCache.next();
+    console.info("[network] Clearing all caches...");
+    return this.cache.clearAll()
+      .then(() => {
+        // Emit event
+        if (!opts || opts.emitEvent !== false && this.onResetNetworkCache.observers.length) {
+          this.onResetNetworkCache.emit();
+
+          // Wait observers clean their caches, if need
+          return setTimeout(() => {/*empty*/}, 500);
+        }
+      })
+      .then(() => {
+        if (this._debug) console.debug(`[network] All cache cleared, in ${Date.now() - now}ms`);
+      });
   }
 
   /* -- Protected methods -- */

@@ -10,6 +10,8 @@ import {AccountService} from "../../core/services/account.service";
 
 import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
+import {ReferentialFragments} from "./referential.queries";
+import {environment} from "../../../environments/environment.prod";
 
 export class ReferentialFilter {
   entityName: string;
@@ -26,18 +28,6 @@ export class ReferentialFilter {
   searchText?: string;
   searchAttribute?: string;
 }
-export interface TaxonNameFilter {
-
-  taxonomicLevelId?: number;
-  taxonomicLevelIds?: number[];
-  searchText?: string;
-  searchAttribute?: string;
-  statusId?: number;
-  statusIds?: number[];
-
-  taxonGroupId?: number;
-  taxonGroupIds?: number[];
-}
 
 export interface ReferentialType {
   id: string;
@@ -47,35 +37,19 @@ export interface ReferentialType {
 const LoadAllWithCountQuery: any = gql`
   query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      id
-      label
-      name
-      description
-      comments
-      updateDate
-      creationDate
-      statusId
-      levelId
-      entityName
+      ...FullReferentialFragment
     }
     referentialsCount(entityName: $entityName, filter: $filter)
   }
+  ${ReferentialFragments.fullReferential}
 `;
 const LoadAllQuery: any = gql`
   query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      id
-      label
-      name
-      description
-      comments
-      updateDate
-      creationDate
-      statusId
-      levelId
-      entityName
+      ...FullReferentialFragment
     }
   }
+  ${ReferentialFragments.fullReferential}
 `;
 
 const LoadReferentialTypes: any = gql`
@@ -83,6 +57,7 @@ const LoadReferentialTypes: any = gql`
     referentialTypes {
        id
        level
+      __typename
     }
   }
 `;
@@ -90,29 +65,19 @@ const LoadReferentialTypes: any = gql`
 const LoadReferentialLevels: any = gql`
   query ReferentialLevels($entityName: String) {
     referentialLevels(entityName: $entityName){
-      id
-      label
-      name
-      entityName
+      ...ReferentialFragment
     }
   }
+  ${ReferentialFragments.referential}
 `;
 
 const SaveAllQuery: any = gql`
   mutation SaveReferentials($referentials:[ReferentialVOInput]){
     saveReferentials(referentials: $referentials){
-      id
-      label
-      name
-      description
-      comments
-      updateDate
-      creationDate
-      statusId
-      levelId
-      entityName
+      ...FullReferentialFragment
     }
   }
+  ${ReferentialFragments.fullReferential}
 `;
 
 const DeleteAll: any = gql`
@@ -129,7 +94,9 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     protected accountService: AccountService
   ) {
     super(graphql);
-    this._debug = true;
+
+    // For DEV only
+    this._debug = !environment.production;
   }
 
   watchAll(offset: number,

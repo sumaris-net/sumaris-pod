@@ -36,6 +36,9 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
   statusId: number;
   entityName: string;
 
+  levelId: number;
+  taxonGroupId: number;
+
   referenceTaxonId: number;
 
   constructor() {
@@ -69,7 +72,9 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
     this.name = source.name;
     this.statusId = source.statusId;
     this.entityName = source.entityName || 'TaxonNameVO';
+    this.levelId = source.levelId;
     this.referenceTaxonId = source.referenceTaxonId;
+    this.taxonGroupId = source.taxonGroupId;
     return this;
   }
 }

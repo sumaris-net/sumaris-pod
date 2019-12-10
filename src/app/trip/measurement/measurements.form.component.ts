@@ -16,13 +16,13 @@ import {AppForm} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
-import {isNil, isNotNil} from '../../shared/shared.module';
+import {isNil, isNotNil, delay} from '../../shared/shared.module';
 import {MeasurementType, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
-  selector: 'form-measurements',
+  selector: 'app-form-measurements',
   templateUrl: './measurements.form.component.html',
   styleUrls: ['./measurements.form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -59,7 +59,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   set program(value: string) {
     if (this._program !== value && isNotNil(value)) {
       this._program = value;
-      if (!this.loading) this._onRefreshPmfms.emit();
+      this.loaded().then(() => this._onRefreshPmfms.emit());
     }
   }
 
@@ -71,7 +71,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   set acquisitionLevel(value: string) {
     if (this._acquisitionLevel !== value && isNotNil(value)) {
       this._acquisitionLevel = value;
-      if (!this.loading) this._onRefreshPmfms.emit();
+      this.loaded().then(() => this._onRefreshPmfms.emit());
     }
   }
 
@@ -83,7 +83,12 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   set gear(value: string) {
     if (this._gear !== value && isNotNil(value)) {
       this._gear = value;
-      if (!this.loading || this.requiredGear) this._onRefreshPmfms.emit();
+      if (this.requiredGear) {
+        this._onRefreshPmfms.emit();
+      }
+      else {
+        this.loaded().then(() => this._onRefreshPmfms.emit());
+      }
     }
   }
 
@@ -308,6 +313,14 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   protected get logPrefix(): string {
     const acquisitionLevel = this._acquisitionLevel && this._acquisitionLevel.toLowerCase().replace(/[_]/g, '-') || '?';
     return `[meas-form-${acquisitionLevel}]`;
+  }
+
+  protected async loaded(): Promise<any> {
+    if (!this.loading) return true;
+    do {
+      await delay(100);
+    } while (!this.loading);
+    return true;
   }
 
   protected markForCheck() {

@@ -77,17 +77,15 @@ export async function fetchAllPagesWithProgress<T>(
   loadPageFn: LoadResultByPageFn<T>,
   progression: BehaviorSubject<number>,
   progressionStep?: number,
-  onPageLoaded?: (pageResult: LoadResult<T>) => any): Promise<LoadResult<T>> {
-
-  //const now = Date.now();
-  const lastProgressionValue = progressionStep && (progression.getValue() + progressionStep) || undefined;
+  onPageLoaded?: (pageResult: LoadResult<T>) => any,
+  logPrefix?: string): Promise<LoadResult<T>> {
 
   let total, loopCount, loopProgressionStepSize, loopDataCount: number;
   const fetchSize = 1000;
   let offset = 0;
   let data: T[] = [];
   do {
-    if (offset === 0) console.log("Startin fecthing a page...");
+    //console.debug(`${logPrefix || '[??]'} Fetching page #${offset / fetchSize}... (progressionStep=${progressionStep}), loopProgressionStepSize=${loopProgressionStepSize}, loopCount=${loopCount})`);
 
     // Get some items, using paging
     const res = await loadPageFn(offset, fetchSize);

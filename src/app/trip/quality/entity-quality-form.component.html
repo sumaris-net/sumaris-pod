@@ -43,7 +43,7 @@
 
 </p>
 
-<ng-container *ngIf="$qualityFlags | async as qualityFlags">
+<ng-container *ngIf="qualityFlags as qualityFlags">
   <p *ngIf="qualityFlags.length && (canQualify || canUnqualify)" class="ion-padding-top">
 
       <!-- flags menu -->

@@ -39,7 +39,7 @@ export class EntityQualityFormComponent implements OnInit, OnDestroy {
   canQualify: boolean;
   canUnqualify: boolean;
 
-  $qualityFlags: Observable<ReferentialRef[]>;
+  qualityFlags: ReferentialRef[];
 
   @Input("value")
   set value(value: DataRootEntity<any>) {
@@ -80,23 +80,7 @@ export class EntityQualityFormComponent implements OnInit, OnDestroy {
       throw new Error("Missing mandatory 'dataService' input!");
     }
 
-    this.$qualityFlags = this.referentialRefService.watchAll(0, 100, 'id', 'asc', {
-      entityName: 'QualityFlag',
-      statusId: StatusIds.ENABLE
-    }, {
-      fetchPolicy: "cache-first"
-    }).pipe(
-        first(),
-        map((res) => {
-          const items = res && res.data || [];
-
-          // Try to get i18n key instead of label
-          items.forEach(flag => flag.label = this.getI18nQualityFlag(flag.id) || flag.label);
-
-          return items;
-        })
-
-    );
+    this.loadQualityFlags();
   }
 
   ngOnDestroy(): void {
@@ -191,6 +175,23 @@ export class EntityQualityFormComponent implements OnInit, OnDestroy {
       this.canQualify = canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(this.data.validationDate) && isNil(this.data.qualificationDate);
       this.canUnqualify = canWrite && isSupervisor && isNotNil(this.data.validationDate) && isNotNil(this.data.qualificationDate);
     }
+    this.markForCheck();
+  }
+
+  protected async loadQualityFlags() {
+    const res = await this.referentialRefService.loadAll(0, 100, 'id', 'asc', {
+      entityName: 'QualityFlag',
+      statusId: StatusIds.ENABLE
+    }, {
+      fetchPolicy: "cache-first"
+    });
+
+    const items = res && res.data || [];
+
+    // Try to get i18n key instead of label
+    items.forEach(flag => flag.label = this.getI18nQualityFlag(flag.id) || flag.label);
+
+    this.qualityFlags = items;
     this.markForCheck();
   }
 
