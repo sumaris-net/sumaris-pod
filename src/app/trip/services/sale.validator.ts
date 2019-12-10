@@ -22,11 +22,11 @@ export class SaleValidatorService implements ValidatorService {
       id: [''],
       updateDate: [''],
       creationDate: [''],
-      vesselSnapshot: ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      saleType: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      vesselSnapshot: [null, Validators.compose([Validators.required, SharedValidators.entity])],
+      saleType: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       startDateTime: [''],
       endDateTime: [''],
-      saleLocation: ['', SharedValidators.entity],
+      saleLocation: [null, SharedValidators.entity],
       comments: ['', Validators.maxLength(2000)]
     }, {
       validator: Validators.compose([
