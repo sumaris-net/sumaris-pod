@@ -20,7 +20,7 @@ import {
   changeCaseToUnderscore,
   focusInput,
   getPropertyByPath, isNil,
-  isNilOrBlank, isNotNilOrBlank,
+  isNilOrBlank, isNotNil, isNotNilOrBlank,
   joinPropertiesPath,
   selectInputContent,
   suggestFromArray,
@@ -289,6 +289,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         ),
       this.formControl.valueChanges
         .pipe(
+          filter(value => isNotNil(value)),
           debounceTime(this.debounceTime)
         )
     );
