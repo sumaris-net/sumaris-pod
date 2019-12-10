@@ -17,14 +17,14 @@ export class ObservedLocationValidatorService extends DataRootEntityValidatorSer
     return Object.assign(
       super.getFormConfig(data),
       {
-        __typename: ['MeasurementVO'],
-        location: ['', Validators.compose([Validators.required, SharedValidators.entity])],
-        startDateTime: ['', Validators.required],
-        endDateTime: [''],
+        __typename: [ObservedLocation.TYPENAME],
+        location: [null, Validators.compose([Validators.required, SharedValidators.entity])],
+        startDateTime: [null, Validators.required],
+        endDateTime: [null],
         measurementValues: this.formBuilder.group({}),
         observers: this.getObserversArray(data),
-        recorderDepartment: ['', SharedValidators.entity],
-        recorderPerson: ['', SharedValidators.entity]
+        recorderDepartment: [null, SharedValidators.entity],
+        recorderPerson: [null, SharedValidators.entity]
       });
   }
 

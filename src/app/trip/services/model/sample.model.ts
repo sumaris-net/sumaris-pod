@@ -15,6 +15,8 @@ import {ITreeItemEntity, NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from ".
 export class Sample extends DataRootEntity<Sample>
   implements IEntityWithMeasurement<Sample>, ITreeItemEntity<Sample>{
 
+  static TYPENAME = 'SampleVO';
+
   static fromObject(source: any): Sample {
     const res = new Sample();
     res.fromObject(source);
@@ -51,7 +53,7 @@ export class Sample extends DataRootEntity<Sample>
 
   constructor() {
     super();
-    this.__typename = 'SampleVO';
+    this.__typename = Sample.TYPENAME;
     this.label = null;
     this.rankOrder = null;
     this.taxonGroup = null;

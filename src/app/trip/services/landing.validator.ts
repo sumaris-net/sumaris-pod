@@ -16,16 +16,16 @@ export class LandingValidatorService extends DataRootVesselEntityValidatorServic
 
     return Object.assign(super.getFormConfig(data), {
       __typename: ['LandingVO'],
-      id: [''],
-      updateDate: [''],
-      location: ['', SharedValidators.entity],
-      dateTime: [''],
-      rankOrder: ['', Validators.compose([SharedValidators.integer, Validators.min(1)])],
+      id: [null],
+      updateDate: [null],
+      location: [null, SharedValidators.entity],
+      dateTime: [null],
+      rankOrder: [null, Validators.compose([SharedValidators.integer, Validators.min(1)])],
       measurementValues: this.formBuilder.group({}),
       observers: this.getObserversArray(data),
-      observedLocationId: [''],
-      comments: [''],
-      tripId: ['']
+      observedLocationId: [null],
+      comments: [null],
+      tripId: [null]
     });
   }
 

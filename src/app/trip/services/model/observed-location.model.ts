@@ -12,6 +12,8 @@ import {ReferentialAsObjectOptions} from "../../../core/services/model";
 export class ObservedLocation extends DataRootEntity<ObservedLocation>
   implements IEntityWithMeasurement<ObservedLocation>, IWithObserversEntity<ObservedLocation> {
 
+  static TYPENAME = 'ObservedLocationVO';
+
   static fromObject(source: any): ObservedLocation {
     const res = new ObservedLocation();
     res.fromObject(source);
@@ -29,6 +31,7 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
 
   constructor() {
     super();
+    this.__typename = ObservedLocation.TYPENAME;
     this.program = null;
     this.location = null;
     this.measurementValues = {};

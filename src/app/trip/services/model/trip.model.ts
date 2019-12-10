@@ -179,7 +179,7 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
 
 export class Operation extends DataEntity<Operation> {
 
-  static TYPE_NAME = 'OperationVO';
+  static TYPENAME = 'OperationVO';
 
   static fromObject(source: any): Operation {
     const res = new Operation();
@@ -209,7 +209,7 @@ export class Operation extends DataEntity<Operation> {
 
   constructor() {
     super();
-    this.__typename = Operation.TYPE_NAME;
+    this.__typename = Operation.TYPENAME;
     this.metier = null;
     this.startPosition = new VesselPosition();
     this.endPosition = new VesselPosition();
@@ -351,6 +351,8 @@ export class Operation extends DataEntity<Operation> {
 
 export class VesselPosition extends DataEntity<VesselPosition> {
 
+  static TYPENAME = 'VesselPositionVO';
+
   static fromObject(source: any): VesselPosition {
     const res = new VesselPosition();
     res.fromObject(source);
@@ -364,7 +366,7 @@ export class VesselPosition extends DataEntity<VesselPosition> {
 
   constructor() {
     super();
-    this.__typename = 'VesselPositionVO';
+    this.__typename = VesselPosition.TYPENAME;
   }
 
   clone(): VesselPosition {

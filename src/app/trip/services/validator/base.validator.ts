@@ -29,12 +29,12 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>> implem
   } {
 
     return {
-      id: [''],
-      updateDate: [''],
-      controlDate: [''],
-      qualificationDate: [''],
-      qualificationComments: [''],
-      recorderDepartment: ['', SharedValidators.entity]
+      id: [null],
+      updateDate: [null],
+      controlDate: [null],
+      qualificationDate: [null],
+      qualificationComments: [null],
+      recorderDepartment: [null, SharedValidators.entity]
     };
   }
 
@@ -61,10 +61,10 @@ export abstract class DataRootEntityValidatorService<T extends DataRootEntity<T>
     return Object.assign(
       super.getFormConfig(data),
       {
-        program: ['', Validators.compose([Validators.required, SharedValidators.entity])],
-        creationDate: [''],
-        recorderPerson: ['', SharedValidators.entity],
-        comments: ['', Validators.maxLength(2000)]
+        program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
+        creationDate: [null],
+        recorderPerson: [null, SharedValidators.entity],
+        comments: [null, Validators.maxLength(2000)]
       });
   }
 
@@ -76,7 +76,7 @@ export abstract class DataRootEntityValidatorService<T extends DataRootEntity<T>
   }
 
   getObserverControl(observer?: Person): FormControl {
-    return this.formBuilder.control(observer || '', [Validators.required, SharedValidators.entity]);
+    return this.formBuilder.control(observer || null, [Validators.required, SharedValidators.entity]);
   }
 }
 

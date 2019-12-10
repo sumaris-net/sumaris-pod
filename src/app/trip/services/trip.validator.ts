@@ -21,11 +21,11 @@ export class TripValidatorService extends DataRootEntityValidatorService<Trip> {
     return Object.assign(
       super.getFormConfig(data),
       {
-        __typename: ['TripVO'],
+        __typename: [Trip.TYPENAME],
         vesselSnapshot: [null, Validators.compose([Validators.required, SharedValidators.entity])],
-        departureDateTime: ['', Validators.required],
+        departureDateTime: [null, Validators.required],
         departureLocation: [null, Validators.compose([Validators.required, SharedValidators.entity])],
-        returnDateTime: ['', isOnFieldMode ? null : Validators.required],
+        returnDateTime: [null, isOnFieldMode ? null : Validators.required],
         returnLocation: [null, isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])],
         observers: this.getObserversArray(data)
       });

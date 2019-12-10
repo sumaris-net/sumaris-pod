@@ -311,7 +311,7 @@ export class OperationService extends BaseDataService
 
       // Load locally
       if (id < 0) {
-        json = await this.entities.load<Operation>(id, Operation.TYPE_NAME);
+        json = await this.entities.load<Operation>(id, Operation.TYPENAME);
       }
 
       // Load from pod
@@ -574,7 +574,7 @@ export class OperationService extends BaseDataService
       });
 
       const ids = (res && res.data || []).map(o => o.id);
-      await this.entities.deleteMany(ids, Operation.TYPE_NAME);
+      await this.entities.deleteMany(ids, Operation.TYPENAME);
     }
     catch (err) {
       console.error(`[operation-service] Failed to delete operation from trip {${tripId}}`, err);

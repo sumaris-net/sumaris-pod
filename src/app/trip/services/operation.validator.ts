@@ -23,17 +23,17 @@ export class OperationValidatorService implements ValidatorService {
     const isOnFieldMode = this.settings.isUsageMode('FIELD');
 
     return this.formBuilder.group({
-        __typename: ['OperationVO'],
-        id: [''],
-        updateDate: [''],
-        rankOrderOnPeriod: [''],
-        startDateTime: ['', Validators.required],
-        endDateTime: [''],
-        comments: ['', Validators.maxLength(2000)],
+        __typename: [Operation.TYPENAME],
+        id: [null],
+        updateDate: [null],
+        rankOrderOnPeriod: [null],
+        startDateTime: [null, Validators.required],
+        endDateTime: [null],
+        comments: [null, Validators.maxLength(2000)],
         startPosition: this.positionValidator.getFormGroup(null, {required: true}),
         endPosition: this.positionValidator.getFormGroup(null, {required: !isOnFieldMode}),
-        metier: ['', Validators.compose([Validators.required, SharedValidators.entity])],
-        physicalGear: ['', Validators.compose([Validators.required, SharedValidators.entity])]
+        metier: [null, Validators.compose([Validators.required, SharedValidators.entity])],
+        physicalGear: [null, Validators.compose([Validators.required, SharedValidators.entity])]
       },
       {
         validator: Validators.compose([
