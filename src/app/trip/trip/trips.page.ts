@@ -264,8 +264,9 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   setSynchronizationStatus(synchronizationStatus: SynchronizationStatus) {
     console.debug("[trips] Applying filter to synchronization status: " + synchronizationStatus);
     this.filterForm.patchValue({synchronizationStatus}, {emitEvent: false});
-    this.setFilter({ ...this.filter, synchronizationStatus}, {emitEvent: true});
-
+    const json = { ...this.filter, synchronizationStatus};
+    this.setFilter(json, {emitEvent: true});
+    this.settings.savePageSetting(this.settingsId, json, TripsPageSettingsEnum.FILTER_KEY);
   }
 
   referentialToString = referentialToString;
@@ -284,23 +285,25 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     const synchronizationStatus = json && json.synchronizationStatus;
     const tripFilter = json && typeof json === 'object' && {...json, synchronizationStatus: undefined} || undefined;
 
-    // No default filter: load all trips
-    if (!tripFilter || TripFilter.isEmpty(tripFilter)) {
+    // No default filter, nor synchronizationStatus
+    if (!tripFilter || (TripFilter.isEmpty(tripFilter) && !synchronizationStatus)) {
       this.hasOfflineData = await this.service.hasOfflineData();
+
+      // If offline data, show it (will refresh)
       if (this.hasOfflineData) {
         this.filterForm.patchValue({
           synchronizationStatus: 'DIRTY'
         });
       }
+      // No offline data: default load (online trips)
       else {
         this.onRefresh.emit();
       }
     }
     // Restore the filter (will apply it)
     else {
-      this.hasOfflineData = synchronizationStatus !== 'SYNC' || (await this.service.hasOfflineData());
-      tripFilter.synchronizationStatus = synchronizationStatus;
-      this.filterForm.patchValue(tripFilter);
+      this.hasOfflineData = synchronizationStatus ? synchronizationStatus !== 'SYNC' : (await this.service.hasOfflineData());
+      this.filterForm.patchValue({...tripFilter, synchronizationStatus});
     }
   }
 

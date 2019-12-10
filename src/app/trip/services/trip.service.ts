@@ -24,7 +24,7 @@ import {
   DataRootEntityUtils,
   MINIFY_OPTIONS,
   OPTIMISTIC_AS_OBJECT_OPTIONS,
-  SAVE_AS_OBJECT_OPTIONS,
+  SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SynchronizationStatus
 } from "./model/base.model";
 import {NetworkService} from "../../core/services/network.service";
@@ -520,7 +520,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
   async save(entity: Trip, opts?: {withOperation?: boolean;}): Promise<Trip> {
 
     const now = Date.now();
-    if (this._debug) console.debug("[trip-service] Saving a trip...");
+    if (this._debug) console.debug("[trip-service] Saving a trip...", entity);
 
     // Prepare to save
     this.fillDefaultProperties(entity);
@@ -530,6 +530,21 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     // If new, create a temporary if (for offline mode)
     const isNew = isNil(entity.id);
+
+    // If parent is a local entity: force a local save
+    const offline = entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC';
+    if (offline) {
+      // Make sure to fill id, with local ids
+      await this.fillOfflineDefaultProperties(entity);
+
+      const json = entity.asObject({...SAVE_LOCALLY_AS_OBJECT_OPTIONS});
+      if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', json);
+
+      // Save response locally
+      await this.entities.save(json);
+
+      return entity;
+    }
 
     // When offline, provide an optimistic response
     const offlineResponse = async (context) => {

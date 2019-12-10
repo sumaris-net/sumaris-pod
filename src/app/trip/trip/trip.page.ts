@@ -85,6 +85,8 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
 
+      console.debug("[trip] New entity: settings defaults...");
+
       // Fil defaults, using filter applied on trips table
       const tripFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
       if (tripFilter) {

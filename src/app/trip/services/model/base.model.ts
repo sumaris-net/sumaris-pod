@@ -174,6 +174,7 @@ export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRe
     this.validationDate = fromDateISOString(source.validationDate);
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
     this.program = source.program && ReferentialRef.fromObject(source.program);
+    this.synchronizationStatus = source.synchronizationStatus;
     return this;
   }
 }
