@@ -24,38 +24,7 @@ export const VesselSnapshotFragments = {
     basePortLocation {
       ...LocationFragment
     }
-  }`,
-  vesselSnapshot: gql`fragment VesselSnapshotFragment on VesselSnapshotVO {
-    id
-    startDate
-    endDate
-    name
-    exteriorMarking
-    registrationCode
-    administrativePower
-    lengthOverAll
-    grossTonnageGt
-    grossTonnageGrt
-    creationDate
-    updateDate
-    comments
-    vesselType {
-        ...ReferentialFragment
-    }
-    vesselStatusId
-    basePortLocation {
-      ...LocationFragment
-    }
-    registrationLocation {
-      ...LocationFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    recorderPerson {
-      ...LightPersonFragment
-    }
-  }`,
+  }`
 };
 
 const LoadAllQuery: any = gql`
@@ -80,14 +49,11 @@ const LoadAllWithCountQuery: any = gql`
 const LoadQuery: any = gql`
   query VesselSnapshot($vesselId: Int, $vesselFeaturesId: Int) {
     vesselSnapshots(filter: {vesselId: $vesselId, vesselFeaturesId: $vesselFeaturesId}) {
-      ...VesselFragment
+      ...LightVesselSnapshotFragment
     }
   }
-  ${VesselFragments.vessel}
+  ${VesselSnapshotFragments.lightVesselSnapshot}
   ${ReferentialFragments.location}
-  ${ReferentialFragments.lightDepartment}
-  ${ReferentialFragments.lightPerson}
-  ${ReferentialFragments.referential}
 `;
 
 @Injectable({providedIn: 'root'})
