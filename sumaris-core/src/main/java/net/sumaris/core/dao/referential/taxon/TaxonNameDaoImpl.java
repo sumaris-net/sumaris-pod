@@ -90,7 +90,7 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
         };
 
         ReferentialFilterVO referentialFilter = ReferentialFilterVO.builder()
-                .levelIds(filter.getTaxonomicLevelIds())
+                .levelIds(filter.getLevelIds())
                 .searchText(StringUtils.trimToNull(filter.getSearchText()))
                 .searchAttribute(StringUtils.trimToNull(filter.getSearchAttribute()))
                 .statusIds(filter.getStatusIds())
@@ -217,6 +217,11 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
         TaxonNameVO target = new TaxonNameVO();
 
         Beans.copyProperties(source, target);
+
+        // Taxonomic level
+        if (source.getTaxonomicLevel() != null) {
+            target.setLevelId(source.getTaxonomicLevel().getId());
+        }
 
         // Reference taxon
         target.setReferenceTaxonId(source.getReferenceTaxon().getId());

@@ -38,7 +38,7 @@ public class TaxonNameFilterVO {
     private Integer taxonGroupId;
     private Integer[] taxonGroupIds;
 
-    private Integer[] taxonomicLevelIds;
+    private Integer[] levelIds;
     private Integer[] statusIds;
 
     private Boolean withSynonyms;
