@@ -103,13 +103,16 @@ fi
 echo "----------------------------------"
 echo "- Creating web artifact..."
 echo "----------------------------------"
-cd $DIRNAME/www
-if [[ -f "${PROJECT_NAME}.zip" ]]; then
-  rm ${PROJECT_NAME}.zip
+mkdir -p "${DIRNAME}/dist"
+ZIP_FILE=${DIRNAME}/dist/${PROJECT_NAME}.zip
+if [[ -f "$ZIP_FILE" ]]; then
+  rm $ZIP_FILE
 fi
-zip -q -r ../${PROJECT_NAME}.zip .
+cd $DIRNAME/www
+zip -q -r $ZIP_FILE .
 if [[ $? -ne 0 ]]; then
-    exit 1
+  echo "Connot create the archive for the web artifact"
+  exit 1
 fi
 
 echo "----------------------------------"

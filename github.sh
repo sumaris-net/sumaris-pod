@@ -88,9 +88,9 @@ case "$1" in
 
       ###  Sending files
       echo "Uploading files to ${upload_url} ..."
-      dirname=$(pwd)
+      DIRNAME=$(pwd)
 
-      ZIP_FILE="$dirname/${PROJECT_NAME}.zip"
+      ZIP_FILE="$DIRNAME/dist/${PROJECT_NAME}.zip"
       if [[ -f "${ZIP_FILE}" ]]; then
         result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${PROJECT_NAME}-v${current}-web.zip")
         browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
@@ -100,7 +100,7 @@ case "$1" in
         echo " - ERROR: Web release (ZIP) not found! Skipping."
       fi
 
-      APK_FILE="${dirname}/platforms/android/app/build/outputs/apk/release/app-release.apk"
+      APK_FILE="${DIRNAME}/platforms/android/app/build/outputs/apk/release/app-release.apk"
       if [[ -f "${APK_FILE}" ]]; then
         result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T "${APK_FILE}" "${upload_url}?name=${PROJECT_NAME}-v${current}-android.apk")
         browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
