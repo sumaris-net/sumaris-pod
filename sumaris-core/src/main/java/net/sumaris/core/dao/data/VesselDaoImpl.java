@@ -199,45 +199,54 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     }
 
     @Override
-    public VesselVO save(VesselVO vessel, boolean checkUpdateDate) {
-        Preconditions.checkNotNull(vessel);
+    public VesselVO save(VesselVO source, boolean checkUpdateDate) {
+        Preconditions.checkNotNull(source);
 
-        Vessel vesselEntity = null;
-        if (vessel.getId() != null) {
-            vesselEntity = get(Vessel.class, vessel.getId());
+        Vessel target = null;
+        if (source.getId() != null) {
+            target = get(Vessel.class, source.getId());
         }
-        boolean isNew = vesselEntity == null;
+        boolean isNew = target == null;
 
         if (isNew) {
-            vesselEntity = new Vessel();
+            target = new Vessel();
         }
 
         if (!isNew) {
 
             if (checkUpdateDate) {
                 // Check update date
-                checkUpdateDateForUpdate(vessel, vesselEntity);
+                checkUpdateDateForUpdate(source, target);
             }
 
             // Lock entityName
-            lockForUpdate(vesselEntity);
+            lockForUpdate(target);
         }
 
         // VO -> Entity
-        vesselVOToEntity(vessel, vesselEntity, true);
+        vesselVOToEntity(source, target, true);
 
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         if (isNew) {
             // Force creation date
-            vesselEntity.setCreationDate(newUpdateDate);
-            vessel.setCreationDate(newUpdateDate);
+            target.setCreationDate(newUpdateDate);
+            source.setCreationDate(newUpdateDate);
         }
+
         // Update update_dt
-        vesselEntity.setUpdateDate(newUpdateDate);
-        vessel.setUpdateDate(newUpdateDate);
+        target.setUpdateDate(newUpdateDate);
+        source.setUpdateDate(newUpdateDate);
+
+        // Save entity
+        if (isNew) {
+            getEntityManager().persist(target);
+            source.setId(target.getId());
+        } else {
+            getEntityManager().merge(target);
+        }
 
         // Save Vessel features
-        VesselFeaturesVO features = vessel.getFeatures();
+        VesselFeaturesVO features = source.getFeatures();
         if (features != null) {
             if (features.getId() == null) {
                 // New features
@@ -246,7 +255,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 featuresEntity.setCreationDate(newUpdateDate);
                 featuresEntity.setUpdateDate(newUpdateDate);
                 // Affect the vessel
-                featuresEntity.setVessel(vesselEntity);
+                featuresEntity.setVessel(target);
                 // Create new entity
                 getEntityManager().persist(featuresEntity);
                 // Get new Id
@@ -265,18 +274,18 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         }
 
         // Save Registration period
-        VesselRegistrationVO registration = vessel.getRegistration();
+        VesselRegistrationVO registration = source.getRegistration();
         if (registration != null) {
             if (registration.getId() == null) {
                 // New period
                 VesselRegistrationPeriod periodEntity = new VesselRegistrationPeriod();
                 vesselRegistrationPeriodVOToEntity(registration, periodEntity, false);
                 // Affect Vessel
-                periodEntity.setVessel(vesselEntity);
+                periodEntity.setVessel(target);
                 // Create new entity
                 getEntityManager().persist(periodEntity);
                 // Get new Id
-                vessel.getRegistration().setId(periodEntity.getId());
+                source.getRegistration().setId(periodEntity.getId());
             } else {
                 // Update period
                 VesselRegistrationPeriod registrationEntity = get(VesselRegistrationPeriod.class, registration.getId());
@@ -287,18 +296,12 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             }
         }
 
-        // Save entity
-        if (isNew) {
-            getEntityManager().persist(vesselEntity);
-            vessel.setId(vesselEntity.getId());
-        } else {
-            getEntityManager().merge(vesselEntity);
-        }
+
 
         getEntityManager().flush();
         getEntityManager().clear();
 
-        return vessel;
+        return source;
     }
 
     @Override
