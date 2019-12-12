@@ -1,6 +1,6 @@
 import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
-import {EntityUtils, fillRankOrder, fromDateISOString, isNil, Operation, Trip} from "./trip.model";
+import {EntityUtils, fillRankOrder, fromDateISOString, isNil, Operation, PhysicalGear, Trip} from "./trip.model";
 import {
   EditorDataService,
   isNilOrBlank,
@@ -23,7 +23,7 @@ import {
   DataEntityAsObjectOptions,
   DataRootEntityUtils,
   MINIFY_OPTIONS,
-  OPTIMISTIC_AS_OBJECT_OPTIONS,
+  SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS,
   SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SynchronizationStatus
 } from "./model/base.model";
@@ -37,7 +37,7 @@ import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PersonService} from "../../admin/services/person.service";
 import {ProgramService} from "../../referential/services/program.service";
-import {chainAllPromise} from "../../shared/observables";
+import {concatPromises} from "../../shared/observables";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -536,7 +536,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
 
-      const json = entity.asObject({...SAVE_LOCALLY_AS_OBJECT_OPTIONS});
+      const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
       if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', json);
 
       // Save response locally
@@ -554,12 +554,11 @@ export class TripService extends RootDataService<Trip, TripFilter>
       context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
       if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
 
-      return { saveTrips: [this.asObject(entity, OPTIMISTIC_AS_OBJECT_OPTIONS)] };
+      return { saveTrips: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)] };
     };
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
-    if (isNew) delete json.id; // Make to remove temporary id, before sending to graphQL
     if (this._debug) console.debug("[trip-service] Using minify object, to send:", json);
 
    return new Promise<Trip>((resolve, reject) => {
@@ -593,7 +592,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
              try {
                // Remove linked operations
                if (opts && opts.withOperation) {
-                 await this.operationService.deleteByTripId(entity.id);
+                 await this.operationService.deleteLocallyByTripId(entity.id);
                }
              }
              catch(err) {
@@ -630,6 +629,14 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
   }
 
+  async synchronizeById(id: number): Promise<Trip> {
+    const entity = await this.load(id);
+
+    if (!entity || entity.id >= 0) return; // skip
+
+    return await this.synchronize(entity);
+  }
+
   async synchronize(entity: Trip): Promise<Trip> {
     const localId = entity && entity.id;
     if (isNil(localId) || localId >= 0) {
@@ -656,7 +663,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
 
       // Delete trip's operations
-      await this.operationService.deleteByTripId(localId);
+      await this.operationService.deleteLocallyByTripId(localId);
 
       // Delete trip
       await this.entities.deleteById(localId, Trip.TYPENAME);
@@ -864,8 +871,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
       await this.entities.deleteMany<Trip>(localIds, 'TripVO');
 
       // Cascade to operation, trip by trip
-      await chainAllPromise(localIds.map(id => {
-          return () => this.operationService.deleteByTripId(id);
+      await concatPromises(localIds.map(id => {
+          return () => this.operationService.deleteLocallyByTripId(id);
         }));
     }
 
@@ -981,6 +988,51 @@ export class TripService extends RootDataService<Trip, TripFilter>
     return this.$importationProgress;
   }
 
+  async downloadToLocal(id: number, opts?: {
+    withOperations?: boolean
+  }): Promise<Trip> {
+
+    console.debug("[trip-service] Download trip locally...");
+
+    const entity = await this.load(id, {fetchPolicy: "network-only"});
+
+    // Remove ids
+    delete entity.id;
+    (entity.gears || []).forEach(g => g.id = undefined);
+    (entity.measurements || []).forEach(m => m.id = undefined);
+
+    // Make sure to fill id, with local ids
+    await this.fillOfflineDefaultProperties(entity);
+
+    const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+
+    // Save the trip
+    const savedTrip = await this.entities.save(json, {entityName: Trip.TYPENAME});
+
+    // Copy the operations
+    if (opts && opts.withOperations) {
+      const res = await this.operationService.watchAll(0,1000, null, null, {
+        tripId: id
+      }, {
+        fetchPolicy: "network-only"
+      }).toPromise();
+
+      if (res && res.data) {
+        const savedOperations = await Promise.all(res.data.map(op => {
+          delete op.id;
+          op.tripId = savedTrip.id;
+          delete op.physicalGear.id; // keep rankorder
+          (op.measurements || []).forEach(m => m.id = undefined);
+          (op.positions || []).forEach(p => p.id = undefined);
+
+          return this.operationService.save(op);
+        }));
+      }
+    }
+
+    return entity;
+  }
+
   /* -- protected methods -- */
 
 
@@ -996,7 +1048,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
       copy.returnLocation = { ...copy.departureLocation };
     }
 
-    if (opts.minify) {
+    // Full json optimisation
+    if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
       // Clean vessel features object, before saving
       copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
     }
@@ -1043,7 +1096,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     // Fill gear id
     const gears = entity.gears || [];
-    await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues('GearVO', count));
+    await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
   }
 
   copyIdAndUpdateDate(source: Trip | undefined, target: Trip) {

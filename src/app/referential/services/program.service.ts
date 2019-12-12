@@ -823,7 +823,7 @@ export class ProgramService extends BaseDataService
 
     const acquisitionLevels: string[] = opts && opts.acquisitionLevels || Object.keys(AcquisitionLevelCodes).map(key => AcquisitionLevelCodes[key]);
 
-    const stepCount = 1; //5; // programs, pmfms, gears, taxon groups, taxon names
+    const stepCount = 5; // programs, pmfms, gears, taxon groups, taxon names
     const progressionStep = maxProgression ? maxProgression / stepCount : undefined;
     const progressionRest = progressionStep && (maxProgression - progressionStep * stepCount) || undefined;
 
@@ -860,32 +860,32 @@ export class ProgramService extends BaseDataService
       }
 
       // Step 2. load pmfms
-      // {
-      //   await Promise.all(programLabels.map(programLabel => {
-      //       return Promise.all(acquisitionLevels.map((acquisitionLevel) =>
-      //         this.loadProgramPmfms(programLabel, {acquisitionLevel})
-      //       ));
-      //     }));
-      //   progression.next(progression.getValue() + progressionStep);
-      // }
-      //
-      // // Step 3. load gears
-      // {
-      //   await Promise.all(programLabels.map(programLabel => this.loadGears(programLabel)));
-      //   progression.next(progression.getValue() + progressionStep);
-      // }
-      //
-      // // Step 4. load taxon groups
-      // {
-      //   await Promise.all(programLabels.map(programLabel => this.loadTaxonGroups(programLabel)));
-      //   progression.next(progression.getValue() + progressionStep);
-      // }
-      //
-      // // Step 5. load taxon name
-      // {
-      //   await Promise.all(programLabels.map(programLabel => this.loadTaxonNamesByTaxonGroupIdMap(programLabel)));
-      //   progression.next(progression.getValue() + progressionStep);
-      // }
+      {
+        await Promise.all(programLabels.map(programLabel => {
+            return Promise.all(acquisitionLevels.map((acquisitionLevel) =>
+              this.loadProgramPmfms(programLabel, {acquisitionLevel})
+            ));
+          }));
+        progression.next(progression.getValue() + progressionStep);
+      }
+
+      // Step 3. load gears
+      {
+        await Promise.all(programLabels.map(programLabel => this.loadGears(programLabel)));
+        progression.next(progression.getValue() + progressionStep);
+      }
+
+      // Step 4. load taxon groups
+      {
+        await Promise.all(programLabels.map(programLabel => this.loadTaxonGroups(programLabel)));
+        progression.next(progression.getValue() + progressionStep);
+      }
+
+      // Step 5. load taxon name
+      {
+        await Promise.all(programLabels.map(programLabel => this.loadTaxonNamesByTaxonGroupIdMap(programLabel)));
+        progression.next(progression.getValue() + progressionStep);
+      }
 
       // Make sure to fill the progression at least once
       if (progressionRest) {

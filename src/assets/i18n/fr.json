@@ -234,7 +234,7 @@
     "BTN_CHANGE_PEER": "Voir les noeuds disponibles",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "BTN_CLEAR_CACHE": "Nettoyer les données en cache",
-    "OFFLINE_MODE": "Forcer le mode déconnecté ? (experimental)",
+    "OFFLINE_MODE": "Forcer le mode avion ? (expérimentale)",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
     "USAGE_MODE": "Mode de saisie",
     "USAGE_MODES":  {
@@ -339,6 +339,11 @@
         "LOCATION": "Port (départ ou retour)",
         "VESSEL": "Navire",
         "SYNCHRONIZATION_STATUS": "Etat de la données"
+      },
+      "SYNCHRONIZATION_STATUS": {
+        "DIRTY_HELP": "Marées non synchronisées",
+        "READY_TO_SYNC_HELP": "Marées en attente d'envoi",
+        "SYNC_HELP": "Marées synchronisées"
       }
     },
     "ERROR": {
@@ -662,7 +667,8 @@
   "VESSEL": {
     "VESSEL_ID": "Code interne",
     "VESSEL_TYPE": "Type",
-    "STATUS_ID": "Statut",
+    "STATUS": "Etat",
+    "COMMENTS": "Commentaires",
     "TAB_GENERAL": "Détails",
     "TAB_HISTORY": "Historique",
     "FEATURES": {
@@ -999,12 +1005,12 @@
       }
     },
     "SYNCHRONIZATION_STATUS": {
-      "DIRTY": "En cours",
+      "DIRTY": "Hors-ligne",
       "READY_TO_SYNC": "En attente d'envoi",
       "SYNC": "Synchronisées"
     },
     "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%",
-    "IMPORTATION_SUCCEED": "La <b>saisie hors-ligne</b> est opérationnelle !"
+    "IMPORTATION_SUCCEED": "Importation terminée avec succès !<br/>La <b>saisie hors-ligne</b> est maintenant possible."
   },
   "ERROR": {
     "FIELD_REQUIRED": "Champ obligatoire.",
@@ -1056,8 +1062,9 @@
     "TABLE_INVALID_ROW_ERROR": "Il existe une ligne en erreur",
     "SAVE_DATA_ERROR": "Erreur lors de la sauvegarde.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_DATA_ERROR": "Erreur de chargement des données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
-    "IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
-    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors ligne."
+    "NETWORK_REQUIRED": "Connexion au système impossible.<br/><b>Vérifiez votre connexion réseau</b> avant de réessayer.",
+    "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
+    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne."
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -1067,5 +1074,8 @@
     "DELETE_IMMEDIATE": "Cette opération est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE_ROW": "<b>Êtes-vous sûr</b> de vouloir supprimer cette ligne ?",
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?"
+  },
+  "INFO" : {
+    "SYNCHRONIZATION_SUCCEED": "Synchronisation terminée avec succès !<br/>Les données ont bien été recues par le serveur."
   }
 }

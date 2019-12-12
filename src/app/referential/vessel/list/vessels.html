@@ -48,27 +48,35 @@
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
       <ion-grid>
-        <ion-row>
-          <ion-col>
-            <!-- date -->
-            <mat-date-time formControlName="date" [placeholder]="'VESSEL.LIST.FILTER.DATE'|translate" [displayTime]="false">
-              <ion-icon matPrefix name="calendar"></ion-icon>
-            </mat-date-time>
-          </ion-col>
-        </ion-row>
+
 
         <ion-row>
           <ion-col>
             <!-- search text -->
             <mat-form-field>
               <input matInput [placeholder]="'VESSEL.LIST.FILTER.SEARCH_TEXT'|translate" formControlName="searchText">
+
+              <button mat-button matSuffix mat-icon-button tabindex="-1"
+                      type="button"
+                      (click)="filterForm.controls.searchText.reset()"
+                      [hidden]="filterForm.disabled || !filterForm.controls.searchText.value">
+                <mat-icon>close</mat-icon>
+              </button>
             </mat-form-field>
           </ion-col>
         </ion-row>
 
         <ion-row>
+          <!-- date -->
           <ion-col>
-            <!-- status -->
+            <mat-date-time formControlName="date" [placeholder]="'VESSEL.LIST.FILTER.DATE'|translate" [displayTime]="false"
+                           [clearable]="true">
+              <ion-icon matPrefix name="calendar"></ion-icon>
+            </mat-date-time>
+          </ion-col>
+
+          <!-- status -->
+          <ion-col>
             <mat-form-field>
               <mat-select formControlName="statusId" [placeholder]=" 'REFERENTIAL.STATUS'|translate" >
                 <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>

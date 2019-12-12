@@ -13,7 +13,7 @@ export function firstNotNil<T = any>(obs: Observable<T>): Observable<T> {
 export function firstNotNilPromise<T = any>(obs: Observable<T>): Promise<T> {
   return firstNotNil(obs).toPromise();
 }
-export function chainAllPromise<T = any>(jobFactories: (() => Promise<any>)[]): Promise<T> {
+export function concatPromises<T = any>(jobFactories: (() => Promise<any>)[]): Promise<T> {
   return jobFactories.reduce((previous: Promise<any> | null, jobFactory) => {
     if (previous) return previous.then(() => {
       return jobFactory();

@@ -40,6 +40,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   @Input() showComment = true;
   @Input() showError = true;
   @Input() usageMode: UsageMode;
+  @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
 
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {
@@ -160,19 +161,27 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   }
 
   async addVesselModal(): Promise<any> {
-    const modal = await this.modalCtrl.create({ component: VesselModal });
-    modal.onDidDismiss().then(res => {
-      // if new vessel added, use it
-      if (res && res.data instanceof VesselSnapshot) {
-        console.debug("[trip-form] New vessel added : updating form...", res.data);
-        this.form.controls['vesselSnapshot'].setValue(res.data);
-        this.markForCheck();
-      }
-      else {
-        console.debug("[trip-form] No vessel added (user cancelled)");
+    console.log("TODO addVesselModal()")
+    const modal = await this.modalCtrl.create({
+      component: VesselModal,
+      componentProps: {
+        defaultStatus: this.vesselDefaultStatus
       }
     });
-    return modal.present();
+
+    await modal.present();
+
+    const res = await modal.onDidDismiss();
+
+    // if new vessel added, use it
+    if (res && res.data instanceof VesselSnapshot) {
+      console.debug("[trip-form] New vessel added : updating form...", res.data);
+      this.form.controls['vesselSnapshot'].setValue(res.data);
+      this.markForCheck();
+    }
+    else {
+      console.debug("[trip-form] No vessel added (user cancelled)");
+    }
   }
 
   addObserver() {

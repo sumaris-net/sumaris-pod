@@ -86,9 +86,28 @@
         </mat-select>
       </mat-form-field>
 
-      <button mat-raised-button [color]="filterForm.dirty ? 'primary' : undefined" (click)="onRefresh.emit(true)">{{'COMMON.BTN_SEARCH'|translate}}</button>
+
 
     </form>
+
+    <mat-action-row>
+      <!-- Counter  -->
+      <ion-label [hidden]="($loading|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'"
+                 class="ion-padding">
+        {{ (resultsLength ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (resultsLength |
+          numberFormat)} }}
+      </ion-label>
+
+      <div class="toolbar-spacer"></div>
+      <!-- Search button -->
+      <ion-button mat-button
+                  *ngIf="!mobile"
+                  [color]="filterForm.dirty ? 'tertiary' : undefined"
+                  [fill]="filterForm.dirty ? 'solid' : 'clear'"
+                  (click)="onRefresh.emit()">
+        <ion-text translate>COMMON.BTN_SEARCH</ion-text>
+      </ion-button>
+    </mat-action-row>
   </mat-expansion-panel>
 
   <!-- error -->

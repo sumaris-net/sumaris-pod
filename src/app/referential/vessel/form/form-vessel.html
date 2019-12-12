@@ -8,6 +8,27 @@
 
   <ion-grid>
 
+
+    <!-- Status-->
+    <ion-row *ngIf="isAdmin() || !defaultStatus">
+      <ion-col>
+        <mat-form-field>
+          <mat-select [placeholder]="'REFERENTIAL.STATUS'|translate"
+                      formControlName="statusId"
+                      required>
+            <mat-select-trigger>
+              <span *ngIf="form.controls.statusId.value &gt;= 0">{{ statusById[form.controls.statusId.value]?.label | translate}}</span>
+            </mat-select-trigger>
+            <mat-option *ngFor="let item of statusList" [value]="item.id">
+              <ion-icon [name]="item.icon"></ion-icon>
+              {{ item.label | translate }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+
     <!-- Registration -->
     <ion-row [formGroup]="form.controls.registration">
       <ion-col>
@@ -146,25 +167,6 @@
       </ion-col>-->
     </ion-row>
 
-    <!-- Status-->
-    <ion-row *ngIf="isAdmin() || !defaultStatus">
-      <ion-col>
-        <mat-form-field>
-          <mat-select [placeholder]="'REFERENTIAL.STATUS'|translate"
-                      formControlName="statusId"
-                      required>
-            <mat-select-trigger>
-              <span *ngIf="form.controls.statusId.value &gt;= 0">{{ statusById[form.controls.statusId.value]?.label | translate}}</span>
-            </mat-select-trigger>
-            <mat-option *ngFor="let item of statusList" [value]="item.id">
-              <ion-icon [name]="item.icon"></ion-icon>
-              {{ item.label | translate }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="form.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
-      </ion-col>
-    </ion-row>
 
     <!-- Comments -->
     <ion-row [formGroup]="form.controls.features">

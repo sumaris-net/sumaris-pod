@@ -109,8 +109,8 @@ export const ConfigOptions: FormFieldDefinitionMap = {
       }
     ]
   },
-  DEFAULT_NEW_VESSEL_STATUS: {
-    key: 'sumaris.defaultNewVesselStatus',
+  VESSEL_DEFAULT_STATUS: {
+    key: 'sumaris.vessel.status.default',
     label: 'CONFIGURATION.OPTIONS.VESSEL.DEFAULT_NEW_VESSEL_STATUS',
     type: 'enum',
     values: [
@@ -255,10 +255,10 @@ export abstract class Entity<T> implements Cloneable<T> {
 
   abstract clone(): T;
 
-  asObject(options?: EntityAsObjectOptions): any {
+  asObject(opts?: EntityAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
-    if (!options || options.keepTypename !== true) delete target.__typename;
-    if (target.id < 0 && (!options || options.keepLocalId === false)) delete target.id;
+    if (!opts || opts.keepTypename !== true) delete target.__typename;
+    if (target.id < 0 && (!opts || opts.keepLocalId === false)) delete target.id;
     target.updateDate = toDateISOString(this.updateDate);
     return target;
   }
@@ -549,6 +549,20 @@ export interface ReferentialAsObjectOptions extends EntityAsObjectOptions {
 export const NOT_MINIFY_OPTIONS: ReferentialAsObjectOptions = {minify: false};
 
 export const MINIFY_OPTIONS: ReferentialAsObjectOptions = {minify: true};
+
+export const SAVE_LOCALLY_AS_OBJECT_OPTIONS: ReferentialAsObjectOptions = {
+  minify: true,
+  keepTypename: true,
+  keepEntityName: true,
+  keepLocalId: true
+};
+
+export const SAVE_AS_OBJECT_OPTIONS: ReferentialAsObjectOptions = {
+  minify: true,
+  keepTypename: false,
+  keepEntityName: false,
+  keepLocalId: false
+};
 
 export class ReferentialRef<T = any> extends Entity<T> implements IReferentialRef {
 

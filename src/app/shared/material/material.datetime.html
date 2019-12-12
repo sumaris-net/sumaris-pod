@@ -169,7 +169,7 @@
               type="button"
               *ngIf="clearable"
               (click)="formControl.setValue(null)"
-              [hidden]="formControl.disabled || !_value">
+              [hidden]="formControl.disabled || !formControl.value">
         <mat-icon>close</mat-icon>
       </button>
 

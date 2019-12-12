@@ -5,26 +5,26 @@ import {
   Batch,
   DataEntity,
   Department,
-  EntityUtils, fromDateISOString,
-  isNil, isNotNil,
+  EntityUtils,
+  isNil,
+  isNotNil,
   Measurement,
   Operation,
-  Person,
-  Sample, Trip,
+  Sample,
   VesselPosition
 } from "./trip.model";
 import {filter, map, throttleTime} from "rxjs/operators";
 import {
   EditorDataService,
-  EditorDataServiceLoadOptions, isNotEmptyArray,
+  EditorDataServiceLoadOptions,
+  isNotEmptyArray,
   LoadResult,
-  TableDataService,
-  toBoolean
+  TableDataService
 } from "../../shared/shared.module";
 import {BaseDataService, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
-import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
+import {WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {isEmptyArray, isNilOrBlank} from "../../shared/functions";
 import {AcquisitionLevelCodes, ReferentialFragments} from "../../referential/referential.module";
@@ -34,13 +34,11 @@ import {AccountService} from "../../core/services/account.service";
 import {
   DataEntityAsObjectOptions,
   MINIFY_OPTIONS,
-  OPTIMISTIC_AS_OBJECT_OPTIONS,
-  SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS
+  SAVE_AS_OBJECT_OPTIONS,
+  SAVE_LOCALLY_AS_OBJECT_OPTIONS,
+  SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "./model/base.model";
 import {EntityStorage} from "../../core/services/entities-storage.service";
-import {TripFilter} from "./trip.service";
-import {BatchUtils} from "./model/batch.model";
-import {SampleUtils} from "./model/sample.model";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -454,7 +452,7 @@ export class OperationService extends BaseDataService
       context.tracked = (entity.tripId >= 0);
       if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
 
-      return { saveOperations: [this.asObject(entity, OPTIMISTIC_AS_OBJECT_OPTIONS)] };
+      return { saveOperations: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)] };
     };
 
     // Transform into json
@@ -565,7 +563,7 @@ export class OperationService extends BaseDataService
    * Save many operations
    * @param entities
    */
-  async deleteByTripId(tripId: number): Promise<any> {
+  async deleteLocallyByTripId(tripId: number): Promise<any> {
     if (tripId >= 0) throw new Error('Invalid tripId: must be a local trip (id<0)!');
 
     try {
@@ -584,11 +582,12 @@ export class OperationService extends BaseDataService
 
   /* -- protected methods -- */
 
-  protected asObject(entity: Operation, opts?: DataEntityAsObjectOptions): any {
+  protected asObject(entity: Operation, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean; }): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
     const copy: any = entity.asObject(opts);
 
-    if (opts && opts.minify) {
+    // Full json optimisation
+    if (opts.minify && !opts.keepTypename && !opts.keepEntityName) {
       // Clean metier object, before saving
       copy.metier = {id: entity.metier && entity.metier.id};
     }

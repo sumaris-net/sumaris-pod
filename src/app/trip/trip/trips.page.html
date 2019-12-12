@@ -12,33 +12,46 @@
     <ion-label translate>COMMON.DISPLAYED_COLUMNS</ion-label>
   </button>
 
-  <!-- Init offline mode -->
-  <button mat-menu-item *ngIf="network.online"
-          (click)="initOfflineMode($event)">
+  <!-- Init the offline mode -->
+  <button mat-menu-item *ngIf="!offline"
+          (click)="prepareOfflineMode($event)">
     <ion-label translate>COMMON.BTN_INIT_OFFLINE_MODE</ion-label>
   </button>
 
   <!-- menu items for DEV ONLY -->
-  <button mat-menu-item *ngIf="debug && network.online"
+  <button mat-menu-item *ngIf="debug && !offline"
           (click)="toggleOfflineMode($event)">
     <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
   </button>
 </mat-menu>
 
 <!-- Synchronisation status menu -->
-<mat-menu #syncStatusMenu="matMenu" xPosition="after" color="transparent" class="ion-text-center">
-  <ion-label class="ion-padding" translate>TRIP.TABLE.FILTER.SYNCHRONIZATION_STATUS</ion-label>
-  <ion-button *ngFor="let status of synchronizationStatusList"
-              [disabled]="synchronizationStatus === status"
-              size="small" expand="block" color="tertiary"
-              (click)="setSynchronizationStatus(status)">
-    <ion-label>{{'NETWORK.SYNCHRONIZATION_STATUS.' + status.toUpperCase() | translate}}</ion-label>
-  </ion-button>
+<mat-menu #syncStatusMenu="matMenu" xPosition="after"
+          class="ion-text-center">
+  <ng-container *ngIf="'TRIP.TABLE.TITLE' | translate; let title">
+
+    <!-- item for eash status-->
+    <button mat-menu-item *ngFor="let status of synchronizationStatusList"
+            (click)="setSynchronizationStatus(status)">
+      <mat-icon>{{synchronizationStatus === status ? 'radio_button_checked' : 'radio_button_unchecked'}}</mat-icon>
+      <ion-label class="ion-text-wrap"
+                 [color]="status === 'SYNC' && offline && 'medium'"
+                 translate>{{'TRIP.TABLE.SYNCHRONIZATION_STATUS.' + status + '_HELP' }}
+      </ion-label>
+    </button>
+  </ng-container>
 </mat-menu>
 
 <ion-content class="ion-no-padding">
   <mat-toolbar>
+
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+      <!-- Synchronization status -->
+      <ion-button color="secondary" *ngIf="hasOfflineData" [matMenuTriggerFor]="syncStatusMenu">
+        <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
+        <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+      </ion-button>
+
       <button mat-icon-button
               hidden-xs hidden-sm hidden-mobile
               *ngIf="canEdit"
@@ -56,17 +69,23 @@
           <span [innerHTML]="'COMMON.TABLE.FILTERED_PARENTHESIS'|translate"></span></ion-text>
       </button>
     </ng-container>
+
+    <!-- if row selection -->
     <ng-template #hasSelection>
-      <button mat-icon-button hidden-xs hidden-sm
-              *ngIf="canDelete" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
+
+      <!-- synchronize -->
+      <ion-button *ngIf="!offline && synchronizationStatus === 'DIRTY'"
+                  (click)="synchronizeSelection()" expand="block" color="danger">
+        <ion-icon slot="start" name="cloud-upload"></ion-icon>
+        <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
+      </ion-button>
+
+      <button mat-icon-button class="hidden-xs hidden-sm" *ngIf="canDelete"
+              [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
         <mat-icon>delete</mat-icon>
       </button>
     </ng-template>
 
-    <ion-button size="small" color="secondary" *ngIf="hasOfflineData" [matMenuTriggerFor]="syncStatusMenu">
-      <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
-      <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
-    </ion-button>
 
     <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
       <ion-icon color="danger" slot="start" name="alert"></ion-icon>
@@ -136,9 +155,9 @@
           <ion-col>
             <!-- Start date -->
             <mat-date-time [placeholder]="'TRIP.TABLE.FILTER.START_DATE'|translate"
-                           [formControl]="filterForm.controls.startDate"
+                           formControlName="startDate"
                            [displayTime]="false"
-                           clearable="true">
+                           [clearable]="true">
               <ion-icon matPrefix name="calendar"></ion-icon>
             </mat-date-time>
           </ion-col>
@@ -184,7 +203,7 @@
   </ion-item>
 
   <!-- table -->
-  <mat-table #table [dataSource]="dataSource" matSort matSortActive="departureDateTime" matSortDirection="asc"
+  <mat-table #table [dataSource]="dataSource" matSort matSortActive="departureDateTime" matSortDirection="desc"
     matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">

@@ -74,7 +74,7 @@ export class GraphqlService {
     // Listen network status
     this._$networkStatusChanged = network.onNetworkStatusChanges
       .pipe(
-        filter(type => isNotNil(type)),
+        filter(isNotNil),
         distinctUntilChanged()
       );
 
@@ -488,12 +488,12 @@ export class GraphqlService {
         .subscribe(type => {
           // Network is offline: start buffering into queue
           if (type === 'none') {
-            console.debug("[graphql] offline mode: enable mutations buffer");
+            console.info("[graphql] offline mode: enable mutations buffer");
             queueLink.close();
           }
           // Network is online
           else {
-            console.debug("[graphql] online mode: disable mutations buffer");
+            console.info("[graphql] online mode: disable mutations buffer");
             queueLink.open();
           }
         }));

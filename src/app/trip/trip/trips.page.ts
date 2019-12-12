@@ -4,7 +4,7 @@ import {
   AppTable,
   AppTableDataSource,
   environment,
-  isNil,
+  isNil, isNotNil,
   personsToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -18,16 +18,17 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {qualityFlagToColor, ReferentialRefService, referentialToString} from "../../referential/referential.module";
-import {catchError, debounceTime, filter, map, tap, throttleTime} from "rxjs/operators";
+import {catchError, debounceTime, distinctUntilChanged, filter, map, tap, throttleTime} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 import {SharedValidators} from "../../shared/validator/validators";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AccountService} from "../../core/services/account.service";
-import {NetworkService} from "../../core/services/network.service";
+import {ConnectionType, NetworkService} from "../../core/services/network.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {BehaviorSubject} from "rxjs";
 import {SynchronizationStatus} from "../services/model/base.model";
+import {concatPromises} from "../../shared/observables";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -50,6 +51,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   isAdmin: boolean;
   filterForm: FormGroup;
   filterIsEmpty = true;
+  offline = false;
 
   importing = false;
   $importProgression = new BehaviorSubject<number>(0);
@@ -58,7 +60,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   synchronizationStatusList: SynchronizationStatus[] = ['DIRTY', 'SYNC'];
 
   get synchronizationStatus(): SynchronizationStatus {
-    return this.filterForm.controls.synchronizationStatus.value;
+    return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
   }
 
   constructor(
@@ -118,6 +120,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+
   }
 
   ngOnInit() {
@@ -126,6 +129,16 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.isAdmin = this.accountService.isAdmin();
     this.canEdit = this.isAdmin || this.accountService.isUser();
     this.canDelete = this.isAdmin;
+
+    // Listen network
+    this.offline = this.network.offline;
+    this.registerSubscription(
+      this.network.onNetworkStatusChanges
+        .pipe(
+          filter(isNotNil),
+          distinctUntilChanged()
+        )
+        .subscribe((type) => this.onNetworkStatusChanged(type)));
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -191,6 +204,21 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.filterIsEmpty = TripFilter.isEmpty(json);
   }
 
+  onNetworkStatusChanged(type: ConnectionType) {
+    const offline = type === "none";
+    if (this.offline !== offline) {
+
+      // Update the property used in template
+      this.offline = offline;
+      this.markForCheck();
+
+      // When offline, change synchronization status to DIRTY
+      if (this.offline && this.synchronizationStatus === 'SYNC') {
+        this.setSynchronizationStatus('DIRTY');
+      }
+    }
+  }
+
   toggleOfflineMode(event?: UIEvent) {
     if (this.network.offline) {
       this.network.setConnectionType('unknown');
@@ -204,19 +232,15 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.onRefresh.emit();
   }
 
-  async initOfflineMode(event?: UIEvent) {
+  async prepareOfflineMode(event?: UIEvent) {
     if (this.importing) return; // skip
 
     if (this.network.offline) {
-      this.error = "ERRORS.IMPORT_NEED_ONLINE_NETWORK";
-      this.markForCheck();
-
-      // Reset error after 10s
-      setTimeout(() => {
-        this.error = null;
-        this.markForCheck();
-      }, 10000);
-      return;
+      return this.showToast({
+        message: "ERROR.NETWORK_REQUIRED",
+        error: true,
+        showCloseButton: true
+      });
     }
 
     this.$importProgression.next(0);
@@ -261,12 +285,52 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     }
   }
 
-  setSynchronizationStatus(synchronizationStatus: SynchronizationStatus) {
+  async setSynchronizationStatus(synchronizationStatus: SynchronizationStatus) {
+    if (!synchronizationStatus) return; // Skip if empty
+
+    // Make sure network is UP
+    if (this.offline && synchronizationStatus === 'SYNC') {
+      return this.showToast({
+        message: "ERROR.NETWORK_REQUIRED",
+        error: true,
+        showCloseButton: true
+      });
+    }
+
     console.debug("[trips] Applying filter to synchronization status: " + synchronizationStatus);
     this.filterForm.patchValue({synchronizationStatus}, {emitEvent: false});
     const json = { ...this.filter, synchronizationStatus};
     this.setFilter(json, {emitEvent: true});
-    this.settings.savePageSetting(this.settingsId, json, TripsPageSettingsEnum.FILTER_KEY);
+
+    // Save filter to settings (need to be done here, because new trip can stored filter)
+    await this.settings.savePageSetting(this.settingsId, json, TripsPageSettingsEnum.FILTER_KEY);
+  }
+
+  async synchronizeSelection() {
+    if (!this._enable) return;
+    if (this.loading || this.selection.isEmpty()) return;
+
+
+    if (this.debug) console.debug("[trips] Starting synchronization...");
+
+    const rowsToSync = this.selection.selected.slice();
+    const tripIds = rowsToSync.map(row => row.currentData.id).filter(id => id < 0);
+
+    try {
+      this.loading = true;
+      await concatPromises(tripIds.map(tripId => () => this.service.synchronizeById(tripId)));
+      this.selection.clear();
+
+      // Success message
+      this.showToast({
+        message: 'INFO.SYNCHRONIZATION_SUCCEED'
+      });
+    } catch (err) {
+      this.error = err && err.message || err;
+    }
+    finally {
+      this.onRefresh.emit();
+    }
   }
 
   referentialToString = referentialToString;

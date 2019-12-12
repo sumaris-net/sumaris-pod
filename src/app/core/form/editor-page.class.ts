@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, EventEmitter, Injector, OnInit} from '@angular/core';
 import {ActivatedRoute, ActivatedRouteSnapshot, Router} from "@angular/router";
-import {AlertController} from "@ionic/angular";
+import {AlertController, ToastController} from "@ionic/angular";
 
 import {TranslateService} from '@ngx-translate/core';
 import {environment} from '../../../environments/environment';
@@ -20,7 +20,6 @@ import {Entity, HistoryPageReference, UsageMode} from "../services/model";
 import {FormGroup} from "@angular/forms";
 import {AppTabPage} from "./tab-page.class";
 import {AppFormUtils} from "./form.utils";
-import {PlatformService} from "../services/platform.service";
 
 export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
 
@@ -49,6 +48,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     super(injector.get(ActivatedRoute),
       injector.get(Router),
       injector.get(AlertController),
+      injector.get(ToastController),
       injector.get(TranslateService));
 
     this.settings = injector.get(LocalSettingsService);
@@ -255,7 +255,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     }
   }
 
-  async delete(event): Promise<boolean> {
+  async delete(event?: UIEvent): Promise<boolean> {
     console.debug("[root-data-editor] Asking to delete...");
     if (this.loading || this.saving) return false;
 

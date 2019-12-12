@@ -16,7 +16,8 @@ import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripsPageSettingsEnum} from "./trips.page";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
+import {EntityStorage} from "../../core/services/entities-storage.service";
+import {DataQualityService} from "../services/trip.services";
 
 @Component({
   selector: 'app-trip-page',
@@ -31,6 +32,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;
+  qualityService: DataQualityService<Trip>;
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
 
@@ -46,7 +48,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
 
   constructor(
     injector: Injector,
-    protected vesselSnapshotService: VesselSnapshotService,
+    protected entities: EntityStorage,
     public network: NetworkService // Used for DEV (to debug OFFLINE mode)
   ) {
     super(injector,
@@ -55,6 +57,14 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     this.idAttribute = 'tripId';
     this.defaultBackHref = "/trips";
 
+    this.qualityService = {
+      canUserWrite: (data) => this.dataService.canUserWrite(data),
+      control: (data) => this.dataService.control(data),
+      qualify: (data, qualityFlagId) => this.dataService.qualify(data, qualityFlagId),
+      unvalidate: (data) => this.dataService.unvalidate(data),
+      validate: (data) => this.dataService.validate(data),
+      synchronize: (data) => this.synchronize(data)
+    };
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -204,13 +214,21 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     this.form.patchValue(trip);
   }
 
-  devToggleOfflineMode(event?: UIEvent) {
+  devToggleOfflineMode() {
     if (this.network.offline) {
       this.network.setConnectionType('unknown');
     }
     else {
       this.network.setConnectionType('none');
     }
+  }
+
+  async devDownloadToLocal() {
+    if (!this.data) return;
+
+    // Copy the trip
+    await (this.dataService as TripService).downloadToLocal(this.data.id, { withOperations: true });
+
   }
 
   /* -- protected methods -- */
@@ -264,6 +282,24 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     const tab2Invalid = !tab1Invalid && this.operationTable.invalid;
 
     return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
+  }
+
+  protected async synchronize(data: Trip): Promise<Trip> {
+    this.disable();
+
+    try {
+
+      const savedEntity = await this.dataService.synchronize(data);
+
+      this.showToast({
+        message: 'INFO.SYNCHRONIZATION_SUCCEED'
+      });
+
+      return savedEntity;
+    }
+    finally {
+      this._enabled = true; // Will enable later
+    }
   }
 
   protected markForCheck() {

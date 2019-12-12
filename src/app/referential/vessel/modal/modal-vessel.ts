@@ -1,5 +1,5 @@
-import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Vessel} from "../../services/model";
+import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {isNil, isNotNil, Vessel} from "../../services/model";
 import { ModalController } from "@ionic/angular";
 import { VesselForm } from '../form/form-vessel';
 import { VesselService } from '../../services/vessel-service';
@@ -7,6 +7,7 @@ import { AppFormUtils } from '../../../core/core.module';
 import {ConfigService} from "../../../core/services/config.service";
 import {Subscription} from "rxjs";
 import {AccountService} from "../../../core/services/account.service";
+import {ConfigOptions} from "../../../core/services/model";
 
 
 @Component({
@@ -17,6 +18,8 @@ export class VesselModal implements OnInit, OnDestroy {
 
   loading = false;
   subscription = new Subscription();
+
+  @Input() defaultStatus: number;
 
   get disabled() {
     return this.formVessel.disabled;
@@ -34,23 +37,29 @@ export class VesselModal implements OnInit, OnDestroy {
 
   constructor(
     private vesselService: VesselService,
-    private viewCtrl: ModalController,
-    private configService: ConfigService) {
+    private configService: ConfigService,
+    private viewCtrl: ModalController) {
   }
 
   ngOnInit(): void {
     this.enable(); // Enable the vessel form, by default
 
-    this.subscription.add(
-      this.configService.config.subscribe(config => {
-        if (config && config.properties) {
-          const defaultStatus = config.properties['sumaris.defaultNewVesselStatus'];
-          if (defaultStatus) {
-            this.formVessel.defaultStatus = +defaultStatus;
+    if (isNotNil(this.defaultStatus)) {
+      this.formVessel.defaultStatus = this.defaultStatus;
+    }
+    else {
+      // Get default status by config
+      this.subscription.add(
+        this.configService.config.subscribe(config => {
+          if (config && config.properties) {
+            const defaultStatus = config.properties[ConfigOptions.VESSEL_DEFAULT_STATUS.key];
+            if (defaultStatus) {
+              this.formVessel.defaultStatus = +defaultStatus;
+            }
           }
-        }
-      })
-    );
+        })
+      );
+    }
   }
 
   ngOnDestroy(): void {

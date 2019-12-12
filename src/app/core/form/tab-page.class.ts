@@ -2,7 +2,7 @@ import {OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
 import {Entity} from '../services/model';
-import {AlertController} from '@ionic/angular';
+import {AlertController, ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
 import {Subscription} from 'rxjs';
 import {isNotNil, ToolbarComponent} from '../../shared/shared.module';
@@ -10,6 +10,8 @@ import {AppTable} from '../table/table.class';
 import {AppForm} from './form.class';
 import {FormButtonsBarComponent} from './form-buttons-bar.component';
 import {AppFormUtils} from "./form.utils";
+import {ToastOptions} from "@ionic/core";
+import {ToastButton} from "@ionic/core/dist/types/components/toast/toast-interface";
 
 export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
 
@@ -75,6 +77,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     protected route: ActivatedRoute,
     protected router: Router,
     protected alertCtrl: AlertController,
+    protected toastController: ToastController,
     protected translate: TranslateService
   ) {
 
@@ -386,6 +389,54 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
     const saved = await this.save(event);
     return saved;
+  }
+
+  protected async showToast(opts: ToastOptions & { error?: boolean;}) {
+
+    if (!this.toastController) throw new Error("Missing toastController in component's constructor");
+    const i18nKeys = [opts.message];
+    if (opts.header) i18nKeys.push(opts.header);
+
+    let closeButton: ToastButton;
+    if (opts.showCloseButton) {
+      opts.buttons = opts.buttons || [];
+      const buttonIndex = opts.buttons
+        .map(b => typeof b === 'object' && b as ToastButton || undefined)
+        .filter(isNotNil)
+        .findIndex(b => b.role === 'close');
+      if (buttonIndex !== -1) {
+        closeButton = opts.buttons[buttonIndex] as ToastButton;
+      }
+      else {
+        closeButton = {role: 'close'};
+        opts.buttons.push(closeButton);
+      }
+      closeButton.text = closeButton.text || 'COMMON.BTN_CLOSE';
+      i18nKeys.push(closeButton.text);
+    }
+
+    if (opts.error) {
+      const cssArray = opts.cssClass && typeof opts.cssClass === 'string' && opts.cssClass.split(',') || (opts.cssClass as Array<string>) || [];
+      cssArray.push('error');
+      opts.cssClass = cssArray;
+    }
+
+    const translations = await this.translate.instant(i18nKeys);
+
+    if (closeButton) {
+      closeButton.text = translations[closeButton.text];
+    }
+
+    const toast = await this.toastController.create({
+      // Default values
+      //FIXME: mobile is not a property
+      // position: !this.mobile && 'top' || undefined,
+      duration: 3000,
+      ...opts,
+      message: translations[opts.message],
+      header: opts.header && translations[opts.header] || undefined
+    });
+    return toast.present();
   }
 
   protected logFormErrors() {

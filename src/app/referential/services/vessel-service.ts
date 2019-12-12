@@ -4,16 +4,16 @@ import {Observable} from "rxjs";
 import {
   Department,
   EntityUtils,
-  fromDateISOString,
   isNil,
   isNotNil,
   Person,
   QualityFlagIds,
+  StatusIds,
   Vessel,
-  VesselSnapshot
+  VesselSnapshot,
 } from "./model";
 import {EditorDataService, isNilOrBlank, LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService} from "../../core/core.module";
+import {BaseDataService, SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
 
@@ -26,7 +26,8 @@ import {isEmptyArray} from "../../shared/functions";
 import {EntityAsObjectOptions, MINIFY_OPTIONS} from "../../core/services/model";
 import {LoadFeaturesQuery, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";
 import {LoadRegistrationsQuery, RegistrationFragments, VesselRegistrationService} from "./vessel-registration.service";
-import {Trip} from "../../trip/services/model/trip.model";
+import {NetworkService} from "../../core/services/network.service";
+import {EntityStorage} from "../../core/services/entities-storage.service";
 
 export class VesselFilter {
   date?: Date | Moment;
@@ -175,6 +176,7 @@ const DeleteVessels: any = gql`
     }
 `;
 
+
 @Injectable({providedIn: 'root'})
 export class VesselService
   extends BaseDataService
@@ -182,6 +184,8 @@ export class VesselService
 
   constructor(
     protected graphql: GraphqlService,
+    protected network: NetworkService,
+    protected entities: EntityStorage,
     private accountService: AccountService,
     private vesselFeatureService: VesselFeaturesService,
     private vesselRegistrationService: VesselRegistrationService,
@@ -329,48 +333,64 @@ export class VesselService
 
   /**
    * Save a trip
-   * @param vessel
-   * @param options
+   * @param entity
+   * @param opts
    */
-  async save(vessel: Vessel, options?: any): Promise<Vessel> {
+  async save(entity: Vessel, opts?: {
+    previousVessel?: Vessel;
+    isNewFeatures?: boolean;
+    isNewRegistration?: boolean;
+  }): Promise<Vessel> {
+
+    const now = Date.now();
+    console.debug("[vessel-service] Saving a vessel...");
 
     // prepare previous vessel to save if present
-    if (options && isNotNil(options.previousVessel)) {
+    if (opts && isNotNil(opts.previousVessel)) {
 
       // update previous features
-      if (options.isNewFeatures) {
+      if (opts.isNewFeatures) {
         // set end date = new start date - 1
-        const newStartDate = vessel.features.startDate.clone();
+        const newStartDate = entity.features.startDate.clone();
         newStartDate.subtract(1, "seconds");
-        options.previousVessel.features.endDate = newStartDate;
+        opts.previousVessel.features.endDate = newStartDate;
 
       } else
       // prepare previous registration period
-      if (options.isNewRegistration) {
+      if (opts.isNewRegistration) {
         // set registration end date = new registration start date - 1
-        const newRegistrationStartDate = vessel.registration.startDate.clone();
+        const newRegistrationStartDate = entity.registration.startDate.clone();
         newRegistrationStartDate.subtract(1, "seconds");
-        options.previousVessel.registration.endDate = newRegistrationStartDate;
+        opts.previousVessel.registration.endDate = newRegistrationStartDate;
       }
 
       // save both by calling saveAll
-      const savedVessels: Vessel[] = await this.saveAll([options.previousVessel, vessel], options);
+      const savedVessels: Vessel[] = await this.saveAll([opts.previousVessel, entity], opts);
       // return last
       return Promise.resolve(savedVessels.pop());
     }
 
     // Prepare to save
-    this.fillDefaultProperties(vessel);
-    const isNew = isNil(vessel.id);
+    this.fillDefaultProperties(entity);
+    const isNew = isNil(entity.id);
+
+    // Offline mode
+    if (this.network.offline) {
+      // Make sure to fill id, with local ids
+      await this.fillOfflineDefaultProperties(entity);
+
+      const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+      if (this._debug) console.debug('[vessel-service] [offline] Saving vessel locally...', json);
+
+      // Save response locally
+      await this.entities.save(json);
+
+      return entity;
+    }
 
     // Transform into json
-    const json = vessel.asObject({
-      minify: true,
-      keepTypename: false
-    });
-
-    const now = Date.now();
-    console.debug("[vessel-service] Saving vessel: ", json);
+    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
+    if (this._debug) console.debug("[vessel-service] Using minify object, to send:", json);
 
     return new Promise<Vessel>((resolve, reject) => {
       this.graphql.mutate<{ saveVessels: any }>({
@@ -385,7 +405,7 @@ export class VesselService
           if (savedVessel) {
 
             // Copy id and update Date
-            this.copyIdAndUpdateDate(savedVessel, vessel);
+            this.copyIdAndUpdateDate(savedVessel, entity);
 
             if (this._debug) console.debug(`[vessel-service] Vessel Feature saved in ${Date.now() - now}ms`, savedVessel);
 
@@ -406,7 +426,7 @@ export class VesselService
 
           }
 
-          resolve(vessel);
+          resolve(entity);
         }
 
       });
@@ -439,11 +459,11 @@ export class VesselService
 
   /* -- protected methods -- */
 
-  protected asObject(vessel: Vessel, options?: EntityAsObjectOptions): any {
-    return vessel.asObject({...MINIFY_OPTIONS, options} as EntityAsObjectOptions);
+  protected asObject(vessel: Vessel, opts?: EntityAsObjectOptions): any {
+    return vessel.asObject({...MINIFY_OPTIONS, options: opts} as EntityAsObjectOptions);
   }
 
-  protected fillDefaultProperties(vessel: Vessel): void {
+  protected fillDefaultProperties(vessel: Vessel) {
 
     const person: Person = this.accountService.account;
 
@@ -480,6 +500,18 @@ export class VesselService
       vessel.features.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
     }
 
+  }
+
+  protected async fillOfflineDefaultProperties(entity: Vessel) {
+    const isNew = isNil(entity.id);
+
+    // If new, generate a local id
+    if (isNew) {
+      entity.id =  await this.entities.nextValue(entity);
+    }
+
+    // Force status as temporary
+    entity.statusId = StatusIds.TEMPORARY;
   }
 
   copyIdAndUpdateDate(source: Vessel | undefined, target: Vessel) {

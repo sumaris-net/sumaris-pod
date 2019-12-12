@@ -18,11 +18,24 @@ import {AccountService} from "../../../core/services/account.service";
 })
 export class VesselForm extends AppForm<Vessel> implements OnInit {
 
-  @Input() defaultStatus: number;
+  private _defaultStatus: number;
 
   data: Vessel;
   statusList = DefaultStatusList;
   statusById: any;
+
+  @Input() set defaultStatus(value: number) {
+    if (this._defaultStatus !== value) {
+      this._defaultStatus = value;
+      if (this.form) {
+        this.form.get('statusId').setValue(this.defaultStatus);
+      }
+    }
+  }
+
+  get defaultStatus(): number {
+    return this._defaultStatus;
+  }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,

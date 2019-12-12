@@ -75,7 +75,7 @@ export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
 
 }
 
-export const OPTIMISTIC_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
+export const SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
  minify: false,
  keepTypename: true,
  keepEntityName: true,
@@ -130,11 +130,12 @@ export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDe
 }
 
 
-export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC';
+export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED';
 export const SynchronizationStatusEnum = {
   DIRTY: 'DIRTY',
   READY_TO_SYNC: 'READY_TO_SYNC',
-  SYNC: 'SYNC'
+  SYNC: 'SYNC',
+  DELETED: 'DELETED'
 };
 
 export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRecorderPersonEntity<T>, IWithProgramEntity<T> {

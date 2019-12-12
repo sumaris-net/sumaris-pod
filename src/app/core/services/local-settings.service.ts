@@ -1,4 +1,4 @@
-import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
+import {EventEmitter, Inject, Injectable, InjectionToken, Optional} from "@angular/core";
 import {HistoryPageReference, LocalSettings, Peer, UsageMode} from "./model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
@@ -10,7 +10,7 @@ import {getPropertyByPath, isNotNilOrBlank} from "../../shared/functions";
 import {Platform} from "@ionic/angular";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import * as moment from "moment";
-import {debounceTime, filter, throttleTime} from "rxjs/operators";
+import {debounceTime, filter, first, throttleTime} from "rxjs/operators";
 import {PlatformService} from "./platform.service";
 export const SETTINGS_STORAGE_KEY = "settings";
 export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
@@ -34,7 +34,7 @@ export class LocalSettingsService {
   private _startPromise: Promise<any>;
   private _started = false;
   private _additionalFields: FormFieldDefinition[] = [];
-  private _delayedSaveSubject: Subject<any>;
+  private _$persist: EventEmitter<any>;
 
   private data: LocalSettings;
 
@@ -164,7 +164,7 @@ export class LocalSettingsService {
     this.data = { ...this.data, ...settings};
 
     // Save locally
-    this.saveLocally();
+    this.persistLocally();
 
     // Emit event
     this.onChange.next(this.data);
@@ -199,7 +199,7 @@ export class LocalSettingsService {
     }
 
     // Update local settings
-    this.saveLocally();
+    this.persistLocally();
   }
 
   getFieldDisplayAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
@@ -301,7 +301,7 @@ export class LocalSettingsService {
     this.data.pageHistory.splice(index, 1);
 
     // Save locally
-    this.saveLocally();
+    this.persistLocally();
   }
 
   async clearPageHistory() {
@@ -325,7 +325,7 @@ export class LocalSettingsService {
     if (this._started) this.onChange.next(this.data);
   }
 
-  private saveLocally(immediate?: boolean): Promise<any> {
+  private persistLocally(immediate?: boolean): Promise<any> {
 
     // Execute immediate
     if (immediate) {
@@ -342,18 +342,18 @@ export class LocalSettingsService {
     // Execute with delay
     else {
 
-      // Create the save subject
-      if (!this._delayedSaveSubject) {
-        this._delayedSaveSubject = new Subject<any>();
-        this._delayedSaveSubject
+      // Create the event emitter
+      if (!this._$persist) {
+        this._$persist = new EventEmitter<any>(true);
+        this._$persist
           .pipe(
-            debounceTime(1000),
+            debounceTime(2000), // add a delay of 2s
             filter(() => this._started)
           )
-          .subscribe(() => this.saveLocally(true));
+          .subscribe(() => this.persistLocally(true));
       }
 
-      this._delayedSaveSubject.next();
+      this._$persist.emit();
     }
   }
 

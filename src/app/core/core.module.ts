@@ -61,7 +61,9 @@ import {
   ReferentialAsObjectOptions,
   ReferentialRef,
   referentialToString,
-  StatusIds
+  StatusIds,
+  SAVE_AS_OBJECT_OPTIONS,
+  SAVE_LOCALLY_AS_OBJECT_OPTIONS
 } from './services/model';
 // import ngx-translate and the http loader
 import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -118,7 +120,9 @@ export {
   EntityAsObjectOptions,
   PropertiesMap,
   ReferentialAsObjectOptions,
-  NOT_MINIFY_OPTIONS
+  NOT_MINIFY_OPTIONS,
+  SAVE_AS_OBJECT_OPTIONS,
+  SAVE_LOCALLY_AS_OBJECT_OPTIONS
 };
 
 export function HttpLoaderFactory(http: HttpClient) {

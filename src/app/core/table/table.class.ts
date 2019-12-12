@@ -23,6 +23,8 @@ import {
   MatAutocompleteFieldConfig
 } from "../../shared/material/material.autocomplete";
 import {TripFilter} from "../../trip/services/trip.service";
+import {ToastOptions} from "@ionic/core";
+import {ToastButton} from "@ionic/core/dist/types/components/toast/toast-interface";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -775,22 +777,45 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     return confirm;
   }
 
-  protected async showToast(
-    opts: {
-    header?: string
-    message: string;
-    position?: "bottom" | "middle" | "top";
-    duration?: number;
-  }) {
+  protected async showToast(opts: ToastOptions & { error?: boolean;}) {
 
     if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     const i18nKeys = [opts.message];
     if (opts.header) i18nKeys.push(opts.header);
 
+    let closeButton: ToastButton;
+    if (opts.showCloseButton) {
+      opts.buttons = opts.buttons || [];
+      const buttonIndex = opts.buttons
+        .map(b => typeof b === 'object' && b as ToastButton || undefined)
+        .filter(isNotNil)
+        .findIndex(b => b.role === 'close');
+      if (buttonIndex !== -1) {
+        closeButton = opts.buttons[buttonIndex] as ToastButton;
+      }
+      else {
+        closeButton = {role: 'close'};
+        opts.buttons.push(closeButton);
+      }
+      closeButton.text = closeButton.text || 'COMMON.BTN_CLOSE';
+      i18nKeys.push(closeButton.text);
+    }
+
+    if (opts.error) {
+      const cssArray = opts.cssClass && typeof opts.cssClass === 'string' && opts.cssClass.split(',') || (opts.cssClass as Array<string>) || [];
+      cssArray.push('error');
+      opts.cssClass = cssArray;
+    }
+
     const translations = await this.translate.instant(i18nKeys);
 
+    if (closeButton) {
+      closeButton.text = translations[closeButton.text];
+    }
+
     const toast = await this.toastController.create({
-      position: !this.mobile && 'top' || undefined /*default*/,
+      // Default values
+      position: !this.mobile && 'top' || undefined,
       duration: 3000,
       ...opts,
       message: translations[opts.message],
