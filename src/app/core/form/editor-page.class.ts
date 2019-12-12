@@ -212,8 +212,8 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     // Wait end of async validation
     await this.waitWhilePending();
 
-    // Not valid
-    if (!this.valid) {
+    // If invalid
+    if (this.invalid) {
       this.markAsTouched({emitEvent: true});
       this.logFormErrors();
       this.openFirstInvalidTab();

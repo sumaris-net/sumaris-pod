@@ -4,7 +4,7 @@ import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Subscription} from 'rxjs';
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
-import {AppFormUtils} from "./form.utils";
+import {AppFormUtils, getFormValueFromEntity} from "./form.utils";
 import {
   MatAutocompleteConfigHolder,
   MatAutocompleteFieldAddOptions,
@@ -157,6 +157,26 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
       this.markForCheck();
     }
   }
+
+  reset(data?: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+    if (data) {
+      if (this.debug) console.debug("[form] Resetting form (using entity)", data);
+
+      // Convert object to json, then apply it to form (e.g. convert 'undefined' into 'null')
+      const json = AppFormUtils.getFormValueFromEntity(data, this.form);
+      this.form.reset(json, {emitEvent: false, onlySelf: true});
+    }
+    else {
+      this.form.reset(null, {emitEvent: false, onlySelf: true});
+    }
+
+    // Only mark for check if 'emitEvent' is set to true.
+    // Please note that Reactive Form use 'emitEvent=true' as default value
+    if (opts && opts.emitEvent === true) {
+      this.markForCheck();
+    }
+  }
+
 
   markAsPristine(opts?: {onlySelf?: boolean}) {
     AppFormUtils.markAsPristine(this.form, opts);

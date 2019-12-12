@@ -151,6 +151,23 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.restoreFormStatus({onlySelf: true, emitEvent: opts && opts.emitEvent});
   }
 
+  reset(data?: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean}) {
+    if (this.$loadingControls.getValue()) {
+      throw Error("Form not ready yet. Please use safeSetValue() instead!");
+    }
+
+    // Adapt measurement values to form (if not skip)
+    if (data && !opts || opts.normalizeEntityToForm !== false) {
+      MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
+    }
+
+    super.reset(data, opts);
+
+    // Restore form status
+    this.restoreFormStatus({onlySelf: true, emitEvent: opts && opts.emitEvent});
+  }
+
+
   async ready(): Promise<void> {
     // Wait pmfms load, and controls load
     if (this.$loadingControls.getValue() !== false || this.loadingPmfms !== false) {

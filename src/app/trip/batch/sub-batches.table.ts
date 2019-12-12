@@ -260,6 +260,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     if (this.loading) return;
     if (row !== this.editedRow && !this.confirmEditCreate()) return;
 
+    await AppFormUtils.waitWhilePending(this.form);
+
     if (this.form.invalid) {
       this.onInvalidForm();
       return;
@@ -268,7 +270,10 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     const subBatch = this.form.form.value;
     subBatch.individualCount = isNotNil(subBatch.individualCount) ? subBatch.individualCount : 1;
 
-    await this.resetForm(subBatch, {focusFirstEmpty: true});
+    await this.resetForm(subBatch, {focusFirstEmpty:
+      /* FIXME =!this.mobile ? + une condition si une seule valeur ? */
+        true
+    });
 
     // Add batch to table
     if (!row) {
@@ -323,7 +328,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     this.autocompleteFields.parent.displayWith = (value) => BatchUtils.parentToString(value, parentToStringOptions);
   }
 
-  protected async resetForm(previousBatch?: Batch, options?: {focusFirstEmpty?: boolean, emitEvent?: boolean}) {
+  protected async resetForm(previousBatch?: Batch, opts?: {focusFirstEmpty?: boolean, emitEvent?: boolean}) {
 
     await this.onReady();
 
@@ -358,17 +363,16 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       }
     }
 
+    // Reset the form with the new batch
     MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.$pmfms.getValue(), this.form.form);
+    this.form.reset(newBatch, {emitEvent: true, normalizeEntityToForm: false /*already done*/});
 
+    // IF need, enable the form
     if (this.form.disabled) {
-      this.form.setValue(newBatch, {emitEvent: true});
       this.form.enable();
-      this.form.markAsPristine();
-    } else {
-      this.form.setValue(newBatch, {emitEvent: true});
     }
 
-    if (options && toBoolean(options.focusFirstEmpty, false)) {
+    if (opts && toBoolean(opts.focusFirstEmpty, false)) {
       setTimeout(() => this.form.focusFirstEmpty());
     }
   }

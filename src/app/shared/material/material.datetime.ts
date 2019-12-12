@@ -1,12 +1,15 @@
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, ElementRef,
+  Component,
+  ElementRef,
   forwardRef,
   Input,
   OnInit,
-  Optional, QueryList,
-  ViewChild, ViewChildren
+  Optional,
+  QueryList,
+  ViewChild,
+  ViewChildren
 } from '@angular/core';
 import {Platform} from '@ionic/angular';
 import {DateAdapter, FloatLabelType, MatDatepicker, MatDatepickerInputEvent} from '@angular/material';
@@ -16,21 +19,21 @@ import {
   FormControl,
   FormGroup,
   FormGroupDirective,
-  NG_VALUE_ACCESSOR, ValidationErrors, ValidatorFn,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  ValidatorFn,
   Validators
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {Moment} from "moment/moment";
-import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR} from '../constants';
+import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../constants';
 import {SharedValidators} from '../validator/validators';
-import {isNil, isNilOrBlank, setTabIndex, toBoolean, toDateISOString} from "../functions";
+import {delay, isNil, isNilOrBlank, setTabIndex, toBoolean, toDateISOString} from "../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
-import {delay, first} from "rxjs/operators";
+import {first} from "rxjs/operators";
 import {fadeInAnimation} from "./material.animations";
 import {InputElement, isFocusableElement} from "./focusable";
-import {firstNotNilPromise} from "../observables";
-import {BehaviorSubject, Subject} from "rxjs";
-import {AppFormUtils} from "../../core/core.module";
+import {BehaviorSubject} from "rxjs";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -73,6 +76,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
   private _onTouchedCallback: () => void = noop;
   protected writing = true;
   protected disabling = false;
+  protected _tabindex: number;
+  protected keyboardHideDelay = 500;
 
   mobile: boolean;
   form: FormGroup;
@@ -103,7 +108,16 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
-  @Input() tabindex: number;
+  @Input() set tabindex(value: number) {
+    if (this._tabindex !== value) {
+      this._tabindex = value;
+      setTimeout(() => this.updateTabIndex());
+    }
+  }
+
+  get tabindex(): number {
+    return this._tabindex;
+  }
 
   @Input() startDate: Date;
 
@@ -130,6 +144,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
   ) {
     // Workaround because ion-datetime has issue (do not returned a ISO date)
     this.mobile = platform.is('mobile');
+    this.keyboardHideDelay = this.mobile && platform.is('android') ? KEYBOARD_HIDE_DELAY_MS.android : 700;
 
     this.locale = (translate.currentLang || translate.defaultLang).substr(0, 2);
   }
@@ -178,6 +193,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
         this.form.controls.day.updateValueAndValidity({onlySelf: true, emitEvent: false});
         this.markForCheck();
       });
+
+    this.updateTabIndex();
 
     this.writing = false;
   }
@@ -370,24 +387,19 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     }
   }
 
-  public openDatePickerIfMobile(event: UIEvent, datePicker?: MatDatepicker<Moment>) {
+  async openDatePickerIfMobile(event: UIEvent, datePicker?: MatDatepicker<any>) {
     if (!this.mobile || event.defaultPrevented) return;
 
     this.preventEvent(event);
 
-    if (this.keyboard.isVisible) {
-      this.keyboard.hide();
-      this.keyboard.onKeyboardHide()
-        .pipe(first(), delay(200))
-        .subscribe(() => this.openDatePicker(event, datePicker));
-      return;
-    }
+    // Make sure the keyboard is closed
+    await this.waitKeyboardHide();
 
     // Open the picker
     this.openDatePicker(event, datePicker);
   }
 
-  public openDatePicker(event: UIEvent, datePicker?: MatDatepicker<Moment>) {
+  public openDatePicker(event: UIEvent, datePicker?: MatDatepicker<any>) {
     datePicker = datePicker || this.datePicker1 || this.datePicker2;
     if (datePicker) {
       this.preventEvent(event);
@@ -397,20 +409,13 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     }
   }
 
-  public openTimePickerIfMobile(event: UIEvent) {
+  async openTimePickerIfMobile(event: UIEvent) {
     if (!this.mobile || event.defaultPrevented) return;
 
     this.preventEvent(event);
 
-    if (this.keyboard.isVisible) {
-      this.keyboard.hide();
-      this.keyboard.onKeyboardHide()
-        .pipe(first(), delay(200))
-        .subscribe(() => {
-          this.openTimePicker(event);
-        });
-      return;
-    }
+    // Make sure the keyboard is closed
+    await this.waitKeyboardHide();
 
     // Open the picker
     this.openTimePicker(event);
@@ -473,13 +478,28 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
   /* -- protected method -- */
 
+  protected async waitKeyboardHide() {
+    if (!this.keyboard.isVisible) return; // ok, already hidden
+
+    // Force keyboard to be hide
+    this.keyboard.hide();
+
+    // EWait hide occur
+    await this.keyboard.onKeyboardHide().toPromise();
+
+    // Wait an additional delay if need (depending on the OS)
+    if (this.keyboardHideDelay) {
+      await delay(this.keyboardHideDelay);
+    }
+  }
+
   protected updateTabIndex() {
-    if (isNil(this.tabindex) || this.tabindex === -1) return; // skip
+    if (isNil(this._tabindex) || this._tabindex === -1) return; // skip
 
     // Focus to first input
     setTimeout(() => {
       this.matInputs.forEach((elementRef, index) => {
-        setTabIndex(elementRef, this.tabindex + index);
+        setTabIndex(elementRef, this._tabindex + index);
       });
       this.markForCheck();
     });

@@ -265,7 +265,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     return false;
   }
 
-  reset(opts?: {emitEvent?: boolean}) {
+  reset(data?: any, opts?: {emitEvent?: boolean}) {
     // Remove all criterion
     Object.getOwnPropertyNames(this.form.controls).forEach(sheetName => this.form.removeControl(sheetName));
 

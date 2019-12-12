@@ -144,7 +144,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     // Wait end of async validation
     await AppFormUtils.waitWhilePending(this);
 
-    if (!this.valid) {
+    if (this.invalid) {
       this.form.error = "COMMON.FORM.HAS_ERROR";
       this.form.logFormErrors("[batch-group-modal] ");
       this.form.markAsTouched({emitEvent: true});

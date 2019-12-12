@@ -3,7 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  Input,
+  Input, NgZone,
   OnDestroy,
   OnInit,
   QueryList,
@@ -30,7 +30,14 @@ import {
   QualitativeLabels
 } from "../../referential/services/model";
 import {BehaviorSubject, combineLatest} from "rxjs";
-import {getPropertyByPath, isNilOrBlank, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "../../shared/functions";
+import {
+  getPropertyByPath,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNilOrBlank,
+  startsWithUpperCase,
+  toBoolean
+} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PlatformService} from "../../core/services/platform.service";
@@ -140,11 +147,12 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
-    protected cd: ChangeDetectorRef,
     protected validatorService: ValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected settings: LocalSettingsService,
-    protected platform: PlatformService
+    protected platform: PlatformService,
+    protected zone: NgZone,
+    protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
       validatorService.getRowValidator(),
@@ -163,10 +171,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     this.enableIndividualCountControl = this.formBuilder.control(this.mobile, Validators.required);
     this.enableIndividualCountControl.setValue(false, {emitEvent: false});
 
-    // Get display attributes for parent
-    this._parentAttributes = this.settings.getFieldDisplayAttributes('taxonGroup').map(attr => 'taxonGroup.' + attr)
-      .concat(!this.showTaxonName ? this.settings.getFieldDisplayAttributes('taxonName').map(attr => 'taxonName.' + attr) : []);
-
     // For DEV only
     //this.debug = !environment.production;
   }
@@ -176,6 +180,10 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     this.isNew = toBoolean(this.isNew, false);
+
+    // Get display attributes for parent
+    this._parentAttributes = this.settings.getFieldDisplayAttributes('taxonGroup').map(attr => 'taxonGroup.' + attr)
+      .concat(!this.showTaxonName ? this.settings.getFieldDisplayAttributes('taxonName').map(attr => 'taxonName.' + attr) : []);
 
     // Parent combo
     this.registerAutocompleteField('parent', {
@@ -244,7 +252,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
               // Apply to button index, if need
               if (this.selectedTaxonNameIndex !== index) {
                 this.selectedTaxonNameIndex = index;
-                //this.updateTabIndex(); // will apply the markForCheck
+                this.markForCheck();
               }
             }));
       })
@@ -267,9 +275,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
             distinctUntilKeyChanged('label')
           )
           .subscribe((parent) => {
-            console.log("TODO Reset taxonName, because parent changed to: ", parent);
-            taxonNameControl.patchValue(null, {emitEVent: false});
-            taxonNameControl.markAsPristine({onlySelf: true});
+            taxonNameControl.reset(null, {emitEVent: false});
           }));
     }
 
@@ -336,12 +342,30 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
-  setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }) {
     // Replace parent with value from availableParents
     this.linkToParent(data);
 
     // Inherited method
     super.setValue(data, opts);
+  }
+
+  reset(data?: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }) {
+    if (data) {
+      // Replace parent with value from availableParents
+      this.linkToParent(data);
+    }
+
+    // Reset taxon name button index
+    if (data && data.taxonName && isNotNil(data.taxonName.id)) {
+      this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
+    }
+    else {
+      this.selectedTaxonNameIndex = -1;
+    }
+
+    // Inherited method
+    super.reset(data, opts);
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
@@ -351,6 +375,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       this.form.get('individualCount').disable(opts);
     }
   }
+
 
   selectInputContent = AppFormUtils.selectInputContent;
   filterNumberInput = AppFormUtils.filterNumberInput;
