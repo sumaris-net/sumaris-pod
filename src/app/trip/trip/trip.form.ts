@@ -161,7 +161,6 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   }
 
   async addVesselModal(): Promise<any> {
-    console.log("TODO addVesselModal()")
     const modal = await this.modalCtrl.create({
       component: VesselModal,
       componentProps: {
