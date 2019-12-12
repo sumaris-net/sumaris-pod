@@ -16,7 +16,7 @@ import {ExtractionCriteriaForm} from "./extraction-criteria.form";
 import {TranslateService} from "@ngx-translate/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ExtractionService} from "../services/extraction.service";
-import {AlertController} from "@ionic/angular";
+import {AlertController, ToastController} from "@ionic/angular";
 import {capitalizeFirstLetter} from "apollo-client/util/capitalizeFirstLetter";
 import {MatTable} from "@angular/material";
 import {AccountService} from "../../core/services/account.service";
@@ -52,13 +52,14 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     protected route: ActivatedRoute,
     protected router: Router,
     protected alertCtrl: AlertController,
+    protected toastController: ToastController,
     protected translate: TranslateService,
     protected accountService: AccountService,
     protected service: ExtractionService,
     protected settings: LocalSettingsService,
     protected formBuilder: FormBuilder
   ) {
-    super(route, router, alertCtrl, translate);
+    super(route, router, alertCtrl, toastController, translate);
     // Create the main form
     this.form = formBuilder.group({
       sheetName: [null, Validators.required]

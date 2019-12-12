@@ -12,7 +12,7 @@ import {
 import {MatExpansionPanel, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
-import {AlertController, ModalController} from "@ionic/angular";
+import {AlertController, ModalController, ToastController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {delay, first, map} from "rxjs/operators";
 import {firstNotNilPromise} from "../../shared/observables";
@@ -57,6 +57,7 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     protected route: ActivatedRoute,
     protected router: Router,
     protected alertCtrl: AlertController,
+    protected toastController: ToastController,
     protected translate: TranslateService,
     protected location: Location,
     protected modalCtrl: ModalController,
@@ -66,7 +67,7 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, translate, accountService, service, settings, formBuilder);
+    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder);
 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);

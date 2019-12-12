@@ -20,7 +20,7 @@ import * as L from 'leaflet';
 import {CRS, LayerGroup} from 'leaflet';
 import {Feature} from "geojson";
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
-import {AlertController, ModalController} from "@ionic/angular";
+import {AlertController, ModalController, ToastController} from "@ionic/angular";
 import {AggregationTypeSelectModal} from "./aggregation-type-select.modal";
 import {AccountService} from "../../core/services/account.service";
 import {ExtractionAbstractPage} from "./extraction-abstract.page";
@@ -158,6 +158,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     protected route: ActivatedRoute,
     protected router: Router,
     protected alertCtrl: AlertController,
+    protected toastController: ToastController,
     protected translate: TranslateService,
     protected location: Location,
     protected modalCtrl: ModalController,
@@ -170,7 +171,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     protected aggregationStrataValidator: AggregationTypeValidatorService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, translate, accountService, service, settings, formBuilder);
+    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder);
 
     // Add controls to form
     this.form.addControl('strata', this.aggregationStrataValidator.getStrataFormGroup());
