@@ -18,7 +18,6 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {ExtractionService} from "../services/extraction.service";
 import {AlertController, ToastController} from "@ionic/angular";
 import {capitalizeFirstLetter} from "apollo-client/util/capitalizeFirstLetter";
-import {MatTable} from "@angular/material";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 
