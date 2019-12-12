@@ -280,6 +280,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
                 target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
+                source.setQualityFlagId(config.getDefaultQualityFlagId());
             }
             else {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));

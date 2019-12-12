@@ -87,26 +87,51 @@ case "$1" in
       exit 1
     fi
 
-    ###  Sending files
+    ###  Sending artifacts
     echo "Uploading files to $upload_url ..."
     dirname=`pwd`
 
     JAR_FILE="$dirname/sumaris-server/target/sumaris-server-$current.jar"
-    result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${JAR_FILE}" "$upload_url?name=sumaris-pod-$current.jar"`
-    browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
-    JAR_SHA256=$(sha256sum "${JAR_FILE}")
-    echo " - $browser_download_url  | SHA256 Checksum: ${JAR_SHA256}"
+    if [[ ! -f ${JAR_FILE} ]]; then
+      echo "ERROR: Missing JAR artifact: ${JAR_FILE}. Skipping uppload"
+      missing_file=true
+
+    else
+      result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${JAR_FILE}" "$upload_url?name=sumaris-pod-$current.jar"`
+      browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
+      JAR_SHA256=$(sha256sum "${JAR_FILE}")
+      echo " - $browser_download_url  | SHA256 Checksum: ${JAR_SHA256}"
+
+      echo "${JAR_SHA256}" > ${JAR_FILE}.sha256
+      result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: text/plain' -T "${JAR_FILE}.sha256" "$upload_url?name=sumaris-pod-$current.jar.sha256"`
+    fi
 
     DB_FILE="$dirname/sumaris-core/target/sumaris-db-$current.zip"
-    result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${DB_FILE}" "$upload_url?name=sumaris-db-$current.zip"`
-    browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
-    DB_SHA256=$(sha256sum "${DB_FILE}")
-    echo " - $browser_download_url  | SHA256 Checksum: ${DB_SHA256}"
+    if [[ ! -f "${DB_FILE}" ]]; then
+      echo "ERROR: Missing DB ZIP artifact: ${DB_FILE}. Skipping uppload"
+      missing_file=true
 
-    echo "-----------------------------------------"
-    echo "Successfully uploading files !"
-    echo " -> Release url: $REPO_PUBLIC_URL/releases/tag/v$current"
-    exit 0
+    else
+      result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${DB_FILE}" "$upload_url?name=sumaris-db-$current.zip"`
+      browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
+      DB_SHA256=$(sha256sum "${DB_FILE}")
+      echo " - $browser_download_url  | SHA256 Checksum: ${DB_SHA256}"
+
+      echo "${DB_SHA256}" > ${DB_FILE}.sha256
+      result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: text/plain' -T "${DB_FILE}.sha256" "$upload_url?name=sumaris-db-$current.zip.sha256"`
+    fi
+
+    if [[ ${missing_file} == true ]]; then
+      echo "-----------------------------------------"
+      echo "ERROR: missing some artifacts (see logs)"
+      echo " -> Release url: $REPO_PUBLIC_URL/releases/tag/v$current"
+      exit 1
+    else
+      echo "-----------------------------------------"
+      echo "Successfully uploading files !"
+      echo " -> Release url: $REPO_PUBLIC_URL/releases/tag/v$current"
+      exit 0
+    fi
 
     ;;
   *)
