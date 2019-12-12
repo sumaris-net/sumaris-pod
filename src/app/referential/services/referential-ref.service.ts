@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {isNotNil, LoadResult} from "../../shared/shared.module";
+import {isNotEmptyArray, isNotNil, LoadResult} from "../../shared/shared.module";
 import {BaseDataService, EntityUtils, environment, Referential, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
@@ -494,10 +494,13 @@ export class ReferentialRefService extends BaseDataService
 
     const filterFns: ((TaxonNameRef) => boolean)[] = [];
 
-    // Filter by taxon group ids
-    const taxonGroupIds = f.taxonGroupIds || (isNotNil(f.taxonGroupId) && [f.taxonGroupId]) || undefined;
-    if (taxonGroupIds) {
-      filterFns.push((entity: TaxonNameRef) => !!taxonGroupIds.find(v => entity.taxonGroupId === v));
+    // Filter by taxon group id, or list of id
+    if (isNotNil(f.taxonGroupId)) {
+      filterFns.push((entity: TaxonNameRef) => entity.taxonGroupIds && entity.taxonGroupIds.indexOf(f.taxonGroupId) !== -1);
+    }
+    else if (isNotEmptyArray(f.taxonGroupIds)) {
+      filterFns.push((entity: TaxonNameRef) => f.taxonGroupIds.findIndex(filterTgId =>
+        entity.taxonGroupIds && entity.taxonGroupIds.indexOf(filterTgId) !== -1) !== -1);
     }
 
     const baseSearchFilter = this.createSearchFilterFn(f);
@@ -506,7 +509,6 @@ export class ReferentialRefService extends BaseDataService
     if (!filterFns.length) return undefined;
 
     return (entity: TaxonNameRef) => {
-      console.log("TODO: Applying filter to ", entity);
       return !filterFns.find(fn => !fn(entity));
     };
   }

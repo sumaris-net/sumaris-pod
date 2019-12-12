@@ -20,6 +20,8 @@ export const TaxonomicLevelIds = {
 
 export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRef {
 
+  static TYPENAME = 'TaxonNameVO';
+
   static fromObject(source: any): TaxonNameRef {
     if (isNil(source)) return null;
     const res = new TaxonNameRef();
@@ -37,7 +39,7 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
   entityName: string;
 
   levelId: number;
-  taxonGroupId: number;
+  taxonGroupIds: number[];
 
   referenceTaxonId: number;
 
@@ -62,7 +64,7 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
       };
     }
     const target: any = super.asObject(options);
-    delete target.entityName;
+    if (options && options.keepEntityName !== true) delete target.entityName; // delete by default
     return target;
   }
 
@@ -71,10 +73,10 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
     this.label = source.label;
     this.name = source.name;
     this.statusId = source.statusId;
-    this.entityName = source.entityName || 'TaxonNameVO';
+    this.entityName = source.entityName || TaxonNameRef.TYPENAME;
     this.levelId = source.levelId;
     this.referenceTaxonId = source.referenceTaxonId;
-    this.taxonGroupId = source.taxonGroupId;
+    this.taxonGroupIds = source.taxonGroupIds;
     return this;
   }
 }

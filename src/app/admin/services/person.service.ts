@@ -125,8 +125,8 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
     };
 
     this._lastVariables.loadAll = variables;
-
     if (this._debug) console.debug("[person-service] Watching persons, using filter: ", variables);
+
     const query = (!opts || opts.withCount !== false) ? LoadAllWithCountQuery : LoadAllQuery;
 
     return this.graphql.watchQuery<{ persons: Person[]; personsCount: number }>({
@@ -159,8 +159,6 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
       sortDirection: sortDirection || 'asc',
       filter: filter
     };
-
-
 
     const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();

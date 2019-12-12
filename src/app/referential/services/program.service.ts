@@ -684,9 +684,14 @@ export class ProgramService extends BaseDataService
     if (isNotNil(options.program) && isNotNil(options.taxonGroupId)) {
 
       // Get map from program
-      const taxonNamesByTaxonGroupId = this.loadTaxonNamesByTaxonGroupIdMap(options.program);
+      const taxonNamesByTaxonGroupId = await this.loadTaxonNamesByTaxonGroupIdMap(options.program);
       const values = taxonNamesByTaxonGroupId[options.taxonGroupId];
       if (isNotEmptyArray(values)) {
+
+        // All values
+        if (isNilOrBlank(options.searchAttribute)) return values;
+
+        // Text search
         return suggestFromArray<TaxonNameRef>(values, value, {
           searchAttribute: options.searchAttribute
         });
@@ -722,15 +727,16 @@ export class ProgramService extends BaseDataService
 
     return await this.cache.getOrSetItem(mapCacheKey,
       async (): Promise<{ [key: number]: TaxonNameRef[] }> => {
-        const taxonGroups = await this.loadTaxonGroups(program);
-        return (taxonGroups || []).reduce((res, taxonGroup) => {
-          if (isNotEmptyArray(taxonGroup.taxonNames)) {
-            res[taxonGroup.id] = taxonGroup.taxonNames;
-            //empty = false;
-          }
-          return res;
-        }, {});
-      }, ProgramCacheKeys.CACHE_GROUP);
+      console.log("TODO loadTaxonNamesByTaxonGroupIdMap on program=" + program);
+      const taxonGroups = await this.loadTaxonGroups(program);
+      return (taxonGroups || []).reduce((res, taxonGroup) => {
+        if (isNotEmptyArray(taxonGroup.taxonNames)) {
+          res[taxonGroup.id] = taxonGroup.taxonNames;
+          //empty = false;
+        }
+        return res;
+      }, {});
+    }, ProgramCacheKeys.CACHE_GROUP);
   }
 
   async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Program> {
@@ -881,9 +887,14 @@ export class ProgramService extends BaseDataService
         progression.next(progression.getValue() + progressionStep);
       }
 
-      // Step 5. load taxon name
+      // Step 5. load the map of taxon name by taxon group Id
       {
-        await Promise.all(programLabels.map(programLabel => this.loadTaxonNamesByTaxonGroupIdMap(programLabel)));
+        const maps = await Promise.all(programLabels.map(programLabel => this.loadTaxonNamesByTaxonGroupIdMap(programLabel)));
+        // Merge map
+        // TODO: merge all maps, and update link in the entities store : taxonName.taxonGroupsIds[]
+        //maps.reduce((res, map) => {
+        //  res[]
+        //}, {});
         progression.next(progression.getValue() + progressionStep);
       }
 
