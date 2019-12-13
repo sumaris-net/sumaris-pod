@@ -369,10 +369,11 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     }
   }
 
-  protected addToPageHistory(page: HistoryPageReference) {
+  protected addToPageHistory(page: HistoryPageReference, opts?: {removePathQueryParams?: boolean; removeTitleSmallTag?: boolean; }) {
     this.settings.addToPageHistory(page, {
       removePathQueryParams: true,
-      removeTitleSmallTag: true
+      removeTitleSmallTag: true,
+      ...opts
     });
   }
 

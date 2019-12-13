@@ -88,15 +88,23 @@
 
           <input matInput #matInput type="text"
                  formControlName="hour"
-                 [hidden]="!mobile"
-                 [ngxTimepicker]="timePicker"
-                 [format]="24"
+                 *ngIf="mobile"
                  (click)="openTimePickerIfMobile($event)"
                  readonly>
 
-          <button *ngIf="!compact" type="button" matSuffix #timePickerButton
+          <input matInput type="text"
+                 formControlName="hour"
+                 hidden
+                 [ngxTimepicker]="timePicker"
+                 [format]="24">
+
+          <button *ngIf="!compact && !mobile" type="button" matSuffix
                   (click)="openTimePicker($event)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
-            <div *ngIf="mobile; then iconTime; else iconDesktop"></div>
+            <mat-icon>keyboard_arrow_down</mat-icon>
+          </button>
+          <button *ngIf="!compact && mobile" type="button" matSuffix
+                  (click)="openTimePickerIfMobile($event)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
+            <mat-icon><ion-icon name="time"></ion-icon></mat-icon>
           </button>
 
           <ngx-material-timepicker #timePicker

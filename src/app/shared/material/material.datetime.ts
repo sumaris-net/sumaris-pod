@@ -28,7 +28,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {Moment} from "moment/moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../constants';
 import {SharedValidators} from '../validator/validators';
-import {delay, isNil, isNilOrBlank, setTabIndex, toBoolean, toDateISOString} from "../functions";
+import {delay, isNil, isNilOrBlank, isNotNil, setTabIndex, toBoolean, toDateISOString} from "../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {first} from "rxjs/operators";
 import {fadeInAnimation} from "./material.animations";
@@ -77,7 +77,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
   protected writing = true;
   protected disabling = false;
   protected _tabindex: number;
-  protected keyboardHideDelay = 500;
+  protected keyboardHideDelay: number;
 
   mobile: boolean;
   form: FormGroup;
@@ -144,7 +144,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
   ) {
     // Workaround because ion-datetime has issue (do not returned a ISO date)
     this.mobile = platform.is('mobile');
-    this.keyboardHideDelay = this.mobile && platform.is('android') ? KEYBOARD_HIDE_DELAY_MS.android : 700;
+    this.keyboardHideDelay = this.mobile && KEYBOARD_HIDE_DELAY_MS || 0;
 
     this.locale = (translate.currentLang || translate.defaultLang).substr(0, 2);
   }
@@ -393,16 +393,18 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     this.preventEvent(event);
 
     // Make sure the keyboard is closed
-    await this.waitKeyboardHide();
+    await this.waitKeyboardHide(false);
 
     // Open the picker
-    this.openDatePicker(event, datePicker);
+    this.openDatePicker(null, datePicker);
   }
 
-  public openDatePicker(event: UIEvent, datePicker?: MatDatepicker<any>) {
+  public openDatePicker(event?: UIEvent, datePicker?: MatDatepicker<any>) {
     datePicker = datePicker || this.datePicker1 || this.datePicker2;
     if (datePicker) {
-      this.preventEvent(event);
+
+      if (event) this.preventEvent(event);
+
       if (!datePicker.opened) {
         datePicker.open();
       }
@@ -415,20 +417,23 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     this.preventEvent(event);
 
     // Make sure the keyboard is closed
-    await this.waitKeyboardHide();
+    await this.waitKeyboardHide(true);
 
     // Open the picker
-    this.openTimePicker(event);
+    this.openTimePicker(null);
   }
 
-  public openTimePicker(event: UIEvent) {
-    if (this.timePicker && !event.defaultPrevented) {
-      this.preventEvent(event);
+  openTimePicker(event: UIEvent) {
+
+    if (this.timePicker) {
+
+      if (event) this.preventEvent(event);
+
       this.timePicker.open();
     }
   }
 
-  public onTimePickerChange(value: string) {
+  onTimePickerChange(value: string) {
     if (this.form.controls['hour'].value !== value) {
       this.form.controls['hour'].patchValue(value, {emitEvent: false});
       this.markForCheck();
@@ -478,17 +483,18 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
   /* -- protected method -- */
 
-  protected async waitKeyboardHide() {
+  protected async waitKeyboardHide(waitKeyboardDelay: boolean) {
+
     if (!this.keyboard.isVisible) return; // ok, already hidden
 
     // Force keyboard to be hide
     this.keyboard.hide();
 
-    // EWait hide occur
-    await this.keyboard.onKeyboardHide().toPromise();
+    // Wait hide occur
+    await this.keyboard.onKeyboardHide().pipe(first()).toPromise();
 
     // Wait an additional delay if need (depending on the OS)
-    if (this.keyboardHideDelay > 0) {
+    if (this.keyboardHideDelay > 0 && waitKeyboardDelay) {
       await delay(this.keyboardHideDelay);
     }
   }

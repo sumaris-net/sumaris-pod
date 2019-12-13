@@ -18,6 +18,7 @@ import {NetworkService} from "../../core/services/network.service";
 import {TripsPageSettingsEnum} from "./trips.page";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {DataQualityService} from "../services/trip.services";
+import {HistoryPageReference} from "../../core/services/model";
 
 @Component({
   selector: 'app-trip-page',
@@ -285,11 +286,18 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
   }
 
   protected async synchronize(data: Trip): Promise<Trip> {
+    if (!data || data.id >= 0) throw new Error('Need a local trip');
+
+    const path = this.router.url;
+
     this.disable();
 
     try {
       // Call service
       const savedEntity = await this.dataService.synchronize(data);
+
+      // Remove the page from the history
+      await this.settings.removeHistory(path);
 
       // Confirmation message
       this.showToast({
@@ -301,6 +309,10 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     finally {
       this._enabled = true; // Will enable later
     }
+  }
+
+  protected addToPageHistory(page: HistoryPageReference) {
+    super.addToPageHistory({ ...page, icon: 'boat'});
   }
 
   protected markForCheck() {

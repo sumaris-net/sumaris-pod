@@ -693,6 +693,7 @@ mat-calendar {
   .mat-calendar-body-selected {
     background-color: var(--ion-color-accent) !important;
     color: var(--ion-color-accent-contrast) !important;
+    font-weight: bold;
   }
 
   .mat-calendar-arrow {
@@ -700,7 +701,7 @@ mat-calendar {
   }
 }
 
-ngx-material-timepicker {
+ngx-material-timepicker-content {
   --clock-hand-color: var(--ion-color-accent) !important;
   --clock-face-time-active-color: var(--ion-color-accent-contrast) !important;
 
@@ -710,7 +711,16 @@ ngx-material-timepicker {
       color: var(--ion-color-secondary-contrast) !important;
     }
   }
+
+  ngx-material-timepicker-dial-control {
+    outline-color: var(--ion-color-accent) !important;
+    input {
+      outline-color: inherit !important;
+    }
+  }
 }
+
+
 
 // --------------------------------------------------
 // Pages

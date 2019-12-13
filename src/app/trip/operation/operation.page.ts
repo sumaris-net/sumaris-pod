@@ -625,11 +625,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   }
 
   protected addToPageHistory(page: HistoryPageReference) {
-    this.settings.addToPageHistory({ ...page, icon: 'locate'},
-      {
-        removePathQueryParams: true,
-        removeTitleSmallTag: true
-      });
+    super.addToPageHistory({ ...page, icon: 'pin'});
   }
 
   protected markForCheck() {
