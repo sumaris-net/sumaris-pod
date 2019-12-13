@@ -37,18 +37,20 @@
   </app-batch-group-form>
 
   <!-- actions -->
-  <ion-buttons visible-xs visible-sm visible-mobile class="ion-margin-top" >
+  <div class="ion-margin-top">
+    <ion-buttons visible-xs visible-sm visible-mobile class="ion-margin-top" >
 
-    <!-- open individual modal -->
-    <ion-button mat-raised-button class="ion-float-end"
-                *ngIf="!!showSubBatchesCallback"
-                color="tertiary"
-                (click)="onShowSubBatchesButtonClick($event)" >
-      <mat-icon>assessment</mat-icon>
-      <ion-label translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</ion-label>
-      <ion-icon slot="end" name="arrow-forward"></ion-icon>
-    </ion-button>
-  </ion-buttons>
+      <!-- open individual modal -->
+      <ion-button class="ion-float-end"
+                  *ngIf="showSubBatchesCallback && !loading"
+                  fill="clear" color="tertiary"
+                  (click)="onShowSubBatchesButtonClick($event)" >
+        <mat-icon>assessment</mat-icon>
+        <ion-label translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</ion-label>
+        <ion-icon slot="end" name="arrow-forward"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </div>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
