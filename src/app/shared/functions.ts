@@ -196,15 +196,16 @@ export function selectInputContent(event: UIEvent) {
   return true;
 }
 
-export function filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) {
+export function filterNumberInput(event: KeyboardEvent, allowDecimals: boolean, decimalSeparator?: string) {
   //input number entered or one of the 4 direction up, down, left and right
   if ((event.which >= 48 && event.which <= 57) || (event.which >= 37 && event.which <= 40)) {
     //console.debug('input number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
     // OK
   }
   // Decimal separator
-  else if (allowDecimals && (event.key === '.' || event.key === ',')) {
-    //console.debug('input decimal separator entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+  else if (allowDecimals && ((!decimalSeparator && (event.key === '.' || event.key === ','))
+    || (decimalSeparator && event.key === decimalSeparator))) {
+    //console.debug('input decimal separator entered :' + event.code);
     // OK
   } else {
     //input command entered of delete, backspace or one of the 4 direction up, down, left and right
