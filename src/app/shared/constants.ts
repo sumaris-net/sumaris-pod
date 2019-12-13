@@ -3,6 +3,6 @@ export const DEFAULT_PLACEHOLDER_CHAR = '\u005F';
 export const PUBKEY_REGEXP = /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{43,44}$/;
 
 export const KEYBOARD_HIDE_DELAY_MS = {
-  android: 700,
+  android: 100,
   ios: 500, // TODO: check this value
 };

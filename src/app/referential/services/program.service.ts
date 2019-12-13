@@ -727,7 +727,6 @@ export class ProgramService extends BaseDataService
 
     return await this.cache.getOrSetItem(mapCacheKey,
       async (): Promise<{ [key: number]: TaxonNameRef[] }> => {
-      console.log("TODO loadTaxonNamesByTaxonGroupIdMap on program=" + program);
       const taxonGroups = await this.loadTaxonGroups(program);
       return (taxonGroups || []).reduce((res, taxonGroup) => {
         if (isNotEmptyArray(taxonGroup.taxonNames)) {

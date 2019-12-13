@@ -1,3 +1,5 @@
+  <form class="form-container" [formGroup]="form">
+
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
@@ -5,27 +7,25 @@
   </ion-item>
 
   <!-- Species batch  -->
-  <ion-grid class="ion-no-padding">
-    <ion-row class="ion-no-padding">
-      <ion-col class="ion-no-padding">
-        <app-batch-form #batchForm [acquisitionLevel]="acquisitionLevel"
-                        [tabindex]="tabindex"
-                        [program]="program"
-                        [mapPmfmFn]="mapPmfmsFn"
-                        [showSampleBatch]="false"
-                        [showTaxonGroup]="showTaxonGroup"
-                        [showTaxonName]="showTaxonName"
-                        [showTotalIndividualCount]="false"
-                        [showIndividualCount]="false">
-        </app-batch-form>
-      </ion-col>
-    </ion-row>
+  <app-batch-form #batchForm [acquisitionLevel]="acquisitionLevel"
+                  [tabindex]="tabindex"
+                  [program]="program"
+                  [mapPmfmFn]="mapPmfmsFn"
+                  [showSampleBatch]="false"
+                  [showTaxonGroup]="showTaxonGroup"
+                  [showTaxonName]="showTaxonName"
+                  [showTotalIndividualCount]="false"
+                  [showIndividualCount]="false">
+  </app-batch-form>
+
+  <ion-grid *ngIf="qvPmfm">
 
     <!-- QV children -->
-    <ion-row class="ion-no-padding" *ngIf="qvPmfm" >
-      <ion-col size="12" size-md="" *ngFor="let qv of qvPmfm.qualitativeValues; index as i;" class="ion-no-padding">
+    <ion-row>
+      <ion-col size="12" size-md=""
+               *ngFor="let qv of qvPmfm.qualitativeValues; index as i;">
 
-        <ion-card class="qv" [class.even]="i % 2 === 0" [class.odd]="i % 2 !== 0">
+        <ion-card class="qv ion-no-margin ion-no-padding" [class.even]="i % 2 === 0" [class.odd]="i % 2 !== 0">
 
           <ion-card-header>
             <ion-card-title>{{ qv.name }}</ion-card-title>
@@ -47,3 +47,4 @@
       </ion-col>
     </ion-row>
   </ion-grid>
+  </form>

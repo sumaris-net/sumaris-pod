@@ -24,6 +24,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected _program: string;
   protected _gear: string = null;
   protected _acquisitionLevel: string;
+  protected _ready = false;
   protected data: T;
 
   loading = false; // Important, must be false
@@ -135,15 +136,16 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean}) {
-    if (this.$loadingControls.getValue()) {
-      throw Error("Form not ready yet. Please use safeSetValue() instead!");
+  setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
+    if (!this.isReady() || !this.data) {
+      this.safeSetValue(data, opts); // Loop
+      return;
     }
 
     // Adapt measurement values to form (if not skip)
-    if (!opts || opts.normalizeEntityToForm !== false) {
+   // if (!opts || opts.normalizeEntityToForm !== false) {
       MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
-    }
+    //}
 
     super.setValue(data, opts);
 
@@ -151,32 +153,42 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.restoreFormStatus({onlySelf: true, emitEvent: opts && opts.emitEvent});
   }
 
-  reset(data?: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean}) {
-    if (this.$loadingControls.getValue()) {
-      throw Error("Form not ready yet. Please use safeSetValue() instead!");
+  reset(data?: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any;}) {
+    if (!this.isReady() || !this.data) {
+      this.safeSetValue(data, opts); // Loop
+      return;
     }
 
     // Adapt measurement values to form (if not skip)
-    if (data && !opts || opts.normalizeEntityToForm !== false) {
+    //if (!opts || opts.normalizeEntityToForm !== false) {
       MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
-    }
+    //}
 
     super.reset(data, opts);
 
     // Restore form status
     this.restoreFormStatus({onlySelf: true, emitEvent: opts && opts.emitEvent});
+    // // Reuse safeSetValue, to avoid code duplication
+    // this.safeSetValue(data, opts)
+    //   // Then mark the form as pristine
+    //   .then(() => this.markAsPristine());
   }
 
+  isReady(): boolean {
+    return this._ready || (!this.$loadingControls.getValue()  && !this.loadingPmfms);
+  }
 
   async ready(): Promise<void> {
     // Wait pmfms load, and controls load
     if (this.$loadingControls.getValue() !== false || this.loadingPmfms !== false) {
+      this._ready = false;
       if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
       await firstNotNilPromise(this.$loadingControls
         .pipe(
           filter((loadingControls) => loadingControls === false && this.loadingPmfms === false)
         ));
     }
+    this._ready = true;
   }
 
   /* -- protected methods -- */
@@ -185,7 +197,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
    * Wait form is ready, before setting the value to form
    * @param data
    */
-  protected async safeSetValue(data: T) {
+  protected async safeSetValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }) {
     if (this.data === data) return; // skip if same
 
     // Will avoid data to be set inside function updateControls()
@@ -195,10 +207,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.data = data;
     this._onValueChanged.emit(data);
 
-    // Wait form controls ready
-    await this.ready();
+    // Wait form controls ready, if need
+    if (!this._ready) await this.ready();
 
-    this.setValue(this.data, {emitEvent: true});
+    this.setValue(this.data, {...opts, emitEvent: true});
 
     this.loadingValue = false;
     this.loading = false;
@@ -273,7 +285,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       measFormGroup.disable({onlySelf: true, emitEvent: false});
     }
 
-    if (this.$loadingControls.getValue() !== true) this.$loadingControls.next(true);
+    if (this.$loadingControls.getValue() !== true) {
+      this._ready = false;
+      this.$loadingControls.next(true);
+    }
     this.loading = true;
 
     if (event) if (this.debug) console.debug(`${this.logPrefix} updateControls(${event})...`);

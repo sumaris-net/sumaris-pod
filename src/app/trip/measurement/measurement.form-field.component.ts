@@ -17,7 +17,7 @@ import {FloatLabelType} from "@angular/material";
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {AppFormUtils} from "../../core/core.module";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {focusInput, setTabIndex, toBoolean} from "../../shared/functions";
+import {filterNumberInput, focusInput, setTabIndex, toBoolean} from "../../shared/functions";
 import {asInputElement, InputElement} from "../../shared/material/focusable";
 
 const noop = () => {
@@ -177,7 +177,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
       this.onKeypressEnter.emit(event);
       return;
     }
-    AppFormUtils.filterNumberInput(event, allowDecimals);
+    filterNumberInput(event, true);
   }
 
   filterAlphanumericalInput(event: KeyboardEvent) {

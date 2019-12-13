@@ -288,9 +288,10 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     this.disable();
 
     try {
-
+      // Call service
       const savedEntity = await this.dataService.synchronize(data);
 
+      // Confirmation message
       this.showToast({
         message: 'INFO.SYNCHRONIZATION_SUCCEED'
       });

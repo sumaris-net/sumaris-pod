@@ -68,7 +68,7 @@
 
     <ng-template #taxonNameMobile>
       <mat-form-field floatLabel="always"
-                      *ngIf="$taxonNames | async as taxonNames; else loadingSpinner"
+                      *ngIf="$taxonNames | async as taxonNames; else loadingTaxonNames"
                       [class.computed]="taxonNames.length === 1">
         <input matInput type="text" hidden
                formControlName="taxonName"
@@ -97,6 +97,15 @@
 
         <mat-error *ngIf="form.controls.taxonName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
       </mat-form-field>
+
+      <ng-template #loadingTaxonNames>
+        <mat-form-field floatLabel="auto">
+          <input matInput type="text"
+                 [disabled]="true"
+                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
+                 required>
+        </mat-form-field>
+      </ng-template>
     </ng-template>
   </div>
 

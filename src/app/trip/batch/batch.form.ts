@@ -135,6 +135,11 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
   setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean}) {
 
+    if (!this._ready || !this.data) {
+      this.safeSetValue(data, opts);
+      return;
+    }
+
     // Fill weight
     if (this.defaultWeightPmfm) {
       const weightPmfm = (this.weightPmfms || []).find(p => isNotNil(data.measurementValues[p.pmfmId.toString()]));

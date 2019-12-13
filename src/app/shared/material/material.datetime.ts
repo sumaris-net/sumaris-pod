@@ -488,7 +488,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     await this.keyboard.onKeyboardHide().toPromise();
 
     // Wait an additional delay if need (depending on the OS)
-    if (this.keyboardHideDelay) {
+    if (this.keyboardHideDelay > 0) {
       await delay(this.keyboardHideDelay);
     }
   }

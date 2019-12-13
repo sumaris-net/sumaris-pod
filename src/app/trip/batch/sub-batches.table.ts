@@ -367,7 +367,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.$pmfms.getValue(), this.form.form);
     this.form.reset(newBatch, {emitEvent: true, normalizeEntityToForm: false /*already done*/});
 
-    // IF need, enable the form
+    // If need, enable the form
     if (this.form.disabled) {
       this.form.enable();
     }

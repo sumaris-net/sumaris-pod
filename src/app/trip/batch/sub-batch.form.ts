@@ -3,7 +3,8 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  Input, NgZone,
+  Input,
+  NgZone,
   OnDestroy,
   OnInit,
   QueryList,
@@ -20,7 +21,7 @@ import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {EntityUtils, UsageMode} from "../../core/services/model";
-import {debounceTime, distinctUntilKeyChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
+import {debounceTime, distinctUntilKeyChanged, delay, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
 import {
   AcquisitionLevelCodes,
   isNil,
@@ -33,7 +34,6 @@ import {BehaviorSubject, combineLatest} from "rxjs";
 import {
   getPropertyByPath,
   isNilOrBlank,
-  isNotEmptyArray,
   isNotNilOrBlank,
   startsWithUpperCase,
   toBoolean
@@ -199,8 +199,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
 
     const parentControl = this.form.get('parent');
-    const parentChanges = parentControl.valueChanges
-      .pipe(debounceTime(250));
 
     // Mobile
     if (this.mobile) {
@@ -210,11 +208,11 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
         // Compute taxon names when parent has changed
         parentControl.valueChanges
-        // Compute taxon names when parent has changed
+          // Compute taxon names when parent has changed
           .pipe(
             filter(parent => isNotNilOrBlank(parent) && isNotNilOrBlank(parent.label) && currentParenLabel !== parent.label),
             tap(parent => currentParenLabel = parent.label),
-            mergeMap((_) => this.suggestTaxonNames('*'))
+            mergeMap((_) => this.suggestTaxonNames())
           )
           .subscribe(items => this.$taxonNames.next(items));
 
@@ -267,7 +265,8 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
       // Reset taxon name combo when parent changed
       this.registerSubscription(
-        parentChanges
+        parentControl.valueChanges
+          .pipe(debounceTime(250))
           .pipe(
             // Warn: skip the first trigger (ignore set value)
             skip(1),
@@ -342,17 +341,9 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
-  setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }) {
+  setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean; }) {
     // Replace parent with value from availableParents
-    this.linkToParent(data);
-
-    // Inherited method
-    super.setValue(data, opts);
-  }
-
-  reset(data?: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }) {
-    if (data) {
-      // Replace parent with value from availableParents
+    if (!opts || opts.linkToParent !== false) {
       this.linkToParent(data);
     }
 
@@ -365,7 +356,25 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
 
     // Inherited method
-    super.reset(data, opts);
+    super.setValue(data, {...opts, linkToParent: false /* avoid to be relink, if loop to setValue() */ });
+  }
+
+  reset(data?: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean; }) {
+    // Replace parent with value from availableParents
+    if (!opts || opts.linkToParent !== false) {
+      this.linkToParent(data);
+    }
+
+    // Reset taxon name button index
+    if (data && data.taxonName && isNotNil(data.taxonName.id)) {
+      this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
+    }
+    else {
+      this.selectedTaxonNameIndex = -1;
+    }
+
+    // Inherited method
+    super.reset(data, {...opts, linkToParent: false /* avoid to be relink, if loop to setValue() */ });
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
@@ -391,10 +400,11 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // Manage DISCARD_REASON validator
     if (discardOrLandingControl && discardReasonControl) {
-    this.registerSubscription(
-      discardOrLandingControl.valueChanges
-        //.pipe(debounceTime(100))
+      this.registerSubscription(discardOrLandingControl.valueChanges
+        // IMPORTANT: add a delay, to make sure to be executed AFTER the form.enable()
+        .pipe(delay(200))
         .subscribe((value) => {
+
           if (EntityUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
             if (this.form.enabled) {
               discardReasonControl.enable();
@@ -426,9 +436,9 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     );
   }
 
-  protected suggestTaxonNames(value: any, options?: any): Promise<TaxonNameRef[]> {
+  protected suggestTaxonNames(value?: any, options?: any): Promise<TaxonNameRef[]> {
     const parent = this.form && this.form.get('parent').value;
-    if (isNilOrBlank(value) && isNil(parent)) return Promise.resolve([]);
+    if (isNil(parent)) return Promise.resolve([]);
     return this.programService.suggestTaxonNames(value,
       {
         program: this.program,
@@ -490,16 +500,17 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
 
-  protected linkToParent(value: Batch) {
+  protected linkToParent(data?: Batch) {
+    if (!data) return;
     // Find the parent
-    const parentInfo = value.parent || (value.parentId && {id: value.parentId});
+    const parentInfo = data.parent || (data.parentId && {id: data.parentId});
     if (!parentInfo) return; // no parent = nothing to link
 
-    value.parent = this._availableParents.find(p => Batch.equals(p, parentInfo));
+    data.parent = this._availableParents.find(p => Batch.equals(p, parentInfo));
 
     // Get the parent of the praent (e.g. if parent is a sample batch)
-    if (!value.parent.hasTaxonNameOrGroup && value.parent.parent && value.parent.parent.hasTaxonNameOrGroup) {
-      value.parent = value.parent.parent;
+    if (!data.parent.hasTaxonNameOrGroup && data.parent.parent && data.parent.parent.hasTaxonNameOrGroup) {
+      data.parent = data.parent.parent;
     }
   }
 }

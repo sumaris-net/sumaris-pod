@@ -110,11 +110,13 @@ export class BatchValidatorService implements ValidatorService {
     const samplingRatioPct = sampleBatch.samplingRatio;
     console.table("[batch-validator]  Start computing: ", totalWeight, samplingRatioPct, samplingWeight);
 
+
+    const totalWeightValueControl = form.get('weight.value');
     const samplingWeightValueControl = sampleForm.get('weight.value');
     const samplingRatioControl = sampleForm.get('samplingRatio');
 
     // Compute samplingRatio, using weights
-    if (!totalWeight.calculated && isNotNilOrNaN(totalWeight) && totalWeight > 0
+    if (!batch.weight.calculated && isNotNilOrNaN(totalWeight) && totalWeight > 0
       && !sampleBatch.weight.calculated && isNotNilOrNaN(samplingWeight) && samplingWeight > 0) {
 
       // Sampling weight must be under total weight
@@ -122,8 +124,7 @@ export class BatchValidatorService implements ValidatorService {
         if (!samplingWeightValueControl.hasError('max') || samplingWeightValueControl.errors['max'] !== totalWeight) {
           samplingWeightValueControl.markAsPending({onlySelf: true, emitEvent: true}); //{onlySelf: true, emitEvent: false});
           samplingWeightValueControl.markAsTouched({onlySelf: true});
-          samplingWeightValueControl.setErrors(
-            Object.assign(samplingWeightValueControl.errors || {}, {max: totalWeight}), opts);
+          samplingWeightValueControl.setErrors({...samplingWeightValueControl.errors, max: {max: totalWeight} }, opts);
         }
         return {max: totalWeight} as ValidationErrors;
       }
@@ -138,7 +139,7 @@ export class BatchValidatorService implements ValidatorService {
       }
 
       // Disable ratio control
-      samplingRatioControl.disable(opts);
+      samplingRatioControl.disable({...opts, emitEvent: true /*force repaint*/});
       return;
     }
 
@@ -174,7 +175,7 @@ export class BatchValidatorService implements ValidatorService {
           weight: {
             calculated: true,
             estimated: false,
-            value: Math.round(samplingWeight / samplingRatioPct) * 100,
+            value: Math.round(samplingWeight * (100 / samplingRatioPct) * 100) / 100,
             methodId: MethodIds.CALCULATED
           }
         }, opts);
@@ -185,20 +186,43 @@ export class BatchValidatorService implements ValidatorService {
       }
     } else if (isNotNilOrNaN(samplingWeight)) {
       if (samplingRatioControl.disabled && sampleForm.enabled) {
-        samplingRatioControl.enable(opts);
+        samplingRatioControl.enable({...opts, emitEvent: true/*force repaint*/});
       }
-    } else {
-      if (sampleForm.enabled) {
-        samplingRatioControl.enable(opts);
-        sampleForm.get('weight').patchValue({
-          value: null,
-          calculated: false,
-          estimated: false
+    }
+    // Nothing can be calculated: enable all controls
+    else {
+
+      // Enable total weight (and remove calculated value, if any)
+      if (batch.weight.calculated) {
+        form.patchValue({
+          weight: {
+            value: null,
+            calculated: false,
+            estimated: false
+          }
         }, opts);
+      }
+      totalWeightValueControl.enable(opts);
+
+      if (sampleForm.enabled) {
+        // Enable sampling ratio
+        samplingRatioControl.enable({...opts, emitEvent: true/*force repaint*/});
+
+        // Enable sampling weight (and remove calculated value, if any)
+        if (sampleBatch.weight.calculated) {
+          sampleForm.patchValue({
+            weight: {
+              value: null,
+              calculated: false,
+              estimated: false
+            }
+          }, opts);
+        }
         samplingWeightValueControl.setErrors(null, opts);
         samplingWeightValueControl.enable(opts);
+
       } else {
-        samplingRatioControl.disable(opts);
+        samplingRatioControl.disable({...opts, emitEvent: true/*force repaint*/});
         samplingWeightValueControl.disable(opts);
       }
     }

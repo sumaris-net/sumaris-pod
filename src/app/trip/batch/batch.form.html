@@ -7,12 +7,11 @@
   </ion-item>
 
 
-  <ion-grid class="ion-no-padding">
-    <ion-row class="ion-no-padding">
+  <ion-grid>
+    <ion-row>
 
       <!-- Taxon group -->
-      <ion-col class="ion-no-padding"
-               size="12" size-md=""
+      <ion-col size="12" size-md=""
                [hidden]="!showTaxonGroup">
         <mat-autocomplete-field formControlName="taxonGroup"
                                 [appAutofocus]="enabled && !mobile && showTaxonGroup"
@@ -24,9 +23,7 @@
       </ion-col>
 
       <!-- Taxon name (scientific species) -->
-      <ion-col class="ion-no-padding" padding-left no-padding-xs no-padding-sm
-               size="12" size-md=""
-               *ngIf="showTaxonName">
+      <ion-col size="12" size-md="" *ngIf="showTaxonName">
         <mat-autocomplete-field formControlName="taxonName"
                                 [appAutofocus]="enabled && !mobile && !showTaxonGroup && showTaxonName"
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
@@ -74,6 +71,7 @@
     <ion-row *ngIf="defaultWeightPmfm">
       <ion-col class="ion-no-padding">
         <mat-form-field-measurement #matInput
+                                    [class.computed]="form.controls.weight.controls.calculated.value"
                                     [pmfm]="defaultWeightPmfm"
                                     [formControl]="form.controls.weight.controls.value"
                                     [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"

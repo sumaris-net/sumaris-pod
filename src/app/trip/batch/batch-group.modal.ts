@@ -99,7 +99,8 @@ export class BatchGroupModal implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.form.value = this.data || new Batch();
+
+    this.form.setValue(this.data || new Batch());
 
     this.disabled = toBoolean(this.disabled, false);
 
