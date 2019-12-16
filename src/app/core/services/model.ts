@@ -21,6 +21,9 @@ export {
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
+// TODO: rename to STATUS_ID_MAP
+// then declare a type like this :
+// > export declare type StatusIds = keyof typeof STATUS_ID_MAP;
 export const StatusIds = {
   DISABLE: 0,
   ENABLE: 1,
@@ -71,6 +74,9 @@ export const Locales: LocaleConfig[] = [
   }
 ];
 
+// TODO: rename to CONFIG_OPTIONS_MAP
+// then declare a type like this :
+// > export declare type ConfigOptions = key of CONFIG_OPTIONS_MAP
 export const ConfigOptions: FormFieldDefinitionMap = {
   LOGO: {
     key: 'sumaris.logo',

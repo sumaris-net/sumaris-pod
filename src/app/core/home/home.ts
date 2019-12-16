@@ -9,8 +9,10 @@ import {ConfigService} from '../services/config.service';
 import {fadeInAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
-import {debounceTime} from "rxjs/operators";
+import {debounceTime, startWith} from "rxjs/operators";
 import {AuthModal} from "../auth/modal/modal-auth";
+import {environment} from "../../../environments/environment";
+import {Platforms} from "@ionic/core";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -39,6 +41,8 @@ export class HomePage implements OnDestroy {
   appName: string;
   contentStyle = {};
   pageHistory: HistoryPageReference[] = [];
+  appPlatformName: string;
+  appInstallUrl: string;
 
   get currentLocaleCode(): string {
     return (this.translate.currentLang || this.translate.defaultLang).substr(0,2);
@@ -87,6 +91,12 @@ export class HomePage implements OnDestroy {
     return page && page.path;
   }
 
+  downloadApp() {
+    if (this.appInstallUrl) {
+      // TODO open the link
+    }
+  }
+
   /* -- protected method  -- */
 
   protected async start() {
@@ -102,27 +112,38 @@ export class HomePage implements OnDestroy {
     // Listen remote config changes
     this.subscription.add(this.configService.config.subscribe(config => {
       this.onConfigChanged(config);
+
       this.markForCheck();
 
-      setTimeout(() => {
-        this.loading = false;
-        this.markForCheck();
-      }, 500);
+      // Update the loading indicator (after a small delay)
+      // (will animate some page's elements)
+      if (this.loading) {
+        setTimeout(() => {
+          this.loading = false;
+          this.markForCheck();
+        }, 500);
+      }
     }));
 
+
     // Listen settings changes
-    const settings = await this.settings.ready();
-    this.pageHistory = this.settings.pageHistory || [];
     this.subscription.add(
       this.settings.onChange
         .pipe(
           // Add a delay, to avoid to apply changes to often
-          debounceTime(3000)
+          debounceTime(3000),
+          // Start with current settings
+          startWith(await this.settings.ready())
         )
-        .subscribe(history => {
-          console.debug("[home] Page history has been updated");
+        .subscribe(updatedSettings => {
+          if (updatedSettings.pageHistory !== this.pageHistory) {
+            console.debug("[home] Page history loaded");
+            this.pageHistory = updatedSettings.pageHistory || [];
+          }
+          // Always force a refresh (same history array, but content may have changed)
           this.markForCheck();
         }));
+
   }
 
   protected onConfigChanged(config: Configuration) {
@@ -142,6 +163,16 @@ export class HomePage implements OnDestroy {
     } else {
       const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
       this.contentStyle = {'background-color': primaryColor};
+    }
+
+    // App installation URL
+    if (this.platform.is('mobileweb')) {
+
+      // Android
+      if (this.platform.is('android')) {
+        this.appPlatformName = 'Android';
+        this.appInstallUrl = config.properties['sumaris.android.app.link'] || environment.defaultAndroidInstallUrl;
+      }
     }
   }
 

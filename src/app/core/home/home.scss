@@ -39,7 +39,12 @@ ion-content {
     background-color: rgba(var(--ion-color-primary), 0);
   }
 
-  ion-card {
+  ion-card.welcome {
+    z-index: 9;
+    min-width: 240px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
     background-color: $card-background;
 
     ion-card-header {
@@ -51,14 +56,6 @@ ion-content {
         width: 100%;
       }
     }
-  }
-
-  ion-card.welcome {
-    z-index: 9;
-    min-width: 240px;
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
 
     button {
       margin-top: 16px;
@@ -201,6 +198,9 @@ ion-content {
     }
 
     .bottom-banner {
+      display: block;
+      position: unset;
+
       img.logo {
         max-height: 30px;
       }

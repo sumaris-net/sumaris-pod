@@ -4,9 +4,6 @@ export class Environment {
   version: string;
   production: boolean;
   baseUrl: string;
-  defaultLocale: string;
-  defaultLatLongFormat?: 'DD' | 'DDMM' | 'DDMMSS';
-  defaultDepartmentId?: number;
   apolloFetchPolicy?:  FetchPolicy;
   mock?: boolean;
   listenRemoteChanges?: boolean;
@@ -22,4 +19,10 @@ export class Environment {
 
   // Force offline mode ? For DEV only
   offline?: boolean;
+
+  // Default values
+  defaultLocale: string;
+  defaultLatLongFormat?: 'DD' | 'DDMM' | 'DDMMSS';
+  defaultDepartmentId?: number;
+  defaultAndroidInstallUrl?: string;
 }

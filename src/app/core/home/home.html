@@ -54,8 +54,40 @@
       </ion-toolbar>
     </div>
 
+  <ion-card *ngIf="appInstallUrl"
+            color="accent"
+            class="ion-no-margin"
+            @fadeInAnimation>
+    <ion-card-content class="ion-no-padding">
+      <ion-grid>
+        <ion-row>
+          <ion-col>
+            <ion-label text-wrap>
+              <ion-text><b>
+                <span [innerHTML]="'HOME.DOWNLOAD_APP_TITLE'| translate: {appName: appName, platform: appPlatformName}"></span>
+              </b>
+              </ion-text><br/>
+              <ion-text color="dark" [innerHTML]="'HOME.DOWNLOAD_APP_HELP'|translate">
+              </ion-text>
+            </ion-label>
+          </ion-col>
+          <ion-col>
+            <!-- Display App download link -->
+            <ion-button color="tertiary" class="ion-float-end" (click)="downloadApp()">
+              <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
+            </ion-button>
+          </ion-col>
+        </ion-row>
+
+      </ion-grid>
+
+    </ion-card-content>
+  </ion-card>
+
     <!-- Welcome card -->
-    <ion-card @fadeInAnimation *ngIf="!loading" class="welcome ion-padding ion-text-center ion-align-self-center">
+    <ion-card *ngIf="!loading"
+              class="welcome ion-padding ion-text-center ion-align-self-center"
+              @fadeInAnimation>
       <ion-card-header>
         <ion-card-title [innerHTML]="'HOME.WELCOME'|translate: {appName: appName}" class="ion-text-center">
         </ion-card-title>
@@ -74,28 +106,38 @@
 
       <ion-footer class="ion-padding-top">
 
-        <ion-button expand="block" color="primary" *ngIf="!isLogin" (click)="register()">
-          <span translate>HOME.BTN_REGISTER</span>
-        </ion-button>
+        <!-- If NOT login -->
+        <ng-container *ngIf="!isLogin; else loginButtons;">
 
-        <ion-button expand="block" color="light" [routerLink]="['/']" *ngIf="!isLogin" (click)="login()">
-          <span translate>AUTH.BTN_LOGIN</span>
-        </ion-button>
+          <ion-button expand="block" color="primary" (click)="register()">
+            <span translate>HOME.BTN_REGISTER</span>
+          </ion-button>
+          <ion-button expand="block" color="light" [routerLink]="['/']" (click)="login()">
+            <span translate>AUTH.BTN_LOGIN</span>
+          </ion-button>
 
-        <ion-button expand="block" color="secondary" [routerLink]="['/account']" *ngIf="isLogin">
-          <ion-icon name="contact" slot="start"></ion-icon>
-          <span translate>HOME.BTN_MY_ACCOUNT</span>
-        </ion-button>
 
-        <p *ngIf="isLogin" hidden-xs hidden-sm hidden-mobile>
-          <ion-text [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: displayName}"></ion-text>
-          <br/>
-          <ion-text>
-            <a href="#" (click)="logout($event)">
-              <span translate>HOME.BTN_DISCONNECT</span>
-            </a>
-          </ion-text>
-        </p>
+        </ng-container>
+
+        <!-- If user login -->
+        <ng-template #loginButtons>
+
+          <ion-button expand="block" color="secondary" [routerLink]="['/account']">
+            <ion-icon name="contact" slot="start"></ion-icon>
+            <span translate>HOME.BTN_MY_ACCOUNT</span>
+          </ion-button>
+
+          <p hidden-xs hidden-sm hidden-mobile>
+            <ion-text [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: displayName}"></ion-text>
+            <br/>
+            <ion-text>
+              <a href="#" (click)="logout($event)">
+                <span translate>HOME.BTN_DISCONNECT</span>
+              </a>
+            </ion-text>
+          </p>
+        </ng-template>
+
       </ion-footer>
     </ion-card>
 
@@ -107,15 +149,15 @@
         <ion-card class="ion-align-self-start ion-text-start" @fadeInAnimation>
           <ion-card-header class="ion-no-padding">
             <!-- top bar -->
-            <ion-card-subtitle>
+            <ion-card-subtitle class="ion-padding-right">
               <button type="button" tabindex="-1"
                       (click)="settings.removeHistory(page.path)"
                       mat-icon-button class="ion-float-start ion-no-margin">
                 <mat-icon>close</mat-icon>
               </button>
               <ion-label [innerHTML]="page.subtitle"></ion-label>
-              <ion-label class="ion-float-end" [title]="page.time|dateFormat:{time: true}">
-                <ion-icon name="time"></ion-icon> {{ page.time|dateFromNow }}
+              <ion-label class="ion-float-end ion-margin-end" [title]="page.time|dateFormat:{time: true}">
+                <small><ion-icon name="time"></ion-icon>&nbsp;{{ page.time|dateFromNow }}</small>
               </ion-label>
             </ion-card-subtitle>
 
@@ -163,5 +205,6 @@
       </a>
     </div>
   </ng-template>
+
 
 </ion-content>

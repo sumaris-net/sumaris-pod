@@ -10,6 +10,7 @@
     "BTN_EDIT": "Modifier",
     "BTN_CLOSE": "Fermer",
     "BTN_DONE": "Terminer",
+    "BTN_DOWNLOAD": "Télécharger",
     "BTN_DELETE": "Supprimer",
     "BTN_VALIDATE": "Valider",
     "BTN_NOT_SAVE": "Ne PAS sauvegarder",
@@ -168,6 +169,8 @@
     "BTN_DISCONNECT": "Déconnecter ce compte",
     "BTN_MY_ACCOUNT": "Mon compte",
     "BTN_REGISTER": "S'inscrire",
+    "DOWNLOAD_APP_TITLE": "{{appName}} pour {{platform}}",
+    "DOWNLOAD_APP_HELP": "Téléchargement gratuit.",
     "SHOW_AT": "Consulté le "
   },
   "AUTH": {
