@@ -102,6 +102,7 @@
       "TITLE": "Configuration {{label}}"
     },
     "OPTIONS": {
+      "ANDROID_INSTALL_URL": "Android > Adresse de téléchargement du fichier APK",
       "LOGO": "Menu > Logo (largeur max 110px)",
       "FAVICON": "favicon",
       "DEFAULT_LOCALE": "Langue par défaut",

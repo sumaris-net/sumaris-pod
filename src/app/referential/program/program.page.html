@@ -41,8 +41,9 @@
                 </h3>
 
                 <!-- Properties -->
-                <form [formGroup]="form" class="form-container">
-                  <ion-grid formArrayName="properties" class="ion-no-padding">
+                <form  [formGroup]="form" class="form-container">
+                  <ion-grid *ngIf="!loading || saving; else propertiesSkeleton"
+                            formArrayName="properties" class="ion-no-padding" >
                     <ion-row class="ion-no-padding">
                       <ion-col class="ion-no-padding ion-align-self-end" size="12">
                         <span class="toolbar-spacer"></span>
@@ -189,3 +190,43 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+
+<ng-template #propertiesSkeleton>
+
+  <ion-grid class="ion-no-padding">
+    <ng-container *ngTemplateOutlet="propertyRowSkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="propertyRowSkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="propertyRowSkeleton"></ng-container>
+  </ion-grid>
+
+</ng-template>
+
+<ng-template #propertyRowSkeleton>
+
+  <ion-row>
+    <!-- property key -->
+    <ion-col>
+      <mat-form-field>
+        <input matInput hidden>
+        <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+        <ion-icon name="arrow-dropdown" matSuffix></ion-icon>
+      </mat-form-field>
+    </ion-col>
+    <!-- value -->
+    <ion-col>
+      <mat-form-field>
+        <input matInput hidden>
+        <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+      </mat-form-field>
+    </ion-col>
+    <!-- buttons -->
+    <ion-col size="2">
+      <button type="button" mat-icon-button color="light"
+              [disabled]="true">
+        <mat-icon>close</mat-icon>
+      </button>
+    </ion-col>
+  </ion-row>
+
+</ng-template>

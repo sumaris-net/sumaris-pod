@@ -181,7 +181,7 @@ export class HomePage implements OnDestroy {
 
         setTimeout(() => {
           this.appPlatformName = 'Android';
-          const apkLink = config.properties['sumaris.android.apk.url'];
+          const apkLink = config.properties['sumaris.android.install.url'];
           if (isNotNilOrBlank(apkLink)) {
             this.appInstallUrl = apkLink;
             this.appInstallName = this.appName;

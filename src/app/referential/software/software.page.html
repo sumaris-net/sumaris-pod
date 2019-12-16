@@ -34,65 +34,67 @@
       <ion-text translate>CONFIGURATION.PROPERTIES_DIVIDER</ion-text>
     </h3>
 
-    <!-- Properties -->
-    <ion-grid formArrayName="properties" class="ion-no-padding">
-      <ng-container *ngFor="let propertyForm of propertiesForm.controls; let i=index">
-        <ion-row class="ion-no-padding" [formGroupName]="i">
+    <ng-container *ngIf="!loading || saving; else propertiesSkeleton">
+      <!-- Properties -->
+      <ion-grid formArrayName="properties" class="ion-no-padding">
+        <ng-container *ngFor="let propertyForm of propertiesForm.controls; let i=index">
+          <ion-row class="ion-no-padding" [formGroupName]="i">
 
-          <!-- property key -->
-          <ion-col class="ion-no-padding">
-            <mat-form-field floatLabel="never">
-              <mat-select formControlName="key"
-                          [placeholder]="'CONFIGURATION.PROPERTY_KEY'|translate"
-                          (selectionChange)="updatePropertyDefinition(i)">
-                <mat-option *ngFor="let item of propertyDefinitions" [value]="item.key">{{ item.label | translate }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </ion-col>
+            <!-- property key -->
+            <ion-col class="ion-no-padding">
+              <mat-form-field floatLabel="never">
+                <mat-select formControlName="key"
+                            [placeholder]="'CONFIGURATION.PROPERTY_KEY'|translate"
+                            (selectionChange)="updatePropertyDefinition(i)">
+                  <mat-option *ngFor="let item of propertyDefinitions" [value]="item.key">{{ item.label | translate }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </ion-col>
 
-          <!-- property value -->
-          <ion-col class="ion-no-padding" padding-left>
-            <app-form-field *ngIf="getPropertyDefinition(i); let definition"
-                             floatLabel="never"
-                             [definition]="definition"
-                             [formControl]="propertyForm.controls.value"
-                             [placeholder]="'CONFIGURATION.PROPERTY_VALUE' | translate"
-                             [required]="true">
-            </app-form-field>
-          </ion-col>
+            <!-- property value -->
+            <ion-col class="ion-no-padding" padding-left>
+              <app-form-field *ngIf="getPropertyDefinition(i); let definition"
+                               floatLabel="never"
+                               [definition]="definition"
+                               [formControl]="propertyForm.controls.value"
+                               [placeholder]="'CONFIGURATION.PROPERTY_VALUE' | translate"
+                               [required]="true">
+              </app-form-field>
+            </ion-col>
 
-          <ion-col size="2" class="ion-no-padding">
-            <button type="button" mat-icon-button color="light"
-                    [disabled]="loading"
-                    [title]="'COMMON.BTN_DELETE'|translate"
-                    (click)="removePropertyAt(i)">
-              <mat-icon>close</mat-icon>
-            </button>
-            <button *ngIf="propertiesFormHelper.isLast(i)"
-                    type="button"
-                    mat-icon-button
-                    color="light"
-                    [disabled]="loading"
-                    [title]="'CONFIGURATION.BTN_ADD_PROPERTY'|translate"
-                    (click)="propertiesFormHelper.add()">
-              <mat-icon>add</mat-icon>
-            </button>
-          </ion-col>
-        </ion-row>
-      </ng-container>
-    </ion-grid>
+            <ion-col size="2" class="ion-no-padding">
+              <button type="button" mat-icon-button color="light"
+                      [disabled]="loading"
+                      [title]="'COMMON.BTN_DELETE'|translate"
+                      (click)="removePropertyAt(i)">
+                <mat-icon>close</mat-icon>
+              </button>
+              <button *ngIf="propertiesFormHelper.isLast(i)"
+                      type="button"
+                      mat-icon-button
+                      color="light"
+                      [disabled]="loading"
+                      [title]="'CONFIGURATION.BTN_ADD_PROPERTY'|translate"
+                      (click)="propertiesFormHelper.add()">
+                <mat-icon>add</mat-icon>
+              </button>
+            </ion-col>
+          </ion-row>
+        </ng-container>
+      </ion-grid>
 
-    <!-- Partners logos -->
-    <h3>
-      <ion-text translate>CONFIGURATION.LOGO_PARTNERS</ion-text>
-    </h3>
+      <!-- Partners logos -->
+      <h3>
+        <ion-text translate>CONFIGURATION.LOGO_PARTNERS</ion-text>
+      </h3>
 
-    <div class="bottom-banner">
-      <div class="partner-logo" *ngFor="let item of partners | async ">
-        <img class="logo" src="{{ item.logo }}" alt="{{item.label}}" [title]="item.name" width="150"/>
-        <mat-icon class="button-close" (click)="removePartner(item)">close</mat-icon>
+      <div class="bottom-banner">
+        <div class="partner-logo" *ngFor="let item of partners | async ">
+          <img class="logo" src="{{ item.logo }}" alt="{{item.label}}" [title]="item.name" width="150"/>
+          <mat-icon class="button-close" (click)="removePartner(item)">close</mat-icon>
+        </div>
       </div>
-    </div>
+    </ng-container>
   </form>
 
 </ion-content>
@@ -111,3 +113,43 @@
 
   </form-buttons-bar>
 </ion-footer>
+
+
+<ng-template #propertiesSkeleton>
+
+  <ion-grid class="ion-no-padding">
+    <ng-container *ngTemplateOutlet="propertyRowSkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="propertyRowSkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="propertyRowSkeleton"></ng-container>
+  </ion-grid>
+
+</ng-template>
+
+<ng-template #propertyRowSkeleton>
+
+  <ion-row>
+    <!-- property key -->
+    <ion-col>
+      <mat-form-field>
+        <input matInput hidden>
+        <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+        <ion-icon name="arrow-dropdown" matSuffix></ion-icon>
+      </mat-form-field>
+    </ion-col>
+    <!-- value -->
+    <ion-col>
+      <mat-form-field>
+        <input matInput hidden>
+        <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+      </mat-form-field>
+    </ion-col>
+    <!-- buttons -->
+    <ion-col size="2">
+      <button type="button" mat-icon-button color="light"
+              [disabled]="true">
+        <mat-icon>close</mat-icon>
+      </button>
+    </ion-col>
+  </ion-row>
+
+</ng-template>

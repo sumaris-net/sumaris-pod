@@ -199,6 +199,11 @@ export const ConfigOptions: FormFieldDefinitionMap = {
     key: 'sumaris.userProfile.GUEST.label',
     label: 'CONFIGURATION.OPTIONS.PROFILE.GUEST',
     type: 'string'
+  },
+  ANDROID_INSTALL_URL:  {
+    key: 'sumaris.android.install.url',
+    label: 'CONFIGURATION.OPTIONS.ANDROID_INSTALL_URL',
+    type: 'string'
   }
 };
 
