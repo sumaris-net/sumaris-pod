@@ -24,5 +24,6 @@ export class Environment {
   defaultLocale: string;
   defaultLatLongFormat?: 'DD' | 'DDMM' | 'DDMMSS';
   defaultDepartmentId?: number;
+  defaultAppName?: string;
   defaultAndroidInstallUrl?: string;
 }

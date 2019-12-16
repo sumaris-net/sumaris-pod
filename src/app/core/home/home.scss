@@ -39,8 +39,11 @@ ion-content {
     background-color: rgba(var(--ion-color-primary), 0);
   }
 
-  ion-card.welcome {
+  ion-card {
     z-index: 9;
+  }
+
+  ion-card.welcome {
     min-width: 240px;
     max-width: 400px;
     margin-left: auto;

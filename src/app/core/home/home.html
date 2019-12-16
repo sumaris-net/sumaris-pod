@@ -57,23 +57,23 @@
   <ion-card *ngIf="appInstallUrl"
             color="accent"
             class="ion-no-margin"
-            @fadeInAnimation>
+            @slideUpDownAnimation>
     <ion-card-content class="ion-no-padding">
       <ion-grid>
         <ion-row>
           <ion-col>
-            <ion-label text-wrap>
+            <ion-label class="ion-text-wrap">
               <ion-text><b>
-                <span [innerHTML]="'HOME.DOWNLOAD_APP_TITLE'| translate: {appName: appName, platform: appPlatformName}"></span>
+                <span [innerHTML]="'HOME.DOWNLOAD_APP_TITLE'| translate: {appName: appInstallName, platform: appPlatformName}"></span>
               </b>
               </ion-text><br/>
-              <ion-text color="dark" [innerHTML]="'HOME.DOWNLOAD_APP_HELP'|translate">
-              </ion-text>
+              <ion-text><small [innerHTML]="'HOME.DOWNLOAD_APP_HELP'|translate"></small></ion-text>
             </ion-label>
           </ion-col>
           <ion-col>
             <!-- Display App download link -->
-            <ion-button color="tertiary" class="ion-float-end" (click)="downloadApp()">
+            <ion-button color="tertiary" class="ion-float-end"
+                        (click)="downloadApp($event)">
               <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
             </ion-button>
           </ion-col>
@@ -89,7 +89,9 @@
               class="welcome ion-padding ion-text-center ion-align-self-center"
               @fadeInAnimation>
       <ion-card-header>
-        <ion-card-title [innerHTML]="'HOME.WELCOME'|translate: {appName: appName}" class="ion-text-center">
+        <ion-card-title class="ion-text-center">
+          <span *ngIf="isWeb" [innerHTML]="'HOME.WELCOME_WEB'|translate: {appName: appName}"></span>
+          <span *ngIf="!isWeb" [innerHTML]="'HOME.WELCOME_APP'|translate: {appName: appName}"></span>
         </ion-card-title>
         <ion-card-subtitle [innerHTML]="description">
         </ion-card-subtitle>

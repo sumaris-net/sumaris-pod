@@ -161,7 +161,8 @@
     "DEVELOPED_BY": "Développé par :"
   },
   "HOME": {
-    "WELCOME": "Bienvenue sur le site web {{appName}} !",
+    "WELCOME_WEB": "Bienvenue sur le site web {{appName}} !",
+    "WELCOME_APP": "Bienvenue sur l'application {{appName}} !",
     "DESCRIPTION": "Base de données européenne partagée<br/>pour la gestion des stocks de raies.",
     "BTN_TRIPS": "Recherche de marées",
     "REGISTER_HELP": "L'inscription est gratuite. Rejoignez-nous dès aujourd'hui !",

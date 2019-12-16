@@ -33,6 +33,7 @@ import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {APP_CONFIG_OPTIONS, ConfigService} from "./core/services/config.service";
 import {TripConfigOptions} from "./trip/services/config/trip.config";
 import {IonicStorageModule} from "@ionic/storage";
+import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
 
 
 @NgModule({
@@ -66,6 +67,7 @@ import {IonicStorageModule} from "@ionic/storage";
     Network,
     NativeAudio,
     Vibration,
+    InAppBrowser,
     AudioManagement,
     {provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/')},
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },

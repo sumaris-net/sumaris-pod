@@ -35,6 +35,9 @@ export const environment: Environment = {
       host: 'test.sumaris.net',
       port: 443
     }
-  ]
+  ],
+
+  defaultAppName: 'SUMARiS',
+  defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app'
 };
 /* tslint:enable */

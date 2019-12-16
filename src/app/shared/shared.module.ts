@@ -51,7 +51,7 @@ import {
   toFloat,
   toInt
 } from "./functions";
-import {fadeInAnimation, fadeInOutAnimation, slideInOutAnimation} from "./material/material.animations";
+import {fadeInAnimation, fadeInOutAnimation, slideInOutAnimation, slideUpDownAnimation} from "./material/material.animations";
 import {InputElement} from "./material/focusable";
 import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
@@ -74,7 +74,7 @@ export {
   toDateISOString, fromDateISOString, filterNumberInput,
   startsWithUpperCase,
   propertyComparator, joinPropertiesPath, sort, selectInputContent,
-  fadeInAnimation, fadeInOutAnimation, slideInOutAnimation, changeCaseToUnderscore,
+  fadeInAnimation, fadeInOutAnimation, slideInOutAnimation, slideUpDownAnimation, changeCaseToUnderscore,
   DateFormatPipe, DateFromNowPipe,
   ToolbarComponent,
   Color, ColorScale, InputElement,

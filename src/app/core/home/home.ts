@@ -6,13 +6,13 @@ import {AccountService} from '../services/account.service';
 import {Account, Configuration, Department, HistoryPageReference} from '../services/model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
-import {fadeInAnimation} from "../../shared/shared.module";
+import {fadeInAnimation, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {debounceTime, startWith} from "rxjs/operators";
 import {AuthModal} from "../auth/modal/modal-auth";
 import {environment} from "../../../environments/environment";
-import {Platforms} from "@ionic/core";
+import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -25,7 +25,7 @@ export function getRandomImage(files: String[]) {
   templateUrl: 'home.html',
   styleUrls: ['./home.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [fadeInAnimation]
+  animations: [fadeInAnimation, slideUpDownAnimation]
 })
 export class HomePage implements OnDestroy {
 
@@ -39,9 +39,11 @@ export class HomePage implements OnDestroy {
   logo: String;
   description: String;
   appName: string;
+  isWeb: boolean;
   contentStyle = {};
   pageHistory: HistoryPageReference[] = [];
   appPlatformName: string;
+  appInstallName: string;
   appInstallUrl: string;
 
   get currentLocaleCode(): string {
@@ -55,7 +57,8 @@ export class HomePage implements OnDestroy {
     private configService: ConfigService,
     private platform: PlatformService,
     private cd: ChangeDetectorRef,
-    public settings: LocalSettingsService
+    public settings: LocalSettingsService,
+    private browser: InAppBrowser
   ) {
 
     this.showSpinner = !this.platform.started;
@@ -91,9 +94,13 @@ export class HomePage implements OnDestroy {
     return page && page.path;
   }
 
-  downloadApp() {
+  downloadApp(event: UIEvent) {
+    event.preventDefault();
+
     if (this.appInstallUrl) {
-      // TODO open the link
+      console.info(`[home] Opening App download link: ${this.appInstallUrl}`);
+      this.browser.create(this.appInstallUrl, '_system', 'location=yes');
+      return false;
     }
   }
 
@@ -149,9 +156,10 @@ export class HomePage implements OnDestroy {
   protected onConfigChanged(config: Configuration) {
     console.debug("[home] Configuration changed:", config);
 
-    this.appName = config.label;
+    this.appName = config.label || environment.defaultAppName || 'SUMARiS';
     this.logo = config.largeLogo || config.smallLogo;
     this.description = config.name;
+    this.isWeb = !this.platform.is('mobile') || this.platform.is('mobileweb') ;
 
     const partners = (config.partners || []).filter(p => p && p.logo);
     this.$partners.next(partners);
@@ -165,13 +173,25 @@ export class HomePage implements OnDestroy {
       this.contentStyle = {'background-color': primaryColor};
     }
 
-    // App installation URL
+    // If mobile web: show "download app" button
     if (this.platform.is('mobileweb')) {
 
       // Android
       if (this.platform.is('android')) {
-        this.appPlatformName = 'Android';
-        this.appInstallUrl = config.properties['sumaris.android.app.link'] || environment.defaultAndroidInstallUrl;
+
+        setTimeout(() => {
+          this.appPlatformName = 'Android';
+          const apkLink = config.properties['sumaris.android.apk.url'];
+          if (isNotNilOrBlank(apkLink)) {
+            this.appInstallUrl = apkLink;
+            this.appInstallName = this.appName;
+          }
+          else {
+            this.appInstallName = environment.defaultAppName || 'SUMARiS';
+            this.appInstallUrl =  environment.defaultAndroidInstallUrl || null;
+          }
+          this.markForCheck();
+        }, 1000);
       }
     }
   }

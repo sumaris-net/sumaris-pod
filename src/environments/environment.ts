@@ -69,6 +69,7 @@ export const environment: Environment = {
     }
   ],
 
+  defaultAppName: 'SUMARiS',
   defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app'
 };
 
