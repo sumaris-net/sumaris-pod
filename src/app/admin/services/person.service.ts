@@ -136,10 +136,10 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
       .pipe(
-        map(({persons, personsCount}) => {
+        map((res) => {
           return {
-            data: (persons || []).map(Person.fromObject),
-            total: personsCount || (persons && persons.length) || 0
+            data: res && (res.persons || []).map(Person.fromObject),
+            total: res && (res.personsCount || (res.persons && res.persons.length)) || 0
           };
         })
       );
@@ -164,22 +164,21 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
     const now = debug && Date.now();
     if (debug) console.debug("[person-service] Loading persons, using filter: ", variables);
 
+    let loadResult: { persons: Person[]; personsCount: number };
+
     // Offline: use local store
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      const res = await this.entities.loadAll('PersonVO',
+      const res = await this.entities.loadAll<Person>('PersonVO',
         {
           ...variables,
           filter: EntityUtils.searchTextFilter(['lastName', 'firstName', 'department.name'], filter.searchText)
         }
       );
-      const data = (!opts || opts.toEntity !== false) ?
-        (res && res.data || []).map(Person.fromObject) :
-        (res && res.data || []) as Person[];
       if (debug) console.debug(`[referential-ref-service] Persons loaded (from offline storage) in ${Date.now() - now}ms`);
-      return {
-        data: data,
-        total: res.total
+      loadResult = {
+        persons: res && res.data,
+        personsCount: res && res.total
       };
     }
 
@@ -188,20 +187,21 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
       this._lastVariables.loadAll = variables;
 
       const query = opts && opts.withTotal ? LoadAllWithCountQuery : LoadAllQuery;
-      const res = await this.graphql.query<{ persons: Person[]; personsCount: number }>({
+      loadResult = await this.graphql.query<{ persons: Person[]; personsCount: number }>({
         query,
         variables,
         error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || undefined
       });
-      const data = (!opts || opts.toEntity !== false) ?
-        (res && res.persons || []).map(Person.fromObject) :
-        (res && res.persons || []) as Person[];
-      return {
-        data,
-        total: res && res.personsCount
-      };
     }
+
+    const data = (!opts || opts.toEntity !== false) ?
+      (loadResult && loadResult.persons || []).map(Person.fromObject) :
+      (loadResult && loadResult.persons || []) as Person[];
+    return {
+      data,
+      total: loadResult && loadResult.personsCount
+    };
   }
 
   async suggest(value: any, options?: {

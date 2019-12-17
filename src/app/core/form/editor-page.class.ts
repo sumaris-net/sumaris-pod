@@ -20,6 +20,7 @@ import {Entity, HistoryPageReference, UsageMode} from "../services/model";
 import {FormGroup} from "@angular/forms";
 import {AppTabPage} from "./tab-page.class";
 import {AppFormUtils} from "./form.utils";
+import {AppPageUtils} from "./page.utils";
 
 export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
 
@@ -256,8 +257,13 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   async delete(event?: UIEvent): Promise<boolean> {
-    console.debug("[root-data-editor] Asking to delete...");
     if (this.loading || this.saving) return false;
+
+    // Ask user confirmation
+    const confirmation = await AppPageUtils.askDeleteConfirmation(this.alertCtrl, this.translate);
+    if (!confirmation) return;
+
+    console.debug("[root-data-editor] Asking to delete...");
 
     this.saving = true;
     this.error = undefined;

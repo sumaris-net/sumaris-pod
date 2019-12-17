@@ -12,7 +12,13 @@ import {
   Vessel,
   VesselSnapshot,
 } from "./model";
-import {EditorDataService, isNilOrBlank, LoadResult, TableDataService} from "../../shared/shared.module";
+import {
+  EditorDataService,
+  isNilOrBlank,
+  isNotEmptyArray,
+  LoadResult,
+  TableDataService
+} from "../../shared/shared.module";
 import {BaseDataService, SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
@@ -45,6 +51,7 @@ export class VesselFilter {
   static searchFilter<T extends VesselSnapshot>(f: VesselFilter): (T) => boolean {
     if (this.isEmpty(f)) return undefined; // no filter need
     const searchFilter = EntityUtils.searchTextFilter(['name', 'exteriorMarking', 'registrationCode'], f.searchText);
+    const statusIds = (isNotEmptyArray(f.statusIds) && f.statusIds) || (isNotNil(f.statusId) && [f.statusId]);
     return (t: T) => {
 
       // Vessel id
@@ -53,8 +60,7 @@ export class VesselFilter {
       }
 
       // Status
-      const statusIds = f.statusIds || (isNotNil(f.statusId) && [f.statusId]);
-      if (statusIds && statusIds.find(statusId => statusId === t.vesselStatusId)) {
+      if (statusIds && statusIds.findIndex(statusId => statusId === t.vesselStatusId) === -1) {
         return false;
       }
 

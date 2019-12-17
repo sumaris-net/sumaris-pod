@@ -10,6 +10,7 @@ import {AuctionControlValidators} from "../services/validator/auction-control.va
 import {ModalController} from "@ionic/angular";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {fadeInOutAnimation} from "../../shared/shared.module";
+import {HistoryPageReference} from "../../core/services/model";
 
 @Component({
   selector: 'app-auction-control',
@@ -151,6 +152,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this.landingForm.showObservers = false;
 
 
+  }
+
+  protected addToPageHistory(page: HistoryPageReference) {
+    super.addToPageHistory({ ...page, icon: 'flag'});
   }
 
   // protected async getValue(): Promise<Landing> {

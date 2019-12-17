@@ -42,6 +42,22 @@ export class PlatformService {
     return this.platform.is(platformName);
   }
 
+  /**
+   * Say if opened has been opened from a web browser (and NOT inside an Android or iOs App).
+   * This is used to known if there is cordova features
+   */
+  isWebOrDesktop(): boolean {
+    return !this.platform.is('mobile') || this.platform.is('mobileweb');
+  }
+
+  width(): number {
+    return this.platform.width();
+  }
+
+  height(): number {
+    return this.platform.height();
+  }
+
   protected async start() {
     if (this._startPromise) return this._startPromise;
     if (this._started) return;

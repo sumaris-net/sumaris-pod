@@ -8,12 +8,13 @@ import {
   ViewChild
 } from "@angular/core";
 import {AlertController, ModalController} from "@ionic/angular";
-import {AcquisitionLevelCodes} from "../../referential/services/model";
+import {AcquisitionLevelCodes, isNil} from "../../referential/services/model";
 import {PhysicalGear} from "../services/trip.model";
 import {PhysicalGearForm} from "./physicalgear.form";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../../core/services/platform.service";
+import {AppPageUtils} from "../../core/form/page.utils";
 
 @Component({
   selector: 'app-physical-gear-modal',
@@ -77,8 +78,9 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
   async cancel(event: UIEvent) {
     await this.saveIfDirtyAndConfirm(event);
+
+    // Continue (if event not cancelled)
     if (!event.defaultPrevented) {
-      // abort changes
       await this.viewCtrl.dismiss();
     }
   }
@@ -106,49 +108,25 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
   /* -- protected functions -- */
 
-  protected async saveIfDirtyAndConfirm(event: UIEvent): Promise<boolean> {
-    if (!this.form.dirty) return true;
+  protected async saveIfDirtyAndConfirm(event: UIEvent): Promise<void> {
+    if (!this.form.dirty) return; // skip, if nothing to save
 
-    let confirm = false;
-    let cancel = false;
-    const translations = this.translate.instant(['COMMON.BTN_SAVE', 'COMMON.BTN_CANCEL', 'COMMON.BTN_ABORT_CHANGES', 'CONFIRM.SAVE', 'CONFIRM.ALERT_HEADER']);
-    const alert = await this.alertCtrl.create({
-      header: translations['CONFIRM.ALERT_HEADER'],
-      message: translations['CONFIRM.SAVE'],
-      buttons: [
-        {
-          text: translations['COMMON.BTN_CANCEL'],
-          role: 'cancel',
-          cssClass: 'secondary',
-          handler: () => {
-            cancel = true;
-          }
-        },
-        {
-          text: translations['COMMON.BTN_ABORT_CHANGES'],
-          cssClass: 'secondary',
-          handler: () => {
-          }
-        },
-        {
-          text: translations['COMMON.BTN_SAVE'],
-          handler: () => {
-            confirm = true; // update upper value
-          }
-        }
-      ]
-    });
-    await alert.present();
-    await alert.onDidDismiss();
+    const confirmation = await AppPageUtils.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
-    if (!confirm) {
-      if (cancel) event.preventDefault();
-      return !cancel;
-    } // cancel
+    // User cancelled
+    if (isNil(confirmation) || event && event.defaultPrevented) {
+      return;
+    }
 
+    if (confirmation === false) {
+      return;
+    }
+
+    // If user confirm: save
     const saved = await this.save(event);
-    if (saved) event.preventDefault();
-    return saved;
+
+    // Error while saving: avoid to close
+    if (!saved) event.preventDefault();
   }
 
   protected markForCheck() {

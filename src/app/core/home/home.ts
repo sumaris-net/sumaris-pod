@@ -3,7 +3,7 @@ import {ModalController} from '@ionic/angular';
 import {RegisterModal} from '../register/modal/modal-register';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
-import {Account, Configuration, Department, HistoryPageReference} from '../services/model';
+import {Account, Configuration, Department, HistoryPageReference, LocalSettings} from '../services/model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
 import {fadeInAnimation, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
@@ -116,22 +116,8 @@ export class HomePage implements OnDestroy {
     this.subscription.add(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
     this.subscription.add(this.accountService.onLogout.subscribe(() => this.onLogout()));
 
-    // Listen remote config changes
-    this.subscription.add(this.configService.config.subscribe(config => {
-      this.onConfigChanged(config);
-
-      this.markForCheck();
-
-      // Update the loading indicator (after a small delay)
-      // (will animate some page's elements)
-      if (this.loading) {
-        setTimeout(() => {
-          this.loading = false;
-          this.markForCheck();
-        }, 500);
-      }
-    }));
-
+    // Listen pod config
+    this.subscription.add(this.configService.config.subscribe(config => this.onConfigLoaded(config)));
 
     // Listen settings changes
     this.subscription.add(
@@ -142,24 +128,17 @@ export class HomePage implements OnDestroy {
           // Start with current settings
           startWith(await this.settings.ready())
         )
-        .subscribe(updatedSettings => {
-          if (updatedSettings.pageHistory !== this.pageHistory) {
-            console.debug("[home] Page history loaded");
-            this.pageHistory = updatedSettings.pageHistory || [];
-          }
-          // Always force a refresh (same history array, but content may have changed)
-          this.markForCheck();
-        }));
+        .subscribe(res => this.onSettingsChanged(res)));
 
   }
 
-  protected onConfigChanged(config: Configuration) {
-    console.debug("[home] Configuration changed:", config);
+  protected onConfigLoaded(config: Configuration) {
+    console.debug("[home] Configuration loaded:", config);
 
     this.appName = config.label || environment.defaultAppName || 'SUMARiS';
     this.logo = config.largeLogo || config.smallLogo;
     this.description = config.name;
-    this.isWeb = !this.platform.is('mobile') || this.platform.is('mobileweb') ;
+    this.isWeb = this.platform.isWebOrDesktop() ;
 
     const partners = (config.partners || []).filter(p => p && p.logo);
     this.$partners.next(partners);
@@ -172,6 +151,8 @@ export class HomePage implements OnDestroy {
       const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
       this.contentStyle = {'background-color': primaryColor};
     }
+
+    this.markForCheck();
 
     // If mobile web: show "download app" button
     if (this.platform.is('mobileweb')) {
@@ -191,9 +172,30 @@ export class HomePage implements OnDestroy {
             this.appInstallUrl =  environment.defaultAndroidInstallUrl || null;
           }
           this.markForCheck();
-        }, 1000);
+        }, 1000); // Add a delay, for animation
       }
+
+      // TODO: other mobile platforms
+      // else if (...)
     }
+
+    // If first load, hide the loading indicator
+    if (this.loading) {
+      setTimeout(() => {
+        this.loading = false;
+        this.markForCheck();
+      }, 500); // Add a delay, for animation
+    }
+
+  }
+
+  protected onSettingsChanged(settings: LocalSettings) {
+    if (settings.pageHistory !== this.pageHistory) {
+      console.debug("[home] Page history loaded");
+      this.pageHistory = settings.pageHistory || [];
+    }
+    // Always force a refresh (same history array, but content may have changed)
+    this.markForCheck();
   }
 
   protected onLogin(account: Account) {

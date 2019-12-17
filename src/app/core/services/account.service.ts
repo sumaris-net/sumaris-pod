@@ -16,13 +16,16 @@ import gql from "graphql-tag";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "apollo-client";
 
-import {toDateISOString} from "../../shared/shared.module";
+import {LoadResult, toDateISOString} from "../../shared/shared.module";
 import {BaseDataService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
 import {GraphqlService} from "./graphql.service";
 import {LocalSettingsService} from "./local-settings.service";
 import {FormFieldDefinition} from "../../shared/form/field.model";
+import {NetworkService} from "./network.service";
+import {FileService} from "../../shared/file/file.service";
+import {PlatformService} from "./platform.service";
 
 
 export declare interface AccountHolder {
@@ -48,6 +51,8 @@ const TOKEN_STORAGE_KEY = "token";
 const PUBKEY_STORAGE_KEY = "pubkey";
 const SECKEY_STORAGE_KEY = "seckey";
 const ACCOUNT_STORAGE_KEY = "account";
+
+const DEFAULT_AVATAR_IMAGE = "assets/img/person.png";
 
 /* ------------------------------------
  * GraphQL queries
@@ -208,10 +213,13 @@ export class AccountService extends BaseDataService {
   }
 
   constructor(
+    protected platform: PlatformService,
+    protected network: NetworkService,
     protected graphql: GraphqlService,
     private settings: LocalSettingsService,
     private cryptoService: CryptoService,
-    private storage: Storage
+    private storage: Storage,
+    private fileService: FileService
   ) {
     super(graphql);
 
@@ -373,7 +381,7 @@ export class AccountService extends BaseDataService {
       const account = await this.saveAccount(data.account, keypair);
 
       // Default values
-      account.avatar = account.avatar || "../assets/img/person.png";
+      account.avatar = account.avatar || (environment.baseUrl + DEFAULT_AVATAR_IMAGE);
       this.data.mainProfile = getMainProfile(account.profiles);
 
       this.data.account = account;
@@ -415,14 +423,25 @@ export class AccountService extends BaseDataService {
     this.data.pubkey = base58.encode(keypair.publicKey);
     this.data.keypair = keypair;
 
-    // Try to auth on remote server
-    try {
-      this.data.authToken = await this.authenticateAndGetToken();
-    }
-    catch (error) {
-      console.error(error);
-      this.resetData();
-      throw error;
+    // Online mode: try to auth on remote server
+    if (this.network.online) {
+      const oldAuthToken = this.data.authToken;
+      try {
+        this.data.authToken = await this.authenticateAndGetToken();
+      }
+      catch (error) {
+        // Never auth, or NO offline feature enabled => exit
+        if (!oldAuthToken || this.settings.hasOfflineFeature()) {
+          console.error(error);
+          this.resetData();
+          throw error;
+        }
+        else {
+          this.data.authToken = oldAuthToken;
+          console.error('[account] Cannot auth to remote (keep existing token)');
+          // Continue
+        }
+      }
     }
 
     // Load account data
@@ -491,8 +510,8 @@ export class AccountService extends BaseDataService {
     try {
       const account = (await this.loadAccount(this.data.pubkey, opts)) || new Account();
 
-      // Fill default values
-      account.avatar = account.avatar || "../assets/img/person.png";
+      // Set defaults
+      account.avatar = account.avatar || (environment.baseUrl + DEFAULT_AVATAR_IMAGE);
       account.settings = account.settings || new UserSettings();
       account.settings.locale = account.settings.locale || this.settings.locale;
       account.settings.latLongFormat = account.settings.latLongFormat || this.settings.latLongFormat || 'DDMM';
@@ -518,7 +537,7 @@ export class AccountService extends BaseDataService {
         code: ErrorCodes.LOAD_ACCOUNT_ERROR,
         message: 'ERROR.LOAD_ACCOUNT_ERROR'
       };
-    };
+    }
   }
 
   public async restoreLocally(): Promise<Account | undefined> {
@@ -535,36 +554,46 @@ export class AccountService extends BaseDataService {
     const accountStr = values[2];
     const seckey = values[3];
 
-    // Quit if no pubkey
+    // Quit if no pubkey (not logged)
     if (!pubkey) return;
 
     // Quit if could not auth on remote server
-    const canRemoteAuth = !!token || !!seckey;
+    const canRemoteAuth = token || seckey || false;
     if (!canRemoteAuth) return;
 
-    if (this._debug) console.debug("[account] Restoring account {" + pubkey.substr(0, 6) + "}'...");
+    if (this._debug) console.debug(`[account] Restoring account {${pubkey.substr(0, 6)}}...`);
 
     this.data.pubkey = pubkey;
     this.data.keypair = seckey && {
       publicKey: base58.decode(pubkey),
       secretKey: base58.decode(seckey)
-    };
+    } || null;
 
-    try {
-      this.data.authToken = await this.authenticateAndGetToken(token);
-      if (!this.data.authToken) throw "Authentication failed";
-    }
-    catch (error) {
-      console.error(error);
-      // TODO: do not logout, but allow navigation on local data ?
-      this.logout();
-      return;
+    // Online mode: try to connect to server
+    if (this.network.online) {
+      console.info("[account] Network detected: Trying to auth to server");
+      try {
+        this.data.authToken = await this.authenticateAndGetToken(token);
+        if (!this.data.authToken) throw new Error("Authentication failed");
+      }
+      catch (error) {
+        // No offline features enable (=offline mode not allowed)
+        if (!this.settings.hasOfflineFeature()) {
+          console.error(error);
+          this.logout();
+          return;
+        }
+
+        // Continue in offline mode
+        console.error("[account] Unable to authenticate on server. Force offline mode");
+        this.network.setConnectionType('none');
+      }
     }
 
     // No account: stop here (= data not loaded)
     if (!accountStr) return;
 
-    const accountObj: any = JSON.parse(accountStr);
+    const accountObj: any = accountStr && ((typeof accountStr === 'object') && accountStr || JSON.parse(accountStr));
     if (!accountObj) return;
 
     const account = Account.fromObject(accountObj);
@@ -584,18 +613,28 @@ export class AccountService extends BaseDataService {
   * Save account into the local storage
   */
   async saveLocally(): Promise<void> {
-    if (!this.data.pubkey) throw "User not logged";
+    if (!this.data.pubkey) throw new Error("User not logged");
 
-    if (this._debug) console.debug("[account] Saving account {" + this.data.pubkey.substring(0, 6) + "} in local storage...");
+    if (this._debug) console.debug(`[account] Saving account {${this.data.pubkey.substring(0, 6)}} in local storage...`);
 
-    let copy = this.data.account.asObject({keepTypename: true});
-    const seckey = this.data.keypair && !!this.data.keypair.secretKey && base58.encode(this.data.keypair.secretKey) || null;
+    // Convert account to json
+    const account = this.data.account.asObject({keepTypename: true});
+    const seckey = this.data.keypair && this.data.keypair.secretKey && base58.encode(this.data.keypair.secretKey) || null;
+
+    // If avatar is a URL, download it locally
+    const hasAvatarUrl = account.avatar && !account.avatar.endsWith(DEFAULT_AVATAR_IMAGE) &&
+      (account.avatar.startsWith('http://') || (account.avatar.startsWith('https://')))
+    if (hasAvatarUrl) {
+      account.avatar = await this.fileService.downloadImage(account.avatar, {thumbnail: true});
+    }
 
     await Promise.all([
       this.storage.set(PUBKEY_STORAGE_KEY, this.data.pubkey),
       this.storage.set(TOKEN_STORAGE_KEY, this.data.authToken),
-      this.storage.set(ACCOUNT_STORAGE_KEY, JSON.stringify(copy)),
-      this.storage.set(SECKEY_STORAGE_KEY, seckey)
+      this.storage.set(ACCOUNT_STORAGE_KEY, account),
+      this.storage.set(ACCOUNT_STORAGE_KEY + '#' + this.data.pubkey, account),
+      // Secret key (optional)
+      seckey && this.storage.set(SECKEY_STORAGE_KEY, seckey) || this.storage.remove(SECKEY_STORAGE_KEY)
     ]);
 
     if (this._debug) console.debug("[account] Account saved in local storage");
@@ -608,20 +647,17 @@ export class AccountService extends BaseDataService {
    */
   public async saveRemotely(account: Account): Promise<Account> {
     if (!this.data.pubkey) return Promise.reject("User not logged");
-    if (this.data.pubkey != account.pubkey) return Promise.reject("Not user account");
+    if (this.data.pubkey !== account.pubkey) return Promise.reject("Not user account");
 
-    console.debug("[account] Saving account {" + account.pubkey.substring(0, 6) + "} remotely...");
-    let now = new Date
+    account = await this.saveAccount(account, this.data.keypair);
 
-    const updateAccount = await this.saveAccount(account, this.data.keypair);
-    console.debug("[account] Account remotely saved in " + (new Date().getTime() - now.getTime()) + "ms");
-
-    // Set default values
-    account.avatar = account.avatar || "../assets/img/person.png";
+    // Set defaults
+    account.avatar = account.avatar || (environment.baseUrl + DEFAULT_AVATAR_IMAGE);
     this.data.mainProfile = getMainProfile(account.profiles);
 
     this.data.account = account;
     this.data.loaded = true;
+
     // Save locally (in storage)
     await this.saveLocally();
 
@@ -633,27 +669,42 @@ export class AccountService extends BaseDataService {
 
   public async logout(): Promise<void> {
 
-    const tokenRemoved = !!this.data.authToken;
+    let hadAuthToken = this.data.authToken && true;
+    const pubkey = this.data && this.data.pubkey;
 
     this.resetData();
 
-    await Promise.all([
-      this.storage.remove(PUBKEY_STORAGE_KEY),
-      this.storage.remove(TOKEN_STORAGE_KEY),
-      this.storage.remove(ACCOUNT_STORAGE_KEY),
-      this.storage.remove(SECKEY_STORAGE_KEY)
-    ]);
+    if (!this.settings.hasOfflineFeature()) {
 
-    // Clean page history, in local settings
-    await this.settings.clearPageHistory();
+      // Remove all data from the local storage
+      await Promise.all([
+        this.storage.remove(PUBKEY_STORAGE_KEY),
+        this.storage.remove(TOKEN_STORAGE_KEY),
+        this.storage.remove(ACCOUNT_STORAGE_KEY),
+        pubkey && this.storage.remove(ACCOUNT_STORAGE_KEY + '#' + pubkey) || Promise.resolve(),
+        this.storage.remove(SECKEY_STORAGE_KEY)
+      ]);
+
+      // Clean page history, in local settings
+      await this.settings.clearPageHistory();
+    }
+
+    // Offline features enable: need to keep some data
+    else {
+      // Always remove only secret key
+      // But keep:
+      // - account by pubkey
+      // - auth token
+      await Promise.all([
+        this.storage.remove(PUBKEY_STORAGE_KEY),
+        this.storage.remove(ACCOUNT_STORAGE_KEY),
+        this.storage.remove(SECKEY_STORAGE_KEY)
+      ]);
+    }
 
     // Notify observers
     this.onLogout.next();
-    if (tokenRemoved) {
-      this.onAuthTokenChange.next(undefined);
-    }
-
-
+    if (hadAuthToken) this.onAuthTokenChange.next(undefined);
   }
 
   /**
@@ -662,26 +713,39 @@ export class AccountService extends BaseDataService {
    */
   public async loadAccount(pubkey: string, opts?: { fetchPolicy?: FetchPolicy }): Promise<Account | undefined> {
 
-    if (this._debug) console.debug("[account-service] Loading account {" + pubkey.substring(0, 6) + "}...");
-    var now = new Date();
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[account-service] Loading account {${pubkey.substring(0, 6)}...`);
+    let accountJson: any;
 
-    const res = await this.graphql.query<{ account: any }>({
-      query: LoadQuery,
-      variables: {
-        pubkey: pubkey
-      },
-      error: { code: ErrorCodes.LOAD_ACCOUNT_ERROR, message: "ERROR.LOAD_ACCOUNT_ERROR" },
-      fetchPolicy: opts && opts.fetchPolicy || environment.apolloFetchPolicy || undefined
-    });
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+      accountJson = await this.storage.get(ACCOUNT_STORAGE_KEY);
+      accountJson = accountJson && (typeof accountJson === 'string') && JSON.parse(accountJson) || accountJson;
+      accountJson = accountJson && (accountJson.pubkey === pubkey) && accountJson || null;
+      if (!accountJson) {
+        accountJson = await this.storage.get(ACCOUNT_STORAGE_KEY + '#' + pubkey);
+        accountJson = accountJson && (typeof accountJson === 'string') && JSON.parse(accountJson) || accountJson;
+      }
+    }
+    else {
+      const res = await this.graphql.query<{ account: any }>({
+        query: LoadQuery,
+        variables: {
+          pubkey: pubkey
+        },
+        error: { code: ErrorCodes.LOAD_ACCOUNT_ERROR, message: "ERROR.LOAD_ACCOUNT_ERROR" },
+        fetchPolicy: opts && opts.fetchPolicy || environment.apolloFetchPolicy || undefined
+      });
+      accountJson = res && res.account;
+    }
 
-    if (res && res.account) {
-      const account = new Account();
-      account.fromObject(res.account);
-      if (this._debug) console.debug("[account-service] Account {" + pubkey.substring(0, 6) + "} loaded in " + (new Date().getTime() - now.getTime()) + "ms", res);
+    if (accountJson) {
+      const account = Account.fromObject(accountJson);
+      if (this._debug) console.debug(`[account-service] Account {${pubkey.substring(0, 6)}} loaded in ${Date.now() - now}ms`, account);
       return account;
     }
     else {
-      console.warn("[account-service] Account {" + pubkey.substring(0, 6) + "} not found !");
+      console.warn(`[account-service] Account {${pubkey.substring(0, 6)} not found !`);
       return undefined;
     }
   }
@@ -693,6 +757,10 @@ export class AccountService extends BaseDataService {
    */
   public async saveAccount(account: Account, keyPair: KeyPair): Promise<Account> {
     account.pubkey = account.pubkey || base58.encode(keyPair.publicKey);
+
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[account] Saving account {${account.pubkey.substring(0, 6)}} remotely...`);
+
 
     const isNew = !account.id && account.id !== 0;
 
@@ -733,6 +801,8 @@ export class AccountService extends BaseDataService {
     account.updateDate = savedAccount && savedAccount.updateDate || account.updateDate;
     account.settings.id = savedAccount && savedAccount.settings && savedAccount.settings.id || account.settings.id;
     account.settings.updateDate = savedAccount && savedAccount.settings && savedAccount.settings.updateDate || account.settings.updateDate;
+
+    if (this._debug) console.debug(`[account] Account remotely saved in ${Date.now() - now}ms`);
 
     return account;
   }
@@ -946,7 +1016,7 @@ export class AccountService extends BaseDataService {
     // Check challenge
     if (!data || !data.authChallenge) throw challengeError; // Should never occur
 
-    // TODO: check server signature
+    // Check server signature
     const signatureOK = await this.cryptoService.verify(
       data.authChallenge.challenge,
       data.authChallenge.signature,

@@ -6,28 +6,44 @@
 
   <form class="form-container ion-padding" [formGroup]="form" (ngSubmit)="save($event, form.value)">
 
-    <mat-form-field>
-      <input matInput [placeholder]="'CONFIGURATION.APP_NAME' | translate" formControlName="label" readonly/>
-    </mat-form-field>
+    <ion-grid>
+      <ion-row>
 
-    <mat-form-field>
-      <input matInput [placeholder]="'CONFIGURATION.DESCRIPTION' | translate" formControlName="name"/>
-    </mat-form-field>
+        <!-- Label -->
+        <ion-col>
+          <mat-form-field>
+            <input matInput [placeholder]="'CONFIGURATION.APP_NAME' | translate" formControlName="label" readonly/>
+          </mat-form-field>
+        </ion-col>
 
-    <!-- Status-->
-    <mat-form-field>
-      <mat-select formControlName="statusId" [placeholder]="'CONFIGURATION.STATUS'|translate">
-        <mat-select-trigger>
+        <!-- Status-->
+        <ion-col>
+          <mat-form-field>
+            <mat-select formControlName="statusId" [placeholder]="'CONFIGURATION.STATUS'|translate">
+              <mat-select-trigger>
           <span *ngIf="form.controls.statusId.value &gt;= 0">
             {{ statusById[form.controls.statusId.value]?.label | translate}}</span>
-        </mat-select-trigger>
-        <mat-option *ngFor="let item of statusList" [value]="item.id">
-          <ion-icon [name]="item.icon"></ion-icon>
-          {{ item.label |translate }}
-        </mat-option>
-      </mat-select>
-      <mat-error *ngIf="form.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-    </mat-form-field>
+              </mat-select-trigger>
+              <mat-option *ngFor="let item of statusList" [value]="item.id">
+                <ion-icon [name]="item.icon"></ion-icon>
+                {{ item.label |translate }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        </ion-col>
+
+      </ion-row>
+
+      <ion-row>
+        <ion-col>
+          <mat-form-field>
+            <input matInput [placeholder]="'CONFIGURATION.DESCRIPTION' | translate" formControlName="name"/>
+          </mat-form-field>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
 
     <!-- properties divider-->
     <h3>

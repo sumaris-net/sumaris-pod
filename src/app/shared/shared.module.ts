@@ -60,6 +60,10 @@ import {NumpadComponent} from "./numpad/numpad";
 import {AudioProvider} from "./audio/audio";
 import {CloseScrollStrategy, Overlay} from '@angular/cdk/overlay';
 import {Hotkeys, HotkeysModule} from "./hotkeys/hotkeys.module";
+import {FileTransfer} from "@ionic-native/file-transfer/ngx";
+import {FileChooser} from "@ionic-native/file-chooser/ngx";
+import {FileService} from "./file/file.service";
+import {File} from "@ionic-native/file/ngx";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -140,6 +144,10 @@ export {
     NumberFormatPipe,
     ProgressBarService,
     AudioProvider,
+    FileTransfer,
+    File,
+    FileChooser,
+    FileService,
     {provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService]},
     {
       provide: MatPaginatorIntl,

@@ -262,7 +262,7 @@ export class EntityStorage {
     // Make sure store is ready
     if (!this._started) await this.ready();
 
-    if (!environment.production) console.debug(`[entity-store] Loading ${name || ''}...`);
+    if (this._debug) console.debug(`[entity-store] Loading ${entityName}...`);
 
     const entityStore = this.getEntityStore<T>(entityName, {create: false});
     if (!entityStore) return {data: [], total: 0}; // No store for this entity name
@@ -286,12 +286,13 @@ export class EntityStorage {
   async nextValues(entityOrName: string | any, entityCount: number): Promise<number> {
     await this.ready();
     this._dirty = true;
-    const store = this.getEntityStore(this.detectEntityName(entityOrName));
+    const entityName = this.detectEntityName(entityOrName);
+    const store = this.getEntityStore(entityName);
     const firstValue = store.nextValue();
     for (let i = 0; i < entityCount - 1; i++) {
       store.nextValue();
     }
-    if (!environment.production) console.debug(`[local-entities] Reserving range [${firstValue},${store.currentValue()}] for ${name || ''}'s sequence`);
+    if (this._debug) console.debug(`[local-entities] Reserving range [${firstValue},${store.currentValue()}] for ${entityName}'s sequence`);
     return firstValue;
   }
 
@@ -515,13 +516,19 @@ export class EntityStorage {
     const entityNames = await this.storage.get(ENTITIES_STORAGE_KEY);
     if (!entityNames) return;
 
-    if (this._debug) console.debug("[local-entities] Restoring entities from LocalStorage...");
+    const now = this._debug && Date.now();
+    if (this._debug) console.info("[local-entities] Restoring entities from local storage...");
+    let entitiesCount = 0;
     await Promise.all(
       entityNames.map((entityName) => {
-        if (this._debug) console.debug("[local-entities] - Restoring " + entityName);
         return this.storage.get(ENTITIES_STORAGE_KEY + '#' + entityName)
           .then(entities => {
-            if (entities instanceof Array) {
+            // If there is something to restore
+            if (entities instanceof Array && entities.length) {
+              entitiesCount += entities.length;
+              //if (this._debug) console.debug(`[local-entities] - Restoring ${entities.length} ${entityName}...`);
+
+              // Create a entity store, with all given entities
               this._stores[entityName] = EntityStore.fromEntities<any>(entities, {
                 name: entityName
               });
@@ -529,6 +536,7 @@ export class EntityStorage {
           });
       })
     );
+    if (this._debug) console.debug(`[local-entities] ${entitiesCount} entities restored in ${Date.now() - now}ms`);
   }
 
   protected storeLocally(): Promise<any> {

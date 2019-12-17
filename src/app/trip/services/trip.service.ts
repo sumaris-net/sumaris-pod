@@ -38,6 +38,7 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {PersonService} from "../../admin/services/person.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {concatPromises} from "../../shared/observables";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -158,6 +159,8 @@ export const TripFragments = {
   ${physicalGearFragment}
   `
 };
+
+export const TRIP_FEATURE = 'trip';
 
 export class TripFilter {
 
@@ -319,7 +322,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
     protected personService: PersonService,
     protected programService: ProgramService,
     protected entities: EntityStorage,
-    protected operationService: OperationService
+    protected operationService: OperationService,
+    protected settings: LocalSettingsService
   ) {
     super(injector);
 
@@ -969,13 +973,19 @@ export class TripService extends RootDataService<Trip, TripFilter>
             })
           );
       }),
+
       // Finish (force to reach max value)
       of(maxProgression)
-        .pipe(tap(() => {
-          this.$importationProgress = null;
-          console.info(`[trip-service] Importation finished in ${Date.now() - now}ms`);
-       }))
-    ).pipe(
+        .pipe(
+          tap(() => {
+            this.$importationProgress = null;
+            console.info(`[trip-service] Importation finished in ${Date.now() - now}ms`);
+
+            this.settings.registerOfflineFeature(TRIP_FEATURE);
+          })
+        ))
+
+      .pipe(
         catchError((err) => {
           this.$importationProgress = null;
           console.error(`[trip-service] Error during importation (job #${jobIndex + 1}): ${err && err.message || err}`, err);
@@ -985,6 +995,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
         // (and make ti always <= maxProgression)
         map((progression) =>  Math.min(progression, maxProgression))
       );
+
     return this.$importationProgress;
   }
 

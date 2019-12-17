@@ -2,7 +2,7 @@ import "./vendor";
 
 import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
-import {LOCALE_ID, NgModule} from "@angular/core";
+import {NgModule} from "@angular/core";
 import {IonicModule} from "@ionic/angular";
 import {DateAdapter, MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material";
 import {DATE_ISO_PATTERN} from "./core/constants";
@@ -69,6 +69,7 @@ import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
     Vibration,
     InAppBrowser,
     AudioManagement,
+    ConfigService,
     {provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/')},
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
     {provide: MAT_DATE_LOCALE, useValue: 'en'},
@@ -94,8 +95,9 @@ import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
         pageHistoryMaxSize: 3
       } as LocalSettings
     },
-    { provide: APP_CONFIG_OPTIONS, useValue: {...ConfigOptions, ...TripConfigOptions}},
-    ConfigService
+
+    // Config options (Core + trip)
+    { provide: APP_CONFIG_OPTIONS, useValue: {...ConfigOptions, ...TripConfigOptions}}
   ]
 })
 export class AppModule {

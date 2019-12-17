@@ -151,20 +151,20 @@
         <ion-card class="ion-align-self-start ion-text-start" @fadeInAnimation>
           <ion-card-header class="ion-no-padding">
             <!-- top bar -->
-            <ion-card-subtitle class="ion-padding-right">
+            <ion-card-subtitle>
               <button type="button" tabindex="-1"
                       (click)="settings.removeHistory(page.path)"
                       mat-icon-button class="ion-float-start ion-no-margin">
                 <mat-icon>close</mat-icon>
               </button>
               <ion-label [innerHTML]="page.subtitle"></ion-label>
-              <ion-label class="ion-float-end ion-margin-end" [title]="page.time|dateFormat:{time: true}">
-                <small><ion-icon name="time"></ion-icon>&nbsp;{{ page.time|dateFromNow }}</small>
-              </ion-label>
+              <ion-text class="ion-float-end" [title]="page.time|dateFormat:{time: true}">
+                <small><ion-icon name="time"></ion-icon>&nbsp;{{ page.time|dateFromNow }}</small>&nbsp;
+              </ion-text>
             </ion-card-subtitle>
 
             <!-- main page -->
-            <ion-card-title class="ion-no-margin">
+            <ion-card-title class="ion-no-margin ion-no-padding">
               <ion-item  detail="true"
                          tappable class="text-1x"
                          [routerLink]="page.path"

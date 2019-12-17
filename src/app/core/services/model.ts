@@ -857,7 +857,8 @@ export class UserSettings extends Entity<UserSettings> implements Cloneable<User
 export class Account extends Person {
 
   static fromObject(source: any): Account {
-    if (!source || source instanceof Account) return source;
+    if (!source) return null;
+    if (source instanceof Account) return source;
     const result = new Account();
     result.fromObject(source);
     return result;
@@ -1015,6 +1016,7 @@ export declare interface LocalSettings {
   touchUi?: boolean;
   properties?: PropertiesMap;
   pageHistory?: HistoryPageReference[];
+  offlineFeatures?: string[];
   pageHistoryMaxSize: number;
 }
 

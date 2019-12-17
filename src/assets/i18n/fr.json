@@ -12,6 +12,7 @@
     "BTN_DONE": "Terminer",
     "BTN_DOWNLOAD": "Télécharger",
     "BTN_DELETE": "Supprimer",
+    "BTN_YES_DELETE": "Oui, supprimer",
     "BTN_VALIDATE": "Valider",
     "BTN_NOT_SAVE": "Ne PAS sauvegarder",
     "BTN_SAVE": "Sauvegarder",
@@ -1076,6 +1077,7 @@
     "SAVE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
     "SAVE_BEFORE_CLOSE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de fermer ?",
     "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
+    "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
     "DELETE_IMMEDIATE": "Cette opération est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE_ROW": "<b>Êtes-vous sûr</b> de vouloir supprimer cette ligne ?",
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?"

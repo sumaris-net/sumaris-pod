@@ -10,7 +10,10 @@ import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "./graphql.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {filterNotNil} from "../../shared/observables";
-import {isNotNil} from "../../shared/functions";
+import {isNotEmptyArray, isNotNil} from "../../shared/functions";
+import {FileService} from "../../shared/file/file.service";
+import {NetworkService} from "./network.service";
+import {PlatformService} from "./platform.service";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -93,6 +96,9 @@ export class ConfigService extends BaseDataService {
   constructor(
     protected graphql: GraphqlService,
     protected storage: Storage,
+    protected network: NetworkService,
+    protected platform: PlatformService,
+    protected file: FileService,
     @Optional() @Inject(APP_CONFIG_OPTIONS) private defaultOptionsMap: FormFieldDefinitionMap
   ) {
     super(graphql);
@@ -232,26 +238,30 @@ export class ConfigService extends BaseDataService {
     let data;
     try {
       data = await this.loadDefault({ fetchPolicy: "network-only" });
-
-      if (data) {
-        // Save it into local storage, for next startup
-        setTimeout(() => this.saveLocally(data), 500);
-      }
     } catch (err) {
+      // Log, then continue
       console.error(err && err.message || err, err);
     }
 
+    // Save it into local storage, for next startup
+    if (data) {
+      //setTimeout(() => this.saveLocally(data), 500);
+      // TODO: remove this
+      await this.saveLocally(data);
+    }
+
     // If not loaded remotely: try to restore it
-    if (!data) {
+    else {
       data = await this.restoreLocally();
     }
 
     // Make sure label has been filled
     data.label = data.label || environment.name;
 
-    // Reset name if same
+    // Reset name (if same as label)
     data.name = (data.name !== data.label) ? data.name : undefined;
 
+    // Override enumerations
     this.overrideEnums(data);
 
     this.$data.next(data);
@@ -290,6 +300,37 @@ export class ConfigService extends BaseDataService {
     }
     // Config exists: store it in the local storage
     else {
+
+      // Convert images, for offline usage
+      if (this.network.online) {
+        const now = this._debug && Date.now();
+        if (this._debug) console.debug('[config] Downloading images (for offline mode)...');
+
+        // Logos
+        data.largeLogo = data.largeLogo && await this.file.downloadImage(data.largeLogo);
+        data.smallLogo = data.smallLogo && await this.file.downloadImage(data.smallLogo, {thumbnail: true});
+
+        // Background images
+        if (isNotEmptyArray(data.backgroundImages)) {
+          data.backgroundImages = await this.file.downloadImages(data.backgroundImages, {
+            maxWidth: this.platform.width(),
+            maxHeight: this.platform.height()
+          });
+        }
+
+        // Partners
+        if (isNotEmptyArray(data.partners)) {
+          await Promise.all(data.partners.map(p => {
+            if (p.logo) {
+              return this.file.downloadImage(p.logo, {thumbnail: true})
+                .then(dataUrl => p.logo = dataUrl);
+            }
+          }));
+        }
+
+        if (this._debug) console.debug(`[config] Images downloaded in ${Date.now() - now}ms`);
+      }
+
       const jsonStr = JSON.stringify(data);
       await this.storage.set(CONFIGURATION_STORAGE_KEY, jsonStr);
     }

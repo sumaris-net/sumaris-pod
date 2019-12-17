@@ -41,15 +41,6 @@ ion-content {
 
   ion-card {
     z-index: 9;
-  }
-
-  ion-card.welcome {
-    min-width: 240px;
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: $card-background;
-
     ion-card-header {
       display: block;
 
@@ -59,6 +50,14 @@ ion-content {
         width: 100%;
       }
     }
+  }
+
+  ion-card.welcome {
+    min-width: 240px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: $card-background;
 
     button {
       margin-top: 16px;
@@ -71,10 +70,8 @@ ion-content {
   }
 
   .history-container {
-    //display: inline-flex;
     margin-left: auto;
     margin-right: auto;
-    //width: 100%;
 
     ion-card {
       display: inline-block;
@@ -85,46 +82,50 @@ ion-content {
       width: 100%;
       margin-left: auto;
       margin-right: auto;
+      background-color: $card-background;
 
-      ion-card-subtitle {
-        height: 40px;
+      ion-card-header {
 
-        button[float-start] {
-          z-index: 99;
-          margin: 0;
-        }
-        ion-label{
-          line-height: 40px;
-        }
-        ion-label[float-end] {
-          padding-right: 16px;
-          font-weight: normal;
-        }
-      }
+        ion-card-subtitle {
+          height: 40px;
 
-      ion-card-title {
-        ion-item {
-          --ion-item-background: $transparent;
-          --ion-item-icon-color: var(--ion-color-primary);
-          --ion-item-text-color: var(--ion-color-primary);
-
-          ion-icon[slot="start"],
-          mat-icon[slot="start"] {
-            margin-right: unset;
-            margin-inline-end: 16px !important;
-            color: var(--ion-item-icon-color) !important;
-            fill: currentColor;
-            stroke: currentColor;
+          button[float-start] {
+            z-index: 99;
+            margin: 0;
           }
+          ion-label{
+            line-height: 40px;
+          }
+          ion-label[float-end] {
+            padding-right: 16px;
+            font-weight: normal;
+          }
+        }
 
-          ion-text,
-          ion-label {
-            color: var(--ion-item-text-color) !important;
-            // Maximize the font size
-            -webkit-text-size-adjust: 100%;
-            -moz-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
-            text-size-adjust: 100%;
+        ion-card-title {
+          ion-item {
+            --ion-item-background: $transparent;
+            --ion-item-icon-color: var(--ion-color-primary);
+            --ion-item-text-color: var(--ion-color-primary);
+
+            ion-icon[slot="start"],
+            mat-icon[slot="start"] {
+              margin-right: unset;
+              margin-inline-end: 16px !important;
+              color: var(--ion-item-icon-color) !important;
+              fill: currentColor;
+              stroke: currentColor;
+            }
+
+            ion-text,
+            ion-label {
+              color: var(--ion-item-text-color) !important;
+              // Maximize the font size
+              -webkit-text-size-adjust: 100%;
+              -moz-text-size-adjust: 100%;
+              -ms-text-size-adjust: 100%;
+              text-size-adjust: 100%;
+            }
           }
         }
       }

@@ -202,6 +202,28 @@ export class LocalSettingsService {
     this.persistLocally();
   }
 
+  registerOfflineFeature(featureName: string) {
+    this.data = this.data || this.defaultSettings;
+    this.data.offlineFeatures = this.data.offlineFeatures || [];
+
+    const existingIndex = this.data.offlineFeatures.findIndex(f => f.toLowerCase() === featureName.toLowerCase());
+    if (existingIndex !== -1) {
+      this.data.offlineFeatures[existingIndex] = featureName;
+    }
+    this.data.offlineFeatures.push(featureName);
+
+    // Update local settings
+    this.persistLocally();
+  }
+
+  hasOfflineFeature(featureName?: string): boolean {
+    return this.data && this.data.offlineFeatures
+      && (
+        (featureName && this.data.offlineFeatures.findIndex(f => f.toLowerCase() === featureName.toLowerCase()) !== -1)
+        || (this.data.offlineFeatures.length > 0)
+      );
+  }
+
   getFieldDisplayAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
     const value = this.data && this.data.properties &&  this.data.properties[`sumaris.field.${fieldName}.attributes`];
     // Nothing found in settings: return defaults

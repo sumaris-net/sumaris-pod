@@ -24,6 +24,7 @@ export const VesselSnapshotFragments = {
     basePortLocation {
       ...LocationFragment
     }
+    vesselStatusId
   }`
 };
 
@@ -119,8 +120,8 @@ export class VesselSnapshotService
           filter: VesselFilter.searchFilter(filter)
         }
       ).then(res => {
-        return {
-          vesselSnapshots: data,
+        return res && {
+          vesselSnapshots: res.data,
           vesselsCount: res.total
         };
       });
