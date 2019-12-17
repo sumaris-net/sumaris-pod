@@ -48,20 +48,26 @@ export class LocalSettingsValidatorService implements ValidatorService {
   /* -- protected methods -- */
 
   protected async peerAlive(peerUrlControl: AbstractControl): Promise<ValidationErrors | null>  {
-    const alive = await this.networkService.checkPeerAlive(peerUrlControl.value);
 
-    if (!alive) {
-      // Update end field
-      const errors: ValidationErrors = peerUrlControl.errors || {};
-      errors['peerAlive'] = true;
-      peerUrlControl.setErrors(errors);
-      peerUrlControl.markAsTouched({onlySelf: true});
-      // Return the error (should be apply to the parent form)
-      return { peerAlive: true};
-    }
-    // OK: remove the existing on control
-    else {
+    // Offline mode: no error
+    if (this.networkService.offline) {
       SharedValidators.clearError(peerUrlControl, 'peerAlive');
+    }
+    else {
+      const alive = await this.networkService.checkPeerAlive(peerUrlControl.value);
+      // KO: add a validation error
+      if (!alive) {
+        const errors: ValidationErrors = peerUrlControl.errors || {};
+        errors['peerAlive'] = true;
+        peerUrlControl.setErrors(errors);
+        peerUrlControl.markAsTouched({onlySelf: true});
+        // Return the error (should be apply to the parent form)
+        return { peerAlive: true};
+      }
+      // OK: remove the existing on control
+      else {
+        SharedValidators.clearError(peerUrlControl, 'peerAlive');
+      }
     }
   }
 

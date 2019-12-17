@@ -20,7 +20,7 @@ import {Entity, HistoryPageReference, UsageMode} from "../services/model";
 import {FormGroup} from "@angular/forms";
 import {AppTabPage} from "./tab-page.class";
 import {AppFormUtils} from "./form.utils";
-import {AppPageUtils} from "./page.utils";
+import {Alerts} from "../../shared/alerts";
 
 export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
 
@@ -49,12 +49,12 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     super(injector.get(ActivatedRoute),
       injector.get(Router),
       injector.get(AlertController),
-      injector.get(ToastController),
       injector.get(TranslateService));
 
     this.settings = injector.get(LocalSettingsService);
     this.cd = injector.get(ChangeDetectorRef);
     this.dateFormat = injector.get(DateFormatPipe);
+    this.toastController = injector.get(ToastController);
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -260,7 +260,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     if (this.loading || this.saving) return false;
 
     // Ask user confirmation
-    const confirmation = await AppPageUtils.askDeleteConfirmation(this.alertCtrl, this.translate);
+    const confirmation = await Alerts.askDeleteConfirmation(this.alertCtrl, this.translate);
     if (!confirmation) return;
 
     console.debug("[root-data-editor] Asking to delete...");

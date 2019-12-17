@@ -3,18 +3,19 @@ import {CryptoService} from "./crypto.service";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 import {environment} from "../../../environments/environment";
-import {Peer} from "./model";
-import {ModalController} from "@ionic/angular";
+import {LocalSettings, Peer} from "./model";
+import {ModalController, ToastController} from "@ionic/angular";
 import {SelectPeerModal} from "../peer/select-peer.modal";
 import {BehaviorSubject, Subject, Subscription} from "rxjs";
 import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.service";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient} from "@angular/common/http";
-import {toBoolean} from "../../shared/shared.module";
+import {isNotNil, isNotNilOrBlank, toBoolean} from "../../shared/shared.module";
 import {Connection, Network} from '@ionic-native/network/ngx';
 import {DOCUMENT} from "@angular/common";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {CacheService} from "ionic-cache";
+import {Toasts} from "../../shared/toasts";
+import {distinctUntilChanged, filter, map} from "rxjs/operators";
 
 export interface NodeInfo {
   softwareName: string;
@@ -54,18 +55,31 @@ export class NetworkService {
   private _subscription = new Subscription();
   private _debug = false;
   private _peer: Peer;
-  private _connectionType: ConnectionType;
+  private _deviceConnectionType: ConnectionType;
+  private _forceOffline: boolean;
 
   onStart = new Subject<Peer>();
+  onPeerChanges = this.onStart.pipe(
+    map(peer => peer && peer.url),
+    filter(isNotNilOrBlank),
+    distinctUntilChanged<string>()
+  );
   onNetworkStatusChanges = new BehaviorSubject<ConnectionType>(null);
   onResetNetworkCache = new EventEmitter(true);
 
   get online(): boolean {
-    return this._started && this._connectionType !== 'none';
+    return this.connectionType !== 'none';
   }
 
   get offline(): boolean {
-    return this._started && this._connectionType === 'none';
+    return this.connectionType === 'none';
+  }
+
+  get connectionType(): ConnectionType{
+    // If force offline: return 'none'
+    return this._forceOffline && 'none'
+      // Else, return device connection type (or unknown)
+      || (this._started && this._deviceConnectionType || 'unknown');
   }
 
   get peer(): Peer {
@@ -73,12 +87,7 @@ export class NetworkService {
   }
 
   set peer(peer: Peer) {
-    if (this._started) {
-      this.stop()
-        .then(() => this.start(peer));
-    } else {
-      this.start(peer);
-    }
+    this.restart(peer);
   }
 
   get started(): boolean {
@@ -89,6 +98,7 @@ export class NetworkService {
     @Inject(DOCUMENT) private _document: HTMLDocument,
     private translate: TranslateService,
     private modalCtrl: ModalController,
+    private toastController: ToastController,
     private cryptoService: CryptoService,
     private storage: Storage,
     private http: HttpClient,
@@ -106,7 +116,7 @@ export class NetworkService {
     this._debug = !environment.production;
   }
 
-  public async start(peer?: Peer): Promise<any> {
+  async start(peer?: Peer): Promise<any> {
     if (this._startPromise) return this._startPromise;
     if (this._started) return;
 
@@ -139,11 +149,11 @@ export class NetworkService {
       // Wait settings starts, then save peer in settings
       .then(() => this.settings.ready())
       .then(() => this.settings.apply({peerUrl: this._peer.url}))
-      .then(() => this.setConnectionType(this.network.type));
+      .then(() => this.onDeviceConnectionChanged(this.network.type));
 
     // Listen for network changes
-    this._subscription.add(this.network.onDisconnect().subscribe(() => this.setConnectionType('none')));
-    this._subscription.add(this.network.onConnect().subscribe(() => this.setConnectionType(this.network.type)));
+    this._subscription.add(this.network.onDisconnect().subscribe(() => this.onDeviceConnectionChanged('none')));
+    this._subscription.add(this.network.onConnect().subscribe(() => this.onDeviceConnectionChanged(this.network.type)));
 
 
     return this._startPromise;
@@ -161,6 +171,35 @@ export class NetworkService {
 
     this._subscription.unsubscribe();
     this._subscription = new Subscription();
+  }
+
+  async restart(peer?: Peer) {
+    if (this._started) {
+      this.stop()
+        .then(() => this.start(peer));
+    } else {
+      this.start(peer);
+    }
+  }
+
+  async tryOnline(): Promise<boolean> {
+    // If offline mode not forced, and device says there is no connection: skip
+    if (!this._forceOffline || this._deviceConnectionType === 'none') return false;
+
+    console.info("[network] Checking connection to pod...");
+    const settings: LocalSettings = await this.settings.ready();
+
+    if (!settings.peerUrl) return ; // No peer define. Skip
+
+    const peer = Peer.parseUrl(settings.peerUrl);
+    const alive = await this.checkPeerAlive(peer);
+    if (alive)  {
+      // Disable the offline mode
+      this.setForceOffline(false);
+
+      // Restart
+      await this.restart(peer);
+    }
   }
 
   /**
@@ -212,13 +251,29 @@ export class NetworkService {
     return this.get(peerUrl + '/api/node/info');
   }
 
-  setConnectionType(connectionType?: string) {
-    connectionType = (connectionType || 'unknown').toLowerCase();
-    if (connectionType.startsWith('cell')) connectionType = 'cell';
-    if (connectionType !== this._connectionType) {
-      this._connectionType = connectionType as ConnectionType;
-      console.info(`[network] Connection {${this._connectionType}}`);
-      this.onNetworkStatusChanges.next(this._connectionType);
+  /**
+   * Allow to force offline mode
+   */
+  setForceOffline(value?: boolean, opts?: {
+    displayToast?: boolean; // Display a toast ?
+  }) {
+    value = toBoolean(value, true);
+    if (this._forceOffline !== value) {
+      const previousConnectionType = this.connectionType;
+      this._forceOffline = value;
+      const currentConnectionType = this.connectionType;
+
+      if (previousConnectionType !== currentConnectionType) {
+        console.info(`[network] Connection changed to {${currentConnectionType}}`);
+        this.onNetworkStatusChanges.next(currentConnectionType);
+
+        // Offline mode: alert the user
+        if (currentConnectionType === 'none' && (!opts || opts.displayToast !== false)) {
+          Toasts.show(this.toastController, this.translate, {
+            message: 'NETWORK.INFO.OFFLINE_HELP'
+          });
+        }
+      }
     }
   }
 
@@ -270,6 +325,27 @@ export class NetworkService {
   }
 
   /* -- Protected methods -- */
+
+  protected onDeviceConnectionChanged(connectionType?: string) {
+    connectionType = (connectionType || 'unknown').toLowerCase();
+    if (connectionType.startsWith('cell')) connectionType = 'cell';
+    if (connectionType !== this._deviceConnectionType) {
+      this._deviceConnectionType = connectionType as ConnectionType;
+
+      // If already forced as offline, emit event
+      if (!this._forceOffline) {
+        console.info(`[network] Connection changed to {${this._deviceConnectionType}}`);
+        this.onNetworkStatusChanges.next(this._deviceConnectionType);
+
+        if (this._deviceConnectionType === 'none') {
+          // Alert the user
+          Toasts.show(this.toastController, this.translate, {
+            message: 'NETWORK.INFO.OFFLINE_MODE'
+          });
+        }
+      }
+    }
+  }
 
   protected resetData() {
     this._peer = null;

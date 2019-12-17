@@ -15,6 +15,8 @@ import {isNil, isNilOrBlank, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 import {merge} from "rxjs";
+import {AlertController} from "@ionic/angular";
+import {Alerts} from "../../shared/alerts";
 
 @Component({
   selector: 'page-settings',
@@ -57,6 +59,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     protected dateAdapter: DateAdapter<Moment>,
     protected platform: PlatformService,
     protected validatorService: LocalSettingsValidatorService,
+    protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected formBuilder: FormBuilder,
     protected accountService: AccountService,
@@ -279,7 +282,11 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   }
 
   async clearCache(event?: UIEvent) {
-    await this.network.clearCache();
+    const confirm = await Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
+    if (confirm) {
+      await this.network.clearCache();
+      this.settings.removeOfflineFeatures();
+    }
   }
 
   referentialToString = referentialToString;

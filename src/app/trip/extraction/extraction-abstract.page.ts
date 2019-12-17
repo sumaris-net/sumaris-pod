@@ -58,7 +58,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     protected settings: LocalSettingsService,
     protected formBuilder: FormBuilder
   ) {
-    super(route, router, alertCtrl, toastController, translate);
+    super(route, router, alertCtrl, translate);
     // Create the main form
     this.form = formBuilder.group({
       sheetName: [null, Validators.required]

@@ -3,7 +3,7 @@ import {HistoryPageReference, LocalSettings, Peer, UsageMode} from "./model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
-import {isNotNil, toBoolean} from "../../shared/functions";
+import {isNotNil, toBoolean, toDateISOString} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {Subject} from "rxjs";
 import {getPropertyByPath, isNotNilOrBlank} from "../../shared/functions";
@@ -206,14 +206,27 @@ export class LocalSettingsService {
     this.data = this.data || this.defaultSettings;
     this.data.offlineFeatures = this.data.offlineFeatures || [];
 
-    const existingIndex = this.data.offlineFeatures.findIndex(f => f.toLowerCase() === featureName.toLowerCase());
+    const featurePrefix = featureName.toLowerCase() + '#';
+    const featureAndLastSyncDate = featurePrefix + toDateISOString(new Date());
+    const existingIndex = this.data.offlineFeatures.findIndex(f => f.toLowerCase().startsWith(featurePrefix));
     if (existingIndex !== -1) {
-      this.data.offlineFeatures[existingIndex] = featureName;
+      this.data.offlineFeatures[existingIndex] = featureAndLastSyncDate;
     }
-    this.data.offlineFeatures.push(featureName);
+    else {
+      this.data.offlineFeatures.push(featureAndLastSyncDate);
+    }
 
     // Update local settings
     this.persistLocally();
+  }
+
+  removeOfflineFeatures() {
+    if (this.data && this.data.offlineFeatures) {
+      this.data.offlineFeatures = [];
+
+      // Update local settings
+      this.persistLocally();
+    }
   }
 
   hasOfflineFeature(featureName?: string): boolean {

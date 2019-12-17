@@ -1,10 +1,12 @@
 import {Injectable} from "@angular/core";
 import {base58, CryptoService, KeyPair} from "./crypto.service";
 import {
-  Account, Department,
+  Account,
+  Department,
   EntityUtils,
   getMainProfile,
-  hasUpperOrEqualsProfile, Person,
+  hasUpperOrEqualsProfile,
+  Person,
   Referential,
   StatusIds,
   UsageMode,
@@ -16,7 +18,7 @@ import gql from "graphql-tag";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "apollo-client";
 
-import {LoadResult, toDateISOString} from "../../shared/shared.module";
+import {toDateISOString} from "../../shared/shared.module";
 import {BaseDataService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
@@ -42,6 +44,7 @@ export declare interface AccountHolder {
 export interface AuthData {
   username: string;
   password: string;
+  offline?: boolean;
 }
 export interface RegisterData extends AuthData {
   account: Account;
@@ -213,13 +216,13 @@ export class AccountService extends BaseDataService {
   }
 
   constructor(
+    private cryptoService: CryptoService,
     protected platform: PlatformService,
     protected network: NetworkService,
     protected graphql: GraphqlService,
-    private settings: LocalSettingsService,
-    private cryptoService: CryptoService,
-    private storage: Storage,
-    private fileService: FileService
+    protected settings: LocalSettingsService,
+    protected storage: Storage,
+    protected fileService: FileService
   ) {
     super(graphql);
 
@@ -230,10 +233,25 @@ export class AccountService extends BaseDataService {
     // Send auth token to the graphql layer, when changed
     this.onAuthTokenChange.subscribe((token) => this.graphql.setAuthToken(token));
 
+    // Listen network restart
     this.graphql.onStart.subscribe(async () => {
-      if (this.isLogin()) {
-        console.debug("[account] Graphql restarted. Force logout, to auth again");
-        await this.logout();
+      if (this.isLogin() && this._started) {
+        this.restoreLocally();
+        // if (this.data.authToken) {
+        //   try {
+        //     console.debug("[account] Graphql restarted. Trying to re-auth on pod...");
+        //     const newToken = await this.authenticateAndGetToken(this.data.authToken);
+        //     this.data.authToken = newToken;
+        //
+        //     await this.saveLocally();
+        //
+        //     this.onLogin.next(this.data.account);
+        //   }
+        //   catch (err) {
+        //     console.error("[account] Authentication failed. Force logout: " + (err && err.message || err), err);
+        //     await this.logout();
+        //   }
+        // }
       }
     });
 
@@ -387,7 +405,7 @@ export class AccountService extends BaseDataService {
       this.data.account = account;
       this.data.pubkey = account.pubkey;
 
-      // Try to auth on remote server
+      // Try to auth on pod
       this.data.authToken = await this.authenticateAndGetToken();
 
       this.data.loaded = true;
@@ -406,7 +424,7 @@ export class AccountService extends BaseDataService {
   }
 
   async login(data: AuthData): Promise<Account> {
-    if (!data.username || !data.password) throw "Missing required username or password";
+    if (!data || !data.username || !data.password) throw new Error("Missing required username or password");
 
     console.debug("[account] Trying to login...");
 
@@ -423,30 +441,37 @@ export class AccountService extends BaseDataService {
     this.data.pubkey = base58.encode(keypair.publicKey);
     this.data.keypair = keypair;
 
-    // Online mode: try to auth on remote server
-    if (this.network.online) {
-      const oldAuthToken = this.data.authToken;
+    // Try to load previous token
+    let previousToken: string = await this.storage.get(TOKEN_STORAGE_KEY);
+    previousToken = previousToken && previousToken.startsWith(this.data.pubkey) && previousToken || null;
+
+    // Offline mode
+    const offline = this.settings.hasOfflineFeature() && (this.network.offline || data.offline === true);
+    if (offline)  {
+      this.data.authToken = previousToken;
+
+      // Make sure network if set as offline
+      this.network.setForceOffline(true, {displayToast: false});
+      console.info(`[account] Successfully login {${this.data.pubkey.substr(0, 6)}} (offline mode)`);
+    }
+
+    // Online mode: try to auth on pod
+    else {
       try {
         this.data.authToken = await this.authenticateAndGetToken();
+        console.info(`[account] Successfully authenticated {${this.data.pubkey.substr(0, 6)}}`);
       }
       catch (error) {
-        // Never auth, or NO offline feature enabled => exit
-        if (!oldAuthToken || this.settings.hasOfflineFeature()) {
-          console.error(error);
-          this.resetData();
-          throw error;
-        }
-        else {
-          this.data.authToken = oldAuthToken;
-          console.error('[account] Cannot auth to remote (keep existing token)');
-          // Continue
-        }
+        // Never authenticate, or not ready for offline mode => exit
+        console.error(error);
+        this.resetData();
+        throw error;
       }
     }
 
     // Load account data
     try {
-      await this.loadData();
+      await this.loadData({offline});
     }
     catch (err) {
       // If account not found, check if email is valid
@@ -480,8 +505,6 @@ export class AccountService extends BaseDataService {
       throw error;
     }
 
-    console.debug("[account] Successfully authenticated {" + this.data.pubkey.substr(0, 6) + "}");
-
     // Emit event to observers
     this.onLogin.next(this.data.account);
 
@@ -490,6 +513,7 @@ export class AccountService extends BaseDataService {
 
   public async refresh(): Promise<Account> {
     if (!this.data.pubkey) throw new Error("User not logged");
+    if (this.network.offline) throw new Error("Cannot check account in offline mode");
 
     await this.loadData({ fetchPolicy: 'network-only' });
     await this.saveLocally();
@@ -502,7 +526,10 @@ export class AccountService extends BaseDataService {
     return this.data.account;
   }
 
-  async loadData(opts?: { fetchPolicy?: FetchPolicy }): Promise<Account> {
+  async loadData(opts?: {
+    offline?: boolean;
+    fetchPolicy?: FetchPolicy;
+  }): Promise<Account> {
     if (!this.data.pubkey) throw new Error("User not logged");
 
     this.data.loaded = false;
@@ -546,18 +573,16 @@ export class AccountService extends BaseDataService {
     const values = await Promise.all([
       this.storage.get(PUBKEY_STORAGE_KEY),
       this.storage.get(TOKEN_STORAGE_KEY),
-      this.storage.get(ACCOUNT_STORAGE_KEY),
       this.storage.get(SECKEY_STORAGE_KEY)
     ]);
     const pubkey = values[0];
     const token = values[1];
-    const accountStr = values[2];
-    const seckey = values[3];
+    const seckey = values[2];
 
     // Quit if no pubkey (not logged)
     if (!pubkey) return;
 
-    // Quit if could not auth on remote server
+    // Quit if could not auth on pod
     const canRemoteAuth = token || seckey || false;
     if (!canRemoteAuth) return;
 
@@ -569,36 +594,45 @@ export class AccountService extends BaseDataService {
       secretKey: base58.decode(seckey)
     } || null;
 
-    // Online mode: try to connect to server
+    // Online mode: try to connect to pod
     if (this.network.online) {
-      console.info("[account] Network detected: Trying to auth to server");
+      console.info("[account] Network detected: Trying to auth on pod");
       try {
         this.data.authToken = await this.authenticateAndGetToken(token);
         if (!this.data.authToken) throw new Error("Authentication failed");
       }
       catch (error) {
+        // Offline feature are enable: continue in offline mode
+        if (this.settings.hasOfflineFeature()) {
+          console.warn("[account] Unable to authenticate on pod: forcing offline mode");
+          this.network.setForceOffline(true, {displayToast: false});
+          // Continue
+        }
         // No offline features enable (=offline mode not allowed)
-        if (!this.settings.hasOfflineFeature()) {
+        else {
           console.error(error);
           this.logout();
           return;
         }
 
-        // Continue in offline mode
-        console.error("[account] Unable to authenticate on server. Force offline mode");
-        this.network.setConnectionType('none');
       }
     }
 
-    // No account: stop here (= data not loaded)
-    if (!accountStr) return;
+    // Get the account, from pubkey
+    let jsonAccount = await this.storage.get(`${ACCOUNT_STORAGE_KEY}#${pubkey}`);
+    if (!jsonAccount) {
+      // Try using the old storage key
+      const accountStr = await this.storage.get(ACCOUNT_STORAGE_KEY);
+      jsonAccount = accountStr && ((typeof accountStr === 'string') && JSON.parse(jsonAccount) || accountStr);
+    }
 
-    const accountObj: any = accountStr && ((typeof accountStr === 'object') && accountStr || JSON.parse(accountStr));
-    if (!accountObj) return;
+    // Invalid account: do not use it
+    if (!jsonAccount || jsonAccount.pubkey !== pubkey) return;
 
-    const account = Account.fromObject(accountObj);
-    if (account.pubkey !== pubkey) return;
+    // Transform to entity
+    const account = Account.fromObject(jsonAccount);
 
+    // Update data
     this.data.account = account;
     this.data.mainProfile = getMainProfile(account.profiles);
     this.data.loaded = true;
@@ -618,23 +652,27 @@ export class AccountService extends BaseDataService {
     if (this._debug) console.debug(`[account] Saving account {${this.data.pubkey.substring(0, 6)}} in local storage...`);
 
     // Convert account to json
-    const account = this.data.account.asObject({keepTypename: true});
+    const jsonAccount = this.data.account.asObject({keepTypename: true});
     const seckey = this.data.keypair && this.data.keypair.secretKey && base58.encode(this.data.keypair.secretKey) || null;
 
-    // If avatar is a URL, download it locally
-    const hasAvatarUrl = account.avatar && !account.avatar.endsWith(DEFAULT_AVATAR_IMAGE) &&
-      (account.avatar.startsWith('http://') || (account.avatar.startsWith('https://')))
-    if (hasAvatarUrl) {
-      account.avatar = await this.fileService.downloadImage(account.avatar, {thumbnail: true});
+    // Convert avatar URL to dataUrl (e.g. 'data:image/png:<base64 content>')
+    const hasAvatarUrl = jsonAccount.avatar && !jsonAccount.avatar.endsWith(DEFAULT_AVATAR_IMAGE) &&
+      (jsonAccount.avatar.startsWith('http://') || (jsonAccount.avatar.startsWith('https://')));
+    if (hasAvatarUrl && this.network.online) {
+      jsonAccount.avatar = await this.fileService.getImage(jsonAccount.avatar, {
+        thumbnail: true,
+        responseType: "dataUrl"
+      });
     }
 
     await Promise.all([
       this.storage.set(PUBKEY_STORAGE_KEY, this.data.pubkey),
       this.storage.set(TOKEN_STORAGE_KEY, this.data.authToken),
-      this.storage.set(ACCOUNT_STORAGE_KEY, account),
-      this.storage.set(ACCOUNT_STORAGE_KEY + '#' + this.data.pubkey, account),
+      this.storage.set(`${ACCOUNT_STORAGE_KEY}#${this.data.pubkey}`, jsonAccount),
       // Secret key (optional)
-      seckey && this.storage.set(SECKEY_STORAGE_KEY, seckey) || this.storage.remove(SECKEY_STORAGE_KEY)
+      seckey && this.storage.set(SECKEY_STORAGE_KEY, seckey) || this.storage.remove(SECKEY_STORAGE_KEY),
+      // Remove old storage key
+      this.storage.remove(ACCOUNT_STORAGE_KEY)
     ]);
 
     if (this._debug) console.debug("[account] Account saved in local storage");
@@ -711,13 +749,16 @@ export class AccountService extends BaseDataService {
    * Load a account by pubkey
    * @param pubkey
    */
-  public async loadAccount(pubkey: string, opts?: { fetchPolicy?: FetchPolicy }): Promise<Account | undefined> {
+  public async loadAccount(pubkey: string, opts?: {
+    offline?: boolean;
+    fetchPolicy?: FetchPolicy;
+  }): Promise<Account | undefined> {
 
     const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[account-service] Loading account {${pubkey.substring(0, 6)}...`);
+    if (this._debug) console.debug(`[account] Loading account {${pubkey.substring(0, 6)}}...`);
     let accountJson: any;
 
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only') || (opts && opts.offline === true);
     if (offline) {
       accountJson = await this.storage.get(ACCOUNT_STORAGE_KEY);
       accountJson = accountJson && (typeof accountJson === 'string') && JSON.parse(accountJson) || accountJson;
@@ -741,11 +782,11 @@ export class AccountService extends BaseDataService {
 
     if (accountJson) {
       const account = Account.fromObject(accountJson);
-      if (this._debug) console.debug(`[account-service] Account {${pubkey.substring(0, 6)}} loaded in ${Date.now() - now}ms`, account);
+      if (this._debug) console.debug(`[account] Account {${pubkey.substring(0, 6)}} loaded in ${Date.now() - now}ms`, account);
       return account;
     }
     else {
-      console.warn(`[account-service] Account {${pubkey.substring(0, 6)} not found !`);
+      console.warn(`[account] Account {${pubkey.substring(0, 6)} not found !`);
       return undefined;
     }
   }

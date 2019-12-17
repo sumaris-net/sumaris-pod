@@ -1,9 +1,11 @@
-import { Component, EventEmitter, Output, OnInit } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { ModalController } from "@ionic/angular";
-import { RegisterModal } from '../../register/modal/modal-register';
-import { AuthData } from "../../services/account.service";
-import { environment } from "../../../../environments/environment";
+import {Component, EventEmitter, OnInit, Output} from "@angular/core";
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {ModalController} from "@ionic/angular";
+import {RegisterModal} from '../../register/modal/modal-register';
+import {AuthData} from "../../services/account.service";
+import {environment} from "../../../../environments/environment";
+import {NetworkService} from "../../services/network.service";
+import {LocalSettingsService} from "../../services/local-settings.service";
 
 
 @Component({
@@ -14,9 +16,10 @@ import { environment } from "../../../../environments/environment";
 })
 export class AuthForm implements OnInit {
 
-  public loading: boolean = false;
-  public form: FormGroup;
-  public error: string = null;
+  loading = false;
+  form: FormGroup;
+  error: string = null;
+  canWorkOffline = false;
 
   public get value(): AuthData {
     return this.form.value;
@@ -36,13 +39,19 @@ export class AuthForm implements OnInit {
   @Output()
   onSubmit: EventEmitter<AuthData> = new EventEmitter<AuthData>();
 
-  constructor(public formBuilder: FormBuilder,
-    public modalCtrl: ModalController) {
+  constructor(
+    public formBuilder: FormBuilder,
+    public modalCtrl: ModalController,
+    public network: NetworkService,
+    public settings: LocalSettingsService
+  ) {
     this.form = formBuilder.group({
-      username: ['', Validators.compose([Validators.required, Validators.email])],
-      password: ['', Validators.required]
+      username: [null, Validators.compose([Validators.required, Validators.email])],
+      password: [null, Validators.required],
+      offline: [network.offline]
     });
 
+    this.canWorkOffline = this.settings.hasOfflineFeature();
   }
 
   ngOnInit() {
@@ -74,7 +83,8 @@ export class AuthForm implements OnInit {
 
     setTimeout(() => this.onSubmit.emit({
       username: data.username,
-      password: data.password
+      password: data.password,
+      offline: data.offline
     }));
   }
 
@@ -84,7 +94,7 @@ export class AuthForm implements OnInit {
       const modal = await this.modalCtrl.create({
         component: RegisterModal
       });
-      modal.present();
-    });
+      return modal.present();
+    }, 200);
   }
 }

@@ -13,6 +13,7 @@
     "BTN_DOWNLOAD": "Télécharger",
     "BTN_DELETE": "Supprimer",
     "BTN_YES_DELETE": "Oui, supprimer",
+    "BTN_YES_CONTINUE": "Oui, continuer",
     "BTN_VALIDATE": "Valider",
     "BTN_NOT_SAVE": "Ne PAS sauvegarder",
     "BTN_SAVE": "Sauvegarder",
@@ -181,6 +182,7 @@
     "BTN_LOGIN": "Se connecter",
     "BTN_REGISTER": "Créer un compte",
     "NO_ACCOUNT_QUESTION": "Vous n'avez pas encore de compte ?",
+    "OFFLINE_MODE": "Forcer le mode hors ligne ?",
     "LOGOUT": {
       "CONFIRM_TITLE": "Confirmation",
       "CONFIRM_MESSAGE": "Êtes-vous sûr de vouloir vous déconnecter ?",
@@ -1003,6 +1005,7 @@
     }
   },
   "NETWORK": {
+    "BTN_CHECK_ALIVE": "Actualiser",
     "PEER": {
       "OFFLINE": "Noeud injoignable",
       "SELECT_MODAL": {
@@ -1015,8 +1018,12 @@
       "READY_TO_SYNC": "En attente d'envoi",
       "SYNC": "Synchronisées"
     },
-    "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%",
-    "IMPORTATION_SUCCEED": "Importation terminée avec succès !<br/>La <b>saisie hors-ligne</b> est maintenant possible."
+    "INFO": {
+      "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%",
+      "IMPORTATION_SUCCEED": "Importation terminée avec succès !<br/>La <b>saisie hors-ligne</b> est maintenant possible.",
+      "OFFLINE": "Aucune connexion réseau.",
+      "OFFLINE_HELP": "L'application fonctionne en <b>mode hors-ligne</b>."
+    }
   },
   "ERROR": {
     "FIELD_REQUIRED": "Champ obligatoire.",
@@ -1078,7 +1085,7 @@
     "SAVE_BEFORE_CLOSE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de fermer ?",
     "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
-    "DELETE_IMMEDIATE": "Cette opération est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
+    "ACTION_IMMEDIATE": "Cette action est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE_ROW": "<b>Êtes-vous sûr</b> de vouloir supprimer cette ligne ?",
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?"
   },

@@ -217,10 +217,10 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
 
   devToggleOfflineMode() {
     if (this.network.offline) {
-      this.network.setConnectionType('unknown');
+      this.network.setForceOffline(false);
     }
     else {
-      this.network.setConnectionType('none');
+      this.network.setForceOffline();
     }
   }
 

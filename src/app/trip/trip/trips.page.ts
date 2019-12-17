@@ -55,7 +55,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
   importing = false;
   $importProgression = new BehaviorSubject<number>(0);
-  hasOfflineData = false;
+  hasOfflineMode = false;
 
   synchronizationStatusList: SynchronizationStatus[] = ['DIRTY', 'SYNC'];
 
@@ -221,12 +221,12 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
   toggleOfflineMode(event?: UIEvent) {
     if (this.network.offline) {
-      this.network.setConnectionType('unknown');
+      this.network.setForceOffline(false);
     }
     else {
-      this.network.setConnectionType('none');
+      this.network.setForceOffline();
       this.filterForm.patchValue({synchronizationStatus: 'DIRTY'}, {emitEvent: false/*avoid refresh*/});
-      this.hasOfflineData = true;
+      this.hasOfflineMode = true;
     }
     // Refresh table
     this.onRefresh.emit();
@@ -279,7 +279,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.error = err && err.message || err;
     }
     finally {
-      this.hasOfflineData = this.hasOfflineData || success;
+      this.hasOfflineMode = this.hasOfflineMode || success;
       this.importing = false;
       this.markForCheck();
     }
@@ -298,6 +298,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     }
 
     console.debug("[trips] Applying filter to synchronization status: " + synchronizationStatus);
+    this.error = null;
     this.filterForm.patchValue({synchronizationStatus}, {emitEvent: false});
     const json = { ...this.filter, synchronizationStatus};
     this.setFilter(json, {emitEvent: true});
@@ -349,12 +350,13 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     const synchronizationStatus = json && json.synchronizationStatus;
     const tripFilter = json && typeof json === 'object' && {...json, synchronizationStatus: undefined} || undefined;
 
-    // No default filter, nor synchronizationStatus
-    if (!tripFilter || (TripFilter.isEmpty(tripFilter) && !synchronizationStatus)) {
-      this.hasOfflineData = await this.service.hasOfflineData();
+    this.hasOfflineMode = (synchronizationStatus && synchronizationStatus !== 'SYNC') ||
+      (this.settings.hasOfflineFeature() || await this.service.hasOfflineData());
 
+    // No default filter, nor synchronizationStatus
+    if (TripFilter.isEmpty(tripFilter) && !synchronizationStatus) {
       // If offline data, show it (will refresh)
-      if (this.hasOfflineData) {
+      if (this.hasOfflineMode) {
         this.filterForm.patchValue({
           synchronizationStatus: 'DIRTY'
         });
@@ -366,8 +368,16 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     }
     // Restore the filter (will apply it)
     else {
-      this.hasOfflineData = synchronizationStatus ? synchronizationStatus !== 'SYNC' : (await this.service.hasOfflineData());
-      this.filterForm.patchValue({...tripFilter, synchronizationStatus});
+      // Force offline
+      if (this.network.offline && this.hasOfflineMode && synchronizationStatus === 'SYNC') {
+        this.filterForm.patchValue({
+          ...tripFilter,
+          synchronizationStatus: 'DIRTY'
+        });
+      }
+      else {
+        this.filterForm.patchValue({...tripFilter, synchronizationStatus});
+      }
     }
   }
 

@@ -1048,7 +1048,6 @@
     "ACCOUNT_NOT_EXISTS": "Your account does not appear to exist and can not be backed up.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Error sending account confirmation email.<small><br/>If the problem persists, please contact your administrator.</small>",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Error while confirming the email. This account may have already been confirmed?",
-    "CONFIRM_ACCOUNT_EMAIL_FAILED": "Error while confirming the email. This account may have already been confirmed?",
     "UNAUTHORIZED": "Access denied by server",
     "FORBIDDEN": "Forbidden access",
     "AUTH_SERVER_ERROR": "Error during authentication on the server",
@@ -1064,7 +1063,7 @@
     "SAVE": "Some changes have not been saved.<br/><br/>Do you want <b>save your changes</b>?",
     "SAVE_BEFORE_CLOSE": "Some changes have not been saved.<br/><br/>Do you want to <b>save your changes</b> before closing?",
     "CANCEL_CHANGES": "Your last changes will be canceled.<br/><br/><b>Are you sure</b> you want to continue?",
-    "DELETE_IMMEDIATE": "This operation is irreversible.<br/><br/><b>Are you sure</b> you want to continue?",
+    "ACTION_IMMEDIATE": "This operation is irreversible.<br/><br/><b>Are you sure</b> you want to continue?",
     "DELETE_ROW": "<b>Are you sure</b> you want to delete this row?",
     "DELETE_ROWS": "<b>Are you sure</b> you want to delete this rows?"
   }

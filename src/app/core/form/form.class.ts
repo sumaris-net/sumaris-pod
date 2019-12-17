@@ -4,7 +4,7 @@ import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Subscription} from 'rxjs';
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
-import {AppFormUtils, getFormValueFromEntity} from "./form.utils";
+import {AppFormUtils} from "./form.utils";
 import {
   MatAutocompleteConfigHolder,
   MatAutocompleteFieldAddOptions,
@@ -234,4 +234,5 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   protected markForCheck() {
     // Should be override by subclasses
   }
+
 }

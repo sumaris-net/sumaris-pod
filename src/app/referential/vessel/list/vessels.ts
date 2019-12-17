@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import {
   AppTableDataSource,
@@ -58,10 +58,10 @@ export class VesselsPage extends AppTable<Vessel, VesselFilter> implements OnIni
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
-    protected vesselValidatorService: VesselValidatorService,
     protected vesselService: VesselService,
-    private formBuilder: FormBuilder,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    formBuilder: FormBuilder,
+    injector: Injector
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       // columns
@@ -83,7 +83,9 @@ export class VesselsPage extends AppTable<Vessel, VesselFilter> implements OnIni
         serviceOptions: {
           saveOnlyDirtyRows: true
         }
-      })
+      }),
+      null,
+      injector
     );
     this.i18nColumnPrefix = 'VESSEL.';
     this.filterForm = formBuilder.group({

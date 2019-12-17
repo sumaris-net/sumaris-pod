@@ -52,11 +52,14 @@ ion-content {
     }
   }
 
-  ion-card.welcome {
+  ion-card.main {
     min-width: 240px;
     max-width: 400px;
     margin-left: auto;
     margin-right: auto;
+
+  }
+  ion-card.welcome {
     background-color: $card-background;
 
     button {

@@ -4,14 +4,14 @@ import {Batch} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {SubBatchForm} from "./sub-batch.form";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
-import {SubBatchesTable, SUB_BATCHES_TABLE_OPTIONS} from "./sub-batches.table";
+import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "./sub-batches.table";
 import {AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {measurementValueToString} from "../services/model/measurement.model";
 import {AppFormUtils, EntityUtils, isNil} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
-import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
-import {AppPageUtils} from "../../core/form/page.utils";
+import {isNotNilOrBlank} from "../../shared/functions";
 import {AudioProvider} from "../../shared/audio/audio";
+import {Alerts} from "../../shared/alerts";
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
@@ -127,7 +127,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   async cancel(event?: UIEvent) {
 
     if (this.dirty) {
-      const saveBeforeLeave = await AppPageUtils.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
+      const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
       // User cancelled
       if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {

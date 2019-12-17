@@ -47,7 +47,7 @@
 
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
       <!-- Synchronization status -->
-      <ion-button color="secondary" *ngIf="hasOfflineData" [matMenuTriggerFor]="syncStatusMenu">
+      <ion-button color="secondary" *ngIf="hasOfflineMode" [matMenuTriggerFor]="syncStatusMenu">
         <ion-label class="ion-text-wrap">{{ ('NETWORK.SYNCHRONIZATION_STATUS.' + synchronizationStatus) | translate}}</ion-label>
         <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
       </ion-button>

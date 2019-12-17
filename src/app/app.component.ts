@@ -182,7 +182,7 @@ export class AppComponent {
       autocomplete: {
         service: this.referentialRefService,
         filter: {entityName: 'Department'},
-        displayWith: (value) => joinPropertiesPath(value, attributes),
+        displayWith: (value) => value && joinPropertiesPath(value, attributes),
         attributes: attributes
       },
       extra: {

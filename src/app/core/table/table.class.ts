@@ -1,12 +1,11 @@
 import {AfterViewInit, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {MatPaginator, MatSort, MatTable} from "@angular/material";
-import {EMPTY, merge, Observable, of, Subject} from 'rxjs';
+import {EMPTY, merge, Observable, of, Subject, Subscription} from 'rxjs';
 import {catchError, filter, mergeMap, startWith, switchMap, takeUntil} from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
 import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
 import {Entity} from "../services/model";
-import {Subscription} from "rxjs";
 import {AlertController, ModalController, Platform, ToastController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TableSelectColumnsComponent} from './table-select-columns.component';
@@ -22,9 +21,9 @@ import {
   MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig
 } from "../../shared/material/material.autocomplete";
-import {TripFilter} from "../../trip/services/trip.service";
 import {ToastOptions} from "@ionic/core";
-import {ToastButton} from "@ionic/core/dist/types/components/toast/toast-interface";
+import {Toasts} from "../../shared/toasts";
+import {Alerts} from "../../shared/alerts";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -197,6 +196,9 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   ngOnInit() {
     if (this._initialized) return; // Init only once
     this._initialized = true;
+
+    // Check ask user confirmation is possible
+    if (this.confirmBeforeDelete && !this.alertCtrl) throw Error("Missing 'alertCtrl' or 'injector' in component's constructor.");
 
     // Defined unique id for settings for the page
     this.settingsId = this.settingsId || this.generateTableId();
@@ -749,79 +751,20 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     }
   }
 
-  protected async askDeleteConfirmation(): Promise<boolean> {
-    const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE_IMMEDIATE', 'CONFIRM.ALERT_HEADER']);
-    let confirm = false;
-    const alert = await this.alertCtrl.create({
-      header: translations['CONFIRM.ALERT_HEADER'],
-      message: translations['CONFIRM.DELETE_IMMEDIATE'],
-      buttons: [
-        {
-          text: translations['COMMON.NO'],
-          role: 'cancel',
-          cssClass: 'secondary',
-          handler: () => {
-          }
-        },
-        {
-          text: translations['COMMON.YES'],
-          handler: () => {
-            confirm = true; // update upper value
-          }
-        }
-      ]
-    });
-    await alert.present();
-    await alert.onDidDismiss();
-
-    return confirm;
+  protected async askDeleteConfirmation(event?: UIEvent): Promise<boolean> {
+    if (!this.alertCtrl) {
+      console.warn("[table] Missing alertCtrl in component's constructor. Cannot ask user confirmation before deletion!")
+      return true;
+    }
+    return Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
   }
 
   protected async showToast(opts: ToastOptions & { error?: boolean;}) {
-
-    if (!this.toastController) throw new Error("Missing toastController in component's constructor");
-    const i18nKeys = [opts.message];
-    if (opts.header) i18nKeys.push(opts.header);
-
-    let closeButton: ToastButton;
-    if (opts.showCloseButton) {
-      opts.buttons = opts.buttons || [];
-      const buttonIndex = opts.buttons
-        .map(b => typeof b === 'object' && b as ToastButton || undefined)
-        .filter(isNotNil)
-        .findIndex(b => b.role === 'close');
-      if (buttonIndex !== -1) {
-        closeButton = opts.buttons[buttonIndex] as ToastButton;
-      }
-      else {
-        closeButton = {role: 'close'};
-        opts.buttons.push(closeButton);
-      }
-      closeButton.text = closeButton.text || 'COMMON.BTN_CLOSE';
-      i18nKeys.push(closeButton.text);
+    if (!this.toastController) {
+      console.warn("[table] Missing toastController in component's constructor. Cannot show toast");
+      return;
     }
-
-    if (opts.error) {
-      const cssArray = opts.cssClass && typeof opts.cssClass === 'string' && opts.cssClass.split(',') || (opts.cssClass as Array<string>) || [];
-      cssArray.push('error');
-      opts.cssClass = cssArray;
-    }
-
-    const translations = await this.translate.instant(i18nKeys);
-
-    if (closeButton) {
-      closeButton.text = translations[closeButton.text];
-    }
-
-    const toast = await this.toastController.create({
-      // Default values
-      position: !this.mobile && 'top' || undefined,
-      duration: 3000,
-      ...opts,
-      message: translations[opts.message],
-      header: opts.header && translations[opts.header] || undefined
-    });
-    return toast.present();
+    return Toasts.show(this.toastController, this.translate, opts);
   }
 }
 

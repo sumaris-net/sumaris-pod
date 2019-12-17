@@ -28,7 +28,8 @@ export class AuthModal {
     this.loading = true;
 
     try {
-      const account = await this.accountService.login(this.form.value);
+      const data = this.form.value;
+      const account = await this.accountService.login(data);
       return this.viewCtrl.dismiss(account);
     }
     catch (err) {

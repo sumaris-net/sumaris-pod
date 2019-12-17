@@ -9,10 +9,11 @@ import {ConfigService} from '../services/config.service';
 import {fadeInAnimation, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
-import {debounceTime, startWith} from "rxjs/operators";
+import {debounceTime, map, startWith} from "rxjs/operators";
 import {AuthModal} from "../auth/modal/modal-auth";
 import {environment} from "../../../environments/environment";
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
+import {NetworkService} from "../services/network.service";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -29,22 +30,24 @@ export function getRandomImage(files: String[]) {
 })
 export class HomePage implements OnDestroy {
 
+  private _subscription = new Subscription();
+
   loading = true;
   showSpinner = true;
   displayName: String = '';
   isLogin: boolean;
-  subscription = new Subscription();
   $partners = new BehaviorSubject<Department[]>(null);
   loadingBanner = true;
   logo: String;
   description: String;
   appName: string;
   isWeb: boolean;
-  contentStyle = {};
+  contentStyle: any;
   pageHistory: HistoryPageReference[] = [];
   appPlatformName: string;
   appInstallName: string;
   appInstallUrl: string;
+  offline: boolean;
 
   get currentLocaleCode(): string {
     return (this.translate.currentLang || this.translate.defaultLang).substr(0,2);
@@ -56,17 +59,19 @@ export class HomePage implements OnDestroy {
     private translate: TranslateService,
     private configService: ConfigService,
     private platform: PlatformService,
+    private network: NetworkService,
     private cd: ChangeDetectorRef,
     public settings: LocalSettingsService,
     private browser: InAppBrowser
   ) {
 
     this.showSpinner = !this.platform.started;
+
     this.platform.ready().then(() => this.start());
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    this._subscription.unsubscribe();
   }
 
   async login() {
@@ -113,14 +118,14 @@ export class HomePage implements OnDestroy {
     }
 
     // Listen login/logout events
-    this.subscription.add(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
-    this.subscription.add(this.accountService.onLogout.subscribe(() => this.onLogout()));
+    this._subscription.add(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
+    this._subscription.add(this.accountService.onLogout.subscribe(() => this.onLogout()));
 
     // Listen pod config
-    this.subscription.add(this.configService.config.subscribe(config => this.onConfigLoaded(config)));
+    this._subscription.add(this.configService.config.subscribe(config => this.onConfigLoaded(config)));
 
     // Listen settings changes
-    this.subscription.add(
+    this._subscription.add(
       this.settings.onChange
         .pipe(
           // Add a delay, to avoid to apply changes to often
@@ -130,6 +135,20 @@ export class HomePage implements OnDestroy {
         )
         .subscribe(res => this.onSettingsChanged(res)));
 
+    // Listen network changes
+    this.offline = this.network.offline;
+    this._subscription.add(
+      this.network.onNetworkStatusChanges
+        .pipe(map(connectionType => connectionType === 'none'))
+        .subscribe(offline => {
+          if (this.offline !== offline) {
+            this.offline = offline;
+            this.markForCheck();
+          }
+        })
+    );
+
+
   }
 
   protected onConfigLoaded(config: Configuration) {
@@ -138,50 +157,30 @@ export class HomePage implements OnDestroy {
     this.appName = config.label || environment.defaultAppName || 'SUMARiS';
     this.logo = config.largeLogo || config.smallLogo;
     this.description = config.name;
-    this.isWeb = this.platform.isWebOrDesktop() ;
+    this.isWeb = this.platform.isWebOrDesktop();
 
     const partners = (config.partners || []).filter(p => p && p.logo);
     this.$partners.next(partners);
     this.loadingBanner = (partners.length === 0);
 
-    if (config.backgroundImages && config.backgroundImages.length) {
-      const bgImage = getRandomImage(config.backgroundImages);
-      this.contentStyle = {'background-image': `url(${bgImage})`};
-    } else {
-      const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
-      this.contentStyle = {'background-color': primaryColor};
+    // If not alread set, compute the background image
+    if (!this.contentStyle) {
+      if (config.backgroundImages && config.backgroundImages.length) {
+        const bgImage = getRandomImage(config.backgroundImages);
+        this.contentStyle = {'background-image': `url(${bgImage})`};
+      } else {
+        const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
+        this.contentStyle = {'background-color': primaryColor};
+      }
     }
 
     this.markForCheck();
 
-    // If mobile web: show "download app" button
-    if (this.platform.is('mobileweb')) {
-
-      // Android
-      if (this.platform.is('android')) {
-
-        setTimeout(() => {
-          this.appPlatformName = 'Android';
-          const apkLink = config.properties['sumaris.android.install.url'];
-          if (isNotNilOrBlank(apkLink)) {
-            this.appInstallUrl = apkLink;
-            this.appInstallName = this.appName;
-          }
-          else {
-            this.appInstallName = environment.defaultAppName || 'SUMARiS';
-            this.appInstallUrl =  environment.defaultAndroidInstallUrl || null;
-          }
-          this.markForCheck();
-        }, 1000); // Add a delay, for animation
-      }
-
-      // TODO: other mobile platforms
-      // else if (...)
-    }
-
     // If first load, hide the loading indicator
     if (this.loading) {
       setTimeout(() => {
+        this.computeInstallAppUrl(config);
+
         this.loading = false;
         this.markForCheck();
       }, 500); // Add a delay, for animation
@@ -216,5 +215,36 @@ export class HomePage implements OnDestroy {
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected async computeInstallAppUrl(config: Configuration) {
+    if (this.appInstallUrl) return; // Already computed: skip
+
+    await this.network.ready();
+
+    // If mobile web: show "download app" button
+    if (this.platform.is('mobileweb')) {
+
+      // Android
+      if (this.platform.is('android')) {
+
+        setTimeout(() => {
+          this.appPlatformName = 'Android';
+          const apkLink = config.properties['sumaris.android.install.url'];
+          if (isNotNilOrBlank(apkLink)) {
+            this.appInstallUrl = apkLink;
+            this.appInstallName = this.appName;
+          }
+          else {
+            this.appInstallName = environment.defaultAppName || 'SUMARiS';
+            this.appInstallUrl =  environment.defaultAndroidInstallUrl || null;
+          }
+          this.markForCheck();
+        }, 1000); // Add a delay, for animation
+      }
+
+      // TODO: other mobile platforms (iOS, etc.)
+      // else if (...)
+    }
   }
 }

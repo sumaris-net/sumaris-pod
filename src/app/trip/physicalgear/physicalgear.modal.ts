@@ -14,7 +14,7 @@ import {PhysicalGearForm} from "./physicalgear.form";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../../core/services/platform.service";
-import {AppPageUtils} from "../../core/form/page.utils";
+import {Alerts} from "../../shared/alerts";
 
 @Component({
   selector: 'app-physical-gear-modal',
@@ -111,7 +111,7 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
   protected async saveIfDirtyAndConfirm(event: UIEvent): Promise<void> {
     if (!this.form.dirty) return; // skip, if nothing to save
 
-    const confirmation = await AppPageUtils.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
+    const confirmation = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
     // User cancelled
     if (isNil(confirmation) || event && event.defaultPrevented) {

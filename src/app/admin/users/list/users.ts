@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
 import {
   AppTable,
   AppTableDataSource,
@@ -7,7 +7,7 @@ import {
 import {Person, PRIORITIZED_USER_PROFILES, referentialToString, DefaultStatusList} from "../../../core/services/model";
 import {PersonFilter, PersonService} from "../../services/person.service";
 import {PersonValidatorService} from "../../services/person.validator";
-import {ModalController} from "@ionic/angular";
+import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService} from "../../../core/services/account.service";
 import {Location} from '@angular/common';
@@ -48,7 +48,8 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     protected validatorService: ValidatorService,
     protected dataService: PersonService,
     protected cd: ChangeDetectorRef,
-    formBuilder: FormBuilder
+    formBuilder: FormBuilder,
+    injector: Injector
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
@@ -69,12 +70,15 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
         serviceOptions: {
           saveOnlyDirtyRows: true
         }
-      })
+      }),
+      null,
+      injector
     );
 
     // Allow inline edition only if admin
     this.inlineEdition = accountService.isAdmin(); // TODO: only if desktop ?
     this.canEdit = accountService.isAdmin();
+    this.confirmBeforeDelete = true;
 
     this.i18nColumnPrefix = 'USER.';
     this.filterForm = formBuilder.group({
@@ -86,8 +90,6 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     this.statusList.forEach((status) => this.statusById[status.id] = status);
 
     this.additionalFields = this.accountService.additionalFields;
-
-    console.debug('::: UsersPage contructor');
 
     // For DEV only --
     //this.debug = !environment.production;

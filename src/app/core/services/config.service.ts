@@ -245,9 +245,7 @@ export class ConfigService extends BaseDataService {
 
     // Save it into local storage, for next startup
     if (data) {
-      //setTimeout(() => this.saveLocally(data), 500);
-      // TODO: remove this
-      await this.saveLocally(data);
+      setTimeout(() => this.saveLocally(data), 1000);
     }
 
     // If not loaded remotely: try to restore it
@@ -307,12 +305,12 @@ export class ConfigService extends BaseDataService {
         if (this._debug) console.debug('[config] Downloading images (for offline mode)...');
 
         // Logos
-        data.largeLogo = data.largeLogo && await this.file.downloadImage(data.largeLogo);
-        data.smallLogo = data.smallLogo && await this.file.downloadImage(data.smallLogo, {thumbnail: true});
+        data.largeLogo = data.largeLogo && await this.file.getImage(data.largeLogo);
+        data.smallLogo = data.smallLogo && await this.file.getImage(data.smallLogo);
 
         // Background images
         if (isNotEmptyArray(data.backgroundImages)) {
-          data.backgroundImages = await this.file.downloadImages(data.backgroundImages, {
+          data.backgroundImages = await this.file.getImages(data.backgroundImages, {
             maxWidth: this.platform.width(),
             maxHeight: this.platform.height()
           });
@@ -322,7 +320,10 @@ export class ConfigService extends BaseDataService {
         if (isNotEmptyArray(data.partners)) {
           await Promise.all(data.partners.map(p => {
             if (p.logo) {
-              return this.file.downloadImage(p.logo, {thumbnail: true})
+              return this.file.getImage(p.logo, {
+                responseType: "dataUrl",
+                maxHeight: 50/*see home page CSS */
+              })
                 .then(dataUrl => p.logo = dataUrl);
             }
           }));

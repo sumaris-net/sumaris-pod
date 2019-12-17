@@ -9,7 +9,7 @@
 
 <!-- Options menu -->
 <mat-menu #matmenu="matMenu">
-  <button mat-menu-item (click)="network.clearCache()">
+  <button mat-menu-item (click)="clearCache($event)">
     <ion-label translate>SETTINGS.BTN_CLEAR_CACHE</ion-label>
   </button>
 </mat-menu>
@@ -108,7 +108,7 @@
             <!-- slide toggle  -->
             <ion-text translate>SETTINGS.OFFLINE_MODE</ion-text>
             <mat-slide-toggle matSuffix
-                              (change)="network.setConnectionType($event.checked ? 'none' : 'unknown')"
+                              (change)="network.setForceOffline($event.checked)"
                               [checked]="network.offline">
 
             </mat-slide-toggle>

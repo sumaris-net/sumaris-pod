@@ -1005,6 +1005,15 @@ export declare interface PropertiesMap {
   [key: string]: string;
 }
 
+export declare interface SynchronizationHistory {
+  name: string;
+  filter?: any;
+  execDate: string;
+  execDurationMs: number;
+  lastUpdateDate?: string;
+  children?: SynchronizationHistory[];
+}
+
 export declare interface LocalSettings {
   pages?: any;
   peerUrl?: string;

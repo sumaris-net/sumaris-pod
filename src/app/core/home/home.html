@@ -54,8 +54,9 @@
       </ion-toolbar>
     </div>
 
-  <ion-card *ngIf="appInstallUrl"
-            color="accent"
+  <!-- Install the App infos -->
+  <ion-card *ngIf="!loading && !offline && appInstallUrl"
+            color="secondary"
             class="ion-no-margin"
             @slideUpDownAnimation>
     <ion-card-content class="ion-no-padding">
@@ -63,14 +64,11 @@
         <ion-row>
           <ion-col>
             <ion-label class="ion-text-wrap">
-              <ion-text><b>
-                <span [innerHTML]="'HOME.DOWNLOAD_APP_TITLE'| translate: {appName: appInstallName, platform: appPlatformName}"></span>
-              </b>
-              </ion-text><br/>
-              <ion-text><small [innerHTML]="'HOME.DOWNLOAD_APP_HELP'|translate"></small></ion-text>
+              <b [innerHTML]="'HOME.DOWNLOAD_APP_TITLE'| translate: {appName: appInstallName, platform: appPlatformName}"></b><br/>
+              <small [innerHTML]="'HOME.DOWNLOAD_APP_HELP'|translate"></small>
             </ion-label>
           </ion-col>
-          <ion-col>
+          <ion-col size="auto" >
             <!-- Display App download link -->
             <ion-button color="tertiary" class="ion-float-end"
                         (click)="downloadApp($event)">
@@ -84,65 +82,97 @@
     </ion-card-content>
   </ion-card>
 
-    <!-- Welcome card -->
-    <ion-card *ngIf="!loading"
-              class="welcome ion-padding ion-text-center ion-align-self-center"
-              @fadeInAnimation>
-      <ion-card-header>
-        <ion-card-title class="ion-text-center">
-          <span *ngIf="isWeb" [innerHTML]="'HOME.WELCOME_WEB'|translate: {appName: appName}"></span>
-          <span *ngIf="!isWeb" [innerHTML]="'HOME.WELCOME_APP'|translate: {appName: appName}"></span>
-        </ion-card-title>
-        <ion-card-subtitle [innerHTML]="description">
-        </ion-card-subtitle>
-      </ion-card-header>
-      <ion-card-content class="ion-no-padding">
-        <ion-text color="primary">
-          <img class="logo" src="{{ logo }}"/>
-        </ion-text>
-        <ion-text *ngIf="!isLogin">
+  <!-- Offline mode card-->
+  <ion-card *ngIf="!loading && offline"
+            color="accent"
+            class="main ion-no-margin"
+            @slideUpDownAnimation>
+    <ion-card-content class="ion-no-padding">
+      <ion-grid class="ion-no-padding">
+        <ion-row>
+          <ion-col>
+            <ion-label class="ion-text-wrap">
+              <b [innerHTML]="'NETWORK.INFO.OFFLINE'| translate"></b>
+              <br/>
+              <small [innerHTML]="'NETWORK.INFO.OFFLINE_HELP'|translate"></small>
+            </ion-label>
+          </ion-col>
+          <ion-col size="auto">
+            <!-- Retry button -->
+            <ion-button color="tertiary" class="ion-float-end"
+                        (click)="network.tryOnline()">
+              <span translate>NETWORK.BTN_CHECK_ALIVE</span>
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Welcome card -->
+  <ion-card *ngIf="!loading"
+            class="main welcome ion-padding ion-text-center ion-align-self-center"
+            @fadeInAnimation>
+    <ion-card-header>
+      <ion-card-title class="ion-text-center">
+        <span *ngIf="isWeb" [innerHTML]="'HOME.WELCOME_WEB'|translate: {appName: appName}"></span>
+        <span *ngIf="!isWeb" [innerHTML]="'HOME.WELCOME_APP'|translate: {appName: appName}"></span>
+      </ion-card-title>
+      <ion-card-subtitle [innerHTML]="description">
+      </ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content class="ion-no-padding">
+      <ion-text color="primary">
+        <img class="logo" src="{{ logo }}"/>
+      </ion-text>
+      <ion-text *ngIf="!isLogin">
+        <br/>
+        <span translate>HOME.REGISTER_HELP</span>
+      </ion-text>
+    </ion-card-content>
+
+    <ion-footer class="ion-padding-top">
+
+      <!-- If NOT login -->
+      <ng-container *ngIf="!isLogin; else loginButtons;">
+
+        <ion-button expand="block" color="primary" (click)="register()">
+          <span translate>HOME.BTN_REGISTER</span>
+        </ion-button>
+        <ion-button expand="block" color="light" [routerLink]="['/']" (click)="login()">
+          <span translate>AUTH.BTN_LOGIN</span>
+        </ion-button>
+
+
+      </ng-container>
+
+      <!-- If user login -->
+      <ng-template #loginButtons>
+
+        <ion-button expand="block" color="secondary" [routerLink]="['/account']">
+          <ion-icon name="contact" slot="start"></ion-icon>
+          <span translate>HOME.BTN_MY_ACCOUNT</span>
+        </ion-button>
+
+        <p hidden-xs hidden-sm hidden-mobile>
+          <ion-text [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: displayName}"></ion-text>
           <br/>
-          <span translate>HOME.REGISTER_HELP</span>
-        </ion-text>
-      </ion-card-content>
+          <ion-text>
+            <a href="#" (click)="logout($event)">
+              <span translate>HOME.BTN_DISCONNECT</span>
+            </a>
+          </ion-text>
+        </p>
 
-      <ion-footer class="ion-padding-top">
+      </ng-template>
 
-        <!-- If NOT login -->
-        <ng-container *ngIf="!isLogin; else loginButtons;">
-
-          <ion-button expand="block" color="primary" (click)="register()">
-            <span translate>HOME.BTN_REGISTER</span>
-          </ion-button>
-          <ion-button expand="block" color="light" [routerLink]="['/']" (click)="login()">
-            <span translate>AUTH.BTN_LOGIN</span>
-          </ion-button>
+    </ion-footer>
+  </ion-card>
 
 
-        </ng-container>
 
-        <!-- If user login -->
-        <ng-template #loginButtons>
-
-          <ion-button expand="block" color="secondary" [routerLink]="['/account']">
-            <ion-icon name="contact" slot="start"></ion-icon>
-            <span translate>HOME.BTN_MY_ACCOUNT</span>
-          </ion-button>
-
-          <p hidden-xs hidden-sm hidden-mobile>
-            <ion-text [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: displayName}"></ion-text>
-            <br/>
-            <ion-text>
-              <a href="#" (click)="logout($event)">
-                <span translate>HOME.BTN_DISCONNECT</span>
-              </a>
-            </ion-text>
-          </p>
-        </ng-template>
-
-      </ion-footer>
-    </ion-card>
-
+  <!-- Page history -->
   <ion-grid *ngIf="!loading && pageHistory.length; else bottomBanner"
             class="history-container ion-align-self-center">
     <ion-row>

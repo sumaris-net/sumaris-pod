@@ -168,7 +168,7 @@ export class TripFilter {
     return !filter || (isNilOrBlank(filter.programLabel) && isNilOrBlank(filter.vesselId) && isNilOrBlank(filter.locationId)
       && !filter.startDate && !filter.endDate
       && isNil(filter.recorderDepartmentId))
-      // && !filter.synchronizationStatus -- not includes, because separated button
+      // && !filter.synchronizationStatus -- not included, because separated button
       ;
   }
 

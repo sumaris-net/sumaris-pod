@@ -23,6 +23,7 @@ import {ExtractionService} from "../services/extraction.service";
 import {FormBuilder} from "@angular/forms";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {Alerts} from "../../shared/alerts";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -378,32 +379,8 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     return ExtractionType.equals(t1, t2);
   }
 
-  protected async askDeleteConfirmation(): Promise<boolean> {
-    const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE_IMMEDIATE', 'CONFIRM.ALERT_HEADER']);
-    let confirm = false;
-    const alert = await this.alertCtrl.create({
-      header: translations['CONFIRM.ALERT_HEADER'],
-      message: translations['CONFIRM.DELETE_IMMEDIATE'],
-      buttons: [
-        {
-          text: translations['COMMON.NO'],
-          role: 'cancel',
-          cssClass: 'secondary',
-          handler: () => {
-          }
-        },
-        {
-          text: translations['COMMON.YES'],
-          handler: () => {
-            confirm = true; // update upper value
-          }
-        }
-      ]
-    });
-    await alert.present();
-    await alert.onDidDismiss();
-
-    return confirm;
+  protected askDeleteConfirmation(event?: UIEvent): Promise<boolean> {
+    return Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
   }
 
   /* -- private method -- */
