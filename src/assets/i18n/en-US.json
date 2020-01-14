@@ -10,7 +10,10 @@
     "BTN_EDIT": "Edit",
     "BTN_CLOSE": "Close",
     "BTN_DONE": "Done",
+    "BTN_DOWNLOAD": "Download",
     "BTN_DELETE": "Delete",
+    "BTN_YES_DELETE": "Oui, delete",
+    "BTN_YES_CONTINUE": "Oui, continue",
     "BTN_VALIDATE": "Validate",
     "BTN_NOT_SAVE": "do NOT save",
     "BTN_SAVE": "Save",
@@ -101,6 +104,7 @@
       "TITLE": "Configuration {{label}}"
     },
     "OPTIONS": {
+      "ANDROID_INSTALL_URL": "Android > Install App URL",
       "LOGO": "Menu > Logo (max width: 110px)",
       "FAVICON": "favicon",
       "DEFAULT_LOCALE": "Default Language",
@@ -160,7 +164,8 @@
     "DEVELOPED_BY": "Developed by:"
   },
   "HOME": {
-    "WELCOME": "Welcome to the {{appName}} web site!",
+    "WELCOME_WEB": "Welcome to the {{appName}} web site!",
+    "WELCOME_APP": "Welcome to the {{appName}} App!",
     "DESCRIPTION": "European shared database for management of skate stocks.",
     "BTN_TRIPS": "Search trips",
     "REGISTER_HELP": "Registration is free. Join us today!",
@@ -168,6 +173,8 @@
     "BTN_DISCONNECT": "Disconnect this account",
     "BTN_MY_ACCOUNT": "My account",
     "BTN_REGISTER": "Register",
+    "DOWNLOAD_APP_TITLE": "{{appName}} for {{platform}}",
+    "DOWNLOAD_APP_HELP": "Free download.",
     "SHOW_AT": "Show at"
   },
   "AUTH": {
@@ -175,6 +182,7 @@
     "BTN_LOGIN": "Log In",
     "BTN_REGISTER": "Sign up",
     "NO_ACCOUNT_QUESTION": "Don't have an account?",
+    "OFFLINE_MODE": "Force offline mode?",
     "LOGOUT": {
       "CONFIRM_TITLE": "Confirmation",
       "CONFIRM_MESSAGE": "Are you sure you want to logout ?",
@@ -241,9 +249,9 @@
       "FIELD": "On field",
       "DESK": "In office"
     },
-    "FIELD_NAME": "Entry field",
-    "FIELD_DISPLAY": "Display",
-    "BTN_ADD_FIELD": "Add a entry field",
+    "PROPERTY_KEY": "Entry field",
+    "PROPERTY_VALUE": "Display",
+    "BTN_ADD_PROPERTY": "Add a entry field",
     "FIELDS": {
       "DEPARTMENT": "Dropdown list > Departments",
       "LOCATION": "Dropdown list > Locations",
@@ -339,6 +347,11 @@
         "LOCATION": "Port (departure or return)",
         "VESSEL": "Vessel",
         "SYNCHRONIZATION_STATUS": "Status"
+      },
+      "SYNCHRONIZATION_STATUS": {
+        "DIRTY_HELP": "Unsynchronized trips",
+        "READY_TO_SYNC_HELP": "Ready to sync trips",
+        "SYNC_HELP": "Online trips"
       }
     },
     "ERROR": {
@@ -439,7 +452,7 @@
         "ESTIMATED_WEIGHT": "Estimated weight",
         "TOTAL_INDIVIDUAL_COUNT": "Total nb indiv.",
         "TOTAL_WEIGHT": "Total weight (kg)",
-        "IS_SAMPLING": "Sampling ?",
+        "IS_SAMPLING": "Fill the weight of the measured fraction:",
         "SAMPLING_RATIO": "Sampling fraction (%)",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "SAMPLING_WEIGHT": "Sampling weight (kg)",
@@ -662,7 +675,8 @@
   "VESSEL": {
     "VESSEL_ID": "Internal code",
     "VESSEL_TYPE": "Type",
-    "STATUS_ID": "Status",
+    "STATUS": "Status",
+    "COMMENTS": "Comments",
     "TAB_GENERAL": "General information",
     "TAB_HISTORY": "History",
     "FEATURES": {
@@ -991,6 +1005,7 @@
     }
   },
   "NETWORK": {
+    "BTN_CHECK_ALIVE": "Retry",
     "PEER": {
       "OFFLINE": "Unreachable peer",
       "SELECT_MODAL": {
@@ -1003,7 +1018,12 @@
       "READY_TO_SYNC": "Ready to synchronize",
       "SYNC": "Synchronized"
     },
-    "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%"
+    "INFO": {
+      "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%",
+      "IMPORTATION_SUCCEED": "Import successfully completed!<br/><b>Offline mode</b> is now available.",
+      "OFFLINE": "No network connection.",
+      "OFFLINE_HELP": "The application works in <b>offline mode</b>."
+    }
   },
   "ERROR": {
     "FIELD_REQUIRED": "This field is required.",
@@ -1014,7 +1034,7 @@
     "FIELD_MIN": "Minimal value: {{min}}",
     "FIELD_MIN_COMPACT": "Min value={{min}}",
     "FIELD_MAX": "Maximum value: {{max}}",
-    "FIELD_MAX_LENGTH": "Longueur maximale: {{requiredLength}}",
+    "FIELD_MAX_LENGTH": "Maximum length: {{requiredLength}}",
     "FIELD_MAX_COMPACT": "Max value={{max}}",
     "FIELD_MAXIMUM_DECIMALS": "Invalid number of decimals ({{max}} max)",
     "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb decimals max={{max}}",
@@ -1055,7 +1075,8 @@
     "TABLE_INVALID_ROW_ERROR": "A row is invalid",
     "SAVE_DATA_ERROR": "Error while saving data.<small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_DATA_ERROR": "Error while loading data.<small><br/>If the problem persists, please contact your administrator.</small>",
-    "IMPORT_NEED_ONLINE_NETWORK": "No network connection. Unable to synchronize.",
+    "NETWORK_REQUIRED": "No network connection.<br/><b>Check your network connection</b> before trying again.",
+    "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "No network connection. Unable to synchronize.",
     "IMPORT_REFERENTIAL_ERROR": "Error while loading referential lists. Could not enable the offline mode."
   },
   "CONFIRM": {
@@ -1063,8 +1084,12 @@
     "SAVE": "Some changes have not been saved.<br/><br/>Do you want <b>save your changes</b>?",
     "SAVE_BEFORE_CLOSE": "Some changes have not been saved.<br/><br/>Do you want to <b>save your changes</b> before closing?",
     "CANCEL_CHANGES": "Your last changes will be canceled.<br/><br/><b>Are you sure</b> you want to continue?",
+    "DELETE": "<b>Are you sure</b> you want to delete?",
     "ACTION_IMMEDIATE": "This operation is irreversible.<br/><br/><b>Are you sure</b> you want to continue?",
     "DELETE_ROW": "<b>Are you sure</b> you want to delete this row?",
     "DELETE_ROWS": "<b>Are you sure</b> you want to delete this rows?"
+  },
+  "INFO" : {
+    "SYNCHRONIZATION_SUCCEED": "Synchronization completed! <br/> The data has been received by the server."
   }
 }

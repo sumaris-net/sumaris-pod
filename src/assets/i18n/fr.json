@@ -104,7 +104,7 @@
       "TITLE": "Configuration {{label}}"
     },
     "OPTIONS": {
-      "ANDROID_INSTALL_URL": "Android > Adresse de téléchargement du fichier APK",
+      "ANDROID_INSTALL_URL": "Android > Adresse d'installation App",
       "LOGO": "Menu > Logo (largeur max 110px)",
       "FAVICON": "favicon",
       "DEFAULT_LOCALE": "Langue par défaut",
@@ -452,7 +452,7 @@
         "ESTIMATED_WEIGHT": "Poids estimé ?",
         "TOTAL_INDIVIDUAL_COUNT": "Nombre d'individus total",
         "TOTAL_WEIGHT": "Poids total (kg)",
-        "IS_SAMPLING": "Echantillonnage ?",
+        "IS_SAMPLING": "Saisir le poids de la fraction mesuré :",
         "SAMPLING_RATIO": "Taux échant. (%)",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "SAMPLING_WEIGHT": "Poids échant. (kg)",
