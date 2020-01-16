@@ -29,6 +29,8 @@ package net.sumaris.core.service.schema;
 
 import net.sumaris.core.exception.VersionNotFoundException;
 import org.nuiton.version.Version;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
@@ -58,7 +60,7 @@ public interface DatabaseSchemaService {
 	/**
 	 * <p>updateSchema.</p>
 	 */
-	@Transactional()
+	@Transactional(readOnly = false)
 	void updateSchema();
 
     /**
@@ -115,4 +117,12 @@ public interface DatabaseSchemaService {
 	 * @throws IOException if any.
 	 */
 	void updateSchemaToFile(File outputFile) throws IOException;
+
+	/**
+	 * Emit event to all listeners, into a NEW transaction
+	 */
+	@Transactional(
+			propagation = Propagation.REQUIRES_NEW,
+			readOnly = false)
+	void fireOnSchemaUpdatedEvent();
 }

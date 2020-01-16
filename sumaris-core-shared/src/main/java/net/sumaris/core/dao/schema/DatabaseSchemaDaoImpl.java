@@ -32,16 +32,18 @@ import com.google.common.collect.Sets;
 import liquibase.exception.LiquibaseException;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
+import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.hibernate.HibernateConnectionProvider;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.hibernate.HibernateImplicitNamingStrategy;
 import net.sumaris.core.dao.technical.hibernate.HibernatePhysicalNamingStrategy;
 import net.sumaris.core.dao.technical.liquibase.Liquibase;
-import net.sumaris.core.util.Springs;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.VersionNotFoundException;
+import net.sumaris.core.util.Springs;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -62,7 +64,6 @@ import org.nuiton.version.VersionBuilder;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
@@ -71,6 +72,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.ResourceUtils;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.sql.DataSource;
@@ -79,8 +81,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
-import java.util.*;
 import java.util.Date;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 
 /**
@@ -90,17 +93,21 @@ import java.util.function.Predicate;
 @Lazy
 public class DatabaseSchemaDaoImpl
         extends HibernateDaoSupport
-        implements DatabaseSchemaDao, InitializingBean {
+        implements DatabaseSchemaDao {
 
     /** Logger. */
     private static final Logger log =
             LoggerFactory.getLogger(DatabaseSchemaDaoImpl.class);
+
+
+    private List<DatabaseSchemaListener> listeners = new CopyOnWriteArrayList<>();
 
     @Autowired
     private Liquibase liquibase;
 
     @Autowired
     private DataSource dataSource;
+
 
     /**
      * Constructor used by Spring
@@ -141,8 +148,8 @@ public class DatabaseSchemaDaoImpl
      *
      * Executed automatically when the bean is initialized.
      */
-    @Override
-    public void afterPropertiesSet() {
+    @PostConstruct
+    protected void init() {
 
         // check database and server timezones conformity
         try {
@@ -160,6 +167,13 @@ public class DatabaseSchemaDaoImpl
             } catch (VersionNotFoundException e) {
                 // silent
             }
+        }
+    }
+
+    @Override
+    public void addListener(DatabaseSchemaListener listener) {
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
         }
     }
 
@@ -217,12 +231,24 @@ public class DatabaseSchemaDaoImpl
         try {
             liquibase.executeUpdate(connectionProperties);
 
+
         } catch (LiquibaseException le) {
             if (log.isErrorEnabled()) {
                 log.error(le.getMessage(), le);
             }
             throw new DatabaseSchemaUpdateException("Could not update schema", le);
         }
+
+        Version schemaVersion = null;
+        try {
+            schemaVersion = getSchemaVersion();
+        }
+        catch(VersionNotFoundException e) {
+            // Continue
+        }
+        log.info(I18n.t("sumaris.persistence.liquibase.executeUpdate.success",
+                schemaVersion != null ? schemaVersion.toString() : "?"));
+
     }
 
     /** {@inheritDoc} */
@@ -716,4 +742,27 @@ public class DatabaseSchemaDaoImpl
         }
         throw new SumarisTechnicalException("Could not determine database type");
     }
+
+    public void fireOnSchemaUpdatedEvent() {
+
+        try {
+            final SchemaUpdatedEvent event = new SchemaUpdatedEvent(getSchemaVersion(), config.getConnectionProperties());
+
+            listeners.forEach(l -> {
+                try {
+                    l.onSchemaUpdated(event);
+                } catch(Throwable t) {
+                    log.error("Database schema listener error (onSchemaUpdated): " + t.getMessage(), t);
+                    // Continue, to avoid transaction cancellation
+                }
+            });
+
+        }
+        catch (VersionNotFoundException e) {
+            log.error("Could not emit event to listeners: " + e.getMessage());
+        }
+
+
+    }
+
 }

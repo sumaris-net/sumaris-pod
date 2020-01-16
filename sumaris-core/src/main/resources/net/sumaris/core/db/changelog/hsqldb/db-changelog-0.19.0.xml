@@ -59,7 +59,13 @@
     </preConditions>
     <renameColumn tableName="GEAR" oldColumnName="GEAR_LEVEL_FK" newColumnName="GEAR_CLASSIFICATION_FK"/>
   </changeSet>
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-2d">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-2c2" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <foreignKeyConstraintExists foreignKeyName="GEAR_GEAR_LEVEL_FKC"/>
+    </preConditions>
+    <dropForeignKeyConstraint baseTableName="GEAR" constraintName="GEAR_GEAR_LEVEL_FKC"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-2d" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <not>
         <foreignKeyConstraintExists foreignKeyName="GEAR_GEAR_CLASSIFICATION_FKC"/>
@@ -605,6 +611,9 @@
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
       <column name="LABEL">0.19.0</column>
       <column name="DESCRIPTION">
+        - Add table LOCATION_CLASSIFICATION
+        - Add table VESSEL_OWNER_PERIOD
+        - Add table APPLIED_PERIOD
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>

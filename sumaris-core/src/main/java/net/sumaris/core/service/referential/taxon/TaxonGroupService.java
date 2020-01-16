@@ -34,7 +34,7 @@ import java.util.List;
 public interface TaxonGroupService {
 
     @Transactional
-    void updateTaxonGroupHierarchies();
+    boolean updateTaxonGroupHierarchies();
 
     List<TaxonGroupVO> findTargetSpeciesByFilter(ReferentialFilterVO filter,
                                                  int offset,

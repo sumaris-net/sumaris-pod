@@ -26,16 +26,21 @@ package net.sumaris.core.service.schema;
 
 
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.VersionNotFoundException;
+import org.apache.activemq.broker.BrokerService;
 import org.nuiton.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 
@@ -50,12 +55,33 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
     /** Logger. */
     private static final Logger log =
             LoggerFactory.getLogger(DatabaseSchemaServiceImpl.class);
-    
+
+
     @Autowired
 	protected SumarisConfiguration config;
 
     @Autowired
     protected DatabaseSchemaDao databaseSchemaDao;
+
+    @Autowired
+    protected DatabaseSchemaService self;
+
+    @Autowired(required = false)
+    protected TaskExecutor taskExecutor;
+
+    @PostConstruct
+    protected void init() {
+
+        // Run schema update, if need
+        boolean shouldRun = config.useLiquibaseAutoRun();
+        if (shouldRun) {
+            updateSchema();
+        }
+        else if (log.isDebugEnabled()){
+            log.debug( String.format("Liquibase did not run because configuration option '%s' set to false.",
+                            SumarisConfigurationOption.LIQUIBASE_RUN_AUTO.getKey()));
+        }
+    }
     
     /** {@inheritDoc} */
     @Override
@@ -74,7 +100,7 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
         }
         return version;
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public Version getApplicationVersion() {
@@ -89,6 +115,30 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
         } catch (DatabaseSchemaUpdateException e) {
             throw new SumarisTechnicalException(e.getCause());
         }
+
+
+        // Emit event to listeners
+        // WARN: should always be done in a transactionnal service method
+        if (taskExecutor != null) {
+            taskExecutor.execute(() -> {
+                try {
+                    Thread.sleep(10 * 1000);
+
+                    self.fireOnSchemaUpdatedEvent();
+                } catch (InterruptedException e) {
+                }
+
+            });
+        }
+        else {
+            self.fireOnSchemaUpdatedEvent();
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void fireOnSchemaUpdatedEvent() {
+        databaseSchemaDao.fireOnSchemaUpdatedEvent();
     }
 
     /** {@inheritDoc} */
@@ -109,7 +159,7 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
         if (outputFile == null || !outputFile.getParentFile().isDirectory() || !outputFile.canWrite()) {
             log.error("Could not write into the output file. Please make sure the given path is a valid path.");
             return;
-        }        
+        }
 
         databaseSchemaDao.generateStatusReport(outputFile);
     }
@@ -147,4 +197,6 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
     public void updateSchemaToFile(File outputFile) throws IOException {
         databaseSchemaDao.generateUpdateSchemaFile(outputFile.getCanonicalPath());
     }
+
+
 }

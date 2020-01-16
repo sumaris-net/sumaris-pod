@@ -5,17 +5,12 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
         logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/sumaris/db-changelog-0.8.0.xml">
 
-  <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
   <property name="sqlCheck.sumaris.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS'"/>
   <property name="sqlCheck.sumaris.expectedResult" value="1"/>
 
-  <preConditions onFail="WARN" onFailMessage="Database instance is not a SUMARiS database instance ! Do not include this changelog file in the master file">
-    <or>
-      <!-- Test if database is empty -->
-      <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
-      <!-- OR if expected production database -->
+  <!-- Warn if not the targeted database -->
+  <preConditions onFail="WARN" onFailMessage="Database instance is not a SUMARiS database instance. Skipping.">
       <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
-    </or>
   </preConditions>
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-300" runOnChange="true">

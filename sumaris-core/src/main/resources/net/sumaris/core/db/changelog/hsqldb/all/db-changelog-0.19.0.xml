@@ -27,24 +27,14 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/all/db-changelog-0.19.0.xml">
 
-    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
-    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
-    <property name="sqlCheck.adap.expectedResult" value="1"/>
-
-    <preConditions onFail="WARN" onFailMessage="Database instance is empty. Skipping data insertion by SQL">
-        <or>
-            <!-- Test if database is empty -->
-            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
-            <!-- OR if expected production database -->
-            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
-        </or>
-    </preConditions>
+    <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+    <property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
     <!-- Insert location classifications -->
     <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-301">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <sqlCheck expectedResult="0">SELECT count(*) FROM location_classification</sqlCheck>
             </and>
         </preConditions>
@@ -70,7 +60,7 @@
     <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-302">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_classification where label = 'LAND' and id = 1</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_level where location_classification_fk is null and label = 'Country'</sqlCheck>
             </and>
@@ -83,7 +73,7 @@
     <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-303">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_classification where label = 'LAND' and id = 1</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_level where location_classification_fk is null and label = 'Harbour'</sqlCheck>
             </and>
@@ -96,7 +86,7 @@
     <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-304">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_classification where label = 'LAND' and id = 1</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_level where location_classification_fk is null and label = 'Auction'</sqlCheck>
             </and>
@@ -109,7 +99,7 @@
     <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-305">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_classification where label = 'SEA' and id = 2</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_level where location_classification_fk is null and label = 'ICES_RECTANGLE'</sqlCheck>
             </and>
@@ -122,7 +112,7 @@
     <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-306">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_classification where label = 'SEA' and id = 2</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_level where location_classification_fk is null and label = 'CGPM_GFCM_RECTANGLE'</sqlCheck>
             </and>
@@ -135,7 +125,7 @@
     <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-307">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_classification where label = 'SEA' and id = 2</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_level where location_classification_fk is null and label = 'SQUARE_10'</sqlCheck>
             </and>
@@ -148,7 +138,7 @@
     <changeSet author="ludovic.pecquot@e-is.pro" id="1571063716975-308">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_classification where label = 'SEA' and id = 2</sqlCheck>
                 <sqlCheck expectedResult="1">SELECT count(*) FROM location_level where location_classification_fk is null and label = 'SQUARE_3'</sqlCheck>
             </and>

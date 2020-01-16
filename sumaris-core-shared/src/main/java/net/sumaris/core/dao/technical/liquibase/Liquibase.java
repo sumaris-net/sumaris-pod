@@ -67,6 +67,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
@@ -80,7 +81,7 @@ import java.util.regex.Pattern;
  * <p>Liquibase class.</p>
  */
 @Component
-public class Liquibase implements InitializingBean, BeanNameAware, ResourceLoaderAware {
+public class Liquibase implements BeanNameAware, ResourceLoaderAware {
 
     /** Logger. */
     private static final org.slf4j.Logger log =
@@ -135,12 +136,11 @@ public class Liquibase implements InitializingBean, BeanNameAware, ResourceLoade
     }
 
     /**
-     * {@inheritDoc}
      *
      * Executed automatically when the bean is initialized.
      */
-    @Override
-    public void afterPropertiesSet() throws LiquibaseException {
+    @PostConstruct
+    public void init() throws LiquibaseException {
         // Update the change log path, from configuration
         setChangeLog(config.getLiquibaseChangeLogPath());
 
@@ -149,17 +149,6 @@ public class Liquibase implements InitializingBean, BeanNameAware, ResourceLoade
 
         // Compute the max changelog file version
         computeMaxChangeLogFileVersion();
-
-        boolean shouldRun = SumarisConfiguration.getInstance().useLiquibaseAutoRun();
-
-        if (!shouldRun) {
-            getLog().debug(
-                    String.format("Liquibase did not run because properties '%s' set to false.",
-                            SumarisConfigurationOption.LIQUIBASE_RUN_AUTO.getKey()));
-            return;
-        }
-
-        executeUpdate();
     }
 
     /**

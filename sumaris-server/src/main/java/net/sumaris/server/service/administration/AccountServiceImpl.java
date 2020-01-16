@@ -31,6 +31,7 @@ import it.ozimov.springboot.mail.service.EmailService;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.administration.user.UserSettingsDao;
 import net.sumaris.core.dao.administration.user.UserTokenDao;
+import net.sumaris.core.event.DataEntityCreatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
@@ -39,6 +40,7 @@ import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
+import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
@@ -52,6 +54,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -357,8 +360,20 @@ public class AccountServiceImpl implements AccountService {
         return account;
     }
 
+
     /* -- protected methods -- */
 
+    @JmsListener(destination = "createTrip", containerFactory = "jmsListenerContainerFactory")
+    public void onTripCreated(TripVO event) {
+        log.info(String.format("New trip {%s}",  event.getId()));
+        // TODO send event for supervisor
+    }
+
+    @JmsListener(destination = "updateTrip", containerFactory = "jmsListenerContainerFactory")
+    public void onTripUpdated(TripVO event) {
+        log.info(String.format("Updated trip {%s}",  event.getId()));
+        // TODO send event for supervisor
+    }
 
     protected void checkValid(AccountVO account) {
         Preconditions.checkNotNull(account);

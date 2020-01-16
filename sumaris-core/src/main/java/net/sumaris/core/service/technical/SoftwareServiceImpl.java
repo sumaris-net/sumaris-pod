@@ -26,6 +26,8 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
+import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
+import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.SoftwareDao;
 import net.sumaris.core.exception.VersionNotFoundException;
 import net.sumaris.core.vo.technical.SoftwareVO;
@@ -41,18 +43,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
 @Component("softwareService")
-public class SoftwareServiceImpl implements SoftwareService {
+public class SoftwareServiceImpl implements SoftwareService, DatabaseSchemaListener {
 
     private static final Log log = LogFactory.getLog(SoftwareServiceImpl.class);
 
@@ -71,9 +75,13 @@ public class SoftwareServiceImpl implements SoftwareService {
     }
 
     @PostConstruct
-    protected void afterPropertiesSet() {
+    protected void init() {
+        databaseSchemaDao.addListener(this);
+    }
 
-        loadConfigurationFromDatabase();
+    @Override
+    public void onSchemaUpdated(SchemaUpdatedEvent event) {
+        overrideAppConfigFromDatabase(event.getSchemaVersion());
     }
 
     @Override
@@ -113,19 +121,19 @@ public class SoftwareServiceImpl implements SoftwareService {
         }
     }
 
-    protected void loadConfigurationFromDatabase() {
+    protected boolean overrideAppConfigFromDatabase(@Nullable Version dbVersion) {
 
         try {
-            Version dbVersion = databaseSchemaDao.getSchemaVersion();
+            dbVersion = dbVersion != null ? dbVersion : databaseSchemaDao.getSchemaVersion();
             Version minVersion = VersionBuilder.create("0.9.5").build();
 
             // Test if software table exists, if not, skip
             if (dbVersion == null || minVersion.after(dbVersion)) {
-                log.warn(String.format("Skipping configuration override from database (expected min schema version {%s})", minVersion.toString()));
-                return; // skip
+                log.warn(String.format("Skipping configuration override from database (expected min schema version {%s}). Waiting schema update...", minVersion.toString()));
+                return false; // KO: will retry after schema update
             }
         } catch(VersionNotFoundException e) {
-            // ok, continue (schema should be a new one ?)
+            // ok, continue (schema should be a new one)
         }
 
         ApplicationConfig appConfig = SumarisConfiguration.getInstance().getApplicationConfig();
@@ -133,37 +141,41 @@ public class SoftwareServiceImpl implements SoftwareService {
         SoftwareVO software = getDefault();
         if (software == null) {
             log.info(String.format("No configuration for {%s} found in database. to enable configuration override from database, make sure to set the option '%s' to an existing row of the table SOFTWARE (column LABEL).", defaultSoftwareLabel, SumarisConfigurationOption.APP_NAME.getKey()));
+            return true; // skip
         }
-        else if (MapUtils.isNotEmpty(software.getProperties())) {
-            log.info(String.format("Overriding configuration options, using those found in database for {%s}", defaultSoftwareLabel));
-
-            // Load options from configuration providers
-            Set<ApplicationConfigProvider> providers =
-                    ApplicationConfigHelper.getProviders(null,
-                            null,
-                            null,
-                            true);
-            Set<String> optionKeys = providers.stream().flatMap(p -> Stream.of(p.getOptions()))
-                    .map(o -> o.getKey()).collect(Collectors.toSet());
-            Set<String> transientOptionKeys = providers.stream().flatMap(p -> Stream.of(p.getOptions()))
-                    .filter(o -> o.isTransient())
-                    .map(o -> o.getKey()).collect(Collectors.toSet());
-
-            software.getProperties().entrySet()
-                    .forEach(entry -> {
-                        if (!optionKeys.contains(entry.getKey())) {
-                            if (log.isDebugEnabled()) log.debug(String.format(" - Skipping unknown configuration option {%s=%s} found in database for {%s}.", entry.getKey(), entry.getValue(), defaultSoftwareLabel));
-                        }
-                        else if (transientOptionKeys.contains(entry.getKey())) {
-                            if (log.isDebugEnabled()) log.debug(String.format(" - Skipping transient configuration option {%s=%s} found in database for {%s}.", entry.getKey(), entry.getValue(), defaultSoftwareLabel));
-                        }
-                        else {
-                            if (log.isDebugEnabled()) log.debug(String.format(" - Applying option {%s=%s}", entry.getKey(), entry.getValue()));
-
-                            appConfig.setOption(entry.getKey(), entry.getValue());
-                        }
-                    });
+        else if (MapUtils.isEmpty(software.getProperties())) {
+            return true; // No properties found
         }
+
+        log.info(String.format("Overriding configuration options, using those found in database for {%s}", defaultSoftwareLabel));
+
+        // Load options from configuration providers
+        Set<ApplicationConfigProvider> providers =
+                ApplicationConfigHelper.getProviders(null,
+                        null,
+                        null,
+                        true);
+        Set<String> optionKeys = providers.stream().flatMap(p -> Stream.of(p.getOptions()))
+                .map(o -> o.getKey()).collect(Collectors.toSet());
+        Set<String> transientOptionKeys = providers.stream().flatMap(p -> Stream.of(p.getOptions()))
+                .filter(o -> o.isTransient())
+                .map(o -> o.getKey()).collect(Collectors.toSet());
+
+        software.getProperties().entrySet()
+                .forEach(entry -> {
+                    if (!optionKeys.contains(entry.getKey())) {
+                        if (log.isDebugEnabled()) log.debug(String.format(" - Skipping unknown configuration option {%s=%s} found in database for {%s}.", entry.getKey(), entry.getValue(), defaultSoftwareLabel));
+                    }
+                    else if (transientOptionKeys.contains(entry.getKey())) {
+                        if (log.isDebugEnabled()) log.debug(String.format(" - Skipping transient configuration option {%s=%s} found in database for {%s}.", entry.getKey(), entry.getValue(), defaultSoftwareLabel));
+                    }
+                    else {
+                        if (log.isDebugEnabled()) log.debug(String.format(" - Applying option {%s=%s}", entry.getKey(), entry.getValue()));
+
+                        appConfig.setOption(entry.getKey(), entry.getValue());
+                    }
+                });
+        return true;
     }
 
 }

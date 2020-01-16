@@ -23,8 +23,11 @@ package net.sumaris.core.service.referential.taxon;
  */
 
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
+import net.sumaris.core.dao.schema.DatabaseSchemaDao;
+import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
+import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.service.schema.DatabaseSchemaService;
+import net.sumaris.core.exception.VersionNotFoundException;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.nuiton.version.Version;
@@ -36,10 +39,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service("taxonGroupService")
-public class TaxonGroupServiceImpl implements TaxonGroupService {
+public class TaxonGroupServiceImpl implements TaxonGroupService, DatabaseSchemaListener {
 
     private static final Logger log = LoggerFactory.getLogger(TaxonGroupServiceImpl.class);
 
@@ -50,33 +52,40 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
     protected TaxonGroupService self;
 
     @Autowired
-    protected DatabaseSchemaService databaseSchemaService;
+    protected DatabaseSchemaDao databaseSchemaDao;
 
     @PostConstruct
-    protected void afterPropertiesSet() {
-
-        // Check version
-        Version minVersion = VersionBuilder.create("0.15.0").build();
-        Version dbVersion = databaseSchemaService.getDbVersion();
-
-        if (dbVersion == null) {
-            log.info("/!\\ Skipping taxon group hierarchy update, because database schema version is unknown. Please restart after schema update.");
-        }
-
-        else if (dbVersion.before(minVersion)) {
-            log.info("/!\\ Skipping taxon group hierarchy update, because database schema version < 0.15.0. Please restart after schema update.");
-        }
-
-        // Fill taxon group hierarchy
-        else {
-            self.updateTaxonGroupHierarchies();
-        }
+    protected void init() {
+        databaseSchemaDao.addListener(this);
     }
 
     @Override
-    public void updateTaxonGroupHierarchies() {
+    public void onSchemaUpdated(SchemaUpdatedEvent event) {
+        updateTaxonGroupHierarchies();
+    }
+
+    @Override
+    public boolean updateTaxonGroupHierarchies() {
+
+        try {
+            // Check version
+            Version dbVersion = databaseSchemaDao.getSchemaVersion();
+            Version minVersion = VersionBuilder.create("0.15.0").build();
+
+            if (dbVersion == null) {
+                log.info("/!\\ Skipping taxon group hierarchy update, because database schema version is unknown. Waiting schema update...");
+                return false;
+            } else if (dbVersion.before(minVersion)) {
+                log.info("/!\\ Skipping taxon group hierarchy update, because database schema version < 0.15.0. Waiting schema update...");
+                return false;
+            }
+        }
+        catch(VersionNotFoundException e) {
+            // ok continue (schema seems to be new)
+        }
 
         taxonGroupRepository.updateTaxonGroupHierarchies();
+        return true;
     }
 
     @Override

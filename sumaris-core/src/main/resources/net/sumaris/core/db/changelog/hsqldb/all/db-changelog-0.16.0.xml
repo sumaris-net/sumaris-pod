@@ -27,24 +27,14 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/all/db-changelog-0.16.0.xml">
 
-    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
-    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
-    <property name="sqlCheck.adap.expectedResult" value="1"/>
-
-    <preConditions onFail="WARN" onFailMessage="Database instance is empty. Skipping data insertion by SQL">
-        <or>
-            <!-- Test if database is empty -->
-            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
-            <!-- OR if expected production database -->
-            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
-        </or>
-    </preConditions>
+    <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+    <property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
     <!-- Insert countries -->
     <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-301" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <not><sqlCheck expectedResult="19">SELECT count(*) FROM location where location_level_fk=1</sqlCheck></not>
             </and>
         </preConditions>
@@ -55,7 +45,7 @@
     <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-302" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <sqlCheck expectedResult="0">SELECT count(*) FROM parameter where label in ('PRESERVATION', 'DRESSING')</sqlCheck>
             </and>
         </preConditions>
@@ -85,7 +75,7 @@
     <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-303" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <sqlCheck expectedResult="0">SELECT count(*) FROM pmfm where label in ('PRESERVATION', 'DRESSING')</sqlCheck>
             </and>
         </preConditions>
@@ -113,7 +103,7 @@
     <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-304" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <sqlCheck expectedResult="0">SELECT count(*) FROM qualitative_value where parameter_fk in (select ID from parameter where label in ('PRESERVATION', 'DRESSING'))</sqlCheck>
             </and>
         </preConditions>
@@ -124,7 +114,7 @@
     <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-305" runOnChange="true" failOnError="false">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
                 <sqlCheck expectedResult="0">SELECT count(*) FROM round_weight_conversion</sqlCheck>
             </and>
         </preConditions>

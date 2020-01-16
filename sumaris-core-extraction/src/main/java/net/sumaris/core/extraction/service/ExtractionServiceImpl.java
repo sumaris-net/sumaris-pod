@@ -26,6 +26,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.schema.DatabaseSchemaDao;
+import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
+import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductDao;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -51,6 +54,7 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.service.schema.DatabaseSchemaService;
 import net.sumaris.core.util.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
@@ -68,6 +72,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -86,7 +91,7 @@ import java.util.stream.Collectors;
  */
 @Service("extractionService")
 @Lazy
-public class ExtractionServiceImpl implements ExtractionService {
+public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaListener {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionServiceImpl.class);
 
@@ -132,10 +137,17 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Autowired
     private ExtractionService self;
 
-    @PostConstruct
-    protected void afterPropertiesSet() {
+    @Autowired
+    protected DatabaseSchemaDao databaseSchemaDao;
 
-        // Make sure statistical rectangle exists (need by trip extraction)
+    @PostConstruct
+    protected void init() {
+        databaseSchemaDao.addListener(this);
+    }
+
+    @Override
+    public void onSchemaUpdated(SchemaUpdatedEvent event) {
+
         if (configuration.isInitStatisticalRectangles()) {
             initRectangleLocations();
         }
@@ -626,29 +638,35 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
     }
 
-    protected void initRectangleLocations() {
-        // Insert missing rectangles
-        long statisticalRectanglesCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_ICES.getId())
-                + referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_CGPM_GFCM.getId());
-        if (statisticalRectanglesCount == 0) {
-            locationService.insertOrUpdateRectangleLocations();
+    protected boolean initRectangleLocations() {
+        try {
+            // Insert missing rectangles
+            long statisticalRectanglesCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_ICES.getId())
+                    + referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_CGPM_GFCM.getId());
+            if (statisticalRectanglesCount == 0) {
+                locationService.insertOrUpdateRectangleLocations();
+            }
+
+            // Insert missing squares
+            long square10minCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.SQUARE_10.getId());
+            if (square10minCount == 0) {
+                //locationService.insertOrUpdateSquares10();
+            }
+
+            if (statisticalRectanglesCount == 0 || square10minCount == 0) {
+                // Update area
+                // FIXME: no stored procedure fillLocationHierarchy on HSQLDB
+                //locationService.insertOrUpdateRectangleAndSquareAreas();
+
+                // Update location hierarchy
+                //locationService.updateLocationHierarchy();
+            }
+            return true;
+
+        } catch (Throwable t) {
+            log.error("Error while initializing rectangle locations: " + t.getMessage(), t);
+            return false;
         }
-
-        // Insert missing squares
-        long square10minCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.SQUARE_10.getId());
-        if (square10minCount == 0) {
-            //locationService.insertOrUpdateSquares10();
-        }
-
-        if (statisticalRectanglesCount == 0 || square10minCount == 0) {
-            // Update area
-            // FIXME: no stored procedure fillLocationHierarchy on HSQLDB
-            //locationService.insertOrUpdateRectangleAndSquareAreas();
-
-            // Update location hierarchy
-            //locationService.updateLocationHierarchy();
-        }
-
 
     }
 

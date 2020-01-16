@@ -28,6 +28,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
+import net.sumaris.core.dao.schema.DatabaseSchemaDao;
+import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
+import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.*;
@@ -58,11 +61,14 @@ import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("programDao")
-public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
+public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, DatabaseSchemaListener {
 
     /** Logger. */
     private static final Logger log =
@@ -74,21 +80,17 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
     @Autowired
     private ReferentialDao referentialDao;
 
+    @Autowired
+    private DatabaseSchemaDao databaseSchemaDao;
+
     @PostConstruct
     protected void init() {
-        Arrays.stream(ProgramEnum.values()).forEach(programEnum -> {
-            try {
-                ProgramVO program = getByLabel(programEnum.name());
-                if (program != null) {
-                    programEnum.setId(program.getId());
-                } else {
-                    // TODO query by id and show program code/name
-                    log.warn("Missing program with label=" + programEnum.name());
-                }
-            } catch(Throwable t) {
-                log.error(String.format("Could not initialized enumeration for program {%s}: %s", programEnum.name(), t.getMessage()), t);
-            }
-        });
+        databaseSchemaDao.addListener(this);
+    }
+
+    @Override
+    public void onSchemaUpdated(SchemaUpdatedEvent event) {
+        initProgramEnumerations();
     }
 
     @Override
@@ -450,5 +452,24 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
             }
 
         }
+    }
+
+    protected boolean initProgramEnumerations() {
+        log.debug("Initialize enumeration for all programs...");
+        for (ProgramEnum programEnum: ProgramEnum.values()) {
+            try {
+                ProgramVO program = getByLabel(programEnum.name());
+                if (program != null) {
+                    programEnum.setId(program.getId());
+                } else {
+                    // TODO query by id and show program code/name
+                    log.warn("Missing program with label=" + programEnum.name());
+                }
+            } catch(Throwable t) {
+                log.error(String.format("Could not initialized enumeration for program {%s}: %s", programEnum.name(), t.getMessage()), t);
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -22,10 +22,12 @@ package net.sumaris.server.service.administration;
  * #L%
  */
 
+import net.sumaris.core.event.DataEntityCreatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
+import org.springframework.jms.annotation.JmsListener;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;

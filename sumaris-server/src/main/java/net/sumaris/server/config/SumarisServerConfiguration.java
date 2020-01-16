@@ -113,6 +113,9 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
             throw new SumarisTechnicalException("Directories initialization failed", e);
         }
 
+        // Init active MQ
+        System.setProperty("org.apache.activemq.default.directory.prefix", getDataDirectory().getPath());
+
     }
 
     /** {@inheritDoc} */

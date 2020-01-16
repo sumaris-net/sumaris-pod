@@ -29,6 +29,9 @@ import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.SaleDao;
 import net.sumaris.core.dao.data.TripDao;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.DataEntityCreatedEvent;
+import net.sumaris.core.event.DataEntityUpdatedEvent;
+import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
@@ -38,6 +41,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -67,6 +71,8 @@ public class TripServiceImpl implements TripService {
     @Autowired
     protected MeasurementDao measurementDao;
 
+    @Autowired
+    protected ApplicationEventPublisher eventPublisher;
 
     @Override
     public List<TripVO> getAllTrips(int offset, int size) {
@@ -115,6 +121,8 @@ public class TripServiceImpl implements TripService {
         // Reset control date
         source.setControlDate(null);
 
+        boolean isNew = source.getId() == null;
+
         // Save
         TripVO savedTrip = tripDao.save(source);
 
@@ -140,8 +148,6 @@ public class TripServiceImpl implements TripService {
         gears = physicalGearService.save(savedTrip.getId(), gears);
         savedTrip.setGears(gears);
 
-
-
         // Save measurements
         if (source.getMeasurementValues() != null) {
             measurementDao.saveTripMeasurementsMap(source.getId(), source.getMeasurementValues());
@@ -158,6 +164,14 @@ public class TripServiceImpl implements TripService {
             List<OperationVO> operations = Beans.getList(source.getOperations());
             operations = operationService.saveAllByTripId(savedTrip.getId(), operations);
             savedTrip.setOperations(operations);
+        }
+
+        // Emit event
+        if (isNew) {
+            eventPublisher.publishEvent(new DataEntityCreatedEvent(Trip.class.getSimpleName(), savedTrip));
+        }
+        else {
+            eventPublisher.publishEvent(new DataEntityUpdatedEvent(Trip.class.getSimpleName(), savedTrip));
         }
 
         return savedTrip;

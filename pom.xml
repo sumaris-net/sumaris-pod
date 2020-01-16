@@ -133,6 +133,7 @@
     <ozimov-email.version>0.6.3</ozimov-email.version>
     <reflections.version>0.9.11</reflections.version>
     <rxjava.version>2.2.0</rxjava.version>
+    <activemq.version>5.15.11</activemq.version>
 
     <jnr-ffi.version>2.1.7</jnr-ffi.version>
     <kalium.version>0.5.0_blavenie</kalium.version>
@@ -389,6 +390,21 @@
         <version>${spring-boot.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-activemq</artifactId>
+        <version>${spring-boot.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>activemq-broker</artifactId>
+        <version>${activemq.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>activemq-kahadb-store</artifactId>
+        <version>${activemq.version}</version>
+      </dependency>
+      <dependency>
         <groupId>io.reactivex.rxjava2</groupId>
         <artifactId>rxjava</artifactId>
         <version>${rxjava.version}</version>
@@ -412,6 +428,11 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-logging</artifactId>
         <version>${spring-boot.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-jms</artifactId>
+        <version>${spring.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
