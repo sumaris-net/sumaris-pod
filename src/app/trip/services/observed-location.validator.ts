@@ -4,31 +4,33 @@ import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../shared/validator/validators";
 import {ObservedLocation} from "./model/observed-location.model";
 import {DataRootEntityValidatorService} from "./validator/base.validator";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Injectable()
 export class ObservedLocationValidatorService extends DataRootEntityValidatorService<ObservedLocation>{
 
   constructor(
-    formBuilder: FormBuilder) {
-    super(formBuilder);
+    formBuilder: FormBuilder,
+    settings: LocalSettingsService) {
+    super(formBuilder, settings);
   }
 
-  getFormConfig(data?: ObservedLocation): { [key: string]: any } {
+  getFormGroupConfig(data?: ObservedLocation): { [key: string]: any } {
     return Object.assign(
-      super.getFormConfig(data),
+      super.getFormGroupConfig(data),
       {
         __typename: [ObservedLocation.TYPENAME],
         location: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         startDateTime: [null, Validators.required],
         endDateTime: [null],
         measurementValues: this.formBuilder.group({}),
-        observers: this.getObserversArray(data),
+        observers: this.getObserversFormArray(data),
         recorderDepartment: [null, SharedValidators.entity],
         recorderPerson: [null, SharedValidators.entity]
       });
   }
 
-  getFormOptions(data?: any): { [key: string]: any } {
+  getFormGroupOptions(data?: any): { [key: string]: any } {
     return {
       validators: [SharedValidators.dateRange('startDateTime', 'endDateTime')]
     };

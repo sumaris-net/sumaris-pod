@@ -49,9 +49,9 @@
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="tripForm.error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="error||tripForm.error" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
+        <ion-label color="danger" class="error" [innerHTML]="(error|| tripForm.error) |translate"></ion-label>>
       </ion-item>
 
       <ion-grid class="ion-no-padding">
@@ -89,10 +89,8 @@
           </ion-col>
           <ion-col size="12" size-xl="3" class="ion-no-padding">
             <entity-metadata [value]="data">
-              <entity-quality-form #qualityForm
-                                   [dataService]="qualityService"
-                                   (onChange)="updateView(data)" (onControl)="onControl($event)">
-              </entity-quality-form>
+              <app-entity-quality-form #qualityForm [editor]="this">
+              </app-entity-quality-form>
             </entity-metadata>
           </ion-col>
         </ion-row>

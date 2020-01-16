@@ -137,24 +137,24 @@ echo "----------------------------------"
 echo "- Executing git push, with tag: v$2"
 echo "----------------------------------"
 
+description="$4"
+if [[ "_$description" == "_" ]]; then
+    description="Release v$2"
+fi
+
 # Commit
 cd $DIRNAME
 git reset HEAD
 git add package.json config.xml src/assets/manifest.json install.sh
 git commit -m "v$2"
-git tag "v$2"
-git push
+git tag -f -a "v$2" -m "${description}"
+git push origin "v$2"
 if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
 # Pause (if propagation is need between hosted git server and github)
 sleep 10s
-
-description="$4"
-if [[ "_$description" == "_" ]]; then
-    description="Release v$2"
-fi
 
 echo "**********************************"
 echo "* Uploading artifacts to Github..."

@@ -645,7 +645,9 @@
     }
   },
   "QUALITY": {
-    "BTN_CONTROL": "Terminer la saisie",
+    "BTN_CONTROL": "Controler la saisie",
+    "BTN_CONTROL_AND_SYNCHRONIZE": "Contrôler puis Synchroniser",
+    "BTN_TERMINATE": "Terminer la saisie",
     "BTN_VALIDATE": "Valider",
     "BTN_UNVALIDATE": "Dévalider",
     "BTN_SYNCHRONIZE": "Synchroniser",
@@ -670,6 +672,9 @@
       "FIXED": "Corrigée",
       "NOT_COMPLETED": "Incomplète",
       "MISSING": "Manquante"
+    },
+    "ERROR": {
+      "INVALID_FORM": "Vérifier et corriger votre saisie."
     }
   },
   "VESSEL": {

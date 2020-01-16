@@ -8,7 +8,10 @@ import {MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 
 export class Sale extends DataRootVesselEntity<Sale> {
 
+  static TYPENAME = 'SaleVO';
+
   static fromObject(source: any): Sale {
+    if (!source) return null;
     const res = new Sale();
     res.fromObject(source);
     return res;
@@ -27,6 +30,7 @@ export class Sale extends DataRootVesselEntity<Sale> {
 
   constructor() {
     super();
+    this.__typename = Sale.TYPENAME;
     this.saleLocation = new ReferentialRef();
     this.saleType = new ReferentialRef();
     this.measurementValues = {};

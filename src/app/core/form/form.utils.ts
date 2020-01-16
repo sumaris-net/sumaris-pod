@@ -1,4 +1,4 @@
-import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from "@angular/forms";
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors} from "@angular/forms";
 import {
   filterNumberInput,
   isNil,
@@ -27,6 +27,8 @@ export class AppFormUtils {
   static markAsTouched = markAsTouched;
   static markAsPristine = markAsPristine;
   static waitWhilePending = waitWhilePending;
+
+  static getFormErrors = getFormErrors;
 
   // ArrayForm
   static addValueInArray = addValueInArray;
@@ -144,6 +146,39 @@ export function logFormErrors(control: AbstractControl, logPrefix?: string, path
       console.warn(`${logPrefix} -> ${path || ''} (${error})`)
     );
   }
+}
+
+export interface FormErrors {
+  [key: string]: ValidationErrors;
+}
+export function getFormErrors(control: AbstractControl, controlName: string, result?: FormErrors): FormErrors {
+  if (control.valid) return undefined;
+
+
+  result = result || {};
+  controlName = controlName || 'root';
+
+  // Form group
+  if (control instanceof FormGroup) {
+    // Copy errors
+    result[controlName] = {...control.errors};
+
+    // Loop on children controls
+    for (let key in control.controls) {
+      getFormErrors(control.controls[key], [controlName, key].join('.'), result);
+    }
+  }
+  // Form array
+  else if (control instanceof FormArray) {
+    control.controls.forEach((child, index) => {
+      getFormErrors(child, controlName + '#' + index, result);
+    });
+  }
+  // Other type of control
+  else {
+    result[controlName] = {...control.errors};
+  }
+  return result;
 }
 
 export function getControlFromPath(form: FormGroup, path: string): AbstractControl {
@@ -343,7 +378,15 @@ export function waitWhilePending<T extends {pending: boolean; }>(form: T, opts?:
 export class FormArrayHelper<T = Entity<any>> {
 
   private readonly arrayControl: FormArray;
-  private allowEmptyArray: boolean;
+  private _allowEmptyArray: boolean;
+
+  get allowEmptyArray(): boolean {
+    return this._allowEmptyArray;
+  }
+
+  set allowEmptyArray(value: boolean) {
+    this.setAllowEmptyArray(value);
+  }
 
   constructor(
     private formBuilder: FormBuilder,
@@ -365,15 +408,8 @@ export class FormArrayHelper<T = Entity<any>> {
       form.addControl(arrayName, this.arrayControl);
     }
 
-    this.allowEmptyArray = toBoolean(options && options.allowEmptyArray, false);
-
-    // Set required (or reste) min length validator
-    if (this.allowEmptyArray) {
-      this.arrayControl.setValidators(null);
-    }
-    else {
-      this.arrayControl.setValidators(SharedValidators.requiredArrayMinLength(1));
-    }
+    // empty array not allow by default
+    this.setAllowEmptyArray(toBoolean(options && options.allowEmptyArray, false));
   }
 
   add(value?: T, options?: { emitEvent: boolean }): boolean {
@@ -382,7 +418,7 @@ export class FormArrayHelper<T = Entity<any>> {
 
   removeAt(index: number) {
     // Do not remove if last criterion
-    if (!this.allowEmptyArray && this.arrayControl.length === 1) {
+    if (!this._allowEmptyArray && this.arrayControl.length === 1) {
       return clearValueInArray(this.form, this.arrayName, this.isEmpty, index);
     }
     else {
@@ -416,5 +452,21 @@ export class FormArrayHelper<T = Entity<any>> {
 
   at(index: number): AbstractControl {
     return this.arrayControl.at(index) as AbstractControl;
+  }
+
+  /* -- internal methods -- */
+
+  protected setAllowEmptyArray(value: boolean) {
+    if (this._allowEmptyArray === value) return; // Skip if same
+
+    this._allowEmptyArray = value;
+
+    // Set required (or reste) min length validator
+    if (this._allowEmptyArray) {
+      this.arrayControl.setValidators(null);
+    }
+    else {
+      this.arrayControl.setValidators(SharedValidators.requiredArrayMinLength(1));
+    }
   }
 }

@@ -364,7 +364,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     // Add pmfms to form
     const measFormGroup = form.get('measurementValues') as FormGroup;
     if (measFormGroup) {
-      this.measurementValidatorService.updateFormGroup(measFormGroup, this.$allPmfms.getValue());
+      this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: this.$allPmfms.getValue()});
     }
 
     const hasSamplingForm = childrenFormHelper.size() === 1 && this.defaultWeightPmfm && true;
@@ -378,7 +378,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       // Reset measurementValues (if exists)
       const samplingMeasFormGroup = samplingForm.get('measurementValues');
       if (samplingMeasFormGroup) {
-        this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as FormGroup, []);
+        this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as FormGroup, {pmfms: []});
       }
 
       // Adapt exists sampling child, if any

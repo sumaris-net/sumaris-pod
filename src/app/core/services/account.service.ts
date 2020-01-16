@@ -222,7 +222,7 @@ export class AccountService extends BaseDataService {
     protected graphql: GraphqlService,
     protected settings: LocalSettingsService,
     protected storage: Storage,
-    protected fileService: FileService
+    protected file: FileService
   ) {
     super(graphql);
 
@@ -426,7 +426,7 @@ export class AccountService extends BaseDataService {
   async login(data: AuthData): Promise<Account> {
     if (!data || !data.username || !data.password) throw new Error("Missing required username or password");
 
-    console.debug("[account] Trying to login...");
+    console.debug("[account] Login...");
 
     let keypair;
     try {
@@ -452,14 +452,13 @@ export class AccountService extends BaseDataService {
 
       // Make sure network if set as offline
       this.network.setForceOffline(true, {displayToast: false});
-      console.info(`[account] Successfully login {${this.data.pubkey.substr(0, 6)}} (offline mode)`);
+      console.info(`[account] Login [OK] {pubkey: ${this.data.pubkey.substr(0, 8)}}, {offline: true}`);
     }
 
     // Online mode: try to auth on pod
     else {
       try {
         this.data.authToken = await this.authenticateAndGetToken();
-        console.info(`[account] Successfully authenticated {${this.data.pubkey.substr(0, 6)}}`);
       }
       catch (error) {
         // Never authenticate, or not ready for offline mode => exit
@@ -475,7 +474,7 @@ export class AccountService extends BaseDataService {
     }
     catch (err) {
       // If account not found, check if email is valid
-      if (err && err.code == ErrorCodes.LOAD_ACCOUNT_ERROR) {
+      if (err && +(err.code) === ErrorCodes.LOAD_ACCOUNT_ERROR) {
 
         let isEmailExists;
         try {
@@ -586,7 +585,7 @@ export class AccountService extends BaseDataService {
     const canRemoteAuth = token || seckey || false;
     if (!canRemoteAuth) return;
 
-    if (this._debug) console.debug(`[account] Restoring account {${pubkey.substr(0, 6)}}...`);
+    if (this._debug) console.debug(`[account] Account restoration...`);
 
     this.data.pubkey = pubkey;
     this.data.keypair = seckey && {
@@ -596,7 +595,6 @@ export class AccountService extends BaseDataService {
 
     // Online mode: try to connect to pod
     if (this.network.online) {
-      console.info("[account] Network detected: Trying to auth on pod");
       try {
         this.data.authToken = await this.authenticateAndGetToken(token);
         if (!this.data.authToken) throw new Error("Authentication failed");
@@ -640,6 +638,8 @@ export class AccountService extends BaseDataService {
     // Emit event
     this.onLogin.next(this.data.account);
 
+    if (this._debug) console.debug(`[account] Account restoration [OK] {pubkey: ${pubkey.substr(0, 8)}}, {profile: ${this.data.mainProfile}}`);
+
     return account;
   }
 
@@ -659,10 +659,18 @@ export class AccountService extends BaseDataService {
     const hasAvatarUrl = jsonAccount.avatar && !jsonAccount.avatar.endsWith(DEFAULT_AVATAR_IMAGE) &&
       (jsonAccount.avatar.startsWith('http://') || (jsonAccount.avatar.startsWith('https://')));
     if (hasAvatarUrl && this.network.online) {
-      jsonAccount.avatar = await this.fileService.getImage(jsonAccount.avatar, {
+      this.file.getImage(jsonAccount.avatar, {
         thumbnail: true,
-        responseType: "dataUrl"
-      });
+        responseType: 'dataUrl'
+      })
+        .then(dataUrl => {
+          console.debug("[account] Image fetched: " + dataUrl);
+          //jsonAccount.avatar = dataUrl;
+        })
+        .catch(err => {
+          console.error(`[account] Error while fetching image: ${jsonAccount.avatar}: ${err}`);
+        });
+
     }
 
     await Promise.all([
@@ -997,19 +1005,19 @@ export class AccountService extends BaseDataService {
   registerAdditionalField(field: FormFieldDefinition) {
     const values = this._$additionalFields.getValue();
     if (!!values.find(f => f.key === field.key)) {
-      throw new Error("Additional account field {" + field.key + "} already define.");
+      throw new Error(`Additional account field {key: ${field.key}} already define.`);
     }
-    if (this._debug) console.debug("[account] Adding additional account field {" + field.key + "}", field);
+    if (this._debug) console.debug(`[account] Found additional account's field {key: ${field.key}}`);
     this._$additionalFields.next(values.concat(field));
   }
 
   async authenticateAndGetToken(token?: string, counter?: number): Promise<string> {
-    if (!this.data.pubkey) throw "User not logged";
+    if (!this.data.pubkey) throw new Error("User not logged");
 
-    if (this._debug && !counter) console.debug("[account] Authenticating on server...");
+    if (!counter) console.info("[account] Authentication on pod...");
 
     if (counter > 4) {
-      if (this._debug) console.debug(`[account] Authentication failed (after ${counter} attempts)`);
+      if (this._debug) console.debug(`[account] Failed to authentication on pod (after ${counter} attempts)`);
       throw { code: ErrorCodes.AUTH_SERVER_ERROR, message: "ERROR.AUTH_SERVER_ERROR" };
     }
 
@@ -1030,6 +1038,8 @@ export class AccountService extends BaseDataService {
       // Token is accepted by the server: store it
       if (data && data.authenticate) {
         this.onAuthTokenChange.next(token);
+
+        console.info(`[account] Authentication on pod [OK] {pubkey: ${this.data.pubkey.substr(0, 8)}}`);
         return token; // return the token
       }
 
@@ -1064,7 +1074,7 @@ export class AccountService extends BaseDataService {
       data.authChallenge.pubkey
     );
     if (!signatureOK) {
-      console.warn("FIXME: Bad server signature on auth challenge !", data.authChallenge);
+      console.warn("FIXME: Bad peer signature on auth challenge !", data.authChallenge);
     }
     // TODO: check server pubkey as a valid certificate
 

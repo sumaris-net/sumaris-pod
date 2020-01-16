@@ -23,7 +23,9 @@ import {IndividualMonitoringSubSamplesTable} from './sample/individualmonitoring
 import {MeasurementValuesForm} from './measurement/measurement-values.form.class';
 import {EntityQualityFormComponent} from "./quality/entity-quality-form.component";
 
-import {LandingService, OperationService, TripService} from './services/trip.services';
+import {TripService} from './services/trip.service';
+import {LandingService} from './services/landing.service';
+import {OperationService} from './services/operation.service';
 
 import {
   BatchGroupValidatorService,

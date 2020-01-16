@@ -13,6 +13,11 @@ This article will explain how to install your environment, then build the applic
 npm install -g ionic@5.4.5 cordova@9.0.0 cordova-res@0.8.1 native-run@0.2.9 
 ```
 
+You can try with latest versions:
+```bash
+npm install -g ionic@latest cordova@latest cordova-res@latest native-run@latest
+```
+
 2. Get sources (clone the repo) : `git clone ...`
 
 ### Install additional tools (optional)

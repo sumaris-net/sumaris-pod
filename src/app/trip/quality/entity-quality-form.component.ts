@@ -3,37 +3,48 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
-  Input, OnDestroy,
+  Input,
+  OnDestroy,
   OnInit,
   Output
 } from '@angular/core';
-import {DataRootEntity, isNil, isNotNil, QualityFlagIds, ReferentialRef, StatusIds, Trip} from '../services/trip.model';
+import {DataEntity, DataRootEntity, isNil, isNotNil, ReferentialRef, StatusIds} from '../services/model/base.model';
 // import fade in animation
-import {fadeInAnimation, LoadResult} from '../../shared/shared.module';
+import {fadeInAnimation} from '../../shared/shared.module';
 import {AccountService} from "../../core/services/account.service";
-import {DataQualityService} from "../services/trip.services";
+import {DataQualityService, isDataQualityService} from "../services/base.service";
 import {QualityFlags, qualityFlagToColor} from "../../referential/services/model";
-import * as moment from "moment";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {merge, Observable, Subscription} from "rxjs";
-import {first, map} from "rxjs/operators";
+import {merge, Subscription} from "rxjs";
 import {NetworkService} from "../../core/services/network.service";
+import {Router} from "@angular/router";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {ToastOptions} from "@ionic/core";
+import {Toasts} from "../../shared/toasts";
+import {ToastController} from "@ionic/angular";
+import {TranslateService} from "@ngx-translate/core";
+import {AppEditorPage} from "../../core/form/editor-page.class";
+import {environment} from "../../../environments/environment";
+import {AppDataEditorPage} from "../form/data-editor-page.class";
 
 @Component({
-  selector: 'entity-quality-form',
+  selector: 'app-entity-quality-form',
   templateUrl: './entity-quality-form.component.html',
   styleUrls: ['./entity-quality-form.component.scss'],
   animations: [fadeInAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EntityQualityFormComponent implements OnInit, OnDestroy {
+export class EntityQualityFormComponent<T extends DataRootEntity<T> = DataRootEntity<any>> implements OnInit, OnDestroy {
 
+  private _debug = false;
   private _subscription = new Subscription();
+  private _controlling = false;
 
-  data: DataRootEntity<any>;
+  data: T;
   loading = true;
   canSynchronize: boolean;
   canControl: boolean;
+  canTerminate: boolean;
   canValidate: boolean;
   canUnvalidate: boolean;
   canQualify: boolean;
@@ -42,101 +53,149 @@ export class EntityQualityFormComponent implements OnInit, OnDestroy {
   qualityFlags: ReferentialRef[];
 
   @Input("value")
-  set value(value: DataRootEntity<any>) {
+  set value(value: T) {
     this.data = value;
-    this.onValueChange();
+    this.updateView();
   }
-  get value(): DataRootEntity<any> {
+  get value(): T {
     return this.data;
   }
 
-  @Input() dataService: DataQualityService<any>;
+  @Input() editor: AppDataEditorPage<T, any>;
 
-  @Output()
-  onChange = new EventEmitter<any>(true);
-
-  @Output()
-  onControl = new EventEmitter<Event>();
+  @Input() service: DataQualityService<T>;
 
   constructor(
+    protected router: Router,
     protected accountService: AccountService,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef,
-    public network: NetworkService
+    protected settings: LocalSettingsService,
+    protected toastController: ToastController,
+    protected translate: TranslateService,
+    protected network: NetworkService,
+    protected cd: ChangeDetectorRef
   ) {
-    this._subscription
-      .add(
-          merge(
-            this.accountService.onLogin,
-            this.network.onNetworkStatusChanges
-          )
-          .subscribe(() => this.onValueChange())
-      );
+
+    this._debug = !environment.production;
   }
 
   ngOnInit(): void {
 
-    if (!this.dataService) {
-      throw new Error("Missing mandatory 'dataService' input!");
-    }
+    // Check editor exists
+    if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
 
+    // Check data service exists
+    this.service = this.service || isDataQualityService(this.editor.service) && this.editor.service || null;
+    if (!this.service) throw new Error("Missing mandatory 'dataService' input!");
+
+    // Subscribe to refresh events
+    this._subscription
+        .add(
+            merge(
+                this.editor.onUpdateView,
+                this.accountService.onLogin,
+                this.network.onNetworkStatusChanges
+            )
+            .subscribe(() => this.updateView(this.editor.data))
+        );
   }
 
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
   }
 
-  async synchronize(event: Event) {
-    if (event.defaultPrevented) return;
+  async control(event: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
 
-    if (this.data instanceof Trip) {
-      console.debug("[quality] Synchronize trip...");
-      const data = await this.dataService.synchronize(this.data);
-      this.onChange.emit(data);
-      this.markForCheck();
+    this._controlling = true;
+
+    let valid = false;
+    try {
+      // Make sure to get valid and saved data
+      const data = await this.editor.getValidAndSavedDataOrNil();
+
+      // no data: skip
+      if (!data) return false;
+
+      if (this._debug) console.debug(`[quality] Control ${data.constructor.name}...`);
+      const errors = await this.service.control(data);
+      valid = isNil(errors);
+
+      if (!valid) {
+        this.editor.error = 'QUALITY.ERROR.INVALID_FORM';
+        this.editor.markAsTouched();
+      }
     }
+    finally {
+      this._controlling = false;
+      this.updateView(this.editor.data);
+    }
+
+    return valid;
   }
 
-  async control(event: Event) {
-    this.onControl.emit(event);
+  async terminate(event: Event) {
+    // Control data
+    const controlled = await this.control(event, {emitEvent: false});
+    if (!controlled || event.defaultPrevented) return;
 
-    if (event.defaultPrevented) return;
+    console.debug("[quality] Terminate entity input...");
 
-    if (this.data instanceof Trip) {
-      console.debug("[quality] Mark trip as controlled...");
-      const data = await this.dataService.control(this.data);
-      this.onChange.emit(data);
-      this.markForCheck();
+    const data = await this.service.terminate(this.data);
+    this.updateEditor(data);
+  }
+
+
+  async synchronize(event: Event) {
+
+    if (!this.data || this.data.id >= 0) throw new Error('Need a local trip');
+
+    const path = this.router.url;
+
+    // Control data
+    const controlled = await this.control(event, {emitEvent: false});
+    if (!controlled || event.defaultPrevented) return;
+
+    this.editor.disable();
+
+    try {
+
+      console.debug("[quality] Synchronizing entity...");
+      const data = await this.service.synchronize(this.data);
+
+      // Remove the page from the history
+      await this.settings.removeHistory(path);
+
+      this.updateEditor(data);
+
+      // Confirmation message
+      this.showToast({
+        message: 'INFO.SYNCHRONIZATION_SUCCEED'
+      });
     }
+    finally {
+      this.editor.enable();
+    }
+
   }
 
   async validate(event: Event) {
-    this.onControl.emit(event);
+    // Control data
+    const controlled = await this.control(event, {emitEvent: false});
+    if (!controlled || event.defaultPrevented) return;
 
-    if (event.defaultPrevented) return;
-
-    if (this.data instanceof Trip) {
-      console.debug("[quality] Mark trip as validated...");
-      const data = await this.dataService.validate(this.data);
-      this.onChange.emit(data);
-      this.markForCheck();
-    }
+    console.debug("[quality] Mark entity as validated...");
+    const data = await this.service.validate(this.data);
+    this.updateEditor(data);
   }
 
   async unvalidate(event) {
-    if (this.data instanceof Trip) {
-      const data = await this.dataService.unvalidate(this.data);
-      this.onChange.emit(data);
-      this.markForCheck();
-    }
+    const data = await this.service.unvalidate(this.data);
+    this.updateEditor(data);
   }
 
   async qualify(event, qualityFlagId: number ) {
-    if (this.data instanceof Trip) {
-      const data = await this.dataService.qualify(this.data, qualityFlagId);
-      this.onChange.emit(data);
-      this.markForCheck();
-    }
+    const data = await this.service.qualify(this.data, qualityFlagId);
+    this.updateEditor(data);
   }
 
   getI18nQualityFlag(qualityFlagId: number, qualityFlags?: ReferentialRef[]) {
@@ -153,27 +212,34 @@ export class EntityQualityFormComponent implements OnInit, OnDestroy {
 
   /* -- protected method -- */
 
-  protected onValueChange() {
-    this.loading = isNil(this.data) || isNil(this.data.id);
+  protected updateView(data?: T) {
+    if (this._controlling) return; // Skip
+
+    this.data = data || this.data;
+
+    this.loading = isNil(data) || isNil(data.id);
     if (this.loading) {
       this.canSynchronize = false;
       this.canControl = false;
+      this.canTerminate = false;
       this.canValidate = false;
       this.canUnvalidate = false;
       this.canQualify = false;
       this.canUnqualify = false;
     }
-    else if (this.data instanceof Trip) {
-      const canWrite = this.dataService.canUserWrite(this.data);
+    else if (data instanceof DataEntity) {
+      const canWrite = this.service.canUserWrite(data);
       const isSupervisor = this.accountService.isSupervisor();
-      const isLocalData = this.data.id < 0;
-      this.canSynchronize = canWrite && isLocalData && this.network.online;
-      this.canControl = canWrite && !isLocalData && isNil(this.data.controlDate);
-      this.canValidate = canWrite && isSupervisor && !isLocalData && isNotNil(this.data.controlDate) && isNil(this.data.validationDate);
-      this.canUnvalidate = canWrite && isSupervisor && isNotNil(this.data.controlDate) && isNotNil(this.data.validationDate);
-      this.canQualify = canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(this.data.validationDate) && isNil(this.data.qualificationDate);
-      this.canUnqualify = canWrite && isSupervisor && isNotNil(this.data.validationDate) && isNotNil(this.data.qualificationDate);
+      const isLocalData = data.id < 0;
+      this.canControl = canWrite && (isLocalData && data.synchronizationStatus === 'DIRTY' || isNil(data.controlDate));
+      this.canTerminate = this.canControl && (!isLocalData || data.synchronizationStatus === 'DIRTY');
+      this.canSynchronize = canWrite && isLocalData && data.synchronizationStatus === 'READY_TO_SYNC' && this.network.online;
+      this.canValidate = canWrite && isSupervisor && !isLocalData && isNotNil(data.controlDate) && isNil(data.validationDate);
+      this.canUnvalidate = canWrite && isSupervisor && isNotNil(data.controlDate) && isNotNil(data.validationDate);
+      this.canQualify = canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(data.validationDate) && isNil(data.qualificationDate);
+      this.canUnqualify = canWrite && isSupervisor && isNotNil(data.validationDate) && isNotNil(data.qualificationDate);
     }
+
     this.markForCheck();
 
     if (this.canQualify || this.canUnqualify && !this.qualityFlags) {
@@ -198,8 +264,20 @@ export class EntityQualityFormComponent implements OnInit, OnDestroy {
     this.markForCheck();
   }
 
+
+  protected async showToast(opts: ToastOptions & { error?: boolean; }) {
+    if (!this.toastController) throw new Error("Missing toastController in component's constructor");
+    await Toasts.show(this.toastController, this.translate, opts);
+  }
+
+  protected updateEditor(data: T) {
+    this.editor.updateView(data);
+
+    this.markForCheck();
+  }
+
+
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }

@@ -1,15 +1,22 @@
-import {
-  Person,
-} from "../../../core/services/model";
+import {Person,} from "../../../core/services/model";
 import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {DataEntity, DataRootEntity, DataRootVesselEntity, IWithObserversEntity} from "../model/base.model";
+import {Program} from "../../../referential/services/model";
+import {toBoolean} from "../../../shared/functions";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {Optional} from "@angular/core";
 
-export abstract class DataEntityValidatorService<T extends DataEntity<T>> implements ValidatorService {
+export interface DataEntityValidatorOptions {
+  isOnFieldMode?: boolean;
+}
+
+export abstract class DataEntityValidatorService<T extends DataEntity<T>, O extends DataEntityValidatorOptions = DataEntityValidatorOptions> implements ValidatorService {
 
   protected constructor(
-    protected formBuilder: FormBuilder
+    protected formBuilder: FormBuilder,
+    @Optional() protected settings?: LocalSettingsService
     ) {
   }
 
@@ -17,60 +24,86 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>> implem
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: T): FormGroup {
+  getFormGroup(data?: T, opts?: O): FormGroup {
+
+    opts = this.fillDefaultOptions(opts);
+
     return this.formBuilder.group(
-      this.getFormConfig(data),
-      this.getFormOptions(data)
+      this.getFormGroupConfig(data, opts),
+      this.getFormGroupOptions(data)
     );
   }
 
-  getFormConfig(data?: T): {
+  getFormGroupConfig(data?: T, opts?: O): {
     [key: string]: any;
   } {
 
     return {
-      id: [null],
-      updateDate: [null],
-      controlDate: [null],
-      qualificationDate: [null],
-      qualificationComments: [null],
-      recorderDepartment: [null, SharedValidators.entity]
+      id: [data && data.id || null],
+      updateDate: [data && data.updateDate || null],
+      controlDate: [data && data.controlDate || null],
+      qualificationDate: [data && data.qualificationDate || null],
+      qualificationComments: [data && data.qualificationComments || null],
+      recorderDepartment: [data && data.recorderDepartment || null, SharedValidators.entity]
     };
   }
 
-  getFormOptions(data?: T): {
+  getFormGroupOptions(data?: T, opts?: O): {
     [key: string]: any;
   } {
     return {};
   }
-}
 
-
-export abstract class DataRootEntityValidatorService<T extends DataRootEntity<T>>
-  extends DataEntityValidatorService<T> {
-
-  protected constructor(
-    formBuilder: FormBuilder) {
-    super(formBuilder);
+  updateFormGroup(formGroup: FormGroup, opts?: O) {
+    // Must be override by subclasses
+    console.warn(`TODO: Please implement ${this.constructor.name}.updateFormGroup()`);
   }
 
-  getFormConfig(data?: T): {
+
+  /* -- protected methods -- */
+
+  protected fillDefaultOptions(opts?: O): O {
+    opts = opts || {} as O;
+
+    opts.isOnFieldMode = toBoolean(opts.isOnFieldMode, this.settings && this.settings.isUsageMode('FIELD') || false);
+
+    return opts;
+  }
+}
+
+export interface DataRootEntityValidatorOptions extends DataEntityValidatorOptions {
+  withObservers?: boolean;
+  program?: Program;
+}
+
+export abstract class DataRootEntityValidatorService<T extends DataRootEntity<T>, O extends DataRootEntityValidatorOptions = DataRootEntityValidatorOptions>
+  extends DataEntityValidatorService<T, O> {
+
+  protected constructor(
+    protected formBuilder: FormBuilder,
+    @Optional() protected settings?: LocalSettingsService
+    ) {
+    super(formBuilder, settings);
+  }
+
+  getFormGroupConfig(data?: T, opts?: O): {
     [key: string]: any;
   } {
 
     return Object.assign(
-      super.getFormConfig(data),
+      super.getFormGroupConfig(data),
       {
-        program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
-        creationDate: [null],
-        recorderPerson: [null, SharedValidators.entity],
-        comments: [null, Validators.maxLength(2000)]
+        program: [data && data.program || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        creationDate: [data && data.creationDate || null],
+        recorderPerson: [data && data.recorderPerson || null, SharedValidators.entity],
+        comments: [data && data.comments || null, Validators.maxLength(2000)],
+        synchronizationStatus: [data && data.synchronizationStatus || null]
       });
   }
 
-  getObserversArray(data?: IWithObserversEntity<T>) {
+  getObserversFormArray(data?: IWithObserversEntity<T>) {
     return this.formBuilder.array(
-      (data && data.observers || []).map(this.getObserverControl),
+      (data && data.observers || []).map(observer => this.getObserverControl(observer)),
       SharedValidators.requiredArrayMinLength(1)
     );
   }
@@ -89,12 +122,12 @@ export abstract class DataRootVesselEntityValidatorService<T extends DataRootVes
     super(formBuilder);
   }
 
-  getFormConfig(data?: T): {
+  getFormGroupConfig(data?: T): {
     [key: string]: any;
   } {
 
     return Object.assign(
-      super.getFormConfig(data),
+      super.getFormGroupConfig(data),
       {
         vesselSnapshot: ['', Validators.compose([Validators.required, SharedValidators.entity])]
       });

@@ -14,7 +14,6 @@
     <allow-navigation href="http://*/*" />
     <allow-navigation href="https://*/*" />
     <allow-navigation href="data:*" />
-    <allow-navigation href="file://*/*" />
     <preference name="ScrollEnabled" value="false" />
     <preference name="android-minSdkVersion" value="19" />
     <preference name="BackupWebStorage" value="none" />
@@ -26,6 +25,7 @@
     <preference name="SplashScreenDelay" value="3000" />
     <preference name="AutoHideSplashScreen" value="false" />
     <preference name="ShowSplashScreen" value="true" />
+    <preference name="loadUrlTimeoutValue" value="60000" />
     <platform name="android">
         <allow-intent href="market:*" />
         <icon density="ldpi" src="resources/android/icon/drawable-ldpi-icon.png" />

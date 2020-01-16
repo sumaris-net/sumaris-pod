@@ -268,7 +268,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     // No pmfms (= empty form)
     if (!pmfms.length) {
       // Reset form
-      this.measurementValidatorService.updateFormGroup(this.form, []);
+      this.measurementValidatorService.updateFormGroup(this.form, {pmfms: []});
       this.form.reset({}, {onlySelf: true, emitEvent: false});
       this.loading = this.loadingValue;
       return true;
@@ -278,7 +278,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
       if (this.debug) console.debug(`${this.logPrefix} Updating form controls, using pmfms:`, pmfms);
 
       // Update the existing form
-      this.measurementValidatorService.updateFormGroup(this.form, pmfms);
+      this.measurementValidatorService.updateFormGroup(this.form, {pmfms});
     }
 
     this.loading = this.loadingValue; // Keep loading status if data not apply fully

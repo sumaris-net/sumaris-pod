@@ -124,7 +124,7 @@
     </ion-card-header>
     <ion-card-content class="ion-no-padding">
       <ion-text color="primary">
-        <img class="logo" src="{{ logo }}"/>
+        <img class="logo" *ngIf="logo" src="{{ logo }}"/>
       </ion-text>
       <ion-text *ngIf="!isLogin">
         <br/>

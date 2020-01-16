@@ -97,7 +97,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
     this.formControl = this.formControl || (this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl);
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement>.");
 
-    this.formControl.setValidators(this.measurementValidatorService.getValidator(this.pmfm));
+    this.formControl.setValidators(this.measurementValidatorService.getPmfmValidator(this.pmfm));
 
     if (this.listenStatusChanges) {
       this.formControl.statusChanges.subscribe((status) => this.cd.markForCheck());

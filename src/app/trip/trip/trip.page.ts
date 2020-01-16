@@ -6,7 +6,7 @@ import {fromDateISOString, ReferentialRef, Trip, VesselSnapshot} from '../servic
 import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment} from '../../core/core.module';
+import {AppFormUtils, environment} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
 import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil} from '../../shared/shared.module';
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
@@ -17,8 +17,9 @@ import {FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripsPageSettingsEnum} from "./trips.page";
 import {EntityStorage} from "../../core/services/entities-storage.service";
-import {DataQualityService} from "../services/trip.services";
-import {HistoryPageReference} from "../../core/services/model";
+import {DataQualityService} from "../services/base.service";
+import {HistoryPageReference, UsageMode} from "../../core/services/model";
+import {TripValidatorService} from "../services/trip.validator";
 
 @Component({
   selector: 'app-trip-page',
@@ -33,7 +34,6 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;
-  qualityService: DataQualityService<Trip>;
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
 
@@ -45,11 +45,10 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
 
   @ViewChild('operationTable', { static: true }) operationTable: OperationTable;
 
-  @ViewChild('qualityForm', { static: true }) qualityForm: EntityQualityFormComponent;
-
   constructor(
     injector: Injector,
     protected entities: EntityStorage,
+    protected tripValidatorService: TripValidatorService,
     public network: NetworkService // Used for DEV (to debug OFFLINE mode)
   ) {
     super(injector,
@@ -58,14 +57,6 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     this.idAttribute = 'tripId';
     this.defaultBackHref = "/trips";
 
-    this.qualityService = {
-      canUserWrite: (data) => this.dataService.canUserWrite(data),
-      control: (data) => this.dataService.control(data),
-      qualify: (data, qualityFlagId) => this.dataService.qualify(data, qualityFlagId),
-      unvalidate: (data) => this.dataService.unvalidate(data),
-      validate: (data) => this.dataService.validate(data),
-      synchronize: (data) => this.synchronize(data)
-    };
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -80,11 +71,14 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
           if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
           this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
           this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
+          if (!this.tripForm.showObservers) {
+            this.data.observers = []; // make sure to reset data observers, if any
+          }
         })
     );
 
     // Cascade refresh to operation tables
-    this.onRefresh.subscribe(() => this.operationTable.onRefresh.emit());
+    this.onUpdateView.subscribe(() => this.operationTable.onRefresh.emit());
   }
 
   protected registerFormsAndTables() {
@@ -206,7 +200,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
       departureLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO'},
       returnDateTime: fromDateISOString('2019-01-05T12:00:00.000Z'),
       returnLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO'},
-      vesselSnapshot: {id:1, vesselId: 1, name: 'Vessel 1', basePortLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', __typename: 'ReferentialVO'} , __typename: 'VesselSnapshotVO'},
+      vesselSnapshot: {id: 1, vesselId: 1, name: 'Vessel 1', basePortLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', __typename: 'ReferentialVO'} , __typename: 'VesselSnapshotVO'},
       measurements: [
         { numericalValue: '1', pmfmId: 21}
       ]
@@ -240,6 +234,10 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
 
   protected canUserWrite(data: Trip): boolean {
     return isNil(data.validationDate) && this.dataService.canUserWrite(data);
+  }
+
+  protected computeUsageMode(data: Trip): UsageMode {
+    return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY'  ? 'FIELD' : 'DESK';
   }
 
   /**
@@ -283,32 +281,6 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     const tab2Invalid = !tab1Invalid && this.operationTable.invalid;
 
     return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
-  }
-
-  protected async synchronize(data: Trip): Promise<Trip> {
-    if (!data || data.id >= 0) throw new Error('Need a local trip');
-
-    const path = this.router.url;
-
-    this.disable();
-
-    try {
-      // Call service
-      const savedEntity = await this.dataService.synchronize(data);
-
-      // Remove the page from the history
-      await this.settings.removeHistory(path);
-
-      // Confirmation message
-      this.showToast({
-        message: 'INFO.SYNCHRONIZATION_SUCCEED'
-      });
-
-      return savedEntity;
-    }
-    finally {
-      this._enabled = true; // Will enable later
-    }
   }
 
   protected addToPageHistory(page: HistoryPageReference) {

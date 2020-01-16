@@ -71,8 +71,10 @@ export class AudioProvider {
     if (isNil(this._audioType)) await this.ready();
 
     if (this._audioType === 'native') {
+      console.info(`[audio] Preloading audio file '${sound.assetPath}'...`);
       try {
         await this.nativeAudio.preloadSimple(sound.id, sound.assetPath);
+        console.info(`[audio] Preloading audio file '${sound.assetPath}' [OK]`);
       }
       catch (err) {
         console.error(`[audio] Unable to preload audio file '${sound.assetPath}': ${err && err.message || err}`, err);

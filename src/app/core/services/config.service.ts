@@ -117,6 +117,7 @@ export class ConfigService extends BaseDataService {
       this.start();
     }
 
+    this._debug = !environment.production;
   }
 
   start(): Promise<void> {
@@ -271,14 +272,16 @@ export class ConfigService extends BaseDataService {
 
     // Try to load from local storage
     const value: any = await this.storage.get(CONFIGURATION_STORAGE_KEY);
-    if (value && true) {
+    if (value && typeof value === "string") {
       try {
-        console.debug("[config] Restoring configuration (from local storage)...");
+        console.debug("[config] Restoring configuration from local storage...");
 
         const json = JSON.parse(value);
         data = Configuration.fromObject(json as any);
+
+        console.debug("[config] Restoring configuration [OK]");
       } catch (err) {
-        console.error(err && err.message || err, err);
+        console.error(`Failed to restore config from local storage: ${err && err.message || err}`, err);
       }
     }
 
@@ -298,42 +301,75 @@ export class ConfigService extends BaseDataService {
     }
     // Config exists: store it in the local storage
     else {
+      let now = this._debug && Date.now();
 
       // Convert images, for offline usage
-      if (this.network.online) {
-        const now = this._debug && Date.now();
-        if (this._debug) console.debug('[config] Downloading images (for offline mode)...');
+      if (this.network.online && this.platform.mobile) {
+        const jobs = [];
 
-        // Logos
-        data.largeLogo = data.largeLogo && await this.file.getImage(data.largeLogo);
-        data.smallLogo = data.smallLogo && await this.file.getImage(data.smallLogo);
+        // Download logos
+        if (data.largeLogo && data.largeLogo.startsWith('http')) {
+          jobs.push(this.file.getImage(data.largeLogo)
+            .then(imgUrl => data.largeLogo = imgUrl));
+        }
+        if (data.smallLogo && data.smallLogo.startsWith('http')) {
+          jobs.push(this.file.getImage(data.smallLogo)
+            .then(imgUrl => data.smallLogo = imgUrl));
+        }
 
         // Background images
         if (isNotEmptyArray(data.backgroundImages)) {
-          data.backgroundImages = await this.file.getImages(data.backgroundImages, {
+          const options = {
             maxWidth: this.platform.width(),
             maxHeight: this.platform.height()
-          });
+          };
+
+          // Convert the FIRST image found
+          // WARN: it's NOT necessary to convert AL image, but only one, for smaller memory footprint
+          const index = data.backgroundImages.findIndex((img) => img && img.startsWith('http'));
+          if (index !== -1) {
+            jobs.push(
+              this.file.getImage(data.backgroundImages[index], options)
+                .then(dataUrl => data.backgroundImages[index] = dataUrl));
+            }
         }
 
         // Partners
         if (isNotEmptyArray(data.partners)) {
-          await Promise.all(data.partners.map(p => {
-            if (p.logo) {
-              return this.file.getImage(p.logo, {
-                responseType: "dataUrl",
+          data.partners.forEach((dep, index) => {
+            if (dep && dep.logo && dep.logo.startsWith('http')) {
+              jobs.push(this.file.getImage(dep.logo, {
                 maxHeight: 50/*see home page CSS */
               })
-                .then(dataUrl => p.logo = dataUrl);
+              .then(img => dep.logo = img)
+              .catch(err => {
+                console.error(err && err.message || err);
+                delete dep.logo;
+              }));
             }
-          }));
+          });
         }
 
-        if (this._debug) console.debug(`[config] Images downloaded in ${Date.now() - now}ms`);
+        if (jobs.length) {
+          if (this._debug) console.debug(`[config] Fetching ${jobs.length} images...`);
+          try {
+            await Promise.all(jobs);
+            if (this._debug) console.debug(`[config] Fetching ${jobs.length} images [OK] in ${Date.now() - now}ms`);
+          }
+          catch (err) {
+            console.error(`[config] Failed to fetch image(s): ${err && err.message || err}`, err);
+          }
+        }
       }
 
-      const jsonStr = JSON.stringify(data);
-      await this.storage.set(CONFIGURATION_STORAGE_KEY, jsonStr);
+      // Saving config (as string)
+      {
+        now = this._debug && Date.now();
+        if (this._debug) console.debug("[config] Saving config into local storage...");
+        const jsonStr = JSON.stringify(data);
+        await this.storage.set(CONFIGURATION_STORAGE_KEY, jsonStr);
+        if (this._debug) console.debug(`[config] Saving config into local storage [OK] in ${Date.now() - now}ms`);
+      }
     }
   }
 

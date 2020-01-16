@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, Optional} from '@angular/core';
 import {Platform} from "@ionic/angular";
 import {NetworkService} from "./network.service";
 import {Platforms} from "@ionic/core";
@@ -9,6 +9,8 @@ import {LocalSettingsService} from "./local-settings.service";
 import {CacheService} from "ionic-cache";
 import {AudioProvider} from "../../shared/audio/audio";
 
+import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
+import {isNotNil} from "../../shared/functions";
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
@@ -32,7 +34,8 @@ export class PlatformService {
     private settings: LocalSettingsService,
     private networkService: NetworkService,
     private cache: CacheService,
-    private audioProvider: AudioProvider
+    private audioProvider: AudioProvider,
+    @Optional() private browser: InAppBrowser
   ) {
 
     this.start();
@@ -71,20 +74,16 @@ export class PlatformService {
 
           this.configureCordovaPlugins();
 
-          this.touchUi = this.platform.is('mobile') || this.platform.is('tablet') || this.platform.is('phablet');
           this.mobile = this.platform.is('mobile');
+          this.touchUi = this.mobile || this.platform.is('tablet') || this.platform.is('phablet');
 
           // Force mobile in settings
           if (this.mobile) {
             this.settings.mobile = this.mobile;
+            this.settings.touchUi = this.touchUi;
           }
         }),
-      this.cache.ready()
-        .then(() => {
-          console.info("[platform] Configuring cache... [TimeToLeave: 1h, offlineInvalidate: false)");
-          this.cache.setDefaultTTL(60 * 60); // 1 hour
-          this.cache.setOfflineInvalidate(false); // Do not invalidate cache when offline
-        }),
+      this.cache.ready().then(() => this.configureCache()),
       this.settings.ready(),
       this.networkService.ready(),
       this.audioProvider.ready()
@@ -92,9 +91,12 @@ export class PlatformService {
       .then(() => {
         this._started = true;
         this._startPromise = undefined;
-        console.info(`[platform] Platform started: mobile=${this.mobile} touchUi=${this.touchUi}`);
+        console.info(`[platform] Starting platform [OK] {mobile: ${this.mobile}}, {touchUi: ${this.touchUi}}`);
 
-            // Wait 1 more seconds, before hiding the splash screen
+        // Update cache configuration when network changed
+        this.networkService.onNetworkStatusChanges.subscribe((type) => this.configureCache(type !== 'none'));
+
+        // Wait 1 more seconds, before hiding the splash screen
         setTimeout(() => {
           this.splashScreen.hide();
 
@@ -111,12 +113,39 @@ export class PlatformService {
     return this.start();
   }
 
+  open(url: string, target?: string, features?: string, replace?: boolean) {
+    if (this.browser) {
+      this.browser.create(url, target, features).show();
+    }
+    else {
+      window.open(url, target, features, replace);
+    }
+  }
+
+  /* -- protected methods -- */
+
   protected configureCordovaPlugins() {
     console.info("[platform] Setting Cordova plugins...");
     this.statusBar.styleDefault();
     this.statusBar.overlaysWebView(false);
     this.keyboard.hideFormAccessoryBar(true);
 
+    // Force to use InAppBrowser instead of default window.open()
+    if (this.browser) {
+      window.open = (url?: string, target?: string, options?: string, replace?: boolean) => {
+        console.debug("[platform] Call to window.open() redirected to InAppBrowser.open()");
+        this.open(url, target, options, replace);
+        return window;
+      };
+    }
+  }
+
+  protected configureCache(online?: boolean) {
+    online = isNotNil(online) ? online : this.cache.isOnline();
+    const cacheTTL = online ? 3600 /* 1h */ : 3600 * 24 * 30; /* 1 month */
+    console.info(`[platform] Configuring cache [OK] {online: ${online}}, {timeToLive: ${cacheTTL / 3600}h}, {offlineInvalidate: false)`);
+    this.cache.setDefaultTTL(cacheTTL);
+    this.cache.setOfflineInvalidate(false); // Do not invalidate cache when offline
   }
 }
 

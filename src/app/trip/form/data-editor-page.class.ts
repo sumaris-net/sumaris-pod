@@ -1,10 +1,9 @@
-import {Injector, OnInit, ViewChild} from '@angular/core';
+import {Injector, OnInit} from '@angular/core';
 
 import {EntityUtils, ReferentialRef} from '../../core/core.module';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {isNil, isNotNil} from '../../shared/shared.module';
 import {DataRootEntity} from "../services/trip.model";
-import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
 import {distinctUntilChanged, filter, switchMap} from "rxjs/operators";
 import {Program} from "../../referential/services/model";
 import {ProgramService} from "../../referential/services/program.service";
@@ -14,14 +13,14 @@ import {AppEditorPage} from "../../core/form/editor-page.class";
 import {HistoryPageReference} from "../../core/services/model";
 
 
-export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends EditorDataService<T>> extends AppEditorPage<T> implements OnInit {
+export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends EditorDataService<T>>
+  extends AppEditorPage<T>
+  implements OnInit {
 
   protected programService: ProgramService;
 
   programSubject = new BehaviorSubject<string>(null);
   onProgramChanged = new Subject<Program>();
-
-  @ViewChild('qualityForm', { static: true }) qualityForm: EntityQualityFormComponent;
 
   get service(): S {
     return this.dataService;
@@ -66,16 +65,6 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends E
     }
   }
 
-  updateViewState(data: T, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    // Quality metadata
-    if (this.qualityForm) {
-      this.qualityForm.value = data;
-    }
-
-    super.updateViewState(data, opts);
-  }
-
-
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     if (!this.data || isNotNil(this.data.validationDate)) return false;
 
@@ -87,28 +76,6 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends E
     }
 
     this.markForCheck();
-  }
-
-  async onControl(event: Event) {
-    // Stop if data is not valid
-    if (!this.valid) {
-      // Stop the control
-      if (event) event.preventDefault();
-
-      // Open the first tab in error
-      this.openFirstInvalidTab();
-    } else if (this.dirty) {
-
-      // Stop the control
-      if (event) event.preventDefault();
-
-      console.debug("[root-data-editor] Saving data, before control...");
-      const saved = await this.save(new Event('save'));
-      if (saved) {
-        // Loop
-        await this.qualityForm.control(new Event('control'));
-      }
-    }
   }
 
   /* -- protected methods -- */

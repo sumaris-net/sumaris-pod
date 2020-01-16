@@ -5,7 +5,7 @@ import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import {Moment} from "moment";
 import {environment} from "../../../environments/environment";
-import {ObservedLocation} from "./trip.model";
+import {Landing, ObservedLocation} from "./trip.model";
 import gql from "graphql-tag";
 import {Fragments} from "./trip.queries";
 import {isNil, isNotNil, Person} from "./trip.model";
@@ -15,6 +15,7 @@ import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {RootDataService} from "./root-data-service.class";
 import {DataEntityAsObjectOptions, SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
+import {FormErrors} from "../../core/form/form.utils";
 
 
 export declare class ObservedLocationFilter {
@@ -341,10 +342,17 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
 
       }
     });
-
   }
 
-  /* -- private -- */
+  /* -- TODO implement this methods -- */
+  async synchronize(data: ObservedLocation): Promise<ObservedLocation> { return data; }
+  async control(data: ObservedLocation): Promise<FormErrors> { return undefined; }
+  async terminate(data: ObservedLocation): Promise<ObservedLocation> { return data; }
+  async validate(data: ObservedLocation): Promise<ObservedLocation> { return data; }
+  async unvalidate(data: ObservedLocation): Promise<ObservedLocation> { return data; }
+  async qualify(data: ObservedLocation, qualityFlagId: number): Promise<ObservedLocation> { return data; }
+
+  /* -- protected methods -- */
 
   protected asObject(entity: ObservedLocation, opts?: DataEntityAsObjectOptions): any {
     const copy = super.asObject(entity, opts);

@@ -1,7 +1,7 @@
 <ion-label class="ion-text-wrap" *ngIf="!loading">
   <br *ngIf="data.updateDate"/>
   <!-- local entity -->
-  <ion-text *ngIf="!data.updateDate">
+  <ion-text *ngIf="data.id < 0">
     <ion-icon name="warning"></ion-icon>&nbsp;
     <span translate>QUALITY.NOT_SYNCHRONIZED</span>
   </ion-text>
@@ -25,14 +25,54 @@
 </ion-label>
 
 <p>
+  <!--
+  <ng-container *ngIf="canControl && canSynchronize && !canTerminate">
+    <ion-button mat-icon-button
+                (press)="controlMenuTrigger.openMenu()"
+                (click)="control($event)" expand="block" color="tertiary">
+      <ion-icon slot="start" name="checkmark"></ion-icon>&nbsp;
+      <ion-text translate>QUALITY.BTN_CONTROL</ion-text>
+      <ion-icon slot="end" name="arrow-dropdown"
+                [matMenuTriggerFor]="controlMenu"
+                #controlMenuTrigger="matMenuTrigger"></ion-icon>
+    </ion-button>
+
+    <mat-menu #controlMenu="matMenu">
+      <div mat-menu-item>
+        <ion-button (click)="control($event)" expand="block" color="success">
+          <ion-text translate>QUALITY.BTN_CONTROL_AND_SYNCHRONIZE</ion-text>
+        </ion-button>
+      </div>
+      <div mat-menu-item>
+        <ion-button (click)="control($event)" expand="block" color="success">
+          <ion-text translate>QUALITY.BTN_CONTROL</ion-text>
+        </ion-button>
+      </div>
+    </mat-menu>
+
+  </ng-container>-->
+
+  <!-- Control (only if local) -->
+  <ion-button mat-icon-button *ngIf="canControl && !canSynchronize && !canTerminate"
+              (click)="control($event)" expand="block" color="tertiary">
+    <ion-icon slot="start" name="checkmark"></ion-icon>&nbsp;
+    <ion-text translate>QUALITY.BTN_CONTROL</ion-text>
+  </ion-button>
+
+  <!-- Terminate -->
+  <ion-button mat-icon-button *ngIf="canTerminate"
+              (click)="terminate($event)" expand="block" color="tertiary">
+    <ion-icon slot="start" name="checkmark"></ion-icon>&nbsp;
+    <ion-text translate>QUALITY.BTN_TERMINATE</ion-text>
+  </ion-button>
+
+  <!-- synchronize -->
   <ion-button *ngIf="canSynchronize" (click)="synchronize($event)" expand="block" color="danger">
     <ion-icon slot="start" name="cloud-upload"></ion-icon>
     <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
   </ion-button>
-  <ion-button *ngIf="canControl" (click)="control($event)" expand="block" color="tertiary">
-    <ion-icon slot="start" name="checkmark"></ion-icon>&nbsp;
-    <ion-text translate>QUALITY.BTN_CONTROL</ion-text>
-  </ion-button>
+
+
   <ion-button *ngIf="canValidate" (click)="validate($event)" expand="block" color="success">
     <ion-icon slot="start" name="checkmark-circle"></ion-icon>&nbsp;
     <ion-text translate>QUALITY.BTN_VALIDATE</ion-text>

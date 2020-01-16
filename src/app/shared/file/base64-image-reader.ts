@@ -39,13 +39,16 @@ export class Base64ImageReader {
     img.crossOrigin = 'anonymous';
 
     try {
-      const data = await new Promise<string>((resolve, reject) => {
+      return await new Promise<string>((resolve, reject) => {
         img.addEventListener('load', this.createImageOnLoadResizeFn(resolve, reject, opts), false);
-
+        img.addEventListener("error", reject);
         img.src = path;
       });
-      return data;
-    } finally {
+    }
+    catch (err) {
+      throw new Error(`Failed to load and resize image {${path}}`);
+    }
+    finally {
       img.remove();
     }
   }
@@ -88,65 +91,72 @@ export class Base64ImageReader {
       const canvas = document.createElement("canvas");
       let ctx;
 
-      // Thumbnail: resize and crop (to the expected size)
-      if (opts && opts.thumbnail) {
+      try {
+        // Thumbnail: resize and crop (to the expected size)
+        if (opts && opts.thumbnail) {
 
-        // landscape
-        if (width > height) {
-          width *= maxHeight / height;
-          height = maxHeight;
-        }
-
-        // portrait
-        else {
-          height *= maxWidth / width;
-          width = maxWidth;
-        }
-        canvas.width = maxWidth;
-        canvas.height = maxHeight;
-        ctx = canvas.getContext("2d");
-        const xoffset = Math.trunc((maxWidth - width) / 2 + 0.5);
-        const yoffset = Math.trunc((maxHeight - height) / 2 + 0.5);
-        ctx.drawImage(event.target,
-          xoffset, // x1
-          yoffset, // y1
-          maxWidth + -2 * xoffset, // x2
-          maxHeight + -2 * yoffset // y2
-        );
-      }
-
-      // Resize, but keep the full image
-      else {
-
-        // landscape
-        if (width > height) {
-          if (width > maxWidth) {
-            height *= maxWidth / width;
-            width = maxWidth;
-          }
-        }
-
-        // portrait
-        else {
-          if (height > maxHeight) {
+          // landscape
+          if (width > height) {
             width *= maxHeight / height;
             height = maxHeight;
           }
+
+          // portrait
+          else {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+          canvas.width = maxWidth;
+          canvas.height = maxHeight;
+          ctx = canvas.getContext("2d");
+          const xoffset = Math.trunc((maxWidth - width) / 2 + 0.5);
+          const yoffset = Math.trunc((maxHeight - height) / 2 + 0.5);
+          ctx.drawImage(event.target,
+            xoffset, // x1
+            yoffset, // y1
+            maxWidth + -2 * xoffset, // x2
+            maxHeight + -2 * yoffset // y2
+          );
         }
 
-        canvas.width = width;
-        canvas.height = height;
-        ctx = canvas.getContext("2d");
+        // Resize, but keep the full image
+        else {
 
-        // Resize the whole image
-        ctx.drawImage(event.target, 0, 0, canvas.width, canvas.height);
+          // landscape
+          if (width > height) {
+            if (width > maxWidth) {
+              height *= maxWidth / width;
+              width = maxWidth;
+            }
+          }
+
+          // portrait
+          else {
+            if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx = canvas.getContext("2d");
+
+          // Resize the whole image
+          ctx.drawImage(event.target, 0, 0, canvas.width, canvas.height);
+        }
+
+        // Get image content as data URL
+        const base64 = canvas.toDataURL();
+        resolve(base64);
+      }
+      catch (err) {
+        reject(err);
+      }
+      finally {
+        canvas.remove();
       }
 
-      const base64 = canvas.toDataURL();
-
-      canvas.remove();
-
-      resolve(base64);
     };
   }
 }

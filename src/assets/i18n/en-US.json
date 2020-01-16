@@ -645,7 +645,8 @@
     }
   },
   "QUALITY": {
-    "BTN_CONTROL": "Complete input",
+    "BTN_CONTROL": "Control input",
+    "BTN_TERMINATE": "Complete input",
     "BTN_VALIDATE": "Validate",
     "BTN_UNVALIDATE": "Unvalidate",
     "BTN_SYNCHRONIZE": "Synchronize",
@@ -670,6 +671,9 @@
       "FIXED": "Fixed",
       "NOT_COMPLETED": "Not complete",
       "MISSING": "Missing"
+    },
+    "ERROR": {
+      "INVALID_FORM": "Check and correct your entry."
     }
   },
   "VESSEL": {

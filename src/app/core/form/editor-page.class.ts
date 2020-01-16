@@ -34,11 +34,15 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   saving = false;
   hasRemoteListener = false;
   defaultBackHref: string;
-  onRefresh = new EventEmitter<any>();
+  onUpdateView = new EventEmitter<T>();
   usageMode: UsageMode;
 
   get isOnFieldMode(): boolean {
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+  }
+
+  get service(): EditorDataService<T> {
+    return this.dataService;
   }
 
   protected constructor(
@@ -134,14 +138,16 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   updateView(data: T | null, opts?: {
-    openSecondTab?: boolean;
+    openTabIndex?: number;
     updateTabAndRoute?: boolean;
   }) {
     const idChanged = isNotNil(data.id) && (isNil(this.previousDataId) || this.previousDataId !== data.id) || false;
 
     opts = opts || {};
     opts.updateTabAndRoute = toBoolean(opts.updateTabAndRoute, idChanged && !this.loading);
-    opts.openSecondTab = toBoolean(opts.openSecondTab, idChanged && isNil(this.previousDataId));
+    opts.openTabIndex = isNotNil(opts.openTabIndex) ? opts.openTabIndex :
+      // If new data: open the second tab (if it's not the select index)
+      (idChanged && isNil(this.previousDataId) && this.selectedTabIndex === 0 && 1 || undefined);
 
     this.data = data;
     this.previousDataId = data.id;
@@ -159,7 +165,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
       this.updateTabAndRoute(data, opts);
     }
 
-    this.onRefresh.emit();
+    this.onUpdateView.emit(data);
   }
 
   /**
@@ -178,15 +184,15 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
    * Update the route location, and open the next tab
    */
   async updateTabAndRoute(data: T, opts?: {
-    openSecondTab?: boolean;
+    openTabIndex?: number;
   }) {
 
     this.queryParams = this.queryParams || {};
 
     // Open the second tab
-    if (opts && opts.openSecondTab === true) {
-      if (this.selectedTabIndex === 0) {
-        this.selectedTabIndex = 1;
+    if (opts && isNotNil(opts.openTabIndex)) {
+      if (this.selectedTabIndex < opts.openTabIndex) {
+        this.selectedTabIndex = opts.openTabIndex;
         Object.assign(this.queryParams, {tab: this.selectedTabIndex});
         this.markForCheck();
       }
@@ -238,7 +244,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
       const updatedData = await this.dataService.save(data, options);
 
       // Update the view (e.g metadata)
-      this.updateView(updatedData, {openSecondTab: isNew});
+      this.updateView(updatedData);
 
       // Subscribe to remote changes
       if (!this.hasRemoteListener) this.startListenRemoteChanges();
@@ -254,6 +260,32 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     } finally {
       this.saving = false;
     }
+  }
+
+  async getValidAndSavedDataOrNil(): Promise<T | undefined> {
+    // Form is not valid
+    if (!this.valid) {
+
+      // Make sure validation is finished
+      await AppFormUtils.waitWhilePending(this);
+
+      // If invalid: Open the first tab in error
+      if (this.invalid) {
+        this.openFirstInvalidTab();
+        return undefined;
+      }
+
+      // Continue (valid)
+    }
+
+    // Form is valid, but not saved
+    if (this.dirty) {
+      const saved = await this.save(new Event('save'));
+      if (!saved) return undefined;
+    }
+
+    // Valid and saved data
+    return this.data;
   }
 
   async delete(event?: UIEvent): Promise<boolean> {

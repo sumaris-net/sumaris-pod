@@ -148,7 +148,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.registerSubscription(
       filterNotNil(this.$pmfms)
         .subscribe(pmfms => {
-          this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
+          this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(null, {pmfms});
 
 
           // Update the settings id, as program could have changed

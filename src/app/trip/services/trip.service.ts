@@ -7,9 +7,9 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  TableDataService
+  TableDataService, toBoolean
 } from "../../shared/shared.module";
-import {environment} from "../../core/core.module";
+import {AppFormUtils, environment} from "../../core/core.module";
 import {catchError, filter, map, switchMap, tap} from "rxjs/operators";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
@@ -31,7 +31,7 @@ import {NetworkService} from "../../core/services/network.service";
 import {concat, defer, Observable, of, timer} from "rxjs";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {isEmptyArray} from "../../shared/functions";
-import {DataQualityService} from "./trip.services";
+import {DataQualityService} from "./base.service";
 import {OperationFilter, OperationService} from "./operation.service";
 import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
@@ -39,6 +39,12 @@ import {PersonService} from "../../admin/services/person.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {concatPromises} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {TripValidatorService} from "./trip.validator";
+import {FormErrors} from "../../core/form/form.utils";
+import {ValidatorService} from "angular4-material-table";
+import {LandingValidatorService} from "./landing.validator";
+import {DataRootEntityValidatorService} from "./validator/base.validator";
+import {ProgramProperties} from "../../referential/services/model";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -323,7 +329,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
     protected programService: ProgramService,
     protected entities: EntityStorage,
     protected operationService: OperationService,
-    protected settings: LocalSettingsService
+    protected settings: LocalSettingsService,
+    protected validatorService: TripValidatorService
   ) {
     super(injector);
 
@@ -522,6 +529,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
    */
   async save(entity: Trip, opts?: {withOperation?: boolean;}): Promise<Trip> {
 
+    const withOperation = toBoolean(opts && opts.withOperation, false);
+
     const now = Date.now();
     if (this._debug) console.debug("[trip-service] Saving a trip...", entity);
 
@@ -530,15 +539,21 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     // Reset the control date
     entity.controlDate = undefined;
+    entity.validationDate = undefined;
+    entity.qualificationDate = undefined;
+    entity.qualityFlagId = undefined;
 
     // If new, create a temporary if (for offline mode)
     const isNew = isNil(entity.id);
 
-    // If parent is a local entity: force a local save
+    // If is a local entity: force a local save
     const offline = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0;
     if (offline) {
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
+
+      // Reset synchro status
+      entity.synchronizationStatus = 'DIRTY';
 
       const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
       if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', json);
@@ -570,7 +585,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
        mutation: SaveAllQuery,
        variables: {
          trips: [json],
-         withOperation: opts && opts.withOperation || false
+         withOperation
        },
        offlineResponse,
        error: { reject,  code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" },
@@ -589,7 +604,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
          else {
 
            // Remove existing entity from the local storage
-           if (entity.id < 0 && savedEntity.updateDate) {
+           if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
              if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
              await this.entities.delete(entity);
 
@@ -629,8 +644,6 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
      });
    });
-
-
   }
 
   async synchronizeById(id: number): Promise<Trip> {
@@ -679,22 +692,70 @@ export class TripService extends RootDataService<Trip, TripFilter>
   }
 
   /**
-   * Control the trip
+   * Control the validity of an trip
    * @param entity
    */
-  async control(entity: Trip): Promise<Trip> {
+  async control(entity: Trip, opts?: any): Promise<FormErrors> {
 
-    // TODO vérifier que le formulaire est dirty et/ou s'il est valide, car le control provoque une sauvegarde
 
-    if (isNil(entity.id)) {
-      throw new Error("Entity must be saved before control !");
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}}...`, entity);
+
+    const programLabel = entity.program && entity.program.label || null;
+    if (!programLabel) throw new Error("Missing trip's program. Unable to control the trip");
+    const program = await this.programService.loadByLabel(programLabel);
+
+    const form = this.validatorService.getFormGroup(entity, {
+      isOnFieldMode: false,
+      program,
+      withMeasurements: true
+    });
+
+    if (!form.valid) {
+      // Wait end of validation (e.g. async validators)
+      await AppFormUtils.waitWhilePending(form);
+
+      // Get form errors
+      if (form.invalid) {
+        const errors = AppFormUtils.getFormErrors(form, 'trip');
+
+        if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+
+        return errors;
+      }
     }
 
-    if (entity.id < 0) {
-      if (this.network.offline) {
-        throw new Error("Could not control when offline");
-      }
-      entity = await this.save(entity);
+    if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}} [OK] in ${Date.now() - now}ms`);
+
+    return undefined;
+  }
+
+  /**
+   * Terminate the trip
+   * @param entity
+   */
+  async terminate(entity: Trip): Promise<Trip> {
+    if (isNil(entity.id)) {
+      throw new Error("Entity must be saved before terminate !");
+    }
+
+    // If local entity: save locally
+    const offline = entity.id < 0;
+    if (offline) {
+
+      // Make sure to fill id, with local ids
+      await this.fillOfflineDefaultProperties(entity);
+
+      // Update sync status
+      entity.synchronizationStatus = 'READY_TO_SYNC';
+
+      const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+      if (this._debug) console.debug('[trip-service] [offline] Terminate trip locally...', json);
+
+      // Save response locally
+      await this.entities.save(json);
+
+      return entity;
     }
 
     // Prepare to save
@@ -704,14 +765,14 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const json = this.asObject(entity);
 
     const now = new Date();
-    if (this._debug) console.debug("[trip-service] Control trip...", json);
+    if (this._debug) console.debug("[trip-service] Terminate trip...", json);
 
     const res = await this.graphql.mutate<{ controlTrip: any }>({
       mutation: ControlMutation,
       variables: {
         trip: json
       },
-      error: { code: ErrorCodes.CONTROL_TRIP_ERROR, message: "TRIP.ERROR.CONTROL_TRIP_ERROR" }
+      error: { code: ErrorCodes.TERMINATE_TRIP_ERROR, message: "TRIP.ERROR.TERMINATE_TRIP_ERROR" }
     });
 
     const savedEntity = res && res.controlTrip;
@@ -732,6 +793,9 @@ export class TripService extends RootDataService<Trip, TripFilter>
    */
   async validate(entity: Trip): Promise<Trip> {
 
+    if (isNil(entity.id) || entity.id < 0) {
+      throw new Error("Entity must be saved once before validate !");
+    }
     if (isNil(entity.controlDate)) {
       throw new Error("Entity must be controlled before validate !");
     }
@@ -907,19 +971,6 @@ export class TripService extends RootDataService<Trip, TripFilter>
     });
   }
 
-  canUserWrite(trip: Trip): boolean {
-    if (!trip) return false;
-
-    // If the user is the recorder: can write
-    if (trip.recorderPerson && this.accountService.account.equals(trip.recorderPerson)) {
-      return true;
-    }
-
-    // TODO: check rights on program (need model changes)
-
-    return this.accountService.canUserWriteDataForDepartment(trip.recorderDepartment);
-  }
-
   executeImport(opts?: {
     maxProgression?: number;
   }): Observable<number>{
@@ -1070,22 +1121,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
   protected fillDefaultProperties(entity: Trip) {
 
-    const isNew = isNil(entity.id);
-    // If new
-    if (isNew) {
-
-      const person = this.accountService.person;
-
-      // Recorder department
-      if (person && person.department && !entity.recorderDepartment) {
-        entity.recorderDepartment = person.department;
-      }
-
-      // Recorder person
-      if (person && person.id && !entity.recorderPerson) {
-        entity.recorderPerson = person;
-      }
-    }
+    super.fillDefaultProperties(entity);
 
     // Physical gears: compute rankOrder
     fillRankOrder(entity.gears);
@@ -1100,10 +1136,10 @@ export class TripService extends RootDataService<Trip, TripFilter>
     // If new, generate a local id
     if (isNew) {
       entity.id =  await this.entities.nextValue(entity);
-
-      // Force synchronization status
-      entity.synchronizationStatus = 'DIRTY';
     }
+
+    // Fill default synchronization status
+    entity.synchronizationStatus = entity.synchronizationStatus || 'DIRTY';
 
     // Fill gear id
     const gears = entity.gears || [];

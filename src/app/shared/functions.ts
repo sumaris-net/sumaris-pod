@@ -48,7 +48,7 @@ export function toFloat(obj: string | null | undefined): number | null {
 export function toInt(obj: string | null | undefined): number | null {
   return (obj !== undefined && obj !== null) ? parseInt(obj, 0) : null;
 }
-export const toDateISOString = function (value): string | undefined {
+export function toDateISOString(value): string | undefined {
   if (!value) return undefined;
   if (typeof value === "string") {
     if (value.indexOf('+')) {

@@ -72,27 +72,30 @@ export interface IWithObserversEntity<T> extends Entity<T> {
 }
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
-
+  keepSynchronizationStatus?: boolean;
 }
 
 export const SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
- minify: false,
- keepTypename: true,
- keepEntityName: true,
- keepLocalId: true
+  minify: false,
+  keepTypename: true,
+  keepEntityName: true,
+  keepLocalId: true,
+  keepSynchronizationStatus: true
 };
 export const SAVE_LOCALLY_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
   minify: true,
   keepTypename: true,
   keepEntityName: true,
-  keepLocalId: true
+  keepLocalId: true,
+  keepSynchronizationStatus: true
 };
 
 export const SAVE_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
   minify: true,
   keepTypename: false,
   keepEntityName: false,
-  keepLocalId: false
+  keepLocalId: false,
+  keepSynchronizationStatus: false
 };
 
 export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDepartmentEntity<T> {
@@ -163,7 +166,9 @@ export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRe
     target.program = this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*always keep for table*/ } as ReferentialAsObjectOptions) || undefined;
     if (options && options.minify) {
       if (target.program) delete target.program.entityName;
-      delete target.synchronizationStatus; // Not exists in the Pod's model
+      if (options.keepSynchronizationStatus !== true) {
+        delete target.synchronizationStatus; // Remove by default, when minify, because not exists on pod's model
+      }
     }
     return target;
   }

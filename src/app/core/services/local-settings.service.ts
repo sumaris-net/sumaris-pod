@@ -69,7 +69,7 @@ export class LocalSettingsService {
   }
 
   set touchUi(value: boolean) {
-    this.data.mobile = value;
+    this.data.touchUi = value;
   }
 
   get pageHistory(): HistoryPageReference[] {
@@ -103,8 +103,8 @@ export class LocalSettingsService {
     // Restoring local settings
     this._startPromise = this.platform.ready()
       .then(() => {
-        this.data.mobile = this.platform.is('mobile');
-        this.data.mobile = this.data.mobile || this.platform.is('phablet') || this.platform.is('tablet');
+        this.data.mobile = isNotNil(this.data.mobile) ? this.data.mobile : this.platform.is('mobile');
+        this.data.touchUi = this.data.mobile || this.platform.is('phablet') || this.platform.is('tablet');
         this.data.usageMode = this.data.mobile ? "FIELD" : "DESK"; // FIELD by default, if mobile detected
       })
       .then(() => this.restoreLocally())

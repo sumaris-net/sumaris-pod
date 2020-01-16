@@ -70,12 +70,10 @@ function dataIdFromObjectDebug (object: Object): string {
       console.warn("[dataIdFromObject] Missing attribute 'entityName' or 'id' on an entity. Both are required for graphQL cache. Make sure to fetch it, in GraphQL queries.", object);
       break;
 
-    // Join entity (without attribute 'id')
+    // Join entity classes (without 'id' attribute)
     case 'TaxonGroupStrategyVO':
-      console.debug("TODO: check computing TaxonGroupStrategyVO cache key");
       return `TaxonGroupStrategyVO:${object['strategyId']}:${dataIdFromObjectDebug(object['taxonGroup'])}`;
     case 'TaxonNameStrategyVO':
-      console.debug("TODO: check computing TaxonNameStrategyVO cache key");
       return `TaxonGroupStrategyVO:${object['strategyId']}:${dataIdFromObjectDebug(object['taxonName'])}`;
 
     // Fallback to default cache key

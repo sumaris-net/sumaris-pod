@@ -20,6 +20,7 @@ import {EntityUtils, MINIFY_OPTIONS} from "../../core/services/model";
 import {DataEntityAsObjectOptions, DataRootEntityUtils, SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
 import {WatchQueryFetchPolicy} from "apollo-client";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
+import {FormErrors} from "../../core/form/form.utils";
 
 
 export class LandingFilter extends TripFilter {
@@ -381,7 +382,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
   }
 
 
-  public listenChanges(id: number): Observable<Landing> {
+  listenChanges(id: number): Observable<Landing> {
     if (!id && id !== 0) throw "Missing argument 'id' ";
 
     if (this._debug) console.debug(`[landing-service] [WS] Listening changes for trip {${id}}...`);
@@ -405,6 +406,14 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
         })
       );
   }
+
+  /* -- TODO implement this methods -- */
+  async synchronize(data: Landing): Promise<Landing> { return data; }
+  async control(data: Landing): Promise<FormErrors> { return undefined; }
+  async terminate(data: Landing): Promise<Landing> { return data; }
+  async validate(data: Landing): Promise<Landing> { return data; }
+  async unvalidate(data: Landing): Promise<Landing> { return data; }
+  async qualify(data: Landing, qualityFlagId: number): Promise<Landing> { return data; }
 
   /* -- private -- */
 

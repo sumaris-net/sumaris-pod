@@ -1,4 +1,4 @@
-import {EventEmitter, Inject, Injectable} from "@angular/core";
+import {EventEmitter, Inject, Injectable, Optional} from "@angular/core";
 import {CryptoService} from "./crypto.service";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
@@ -16,6 +16,7 @@ import {DOCUMENT} from "@angular/common";
 import {CacheService} from "ionic-cache";
 import {Toasts} from "../../shared/toasts";
 import {distinctUntilChanged, filter, map} from "rxjs/operators";
+import {ToastOptions} from "@ionic/core";
 
 export interface NodeInfo {
   softwareName: string;
@@ -96,16 +97,16 @@ export class NetworkService {
 
   constructor(
     @Inject(DOCUMENT) private _document: HTMLDocument,
-    private translate: TranslateService,
     private modalCtrl: ModalController,
-    private toastController: ToastController,
     private cryptoService: CryptoService,
     private storage: Storage,
     private http: HttpClient,
     private splashScreen: SplashScreen,
     private settings: LocalSettingsService,
     private network: Network,
-    private cache: CacheService
+    private cache: CacheService,
+    @Optional() private translate: TranslateService,
+    @Optional() private toastController: ToastController
   ) {
     this.resetData();
 
@@ -139,6 +140,7 @@ export class NetworkService {
         this._startPromise = undefined;
 
         this.onStart.next(peer);
+        console.info(`[platform] Starting network [OK] {online: ${this.online}}`);
       })
       .catch((err) => {
         console.error(err && err.message || err, err);
@@ -175,10 +177,10 @@ export class NetworkService {
 
   async restart(peer?: Peer) {
     if (this._started) {
-      this.stop()
+      await this.stop()
         .then(() => this.start(peer));
     } else {
-      this.start(peer);
+      await this.start(peer);
     }
   }
 
@@ -189,17 +191,19 @@ export class NetworkService {
     console.info("[network] Checking connection to pod...");
     const settings: LocalSettings = await this.settings.ready();
 
-    if (!settings.peerUrl) return ; // No peer define. Skip
+    if (!settings.peerUrl) return false; // No peer define. Skip
 
     const peer = Peer.parseUrl(settings.peerUrl);
     const alive = await this.checkPeerAlive(peer);
-    if (alive)  {
-      // Disable the offline mode
-      this.setForceOffline(false);
+    if (!alive)  return false;
 
-      // Restart
-      await this.restart(peer);
-    }
+    // Disable the offline mode
+    this.setForceOffline(false);
+
+    // Restart
+    await this.restart(peer);
+
+    return this._started;
   }
 
   /**
@@ -269,9 +273,7 @@ export class NetworkService {
 
         // Offline mode: alert the user
         if (currentConnectionType === 'none' && (!opts || opts.displayToast !== false)) {
-          Toasts.show(this.toastController, this.translate, {
-            message: 'NETWORK.INFO.OFFLINE_HELP'
-          });
+          this.showToast({message: 'NETWORK.INFO.OFFLINE_HELP'});
         }
       }
     }
@@ -332,16 +334,14 @@ export class NetworkService {
     if (connectionType !== this._deviceConnectionType) {
       this._deviceConnectionType = connectionType as ConnectionType;
 
-      // If already forced as offline, emit event
+      // If NOT  already forced as offline, emit event
       if (!this._forceOffline) {
         console.info(`[network] Connection changed to {${this._deviceConnectionType}}`);
         this.onNetworkStatusChanges.next(this._deviceConnectionType);
 
         if (this._deviceConnectionType === 'none') {
           // Alert the user
-          Toasts.show(this.toastController, this.translate, {
-            message: 'NETWORK.INFO.OFFLINE_MODE'
-          });
+          this.showToast({message: 'NETWORK.INFO.OFFLINE'});
         }
       }
     }
@@ -373,4 +373,12 @@ export class NetworkService {
     return Promise.resolve(peers);
   }
 
+  protected showToast(opts: ToastOptions): Promise<void> {
+    if (!this.toastController || !this.translate) {
+      console.error("[network] Cannot show toast - missing toastController or translate");
+      if (opts.message) console.info("[network] toast message: " + (this.translate && this.translate.instant(opts.message) || opts.message));
+      return Promise.resolve();
+    }
+    return Toasts.show(this.toastController, this.translate, opts);
+  }
 }

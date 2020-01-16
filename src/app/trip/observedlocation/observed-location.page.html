@@ -39,10 +39,8 @@
           </ion-col>
           <ion-col class="ion-no-padding" size="12" size-xl="3">
             <entity-metadata [value]="data">
-              <entity-quality-form #qualityForm
-                                   [dataService]="service"
-                                   (onChange)="updateView(data)" (onControl)="onControl($event)">
-              </entity-quality-form>
+              <app-entity-quality-form #qualityForm [editor]="this">
+              </app-entity-quality-form>
             </entity-metadata>
           </ion-col>
         </ion-row>

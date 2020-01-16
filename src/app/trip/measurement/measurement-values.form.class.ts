@@ -297,7 +297,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (!pmfms.length) {
       // Reset form
       if (measFormGroup && measFormGroup instanceof FormGroup) {
-        this.measurementValidatorService.updateFormGroup(measFormGroup, []);
+        this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: []});
         measFormGroup.reset({}, {onlySelf: true, emitEvent: false});
       }
     }
@@ -307,14 +307,14 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
       // Create measurementValues form group
       if (!measFormGroup) {
-        measFormGroup = this.measurementValidatorService.getFormGroup(pmfms);
+        measFormGroup = this.measurementValidatorService.getFormGroup(null, {pmfms});
         this.form.addControl('measurementValues', measFormGroup);
         measFormGroup.disable({onlySelf: true, emitEvent: false});
       }
 
       // Or update if already exist
       else {
-        this.measurementValidatorService.updateFormGroup(measFormGroup as FormGroup, pmfms);
+        this.measurementValidatorService.updateFormGroup(measFormGroup as FormGroup, {pmfms});
       }
     }
 

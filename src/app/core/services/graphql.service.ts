@@ -102,6 +102,8 @@ export class GraphqlService {
 
         // Emit event
         this.onStart.next();
+
+        console.info("[graphql] Starting graphql [OK]");
       })
       .catch((err) => {
         console.error(err && err.message || err, err);
@@ -112,10 +114,10 @@ export class GraphqlService {
 
   setAuthToken(authToken: string) {
     if (authToken) {
-      console.debug("[graphql] Setting new authentication token");
+      console.debug("[graphql] Apply authentication token to headers");
       this.wsConnectionParams.authToken = authToken;
     } else {
-      console.debug("[graphql] Resetting authentication token");
+      console.debug("[graphql] Remove authentication token from headers");
       delete this.wsConnectionParams.authToken;
       // Clear cache
       this.clearCache();

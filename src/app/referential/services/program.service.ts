@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {BehaviorSubject, defer, Observable, of, Subject} from "rxjs";
-import {filter, map} from "rxjs/operators";
+import {filter, map, tap} from "rxjs/operators";
 import {
   AcquisitionLevelCodes,
   EntityUtils,
@@ -37,6 +37,8 @@ import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {EntityStorage} from "../../core/services/entities-storage.service";
+import {Trip} from "../../trip/services/model/trip.model";
+import {TripFilter} from "../../trip/services/trip.service";
 
 export declare class ProgramFilter {
   searchText?: string;
@@ -269,6 +271,23 @@ const LoadAllWithCountQuery: any = gql`
   ${ProgramFragments.lightProgram}
 `;
 
+
+const LoadAllRefWithCountQuery: any = gql`
+  query Programs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ProgramFilterVOInput){
+    programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...ProgramRefFragment
+    }
+    referentialsCount(entityName: "Program")
+  }
+  ${ProgramFragments.programRef}
+  ${ProgramFragments.strategyRef}
+  ${ProgramFragments.pmfmStrategyRef}
+  ${ProgramFragments.taxonGroupStrategy}
+  ${ProgramFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.taxonName}
+`;
+
 const SaveQuery: any = gql`
   mutation SaveProgram($program:ProgramVOInput){
     saveProgram(program: $program){
@@ -380,6 +399,7 @@ export class ProgramService extends BaseDataService
            sortDirection?: string,
            filter?: ProgramFilter,
            opts?: {
+             query?: any,
              fetchPolicy: FetchPolicy;
              withTotal?: boolean;
              toEntity?: boolean;
@@ -417,7 +437,7 @@ export class ProgramService extends BaseDataService
 
     // Online mode
     else {
-      const query = opts && opts.withTotal ? LoadAllWithCountQuery : LoadAllQuery;
+      const query = opts && opts.query || opts && opts.withTotal && LoadAllWithCountQuery || LoadAllQuery;
       loadResult = await this.graphql.query<{ programs: any[], referentialsCount?: number }>({
         query,
         variables,
@@ -454,6 +474,7 @@ export class ProgramService extends BaseDataService
   watchByLabel(label: string, opts?: {
     toEntity?: boolean;
     debug?: boolean;
+    query?: any
   }): Observable<Program> {
 
     let now;
@@ -462,22 +483,36 @@ export class ProgramService extends BaseDataService
       defer(() => {
         const debug = this._debug && (!opts || opts !== false);
         now = debug && Date.now();
-        if (now) console.debug(`[program-service] Watch program {${label}}...`);
+        if (now) console.debug(`[program-service] Loading program {${label}}...`);
+        let $loadResult: Observable<{ program: any }>;
 
-        return this.graphql.watchQuery<{ program: any }>({
-          query: LoadRefQuery,
-          variables: {
-            label: label
-          },
-          error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
-        }).pipe(filter(isNotNil));
+        if (this.network.offline) {
+          $loadResult = this.entities.watchAll<Program>('ProgramVO', {
+            filter: (p) => p.label ===  label
+          })
+          .pipe(
+            map(res => {
+              return {program: res && res.data && res.data.length && res.data[0] || undefined};
+            }));
+        }
+        else {
+          const query = opts && opts.query || LoadRefQuery;
+          $loadResult = this.graphql.watchQuery<{ program: any }>({
+            query: query,
+            variables: {
+              label: label
+            },
+            error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
+          });
+        }
+        return $loadResult.pipe(filter(isNotNil));
       }),
       ProgramCacheKeys.CACHE_GROUP
     )
       .pipe(
         map(({program}) => {
           if (now) {
-            console.debug(`[program-service] Program loaded {${label}} in ${Date.now() - now} `, program);
+            console.debug(`[program-service] Loading program {${label}} [OK] in ${Date.now() - now}ms`);
             now = undefined;
           }
           return (!opts || opts.toEntity !== false) ? Program.fromObject(program) : program;
@@ -526,43 +561,45 @@ export class ProgramService extends BaseDataService
 
     return this.cache.loadFromObservable(cacheKey,
       this.watchByLabel(programLabel, {toEntity: false, debug: false}) // Watch the program
-        .pipe(
-          map(program => {
-              // TODO: select valid strategy (from date and location)
-              const strategy = program && program.strategies && program.strategies[0];
+          .pipe(
+            map(program => {
+                // TODO: select valid strategy (from date and location)
+                const strategy = program && program.strategies && program.strategies[0];
 
-              const pmfmIds = []; // used to avoid duplicated pmfms
-              const res = (strategy && strategy.pmfmStrategies || [])
-              // Filter on acquisition level and gear
-                .filter(p =>
-                  pmfmIds.indexOf(p.pmfmId) === -1
-                  && (
-                    !options || (
-                      (!options.acquisitionLevel || p.acquisitionLevel === options.acquisitionLevel)
-                      // Filter on gear (if PMFM has gears = compatible with all gears)
-                      && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g === options.gear) !== -1)
-                      // Filter on taxon group
-                      && (!options.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === options.taxonGroupId) !== -1)
-                      // Filter on reference taxon
-                      && (!options.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === options.referenceTaxonId) !== -1)
-                      // Add to list of IDs
-                      && pmfmIds.push(p.pmfmId)
-                    )
-                  ))
+                const pmfmIds = []; // used to avoid duplicated pmfms
+                const res = (strategy && strategy.pmfmStrategies || [])
+                  // Filter on acquisition level and gear
+                  .filter(p =>
+                    pmfmIds.indexOf(p.pmfmId) === -1
+                    && (
+                      !options || (
+                        (!options.acquisitionLevel || p.acquisitionLevel === options.acquisitionLevel)
+                        // Filter on gear (if PMFM has gears = compatible with all gears)
+                        && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g === options.gear) !== -1)
+                        // Filter on taxon group
+                        && (!options.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === options.taxonGroupId) !== -1)
+                        // Filter on reference taxon
+                        && (!options.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === options.referenceTaxonId) !== -1)
+                        // Add to list of IDs
+                        && pmfmIds.push(p.pmfmId)
+                      )
+                    ))
 
-                // Sort on rank order
-                .sort((p1, p2) => p1.rankOrder - p2.rankOrder);
+                  // Sort on rank order
+                  .sort((p1, p2) => p1.rankOrder - p2.rankOrder);
 
-              if (debug) console.debug(`[program-service] PMFM for ${options.acquisitionLevel} (filtered):`, res);
+                if (debug) console.debug(`[program-service] PMFM for ${options.acquisitionLevel} (filtered):`, res);
 
-              // TODO: translate name/label using translate service ?
-              return res;
-            }
-          )), ProgramCacheKeys.CACHE_GROUP)
-      .pipe(
-        map(res => res && res.map(PmfmStrategy.fromObject)),
-        filter(isNotNil)
-      );
+                // TODO: translate name/label using translate service ?
+                return res;
+              }
+            )),
+      ProgramCacheKeys.CACHE_GROUP
+    )
+    .pipe(
+      map(res => res && res.map(PmfmStrategy.fromObject)),
+      filter(isNotNil)
+    );
   }
 
   /**
@@ -591,13 +628,15 @@ export class ProgramService extends BaseDataService
           map(program => {
             // TODO: select valid strategy (from date and location)
             const strategy = program && program.strategies && program.strategies[0];
-            const res = (strategy && strategy.gears || []);
-            if (this._debug) console.debug(`[program-service] Gears for program ${program}: `, res);
-            return res;
+            const gears = (strategy && strategy.gears || []);
+            if (this._debug) console.debug(`[program-service] Found ${gears.length} gears on program {${program.label}}`);
+            return gears;
           })
-        ), ProgramCacheKeys.CACHE_GROUP)
-      // Convert into model (after cache)
-      .pipe(map(res => res.map(ReferentialRef.fromObject)));
+        ),
+        ProgramCacheKeys.CACHE_GROUP
+    )
+    // Convert into model (after cache)
+    .pipe(map(res => res.map(ReferentialRef.fromObject)));
   }
 
   /**
@@ -624,14 +663,14 @@ export class ProgramService extends BaseDataService
               // FIXME Priority level not always set in DB
               //.sort(propertyComparator('priorityLevel'))
               .map(v => v.taxonGroup);
-            if (this._debug) console.debug(`[program-service] Taxon groups for program ${program}: `, res);
+            if (this._debug) console.debug(`[program-service] Found ${res.length} taxon groups on program {${program}}`);
             return res;
           })
         ),
-      ProgramCacheKeys.CACHE_GROUP
+        ProgramCacheKeys.CACHE_GROUP
     )
-      // Convert into model (after cache)
-      .pipe(map(res => res.map(TaxonGroupRef.fromObject)));
+    // Convert into model (after cache)
+    .pipe(map(res => res.map(TaxonGroupRef.fromObject)));
   }
 
   /**
@@ -828,7 +867,7 @@ export class ProgramService extends BaseDataService
 
     const acquisitionLevels: string[] = opts && opts.acquisitionLevels || Object.keys(AcquisitionLevelCodes).map(key => AcquisitionLevelCodes[key]);
 
-    const stepCount = 5; // programs, pmfms, gears, taxon groups, taxon names
+    const stepCount = 2;
     const progressionStep = maxProgression ? maxProgression / stepCount : undefined;
     const progressionRest = progressionStep && (maxProgression - progressionStep * stepCount) || undefined;
 
@@ -840,62 +879,30 @@ export class ProgramService extends BaseDataService
       await this.clearCache();
 
       // Step 1. load all programs
-      let programLabels: string[] = [];
-      {
-        const loadFilter = {
-          statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
-        };
-        const res = await fetchAllPagesWithProgress((offset, size) =>
-            this.loadAll(offset, size, 'id', null, loadFilter, {
-              debug: false,
-              fetchPolicy: "network-only",
-              withTotal: (offset === 0), // Compute total only once
-              toEntity: false
-            }),
-          progression,
-          progressionStep,
-          (page) => {
-            const pageLabels = (page && page.data || []).map(p => p.label) as string[];
-            programLabels.push(...pageLabels);
-          }
-        );
+      const programLabels: string[] = [];
+      const loadFilter = {
+        statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      };
+      const res = await fetchAllPagesWithProgress((offset, size) =>
+          this.loadAll(offset, size, 'id', 'asc', loadFilter, {
+            debug: false,
+            query: LoadAllRefWithCountQuery, // Need fragment ProgramRefFragment
+            fetchPolicy: "network-only",
+            toEntity: false
+          }),
+        progression,
+        progressionStep,
+        (page) => {
+          const labels = (page && page.data || []).map(p => p.label) as string[];
+          programLabels.push(...labels);
+        },
+        '[program-service]'
+      );
+      progression.next(progression.getValue() + progressionStep);
 
-        // Saving locally
-        await this.entities.saveAll(res.data, {entityName: 'ProgramVO'});
-      }
-
-      // Step 2. load pmfms
-      {
-        await Promise.all(programLabels.map(programLabel => {
-            return Promise.all(acquisitionLevels.map((acquisitionLevel) =>
-              this.loadProgramPmfms(programLabel, {acquisitionLevel})
-            ));
-          }));
-        progression.next(progression.getValue() + progressionStep);
-      }
-
-      // Step 3. load gears
-      {
-        await Promise.all(programLabels.map(programLabel => this.loadGears(programLabel)));
-        progression.next(progression.getValue() + progressionStep);
-      }
-
-      // Step 4. load taxon groups
-      {
-        await Promise.all(programLabels.map(programLabel => this.loadTaxonGroups(programLabel)));
-        progression.next(progression.getValue() + progressionStep);
-      }
-
-      // Step 5. load the map of taxon name by taxon group Id
-      {
-        const maps = await Promise.all(programLabels.map(programLabel => this.loadTaxonNamesByTaxonGroupIdMap(programLabel)));
-        // Merge map
-        // TODO: merge all maps, and update link in the entities store : taxonName.taxonGroupsIds[]
-        //maps.reduce((res, map) => {
-        //  res[]
-        //}, {});
-        progression.next(progression.getValue() + progressionStep);
-      }
+      // Step 2. Saving locally
+      await this.entities.saveAll(res.data, {entityName: 'ProgramVO'});
+      progression.next(progression.getValue() + progressionStep);
 
       // Make sure to fill the progression at least once
       if (progressionRest) {

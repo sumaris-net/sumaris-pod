@@ -69,7 +69,7 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
   ngAfterViewInit(): void {
 
     this.registerSubscription(
-      this.onRefresh.subscribe(() => {
+      this.onUpdateView.subscribe(() => {
           this.featuresHistoryTable.setFilter({vesselId: this.data.id});
           this.registrationHistoryTable.setFilter({vesselId: this.data.id});
         }

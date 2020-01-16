@@ -126,7 +126,7 @@ const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
 };
 
 @Injectable({providedIn: 'root'})
-export class SaleService extends BaseDataService implements TableDataService<Sale, SaleFilter>{
+export class SaleService extends BaseDataService<Sale, SaleFilter> implements TableDataService<Sale, SaleFilter>{
 
   constructor(
     protected graphql: GraphqlService,
@@ -158,7 +158,7 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
     const variables: any = {
       offset: offset || 0,
       size: size || 1000,
-      sortBy: (sortBy != 'id' && sortBy) || 'startDateTime',
+      sortBy: (sortBy !== 'id' && sortBy) || 'startDateTime',
       sortDirection: sortDirection || 'asc',
       filter: filter
     };
@@ -393,16 +393,16 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
   }
 
   fillRecorderPersonAndDepartment(entity: Sale) {
-    const person: Person = this.accountService.account;
+    const person = this.accountService.person;
 
     // Recorder department
     if (person && person.department && !entity.recorderDepartment) {
-      entity.recorderDepartment = Department.fromObject({id: person.department.id});
+      entity.recorderDepartment = person.department;
     }
 
     // Recorder person
     if (person && person.id && !entity.recorderPerson) {
-      entity.recorderPerson = Person.fromObject({id: person.id});
+      entity.recorderPerson = person;
     }
   }
 

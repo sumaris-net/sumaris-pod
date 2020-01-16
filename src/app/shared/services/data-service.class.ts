@@ -85,7 +85,7 @@ export async function fetchAllPagesWithProgress<T>(
   let offset = 0;
   let data: T[] = [];
   do {
-    //console.debug(`${logPrefix || '[??]'} Fetching page #${offset / fetchSize}... (progressionStep=${progressionStep}), loopProgressionStepSize=${loopProgressionStepSize}, loopCount=${loopCount})`);
+    console.debug(`${logPrefix || '[??]'} Fetching page #${offset / fetchSize}... (progressionStep=${progressionStep}), loopProgressionStepSize=${loopProgressionStepSize}, loopCount=${loopCount})`);
 
     // Get some items, using paging
     const res = await loadPageFn(offset, fetchSize);

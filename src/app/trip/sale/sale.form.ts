@@ -60,7 +60,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
     super.ngOnInit();
 
     // Set if required or not
-    this.saleValidatorService.setRequired(this.form, this.required);
+    this.saleValidatorService.updateFormGroup(this.form, {required: this.required});
 
     // Combo: vessels (if need)
     if (this.showVessel) {

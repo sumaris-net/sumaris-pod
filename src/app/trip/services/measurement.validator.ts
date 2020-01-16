@@ -1,18 +1,25 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {PmfmStrategy} from "./trip.model";
+import {Measurement, PmfmStrategy} from "./trip.model";
 import {SharedValidators} from "../../shared/validator/validators";
 
-import {isNil, isNotNil} from '../../shared/shared.module';
+import {isNil, isNotNil, toBoolean} from '../../shared/shared.module';
 import {ProgramService} from "../../referential/services/program.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 const REGEXP_INTEGER = /^[0-9]+$/;
 const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;
 
+export interface MeasurementsValidatorOptions {
+  isOnFieldMode?: boolean;
+  pmfms?: PmfmStrategy[];
+  protectedAttributes?: string[];
+}
+
 @Injectable()
-export class MeasurementsValidatorService implements ValidatorService {
+export class MeasurementsValidatorService<T extends Measurement = Measurement, O extends MeasurementsValidatorOptions = MeasurementsValidatorOptions>
+  implements ValidatorService {
 
   constructor(
     protected formBuilder: FormBuilder,
@@ -20,60 +27,71 @@ export class MeasurementsValidatorService implements ValidatorService {
     protected programService: ProgramService) {
   }
 
-  getRowValidator(options?: any): FormGroup {
-    options = options || {};
-    return this.getFormGroup(options && options.$pmfms || []);
+  getRowValidator(opts?: O): FormGroup {
+    return this.getFormGroup(null, opts);
   }
 
-  getFormGroup(pmfms: PmfmStrategy[]): FormGroup {
-    const config = this.getFormGroupConfig(pmfms);
-    return this.formBuilder.group(config);
+  getFormGroup(data: T[], opts?: O): FormGroup {
+    opts = this.fillDefaultOptions(opts);
+
+    return this.formBuilder.group(
+      this.getFormGroupConfig(data, opts),
+      this.getFormGroupOptions(data, opts)
+    );
   }
 
-  getFormGroupConfig(pmfms: PmfmStrategy[]): { [key: string]: any } {
-    return pmfms.reduce((res, pmfm) => {
-      const validator = this.getValidator(pmfm);
+  getFormGroupConfig(data: T[], opts?: O): { [key: string]: any } {
+    opts = this.fillDefaultOptions(opts);
+
+    return (opts.pmfms || []).reduce((res, pmfm) => {
+      const validator = this.getPmfmValidator(pmfm);
       if (validator) {
-        res[pmfm.pmfmId] = ['', validator];
+        res[pmfm.pmfmId] = [null, validator];
       }
       else {
-        res[pmfm.pmfmId] = [''];
+        res[pmfm.pmfmId] = [null];
       }
       return res;
     }, {});
   }
 
-  updateFormGroup(form: FormGroup, pmfms: PmfmStrategy[], options?: {
-    protectedAttributes?: string[];
-  }) {
-    options = options || { protectedAttributes: ['id', 'rankOrder', 'comments', 'updateDate'] };
-    let controlNamesToRemove: string[] = [];
-    for (let controlName in form.controls) {
+  getFormGroupOptions(data?: T[], opts?: O): {
+    [key: string]: any;
+  } {
+    return {};
+  }
+
+  updateFormGroup(form: FormGroup, opts?: O) {
+    opts = this.fillDefaultOptions(opts);
+
+    const controlNamesToRemove: string[] = [];
+    // tslint:disable-next-line:forin
+    for (const controlName in form.controls) {
       controlNamesToRemove.push(controlName);
     }
-    pmfms.forEach(pmfm => {
+    opts.pmfms.forEach(pmfm => {
       const controlName = pmfm.pmfmId.toString();
       let formControl: AbstractControl = form.get(controlName);
       // If new pmfm: add as control
       if (!formControl) {
 
-        formControl = this.formBuilder.control(pmfm.defaultValue || '', this.getValidator(pmfm));
+        formControl = this.formBuilder.control(pmfm.defaultValue || '', this.getPmfmValidator(pmfm));
         form.addControl(controlName, formControl);
       }
 
       // Remove from the remove list
-      let index = controlNamesToRemove.indexOf(controlName);
+      const index = controlNamesToRemove.indexOf(controlName);
       if (index >= 0) controlNamesToRemove.splice(index, 1);
 
     });
 
     // Remove unused controls
     controlNamesToRemove
-      .filter(controlName => !options.protectedAttributes || !options.protectedAttributes.includes(controlName)) // Keep protected columns
+      .filter(controlName => !opts.protectedAttributes || !opts.protectedAttributes.includes(controlName)) // Keep protected columns
       .forEach(controlName => form.removeControl(controlName));
   }
 
-  getValidator(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[]): ValidatorFn {
+  getPmfmValidator(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[]): ValidatorFn {
     validatorFns = validatorFns || [];
     // Add required validator (if NOT in ON FIELD mode)
     if (pmfm.required && !this.settings.isFieldUsageMode()) {
@@ -112,4 +130,16 @@ export class MeasurementsValidatorService implements ValidatorService {
     return validatorFns.length > 1 ? Validators.compose(validatorFns) : (validatorFns.length === 1 ? validatorFns[0] : undefined);
   }
 
+  /* -- -- */
+  protected fillDefaultOptions(opts?: O): O {
+    opts = opts || {} as O;
+
+    opts.isOnFieldMode = toBoolean(opts.isOnFieldMode, this.settings && this.settings.isUsageMode('FIELD') || false);
+
+    opts.pmfms = opts.pmfms || [];
+
+    opts.protectedAttributes = opts.protectedAttributes || ['id', 'rankOrder', 'comments', 'updateDate'];
+
+    return opts;
+  }
 }

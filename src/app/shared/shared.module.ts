@@ -60,10 +60,12 @@ import {NumpadComponent} from "./numpad/numpad";
 import {AudioProvider} from "./audio/audio";
 import {CloseScrollStrategy, Overlay} from '@angular/cdk/overlay';
 import {Hotkeys, HotkeysModule} from "./hotkeys/hotkeys.module";
-import {FileTransfer} from "@ionic-native/file-transfer/ngx";
-import {FileChooser} from "@ionic-native/file-chooser/ngx";
+//import {FileTransfer} from "@ionic-native/file-transfer/ngx";
+//import {FileChooser} from "@ionic-native/file-chooser/ngx";
+//import {File} from "@ionic-native/file/ngx";
 import {FileService} from "./file/file.service";
-import {File} from "@ionic-native/file/ngx";
+import {HAMMER_GESTURE_CONFIG} from "@angular/platform-browser";
+import {AppGestureConfig} from "./gesture/gesture-config";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -144,9 +146,9 @@ export {
     NumberFormatPipe,
     ProgressBarService,
     AudioProvider,
-    FileTransfer,
-    File,
-    FileChooser,
+    //File,
+    //FileTransfer,
+    //FileChooser,
     FileService,
     {provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService]},
     {
@@ -158,7 +160,11 @@ export {
       },
       deps: [TranslateService]
     },
-
+    // Configure hammer gesture
+    {
+      provide: HAMMER_GESTURE_CONFIG,
+      useClass: AppGestureConfig
+    },
     // FIXME: try to force a custom overlay for autocomplete, because of there is a bug when using inside an ionic modal
     //{ provide: Overlay, useClass: Overlay},
     { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },

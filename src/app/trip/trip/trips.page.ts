@@ -29,6 +29,7 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 import {BehaviorSubject} from "rxjs";
 import {SynchronizationStatus} from "../services/model/base.model";
 import {concatPromises} from "../../shared/observables";
+import {isEmptyArray} from "../../shared/functions";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -224,7 +225,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.network.setForceOffline(false);
     }
     else {
-      this.network.setForceOffline();
+      this.network.setForceOffline(true, {displayToast: true});
       this.filterForm.patchValue({synchronizationStatus: 'DIRTY'}, {emitEvent: false/*avoid refresh*/});
       this.hasOfflineMode = true;
     }
@@ -272,7 +273,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
       // Enable sync status button
       this.setSynchronizationStatus('DIRTY');
-      this.showToast({message: 'NETWORK.IMPORTATION_SUCCEED'});
+      this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED'});
       success = true;
     }
     catch (err) {
@@ -307,15 +308,25 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     await this.settings.savePageSetting(this.settingsId, json, TripsPageSettingsEnum.FILTER_KEY);
   }
 
+  hasReadyToSyncSelection(): boolean {
+    if (!this._enable) return false;
+    if (this.loading || this.selection.isEmpty()) return false;
+    return (this.selection.selected || [])
+      .findIndex(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'READY_TO_SYNC') !== -1;
+  }
+
   async synchronizeSelection() {
     if (!this._enable) return;
     if (this.loading || this.selection.isEmpty()) return;
 
-
     if (this.debug) console.debug("[trips] Starting synchronization...");
 
     const rowsToSync = this.selection.selected.slice();
-    const tripIds = rowsToSync.map(row => row.currentData.id).filter(id => id < 0);
+    const tripIds = rowsToSync
+      .filter(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'READY_TO_SYNC')
+      .map(row => row.currentData.id);
+
+    if (isEmptyArray(tripIds)) return; // Nothing to sync
 
     try {
       this.loading = true;

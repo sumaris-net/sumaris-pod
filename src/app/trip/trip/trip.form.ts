@@ -42,6 +42,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   @Input() usageMode: UsageMode;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
 
+
+
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {
       this._showObservers = value;
@@ -59,6 +61,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
     // Add program, because if control disabled the value is missing
     json.program = this.form.get('program').value;
+
+    // Force remove all observers
+    if (!this._showObservers) {
+      json.observers = [];
+    }
 
     return json;
   }
@@ -197,17 +204,25 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   protected initObserversHelper() {
     if (isNil(this._showObservers)) return; // skip if not loading yet
 
-    this.observersHelper = new FormArrayHelper<Person>(
-      this.formBuilder,
-      this.form,
-      'observers',
-      (person) => this.validatorService.getObserverControl(person),
-      EntityUtils.equals,
-      EntityUtils.isEmpty,
-      {
-        allowEmptyArray: !this._showObservers
-      }
-    );
+    // Create helper, if need
+    if (!this.observersHelper) {
+      this.observersHelper = new FormArrayHelper<Person>(
+        this.formBuilder,
+        this.form,
+        'observers',
+        (person) => this.validatorService.getObserverControl(person),
+        EntityUtils.equals,
+        EntityUtils.isEmpty,
+        {
+          allowEmptyArray: !this._showObservers
+        }
+      );
+    }
+
+    // Helper exists: update options
+    else {
+      this.observersHelper.allowEmptyArray = !this._showObservers;
+    }
 
     if (this._showObservers) {
       // Create at least one observer

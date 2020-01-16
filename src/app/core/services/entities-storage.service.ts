@@ -470,6 +470,7 @@ export class EntityStorage {
     if (this._startPromise) return this._startPromise;
     if (this._started) return;
 
+    const now = Date.now();
     console.info("[local-entities] Starting...");
 
     // Restore sequences
@@ -491,6 +492,8 @@ export class EntityStorage {
         this._startPromise = undefined;
         // Emit event
         this.onStart.next();
+
+        console.info(`[local-entities] Starting [OK] in ${Date.now() - now}ms`);
       });
 
     return this._startPromise;
@@ -517,7 +520,7 @@ export class EntityStorage {
     if (!entityNames) return;
 
     const now = this._debug && Date.now();
-    if (this._debug) console.info("[local-entities] Restoring entities from local storage...");
+    if (this._debug) console.info("[local-entities] Restoring entities...");
     let entitiesCount = 0;
     await Promise.all(
       entityNames.map((entityName) => {
@@ -536,7 +539,7 @@ export class EntityStorage {
           });
       })
     );
-    if (this._debug) console.debug(`[local-entities] ${entitiesCount} entities restored in ${Date.now() - now}ms`);
+    if (this._debug) console.debug(`[local-entities] Restoring entities [OK] ${entitiesCount} entities found in ${Date.now() - now}ms`);
   }
 
   protected storeLocally(): Promise<any> {

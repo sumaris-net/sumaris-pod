@@ -643,8 +643,8 @@ export class ExtractionService extends BaseDataService {
 
     // Description
     if (!entity.description) {
-      const account = this.accountService.account;
-      entity.description = `Created by ${account.firstName} ${account.lastName}`;
+      const person = this.accountService.person;
+      entity.description = `Created by ${person.firstName} ${person.lastName}`;
     }
   }
 

@@ -6,13 +6,12 @@ import {AccountService} from '../services/account.service';
 import {Account, Configuration, Department, HistoryPageReference, LocalSettings} from '../services/model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
-import {fadeInAnimation, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
+import {fadeInAnimation, isNotNil, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {debounceTime, map, startWith} from "rxjs/operators";
 import {AuthModal} from "../auth/modal/modal-auth";
-import {environment} from "../../../environments/environment";
-import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
+import {environment} from "../../../environments/environment"
 import {NetworkService} from "../services/network.service";
 
 export function getRandomImage(files: String[]) {
@@ -61,8 +60,7 @@ export class HomePage implements OnDestroy {
     private platform: PlatformService,
     private network: NetworkService,
     private cd: ChangeDetectorRef,
-    public settings: LocalSettingsService,
-    private browser: InAppBrowser
+    public settings: LocalSettingsService
   ) {
 
     this.showSpinner = !this.platform.started;
@@ -104,7 +102,7 @@ export class HomePage implements OnDestroy {
 
     if (this.appInstallUrl) {
       console.info(`[home] Opening App download link: ${this.appInstallUrl}`);
-      this.browser.create(this.appInstallUrl, '_system', 'location=yes');
+      this.platform.open(this.appInstallUrl, '_system', 'location=yes');
       return false;
     }
   }
@@ -116,6 +114,8 @@ export class HomePage implements OnDestroy {
     if (this.isLogin) {
       this.onLogin(this.accountService.account);
     }
+
+    this.offline = this.network.offline;
 
     // Listen login/logout events
     this._subscription.add(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
@@ -136,7 +136,6 @@ export class HomePage implements OnDestroy {
         .subscribe(res => this.onSettingsChanged(res)));
 
     // Listen network changes
-    this.offline = this.network.offline;
     this._subscription.add(
       this.network.onNetworkStatusChanges
         .pipe(map(connectionType => connectionType === 'none'))
@@ -155,7 +154,7 @@ export class HomePage implements OnDestroy {
     console.debug("[home] Configuration loaded:", config);
 
     this.appName = config.label || environment.defaultAppName || 'SUMARiS';
-    this.logo = config.largeLogo || config.smallLogo;
+    this.logo = config.largeLogo || config.smallLogo || undefined;
     this.description = config.name;
     this.isWeb = this.platform.isWebOrDesktop();
 
@@ -163,12 +162,22 @@ export class HomePage implements OnDestroy {
     this.$partners.next(partners);
     this.loadingBanner = (partners.length === 0);
 
-    // If not alread set, compute the background image
+    // If not already set, compute the background image
     if (!this.contentStyle) {
-      if (config.backgroundImages && config.backgroundImages.length) {
-        const bgImage = getRandomImage(config.backgroundImages);
+      const backgroundImages = (config.backgroundImages || [])
+        // Filter on not nil, because can occur if detected has not exists (see config-service.js)
+        .filter(img => isNotNil(img)
+          // If offline, filter on local dataURL image
+          && (!this.offline || !img.startsWith('http')));
+
+      // Background image found: select one radomly
+      if (backgroundImages.length) {
+        const bgImage = getRandomImage(backgroundImages);
         this.contentStyle = {'background-image': `url(${bgImage})`};
-      } else {
+      }
+
+      // Use background color
+      else {
         const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
         this.contentStyle = {'background-color': primaryColor};
       }

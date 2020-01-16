@@ -3,36 +3,80 @@ import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {Trip} from "./trip.model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {DataRootEntityValidatorService} from "./validator/base.validator";
+import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from "./validator/base.validator";
+import {SaleValidatorService} from "./sale.validator";
+import {MeasurementsValidatorService} from "./measurement.validator";
+import {ProgramService} from "../../referential/services/program.service";
+import {toBoolean} from "../../shared/functions";
+import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/services/model";
+
+export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
+  withSale?: boolean;
+  withMeasurements?: boolean;
+}
 
 @Injectable()
-export class TripValidatorService extends DataRootEntityValidatorService<Trip> {
+export class TripValidatorService<O extends TripValidatorOptions = TripValidatorOptions> extends DataRootEntityValidatorService<Trip, O> {
 
   constructor(
-    protected formBuilder: FormBuilder,
-    protected settings: LocalSettingsService
+    formBuilder: FormBuilder,
+    settings: LocalSettingsService,
+    protected programService: ProgramService,
+    protected saleValidator: SaleValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService
   ) {
-    super(formBuilder);
+    super(formBuilder, settings);
   }
 
-  getFormConfig(data?: Trip): { [key: string]: any } {
-    const isOnFieldMode = this.settings.isUsageMode('FIELD');
+  getFormGroup(data?: Trip, opts?: O): FormGroup {
+    opts = this.fillDefaultOptions(opts);
 
-    return Object.assign(
-      super.getFormConfig(data),
+    const form = super.getFormGroup(data, opts);
+
+    // Add sale form
+    if (opts.withSale) {
+      form.addControl('sale', this.saleValidator.getFormGroup(data && data.sale, {
+        required: false
+      }));
+    }
+
+    // Add measurement form
+    if (opts.withMeasurements) {
+      const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].pmfmStrategies || [])
+        .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.TRIP);
+      form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
+        isOnFieldMode: opts.isOnFieldMode,
+        pmfms
+      }));
+    }
+
+    return form;
+  }
+
+  getFormGroupConfig(data?: Trip, opts?: O): { [key: string]: any } {
+
+    opts = this.fillDefaultOptions(opts);
+
+    const formConfig = Object.assign(
+      super.getFormGroupConfig(data),
       {
         __typename: [Trip.TYPENAME],
-        vesselSnapshot: [null, Validators.compose([Validators.required, SharedValidators.entity])],
-        departureDateTime: [null, Validators.required],
-        departureLocation: [null, Validators.compose([Validators.required, SharedValidators.entity])],
-        returnDateTime: [null, isOnFieldMode ? null : Validators.required],
-        returnLocation: [null, isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])],
-        observers: this.getObserversArray(data),
-        synchronizationStatus: [null]
+        vesselSnapshot: [data && data.vesselSnapshot || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        departureDateTime: [data && data.departureDateTime || null, Validators.required],
+        departureLocation: [data && data.departureLocation || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        returnDateTime: [data && data.returnDateTime || null, opts.isOnFieldMode ? null : Validators.required],
+        returnLocation: [data && data.returnLocation || null, opts.isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])]
       });
+
+    // Add observers
+    if (opts.withObservers) {
+      formConfig.observers = this.getObserversFormArray(data);
+    }
+
+    return formConfig;
   }
 
-  getFormOptions(data?: any): { [key: string]: any } {
+  getFormGroupOptions(data?: Trip, opts?: O): { [key: string]: any } {
     return {
       validator: Validators.compose([
         SharedValidators.dateRange('departureDateTime', 'returnDateTime'),
@@ -42,27 +86,30 @@ export class TripValidatorService extends DataRootEntityValidatorService<Trip> {
     };
   }
 
-  getFormGroupOld(data?: Trip): FormGroup {
-    const isOnFieldMode = this.settings.isUsageMode('FIELD');
+  updateFormGroup(form: FormGroup, opts?: O): FormGroup {
+    opts = this.fillDefaultOptions(opts);
 
-    return this.formBuilder.group({
-      id: [''],
-      program: ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      updateDate: [''],
-      creationDate: [''],
-      vesselSnapshot: ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      departureDateTime: ['', Validators.required],
-      departureLocation: ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      returnDateTime: ['', isOnFieldMode ? null : Validators.required],
-      returnLocation: ['', isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])],
-      comments: ['', Validators.maxLength(2000)]
-    }, {
-      validator: Validators.compose([
-        SharedValidators.dateRange('departureDateTime', 'returnDateTime'),
-        SharedValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours'),
-        SharedValidators.dateMaxDuration('departureDateTime', 'returnDateTime', 100, 'days')
-      ])
-    });
+    form.get('returnDateTime').setValidators(opts.isOnFieldMode ? null : Validators.required);
+    form.get('returnLocation').setValidators(opts.isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity]));
+
+    return form;
+  }
+
+  /* -- protected methods -- */
+
+  protected fillDefaultOptions(opts?: O): O {
+    opts = super.fillDefaultOptions(opts);
+
+    opts.withObservers = toBoolean(opts.withObservers,
+      toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
+    ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === "true"));
+
+    opts.withSale = toBoolean(opts.withSale,
+      toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
+
+    opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
+
+    return opts;
   }
 }
 
