@@ -51,7 +51,6 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
         keepSourceObject: true,
         onlyExistingPmfms: false
       }) || undefined;
-    console.log(values)
 
     return (opts.pmfms || []).reduce((res, pmfm) => {
       const validator = this.getPmfmValidator(pmfm);
