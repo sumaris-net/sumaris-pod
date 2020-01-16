@@ -45,6 +45,8 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     opts = this.fillDefaultOptions(opts);
 
     const pmfms = opts.pmfms || [];
+
+    // Convert the array of Measurement into a normalized map of form values
     const values = data && MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(data as Measurement[]),
       pmfms,
       {
