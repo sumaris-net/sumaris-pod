@@ -10,13 +10,13 @@ export const PMFM_ID_REGEXP = /\d+/;
 
 
 export declare interface MeasurementModelValues {
-  [key: string]: string
+  [key: string]: string;
 }
 
 export declare type MeasurementFormValue = number | string | boolean | Moment | ReferentialRef<any>;
 
 export declare interface MeasurementFormValues {
-  [key: string]: MeasurementFormValue
+  [key: string]: MeasurementFormValue;
 }
 
 export declare interface IEntityWithMeasurement<T> extends Entity<T> {
@@ -202,7 +202,7 @@ export class MeasurementUtils {
     return !MeasurementUtils.isEmpty(source);
   }
 
-  static toMeasurementValues(measurements: Measurement[]): { [key: number]: any } {
+  static toMeasurementValues(measurements: Measurement[]): MeasurementFormValues {
     return measurements && measurements.reduce((map, m) => {
       const value = m && m.pmfmId && [m.alphanumericalValue, m.numericalValue, m.qualitativeValue && m.qualitativeValue.id].find(isNotNil);
       map[m.pmfmId] = isNotNil(value) ? value : null;
@@ -304,7 +304,7 @@ export class MeasurementValuesUtils {
    *  - keepSourceObject: keep existing map (useful to keep extra pmfms)
    *  - onlyExistingPmfms: Will not init all pmfms, but only those that exists in the source map
    */
-  static normalizeValuesToForm(source: MeasurementModelValues, pmfms: PmfmStrategy[], opts?: {
+  static normalizeValuesToForm(source: MeasurementModelValues|MeasurementFormValues, pmfms: PmfmStrategy[], opts?: {
     keepSourceObject?: boolean;
     onlyExistingPmfms?: boolean; // default to false
   }): MeasurementFormValues {
@@ -320,7 +320,7 @@ export class MeasurementValuesUtils {
 
     const target: MeasurementFormValues =
       // Keep existing object (useful to keep extra pmfms)
-      opts.keepSourceObject ? source
+      opts.keepSourceObject ? (source as MeasurementFormValues)
       : {};
 
     // Normalize all pmfms from the list

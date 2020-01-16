@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Trip} from "./trip.model";
+import {MeasurementUtils, Trip} from "./trip.model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from "./validator/base.validator";
@@ -9,6 +9,7 @@ import {MeasurementsValidatorService} from "./measurement.validator";
 import {ProgramService} from "../../referential/services/program.service";
 import {toBoolean} from "../../shared/functions";
 import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/services/model";
+import {MeasurementValuesUtils} from "./model/measurement.model";
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSale?: boolean;

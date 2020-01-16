@@ -1,12 +1,13 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {Measurement, PmfmStrategy} from "./trip.model";
+import {Measurement, MeasurementUtils, PmfmStrategy} from "./trip.model";
 import {SharedValidators} from "../../shared/validator/validators";
 
-import {isNil, isNotNil, toBoolean} from '../../shared/shared.module';
+import {isNil, isNotEmptyArray, isNotNil, toBoolean} from '../../shared/shared.module';
 import {ProgramService} from "../../referential/services/program.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {MeasurementFormValues, MeasurementValuesUtils} from "./model/measurement.model";
 
 const REGEXP_INTEGER = /^[0-9]+$/;
 const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;
@@ -43,13 +44,22 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   getFormGroupConfig(data: T[], opts?: O): { [key: string]: any } {
     opts = this.fillDefaultOptions(opts);
 
+    const pmfms = opts.pmfms || [];
+    const values = data && MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(data as Measurement[]),
+      pmfms,
+      {
+        keepSourceObject: true,
+        onlyExistingPmfms: false
+      }) || undefined;
+    console.log(values)
+
     return (opts.pmfms || []).reduce((res, pmfm) => {
       const validator = this.getPmfmValidator(pmfm);
       if (validator) {
-        res[pmfm.pmfmId] = [null, validator];
+        res[pmfm.pmfmId] = [values ? values[pmfm.pmfmId] : null, validator];
       }
       else {
-        res[pmfm.pmfmId] = [null];
+        res[pmfm.pmfmId] = [values ? values[pmfm.pmfmId] : null];
       }
       return res;
     }, {});
