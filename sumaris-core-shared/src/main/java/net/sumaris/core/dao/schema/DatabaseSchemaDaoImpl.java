@@ -308,6 +308,10 @@ public class DatabaseSchemaDaoImpl
     public Version getSchemaVersion() throws VersionNotFoundException {
         String systemVersion;
         try {
+            EntityManager em = getEntityManager();
+            if (em == null) {
+                throw new VersionNotFoundException("Could not get the schema version. No entityManager found");
+            }
             systemVersion = getEntityManager().createNamedQuery("SystemVersion.last", String.class)
                     .getSingleResult();
             if (StringUtils.isBlank(systemVersion)) {
