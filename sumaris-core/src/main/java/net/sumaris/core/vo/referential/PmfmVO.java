@@ -45,6 +45,13 @@ public class PmfmVO extends ReferentialVO {
 
     List<ReferentialVO> qualitativeValues;
 
+    // Link to other entities
+    private Integer parameterId;
+    private Integer matrixId;
+    private Integer fractionId;
+    private Integer methodId;
+    private Integer unitId;
+
     public PmfmVO() {
         this.setEntityName(Pmfm.class.getSimpleName());
     }

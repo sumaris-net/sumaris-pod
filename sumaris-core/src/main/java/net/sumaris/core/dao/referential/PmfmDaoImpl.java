@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
+import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.pmfm.Method;
@@ -96,16 +97,36 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
         ParameterValueType type = ParameterValueType.fromPmfm(source);
         target.setType(type.name().toLowerCase());
 
+        // Parameter
+        if (source.getParameter() != null) {
+            target.setParameterId(source.getParameter().getId());
+        }
+
+        // Matrix
+        if (source.getMatrix() != null) {
+            target.setMatrixId(source.getMatrix().getId());
+        }
+
+        // Fraction
+        if (source.getFraction() != null) {
+            target.setFractionId(source.getFraction().getId());
+        }
+
         // Method: copy isEstimated, isCalculated
         Method method = source.getMethod();
         if (method != null) {
+            target.setMethodId(method.getId());
             target.setIsCalculated(method.getIsCalculated());
             target.setIsEstimated(method.getIsEstimated());
         }
 
         // Unit symbol
-        if (source.getUnit() != null && source.getUnit().getId().intValue() != unitIdNone) {
-            target.setUnit(source.getUnit().getLabel());
+        Unit unit = source.getUnit();
+        if (unit != null && unit.getId() != null) {
+            target.setUnitId(unit.getId());
+            if (unit.getId() != unitIdNone) {
+                target.setUnit(unit.getLabel());
+            }
         }
 
         // Qualitative values: from pmfm first, or (if empty) from parameter
@@ -125,10 +146,17 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
         }
 
         // Status
-        target.setStatusId(source.getStatus().getId());
+        if (source.getStatus() != null) {
+            target.setStatusId(source.getStatus().getId());
+        }
 
-        // EntityName (as metadata)
+        // EntityName (as metadata - see ReferentialVO)
         target.setEntityName(Pmfm.class.getSimpleName());
+
+        // Level Id (see ReferentialVO)
+        if (source.getParameter() != null) {
+            target.setLevelId(source.getParameter().getId());
+        }
 
         return target;
     }
