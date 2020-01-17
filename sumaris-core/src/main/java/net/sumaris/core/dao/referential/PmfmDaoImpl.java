@@ -124,6 +124,12 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
             target.setQualitativeValues(qualitativeValues);
         }
 
+        // Status
+        target.setStatusId(source.getStatus().getId());
+
+        // EntityName (as metadata)
+        target.setEntityName(Pmfm.class.getSimpleName());
+
         return target;
     }
 }

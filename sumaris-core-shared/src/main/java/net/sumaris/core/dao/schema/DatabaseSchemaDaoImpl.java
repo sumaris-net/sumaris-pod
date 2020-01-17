@@ -246,8 +246,8 @@ public class DatabaseSchemaDaoImpl
         catch(VersionNotFoundException e) {
             // Continue
         }
-        log.info(I18n.t("sumaris.persistence.liquibase.executeUpdate.success",
-                schemaVersion != null ? schemaVersion.toString() : "?"));
+        log.info(I18n.t("sumaris.persistence.liquibase.executeUpdate.success") +
+                (schemaVersion != null ? (" " + I18n.t("sumaris.persistence.schemaVersion",  schemaVersion)) : ""));
 
     }
 
