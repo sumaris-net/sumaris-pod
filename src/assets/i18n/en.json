@@ -92,6 +92,8 @@
     "APP_NAME": "Application Name",
     "DESCRIPTION": "Description (home page)",
     "STATUS": "Status",
+    "PREVIEW_DIVIDER": "Preview",
+    "LOGOS": "App logo images",
     "LOGO_PARTNERS": "Partners logo (home page):",
     "PROPERTIES_DIVIDER": "Options:",
     "PROPERTY_KEY": "Key",

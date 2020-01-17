@@ -25,32 +25,6 @@
 </ion-label>
 
 <p>
-  <!--
-  <ng-container *ngIf="canControl && canSynchronize && !canTerminate">
-    <ion-button mat-icon-button
-                (press)="controlMenuTrigger.openMenu()"
-                (click)="control($event)" expand="block" color="tertiary">
-      <ion-icon slot="start" name="checkmark"></ion-icon>&nbsp;
-      <ion-text translate>QUALITY.BTN_CONTROL</ion-text>
-      <ion-icon slot="end" name="arrow-dropdown"
-                [matMenuTriggerFor]="controlMenu"
-                #controlMenuTrigger="matMenuTrigger"></ion-icon>
-    </ion-button>
-
-    <mat-menu #controlMenu="matMenu">
-      <div mat-menu-item>
-        <ion-button (click)="control($event)" expand="block" color="success">
-          <ion-text translate>QUALITY.BTN_CONTROL_AND_SYNCHRONIZE</ion-text>
-        </ion-button>
-      </div>
-      <div mat-menu-item>
-        <ion-button (click)="control($event)" expand="block" color="success">
-          <ion-text translate>QUALITY.BTN_CONTROL</ion-text>
-        </ion-button>
-      </div>
-    </mat-menu>
-
-  </ng-container>-->
 
   <!-- Control (only if local) -->
   <ion-button mat-icon-button *ngIf="canControl && !canSynchronize && !canTerminate"

@@ -648,7 +648,6 @@
   },
   "QUALITY": {
     "BTN_CONTROL": "Controler la saisie",
-    "BTN_CONTROL_AND_SYNCHRONIZE": "Contrôler puis Synchroniser",
     "BTN_TERMINATE": "Terminer la saisie",
     "BTN_VALIDATE": "Valider",
     "BTN_UNVALIDATE": "Dévalider",
