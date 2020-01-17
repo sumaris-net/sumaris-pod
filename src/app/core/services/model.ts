@@ -230,7 +230,7 @@ export function hasUpperOrEqualsProfile(actualProfiles: string[], expectedProfil
 }
 
 export declare interface Cloneable<T> {
-  clone(): T;
+  clone(): Cloneable<T>;
 }
 
 export function entityToString(obj: Entity<any> | any, properties?: string[]): string | undefined {
@@ -264,7 +264,7 @@ export abstract class Entity<T> implements Cloneable<T> {
   updateDate: Date | Moment;
   __typename: string;
 
-  abstract clone(): T;
+  abstract clone(): Entity<T>;
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
@@ -637,13 +637,14 @@ export class ReferentialRef<T = any> extends Entity<T> implements IReferentialRe
 }
 
 
-/* -- Configuration -- */
+/* -- Software & Configuration -- */
 
-export class Configuration extends Entity<Configuration> {
 
-  static fromObject(source: Configuration): Configuration {
-    if (!source || source instanceof Configuration) return source;
-    const res = new Configuration();
+export class Software<T> extends Entity<T> {
+
+ static fromObject(source: Software<any>): Software<any> {
+    if (!source || source instanceof Software) return source;
+    const res = new Software<any>();
     res.fromObject(source);
     return res;
   }
@@ -652,10 +653,56 @@ export class Configuration extends Entity<Configuration> {
   name: string;
   creationDate: Date | Moment;
   statusId: number;
+  properties: { [key: string]: string };
+
+  constructor() {
+    super();
+  }
+
+  clone(): Software<T> {
+    return this.copy(new Software<T>());
+  }
+
+  copy(target: Software<T>): Software<T> {
+    target.fromObject(this);
+    return target;
+  }
+
+  asObject(options?: EntityAsObjectOptions): any {
+    const target: any = super.asObject(options);
+    target.creationDate = toDateISOString(this.creationDate);
+    target.properties = this.properties;
+    return target;
+  }
+
+  fromObject(source: any): Software<T> {
+    super.fromObject(source);
+    this.label = source.label;
+    this.name = source.name;
+    this.creationDate = fromDateISOString(source.creationDate);
+    this.statusId = source.statusId;
+
+    if (source.properties && source.properties instanceof Array) {
+      this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
+    } else {
+      this.properties = source.properties;
+    }
+
+    return this;
+  }
+}
+
+export class Configuration extends Software<Configuration> {
+
+  static fromObject(source: Configuration): Configuration {
+    if (!source || source instanceof Configuration) return source;
+    const res = new Configuration();
+    res.fromObject(source);
+    return res;
+  }
 
   smallLogo: string;
   largeLogo: string;
-  properties: { [key: string]: string };
   backgroundImages: string[];
   partners: Department[];
 
@@ -674,30 +721,18 @@ export class Configuration extends Entity<Configuration> {
 
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
-    target.creationDate = toDateISOString(this.creationDate);
     if (this.partners)
       target.partners = (this.partners || []).map(p => p.asObject(options));
-    target.properties = this.properties;
     return target;
   }
 
   fromObject(source: any): Configuration {
     super.fromObject(source);
-    this.label = source.label;
-    this.name = source.name;
-    this.creationDate = fromDateISOString(source.creationDate);
     this.smallLogo = source.smallLogo;
     this.largeLogo = source.largeLogo;
     this.backgroundImages = source.backgroundImages;
     if (source.partners)
       this.partners = (source.partners || []).map(Department.fromObject);
-    this.statusId = source.statusId;
-
-    if (source.properties && source.properties instanceof Array) {
-      this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
-    } else {
-      this.properties = source.properties;
-    }
 
     return this;
   }

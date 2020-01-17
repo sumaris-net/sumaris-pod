@@ -13,18 +13,37 @@ export class ReferentialValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Referential): FormGroup {
-    return this.formBuilder.group({
-      id: [''],
-      updateDate: [''],
-      creationDate: [''],
-      statusId: ['', Validators.required],
-      levelId: [''],
-      label: ['', Validators.required],
-      name: ['', Validators.required],
-      description: ['', Validators.maxLength(255)],
-      comments: ['', Validators.maxLength(2000)],
-      entityName: ['', Validators.required]
-    });
+  getFormGroup(data?: Referential, opts?: {
+    withDescription?: boolean;
+    withComments?: boolean;
+  }): FormGroup {
+    return this.formBuilder.group(
+      this.getFormConfig(data, opts)
+    );
+  }
+
+  getFormConfig(data?: Referential, opts?: {
+    withDescription?: boolean;
+    withComments?: boolean;
+  }): {[key: string]: any} {
+    const controlsConfig: {[key: string]: any} = {
+      id: [data && data.id || null],
+      updateDate: [data && data.updateDate || null],
+      creationDate: [data && data.creationDate || null],
+      statusId: [data && data.statusId || null, Validators.required],
+      levelId: [data && data.levelId || null],
+      label: [data && data.label || null, Validators.required],
+      name: [data && data.name || null, Validators.required],
+      entityName: [data && data.entityName || null, Validators.required]
+    };
+
+    if (!opts || opts.withDescription !== false) {
+      controlsConfig.description = [data && data.description || null, Validators.maxLength(255)];
+    }
+    if (!opts || opts.withComments !== false) {
+      controlsConfig.comments = [data && data.comments || null, Validators.maxLength(2000)];
+    }
+
+    return controlsConfig;
   }
 }

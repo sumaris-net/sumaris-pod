@@ -1,124 +1,135 @@
-<app-toolbar [title]="$title|async" color="primary" [canGoBack]="false"
-             [hasValidate]="!loading && dirty" (onValidate)="save($event)">
+<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
+             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+  <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
 <ion-content>
 
-  <form class="form-container ion-padding" [formGroup]="form" (ngSubmit)="save($event, form.value)">
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
 
-    <ion-grid>
-      <ion-row>
+    <!-- TAB: general -->
+    <mat-tab label="{{'CONFIGURATION.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
+        </mat-icon>
+        <ion-label translate>PROGRAM.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && referentialForm.invalid"></ion-icon>
+      </ng-template>
 
-        <!-- Label -->
-        <ion-col>
-          <mat-form-field>
-            <input matInput [placeholder]="'CONFIGURATION.APP_NAME' | translate" formControlName="label" readonly/>
-          </mat-form-field>
-        </ion-col>
+      <div class="ion-padding">
+        <!-- error -->
+        <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
+        </ion-item>
 
-        <!-- Status-->
-        <ion-col>
-          <mat-form-field>
-            <mat-select formControlName="statusId" [placeholder]="'CONFIGURATION.STATUS'|translate">
-              <mat-select-trigger>
-          <span *ngIf="form.controls.statusId.value &gt;= 0">
-            {{ statusById[form.controls.statusId.value]?.label | translate}}</span>
-              </mat-select-trigger>
-              <mat-option *ngFor="let item of statusList" [value]="item.id">
-                <ion-icon [name]="item.icon"></ion-icon>
-                {{ item.label |translate }}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="form.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          </mat-form-field>
-        </ion-col>
+        <ion-grid class="ion-no-padding">
 
-      </ion-row>
+          <ion-row class="ion-no-padding">
+            <ion-col class="ion-no-padding ion-padding-top">
+              <!-- base form-->
+              <app-referential-form #referentialForm
+                                    [form]="form"
+                                    [showError]="false"
+                                    [debug]="debug"
+                                    (onSubmit)="save($event)">
 
-      <ion-row>
-        <ion-col>
-          <mat-form-field>
-            <input matInput [placeholder]="'CONFIGURATION.DESCRIPTION' | translate" formControlName="name"/>
-          </mat-form-field>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
+                <!-- properties divider-->
+                <h3>
+                  <ion-text translate>CONFIGURATION.PROPERTIES_DIVIDER</ion-text>
+                </h3>
 
+                <!-- Properties -->
+                <form  [formGroup]="form" class="form-container">
+                  <ion-grid *ngIf="!loading || saving; else propertiesSkeleton"
+                            formArrayName="properties" class="ion-no-padding">
+                    <ion-row class="ion-no-padding">
+                      <ion-col class="ion-no-padding ion-align-self-end" size="12">
+                        <span class="toolbar-spacer"></span>
 
-    <!-- properties divider-->
-    <h3>
-      <ion-text translate>CONFIGURATION.PROPERTIES_DIVIDER</ion-text>
-    </h3>
+                        <!-- Show more options -->
+                        <ion-button color="light" *ngIf="propertiesForm?.length === 0"
+                                    [title]="'CONFIGURATION.BTN_SHOW_MORE_HELP'|translate"
+                                    (click)="propertiesFormHelper.add()">
+                          <ion-label translate>COMMON.BTN_SHOW_MORE</ion-label>
+                          <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+                        </ion-button>
+                      </ion-col>
+                    </ion-row>
 
-    <ng-container *ngIf="!loading || saving; else propertiesSkeleton">
-      <!-- Properties -->
-      <ion-grid formArrayName="properties" class="ion-no-padding">
-        <ng-container *ngFor="let propertyForm of propertiesForm.controls; let i=index">
-          <ion-row class="ion-no-padding" [formGroupName]="i">
+                    <ng-container *ngFor="let propertyForm of propertiesForm?.controls; let i=index">
+                      <ion-row class="ion-no-padding" [formGroupName]="i">
 
-            <!-- property key -->
-            <ion-col class="ion-no-padding">
-              <mat-form-field floatLabel="never">
-                <mat-select formControlName="key"
-                            [placeholder]="'CONFIGURATION.PROPERTY_KEY'|translate"
-                            (selectionChange)="updatePropertyDefinition(i)">
-                  <mat-option *ngFor="let item of propertyDefinitions" [value]="item.key">{{ item.label | translate }}</mat-option>
-                </mat-select>
-              </mat-form-field>
+                        <!-- property key -->
+                        <ion-col size="6" class="ion-no-padding">
+                          <mat-form-field floatLabel="never">
+                            <mat-select formControlName="key"
+                                        [placeholder]="'CONFIGURATION.PROPERTY_KEY'|translate"
+                                        (selectionChange)="updatePropertyDefinition(i)"
+                                        [tabindex]="20+i*2"
+                                        required>
+                              <mat-option *ngFor="let item of propertyDefinitions" [value]="item.key">{{ item.label | translate }}
+                              </mat-option>
+                            </mat-select>
+
+                            <mat-error *ngIf="propertyForm.controls.key.hasError('required') && !propertiesFormHelper.isLast(i)"
+                                       translate>ERROR.FIELD_REQUIRED
+                            </mat-error>
+                          </mat-form-field>
+                        </ion-col>
+
+                        <!-- property value -->
+                        <ion-col class="ion-no-padding" padding-left>
+                          <app-form-field *ngIf="getPropertyDefinition(i); let definition"
+                                          floatLabel="never"
+                                          [definition]="definition"
+                                          [formControl]="propertyForm.controls.value"
+                                          [placeholder]="'CONFIGURATION.PROPERTY_VALUE' | translate"
+                                          [required]="true"
+                                          [tabindex]="20+i*2 + 1">
+                          </app-form-field>
+                        </ion-col>
+
+                        <ion-col size="auto" class="ion-no-padding">
+                          <button type="button" mat-icon-button color="light"
+                                  [disabled]="loading"
+                                  [title]="'COMMON.BTN_DELETE'|translate"
+                                  (click)="removePropertyAt(i)">
+                            <mat-icon>close</mat-icon>
+                          </button>
+                          <button [hidden]="!propertiesFormHelper.isLast(i)"
+                                  type="button"
+                                  mat-icon-button
+                                  color="light"
+                                  [disabled]="loading"
+                                  [title]="'CONFIGURATION.BTN_ADD_PROPERTY'|translate"
+                                  (click)="propertiesFormHelper.add()">
+                            <mat-icon>add</mat-icon>
+                          </button>
+                        </ion-col>
+                      </ion-row>
+                    </ng-container>
+                  </ion-grid>
+                </form>
+
+              </app-referential-form>
             </ion-col>
 
-            <!-- property value -->
-            <ion-col class="ion-no-padding" padding-left>
-              <app-form-field *ngIf="getPropertyDefinition(i); let definition"
-                               floatLabel="never"
-                               [definition]="definition"
-                               [formControl]="propertyForm.controls.value"
-                               [placeholder]="'CONFIGURATION.PROPERTY_VALUE' | translate"
-                               [required]="true">
-              </app-form-field>
-            </ion-col>
-
-            <ion-col size="2" class="ion-no-padding">
-              <button type="button" mat-icon-button color="light"
-                      [disabled]="loading"
-                      [title]="'COMMON.BTN_DELETE'|translate"
-                      (click)="removePropertyAt(i)">
-                <mat-icon>close</mat-icon>
-              </button>
-              <button *ngIf="propertiesFormHelper.isLast(i)"
-                      type="button"
-                      mat-icon-button
-                      color="light"
-                      [disabled]="loading"
-                      [title]="'CONFIGURATION.BTN_ADD_PROPERTY'|translate"
-                      (click)="propertiesFormHelper.add()">
-                <mat-icon>add</mat-icon>
-              </button>
+            <!-- entity metadata-->
+            <ion-col class="ion-no-padding" size="12" size-xl="3">
+              <entity-metadata [value]="data"></entity-metadata>
             </ion-col>
           </ion-row>
-        </ng-container>
-      </ion-grid>
-
-      <!-- Partners logos -->
-      <h3>
-        <ion-text translate>CONFIGURATION.LOGO_PARTNERS</ion-text>
-      </h3>
-
-      <div class="bottom-banner">
-        <div class="partner-logo" *ngFor="let item of partners | async ">
-          <img class="logo" src="{{ item.logo }}" alt="{{item.label}}" [title]="item.name" width="150"/>
-          <mat-icon class="button-close" (click)="removePartner(item)">close</mat-icon>
-        </div>
+        </ion-grid>
       </div>
-    </ng-container>
-  </form>
-
+    </mat-tab>
+  </mat-tab-group>
 </ion-content>
-
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event)" [disabled]="!dirty || loading"
+  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 
     <!-- error -->

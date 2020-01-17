@@ -11,7 +11,7 @@ import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
 import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil} from '../../shared/shared.module';
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
 import * as moment from "moment";
-import {ProgramProperties} from "../../referential/services/model";
+import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
@@ -30,7 +30,7 @@ import {TripValidatorService} from "../services/trip.validator";
 })
 export class TripPage extends AppDataEditorPage<Trip, TripService> implements OnInit {
 
-
+  readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;

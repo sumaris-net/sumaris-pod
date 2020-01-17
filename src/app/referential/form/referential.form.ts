@@ -9,9 +9,6 @@ import {DefaultStatusList, StatusValue} from "../../core/services/model";
 @Component({
   selector: 'app-referential-form',
   templateUrl: './referential.form.html',
-  providers: [
-    {provide: ValidatorService, useExisting: ReferentialValidatorService}
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReferentialForm extends AppForm<Referential> implements OnInit {
@@ -37,10 +34,10 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected validatorService: ValidatorService,
+    protected validatorService: ReferentialValidatorService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, validatorService.getRowValidator());
+    super(dateAdapter, validatorService.getFormGroup());
 
   }
 

@@ -120,7 +120,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   /* -- protected methods -- */
 
   protected canUserWrite(data: Program): boolean {
-    // TODO : check user is in porgram managers
+    // TODO : check user is in program managers
     return (this.isNewData && this.accountService.isAdmin())
       || (EntityUtils.isNotEmpty(data) && this.accountService.isSupervisor());
 
@@ -168,14 +168,14 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     return data;
   }
 
-  protected async computeTitle(data: Program): Promise<string> {
+  protected computeTitle(data: Program): Promise<string> {
     // new data
     if (!data || isNil(data.id)) {
-      return await this.translate.get('PROGRAM.NEW.TITLE').toPromise();
+      return this.translate.get('PROGRAM.NEW.TITLE').toPromise();
     }
 
     // Existing data
-    return await this.translate.get('PROGRAM.EDIT.TITLE', data).toPromise();
+    return this.translate.get('PROGRAM.EDIT.TITLE', data).toPromise();
   }
 
   protected getFirstInvalidTabIndex(): number {

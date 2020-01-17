@@ -45,10 +45,11 @@
                   </ion-col>
                   <ion-col>
                     <app-form-measurements #measurementsForm
-                                       acquisitionLevel="OPERATION"
-                                       [tabindex]="30"
-                                       [debug]="debug"
-                                       entityName="VesselUseMeasurement">
+                                           entityName="VesselUseMeasurement"
+                                           [acquisitionLevel]="acquisitionLevel"
+                                           [debug]="debug"
+                                           [program]="programSubject|async"
+                                           [tabindex]="30">
                     </app-form-measurements>
                   </ion-col>
                 </ion-row>

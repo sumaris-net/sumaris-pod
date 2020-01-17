@@ -33,6 +33,8 @@ import {filterNotNil, firstNotNil} from "../../shared/observables";
 })
 export class OperationPage extends AppEditorPage<Operation, OperationFilter> implements OnInit, AfterViewInit {
 
+  readonly acquisitionLevel = AcquisitionLevelCodes.OPERATION;
+
   trip: Trip;
   programSubject = new BehaviorSubject<string>(null);
   onProgramChanged = new Subject<Program>();

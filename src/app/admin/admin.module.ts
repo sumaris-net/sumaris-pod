@@ -6,6 +6,7 @@ import {UsersPage} from './users/list/users';
 import {AdminRoutingModule} from "./admin-routing.module";
 import {SoftwarePage} from "../referential/software/software.page";
 import {ReferentialModule} from "../referential/referential.module";
+import {ConfigurationPage} from "./config/configuration.page";
 
 @NgModule({
   imports: [
@@ -15,13 +16,15 @@ import {ReferentialModule} from "../referential/referential.module";
     AdminRoutingModule
   ],
   declarations: [
-    UsersPage
+    UsersPage,
+    ConfigurationPage
   ],
   exports: [
-    UsersPage
+    UsersPage,
+    ConfigurationPage
   ],
   entryComponents: [
-    SoftwarePage
+    ConfigurationPage
   ],
   providers: [
     // PersonService,

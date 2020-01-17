@@ -188,6 +188,7 @@ const ProgramFragments = {
         unit
         defaultValue
         maximumNumberDecimals
+        entityName
         __typename
       }
       gears

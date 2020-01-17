@@ -1,5 +1,5 @@
 <app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+             [canGoBack]="false">
   <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
@@ -8,7 +8,7 @@
   <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
 
     <!-- TAB: general -->
-    <mat-tab label="{{'PROGRAM.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{'CONFIGURATION.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
@@ -37,20 +37,20 @@
 
                 <!-- properties divider-->
                 <h3>
-                  <ion-text translate>PROGRAM.PROPERTIES_DIVIDER</ion-text>
+                  <ion-text translate>CONFIGURATION.PROPERTIES_DIVIDER</ion-text>
                 </h3>
 
                 <!-- Properties -->
                 <form  [formGroup]="form" class="form-container">
                   <ion-grid *ngIf="!loading || saving; else propertiesSkeleton"
-                            formArrayName="properties" class="ion-no-padding" >
+                            formArrayName="properties" class="ion-no-padding">
                     <ion-row class="ion-no-padding">
                       <ion-col class="ion-no-padding ion-align-self-end" size="12">
                         <span class="toolbar-spacer"></span>
 
                         <!-- Show more options -->
                         <ion-button color="light" *ngIf="propertiesForm?.length === 0"
-                                    [title]="'PROGRAM.BTN_SHOW_MORE_HELP'|translate"
+                                    [title]="'CONFIGURATION.BTN_SHOW_MORE_HELP'|translate"
                                     (click)="propertiesFormHelper.add()">
                           <ion-label translate>COMMON.BTN_SHOW_MORE</ion-label>
                           <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
@@ -64,8 +64,8 @@
                         <!-- property key -->
                         <ion-col size="6" class="ion-no-padding">
                           <mat-form-field floatLabel="never">
-                            <mat-select [formControl]="propertyForm.controls.key"
-                                        [placeholder]="'PROGRAM.PROPERTY_KEY'|translate"
+                            <mat-select formControlName="key"
+                                        [placeholder]="'CONFIGURATION.PROPERTY_KEY'|translate"
                                         (selectionChange)="updatePropertyDefinition(i)"
                                         [tabindex]="20+i*2"
                                         required>
@@ -82,12 +82,12 @@
                         <!-- property value -->
                         <ion-col class="ion-no-padding" padding-left>
                           <app-form-field *ngIf="getPropertyDefinition(i); let definition"
-                                            floatLabel="never"
-                                           [definition]="definition"
-                                           [formControl]="propertyForm.controls.value"
-                                           [placeholder]="'PROGRAM.PROPERTY_VALUE' | translate"
-                                           [required]="true"
-                                           [tabindex]="20+i*2 + 1">
+                                          floatLabel="never"
+                                          [definition]="definition"
+                                          [formControl]="propertyForm.controls.value"
+                                          [placeholder]="'CONFIGURATION.PROPERTY_VALUE' | translate"
+                                          [required]="true"
+                                          [tabindex]="20+i*2 + 1">
                           </app-form-field>
                         </ion-col>
 
@@ -113,6 +113,41 @@
                   </ion-grid>
                 </form>
 
+                <h3>
+                  <ion-text translate>CONFIGURATION.PREVIEW_DIVIDER</ion-text>
+                </h3>
+
+                <!-- Home logos -->
+                <ng-container *ngIf="data?.smallLogo || data?.largeLogo">
+                  <h4>
+                    <ion-text translate>CONFIGURATION.LOGOS</ion-text>
+                  </h4>
+
+                  <ion-grid>
+                    <ion-row>
+                      <ion-col>
+                        <img *ngIf="data?.smallLogo"
+                             src="{{ data?.smallLogo }}" [title]="'CONFIGURATION.OPTIONS.LOGO'|translate" width="110"/>
+                      </ion-col>
+                      <ion-col>
+                        <img *ngIf="data?.largeLogo"
+                             src="{{ data?.largeLogo }}" [title]="'CONFIGURATION.OPTIONS.HOME.LOGO_LARGE'|translate" width="250"/>
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </ng-container>
+
+                <h4>
+                  <ion-text translate>CONFIGURATION.LOGO_PARTNERS</ion-text>
+                </h4>
+
+                <div class="bottom-banner">
+                  <div class="partner-logo" *ngFor="let item of partners | async; let i = index ">
+                    <img class="logo" src="{{ item.logo }}" alt="{{item.label}}" [title]="item.name" width="50"/>
+                    <mat-icon class="button-close" (click)="removePartnerAt(i)">close</mat-icon>
+                  </div>
+                </div>
+
               </app-referential-form>
             </ion-col>
 
@@ -122,52 +157,9 @@
             </ion-col>
           </ion-row>
         </ion-grid>
-
       </div>
     </mat-tab>
-
-    <!-- TAB: strategies -->
-    <mat-tab label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="isNewData">
-      <ng-template mat-tab-label>
-        <mat-icon>
-          <ion-icon matPrefix slot="start" name="contract"></ion-icon>
-        </mat-icon>
-        <ion-label translate>PROGRAM.TAB_STRATEGIES</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="strategiesTable.invalid"></ion-icon>
-      </ng-template>
-
-      <div class="ion-no-padding">
-
-        <!-- error -->
-        <ion-item *ngIf="strategiesTable.error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="strategiesTable.error|translate"></ion-label>
-        </ion-item>
-
-        <app-strategy-table #strategiesTable
-                            [canEdit]="canEdit">
-        </app-strategy-table>
-      </div>
-    </mat-tab>
-
-    <!-- TAB: access rights -->
-    <mat-tab label="{{'PROGRAM.TAB_ACCESS_RIGHTS'|translate}}" [disabled]="isNewData">
-      <ng-template mat-tab-label>
-        <mat-icon>
-          <ion-icon matPrefix slot="start" name="people"></ion-icon>
-        </mat-icon>
-        <ion-label translate>PROGRAM.TAB_ACCESS_RIGHTS</ion-label>
-        <!--        <ion-icon slot="end" name="alert" color="danger" *ngIf="samplesTable.invalid"></ion-icon>-->
-      </ng-template>
-
-      <div class="ion-padding">
-
-        <h2>Coming soon !</h2>
-      </div>
-    </mat-tab>
-
   </mat-tab-group>
-
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
@@ -183,15 +175,6 @@
 
   </form-buttons-bar>
 </ion-footer>
-
-<!-- FAB Button: add strategy -->
-<ion-fab slot="fixed" vertical="bottom" horizontal="end"
-         *ngIf="strategiesTable.enabled  && selectedTabIndex==1" @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="strategiesTable.addRow()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
 
 
 <ng-template #propertiesSkeleton>

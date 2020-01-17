@@ -233,10 +233,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return this.data;
   }
 
-  protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
+  protected async refreshPmfms(event?: any) {
     // Skip if missing: program, acquisition (or gear, if required)
     if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gear))) {
-      return undefined;
+      return;
     }
 
     if (this.debug) console.debug(`${this.logPrefix} refreshPmfms(${event})`);
@@ -244,27 +244,30 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.loading = true;
     this.loadingPmfms = true;
 
-    this.$pmfms.next(null);
+    try {
+      // Load pmfms
+      let pmfms = (await this.programService.loadProgramPmfms(
+        this._program,
+        {
+          acquisitionLevel: this._acquisitionLevel,
+          gear: this._gear
+        })) || [];
 
-    // Load pmfms
-    let pmfms = (await this.programService.loadProgramPmfms(
-      this._program,
-      {
-        acquisitionLevel: this._acquisitionLevel,
-        gear: this._gear
-      })) || [];
+      if (!pmfms.length && this.debug) {
+        console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gear}}. Make sure programs/strategies are filled`);
+      }
 
-    if (!pmfms.length && this.debug) {
-      console.debug(`${this.logPrefix} No pmfm found (program=${this._program}, acquisitionLevel=${this._acquisitionLevel}, gear='${this._gear}'. Please fill program's strategies !`);
+      await this.setPmfms(pmfms.slice());
     }
-
-    pmfms = await this.setPmfms(pmfms);
-
-    if (this.enabled) this.loading = false;
-
-    this.markForCheck();
-
-    return pmfms;
+    catch (err) {
+      console.error(`${this.logPrefix} Error while loading pmfms: ${err && err.message || err}`, err);
+      this.loadingPmfms = false;
+      this.$pmfms.next(null); // Reset pmfms
+    }
+    finally {
+      if (this.enabled) this.loading = false;
+      this.markForCheck();
+    }
   }
 
   protected async updateControls(event?: string, pmfms?: PmfmStrategy[]) {

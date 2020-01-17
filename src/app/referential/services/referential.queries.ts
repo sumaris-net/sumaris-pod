@@ -104,5 +104,22 @@ export const ReferentialFragments = {
       __typename
     }
     __typename
-  }`
+  }`,
+  pmfm: gql`fragment PmfmFragment on PmfmVO {
+    id
+    label
+    name
+    minValue
+    maxValue
+    unit
+    defaultValue
+    maximumNumberDecimals
+    unitId
+    parameterId
+    matrixId
+    fractionId
+    methodId
+    levelId: parameterId
+    __typename
+  }`,
 };

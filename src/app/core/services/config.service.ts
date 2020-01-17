@@ -4,7 +4,7 @@ import {BaseDataService} from "./base.data-service.class";
 import {ConfigOptions, Configuration} from "./model";
 import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
-import {BehaviorSubject, Observable, Subscription} from "rxjs";
+import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {ErrorCodes} from "./errors";
 import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "./graphql.service";
@@ -14,6 +14,7 @@ import {isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {FileService} from "../../shared/file/file.service";
 import {NetworkService} from "./network.service";
 import {PlatformService} from "./platform.service";
+import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/shared.module";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -47,9 +48,19 @@ export const Fragments = {
   `
 };
 
+
+const LoadDefaultQuery: any = gql`
+query Configuration {
+  configuration {
+    ...ConfigFragment
+  }
+}
+  ${Fragments.config}
+`;
+
 const LoadQuery: any = gql`
-query Configuration($software: String) {
-  configuration(software: $software){
+query Configuration($id: Int, $label: String) {
+  configuration(id: $id, label: $label){
     ...ConfigFragment
   }
 }
@@ -73,7 +84,7 @@ export const APP_CONFIG_OPTIONS = new InjectionToken<FormFieldDefinitionMap>('de
   providedIn: 'root',
   deps: [APP_CONFIG_OPTIONS]
 })
-export class ConfigService extends BaseDataService {
+export class ConfigService extends BaseDataService implements EditorDataService<Configuration> {
 
   private _started = false;
   private _startPromise: Promise<any>;
@@ -159,33 +170,37 @@ export class ConfigService extends BaseDataService {
   }
 
   async loadDefault(
-    options?: {
+    opts?: {
       fetchPolicy?: FetchPolicy
     }): Promise<Configuration> {
-    return this.load(null, options);
+    return this.loadQuery({query: LoadDefaultQuery, ...opts});
   }
 
   async load(
-    label?: string,
-    options?: {
-    fetchPolicy?: FetchPolicy
-  }): Promise<Configuration> {
+    id: number,
+    opts?: EditorDataServiceLoadOptions & { label?: string; query?: any }): Promise<Configuration> {
 
-    const now = Date.now();
-    console.debug("[config] Loading remote configuration...");
-
-    const res = await this.graphql.query<{ configuration: Configuration }>({
-      query: LoadQuery,
+    return this.loadQuery({
       variables: {
-        software: label
+        id
       },
-      error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || undefined/*default*/
-    });
+      ...opts});
+  }
 
-    const data = res && res.configuration ? Configuration.fromObject(res.configuration) : undefined;
-    console.info(`[config] Remote configuration loaded in ${Date.now() - now}ms:`, data);
-    return data;
+  loadByLabel(
+    label: string,
+    opts?: EditorDataServiceLoadOptions): Promise<Configuration> {
+
+    return this.loadQuery({
+      variables: {
+        label
+      },
+      ...opts});
+  }
+
+  async existsByLabel(label: string): Promise<boolean> {
+    const existingConfig = await this.loadByLabel(label, {fetchPolicy: "network-only"});
+    return isNotNil(existingConfig && existingConfig.id);
   }
 
   /**
@@ -218,7 +233,7 @@ export class ConfigService extends BaseDataService {
 
     console.debug("[config] Configuration saved!");
 
-    const reloadedConfig = await this.load(config.label,{ fetchPolicy: "network-only" });
+    const reloadedConfig = await this.loadByLabel(config.label, {fetchPolicy: "network-only"});
 
     // Emit update event when is default config
     const defaultConfig = this.$data.getValue();
@@ -229,11 +244,46 @@ export class ConfigService extends BaseDataService {
     return reloadedConfig;
   }
 
+  delete(data: Configuration, options?: any): Promise<any> {
+    throw new Error("Not implemented yet!")
+  }
+
+  listenChanges(id: number, options?: any): Observable<Configuration | undefined> {
+    // if (this.$data.getValue() && this.$data.getValue().id === id) {
+    //   return this.$data;
+    // }
+    return new Subject(); // TODO
+  }
+
   get optionDefs(): FormFieldDefinition[] {
     return this._optionDefs;
   }
 
   /* -- private method -- */
+
+  private async loadQuery(opts?:
+    {
+      query?: any,
+      variables?: any,
+      fetchPolicy?: FetchPolicy
+    }): Promise<Configuration> {
+
+    const now = Date.now();
+    console.debug("[config] Loading software configuration...");
+
+    const query = opts && opts.query || LoadQuery;
+    const variables = opts && opts.variables || undefined;
+    const res = await this.graphql.query<{ configuration: Configuration }>({
+      query,
+      variables,
+      error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || undefined/*default*/
+    });
+
+    const data = res && res.configuration ? Configuration.fromObject(res.configuration) : undefined;
+    console.info(`[config] Software configuration loaded in ${Date.now() - now}ms:`, data);
+    return data;
+  }
 
   private async loadOrRestoreLocally() {
     let data;

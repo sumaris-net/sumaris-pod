@@ -4,7 +4,6 @@ import {RouterModule} from '@angular/router';
 import {AccountService} from './services/account.service';
 import {AccountValidatorService} from './services/account.validator';
 import {UserSettingsValidatorService} from './services/user-settings.validator';
-import {ConfigValidatorService} from './services/config.validator';
 import {BaseDataService} from './services/base.data-service.class';
 import {AuthForm} from './auth/form/form-auth';
 import {AuthModal} from './auth/modal/modal-auth';
@@ -88,7 +87,6 @@ export {
   BaseDataService,
   AccountValidatorService,
   UserSettingsValidatorService,
-  ConfigValidatorService,
   EntityMetadataComponent,
   FormButtonsBarComponent,
   RESERVED_START_COLUMNS,
@@ -209,7 +207,6 @@ export function HttpLoaderFactory(http: HttpClient) {
     AccountValidatorService,
     UserSettingsValidatorService,
     LocalSettingsValidatorService,
-    ConfigValidatorService,
     EntityStorage
   ]
 })

@@ -16,6 +16,7 @@ export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
   pmfms?: PmfmStrategy[];
   protectedAttributes?: string[];
+  forceAllPmfmsAsOptional?: boolean;
 }
 
 @Injectable()
@@ -44,23 +45,21 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   getFormGroupConfig(data: T[], opts?: O): { [key: string]: any } {
     opts = this.fillDefaultOptions(opts);
 
-    const pmfms = opts.pmfms || [];
-
     // Convert the array of Measurement into a normalized map of form values
-    const values = data && MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(data as Measurement[]),
-      pmfms,
+    const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(data as Measurement[]),
+      opts.pmfms,
       {
         keepSourceObject: true,
         onlyExistingPmfms: false
       }) || undefined;
 
-    return (opts.pmfms || []).reduce((res, pmfm) => {
-      const validator = this.getPmfmValidator(pmfm);
+    return opts.pmfms.reduce((res, pmfm) => {
+      const validator = this.getPmfmValidator(pmfm, null, opts);
       if (validator) {
-        res[pmfm.pmfmId] = [values ? values[pmfm.pmfmId] : null, validator];
+        res[pmfm.pmfmId] = [measurementValues ? measurementValues[pmfm.pmfmId] : null, validator];
       }
       else {
-        res[pmfm.pmfmId] = [values ? values[pmfm.pmfmId] : null];
+        res[pmfm.pmfmId] = [measurementValues ? measurementValues[pmfm.pmfmId] : null];
       }
       return res;
     }, {});
@@ -86,7 +85,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       // If new pmfm: add as control
       if (!formControl) {
 
-        formControl = this.formBuilder.control(pmfm.defaultValue || '', this.getPmfmValidator(pmfm));
+        formControl = this.formBuilder.control(pmfm.defaultValue || '', this.getPmfmValidator(pmfm, null, opts));
         form.addControl(controlName, formControl);
       }
 
@@ -102,10 +101,10 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       .forEach(controlName => form.removeControl(controlName));
   }
 
-  getPmfmValidator(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[]): ValidatorFn {
+  getPmfmValidator(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[], opts?: O): ValidatorFn {
     validatorFns = validatorFns || [];
-    // Add required validator (if NOT in ON FIELD mode)
-    if (pmfm.required && !this.settings.isFieldUsageMode()) {
+    // Add required validator (if NOT force as optional - can occur when on field mode)
+    if (pmfm.required && (!opts || opts.forceAllPmfmsAsOptional !== true)) {
       validatorFns.push(Validators.required);
     }
     if (pmfm.isAlphanumeric) {
@@ -145,9 +144,9 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   protected fillDefaultOptions(opts?: O): O {
     opts = opts || {} as O;
 
-    opts.isOnFieldMode = toBoolean(opts.isOnFieldMode, this.settings && this.settings.isUsageMode('FIELD') || false);
-
     opts.pmfms = opts.pmfms || [];
+
+    opts.forceAllPmfmsAsOptional = toBoolean(opts.forceAllPmfmsAsOptional, false);
 
     opts.protectedAttributes = opts.protectedAttributes || ['id', 'rankOrder', 'comments', 'updateDate'];
 

@@ -15,8 +15,8 @@ import {LocalSettingsService} from "../services/local-settings.service";
 export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   private _subscription = new Subscription();
+  private _form: FormGroup;
   protected _enable = false;
-  protected _implicitValues: { [key: string]: any } = {};
 
   autocompleteHelper: MatAutocompleteConfigHolder;
   autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
@@ -89,7 +89,13 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }
 
   @Input()
-  form?: FormGroup;
+  set form(value: FormGroup) {
+    this.setForm(value);
+  }
+
+  get form(): FormGroup {
+    return this._form;
+  }
 
   @Output()
   onCancel: EventEmitter<any> = new EventEmitter<any>();
@@ -102,7 +108,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     form?: FormGroup,
     protected settings?: LocalSettingsService
   ) {
-    this.form = form || this.form;
+    if (form) this.setForm(form);
     this.autocompleteHelper = new MatAutocompleteConfigHolder(settings && {
       getUserAttributes: (a, b) => settings.getFieldDisplayAttributes(a, b)
     });
@@ -111,17 +117,10 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   ngOnInit() {
     this._enable ? this.enable() : this.disable();
-
-    if (this.form) {
-      this.form.statusChanges.subscribe(status => {
-        this.markForCheck();
-      });
-    }
   }
 
   ngOnDestroy() {
     this._subscription.unsubscribe();
-    this._implicitValues = {};
   }
 
   cancel() {
@@ -137,7 +136,13 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }
 
   setForm(form: FormGroup) {
-    this.form = form;
+    if (this._form !== form) {
+      this._form = form;
+      this._subscription.add(
+        this.form.statusChanges.subscribe(status => {
+          this.markForCheck();
+        }));
+    }
   }
 
   setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
@@ -199,26 +204,6 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }) {
     this.form.markAsDirty();
     this.markForCheck();
-  }
-
-  /**
-   * @deprecated Use autocomplete field instead
-   */
-  updateImplicitValue(name: string, res: any[]) {
-    this._implicitValues[name] = res && res.length === 1 ? res[0] : undefined;
-  }
-
-  /**
-   * @deprecated Use autocomplete field instead
-   */
-  applyImplicitValue(name: string, control?: AbstractControl) {
-    control = control || this.form.get(name);
-    const value = control && this._implicitValues[name];
-    if (control && value !== undefined && value !== null) {
-      control.patchValue(value, {emitEvent: true});
-      control.markAsDirty();
-      this._implicitValues[name] = null;
-    }
   }
 
   /* -- protected methods -- */

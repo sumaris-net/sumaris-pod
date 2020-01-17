@@ -24,11 +24,11 @@ import {Alerts} from "../../shared/alerts";
 
 export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
 
+  protected idAttribute = 'id';
   protected _enableListenChanges = (environment.listenRemoteChanges === true);
   protected dateFormat: DateFormatPipe;
   protected cd: ChangeDetectorRef;
   protected settings: LocalSettingsService;
-  protected idAttribute = 'id';
 
   $title = new Subject<string>();
   saving = false;
@@ -78,16 +78,15 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   protected async loadFromRoute(route: ActivatedRouteSnapshot) {
-    const params = route.params;
-    const id = params[this.idAttribute];
+    const id = route.params[this.idAttribute];
     if (isNil(id) || id === "new") {
-      this.load(undefined, params);
+      this.load(undefined, route.params);
     } else {
-      this.load(+id, params);
+      this.load(+id, route.params);
     }
   }
 
-  async load(id?: number, options?: EditorDataServiceLoadOptions) {
+  async load(id?: number, opts?: EditorDataServiceLoadOptions) {
     this.error = null;
 
     // New data
@@ -96,16 +95,16 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
       // Create using default values
       const data = new this.dataType();
       this.usageMode = this.computeUsageMode(data);
-      await this.onNewEntity(data, options);
+      await this.onNewEntity(data, opts);
       this.updateView(data);
       this.loading = false;
     }
 
     // Load existing data
     else {
-      const data = await this.dataService.load(id, options);
+      const data = await this.dataService.load(id, opts);
       this.usageMode = this.computeUsageMode(data);
-      await this.onEntityLoaded(data, options);
+      await this.onEntityLoaded(data, opts);
       this.updateView(data);
       this.loading = false;
       this.startListenRemoteChanges();

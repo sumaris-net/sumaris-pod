@@ -281,7 +281,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     const path = this.detailsPath[this.entityName];
 
     if (path) {
-      await this.router.navigateByUrl(path.replace(':id', "new"));
+      await this.router.navigateByUrl(path
+        .replace(':id', "new")
+        .replace(':label', ""));
       return true;
     }
 

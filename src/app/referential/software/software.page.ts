@@ -1,17 +1,17 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
-import {ActivatedRoute, Router} from "@angular/router";
-import {BehaviorSubject, Subject} from 'rxjs';
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {Configuration, DefaultStatusList, Department, EntityUtils} from '../../core/services/model';
-import {DateAdapter} from "@angular/material";
-import {Moment} from "moment";
-import {AppFormUtils, FormArrayHelper} from "../../core/form/form.utils";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit, ViewChild} from "@angular/core";
+import {ActivatedRouteSnapshot} from "@angular/router";
+import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {Configuration, EntityUtils, Software} from '../../core/services/model';
+import {FormArrayHelper} from "../../core/form/form.utils";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 import {PlatformService} from "../../core/services/platform.service";
-import {AppForm, ConfigValidatorService, isNil, isNotNil} from "../../core/core.module";
+import {AppEditorPage, isNil} from "../../core/core.module";
+import {AccountService} from "../../core/services/account.service";
+import {ReferentialForm} from "../form/referential.form";
+import {SoftwareService} from "../services/software.service";
+import {SoftwareValidatorService} from "../services/software.validator";
 import {ConfigService} from "../../core/services/config.service";
-import {toInt, trimEmptyToNull} from "../../shared/functions";
-import {TranslateService} from "@ngx-translate/core";
+import {ValidatorService} from "angular4-material-table";
 
 
 @Component({
@@ -20,154 +20,71 @@ import {TranslateService} from "@ngx-translate/core";
   styleUrls: ['./software.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SoftwarePage extends AppForm<Configuration> implements OnInit {
+export class SoftwarePage extends AppEditorPage<Software<any>> implements OnInit {
 
+  protected configService: ConfigService;
 
-  saving = false;
-  loading = true;
-  partners = new BehaviorSubject<Department[]>(null);
-  data: Configuration;
-  $title = new Subject<string>();
-  statusList = DefaultStatusList;
-  statusById;
+  protected accountService: AccountService;
+  protected platform: PlatformService;
+  protected cd: ChangeDetectorRef;
+
   propertyDefinitions: FormFieldDefinition[];
   propertyDefinitionsByKey: FormFieldDefinitionMap = {};
   propertyDefinitionsByIndex: { [index: number]: FormFieldDefinition } = {};
   propertiesFormHelper: FormArrayHelper<FormFieldValue>;
 
+  form: FormGroup;
+
+
+  @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
+
   get propertiesForm(): FormArray {
     return this.form.get('properties') as FormArray;
   }
 
-  get isNewData(): boolean {
-    return !this.data || isNil(this.data.id);
-  }
-
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected configService: ConfigService,
-    protected validator: ConfigValidatorService,
-    protected formBuilder: FormBuilder,
-    protected platform: PlatformService,
-    protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected injector: Injector,
+    protected validatorService: SoftwareValidatorService,
       ) {
-    super(dateAdapter, validator.getFormGroup());
+    super(injector,
+      Software,
+      injector.get(SoftwareService));
+    this.configService = injector.get(ConfigService);
+    this.platform = injector.get(PlatformService);
+    this.accountService = injector.get(AccountService);
+    this.cd = injector.get(ChangeDetectorRef);
 
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
-
-    this._enable = false;
-  }
-
-  async ngOnInit() {
-
+    this.form = validatorService.getFormGroup();
     this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
-      this.formBuilder,
+      injector.get(FormBuilder),
       this.form,
       'properties',
-      (value) => this.validator.getPropertyFormGroup(value),
+      (value) => validatorService.getPropertyFormGroup(value),
       (v1, v2) => (!v1 && !v2) || v1.key === v2.key,
-      (value) => isNil(value) || (isNil(value.key) && isNil(value.value))
+      (value) => isNil(value) || (isNil(value.key) && isNil(value.value)),
+      {
+        allowEmptyArray: true
+      }
     );
 
-    // Wait platform is ready
-    await this.platform.ready();
-    await this.configService.ready();
+    // default values
+    this.defaultBackHref = "/referential/list?entity=Software";
 
-    // Fill propertyDefinitionMap
-    this.propertyDefinitions = this.configService.optionDefs;
-    this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o);
-
-    // Then, load
-    this.load();
+    //this.debug = !environment.production;
   }
 
-  async load() {
-    this.loading = true;
+  ngOnInit() {
+    super.ngOnInit();
 
-    // Get the id, from the route path
-    const id = toInt(this.route.snapshot.params['id']);
+    // Set entity name (required for referential form validator)
+    this.referentialForm.entityName = 'Software';
 
-    // Read the label, if given as query param
-    const label = trimEmptyToNull(this.route.snapshot.queryParams['label']);
-
-    // Get data
-    let data;
-    try {
-      data = await this.configService.load(label, {fetchPolicy: "network-only"});
-
-      // Check if load [id + label] are those existing in the URL
-      if (isNotNil(label) && data && data.id !== id) {
-        throw new Error('Invalid configuration load. Expected id=' + id + ' but found ' + data.id);
-      }
-    }
-    catch (err) {
-      this.error = err && err.message || err;
-      console.error(err);
-      this.loading = false;
-      return;
-    }
-
-    // Update the UI
-    this.updateView(data);
-  }
-
-  updateView(data: Configuration) {
-    if (!data) return; //skip
-    this.data = data;
-
-    const json = data.asObject();
-
-    // Transform properties map into array
-    json.properties = EntityUtils.getObjectAsArray(data.properties || {});
-    this.propertiesFormHelper.resize(Math.max(json.properties.length, 1));
-
-    this.setValue(json, {emitEvent: false});
-    this.markAsPristine();
-
-    this.computeTitle();
-
-    this.partners.next(json.partners);
-    this.loading = false;
-    this.markForCheck();
-  }
-
-  async save($event: any, json?: any) {
-    if (this.saving) return; // skip
-    if (this.form.invalid) {
-      AppFormUtils.logFormErrors(this.form);
-      return;
-    }
-    console.debug("[config] Saving local settings...");
-
-    this.saving = true;
-    this.error = undefined;
-
-    json = json || this.form.value;
-    this.data.fromObject(json);
-
-    this.disable();
-
-    try {
-
-      // Call save service
-      const updatedData = await this.configService.save(this.data);
-      // Update the view
-      this.updateView(updatedData);
-      this.form.markAsUntouched();
-
-    }
-    catch (err) {
-      this.error = err && err.message || err;
-    }
-    finally {
-      this.enable();
-      this.saving = false;
-    }
+    // Check label is unique
+    this.form.get('label')
+      .setAsyncValidators(async (control: AbstractControl) => {
+        const label = control.enabled && control.value;
+        return label && (await this.configService.existsByLabel(label)) ? {unique: true} : null;
+      });
   }
 
   getPropertyDefinition(index: number): FormFieldDefinition {
@@ -183,6 +100,7 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
     const key = (this.propertiesForm.at(index) as FormGroup).controls.key.value;
     const definition = key && this.propertyDefinitionsByKey[key] || null;
     this.propertyDefinitionsByIndex[index] = definition; // update map by index
+    this.markForCheck();
     return definition;
   }
 
@@ -192,22 +110,74 @@ export class SoftwarePage extends AppForm<Configuration> implements OnInit {
     this.markForCheck();
   }
 
-  removePartner(icon: String){
-    console.log("remove Icon " + icon);
+  /* -- protected methods -- */
+
+  protected canUserWrite(data: Configuration): boolean {
+    return this.accountService.isAdmin();
   }
 
-  async computeTitle() {
-    if (this.isNewData) {
-      this.$title.next(await this.translate.get('CONFIGURATION.NEW.TITLE').toPromise());
-    }
-    else {
-      this.$title.next(await this.translate.get('CONFIGURATION.EDIT.TITLE', this.data).toPromise());
+  enable() {
+    super.enable();
+
+    if (!this.isNewData) {
+      this.form.get('label').disable();
     }
   }
 
-  async cancel() {
-    await this.load();
+  protected registerFormsAndTables() {
+    this.registerForm(this.referentialForm);
   }
+
+  protected async loadFromRoute(route: ActivatedRouteSnapshot) {
+
+    // Wait platform is ready
+    await this.platform.ready();
+
+    // Fill property definitions map
+    this.propertyDefinitions = this.configService.optionDefs;
+    this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o);
+
+    super.loadFromRoute(route);
+  }
+
+  protected setValue(data: Configuration) {
+    if (!data) return; // Skip
+
+    const json = data.asObject();
+
+    // Transform properties map into array
+    json.properties = EntityUtils.getObjectAsArray(data.properties || {});
+    this.propertiesFormHelper.resize(Math.max(json.properties.length, 1));
+
+    this.form.patchValue(json, {emitEvent: false});
+
+
+    this.markAsPristine();
+  }
+
+  protected async getJsonValueToSave(): Promise<any> {
+    const json = await super.getJsonValueToSave();
+
+    // Re add label, because missing when field disable
+    json.label = this.form.get('label').value;
+
+    return json;
+  }
+
+  protected computeTitle(data: Configuration): Promise<string> {
+    // new data
+    if (!data || isNil(data.id)) {
+      return this.translate.get('CONFIGURATION.NEW.TITLE').toPromise();
+    }
+
+    return this.translate.get('CONFIGURATION.EDIT.TITLE', data).toPromise();
+  }
+
+  protected getFirstInvalidTabIndex(): number {
+    if (this.referentialForm.invalid) return 0;
+    return 0;
+  }
+
 
   protected markForCheck() {
     this.cd.markForCheck();

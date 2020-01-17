@@ -49,6 +49,8 @@ import {VesselFeaturesHistoryComponent} from "./vessel/page/vessel-features-hist
 import {VesselRegistrationHistoryComponent} from "./vessel/page/vessel-registration-history.component";
 import {VesselFeaturesValidatorService} from "./services/vessel-features.validator";
 import {VesselRegistrationValidatorService} from "./services/vessel-registration.validator";
+import {SoftwareValidatorService} from "./services/software.validator";
+import {SoftwareService} from "./services/software.service";
 
 export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
@@ -100,7 +102,9 @@ export {
     VesselFeaturesValidatorService,
     VesselRegistrationValidatorService,
     ProgramValidatorService,
-    StrategyValidatorService
+    StrategyValidatorService,
+    SoftwareService,
+    SoftwareValidatorService
   ]
 })
 export class ReferentialModule {

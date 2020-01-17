@@ -1,8 +1,8 @@
 import {RouterModule, Routes} from "@angular/router";
 import {UsersPage} from "./users/list/users";
 import {AuthGuardService} from "../core/services/auth-guard.service";
-import {SoftwarePage} from "../referential/software/software.page";
 import {NgModule} from "@angular/core";
+import {ConfigurationPage} from "./config/configuration.page";
 
 const routes: Routes = [
   {
@@ -17,7 +17,7 @@ const routes: Routes = [
   {
     path: 'config',
     pathMatch: 'full',
-    component: SoftwarePage,
+    component: ConfigurationPage,
     canActivate: [AuthGuardService],
     data: {
       profile: 'ADMIN'
