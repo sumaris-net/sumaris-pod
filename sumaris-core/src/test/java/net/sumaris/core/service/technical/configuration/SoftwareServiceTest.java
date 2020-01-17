@@ -81,7 +81,7 @@ public class SoftwareServiceTest extends AbstractServiceTest {
         Assert.assertNotNull(savedSoftware.getCreationDate());
 
         // Reload
-        SoftwareVO reloadSoftware = service.get(software.getLabel());
+        SoftwareVO reloadSoftware = service.get(software.getId());
         Assert.assertNotNull(savedSoftware);
         Assert.assertNotNull(savedSoftware.getProperties());
         Assert.assertEquals(savedSoftware.getId(), reloadSoftware.getId());
@@ -95,8 +95,8 @@ public class SoftwareServiceTest extends AbstractServiceTest {
         software.setProperties(props);
         savedSoftware = service.save(software);
 
-        // Reload
-        reloadSoftware = service.get(software.getLabel());
+        // Reload (by label)
+        reloadSoftware = service.getByLabel(software.getLabel());
         Assert.assertNotNull(savedSoftware);
         Assert.assertNotNull(savedSoftware.getProperties());
         Assert.assertEquals(savedSoftware.getId(), reloadSoftware.getId());

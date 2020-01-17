@@ -27,8 +27,10 @@ import net.sumaris.core.vo.technical.SoftwareVO;
 public interface SoftwareDao {
 
 
-    SoftwareVO get(String label) ;
+    SoftwareVO get(int id);
 
-    SoftwareVO save(SoftwareVO source) ;
+    SoftwareVO getByLabel(String label);
+
+    SoftwareVO save(SoftwareVO source);
 
 }

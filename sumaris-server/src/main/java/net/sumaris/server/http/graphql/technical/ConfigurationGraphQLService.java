@@ -36,6 +36,7 @@ import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
 import net.sumaris.server.http.rest.RestPaths;
+import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -84,21 +85,43 @@ public class ConfigurationGraphQLService {
     }
 
     @GraphQLQuery(name = "configuration", description = "A software configuration")
-    @Transactional(readOnly = true)
     public ConfigurationVO getConfiguration(
-            @GraphQLArgument(name = "software") String softwareLabel,
+            @GraphQLArgument(name = "id") Integer id,
+            @GraphQLArgument(name = "label") String label,
             @GraphQLEnvironment() Set<String> fields
     ){
-        SoftwareVO software  = StringUtils.isBlank(softwareLabel) ? service.getDefault() : service.get(softwareLabel);
+        SoftwareVO software = getSoftware(id, label);
         return toConfiguration(software, fields);
     }
 
-    @GraphQLMutation(name = "saveConfiguration", description = "Save a software configuration")
-    public ConfigurationVO save(@GraphQLArgument(name = "config") ConfigurationVO configuration,
+    @GraphQLMutation(name = "saveConfiguration", description = "Save a configuration")
+    @IsAdmin
+    public ConfigurationVO saveConfiguration(
+            @GraphQLArgument(name = "config") ConfigurationVO configuration,
                      @GraphQLEnvironment() Set<String> fields){
 
         SoftwareVO software = service.save(configuration);
         return toConfiguration(software, fields);
+    }
+
+    @GraphQLQuery(name = "software", description = "A software config")
+    public SoftwareVO getSoftware(
+            @GraphQLArgument(name = "id") Integer id,
+            @GraphQLArgument(name = "label") String label
+    ){
+        if (id != null) {
+            return service.get(id);
+        }
+        if (net.sumaris.core.util.StringUtils.isNotBlank(label)) {
+            return service.getByLabel(label);
+        }
+        return service.getDefault();
+    }
+
+    @GraphQLMutation(name = "saveSoftware", description = "Save a software configuration")
+    @IsAdmin
+    public SoftwareVO saveSoftware(@GraphQLArgument(name = "software") SoftwareVO software) {
+        return service.save(software);
     }
 
     /* -- protected methods -- */

@@ -49,7 +49,11 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
     @Autowired
     private SoftwareRepository repository;
 
-    public SoftwareVO get(String label) {
+    public SoftwareVO get(int id) {
+        return toVO(repository.getOne(id));
+    }
+
+    public SoftwareVO getByLabel(String label) {
         return toVO(repository.getOneByLabel(label));
     }
 

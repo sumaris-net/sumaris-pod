@@ -45,7 +45,7 @@ public class AuthGraphQLService {
     /* -- Authentication -- */
 
     @GraphQLQuery(name = "authenticate", description = "Authenticate using a token")
-    public boolean authenticate( @GraphQLArgument(name = "token") String token) {
+    public boolean authenticate(@GraphQLArgument(name = "token") String token) {
         if (!authService.authenticate(token).isPresent()) {
             log.warn("Invalid authentication token: " + token);
             //throw new SumarisTechnicalException(ErrorCodes.UNAUTHORIZED, "Invalid authentication token");

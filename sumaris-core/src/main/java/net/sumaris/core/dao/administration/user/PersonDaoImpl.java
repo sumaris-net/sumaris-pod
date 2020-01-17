@@ -526,7 +526,7 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
     private Map<String, String> getUserProfileLabelTranslationMap(boolean toVO) {
         Map<String, String> translateMap = new HashMap<>();
         Pattern pattern = Pattern.compile("sumaris.userProfile.(\\w+).label");
-        softwareDao.get(config.getAppName()).getProperties().forEach((key, value) -> {
+        softwareDao.getByLabel(config.getAppName()).getProperties().forEach((key, value) -> {
             Matcher matcher = pattern.matcher(key);
             if (value != null && matcher.find()) {
                 if (toVO)

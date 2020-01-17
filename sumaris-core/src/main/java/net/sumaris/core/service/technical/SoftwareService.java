@@ -30,9 +30,11 @@ public interface SoftwareService {
 
     SoftwareVO getDefault();
 
-    SoftwareVO get(String label);
+    SoftwareVO get(int id);
 
-    SoftwareVO save(SoftwareVO configuration);
+    SoftwareVO getByLabel(String label);
+
+    SoftwareVO save(SoftwareVO software);
 
 }
 

@@ -86,14 +86,19 @@ public class SoftwareServiceImpl implements SoftwareService, DatabaseSchemaListe
 
     @Override
     public SoftwareVO getDefault() {
-        return dao.get(defaultSoftwareLabel);
+        return dao.getByLabel(defaultSoftwareLabel);
     }
 
     @Override
-    public SoftwareVO get(String label) {
+    public SoftwareVO get(int id) {
+        return dao.get(id);
+    }
+
+    @Override
+    public SoftwareVO getByLabel(String label) {
         Preconditions.checkNotNull(label);
 
-        return dao.get(label);
+        return dao.getByLabel(label);
     }
 
     @Override
