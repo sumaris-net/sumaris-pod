@@ -61,8 +61,8 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
   protected constructor(
     injector: Injector,
-    protected dataType: new() => T,
-    protected dataService: EditorDataService<T, F>
+    protected dataType?: new() => T,
+    protected dataService?: EditorDataService<T, F>
   ) {
     super(injector.get(ActivatedRoute),
       injector.get(Router),

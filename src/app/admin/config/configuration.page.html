@@ -118,7 +118,7 @@
                 </h3>
 
                 <!-- Home logos -->
-                <ng-container *ngIf="data?.smallLogo || data?.largeLogo">
+                <ng-container *ngIf="config?.smallLogo || config?.largeLogo">
                   <h4>
                     <ion-text translate>CONFIGURATION.LOGOS</ion-text>
                   </h4>
@@ -126,12 +126,12 @@
                   <ion-grid>
                     <ion-row>
                       <ion-col>
-                        <img *ngIf="data?.smallLogo"
-                             src="{{ data?.smallLogo }}" [title]="'CONFIGURATION.OPTIONS.LOGO'|translate" width="110"/>
+                        <img *ngIf="config?.smallLogo"
+                             src="{{ config?.smallLogo }}" [title]="'CONFIGURATION.OPTIONS.LOGO'|translate" width="110"/>
                       </ion-col>
                       <ion-col>
-                        <img *ngIf="data?.largeLogo"
-                             src="{{ data?.largeLogo }}" [title]="'CONFIGURATION.OPTIONS.HOME.LOGO_LARGE'|translate" width="250"/>
+                        <img *ngIf="config?.largeLogo"
+                             src="{{ config?.largeLogo }}" [title]="'CONFIGURATION.OPTIONS.HOME.LOGO_LARGE'|translate" width="250"/>
                       </ion-col>
                     </ion-row>
                   </ion-grid>

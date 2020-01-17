@@ -19,6 +19,10 @@ export class ConfigurationPage extends SoftwarePage<Configuration> {
 
   partners = new BehaviorSubject<Department[]>(null);
 
+  get config(): Configuration {
+    return this.data && (this.data as Configuration) || undefined;
+  }
+
   constructor(
     protected injector: Injector,
     protected validatorService: SoftwareValidatorService
