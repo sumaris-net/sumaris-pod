@@ -1,17 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
-import {ActivatedRouteSnapshot} from "@angular/router";
-import {PlatformService} from "../../core/services/platform.service";
-import {ConfigService} from "../../core/services/config.service";
-import {AccountService} from "../../core/services/account.service";
+import {ChangeDetectionStrategy, Component, Injector} from "@angular/core";
 import {SoftwarePage} from "../../referential/software/software.page";
 import {firstNotNilPromise} from "../../shared/observables";
 import {SoftwareValidatorService} from "../../referential/services/software.validator";
-import {ConfigOptions, Configuration, Department, EntityUtils} from "../../core/services/model";
-import {SoftwareService} from "../../referential/services/software.service";
+import {ConfigOptions, Configuration, Department} from "../../core/services/model";
 import {isEmptyArray, isNilOrBlank, isNotEmptyArray} from "../../shared/functions";
 import {BehaviorSubject} from "rxjs";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
-
 
 
 @Component({
@@ -20,7 +14,7 @@ import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.c
   styleUrls: ['./configuration.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ConfigurationPage extends SoftwarePage {
+export class ConfigurationPage extends SoftwarePage<Configuration> {
 
 
   partners = new BehaviorSubject<Department[]>(null);
@@ -31,6 +25,7 @@ export class ConfigurationPage extends SoftwarePage {
       ) {
     super(injector,
       validatorService);
+    this.dataType = Configuration;
     this.dataService = this.configService;
 
     // default values

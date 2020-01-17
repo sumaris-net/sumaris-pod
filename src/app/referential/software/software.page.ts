@@ -20,7 +20,7 @@ import {ValidatorService} from "angular4-material-table";
   styleUrls: ['./software.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SoftwarePage extends AppEditorPage<Software<any>> implements OnInit {
+export class SoftwarePage<T extends Software<T>> extends AppEditorPage<Software<T>> implements OnInit {
 
   protected configService: ConfigService;
 
