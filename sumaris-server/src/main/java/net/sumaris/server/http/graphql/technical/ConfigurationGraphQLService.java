@@ -105,6 +105,7 @@ public class ConfigurationGraphQLService {
     }
 
     @GraphQLQuery(name = "software", description = "A software config")
+    @IsAdmin
     public SoftwareVO getSoftware(
             @GraphQLArgument(name = "id") Integer id,
             @GraphQLArgument(name = "label") String label
