@@ -46,6 +46,7 @@
                   <ion-col>
                     <app-form-measurements #measurementsForm
                                            entityName="VesselUseMeasurement"
+                                           [forceOptional]="isOnFieldMode"
                                            [acquisitionLevel]="acquisitionLevel"
                                            [debug]="debug"
                                            [program]="programSubject|async"

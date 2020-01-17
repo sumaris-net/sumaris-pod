@@ -107,11 +107,15 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   }
 
   @Input()
-  set forceOptional(value) {
+  set forceOptional(value: boolean) {
     if (this._forceOptional !== value) {
       this._forceOptional = value;
       this.loaded().then(() => this._onRefreshPmfms.emit());
     }
+  }
+
+  get forceOptional(): boolean {
+    return this._forceOptional;
   }
 
   constructor(protected dateAdapter: DateAdapter<Moment>,
@@ -229,7 +233,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
     try {
       // Load pmfms
-      const pmfms = (await this.programService.loadProgramPmfms(
+      let pmfms = (await this.programService.loadProgramPmfms(
         this._program,
         {
           acquisitionLevel: this._acquisitionLevel,
@@ -238,6 +242,21 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
       if (!pmfms.length && this.debug) {
         console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gear}}. Make sure programs/strategies are filled`);
+      }
+      else {
+
+        // If force to optional, create a copy of each pmfms that should be forced
+        if (this._forceOptional) {
+          pmfms = pmfms.map(pmfm => {
+            if (pmfm.required) {
+              pmfm = pmfm.clone(); // Keep original entity
+              pmfm.required = false;
+              return pmfm;
+            }
+            // Return original pmfm, as not need to be overrided
+            return pmfm;
+          });
+        }
       }
 
       // Apply
@@ -281,17 +300,22 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     // No pmfms (= empty form)
     if (!pmfms.length) {
       // Reset form
-      this.measurementValidatorService.updateFormGroup(this.form, {pmfms: []}); // TODO: forcePmfmAsOptional
+      this.measurementValidatorService.updateFormGroup(this.form, {
+        pmfms: []
+      });
       this.form.reset({}, {onlySelf: true, emitEvent: false});
       this.loading = this.applyingValue; // Keep loading=true, when data not fully applied
       return true;
     }
 
     else {
-      if (this.debug) console.debug(`${this.logPrefix} Updating form controls, using pmfms:`, pmfms);
+
+      if (this.debug) console.debug(`${this.logPrefix} Updating form controls {force_optional: ${this._forceOptional}}, using pmfms:`, pmfms);
 
       // Update the existing form
-      this.measurementValidatorService.updateFormGroup(this.form, {pmfms}); // TODO: forcePmfmAsOptional
+      this.measurementValidatorService.updateFormGroup(this.form, {
+        pmfms
+      });
     }
 
     this.loading = this.applyingValue; // Keep loading=true, when data not fully applied

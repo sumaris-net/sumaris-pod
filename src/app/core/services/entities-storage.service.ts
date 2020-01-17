@@ -403,7 +403,7 @@ export class EntityStorage {
 
     // Apply the filter, if any
     if (opts.filter) {
-      data = data.filter(opts.filter);
+      data = data.filter(isNotNil).filter(opts.filter);
     }
 
     // Compute the total length

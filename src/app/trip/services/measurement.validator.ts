@@ -16,7 +16,7 @@ export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
   pmfms?: PmfmStrategy[];
   protectedAttributes?: string[];
-  forceAllPmfmsAsOptional?: boolean;
+  forceOptional?: boolean;
 }
 
 @Injectable()
@@ -104,7 +104,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   getPmfmValidator(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[], opts?: O): ValidatorFn {
     validatorFns = validatorFns || [];
     // Add required validator (if NOT force as optional - can occur when on field mode)
-    if (pmfm.required && (!opts || opts.forceAllPmfmsAsOptional !== true)) {
+    if (pmfm.required && (!opts || opts.forceOptional !== true)) {
       validatorFns.push(Validators.required);
     }
     if (pmfm.isAlphanumeric) {
@@ -146,7 +146,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
     opts.pmfms = opts.pmfms || [];
 
-    opts.forceAllPmfmsAsOptional = toBoolean(opts.forceAllPmfmsAsOptional, false);
+    opts.forceOptional = toBoolean(opts.forceOptional, false);
 
     opts.protectedAttributes = opts.protectedAttributes || ['id', 'rankOrder', 'comments', 'updateDate'];
 
