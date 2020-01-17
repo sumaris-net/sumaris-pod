@@ -29,13 +29,27 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   protected dateFormat: DateFormatPipe;
   protected cd: ChangeDetectorRef;
   protected settings: LocalSettingsService;
+  protected _usageMode: UsageMode;
 
   $title = new Subject<string>();
   saving = false;
   hasRemoteListener = false;
   defaultBackHref: string;
   onUpdateView = new EventEmitter<T>();
-  usageMode: UsageMode;
+
+
+  get usageMode(): UsageMode {
+    return this._usageMode;
+  }
+
+  set usageMode(value: UsageMode) {
+    if (this._usageMode !== value) {
+      this._usageMode = value;
+      // TODO: Force refresh of the form
+      // this.form. ..
+      this.markForCheck();
+    }
+  }
 
   get isOnFieldMode(): boolean {
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
@@ -94,7 +108,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
       // Create using default values
       const data = new this.dataType();
-      this.usageMode = this.computeUsageMode(data);
+      this._usageMode = this.computeUsageMode(data);
       await this.onNewEntity(data, opts);
       this.updateView(data);
       this.loading = false;
@@ -103,7 +117,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     // Load existing data
     else {
       const data = await this.dataService.load(id, opts);
-      this.usageMode = this.computeUsageMode(data);
+      this._usageMode = this.computeUsageMode(data);
       await this.onEntityLoaded(data, opts);
       this.updateView(data);
       this.loading = false;

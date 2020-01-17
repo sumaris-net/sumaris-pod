@@ -136,7 +136,13 @@ export class EntityQualityFormComponent<T extends DataRootEntity<T> = DataRootEn
   async terminate(event: Event) {
     // Control data
     const controlled = await this.control(event, {emitEvent: false});
-    if (!controlled || event.defaultPrevented) return;
+    if (!controlled || event.defaultPrevented) {
+      // If mode was on field: force desk mode, to show errors
+      if (this.editor.isOnFieldMode) {
+        this.editor.usageMode = 'DESK';
+      }
+      return;
+    }
 
     console.debug("[quality] Terminate entity input...");
 
