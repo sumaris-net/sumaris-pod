@@ -20,6 +20,7 @@ import {AlertController, ToastController} from "@ionic/angular";
 import {capitalizeFirstLetter} from "apollo-client/util/capitalizeFirstLetter";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {isEmptyArray} from "../../shared/functions";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -333,6 +334,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
   }
 
   protected translateColumns(columns: ExtractionColumn[]) {
+    if (isEmptyArray(columns)) return; // Skip, to avoid error when calling this.translate.instant([])
 
     const i19nPrefix = `EXTRACTION.TABLE.${this.type.category.toUpperCase()}.`;
     const names = columns.map(column => (column.name || column.columnName).toUpperCase());
