@@ -113,6 +113,18 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             "${sumaris.data.directory}/download",
             File.class),
 
+    ACTIVEMQ_ENABLE(
+            "spring.activemq.pool.enabled",
+            n("sumaris.config.option.spring.activemq.pool.enabled.description"),
+            "false",
+            Boolean.class),
+
+    ACTIVEMQ_BROKER_URL(
+            "spring.activemq.broker-url",
+            n("sumaris.config.option.spring.activemq.broker-url.description"),
+            "vm://embedded?broker.persistent=true",
+            String.class),
+
     SITE_FAVICON(
             "sumaris.favicon",
             n("sumaris.config.option.favicon.description"),

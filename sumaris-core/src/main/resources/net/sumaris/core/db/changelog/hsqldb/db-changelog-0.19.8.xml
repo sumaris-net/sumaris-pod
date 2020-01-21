@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.19.8.xml">
+
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622350972-100">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="APPLIED_STRATEGY_SEQ"/></not>
+    </preConditions>
+    <createSequence sequenceName="APPLIED_STRATEGY_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622350972-101">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="LOCATION_CLASSIFICATION_SEQ"/></not>
+    </preConditions>
+    <createSequence sequenceName="LOCATION_CLASSIFICATION_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622350972-102">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="PROGRAM_PRIVILEGE_SEQ"/></not>
+    </preConditions>
+    <createSequence sequenceName="PROGRAM_PRIVILEGE_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622350972-103">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="VESSEL_OWNER_SEQ"/></not>
+    </preConditions>
+    <createSequence sequenceName="VESSEL_OWNER_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622350972-104">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="VESSEL_REGISTRATION_PERIOD_SEQ"/></not>
+    </preConditions>
+    <createSequence sequenceName="VESSEL_REGISTRATION_PERIOD_SEQ"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622350972-105" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="program_privilege"/></not>
+    </preConditions>
+    <createTable tableName="program_privilege">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="program_privilege_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoitlavenier@e-is.pro" id="1579622350972-107">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="program_privilege" constraintName="FKt0nt3dmbvs1jon7mirbq71wpu" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status" validate="true"/>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1579622350972-500" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='0.19.8'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">0.19.8</column>
+      <column name="DESCRIPTION">
+        - Add sequence VESSEL_REGISTRATION_PERIOD_SEQ
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

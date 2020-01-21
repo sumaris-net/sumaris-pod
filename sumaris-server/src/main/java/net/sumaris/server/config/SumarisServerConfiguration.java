@@ -113,8 +113,8 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
             throw new SumarisTechnicalException("Directories initialization failed", e);
         }
 
-        // Init active MQ
-        System.setProperty("org.apache.activemq.default.directory.prefix", getDataDirectory().getPath());
+        // Init active MQ data directory
+        System.setProperty("org.apache.activemq.default.directory.prefix", getDataDirectory().getPath() + File.separator);
 
     }
 
@@ -221,6 +221,24 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      */
     public int getAuthTokenLifeTimeInSeconds() {
         return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getKey());
+    }
+
+    /**
+     * <p>get the ActiveMQ broker URL.</p>
+     *
+     * @return a {@link Integer}
+     */
+    public String getActiveMQBrokerURL() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.ACTIVEMQ_BROKER_URL.getKey());
+    }
+
+    /**
+     * <p>get the ActiveMQ broker URL.</p>
+     *
+     * @return a {@link Integer}
+     */
+    public boolean isActiveMQEnable() {
+        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.ACTIVEMQ_ENABLE.getKey());
     }
 
     /* -- Internal methods -- */
