@@ -19,6 +19,7 @@ import {BatchGroupForm} from "./batch-group.form";
 import {toBoolean} from "../../shared/functions";
 import {throttleTime} from "rxjs/operators";
 import {PlatformService} from "../../core/services/platform.service";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -95,7 +96,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     this.mobile = platform.mobile;
 
     // TODO: for DEV only
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -147,7 +148,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
     if (this.invalid) {
       this.form.error = "COMMON.FORM.HAS_ERROR";
-      this.form.logFormErrors("[batch-group-modal] ");
+      if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
       this.form.markAsTouched({emitEvent: true});
       this.loading = false;
       return;

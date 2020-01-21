@@ -143,9 +143,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
 
     // Adapt measurement values to form (if not skip)
-   // if (!opts || opts.normalizeEntityToForm !== false) {
+    if (!opts || opts.normalizeEntityToForm !== false) {
       MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
-    //}
+    }
 
     super.setValue(data, opts);
 
@@ -244,6 +244,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.loading = true;
     this.loadingPmfms = true;
 
+    this.$pmfms.next(null);
+
     try {
       // Load pmfms
       let pmfms = (await this.programService.loadProgramPmfms(
@@ -300,7 +302,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (!pmfms.length) {
       // Reset form
       if (measFormGroup && measFormGroup instanceof FormGroup) {
-        this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: []});
+        this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms});
         measFormGroup.reset({}, {onlySelf: true, emitEvent: false});
       }
     }

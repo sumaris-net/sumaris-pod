@@ -17,18 +17,17 @@ import {Moment} from "moment";
 import {FormBuilder} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {EntityUtils, UsageMode} from "../../core/services/model";
-import {AcquisitionLevelCodes, isNil, PmfmStrategy, PmfmUtils} from "../../referential/services/model";
+import {UsageMode} from "../../core/services/model";
+import {AcquisitionLevelCodes, PmfmStrategy, PmfmUtils} from "../../referential/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
 import {AppForm, AppFormUtils} from "../../core/core.module";
 import {BatchGroupValidatorService} from "../services/batch-groups.validator";
 import {BehaviorSubject} from "rxjs";
 import {BatchForm} from "./batch.form";
-import {filter, first, switchMap, takeWhile} from "rxjs/operators";
+import {filter, switchMap, takeWhile} from "rxjs/operators";
 import {PlatformService} from "../../core/services/platform.service";
 import {firstNotNilPromise} from "../../shared/observables";
-import {PhysicalGear} from "../services/model/trip.model";
 
 @Component({
   selector: 'app-batch-group-form',
@@ -194,6 +193,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
       this.batchForm.value = data;
     }
     else {
+      console.log("TODO preparing children batch")
       // Prepare data array, for each qualitative values
       data.children = this.qvPmfm.qualitativeValues.map((qv, index) => {
 
@@ -228,7 +228,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
 
   logFormErrors(logPrefix: string) {
     AppFormUtils.logFormErrors(this.batchForm.form, logPrefix);
-    this.childrenForms.forEach((childForm, index) => {
+    (this.childrenForms || []).forEach((childForm, index) => {
       AppFormUtils.logFormErrors(childForm.form, logPrefix, `children#${index}`);
     });
   }
