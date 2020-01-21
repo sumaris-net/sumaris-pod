@@ -83,7 +83,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoitlavenier@e-is.pro" id="1579622350972-107">
+  <changeSet author="benoitlavenier@e-is.pro" id="1579622350972-107" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="program_privilege" constraintName="FKt0nt3dmbvs1jon7mirbq71wpu" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status" validate="true"/>
   </changeSet>
 
