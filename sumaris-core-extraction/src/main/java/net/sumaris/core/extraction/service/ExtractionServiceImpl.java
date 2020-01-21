@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
@@ -296,12 +297,25 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
     public void clean(ExtractionContextVO context) {
         Preconditions.checkNotNull(context);
 
-        if (CollectionUtils.isEmpty(context.getTableNames())) return;
+        Set<String> tableNames = ImmutableSet.<String>builder()
+                .addAll(context.getTableNames())
+                .addAll(context.getRawTableNames())
+                .build();
 
-        context.getTableNames().stream()
-                // Keep only tables with EXT_ prefix
-                .filter(tableName -> tableName != null && tableName.startsWith("EXT_"))
-                .forEach(extractionTableDao::dropTable);
+        if (CollectionUtils.isEmpty(tableNames)) return;
+
+        tableNames.stream()
+            // Keep only tables with EXT_ prefix
+            .filter(tableName -> tableName != null && tableName.startsWith("EXT_"))
+            .forEach(tableName -> {
+                try {
+                    extractionTableDao.dropTable(tableName);
+                }
+                catch (SumarisTechnicalException e) {
+                    log.error(e.getMessage());
+                    // Continue
+                }
+            });
     }
 
     @Override
@@ -629,7 +643,9 @@ public class ExtractionServiceImpl implements ExtractionService, DatabaseSchemaL
         } else {
             taskExecutor.execute(() -> {
                 try {
-                    // Call elf, to
+                    Thread.sleep(2000); // Wait 2 s, to to sure the table is not used anymore
+
+                    // Call self, to be sure to have a transaction
                     self.clean(context);
                 } catch (Exception e) {
                     log.warn("Error while cleaning extraction tables", e);

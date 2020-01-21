@@ -41,4 +41,6 @@ public interface ExtractionRdbTripDao<C extends ExtractionRdbTripContextVO> exte
     String CA_SHEET_NAME = "CA";
 
     <R extends C> R execute(ExtractionFilterVO filter);
+
+    void clean(C context);
 }

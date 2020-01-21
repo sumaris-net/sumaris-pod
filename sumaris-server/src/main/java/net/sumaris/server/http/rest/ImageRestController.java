@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -81,7 +82,13 @@ public class ImageRestController implements ResourceLoaderAware {
     @RequestMapping(value = RestPaths.PERSON_AVATAR_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<byte[]> getPersonAvatar(@PathVariable(name="pubkey") String pubkey) {
-        ImageAttachmentVO image = personService.getAvatarByPubkey(pubkey);
+        ImageAttachmentVO image;
+        try {
+            image = personService.getAvatarByPubkey(pubkey);
+        }
+        catch(DataRetrievalFailureException e) {
+            image = null;
+        }
         if (image == null) {
             return ResponseEntity.notFound().build();
         }
@@ -91,6 +98,7 @@ public class ImageRestController implements ResourceLoaderAware {
                 .contentLength(bytes.length)
                 .contentType(MediaType.parseMediaType(image.getContentType()))
                 .body(bytes);
+
     }
 
     @ResponseBody

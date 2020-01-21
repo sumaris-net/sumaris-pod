@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.dao.trip.rdb;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
@@ -31,6 +32,7 @@ import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
+import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
@@ -47,6 +49,7 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.hibernate.exception.SQLGrammarException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +58,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Repository;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
+
+import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -92,6 +97,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
     @Autowired
     protected SumarisDatabaseMetadata databaseMetadata;
+
+    @Autowired
+    protected ExtractionTableDao extractionTableDao;
 
     @Override
     public C execute(ExtractionFilterVO filter) {
@@ -135,39 +143,69 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
         // -- Execute the extraction --
 
-        // Trip
-        long rowCount = createTripTable(context);
-        if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
-        if (sheetName != null && context.hasSheet(sheetName)) return context;
+        try {
+            // Trip
+            long rowCount = createTripTable(context);
+            if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
 
-        // Get programs from trips
-        List<String> programLabels = getTripProgramLabels(context);
-        Preconditions.checkArgument(CollectionUtils.isNotEmpty(programLabels));
-        log.debug("Detected programs: " + programLabels);
+            // Get programs from trips
+            List<String> programLabels = getTripProgramLabels(context);
+            Preconditions.checkArgument(CollectionUtils.isNotEmpty(programLabels));
+            log.debug("Detected programs: " + programLabels);
 
-        // Get PMFMs from strategies
-        final MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId = new ArrayListValuedHashMap<>();
-        programLabels.stream()
-                .map(programService::getByLabel)
-                .map(ProgramVO::getId)
-                .forEach(programId -> pmfmStrategiesByProgramId.putAll(programId, strategyService.getPmfmStrategies(programId)));
-        List<ExtractionPmfmInfoVO> pmfmInfos = getPmfmInfos(context, pmfmStrategiesByProgramId);
-        context.setPmfmInfos(pmfmInfos);
+            // Get PMFMs from strategies
+            final MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId = new ArrayListValuedHashMap<>();
+            programLabels.stream()
+                    .map(programService::getByLabel)
+                    .map(ProgramVO::getId)
+                    .forEach(programId -> pmfmStrategiesByProgramId.putAll(programId, strategyService.getPmfmStrategies(programId)));
+            List<ExtractionPmfmInfoVO> pmfmInfos = getPmfmInfos(context, pmfmStrategiesByProgramId);
+            context.setPmfmInfos(pmfmInfos);
 
-        // Station
-        rowCount = createStationTable(context);
-        if (rowCount == 0) return context;
-        if (sheetName != null && context.hasSheet(sheetName)) return context;
+            // Station
+            rowCount = createStationTable(context);
+            if (rowCount == 0) return context;
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
 
-        // Species List
-        rowCount = createSpeciesListTable(context);
-        if (rowCount == 0) return context;
-        if (sheetName != null && context.hasSheet(sheetName)) return context;
+            // Species List
+            rowCount = createSpeciesListTable(context);
+            if (rowCount == 0) return context;
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
 
-        // Species Length
-        createSpeciesLengthTable(context);
+            // Species Length
+            createSpeciesLengthTable(context);
 
-        return context;
+            return context;
+        }
+        catch (PersistenceException e) {
+            // If error,clean created tables first, then rethrow the exception
+            clean(context);
+            throw e;
+        }
+    }
+
+    @Override
+    public void clean(ExtractionRdbTripContextVO context) {
+        Set<String> tableNames = ImmutableSet.<String>builder()
+                .addAll(context.getTableNames())
+                .addAll(context.getRawTableNames())
+                .build();
+
+        if (CollectionUtils.isEmpty(tableNames)) return;
+
+        tableNames.stream()
+            // Keep only tables with EXT_ prefix
+            .filter(tableName -> tableName != null && tableName.startsWith("EXT_"))
+            .forEach(tableName -> {
+                try {
+                    extractionTableDao.dropTable(tableName);
+                }
+                catch (SumarisTechnicalException e) {
+                    log.error(e.getMessage());
+                    // Continue
+                }
+            });
     }
 
     /* -- protected methods -- */
@@ -265,6 +303,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Trip table: %s rows inserted", count));
         }
+        else {
+            context.addRawTableName(context.getTripTableName());
+        }
         return count;
     }
 
@@ -323,6 +364,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Station table: %s rows inserted", count));
         }
+        else {
+            context.addRawTableName(context.getStationTableName());
+        }
+
 
         return count;
     }
@@ -349,8 +394,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
         XMLQuery rawXmlQuery = createRawSpeciesListQuery(context, true/*exclude invalid station*/);
         execute(rawXmlQuery);
 
+        // Add the raw table
+        context.addRawTableName(context.getRawSpeciesListTableName());
+
         // Clean row using generic filter
         cleanRow(context.getRawSpeciesListTableName(), context.getFilter(), SL_SHEET_NAME);
+
 
         // Create the final table (with distinct), without hidden columns
         String tableName = context.getSpeciesListTableName();
@@ -367,6 +416,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Species list table: %s rows inserted", count));
         }
+        else {
+            // Add as a raw table (to be able to clean it later)
+            context.addRawTableName(tableName);
+        }
+
+
         return count;
     }
 
@@ -412,6 +467,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Species length table: %s rows inserted", count));
+        }
+        else {
+            context.addRawTableName(context.getSpeciesLengthTableName());
         }
         return count;
     }

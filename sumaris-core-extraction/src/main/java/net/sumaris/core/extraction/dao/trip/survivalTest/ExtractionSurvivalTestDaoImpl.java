@@ -188,6 +188,9 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Extraction #%s > Survival test table: %s rows inserted", context.getId(), count));
         }
+        else {
+            context.addRawTableName(context.getSurvivalTestTableName());
+        }
         return count;
     }
 
@@ -214,6 +217,9 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Extraction #%s > Release table: %s rows inserted", context.getId(), count));
+        }
+        else {
+            context.addRawTableName(context.getReleaseTableName());
         }
         return count;
     }

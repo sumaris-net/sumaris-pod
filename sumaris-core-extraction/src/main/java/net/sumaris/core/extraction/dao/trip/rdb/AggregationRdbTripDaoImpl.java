@@ -107,6 +107,7 @@ public class AggregationRdbTripDaoImpl<
 
     @Override
     public <R extends C> R aggregate(ExtractionProductVO source, F filter) {
+        long rowCount;
 
         // Init context
         R context = createNewContext();
@@ -127,7 +128,6 @@ public class AggregationRdbTripDaoImpl<
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
 
         // Trip
-        long rowCount;
         //rowCount = createTripTable(context);
         //if (rowCount == 0) throw new DataNotFoundException(t("sumaris.aggregation.noData"));
         //if (sheetName != null && context.hasSheet(sheetName)) return context;
@@ -294,6 +294,9 @@ public class AggregationRdbTripDaoImpl<
         if (count > 0) {
             context.addTableName(context.getSpeciesListTableName(), SL_SHEET_NAME);
             log.debug(String.format("Species list table: %s rows inserted", count));
+        }
+        else {
+            context.addRawTableName(context.getSpeciesListTableName());
         }
         return count;
     }

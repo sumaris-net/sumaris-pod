@@ -51,6 +51,9 @@ public class ExtractionContextVO {
     Map<String, String> tableNames = new LinkedHashMap<>();
 
     @FieldNameConstants.Exclude
+    Set<String> rawTableNames = new HashSet<>();
+
+    @FieldNameConstants.Exclude
     Map<String, Set<String>> hiddenColumnNames = new LinkedHashMap<>();
 
 
@@ -104,6 +107,14 @@ public class ExtractionContextVO {
         }
     }
 
+    /**
+     * Register a raw table (to be able to remove later)
+     * @param tableName
+     */
+    public void addRawTableName(String tableName) {
+        rawTableNames.add(tableName);
+    }
+
     public String getSheetName(String tableName) {
         String otherName = tableNames.get(tableName);
         return (otherName!=null) ? otherName : tableName;
@@ -111,6 +122,10 @@ public class ExtractionContextVO {
 
     public Set<String> getTableNames() {
         return tableNames.keySet();
+    }
+
+    public Set<String> getRawTableNames() {
+        return rawTableNames;
     }
 
     public String getTableNameBySheetName(String sheetName) {

@@ -27,6 +27,7 @@ import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,7 +71,7 @@ public interface ExtractionService {
     @Transactional
     File executeAndDumpTrips(ExtractionRawFormatEnum format, ExtractionTripFilterVO filter);
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED, propagation = Propagation.REQUIRES_NEW)
     void clean(ExtractionContextVO context);
 
     @Transactional(propagation = Propagation.SUPPORTS)

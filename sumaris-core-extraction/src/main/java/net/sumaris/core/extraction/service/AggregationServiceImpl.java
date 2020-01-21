@@ -351,7 +351,7 @@ public class AggregationServiceImpl implements AggregationService {
             case SURVIVAL_TEST:
                 return aggregationRdbTripDao.aggregate(source, filter);
             default:
-                throw new SumarisTechnicalException(String.format("Data aggregation on type '%s' is not implemented !", format.name()));
+                throw new SumarisTechnicalException(String.format("Data aggregation on type '%s' is not implemented!", format.name()));
         }
     }
 

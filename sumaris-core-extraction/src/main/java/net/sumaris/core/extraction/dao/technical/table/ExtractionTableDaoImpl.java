@@ -27,12 +27,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.schema.*;
+import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
+import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
-import net.sumaris.core.extraction.vo.*;
-import net.sumaris.core.util.Beans;
+import net.sumaris.core.extraction.vo.ExtractionFilterVO;
+import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.util.ExtractionBeans;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
 import org.apache.commons.lang3.ArrayUtils;
@@ -45,11 +46,11 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -64,11 +65,18 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionTableDaoImpl.class);
 
+    private String dropTableQuery;
+
     @Autowired
     protected SumarisDatabaseMetadata databaseMetadata;
 
     @Autowired
     protected DataSource dataSource = null;
+
+    @PostConstruct
+    public void init() {
+        dropTableQuery = databaseMetadata.getDialect().getDropTableString("%s");
+    }
 
     @Override
     public List<String> getAllTableNames() {
@@ -124,15 +132,12 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         Preconditions.checkArgument(tableName.toUpperCase().startsWith("EXT_"));
 
         log.debug(String.format("Dropping extraction table {%s}...", tableName));
-        Connection conn = DataSourceUtils.getConnection(dataSource);
         try {
-            Statement stmt = conn.createStatement();
-            stmt.executeUpdate("DROP TABLE " + tableName.toUpperCase());
+            String sql = String.format(dropTableQuery, tableName.toUpperCase());
+            getSession().createSQLQuery(sql).executeUpdate();
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new SumarisTechnicalException(String.format("Cannot drop extraction table {%s}...", tableName), e);
-        } finally {
-            DataSourceUtils.releaseConnection(conn, dataSource);
         }
     }
 
