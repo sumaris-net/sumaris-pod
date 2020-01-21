@@ -187,6 +187,26 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     return res;
   }
 
+  static fromVessel(source: Vessel): VesselSnapshot {
+    if (!source) return undefined;
+    const res = new VesselSnapshot();
+    res.fromObject({
+      id: source.id,
+      vesselType: source.vesselType,
+      vesselStatusId: source.statusId,
+      name: source.features && source.features.name,
+      startDate: source.features && source.features.startDate,
+      endDate: source.features && source.features.endDate,
+      exteriorMarking: source.features && source.features.exteriorMarking,
+      basePortLocation: source.features && source.features.basePortLocation,
+      registrationId: source.registration && source.registration.id,
+      registrationStartDate: source.registration && source.registration.startDate,
+      registrationEndDate: source.registration && source.registration.endDate,
+      registrationLocation: source.registration && source.registration.registrationLocation
+    });
+    return res;
+  }
+
   vesselType: ReferentialRef;
   vesselStatusId: number;
   name: string;

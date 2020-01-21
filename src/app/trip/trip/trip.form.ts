@@ -22,6 +22,7 @@ import {FormArray, FormBuilder} from "@angular/forms";
 import {PersonService} from "../../admin/services/person.service";
 import {toBoolean} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
+import {Vessel} from "../../referential/services/model";
 
 @Component({
   selector: 'form-trip',
@@ -180,11 +181,15 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     const res = await modal.onDidDismiss();
 
     // if new vessel added, use it
-    if (res && res.data instanceof VesselSnapshot) {
-      console.debug("[trip-form] New vessel added : updating form...", res.data);
-      this.form.controls['vesselSnapshot'].setValue(res.data);
+    const vessel = res && res.data;
+    if (vessel) {
+      const vesselSnapshot = (vessel instanceof VesselSnapshot) ? vessel :
+        (vessel instanceof Vessel ? VesselSnapshot.fromVessel(vessel) : VesselSnapshot.fromObject(vessel));
+      console.debug("[trip-form] New vessel added : updating form...", vesselSnapshot);
+      this.form.controls['vesselSnapshot'].setValue(vesselSnapshot);
       this.markForCheck();
     }
+
     else {
       console.debug("[trip-form] No vessel added (user cancelled)");
     }

@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
 import {ValidatorService} from "angular4-material-table";
 import {VesselValidatorService} from "../../services/vessel.validator";
 import {AppTable} from "../../../core/table/table.class";
@@ -28,6 +28,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
   isAdmin: boolean;
 
   constructor(
+    protected injector: Injector,
     protected route: ActivatedRoute,
     protected router: Router,
     protected platform: Platform,
@@ -58,7 +59,8 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         serviceOptions: {
           saveOnlyDirtyRows: true
         }
-      })
+      }),
+      null, injector
     );
 
     this.i18nColumnPrefix = 'VESSEL.';
