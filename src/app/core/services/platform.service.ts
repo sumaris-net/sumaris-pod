@@ -114,7 +114,7 @@ export class PlatformService {
   }
 
   open(url: string, target?: string, features?: string, replace?: boolean) {
-    if (this.browser) {
+    if (this.browser && this.mobile) {
       this.browser.create(url, target, features).show();
     }
     else {
@@ -132,11 +132,12 @@ export class PlatformService {
 
     // Force to use InAppBrowser instead of default window.open()
     if (this.browser) {
-      window.open = (url?: string, target?: string, options?: string, replace?: boolean) => {
-        console.debug("[platform] Call to window.open() redirected to InAppBrowser.open()");
-        this.open(url, target, options, replace);
-        return window;
-      };
+      // FIXME: this create a infinite loop (e.g. when downloading an extraction file)
+      // window.open = (url?: string, target?: string, features?: string, replace?: boolean) => {
+      //   console.debug("[platform] Call to window.open() redirected to InAppBrowser.open()");
+      //   this.browser.create(url, target, features).show();
+      //   return window;
+      // };
     }
   }
 

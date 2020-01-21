@@ -24,6 +24,7 @@ import {FormBuilder} from "@angular/forms";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Alerts} from "../../shared/alerts";
+import {PlatformService} from "../../core/services/platform.service";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -66,9 +67,10 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     protected service: ExtractionService,
     protected settings: LocalSettingsService,
     protected formBuilder: FormBuilder,
+    protected platform: PlatformService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder);
+    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform);
 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);

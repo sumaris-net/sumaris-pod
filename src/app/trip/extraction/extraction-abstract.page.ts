@@ -21,6 +21,7 @@ import {capitalizeFirstLetter} from "apollo-client/util/capitalizeFirstLetter";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {isEmptyArray} from "../../shared/functions";
+import {PlatformService} from "../../core/services/platform.service";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -57,7 +58,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     protected accountService: AccountService,
     protected service: ExtractionService,
     protected settings: LocalSettingsService,
-    protected formBuilder: FormBuilder
+    protected formBuilder: FormBuilder,
+    protected platform: PlatformService
   ) {
     super(route, router, alertCtrl, translate);
     // Create the main form
@@ -221,7 +223,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
       // Download file
       const file = await this.service.downloadFile(this.type, filter);
       if (isNotNil((file))) {
-        window.open(file);
+        this.platform.open(file);
       }
 
     } catch (err) {

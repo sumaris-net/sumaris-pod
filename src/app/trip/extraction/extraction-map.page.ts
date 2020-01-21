@@ -171,7 +171,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     protected aggregationStrataValidator: AggregationTypeValidatorService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder);
+    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform);
 
     // Add controls to form
     this.form.addControl('strata', this.aggregationStrataValidator.getStrataFormGroup());
