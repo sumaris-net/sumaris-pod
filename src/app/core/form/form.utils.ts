@@ -140,8 +140,8 @@ export function logFormErrors(control: AbstractControl, logPrefix?: string, path
       logFormErrors(child, logPrefix, (path ? `${path}#${index}` : `#${index}`)); // Recursive call
     });
   }
-  // Other control
-  else {
+  // Other control's errors
+  else if (control.errors) {
     Object.keys(control.errors).forEach(error =>
       console.warn(`${logPrefix} -> ${path || ''} (${error})`)
     );

@@ -5,7 +5,7 @@ import {DOCUMENT} from "@angular/common";
 import {MatDialog} from '@angular/material';
 import {HotkeysDialogComponent} from './dialog/hotkeys-dialog.component';
 import {isNotNilOrBlank} from "../functions";
-import {environment} from "../../../environments/environment.prod";
+import {environment} from "../../../environments/environment";
 
 type Options = {
   element: any;

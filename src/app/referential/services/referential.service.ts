@@ -11,7 +11,7 @@ import {AccountService} from "../../core/services/account.service";
 import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
-import {environment} from "../../../environments/environment.prod";
+import {environment} from "../../../environments/environment";
 
 export class ReferentialFilter {
   entityName: string;
