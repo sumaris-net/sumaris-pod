@@ -69,15 +69,7 @@ export function toDateISOString(value): string | undefined {
   return moment(value).format(DATE_ISO_PATTERN) || undefined;
 }
 
-function fromDateISOStringDevelopment(value: any): Moment | undefined {
-  if (value && typeof value === 'object' && value.toISOString) {
-    console.warn('Unnecessary conversion to Moment object!');
-    return value as Moment;
-  }
-  return fromDateISOStringProduction(value);
-}
-
-function fromDateISOStringProduction(value: any): Moment | undefined {
+export function fromDateISOString(value: any): Moment | undefined {
   if (!value || typeof value !== 'string') return value;
   const date: Moment = moment(value, DATE_ISO_PATTERN);
   if (date.isValid()) return date;
@@ -93,9 +85,6 @@ function fromDateISOStringProduction(value: any): Moment | undefined {
   }
   return undefined;
 }
-
-
-export const fromDateISOString = (environment.production) ? fromDateISOStringProduction : fromDateISOStringDevelopment;
 
 export function startsWithUpperCase(input: string, search: string): boolean {
   return input && input.toUpperCase().startsWith(search);

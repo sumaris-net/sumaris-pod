@@ -87,10 +87,12 @@
       </ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
-      <mat-form-field-measurement
-        [readonly]="!row.editing"
-        [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
-        [compact]="true" floatLabel="never"></mat-form-field-measurement>
+      <mat-form-field-measurement floatLabel="never"
+                                  [readonly]="!row.editing"
+                                  [pmfm]="pmfm"
+                                  [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
+                                  [compact]="true" >
+      </mat-form-field-measurement>
     </mat-cell>
   </ng-container>
 
@@ -101,7 +103,7 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
       <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
+        <input matInput [formControl]="row.validator.controls.comments" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
           [readonly]="!row.editing">
       </mat-form-field>
     </mat-cell>
