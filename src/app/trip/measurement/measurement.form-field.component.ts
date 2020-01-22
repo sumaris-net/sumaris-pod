@@ -122,15 +122,15 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
     this.type = type;
   }
 
-  writeValue(obj: any): void {
-    // FIXME This is a hack, because some tme invalid value are passed
+  writeValue(value: any): void {
+    // FIXME This is a hack, because some time invalid value are passed
     // Example: in the batch group table (inline edition)
-    if (this.pmfm.isNumeric && Number.isNaN(obj)) {
+    if (this.pmfm.isNumeric && Number.isNaN(value)) {
       //console.warn("Trying to set NaN value, in a measurement field ! " + this.constructor.name);
-      obj = null;
-      if (obj !== this.formControl.value) {
-        this.formControl.patchValue(obj, {emitEvent: false});
-        this._onChangeCallback(obj);
+      value = null;
+      if (value !== this.formControl.value) {
+        this.formControl.patchValue(value, {emitEvent: false});
+        this._onChangeCallback(value);
       }
     }
   }
