@@ -140,7 +140,7 @@ const GetFileQuery: any = gql`
 
 
 const LoadAggregationType = gql`
-  query AggregationType($id: Int) {
+  query AggregationType($id: Int!) {
     aggregationType(id: $id) {
       ...AggregationTypeFragment
     }
