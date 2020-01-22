@@ -233,7 +233,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
       const hiddenData = [];
       let maxRankOrder = this._previousMaxRankOrder || this._initialMaxRankOrder;
       data.forEach(b => {
-        // Filter on individual count = 1 (if individual count is hide)
+        // Filter on individual count = 1 when individual count is hide
         // AND same parent
         if ( (showIndividualCount || b.individualCount === 1)
           && Batch.equals(this._selectedParent, b.parent)) {
