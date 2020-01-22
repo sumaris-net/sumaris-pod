@@ -25,6 +25,7 @@ package net.sumaris.core.util;
  */
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.util.DateUtil;
 
@@ -34,12 +35,18 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.regex.Pattern;
 
 /**
  * <p>Dates class.</p>
  */
 public class Dates extends org.apache.commons.lang3.time.DateUtils{
-	
+
+    // See https://www.w3.org/TR/NOTE-datetime
+    // Full precision (with millisecond and timezone)
+    public static String ISO_TIMESTAMP_REGEXP = "\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d:[0-5]\\d\\.\\d+([+-][0-2]\\d:[0-5]\\d|Z)";
+    public static Pattern ISO_TIMESTAMP_PATTERN = Pattern.compile("^" + ISO_TIMESTAMP_REGEXP + "$");
+
     /**
      * Remove a amount of month to a date
      *
@@ -469,5 +476,11 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
         return "in " + seconds + "s";
     }
 
-
+    public static String checkISODateTimeString(String isoDate) throws SumarisTechnicalException {
+        if (isoDate == null) return null;
+        if (!ISO_TIMESTAMP_PATTERN.matcher(isoDate).matches()) {
+            throw new SumarisTechnicalException(String.format("Invalid date time format '%s'. Expected ISO format 'YYYY-MM-DDThh:mm:ss.sssTZD' (TZD=Z or +hh:mm or -hh:mm)", isoDate));
+        }
+        return isoDate;
+    }
 }

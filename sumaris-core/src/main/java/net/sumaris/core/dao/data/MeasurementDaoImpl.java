@@ -38,6 +38,7 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.referential.ParameterValueType;
@@ -779,7 +780,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
                 target.setAlphanumericalValue(value);
                 break;
             case DATE:
-                target.setAlphanumericalValue(value);
+                target.setAlphanumericalValue(Dates.checkISODateTimeString(value));
                 break;
             case INTEGER:
             case DOUBLE:
