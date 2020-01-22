@@ -241,7 +241,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     const now = Date.now();
     if (this._debug) console.debug(`[referential-service] Saving all ${entityName}...`, json);
 
-    const res = await this.graphql.mutate<{ saveReferentials: Referential[] }>({
+    await this.graphql.mutate<{ saveReferentials: Referential[] }>({
       mutation: SaveAllQuery,
       variables: {
         referentials: json

@@ -138,15 +138,10 @@ export class GraphqlService {
         fetchPolicy: opts.fetchPolicy || (this._defaultFetchPolicy as FetchPolicy) || undefined
       }).toPromise();
     } catch (err) {
-      res = this.toApolloError<T>(err);
+      res = this.toApolloError<T>(err, opts.error);
     }
     if (res.errors) {
-      const error = res.errors[0] as any;
-      if (error && error.code && error.message) {
-        throw error;
-      }
-      console.error("[data-service] " + error.message);
-      throw opts.error ? opts.error : error.message;
+      throw res.errors[0];
     }
     return res.data;
   }
@@ -165,15 +160,10 @@ export class GraphqlService {
     })
       .valueChanges
       .pipe(
-        catchError(error => this.onApolloError<T>(error)),
+        catchError(error => this.onApolloError<T>(error, opts.error)),
         map(({data, errors}) => {
           if (errors) {
-            const error = errors[0] as any;
-            if (error && error.code && error.message) {
-              throw error;
-            }
-            console.error("[data-service] " + error.message);
-            throw opts.error ? opts.error : error.message;
+            throw errors[0];
           }
           return data;
         })
@@ -214,8 +204,7 @@ export class GraphqlService {
       }
     }
 
-    return new Promise<T>((resolve, reject) => {
-      this.apollo.mutate<ApolloQueryResult<T>, V>({
+    const res = await this.apollo.mutate<ApolloQueryResult<T>, V>({
         mutation: opts.mutation,
         variables: opts.variables,
         context: opts.context,
@@ -223,34 +212,15 @@ export class GraphqlService {
         update: opts.update as any
       })
         .pipe(
-          catchError(error => this.onApolloError<T>(error)),
+          catchError(error => this.onApolloError<T>(error, opts.error)),
           first(),
           // To debug, if need:
           //tap((res) => (!res) && console.error('[graphql] Unknown error during mutation. Check errors in console (may be an invalid generated cache id ?)'))
-        )
-        .subscribe(({data, errors}) => {
-          if (errors) {
-            let error = errors[0] as any;
-
-            if (error && error.code && error.message) {
-              if (error && error.code == ServerErrorCodes.BAD_UPDATE_DATE) {
-                reject({code: ServerErrorCodes.BAD_UPDATE_DATE, message: "ERROR.BAD_UPDATE_DATE"});
-              } else if (error && error.code == ServerErrorCodes.DATA_LOCKED) {
-                reject({code: ServerErrorCodes.DATA_LOCKED, message: "ERROR.DATA_LOCKED"});
-              } else {
-                reject(error);
-              }
-            } else {
-              console.error("[graphql] " + error.message, error.stack);
-              error = opts.error ? opts.error : error.message;
-              reject(error);
-              if (opts.error && opts.error.reject) opts.error.reject(error);
-            }
-          } else {
-            resolve(data as T);
-          }
-        });
-    });
+        ).toPromise();
+    if (res.errors) {
+      throw res.errors[0];
+    }
+    return res.data as T;
   }
 
   subscribe<T, V = R>(opts: {
@@ -266,15 +236,10 @@ export class GraphqlService {
       useZone: true
     })
       .pipe(
-        catchError(error => this.onApolloError<T>(error)),
+        catchError(error => this.onApolloError<T>(error, opts.error)),
         map(({data, errors}) => {
           if (errors) {
-            const error = errors[0];
-            if (error /*&& error.code*/ && error.message) {
-              throw error;
-            }
-            console.error("[graphql] " + error.message);
-            throw opts.error ? opts.error : error.message;
+            throw errors[0];
           }
           return data;
         })
@@ -633,18 +598,24 @@ export class GraphqlService {
     ]);
   }
 
-  private onApolloError<T>(err: any): Observable<ApolloQueryResult<T>> {
-    return of(this.toApolloError(err));
+  private onApolloError<T>(err: any, defaultError?: any): Observable<ApolloQueryResult<T>> {
+    return of(this.toApolloError(err, defaultError));
   }
 
-  private toApolloError<T>(err: any): ApolloQueryResult<T> {
-    const appError = (err.networkError && (this.toAppError(err.networkError) || this.createAppErrorByCode(ErrorCodes.UNKNOWN_NETWORK_ERROR))) ||
-      (err.graphQLErrors && this.toAppError(err.graphQLErrors[0])) ||
+  private toApolloError<T>(err: any, defaultError?: any): ApolloQueryResult<T> {
+    let error = (err.networkError && (this.toAppError(err.networkError) || this.createAppErrorByCode(ErrorCodes.UNKNOWN_NETWORK_ERROR))) ||
+      (err.graphQLErrors && err.graphQLErrors.length && this.toAppError(err.graphQLErrors[0])) ||
       this.toAppError(err) ||
-      this.toAppError(err.originalError);
+      this.toAppError(err.originalError) || 
+      (err.graphQLErrors && err.graphQLErrors[0]) || 
+      err;
+    console.error("[graphql] " + (error && error.message || error), error.stack);
+    if ((!error || !error.code) && defaultError) {
+      error = {...defaultError, details: error, stack: err.stack};
+    }
     return {
       data: null,
-      errors: appError && [appError] || err.graphQLErrors || [err],
+      errors: [error],
       loading: false,
       networkStatus: null,
       stale: null
@@ -668,15 +639,20 @@ export class GraphqlService {
         return "ERROR.FORBIDDEN";
       case ErrorCodes.UNKNOWN_NETWORK_ERROR:
         return "ERROR.UNKNOWN_NETWORK_ERROR";
+      case ServerErrorCodes.BAD_UPDATE_DATE:
+        return "ERROR.BAD_UPDATE_DATE";
+      case ServerErrorCodes.DATA_LOCKED:
+        return "ERROR.DATA_LOCKED";
     }
+
     return undefined;
   }
 
   private toAppError(err: any): any | undefined {
     const message = err && err.message || err;
-    if (typeof message == "string" && message.trim().indexOf('{"code":') == 0) {
+    if (typeof message === "string" && message.trim().indexOf('{"code":') === 0) {
       const error = JSON.parse(message);
-      return error && this.createAppErrorByCode(error.code) || err;
+      return error && this.createAppErrorByCode(error.code) || error && error.message || err;
     }
     return undefined;
   }

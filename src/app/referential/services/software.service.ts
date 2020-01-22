@@ -92,7 +92,7 @@ export class SoftwareService<T extends Software<T> = Software<any>> extends Base
     const json = entity.asObject();
 
     // Execute mutation
-    const res = await this.graphql.mutate<{ saveSoftware: any }>({
+    await this.graphql.mutate<{ saveSoftware: any }>({
       mutation: SaveMutation,
       variables: {
         software: json
@@ -100,16 +100,18 @@ export class SoftwareService<T extends Software<T> = Software<any>> extends Base
       error: {
         code: ErrorCodes.SAVE_SOFTWARE_ERROR,
         message: "ERROR.SAVE_SOFTWARE_ERROR"
+      },
+      update: (proxy, {data}) => {
+        const savedEntity = data && data.saveSoftware;
+
+        // Copy update properties
+        entity.id = savedEntity && savedEntity.id || entity.id;
+        entity.updateDate = savedEntity && savedEntity.updateDate || entity.updateDate;
+
+        console.debug("[software-service] Software saved!");
       }
     });
 
-    const savedEntity = res && res.saveSoftware;
-
-    // Copy update properties
-    entity.id = savedEntity && savedEntity.id || entity.id;
-    entity.updateDate = savedEntity && savedEntity.updateDate || entity.updateDate;
-
-    console.debug("[software-service] Software saved!");
 
     return entity;
   }

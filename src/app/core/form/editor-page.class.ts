@@ -116,12 +116,18 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     // Load existing data
     else {
-      const data = await this.dataService.load(id, opts);
-      this._usageMode = this.computeUsageMode(data);
-      await this.onEntityLoaded(data, opts);
-      this.updateView(data);
-      this.loading = false;
-      this.startListenRemoteChanges();
+      try {
+        const data = await this.dataService.load(id, opts);
+        this._usageMode = this.computeUsageMode(data);
+        await this.onEntityLoaded(data, opts);
+        this.updateView(data);
+        this.loading = false;
+        this.startListenRemoteChanges();
+      }
+      catch (err) {
+        this.setError(err);
+        this.loading = false;
+      }
     }
   }
 
@@ -138,10 +144,10 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
           .subscribe((data: T) => {
             if (data.updateDate && (data.updateDate as Moment).isAfter(this.data.updateDate)) {
               if (!this.dirty) {
-                if (this.debug) console.debug(`[root-data-editor] Changes detected on server, at {${data.updateDate}} : reloading page...`);
+                if (this.debug) console.debug(`[data-editor] Changes detected on server, at {${data.updateDate}} : reloading page...`);
                 this.updateView(data);
               } else {
-                if (this.debug) console.debug(`[root-data-editor] Changes detected on server, at {${data.updateDate}}, but page is dirty: skip reloading.`);
+                if (this.debug) console.debug(`[data-editor] Changes detected on server, at {${data.updateDate}}, but page is dirty: skip reloading.`);
               }
             }
           })
@@ -226,7 +232,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   async save(event, options?: any): Promise<boolean> {
-    console.debug("[root-data-editor] Asking to save...");
+    console.debug("[data-editor] Asking to save...");
     if (this.loading || this.saving || !this.dirty) return false;
 
     // Wait end of async validation
@@ -244,7 +250,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     this.saving = true;
     this.error = undefined;
 
-    if (this.debug) console.debug("[root-data-editor] Saving data...");
+    if (this.debug) console.debug("[data-editor] Saving data...");
 
     // Get data
     const data = await this.getValue();
@@ -265,9 +271,8 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
       this.submitted = false;
       return true;
     } catch (err) {
-      console.error(err);
       this.submitted = true;
-      this.error = err && err.message || err;
+      this.setError(err);
       this.enable();
       return false;
     } finally {
@@ -308,7 +313,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     const confirmation = await Alerts.askDeleteConfirmation(this.alertCtrl, this.translate);
     if (!confirmation) return;
 
-    console.debug("[root-data-editor] Asking to delete...");
+    console.debug("[data-editor] Asking to delete...");
 
     this.saving = true;
     this.error = undefined;
@@ -327,9 +332,8 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
       this.onEntityDeleted(data);
 
     } catch (err) {
-      console.error(err);
       this.submitted = true;
-      this.error = err && err.message || err;
+      this.setError(err);
       this.saving = false;
       this.enable();
       return false;
@@ -442,5 +446,17 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     this.cd.markForCheck();
   }
 
+  protected setError(err: any) {
+    console.error("[data-editor] " + err && err.message || err);
+    let userMessage = err && this.translate.instant(err.message) || err;
 
+    // Add details error (if any) under the main message
+    const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
+    if (detailMessage) {
+      userMessage += `<br/><small class="hidden-xs hidden-sm" title="${detailMessage}">";
+      errorMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
+      errorMessage += '</small>`;
+    }
+    this.error = userMessage;
+  }
 }

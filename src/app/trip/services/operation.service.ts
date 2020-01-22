@@ -459,14 +459,13 @@ export class OperationService extends BaseDataService
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug("[operation-service] Using minify object, to send:", json);
 
-    return new Promise<Operation>((resolve, reject) => {
-      this.graphql.mutate<{ saveOperations: Operation[] }>({
+    await this.graphql.mutate<{ saveOperations: Operation[] }>({
         mutation: SaveOperations,
         variables: {
           operations: [json]
         },
         offlineResponse,
-        error: {reject, code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR"},
+        error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR"},
         update: (proxy, {data}) => {
           const savedEntity = data && data.saveOperations && data.saveOperations[0];
 
@@ -510,12 +509,10 @@ export class OperationService extends BaseDataService
               }, 'operation', savedEntity);
             }
           }
-
-          resolve(entity);
         }
       });
-    });
 
+    return entity;
   }
 
   /**
