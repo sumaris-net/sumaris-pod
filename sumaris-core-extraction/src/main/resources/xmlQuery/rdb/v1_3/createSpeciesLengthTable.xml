@@ -29,7 +29,7 @@
         <subselect alias="SAMPLE_ID" type="number">SL.SAMPLE_ID</subselect>
         <subselect alias="ID" type="number">B.ID</subselect>
         <subselect alias="SEX" type="text">(SELECT QV.LABEL FROM SORTING_MEASUREMENT_B SM INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK WHERE SM.BATCH_FK = B.ID and SM.PMFM_FK=&amp;sexPmfmId)</subselect>
-        <subselect alias="LENGTH_CLASS" type="number">DECODE(PMFM_LENGTH.UNIT_FK, &amp;centimeterUnitId, SM_LENGTH.NUMERICAL_VALUE*10, &amp;millimeterUnitId, SM_LENGTH.NUMERICAL_VALUE, null)</subselect>
+        <subselect alias="LENGTH_CLASS" type="number">CAST( DECODE(PMFM_LENGTH.UNIT_FK, &amp;centimeterUnitId, SM_LENGTH.NUMERICAL_VALUE*10, &amp;millimeterUnitId, SM_LENGTH.NUMERICAL_VALUE, null) AS INTEGER)</subselect>
         <subselect alias="INDIVIDUAL_COUNT" type="number">COALESCE(B.INDIVIDUAL_COUNT,1)</subselect>
         <subselect alias="COMMENTS" type="text">B.COMMENTS</subselect>
         <subselect alias="PARAMETER_LABEL" type="text">P_LENGTH.LABEL</subselect>
@@ -61,7 +61,7 @@
 
     <!-- other fields -->
     <select alias="INDIVIDUAL_SEX" group="sex" type="text">B.SEX</select>
-    <select alias="LENGTH_CLASS" group="lengthClass" type="number">B.LENGTH_CLASS</select>
+    <select alias="LENGTH_CLASS" group="lengthClass" type="number">B.LENGTH_CLASS AS </select>
     <select alias="NUMBER_AT_LENGTH"  group="numberAtLength" type="number">SUM(B.INDIVIDUAL_COUNT)</select>
 
     <from alias="SL">&amp;rawSpeciesListTableName</from>

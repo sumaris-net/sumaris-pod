@@ -34,14 +34,14 @@
     <select alias="TRIP_CODE" type="number">T.ID</select>
 
     <!-- other fields -->
-    <select alias="VESSEL_LENGTH" type="number">CAST(VF.LENGTH_OVER_ALL AS DOUBLE) / 100</select>
+    <select alias="VESSEL_LENGTH" type="number">VF.LENGTH_OVER_ALL / 100</select>
     <select alias="VESSEL_POWER" type="number">VF.ADMINISTRATIVE_POWER</select>
     <select alias="VESSEL_SIZE" type="number">CAST(FLOOR(COALESCE(VF.GROSS_TONNAGE_GT, VF.GROSS_TONNAGE_GRT) / 100) AS INT)</select>
     <select alias="VESSEL_TYPE" type="number">4</select> <!-- Other boat -->
     <select alias="HARBOUR" type="text">L.LABEL</select>
     <select alias="HAUL_COUNT" type="number">
       COALESCE(
-        (SELECT VUM.NUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;nbOperationPmfmId),
+        (SELECT CAST(ROUND(VUM.NUMERICAL_VALUE) AS INTEGER) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;nbOperationPmfmId),
         (SELECT COUNT(O.ID) FROM OPERATION O WHERE O.TRIP_FK=T.ID)
       )
     </select>

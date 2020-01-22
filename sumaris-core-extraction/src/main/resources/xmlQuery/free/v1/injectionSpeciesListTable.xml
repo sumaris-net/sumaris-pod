@@ -25,9 +25,14 @@
 
   <!-- Total (elevated) individual count -->
   <select alias="NUMBER_INDIVIDUAL" type="number">(CASE WHEN (S.WEIGHT IS NOT NULL AND S.WEIGHT > 0) THEN
-    (SELECT SUM(COALESCE(BL.INDIVIDUAL_COUNT, 1)) FROM BATCH BL where BL.PARENT_BATCH_FK=S.SAMPLE_ID AND BL.LABEL like 'SORTING_BATCH_INDIVIDUAL#%')
-      * (S.WEIGHT / COALESCE(S.SUBSAMPLE_WEIGHT, S.WEIGHT))
-      END)</select>
+    (
+      SELECT
+        SUM(COALESCE(BL.INDIVIDUAL_COUNT, 1))
+      FROM BATCH BL
+      WHERE
+        BL.PARENT_BATCH_FK=S.SAMPLE_ID
+        AND BL.LABEL like 'SORTING_BATCH_INDIVIDUAL#%'
+    ) END)</select>
 
   <groupby>NUMBER_INDIVIDUAL</groupby>
 </query>
