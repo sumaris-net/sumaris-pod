@@ -248,7 +248,7 @@ export class MeasurementValuesUtils {
         return isNotNil(value) && value instanceof ReferentialRef && value.id && value.id.toString() || undefined;
       case "integer":
       case "double":
-        return isNotNil(value) && value && !isNaN(+value) && value.toString() || undefined;
+        return isNotNil(value) && !isNaN(+value) && value.toString() || undefined;
       case "string":
         return value as string;
       case "boolean":
