@@ -157,7 +157,6 @@ const ProgramFragments = {
       isMandatory
       rankOrder
       acquisitionLevel
-      updateDate
       gears
       taxonGroupIds
       referenceTaxonIds

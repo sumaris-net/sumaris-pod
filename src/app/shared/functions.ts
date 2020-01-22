@@ -2,8 +2,11 @@ import * as moment from "moment";
 import {Moment} from "moment";
 import {asInputElement, FocusableElement, isInputElement} from "./material/focusable";
 import {ElementRef} from "@angular/core";
+import {environment} from "../../environments/environment";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
+export const DATE_UNIX_TIMESTAMP = 'X';
+export const DATE_UNIX_MS_TIMESTAMP = 'x';
 
 export function isNil<T>(obj: T | null | undefined): boolean {
   return obj === undefined || obj === null;
@@ -50,6 +53,8 @@ export function toInt(obj: string | null | undefined): number | null {
 }
 export function toDateISOString(value): string | undefined {
   if (!value) return undefined;
+
+  //console.log('TODO: ', value);
   if (typeof value === "string") {
     if (value.indexOf('+')) {
       value = fromDateISOString(value);
@@ -64,9 +69,34 @@ export function toDateISOString(value): string | undefined {
   return moment(value).format(DATE_ISO_PATTERN) || undefined;
 }
 
-export function fromDateISOString(value): Moment | undefined {
-  return value && moment(value, DATE_ISO_PATTERN) || undefined;
+function fromDateISOStringDevelopment(value: any): Moment | undefined {
+  if (value && typeof value === 'object' && value.toISOString) {
+    console.warn('Unnecessary conversion to Moment object!');
+    return value as Moment;
+  }
+  return fromDateISOStringProduction(value);
 }
+
+function fromDateISOStringProduction(value: any): Moment | undefined {
+  if (!value || typeof value !== 'string') return value;
+  const date: Moment = moment(value, DATE_ISO_PATTERN);
+  if (date.isValid()) return date;
+
+  // Date string not used the ISO format: trying to convert from unix timestamp
+  console.warn('Wrong date format - Trying to convert from local time: ' + value);
+
+  if (value.length === 10) {
+    return moment(value, DATE_UNIX_TIMESTAMP);
+  }
+  else if (value.length === 13) {
+    return moment(value, DATE_UNIX_MS_TIMESTAMP);
+  }
+  return undefined;
+}
+
+
+export const fromDateISOString = (environment.production) ? fromDateISOStringProduction : fromDateISOStringDevelopment;
+
 export function startsWithUpperCase(input: string, search: string): boolean {
   return input && input.toUpperCase().startsWith(search);
 }
