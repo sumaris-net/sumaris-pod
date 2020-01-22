@@ -156,6 +156,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
   markAsUntouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
     this._dirty = false;
+    this.editedRow = null;
     if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
     }
@@ -457,7 +458,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       this.resultsLength -= rowsToDelete.length;
       this.selection.clear();
       this.editedRow = undefined;
-      this.markForCheck();
+      this.markAsDirty();
     } catch (err) {
       this.error = err && err.message || err;
     }

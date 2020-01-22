@@ -75,7 +75,6 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
       });
     }
 
-
     return this._dataSubject
       .pipe(
         filter(isNotNil),
@@ -119,6 +118,11 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
       return keep ? res.concat(item) : res;
     }, []);
     this.dirty = true;
+
+    this._dataSubject.next({
+      data: this.data,
+      total: this.data.length
+    });
   }
 
   sort(data: T[], sortBy?: string, sortDirection?: string): T[] {
