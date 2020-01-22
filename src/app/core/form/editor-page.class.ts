@@ -21,6 +21,7 @@ import {FormGroup} from "@angular/forms";
 import {AppTabPage} from "./tab-page.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
+import {ServerErrorCodes} from "../services/errors";
 
 export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
 
@@ -274,6 +275,15 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
       this.submitted = true;
       this.setError(err);
       this.enable();
+
+      // Concurrent change on pod
+      if (err.code === ServerErrorCodes.BAD_UPDATE_DATE && isNotNil(this.data.id)) {
+        // Call a data reload (in background), to update the GraphQL cache, and allow to cancel changes
+        this.dataService.load(this.data.id, {fetchPolicy: "network-only"}).then(() => {
+          console.debug('[data-editor] Data cache reloaded. User can reload page');
+        });
+      }
+
       return false;
     } finally {
       this.saving = false;
