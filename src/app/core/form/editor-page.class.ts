@@ -290,7 +290,10 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     }
   }
 
-  async getValidAndSavedDataOrNil(): Promise<T | undefined> {
+  /**
+   * Save data (if dirty and valid), and return it. Otherwise, return nil value.
+   */
+  async saveAndGetDataIfValid(): Promise<T | undefined> {
     // Form is not valid
     if (!this.valid) {
 
@@ -456,7 +459,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     this.cd.markForCheck();
   }
 
-  protected setError(err: any) {
+  public setError(err: any) {
     console.error("[data-editor] " + err && err.message || err);
     let userMessage = err && err.message && this.translate.instant(err.message) || err;
 

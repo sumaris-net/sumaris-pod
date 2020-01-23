@@ -1,15 +1,13 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {MeasurementUtils, Trip} from "./trip.model";
+import {Trip} from "./trip.model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from "./validator/base.validator";
 import {SaleValidatorService} from "./sale.validator";
 import {MeasurementsValidatorService} from "./measurement.validator";
-import {ProgramService} from "../../referential/services/program.service";
 import {toBoolean} from "../../shared/functions";
 import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/services/model";
-import {MeasurementValuesUtils} from "./model/measurement.model";
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSale?: boolean;
@@ -17,12 +15,12 @@ export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
 }
 
 @Injectable()
-export class TripValidatorService<O extends TripValidatorOptions = TripValidatorOptions> extends DataRootEntityValidatorService<Trip, O> {
+export class TripValidatorService<O extends TripValidatorOptions = TripValidatorOptions>
+  extends DataRootEntityValidatorService<Trip, O> {
 
   constructor(
     formBuilder: FormBuilder,
     settings: LocalSettingsService,
-    protected programService: ProgramService,
     protected saleValidator: SaleValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
@@ -56,10 +54,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
   getFormGroupConfig(data?: Trip, opts?: O): { [key: string]: any } {
 
-    opts = this.fillDefaultOptions(opts);
-
     const formConfig = Object.assign(
-      super.getFormGroupConfig(data),
+      super.getFormGroupConfig(data, opts),
       {
         __typename: [Trip.TYPENAME],
         vesselSnapshot: [data && data.vesselSnapshot || null, Validators.compose([Validators.required, SharedValidators.entity])],

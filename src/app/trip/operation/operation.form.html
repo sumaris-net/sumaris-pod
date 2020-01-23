@@ -46,7 +46,8 @@
 
             <ion-col size="12" size-lg="4">
               <mat-date-time [placeholder]="'COMMON.DATE'|translate"
-                             formControlName="startDateTime" [required]="true"
+                             formControlName="startDateTime"
+                             [required]="true"
                              [tabindex]="tabindex+2"
                              [startDate]="trip?.departureDateTime">
               </mat-date-time>
@@ -55,7 +56,8 @@
               <mat-latlong formControlName="latitude" type="latitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                            [latLongPattern]="latLongFormat"
-                           [tabindex]="tabindex+3">
+                           [tabindex]="tabindex+3"
+                           [required]="true">
               </mat-latlong>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
@@ -63,7 +65,8 @@
                            type="longitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                            [latLongPattern]="latLongFormat"
-                           [tabindex]="tabindex+4">
+                           [tabindex]="tabindex+4"
+                           [required]="true">
                 <button type="button" mat-icon-button matLatlongSuffix
                         (click)="fillPosition('startPosition')"
                         tabindex="-1"
@@ -98,7 +101,7 @@
                              [placeholder]="'COMMON.DATE'|translate"
                              [tabindex]="tabindex+6"
                              [startDate]="form.controls.startDateTime.value"
-                             [required]="isOnFieldMode">
+                             [required]="!isOnFieldMode">
 
                 <mat-hint align="end" *ngIf="endDateTimeControl.value && !endDateTimeControl.errors">
                   <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.controls.startDateTime.value,
@@ -111,7 +114,8 @@
                            type="latitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                            [latLongPattern]="latLongFormat"
-                           [tabindex]="tabindex+7">
+                           [tabindex]="tabindex+7"
+                           [required]="!isOnFieldMode">
               </mat-latlong>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']">
@@ -119,7 +123,8 @@
                            type="longitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                            [latLongPattern]="latLongFormat"
-                           [tabindex]="tabindex+8">
+                           [tabindex]="tabindex+8"
+                           [required]="!isOnFieldMode">
                 <button type="button" mat-icon-button matLatlongSuffix
                         (click)="fillPosition('endPosition')" tabindex="-1"
                         [hidden]="!enableGeolocation">

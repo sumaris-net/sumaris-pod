@@ -6,10 +6,9 @@ import {fromDateISOString, ReferentialRef, Trip, VesselSnapshot} from '../servic
 import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AppFormUtils, environment} from '../../core/core.module';
+import {environment} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
 import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil} from '../../shared/shared.module';
-import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
 import * as moment from "moment";
 import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
@@ -17,7 +16,6 @@ import {FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripsPageSettingsEnum} from "./trips.page";
 import {EntityStorage} from "../../core/services/entities-storage.service";
-import {DataQualityService} from "../services/base.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model";
 import {TripValidatorService} from "../services/trip.validator";
 

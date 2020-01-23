@@ -580,15 +580,14 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug("[trip-service] Using minify object, to send:", json);
 
-   return new Promise<Trip>((resolve, reject) => {
-     this.graphql.mutate<{ saveTrips: any }>({
+    await this.graphql.mutate<{ saveTrips: any }>({
        mutation: SaveAllQuery,
        variables: {
          trips: [json],
          withOperation
        },
        offlineResponse,
-       error: { reject,  code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" },
+       error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" },
        update: async (proxy, {data}) => {
          const savedEntity = data && data.saveTrips && data.saveTrips[0];
 
@@ -639,11 +638,10 @@ export class TripService extends RootDataService<Trip, TripFilter>
            }
          }
 
-         resolve(entity);
        }
-
      });
-   });
+
+    return entity;
   }
 
   async synchronizeById(id: number): Promise<Trip> {
@@ -671,9 +669,13 @@ export class TripService extends RootDataService<Trip, TripFilter>
     entity.synchronizationStatus = 'SYNC';
     entity.id = undefined;
 
-    const savedEntity = await this.save(entity, {withOperation: true});
-    if (savedEntity.id < 0) {
-      throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
+    try {
+      const savedEntity = await this.save(entity, {withOperation: true});
+      if (savedEntity.id < 0) {
+        throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
+      }
+    } catch (err) {
+      throw {...err, code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
     }
 
     try {
@@ -687,6 +689,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     }
     catch (err) {
       console.error(`[trip-service] Failed to locally delete trip {${entity.id}} and its operations`, err);
+      // Continue
     }
     return savedEntity;
   }

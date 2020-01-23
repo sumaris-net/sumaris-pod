@@ -104,14 +104,14 @@ export class EntityQualityFormComponent<T extends DataRootEntity<T> = DataRootEn
     this._subscription.unsubscribe();
   }
 
-  async control(event: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
+  async control(event?: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
 
     this._controlling = true;
 
     let valid = false;
     try {
       // Make sure to get valid and saved data
-      const data = await this.editor.getValidAndSavedDataOrNil();
+      const data = await this.editor.saveAndGetDataIfValid();
 
       // no data: skip
       if (!data) return false;
@@ -121,37 +121,58 @@ export class EntityQualityFormComponent<T extends DataRootEntity<T> = DataRootEn
       valid = isNil(errors);
 
       if (!valid) {
-        this.editor.error = 'QUALITY.ERROR.INVALID_FORM';
+        this.editor.setError({message: 'QUALITY.ERROR.INVALID_FORM'});
         this.editor.markAsTouched();
       }
+
     }
     finally {
       this._controlling = false;
-      this.updateView(this.editor.data);
+
+      // Emit event (refresh component with the new data)
+      if (!opts || opts.emitEvent !== false) {
+        this.updateView(this.editor.data);
+      }
     }
 
     return valid;
   }
 
-  async terminate(event: Event) {
+  async terminate(event?: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
     // Control data
     const controlled = await this.control(event, {emitEvent: false});
-    if (!controlled || event.defaultPrevented) {
+    if (!controlled || event && event.defaultPrevented) {
+
       // If mode was on field: force desk mode, to show errors
       if (this.editor.isOnFieldMode) {
         this.editor.usageMode = 'DESK';
       }
-      return;
+      return false;
     }
 
-    console.debug("[quality] Terminate entity input...");
+    // Disable the editor
+    this.editor.disable();
 
-    const data = await this.service.terminate(this.data);
-    this.updateEditor(data);
+    try {
+      console.debug("[quality] Terminate entity input...");
+      const data = await this.service.terminate(this.data);
+
+      // Emit event (refresh editor -> will refresh component also)
+      if (!opts || opts.emitEvent !== false) {
+        this.updateEditor(data);
+      }
+      else {
+        this.data = data;
+      }
+      return true;
+    }
+    finally {
+      this.editor.enable(opts);
+    }
   }
 
 
-  async synchronize(event: Event) {
+  async synchronize(event: Event): Promise<boolean> {
 
     if (!this.data || this.data.id >= 0) throw new Error('Need a local trip');
 
@@ -159,24 +180,32 @@ export class EntityQualityFormComponent<T extends DataRootEntity<T> = DataRootEn
 
     // Control data
     const controlled = await this.control(event, {emitEvent: false});
-    if (!controlled || event.defaultPrevented) return;
+    if (!controlled || event && event.defaultPrevented) return false;
 
+    // Disable the editor
     this.editor.disable();
 
     try {
-
       console.debug("[quality] Synchronizing entity...");
-      const data = await this.service.synchronize(this.data);
+      const remoteData = await this.service.synchronize(this.data);
 
-      // Remove the page from the history
-      await this.settings.removeHistory(path);
-
-      this.updateEditor(data);
-
-      // Confirmation message
+      // Success message
       this.showToast({
         message: 'INFO.SYNCHRONIZATION_SUCCEED'
       });
+
+      // Remove the page from the history (because of local id)
+      await this.settings.removeHistory(path);
+
+      // Do a ONLINE terminate
+      console.debug("[quality] Terminate entity...");
+      const data = await this.service.terminate(remoteData);
+
+      // Update the editor (Will refresh the component)
+      this.updateEditor(data, {updateTabAndRoute: true});
+    }
+    catch(err) {
+      this.editor.setError(err);
     }
     finally {
       this.editor.enable();
@@ -221,7 +250,7 @@ export class EntityQualityFormComponent<T extends DataRootEntity<T> = DataRootEn
   protected updateView(data?: T) {
     if (this._controlling) return; // Skip
 
-    this.data = data || this.data;
+    this.data = data || this.data || this.editor && this.editor.data;
 
     this.loading = isNil(data) || isNil(data.id);
     if (this.loading) {
@@ -276,10 +305,10 @@ export class EntityQualityFormComponent<T extends DataRootEntity<T> = DataRootEn
     await Toasts.show(this.toastController, this.translate, opts);
   }
 
-  protected updateEditor(data: T) {
-    this.editor.updateView(data);
-
-    this.markForCheck();
+  protected updateEditor(data: T, opts?: {
+      updateTabAndRoute?: boolean;
+    }) {
+    this.editor.updateView(data, opts);
   }
 
 
