@@ -246,7 +246,6 @@ export class MeasurementValuesUtils {
       case "string":
         return value || null;
       case "date":
-        console.log("TODO debug this! ", value);
         return value || null;
       case "boolean":
         return (value === "true" || value === true || value === 1) ? 	'&#x2714;' /*checkmark*/ :
