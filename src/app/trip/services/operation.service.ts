@@ -390,27 +390,28 @@ export class OperationService extends BaseDataService
       return this.asObject(o, SAVE_AS_OBJECT_OPTIONS);
     });
 
-    const now = new Date();
+    const now = this._debug && Date.now();
     if (this._debug) console.debug("[operation-service] Saving operations...", json);
 
-    const res = await this.graphql.mutate<{ saveOperations: Operation[] }>({
+    await this.graphql.mutate<{ saveOperations: Operation[] }>({
       mutation: SaveOperations,
       variables: {
         operations: json
       },
-      error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATIONS_ERROR"}
+      error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATIONS_ERROR"},
+      update: (proxy, {data}) => {
+        const saveOperations = data && data.saveOperations;
+        if (saveOperations && saveOperations.length) {
+          // Copy id and update date
+          entities.forEach(entity => {
+            const savedOperation = saveOperations.find(json => entity.equals(json));
+            this.copyIdAndUpdateDate(savedOperation, entity);
+          });
+        }
+
+        if (this._debug) console.debug(`[operation-service] Operations saved and updated in ${Date.now() - now}ms`, entities);
+      }
     });
-
-    const saveOperations = (res && res.saveOperations);
-    if (saveOperations && saveOperations.length) {
-      // Copy id and update date
-      entities.forEach(entity => {
-          const savedOperation = saveOperations.find(json => entity.equals(json));
-          this.copyIdAndUpdateDate(savedOperation, entity);
-        });
-    }
-
-    if (this._debug) console.debug("[operation-service] Operations saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entities);
 
     return entities;
   }

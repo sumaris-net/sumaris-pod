@@ -767,25 +767,27 @@ export class TripService extends RootDataService<Trip, TripFilter>
     // Transform into json
     const json = this.asObject(entity);
 
-    const now = new Date();
+    const now = this._debug && Date.now();
     if (this._debug) console.debug("[trip-service] Terminate trip...", json);
 
-    const res = await this.graphql.mutate<{ controlTrip: any }>({
+    await this.graphql.mutate<{ controlTrip: any }>({
       mutation: ControlMutation,
       variables: {
         trip: json
       },
-      error: { code: ErrorCodes.TERMINATE_TRIP_ERROR, message: "TRIP.ERROR.TERMINATE_TRIP_ERROR" }
+      error: { code: ErrorCodes.TERMINATE_TRIP_ERROR, message: "TRIP.ERROR.TERMINATE_TRIP_ERROR" },
+      update: async (proxy, {data}) => {
+        const savedEntity = data && data.controlTrip;
+        if (savedEntity) {
+          this.copyIdAndUpdateDate(savedEntity, entity);
+          entity.controlDate = savedEntity.controlDate || entity.controlDate;
+          entity.validationDate = savedEntity.validationDate || entity.validationDate;
+        }
+
+        if (this._debug) console.debug(`[trip-service] Trip controlled in ${Date.now() - now}ms`, entity);
+      }
     });
 
-    const savedEntity = res && res.controlTrip;
-    if (savedEntity) {
-      this.copyIdAndUpdateDate(savedEntity, entity);
-      entity.controlDate = savedEntity.controlDate || entity.controlDate;
-      entity.validationDate = savedEntity.validationDate || entity.validationDate;
-    }
-
-    if (this._debug) console.debug("[trip-service] Trip controlled in " + (new Date().getTime() - now.getTime()) + "ms", entity);
 
     return entity;
   }
