@@ -18,6 +18,7 @@ export const ReferentialFragments = {
     updateDate
     creationDate
     statusId
+    validityStatusId
     levelId
     entityName
     __typename

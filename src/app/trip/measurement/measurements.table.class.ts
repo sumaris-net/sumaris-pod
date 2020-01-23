@@ -157,8 +157,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
           // Add pmfm columns
           this.updateColumns();
 
-          // Load the table
-          this.onRefresh.emit();
+          // Load the table, if already laoded or if autoLoad=true
+          if (this.autoLoad || isNotNil(this.resultsLength)/*already load*/) {
+            this.onRefresh.emit();
+          }
         }));
 
     // Make sure to copy acquisition level to the data service

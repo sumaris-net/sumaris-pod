@@ -483,6 +483,7 @@ export class Referential extends Entity<Referential> {
   comments: string;
   creationDate: Date | Moment;
   statusId: number;
+  validityStatusId: number;
   levelId: number;
   parentId: number;
   entityName: string;
@@ -534,6 +535,7 @@ export class Referential extends Entity<Referential> {
     this.description = source.description;
     this.comments = source.comments;
     this.statusId = source.statusId;
+    this.validityStatusId  = source.validityStatusId;
     this.levelId = source.levelId && source.levelId !== 0 ? source.levelId : undefined; // Do not set as null (need for account.department, when regsiter)
     this.parentId = source.parentId;
     this.creationDate = fromDateISOString(source.creationDate);

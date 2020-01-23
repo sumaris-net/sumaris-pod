@@ -7,7 +7,7 @@ import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "./sub-batches.table";
 import {AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {AppFormUtils, EntityUtils, isNil} from "../../core/core.module";
+import {AppFormUtils, EntityUtils, environment, isNil} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {AudioProvider} from "../../shared/audio/audio";
@@ -87,7 +87,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     this.showIndividualCount = !this.isOnFieldMode; // Hide individual count on mobile device
 
     // TODO: for DEV only ---
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
 
   }
 

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from "@angular/core";
+import {Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable, of} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
@@ -48,6 +48,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   };
 
   constructor(
+    protected injector: Injector,
     protected route: ActivatedRoute,
     protected router: Router,
     protected platform: Platform,
@@ -76,10 +77,13 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         serviceOptions: {
           saveOnlyDirtyRows: true
         }
-      })
+      }),
+      null,
+      injector
     );
 
     this.allowRowDetail = false;
+    this.confirmBeforeDelete = true;
 
     // Allow inline edition only if admin
     this.inlineEdition = accountService.isAdmin();
@@ -88,7 +92,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.i18nColumnPrefix = 'REFERENTIAL.';
 
     this.filterForm = formBuilder.group({
-      'entityName': [''],
+      'entityName': [null],
       'searchText': [null],
       'levelId': [null],
       'statusId': [null]

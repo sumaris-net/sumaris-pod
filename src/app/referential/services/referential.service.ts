@@ -232,7 +232,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     }
 
     if (entities.length !== entities.filter(e => e.entityName === entityName).length) {
-      console.error("[referential-service] Could not save referentials: only one entityName is allowed");
+      console.error("[referential-service] Could not save referential: more than one entityName found in the array to save!");
       throw { code: ErrorCodes.SAVE_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIALS_ERROR" };
     }
 

@@ -76,9 +76,14 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
         })
     );
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
-    this.autoLoad = false; // waiting parent to be loaded
+
+    this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
+    this.saveBeforeSort = false;
+    this.saveBeforeDelete = false;
+    this.autoLoad = false; // waiting parent to be loaded
+
     this.pageSize = 1000; // Do not use paginator
 
     settings.ready().then(() => {

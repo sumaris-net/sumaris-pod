@@ -114,9 +114,14 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       endDate: [null, SharedValidators.validDate],
       synchronizationStatus: [null]
     });
+
+    this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
+    this.saveBeforeSort = false;
+    this.saveBeforeDelete = false;
     this.autoLoad = false;
+
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fix value, to be able to reuse it in the trip page
 
     // FOR DEV ONLY ----

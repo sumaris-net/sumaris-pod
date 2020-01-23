@@ -109,20 +109,25 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
     return this.data;
   }
 
-  async deleteAll(data: T[], options?: any): Promise<any> {
+  async deleteAll(dataToRemove: T[], options?: any): Promise<any> {
     if (!this.data) throw new Error("[memory-service] Could not delete, because value not set");
 
     // Remove deleted item, from data
-    this.data = this.data.reduce((res, item) => {
-      const keep = data.findIndex(i => this._equalsFn(i, item)) === -1;
-      return keep ? res.concat(item) : res;
-    }, []);
-    this.dirty = true;
-
-    this._dataSubject.next({
-      data: this.data,
-      total: this.data.length
+    const updatedData = this.data.filter(entity => {
+      const shouldRemoved = dataToRemove.findIndex(entityToRemove => this._equalsFn(entityToRemove, entity)) !== -1;
+      return !shouldRemoved;
     });
+    const deleteCount = this.data.length - updatedData.length
+    if (deleteCount > 0) {
+      const updatedTotal = this._dataSubject.getValue().total - deleteCount;
+      this.data = updatedData;
+      this.dirty = true;
+      this._dataSubject.next({
+        data: updatedData,
+        total: updatedTotal
+      });
+    }
+
   }
 
   sort(data: T[], sortBy?: string, sortDirection?: string): T[] {

@@ -1,7 +1,6 @@
 import {TableDataSource, TableElement, ValidatorService} from 'angular4-material-table';
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {isNotNil, LoadResult, TableDataService, toBoolean} from '../../shared/shared.module';
-import {EventEmitter, Output} from '@angular/core';
+import {isNotEmptyArray, isNotNil, LoadResult, TableDataService, toBoolean} from '../../shared/shared.module';
 import {Entity} from "../services/model";
 import {ErrorCodes} from '../services/errors';
 import {catchError, first, map, takeUntil} from "rxjs/operators";
@@ -242,13 +241,18 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     return this._dataService.deleteAll(data, this.serviceOptions)
       .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
       .then(() => {
-        // make sure row has been deleted (because GrapQHl cache remove can failed)
+        // Workaround, to be sure all rows has been deleted
+        // Sometimes, the service miss deletion, or GrapQHl cache remove failed
         const rowNotDeleted = Object.getOwnPropertyNames(rowsById).reduce((res, id) => {
           const row = rowsById[id];
           const present = self.getRow(+id) === row;
           return present ? res.concat(row) : res;
         }, []).sort((a, b) => a.id > b.id ? -1 : 1);
-        rowNotDeleted.forEach(r => selfDelete.call(self, r.id));
+        // Apply missing deletion
+        if (isNotEmptyArray(rowNotDeleted)) {
+          console.warn(`[table-datasource] Force deletion of ${rowNotDeleted.length} rows (Is service applying deletion to observable ?)`);
+          rowNotDeleted.forEach(r => selfDelete.call(self, r.id));
+        }
         this.loadingSubject.next(false);
       });
   }

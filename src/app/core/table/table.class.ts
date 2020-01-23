@@ -12,7 +12,7 @@ import {TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils} from "../form/form.utils";
-import {isNil, isNotNil} from "../../shared/shared.module";
+import {isNil, isNotNil, toBoolean} from "../../shared/shared.module";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../services/platform.service";
@@ -57,22 +57,28 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   protected toastController: ToastController;
 
   excludesColumns = new Array<String>();
-  inlineEdition: boolean;
   displayedColumns: string[];
-  resultsLength = 0;
+  resultsLength: number;
   loading = true;
-  focusFirstColumn = false;
   error: string;
   isRateLimitReached = false;
   selection = new SelectionModel<TableElement<T>>(true, []);
   editedRow: TableElement<T> = undefined;
   onRefresh = new EventEmitter<any>();
   i18nColumnPrefix = 'COMMON.';
-  autoLoad = true;
   settingsId: string;
-  mobile: boolean;
-  confirmBeforeDelete = false;
   autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
+
+  mobile: boolean;
+
+  // Table options
+  autoLoad = true;
+  readOnly = false;
+  inlineEdition = false;
+  focusFirstColumn = false;
+  confirmBeforeDelete = false;
+  saveBeforeDelete: boolean;
+  saveBeforeSort: boolean;
 
   @Input()
   debug = false;
@@ -184,7 +190,6 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     injector?: Injector
   ) {
     this.mobile = this.platform.is('mobile');
-    this.inlineEdition = false;
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
     this.toastController = injector && injector.get(ToastController);
@@ -197,6 +202,12 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   ngOnInit() {
     if (this._initialized) return; // Init only once
     this._initialized = true;
+
+    // Set defaults
+    this.readOnly = toBoolean(this.readOnly, false); // read/write by default
+    this.inlineEdition = this.inlineEdition && !this.readOnly; // force to false when readonly
+    this.saveBeforeDelete = toBoolean(this.saveBeforeDelete, !this.readOnly); // force to false when readonly
+    this.saveBeforeSort = toBoolean(this.saveBeforeSort, !this.readOnly); // force to false when readonly
 
     // Check ask user confirmation is possible
     if (this.confirmBeforeDelete && !this.alertCtrl) throw Error("Missing 'alertCtrl' or 'injector' in component's constructor.");
@@ -213,7 +224,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       this.sort && this.sort.sortChange
         .pipe(
           mergeMap(async () => {
-            if (this._dirty && this.inlineEdition) {
+            if (this._dirty && this.saveBeforeSort) {
               const saved = await this.save();
               this.markAsDirty(); // restore dirty flag
               return saved;
@@ -398,15 +409,20 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   }
 
   async save(): Promise<boolean> {
+    if (this.readOnly) {
+      throw {code: ErrorCodes.TABLE_READ_ONLY, message: 'ERROR.TABLE_READ_ONLY'};
+    }
+
     this.error = undefined;
     if (!this.confirmEditCreate()) {
       throw {code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR'};
     }
+
     if (this.debug) console.debug("[table] Calling dataSource.save()...");
     try {
-      const res = await this.dataSource.save();
-      if (res) this._dirty = false;
-      return res;
+      const isOK = await this.dataSource.save();
+      if (isOK) this._dirty = false;
+      return isOK;
     } catch (err) {
       if (this.debug) console.debug("[table] dataSource.save() return an error:", err);
       this.error = err && err.message || err;
@@ -436,6 +452,9 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   }
 
   async deleteSelection(confirm?: boolean): Promise<void> {
+    if (this.readOnly) {
+      throw {code: ErrorCodes.TABLE_READ_ONLY, message: 'ERROR.TABLE_READ_ONLY'};
+    }
     if (!this._enable) return;
     if (this.loading || this.selection.isEmpty()) return;
 
@@ -443,6 +462,14 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       confirm = await this.askDeleteConfirmation();
       if (!confirm) return; // user cancelled
       return await this.deleteSelection(true); // Loop with confirmation
+    }
+
+    // If data need to be saved first: do it
+    if (this._dirty && this.saveBeforeDelete) {
+      if (this.debug) console.debug("[table] Saving (before deletion)...");
+      const saved = await this.save();
+      this.markAsDirty();
+      if (!saved) return; // Stop if cannot save
     }
 
     if (this.debug) console.debug("[table] Delete selection...");
@@ -634,25 +661,6 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     this.resultsLength++;
     this.markForCheck();
     return this.editedRow;
-  }
-
-
-  private logRowErrors(row: TableElement<T>): void {
-
-    if (row.validator.valid) return;
-
-    var errorsMessage = "";
-    Object.getOwnPropertyNames(row.validator.controls)
-      .forEach(key => {
-        const control = row.validator.controls[key];
-        if (control.invalid) {
-          errorsMessage += "'" + key + "' (" + (control.errors ? Object.getOwnPropertyNames(control.errors) : 'unknown error') + "),";
-        }
-      });
-
-    if (errorsMessage.length) {
-      console.error(`[table] Row #${row.id} has errors: ${errorsMessage.slice(0, -1)})`, row);
-    }
   }
 
   protected registerCellValueChanges(name: string, formPath?: string): Observable<any> {
