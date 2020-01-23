@@ -670,8 +670,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
     entity.id = undefined;
 
     try {
-      const savedEntity = await this.save(entity, {withOperation: true});
-      if (savedEntity.id < 0) {
+      entity = await this.save(entity, {withOperation: true});
+      if (entity.id < 0) {
         throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
       }
     } catch (err) {
@@ -691,7 +691,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       console.error(`[trip-service] Failed to locally delete trip {${entity.id}} and its operations`, err);
       // Continue
     }
-    return savedEntity;
+    return entity;
   }
 
   /**
