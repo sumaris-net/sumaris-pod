@@ -25,7 +25,7 @@ import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {UsageMode} from "../../core/services/model";
 import {SubBatchesModal} from "./sub-batches.modal";
-import {measurementValueToString} from "../services/model/measurement.model";
+import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {BatchModal} from "./batch.modal";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {MatDialog} from '@angular/material/dialog';
@@ -423,7 +423,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
 
   referentialToString = referentialToString;
   getPmfmColumnHeader = getPmfmName;
-  measurementValueToString = measurementValueToString;
+  measurementValueToString = MeasurementValuesUtils.valueToString;
 
   protected markForCheck() {
     this.cd.markForCheck();

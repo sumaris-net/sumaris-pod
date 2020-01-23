@@ -1,9 +1,9 @@
-import {fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
+import {fromDateISOString, toDateISOString} from "../../../core/core.module";
 import {Person, ReferentialRef} from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
 import {DataEntityAsObjectOptions, DataRootVesselEntity} from "./base.model";
 import {Sample} from "./sample.model";
-import {MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
+import {MeasurementValuesUtils} from "./measurement.model";
 
 
 export class Sale extends DataRootVesselEntity<Sale> {
@@ -85,7 +85,7 @@ export class Sale extends DataRootVesselEntity<Sale> {
     target.saleType = this.saleType && this.saleType.asObject(options) || undefined;
     target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;
     target.observers = this.observers && this.observers.map(o => o.asObject(options)) || undefined;
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
 
     return target;
   }

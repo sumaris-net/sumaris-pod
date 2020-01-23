@@ -4,13 +4,13 @@ import {
   EntityUtils,
   fromDateISOString,
   IWithObserversEntity,
+  NOT_MINIFY_OPTIONS,
   Person,
   ReferentialRef,
-  toDateISOString,
-  NOT_MINIFY_OPTIONS
+  toDateISOString
 } from "./base.model";
 import {Moment} from "moment";
-import {MeasurementUtils} from "./measurement.model";
+import {MeasurementValuesUtils} from "./measurement.model";
 import {Sample} from "./sample.model";
 import {ReferentialAsObjectOptions} from "../../../core/services/model";
 
@@ -61,7 +61,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     target.dateTime = toDateISOString(this.dateTime);
     target.location = this.location && this.location.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
     target.observers = this.observers && this.observers.map(p => p && p.asObject(options)) || undefined;
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
 
     // Samples
     target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;

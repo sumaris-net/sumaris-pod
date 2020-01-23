@@ -5,7 +5,7 @@ import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
 import {PhysicalGear, referentialToString} from "../services/trip.model";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {measurementValueToString} from "../services/model/measurement.model";
+import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PhysicalGearModal} from "./physicalgear.modal";
 import {AcquisitionLevelCodes} from "../services/model/base.model";
 
@@ -145,7 +145,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
   }
 
   referentialToString = referentialToString;
-  measurementValueToString = measurementValueToString;
+  measurementValueToString = MeasurementValuesUtils.valueToString;
 
   /* -- protected methods -- */
 

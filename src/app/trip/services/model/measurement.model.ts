@@ -3,8 +3,8 @@ import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.mod
 import {DataEntity, DataEntityAsObjectOptions} from "./base.model";
 import {FormGroup} from "@angular/forms";
 import {isNotNilOrNaN} from "../../../shared/functions";
-import {Moment} from "moment";
-import {Subscription} from "rxjs";
+import * as moment from "moment";
+import {isMoment, Moment} from "moment";
 
 export const PMFM_ID_REGEXP = /\d+/;
 
@@ -181,15 +181,7 @@ export class MeasurementUtils {
     return target;
   }
 
-  static measurementValuesAsObjectMap(source: { [key: number]: any }, options: DataEntityAsObjectOptions): { [key: string]: any } {
-    if (!options || options.minify !== true || !source) return source;
-    return source && Object.keys(source)
-      .reduce((map, pmfmId) => {
-        const value = source[pmfmId] && source[pmfmId].id || source[pmfmId];
-        if (isNotNil(value)) map[pmfmId] = '' + value;
-        return map;
-      }, {}) || undefined;
-  }
+
 
   static isEmpty(source: Measurement | any): boolean {
     if (!source) return true;
@@ -239,7 +231,31 @@ export class MeasurementValuesUtils {
       || !pmfms.find(pmfm => !MeasurementValuesUtils.valueEquals(m1[pmfm.pmfmId], m2[pmfm.pmfmId]));
   }
 
-  static valueToString = measurementValueToString;
+  static valueToString(value: any, pmfm: PmfmStrategy, propertyName?: string): string | undefined {
+    if (isNil(value) || !pmfm) return null;
+    switch (pmfm.type) {
+      case "qualitative_value":
+        if (value && typeof value !== "object") {
+          const qvId = parseInt(value);
+          value = pmfm.qualitativeValues && pmfm.qualitativeValues.find(qv => qv.id === qvId) || null;
+        }
+        return value && (value[propertyName] || value.name || value.label) || null;
+      case "integer":
+      case "double":
+        return isNotNil(value) ? value : null;
+      case "string":
+        return value || null;
+      case "date":
+        console.log("TODO debug this! ", value);
+        return value || null;
+      case "boolean":
+        return (value === "true" || value === true || value === 1) ? 	'&#x2714;' /*checkmark*/ :
+          ((value === "false" || value === false || value === 0) ? '' : null); /*empty*/
+      default:
+        throw new Error("Unknown pmfm.type: " + pmfm.type);
+    }
+  }
+
 
   static normalizeValueToModel(value: MeasurementFormValue, pmfm: PmfmStrategy): string {
     if (isNil(value) || !pmfm) return;
@@ -367,28 +383,29 @@ export class MeasurementValuesUtils {
     }
 
   }
-}
 
-
-export function measurementValueToString(value: any, pmfm: PmfmStrategy, propertyName?: string): string | undefined {
-  if (isNil(value) || !pmfm) return null;
-  switch (pmfm.type) {
-    case "qualitative_value":
-      if (value && typeof value !== "object") {
-        const qvId = parseInt(value);
-        value = pmfm.qualitativeValues && pmfm.qualitativeValues.find(qv => qv.id === qvId) || null;
-      }
-      return value && (value[propertyName] || value.name || value.label) || null;
-    case "integer":
-    case "double":
-      return isNotNil(value) ? value : null;
-    case "string":
-    case "date":
-      return value || null;
-    case "boolean":
-      return (value === "true" || value === true || value === 1) ? 	'&#x2714;' /*checkmark*/ :
-        ((value === "false" || value === false || value === 0) ? '' : null); /*empty*/
-    default:
-      throw new Error("Unknown pmfm.type: " + pmfm.type);
+  static asObject(source: { [key: number]: any }, options: DataEntityAsObjectOptions): { [key: string]: any } {
+    if (!options || options.minify !== true || !source) return source;
+    return source && Object.keys(source)
+      .reduce((map, pmfmId) => {
+        const value = source[pmfmId] && source[pmfmId].id || source[pmfmId];
+        if (isNotNil(value)) {
+          // If moment object, then convert to ISO string- fix #157
+          if (isMoment(value)) {
+            map[pmfmId] = toDateISOString(value);
+          }
+          // If date, convert to ISO string
+          else if (value instanceof Date) {
+            map[pmfmId] = toDateISOString(moment(value));
+          }
+          // String, number
+          else {
+            map[pmfmId] = '' + value;
+          }
+        }
+        return map;
+      }, {}) || undefined;
   }
 }
+
+

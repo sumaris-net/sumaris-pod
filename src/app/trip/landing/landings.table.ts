@@ -12,7 +12,7 @@ import {
 import {LandingFilter, LandingService} from "../services/landing.service";
 import {LandingValidatorService} from "../services/landing.validator";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {measurementValueToString} from "../services/model/measurement.model";
+import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {AcquisitionLevelCodes} from "../../referential/referential.module";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 
@@ -113,7 +113,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   referentialToString = referentialToString;
   vesselSnapshotToString = vesselSnapshotToString;
   personsToString = personsToString;
-  measurementValueToString = measurementValueToString;
+  measurementValueToString = MeasurementValuesUtils.valueToString;
 
   /* -- protected methods -- */
 

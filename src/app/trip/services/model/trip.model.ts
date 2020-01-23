@@ -1,18 +1,19 @@
 import {EntityUtils, fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
 import {Moment} from "moment/moment";
 import {
-  DataEntity, DataEntityAsObjectOptions,
+  DataEntity,
+  DataEntityAsObjectOptions,
   DataRootEntity,
   DataRootVesselEntity,
   IWithObserversEntity,
+  NOT_MINIFY_OPTIONS,
   Person,
-  ReferentialRef,
-  NOT_MINIFY_OPTIONS
+  ReferentialRef
 } from "./base.model";
-import {IEntityWithMeasurement, Measurement, MeasurementUtils} from "./measurement.model";
+import {IEntityWithMeasurement, Measurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Sample} from "./sample.model";
-import {Batch, BatchUtils} from "./batch.model";
+import {Batch} from "./batch.model";
 import {MetierRef} from "../../../referential/services/model/taxon.model";
 import {ReferentialAsObjectOptions} from "../../../core/services/model";
 import {isEmptyArray} from "../../../shared/functions";
@@ -154,7 +155,7 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
     target.rankOrder = this.rankOrder;
 
     // Measurements
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap( this.measurementValues, opts);
+    target.measurementValues = MeasurementValuesUtils.asObject( this.measurementValues, opts);
     if (isEmptyArray(target.measurements)) delete target.measurements;
 
     return target;
@@ -250,8 +251,6 @@ export class Operation extends DataEntity<Operation> {
     delete target.endPosition;
 
     // Physical gear
-
-
     if (opts && opts.minify && this.physicalGear && this.physicalGear.id >= 0) {
       // Existing gear: keep only the id
       target.physicalGearId = this.physicalGear && this.physicalGear.id;

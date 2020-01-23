@@ -1,12 +1,7 @@
-import {Entity, EntityUtils, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../../core/core.module";
+import {EntityUtils, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../../core/core.module";
 import {AcquisitionLevelCodes, PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {DataEntity, DataEntityAsObjectOptions, NOT_MINIFY_OPTIONS} from "./base.model";
-import {
-  IEntityWithMeasurement,
-  MeasurementUtils,
-  MeasurementValuesUtils,
-  measurementValueToString
-} from "./measurement.model";
+import {IEntityWithMeasurement, MeasurementValuesUtils} from "./measurement.model";
 import {isNilOrBlank, isNotNilOrBlank} from "../../../shared/functions";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
@@ -155,7 +150,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.children = this.children && (!opts || opts.withChildren !== false) && this.children.map(c => c.asObject(opts)) || undefined;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, opts);
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
 
     if (opts && opts.minify) {
       // Parent Id not need, as the tree batch will be used by pod
@@ -232,7 +227,7 @@ export class BatchUtils {
     if (!parent) return null;
     opts = opts || {taxonGroupAttributes: ['label', 'name'], taxonNameAttributes: ['label', 'name']};
     if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.pmfmId])) {
-      return measurementValueToString(parent.measurementValues[opts.pmfm.pmfmId], opts.pmfm);
+      return MeasurementValuesUtils.valueToString(parent.measurementValues[opts.pmfm.pmfmId], opts.pmfm);
     }
     const hasTaxonGroup = EntityUtils.isNotEmpty(parent.taxonGroup);
     const hasTaxonName = EntityUtils.isNotEmpty(parent.taxonName);

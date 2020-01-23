@@ -1,5 +1,5 @@
 import * as moment from "moment";
-import {Moment} from "moment";
+import {isMoment, Moment} from "moment";
 import {asInputElement, FocusableElement, isInputElement} from "./material/focusable";
 import {ElementRef} from "@angular/core";
 import {environment} from "../../environments/environment";
@@ -51,37 +51,41 @@ export function toFloat(obj: string | null | undefined): number | null {
 export function toInt(obj: string | null | undefined): number | null {
   return (obj !== undefined && obj !== null) ? parseInt(obj, 0) : null;
 }
-export function toDateISOString(value): string | undefined {
+export function toDateISOString(value: any): string | undefined {
   if (!value) return undefined;
 
-  //console.log('TODO: ', value);
-  if (typeof value === "string") {
-    if (value.indexOf('+')) {
-      value = fromDateISOString(value);
-    }
-    else {
-      return value;
-    }
+  // Already a valid ISO date time string (without timezone): use it
+  if (typeof value === "string"
+    && value.indexOf('+') === -1
+    && value.lastIndexOf('Z') === value.length - 1) {
+
+    return value;
   }
-  if (typeof value === "object" && value.toISOString) {
-    return value.toISOString();
-  }
-  return moment(value).format(DATE_ISO_PATTERN) || undefined;
+  // Make sure to have a Moment object
+  value = fromDateISOString(value);
+  return value && value.toISOString() || undefined;
 }
 
 export function fromDateISOString(value: any): Moment | undefined {
-  if (!value || typeof value !== 'string') return value;
-  const date: Moment = moment(value, DATE_ISO_PATTERN);
-  if (date.isValid()) return date;
+  if (value) {
+    // Already a moment object: use it
+    if (isMoment(value)) return value;
 
-  // Date string not used the ISO format: trying to convert from unix timestamp
-  console.warn('Wrong date format - Trying to convert from local time: ' + value);
+    // Parse the input value, as a ISO date time
+    const date: Moment = moment(value, DATE_ISO_PATTERN);
+    if (date.isValid()) return date;
 
-  if (value.length === 10) {
-    return moment(value, DATE_UNIX_TIMESTAMP);
-  }
-  else if (value.length === 13) {
-    return moment(value, DATE_UNIX_MS_TIMESTAMP);
+    console.warn('Wrong date format - Trying to convert from local time: ' + value);
+
+    // Not valid: trying to convert from unix timestamp
+    if (typeof value === 'string') {
+      if (value.length === 10) {
+        return moment(value, DATE_UNIX_TIMESTAMP);
+      }
+      else if (value.length === 13) {
+        return moment(value, DATE_UNIX_MS_TIMESTAMP);
+      }
+    }
   }
   return undefined;
 }

@@ -6,7 +6,7 @@ import {SubBatchForm} from "./sub-batch.form";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "./sub-batches.table";
 import {AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
-import {measurementValueToString} from "../services/model/measurement.model";
+import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {AppFormUtils, EntityUtils, isNil} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
 import {isNotNilOrBlank} from "../../shared/functions";
@@ -316,6 +316,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     }, 1500);
   }
 
-  measurementValueToString = measurementValueToString;
+  measurementValueToString = MeasurementValuesUtils.valueToString;
 
 }

@@ -1,6 +1,12 @@
-import {fromDateISOString, isNotNil, Person, ReferentialRef, toDateISOString} from "../../../core/core.module";
+import {fromDateISOString, Person, ReferentialRef, toDateISOString} from "../../../core/core.module";
 
-import {DataEntityAsObjectOptions, DataRootEntity, DataRootVesselEntity, IWithObserversEntity, NOT_MINIFY_OPTIONS} from "./base.model";
+import {
+  DataEntityAsObjectOptions,
+  DataRootEntity,
+  DataRootVesselEntity,
+  IWithObserversEntity,
+  NOT_MINIFY_OPTIONS
+} from "./base.model";
 
 
 import {Moment} from "moment/moment";
@@ -55,7 +61,7 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.location = this.location && this.location.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
     target.landings = this.landings && this.landings.map(s => s.asObject(options)) || undefined;
     target.observers = this.observers && this.observers.map(o => o.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions)) || undefined;
 
@@ -151,7 +157,7 @@ export class ObservedVessel extends DataRootVesselEntity<ObservedVessel> {
     target.observers = this.observers && this.observers.map(o => o.asObject(options)) || undefined;
 
     // Measurement: keep only the map
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, options);
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
 
     return target;
   }

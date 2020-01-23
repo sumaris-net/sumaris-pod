@@ -12,6 +12,7 @@ import {LatLongFormatPipe} from "./pipes/latlong-format.pipe";
 import {NumberFormatPipe} from "./pipes/number-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
 import {ToolbarComponent} from "./toolbar/toolbar";
+import {MatDate} from "./material/material.date";
 import {MatDateTime} from "./material/material.datetime";
 import {MatLatLong} from "./material/material.latlong";
 import {MatBooleanField} from "./material/material.boolean";
@@ -108,6 +109,7 @@ export {
     LatLongFormatPipe,
     HighlightPipe,
     NumberFormatPipe,
+    MatDate,
     MatDateTime,
     MatLatLong,
     MatBooleanField,
@@ -130,6 +132,7 @@ export {
     NumberFormatPipe,
     TextMaskModule,
     TranslateModule,
+    MatDate,
     MatDateTime,
     MatLatLong,
     MatBooleanField,

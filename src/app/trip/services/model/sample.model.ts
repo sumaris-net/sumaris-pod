@@ -8,7 +8,7 @@ import {
 import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
 import {DataEntityAsObjectOptions, DataRootEntity} from "./base.model";
-import {IEntityWithMeasurement, MeasurementUtils} from "./measurement.model";
+import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {ITreeItemEntity, NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model";
 
 
@@ -76,7 +76,7 @@ export class Sample extends DataRootEntity<Sample>
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     target.children = this.children && this.children.map(c => c.asObject(options)) || undefined;
-    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap( this.measurementValues, options);
+    target.measurementValues = MeasurementValuesUtils.asObject( this.measurementValues, options);
 
     if (options && options.minify) {
       // Parent not need, as the tree will be used by pod
