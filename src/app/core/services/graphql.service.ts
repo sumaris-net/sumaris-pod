@@ -609,7 +609,7 @@ export class GraphqlService {
       this.toAppError(err.originalError) || 
       (err.graphQLErrors && err.graphQLErrors[0]) || 
       err;
-    console.error("[graphql] " + (error && error.message || error), error.stack);
+    console.error("[graphql] " + (error && error.message || error), error.stack || '');
     if ((!error || !error.code) && defaultError) {
       error = {...defaultError, details: error, stack: err.stack};
     }

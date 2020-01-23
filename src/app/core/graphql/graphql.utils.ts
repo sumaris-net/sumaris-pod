@@ -77,11 +77,11 @@ function dataIdFromObjectDebug (object: Object): string {
       return `TaxonGroupStrategyVO:${object['strategyId']}:${dataIdFromObjectDebug(object['taxonName'])}`;
 
     // Fallback to default cache key
-    default:
-      const res = defaultDataIdFromObject(object);
-      if (object['__typename'] === 'TripVO') console.debug(`[dataIdFromObject] Computing Trip cache id: {${res}}`);
-      if (object['__typename'] === 'OperationVO') console.debug(`[dataIdFromObject] Computing Operation cache id: {${res}}`);
-      return res;
+    // default:
+    //   const res = defaultDataIdFromObject(object);
+    //   if (object['__typename'] === 'TripVO') console.debug(`[dataIdFromObject] Computing Trip cache id: {${res}}`);
+    //   if (object['__typename'] === 'OperationVO') console.debug(`[dataIdFromObject] Computing Operation cache id: {${res}}`);
+    //   return res;
   }
   return defaultDataIdFromObject(object);
 }

@@ -1,5 +1,8 @@
 :host {
   width: 100%;
+  ion-toolbar {
+    padding: 0 6px; // Add a left/right padding
+  }
   ion-col {
     padding: 0;
   }

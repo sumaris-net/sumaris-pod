@@ -458,14 +458,14 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
   protected setError(err: any) {
     console.error("[data-editor] " + err && err.message || err);
-    let userMessage = err && this.translate.instant(err.message) || err;
+    let userMessage = err && err.message && this.translate.instant(err.message) || err;
 
     // Add details error (if any) under the main message
     const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
     if (detailMessage) {
-      userMessage += `<br/><small class="hidden-xs hidden-sm" title="${detailMessage}">";
-      errorMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
-      errorMessage += '</small>`;
+      userMessage += `<br/><small class="hidden-xs hidden-sm" title="${detailMessage}">`;
+      userMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
+      userMessage += "</small>";
     }
     this.error = userMessage;
   }

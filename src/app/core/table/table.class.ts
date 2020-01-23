@@ -261,7 +261,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
           this.resultsLength = isNotNil(res.total) ? res.total : ((this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + res.data.length);
           if (this.debug) console.debug(`[table] ${res.data.length} rows loaded`);
         } else {
-          if (this.debug) console.debug('[table] NO rows loaded');
+          //if (this.debug) console.debug('[table] NO rows loaded');
           this.isRateLimitReached = true;
           this.resultsLength = 0;
         }
