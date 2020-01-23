@@ -479,7 +479,7 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
     public static String checkISODateTimeString(String isoDate) throws SumarisTechnicalException {
         if (isoDate == null) return null;
         if (!ISO_TIMESTAMP_PATTERN.matcher(isoDate).matches()) {
-            throw new SumarisTechnicalException(String.format("Invalid date time format '%s'. Expected ISO format 'YYYY-MM-DDThh:mm:ss.sssTZD' (TZD=Z or +hh:mm or -hh:mm)", isoDate));
+            throw new SumarisTechnicalException(String.format("Invalid date time '%s'. Expected ISO format 'YYYY-MM-DDThh:mm:ss.sssZ'.", isoDate));
         }
         return isoDate;
     }
