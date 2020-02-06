@@ -142,7 +142,7 @@
       </ion-row>
 
       <ion-row class="ion-no-padding"
-        *ngFor="let samplingBatchForm of form.controls.children?.controls; let i=index"
+        *ngFor="let samplingBatchForm of form.get('children')?.controls; let i=index"
         [formGroupName]="i">
 
         <!-- Sampling ratio -->
