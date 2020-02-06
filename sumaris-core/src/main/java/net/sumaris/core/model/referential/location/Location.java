@@ -25,6 +25,7 @@ package net.sumaris.core.model.referential.location;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.IWithValidityStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.ValidityStatus;
 
@@ -37,7 +38,7 @@ import java.util.Date;
 @Entity
 @Table(name = "location")
 @Cacheable
-public class Location implements IItemReferentialEntity, Serializable {
+public class Location implements IItemReferentialEntity, Serializable, IWithValidityStatusEntity<Integer, ValidityStatus> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_SEQ")
@@ -45,6 +46,8 @@ public class Location implements IItemReferentialEntity, Serializable {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+
+
     @JoinColumn(name = "status_fk", nullable = false)
     private Status status;
 

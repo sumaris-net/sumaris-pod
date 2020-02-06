@@ -714,6 +714,16 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
             }
         }
 
+        // Validity status
+        if (target instanceof IWithValidityStatusEntity) {
+            if (source.getValidityStatusId() == null) {
+                // Pending by default
+                ((IWithValidityStatusEntity<?, ValidityStatus>) target).setValidityStatus(load(ValidityStatus.class, ValidityStatusEnum.PENDING.getId()));
+            }
+            else {
+                ((IWithValidityStatusEntity<?, ValidityStatus>) target).setValidityStatus(load(ValidityStatus.class, source.getValidityStatusId()));
+            }
+        }
     }
 
 }

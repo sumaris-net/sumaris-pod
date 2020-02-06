@@ -41,6 +41,7 @@ public class ReferentialVO implements IReferentialVO {
     private Date creationDate;
 
     private Integer statusId;
+    private Integer validityStatusId;
 
     @EqualsAndHashCode.Exclude
     private Integer levelId;
