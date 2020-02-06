@@ -1,5 +1,5 @@
 <ng-container *ngIf="value && value.id">
-  <ion-card [@fadeInAnimation] >
+  <ion-card @fadeInAnimation>
     <ion-item color="light">
       <ion-avatar slot="start">
         <img src="{{ (value.recorderPerson?.avatar || value.recorderDepartment?.logo ) || './assets/img/person.png' }}">

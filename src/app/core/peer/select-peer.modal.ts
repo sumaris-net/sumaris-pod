@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {Peer} from "../services/model";
-import {Observable, Subject} from "rxjs";
+import {Observable, Subject, Subscription} from "rxjs";
 import {fadeInAnimation} from "../../shared/material/material.animations";
 import {HttpClient} from "@angular/common/http";
 
@@ -11,8 +11,9 @@ import {HttpClient} from "@angular/common/http";
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInAnimation]
 })
-export class SelectPeerModal {
+export class SelectPeerModal implements OnDestroy {
 
+  private _subscription = new Subscription();
   loading = true;
   $peers = new Subject<Peer[]>();
 
@@ -20,7 +21,9 @@ export class SelectPeerModal {
   @Input() allowSelectDownPeer = true;
 
   set peers(peers: Observable<Peer[]>) {
-    peers.subscribe(res => this.refreshPeers(res));
+    this._subscription.add(
+      peers.subscribe(res => this.refreshPeers(res))
+    );
   }
 
 
@@ -33,6 +36,10 @@ export class SelectPeerModal {
 
   cancel() {
     this.viewCtrl.dismiss();
+  }
+
+  ngOnDestroy(): void {
+    this._subscription.unsubscribe();
   }
 
   selectPeer(item: Peer) {
@@ -49,6 +56,9 @@ export class SelectPeerModal {
     const jobs = Promise.all(
       peers.map(async (peer) => {
         await this.refreshPeer(peer);
+
+        if (this._subscription.closed) return; // component destroyed
+
         data.push(peer);
 
         // Sort (by reachable, then host)
@@ -60,23 +70,22 @@ export class SelectPeerModal {
           return 0;
         });
 
+
         this.$peers.next(data);
         return peer;
       }));
 
-    this.$peers
-      // .pipe(
-      //   debounceTime(500)
-      // )
-      .subscribe(() => {
-        this.cd.markForCheck();
-      });
+    this._subscription.add(
+      this.$peers
+        .subscribe(() => {
+          this.cd.markForCheck();
+        }));
 
     try {
       await jobs;
     }
     catch(err) {
-      console.error(err);
+      if (!this._subscription.closed) console.error(err);
     }
     this.loading = false;
     this.cd.markForCheck();
@@ -92,7 +101,7 @@ export class SelectPeerModal {
       peer.label = summary.nodeLabel;
       peer.name = summary.nodeName;
     } catch (err) {
-      console.error(`[select-peer] Could not access to {${uri}}: ${err && err.statusText}`);
+      if (!this._subscription.closed) console.error(`[select-peer] Could not access to {${uri}}: ${err && err.statusText}`);
       peer.status = 'DOWN';
     }
     return peer;

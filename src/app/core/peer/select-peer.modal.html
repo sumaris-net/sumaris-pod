@@ -29,10 +29,11 @@
       </ion-label>
     </ion-list-header>
 
-    <ion-item tappable ripple
-              *ngFor="let peer of $peers | async"
+    <ion-item *ngFor="let peer of $peers | async"
+              tappable
               (click)="selectPeer(peer)"
-              detail>
+              detail
+              @fadeInAnimation>
 
       <!-- icon -->
       <ion-avatar slot="start" *ngIf="peer.reachable" >
