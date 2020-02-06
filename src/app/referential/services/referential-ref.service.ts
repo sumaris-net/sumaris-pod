@@ -441,7 +441,8 @@ export class ReferentialRefService extends BaseDataService
           });
         })
         .catch(err => {
-          console.error(`[referential-ref-service] Failed to import ${entityName}: ${err && err.message || err}`, err);
+          const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
+          console.error(`[referential-ref-service] Failed to import ${entityName}: ${detailMessage || err && err.message || err}`);
           throw err;
         });
     });
