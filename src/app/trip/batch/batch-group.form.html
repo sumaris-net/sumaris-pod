@@ -16,9 +16,53 @@
                   [showTaxonName]="showTaxonName"
                   [showTotalIndividualCount]="false"
                   [showIndividualCount]="false">
+
+    <ion-row>
+      <ion-col>
+        <!-- Has individual measures ? -->
+        <mat-form-field floatLabel="always">
+          <input matInput type="text" hidden
+                 [formControl]="hasMeasureControl"
+                 [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_MEASURE'|translate"
+                 required>
+          <ion-grid class="ion-no-padding" @fadeInAnimation *ngIf="!loading">
+            <ion-row class="ion-no-padding">
+              <ion-col>
+                <ion-button class="mat-form-field-button"
+                            [tabindex]="tabindex && tabindex + 9 || -1"
+                            (click)="setHasMeasure(false)"
+                            (keyup.enter)="setHasMeasure(false)"
+                            fill="solid" expand="full"
+                            [color]="hasMeasure === undefined ? 'danger': (!hasMeasure ? 'accent' : 'light')">
+                  <ion-label translate>TRIP.BATCH.EDIT.WITHOUT_MEASURE</ion-label>
+                </ion-button>
+              </ion-col>
+              <ion-col>
+                <ion-button class="mat-form-field-button"
+                            [tabindex]="tabindex && tabindex + 8 || -1"
+                            (click)="setHasMeasure(true)"
+                            (keyup.enter)="setHasMeasure(true)"
+                            fill="solid" expand="full"
+                            [color]="hasMeasure === undefined ? 'danger': (hasMeasure ? 'accent' : 'light')">
+                  <ion-label translate>TRIP.BATCH.EDIT.WITH_MEASURE</ion-label>
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </mat-form-field>
+      </ion-col>
+      <ion-col>
+        <ion-buttons>
+          <ng-content select="[afterSpeciesButtons]"></ng-content>
+        </ion-buttons>
+      </ion-col>
+    </ion-row>
   </app-batch-form>
 
-  <ion-grid *ngIf="qvPmfm">
+
+
+  <ion-grid *ngIf="qvPmfm" @fadeInAnimation>
+
 
     <!-- QV children -->
     <ion-row>

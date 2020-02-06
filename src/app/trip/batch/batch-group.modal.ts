@@ -24,6 +24,7 @@ import {environment} from "../../../environments/environment";
 @Component({
   selector: 'app-batch-group-modal',
   templateUrl: 'batch-group.modal.html',
+  styleUrls: ['batch-group.modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchGroupModal implements OnInit, OnDestroy {

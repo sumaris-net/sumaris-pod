@@ -10,7 +10,7 @@ import {
 import {isMoment} from "moment";
 import {Entity} from "../services/model";
 import {timer} from "rxjs";
-import {filter, first} from "rxjs/operators";
+import {filter, first, tap} from "rxjs/operators";
 import {SharedValidators} from "../../shared/validator/validators";
 
 export {selectInputContent};
@@ -369,7 +369,7 @@ export function waitWhilePending<T extends {pending: boolean; }>(form: T, opts?:
   return timer(period, period)
     .pipe(
       // For DEBUG :
-      //  tap(() => console.debug("Waiting async validator...", form)),
+      tap(() => console.debug("Waiting async validator...", form)),
       filter(() => !form.pending),
       first()
     ).toPromise();

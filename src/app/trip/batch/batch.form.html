@@ -11,7 +11,7 @@
     <ion-row>
 
       <!-- Taxon group -->
-      <ion-col size="12" size-md=""
+      <ion-col size="12" size-md="6"
                [hidden]="!showTaxonGroup">
         <mat-autocomplete-field formControlName="taxonGroup"
                                 [appAutofocus]="enabled && !mobile && showTaxonGroup"
@@ -23,7 +23,7 @@
       </ion-col>
 
       <!-- Taxon name (scientific species) -->
-      <ion-col size="12" size-md="" *ngIf="showTaxonName">
+      <ion-col size="12" size-md="6" *ngIf="showTaxonName">
         <mat-autocomplete-field formControlName="taxonName"
                                 [appAutofocus]="enabled && !mobile && !showTaxonGroup && showTaxonName"
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
@@ -34,7 +34,7 @@
       </ion-col>
     </ion-row>
 
-    <ion-spinner float-center *ngIf="loading"></ion-spinner>
+    <ion-spinner class="ion-float-center" *ngIf="loading"></ion-spinner>
 
     <!-- Measurements -->
     <ion-row class="ion-no-padding">
@@ -142,7 +142,7 @@
       </ion-row>
 
       <ion-row class="ion-no-padding"
-        *ngFor="let samplingBatchForm of form.get('children')?.controls; let i=index"
+        *ngFor="let samplingBatchForm of form.controls.children?.controls; let i=index"
         [formGroupName]="i">
 
         <!-- Sampling ratio -->
@@ -175,7 +175,7 @@
                                       [class.computed]="samplingBatchForm.controls.weight.controls.calculated.value"
                                       [pmfm]="defaultWeightPmfm"
                                       [formControl]="samplingBatchForm.controls.weight.controls.value"
-                                      [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
+                                      [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"
                                       [compact]="compact"
                                       [tabindex]="tabindex+33"
                                       [listenStatusChanges]="true">
@@ -197,6 +197,8 @@
         </ion-col>
       </ion-row>
     </div>
+
+    <ng-content></ng-content>
 
   </ion-grid>
 

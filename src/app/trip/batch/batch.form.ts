@@ -272,7 +272,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     return this.data;
   }
 
-  setIsSampling(enable: boolean) {
+  setIsSampling(enable: boolean, opts?: {emitEvent?: boolean}) {
     this.isSampling = enable;
 
     if (!this.loading) this.form.markAsDirty();
@@ -281,10 +281,10 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
     if (childrenArray) {
       if (enable && childrenArray.disabled) {
-        childrenArray.enable({emitEvent: false});
+        childrenArray.enable({emitEvent: toBoolean(opts && opts.emitEvent, false)});
         this.markForCheck();
       } else if (!enable && childrenArray.enabled) {
-        childrenArray.disable({emitEvent: false});
+        childrenArray.disable({emitEvent: toBoolean(opts && opts.emitEvent, false)});
         this.markForCheck();
       }
     }

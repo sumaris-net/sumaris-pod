@@ -6,3 +6,6 @@ mat-card.qv.odd,
 ion-card.qv.odd{
   background-color: var(--ion-color-light, whitesmoke) !important;
 }
+ion-col > ion-buttons {
+  height: 100%;
+}

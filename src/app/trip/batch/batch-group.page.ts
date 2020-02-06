@@ -51,7 +51,7 @@ export class BatchGroupPage extends AppEditorPage<Batch, any> implements OnInit 
           // Emit events
           this.defaultBackHref = `/trips/${trip.id}/operations/${operationId}`;
           this.programSubject.next(trip && trip.program && trip.program.label);
-          this.acquisitionLevelSubject.next(BatchUtils.getAcquisitionLevelFromLabal(batch));
+          this.acquisitionLevelSubject.next(BatchUtils.getAcquisitionLevelFromLabel(batch));
 
           return batch;
         },

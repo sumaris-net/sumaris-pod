@@ -34,23 +34,20 @@
                   [showTotalIndividualCount]="showTotalIndividualCount"
                   [showIndividualCount]="showIndividualCount"
                   (onSubmit)="close($event)">
-  </app-batch-group-form>
-
-  <!-- actions -->
-  <div class="ion-margin-top">
-    <ion-buttons visible-xs visible-sm visible-mobile class="ion-margin-top" >
 
       <!-- open individual modal -->
-      <ion-button class="ion-float-end"
-                  *ngIf="showSubBatchesCallback && !loading"
-                  fill="clear" color="tertiary"
+      <ion-button afterSpeciesButtons
+                  *ngIf="showSubBatchesCallback && form.hasMeasure"
+                  fill="clear" color="tertiary" expand="full"
                   (click)="onShowSubBatchesButtonClick($event)" >
         <mat-icon>assessment</mat-icon>
         <ion-label translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</ion-label>
         <ion-icon slot="end" name="arrow-forward"></ion-icon>
       </ion-button>
-    </ion-buttons>
-  </div>
+
+  </app-batch-group-form>
+
+
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
@@ -64,14 +61,6 @@
       <ion-col size="auto">
         <ion-button fill="clear" color="dark" (click)="cancel()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
-        </ion-button>
-
-        <ion-button [fill]="invalid ? 'clear' : 'solid'"
-                    color="tertiary"
-                    [disabled]="loading || invalid"
-                    *ngIf="!!showSubBatchesCallback"
-                    (click)="onShowSubBatchesButtonClick($event)">
-          <ion-label translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</ion-label>
         </ion-button>
 
         <ion-button [fill]="invalid ? 'clear' : 'solid'"

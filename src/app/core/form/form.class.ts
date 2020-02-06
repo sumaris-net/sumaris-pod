@@ -202,7 +202,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   markAsDirty(opts?: {
     onlySelf?: boolean;
   }) {
-    this.form.markAsDirty();
+    this.form.markAsDirty(opts);
     this.markForCheck();
   }
 

@@ -267,7 +267,7 @@ export class BatchUtils {
       && MeasurementValuesUtils.equalsPmfms(b1.measurementValues, b2.measurementValues, pmfms);
   }
 
-  public static getAcquisitionLevelFromLabal(batch: Batch): string|undefined {
+  public static getAcquisitionLevelFromLabel(batch: Batch): string|undefined {
     if (!batch || !batch.label) return undefined;
     const parts = batch.label.split('#');
     return parts.length > 0 && parts[0];
@@ -330,6 +330,14 @@ export class BatchUtils {
       if (child.label && child.label.startsWith(acquisitionLevel + "#")) return res.concat(child);
       return res.concat(BatchUtils.getChildrenByLevel(child, acquisitionLevel)); // recursive call
     }, []);
+  }
+
+  static hasChildrenWithLevel(batch: Batch, acquisitionLevel: string): boolean {
+    return batch && (batch.children || []).findIndex(child => {
+      return (child.label && child.label.startsWith(acquisitionLevel + "#")) || 
+        // If children, recursive call
+        (child.children && BatchUtils.hasChildrenWithLevel(child, acquisitionLevel));
+    }) !== -1;
   }
 
   static prepareRootBatchesForSaving(rootBatches: Batch[], subBatches: Batch[], qvPmfm?: PmfmStrategy) {
