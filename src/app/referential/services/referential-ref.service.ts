@@ -356,7 +356,7 @@ export class ReferentialRefService extends BaseDataService
         progress.error(err);
       });
 
-    return progress;
+    return progress.asObservable();
   }
 
   /* -- protected methods -- */

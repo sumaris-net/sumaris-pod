@@ -1036,7 +1036,6 @@ export class TripService extends RootDataService<Trip, TripFilter>
           tap(() => {
             this.$importationProgress = null;
             console.info(`[trip-service] Importation finished in ${Date.now() - now}ms`);
-
             this.settings.registerOfflineFeature(TRIP_FEATURE);
           })
         ))

@@ -13,13 +13,15 @@ export const ENTITIES_STORAGE_KEY = "entities";
 
 export class EntityStore<T extends Entity<T>> {
 
-  static fromEntities<T extends Entity<T>>(json: any[], opts?: {
-    name?: string;
-    emitEvent?: boolean;
-    onlyTemporaryId?: boolean;
-  }): EntityStore<T> {
+  static fromEntities<T extends Entity<T>>(entities: T[],
+                                           opts?: {
+                                             name?: string;
+                                             emitEvent?: boolean;
+                                             onlyTemporaryId?: boolean;
+                                           }): EntityStore<T> {
     const target = new EntityStore<T>(opts && opts.name || undefined);
-    target.setEntities(json, opts);
+    target.setEntities(entities, opts);
+    target.dirty = false;
     return target;
   }
 
@@ -28,7 +30,6 @@ export class EntityStore<T extends Entity<T>> {
   dirty = false;
   sequence: number;
   name: string;
-  dataType?: () => T;
   indexById: { [key: number]: number };
   entitiesSubject = new BehaviorSubject<T[]>([]);
 
@@ -103,11 +104,14 @@ export class EntityStore<T extends Entity<T>> {
 
     // First save
     if (isEmptyArray(this._entities)) {
-      this.setEntities(entities);
+      this.setEntities(entities, {emitEvent: false});
     }
     else {
       result = entities.map((entity) => this.save(entity, {emitEvent: false}));
     }
+
+    // Mark as dirty
+    this.dirty = true;
 
     // Emit update event
     if (!opts || opts.emitEvent !== false) {
@@ -173,8 +177,6 @@ export class EntityStore<T extends Entity<T>> {
       res[item.id] = index;
       return res;
     }, {});
-
-    this.dirty = false;
 
     // Emit update event
     if (!opts || opts.emitEvent !== false) {
@@ -482,18 +484,17 @@ export class EntityStorage {
             timer(2000, 10000)
           )
           .pipe(
-            throttleTime(10000),
-            tap(() => this.storeLocally())
+            throttleTime(10000)
           )
-          .subscribe()
+          .subscribe(() => this.storeLocally())
         );
 
         this._started = true;
         this._startPromise = undefined;
+        console.info(`[local-entities] Starting [OK] in ${Date.now() - now}ms`);
+
         // Emit event
         this.onStart.next();
-
-        console.info(`[local-entities] Starting [OK] in ${Date.now() - now}ms`);
       });
 
     return this._startPromise;
@@ -542,25 +543,40 @@ export class EntityStorage {
     if (this._debug) console.debug(`[local-entities] Restoring entities [OK] ${entitiesCount} entities found in ${Date.now() - now}ms`);
   }
 
-  protected storeLocally(): Promise<any> {
-    if (!this.dirty || this._saving) return Promise.resolve(); // skip
+  protected async storeLocally(): Promise<any> {
+    if (!this.dirty) return; // skip
+
+    // Saving progress: report this save later
+    if (this._saving) {
+      if (this._debug) console.debug("[local-entities] Previous persist not finished. Waiting...");
+      this._$save.emit();
+      return;
+    }
 
     this._saving = true;
     this._dirty = false;
-    const entityNames = Object.keys(this._stores) || [];
+    const entityNames = this._stores && Object.keys(this._stores) || [];
 
     const now = Date.now();
-    if (this._debug) console.debug("[local-entities] Saving to local storage...");
+    if (this._debug) console.debug("[local-entities] Persisting...");
 
     let currentEntityName;
     return concat(
-      ...(entityNames.slice()) // copy to enable changes in the original array (e.g. remove an item)
-        .map(entityName => {
+      ...entityNames.map(entityName => {
           return defer(() => {
             currentEntityName = entityName;
             const entityStore = this.getEntityStore(entityName, {create: false});
 
-            if (!entityStore || !entityStore.dirty) return; // Skip is not dirty
+            if (!entityStore) {
+              console.warn(`[local-entities] Persisting ${entityName}: store not found!`);
+              return;
+            }
+
+            // Skip is not dirty
+            if (!entityStore.dirty) {
+              if (this._debug) console.debug(`[local-entities] Persisting ${entityName} not need. Skip`);
+              return;
+            }
 
             return this.persistEntityStore<any>(entityStore)
               .then(count => {
@@ -571,25 +587,25 @@ export class EntityStorage {
               });
           });
         }),
-      defer(() =>  {
-        currentEntityName = undefined;
-        return isEmptyArray(entityNames) ?
-          this.storage.remove(ENTITIES_STORAGE_KEY) :
-          this.storage.set(ENTITIES_STORAGE_KEY, entityNames);
-      }),
-      defer(() =>  {
-        if (this._debug) console.debug(`[local-entities] Entities saved in local storage, in ${Date.now() - now}ms...`);
-        this._saving = false;
-      })
-    )
+        defer(() =>  {
+          currentEntityName = undefined;
+          return isEmptyArray(entityNames) ?
+            this.storage.remove(ENTITIES_STORAGE_KEY) :
+            this.storage.set(ENTITIES_STORAGE_KEY, entityNames);
+        }),
+        defer(() =>  {
+          if (this._debug) console.debug(`[local-entities] Persisting [OK] ${entityNames.length} stores saved in ${Date.now() - now}ms...`);
+          this._saving = false;
+        })
+      )
       .pipe(
         catchError(err => {
           this._saving = false;
           if (currentEntityName) {
-            console.error(`[local-entities] Error while saving entities ${currentEntityName}`, err);
+            console.error(`[local-entities] Error while persisting ${currentEntityName}`, err);
           }
           else {
-            console.error("[local-entities] Error while saving entities: " + (err && err.message || err), err);
+            console.error(`[local-entities] Error while persisting: ${err && err.message || err}`, err);
           }
           return err;
         })
@@ -600,7 +616,7 @@ export class EntityStorage {
     // Save only dirty entity storage
     entityStore.dirty = false;
     const entities = entityStore.entities.slice(); // Copy it!
-    if (this._debug) console.debug(`[local-entities] Saving ${entities.length} ${entityStore.name}(s)...`);
+    if (this._debug) console.debug(`[local-entities] Persisting ${entities.length} ${entityStore.name}(s)...`);
 
     // If no entity found
     let promise;
