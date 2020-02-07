@@ -55,6 +55,35 @@ ion-toast-controller,
   opacity: 0;
 }
 
+app-toolbar ion-title {
+  small {
+    font-weight: normal;
+    br {
+      display: none;
+      visibility: hidden;
+    }
+  }
+  // Add a separator, after the <small> part
+  small:after {
+    content: " -  ";
+  }
+}
+
+@media screen and (max-width: $screen-sm-max) {
+  app-toolbar ion-title {
+    small {
+      font-size: 10pt;
+    }
+    small br {
+      display: unset;
+      visibility: unset;
+    }
+    // Add a separator, after the <small> part
+    small:after {
+      content: "";
+    }
+  }
+}
 
 // Ionic Safe Margins
 // --------------------------------------------------
@@ -738,11 +767,9 @@ ion-item {
 // Modal
 // --------------------------------------------------
 
-.app-sub-batches-modal {
-  .modal-wrapper {
-    min-width: calc(100% - 100px);
-    min-height: calc(100% - 50px);
-  }
+.modal-large .modal-wrapper {
+  min-width: calc(100% - 100px);
+  min-height: calc(100% - 50px);
 }
 
 // --------------------------------------------------

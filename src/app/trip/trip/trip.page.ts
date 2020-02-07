@@ -14,7 +14,7 @@ import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/servic
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
-import {TripsPageSettingsEnum} from "./trips.page";
+import {TripsPageSettingsEnum} from "./trips.table";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model";
 import {TripValidatorService} from "../services/trip.validator";
@@ -37,11 +37,11 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
 
   @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
 
-  @ViewChild('physicalGearTable', { static: true }) physicalGearTable: PhysicalGearTable;
+  @ViewChild('physicalGearsTable', { static: true }) physicalGearTable: PhysicalGearTable;
 
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
 
-  @ViewChild('operationTable', { static: true }) operationTable: OperationTable;
+  @ViewChild('operationsTable', { static: true }) operationTable: OperationTable;
 
   constructor(
     injector: Injector,

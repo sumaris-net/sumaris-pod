@@ -13,7 +13,7 @@ export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
-  selector: 'table-physical-gears',
+  selector: 'app-physicalgears-table',
   templateUrl: 'physicalgears.table.html',
   styleUrls: ['physicalgears.table.scss'],
   providers: [

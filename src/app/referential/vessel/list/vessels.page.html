@@ -1,0 +1,15 @@
+<app-toolbar [title]="'VESSEL.LIST.TITLE'|translate" color="primary" (onValidate)="save() "
+             [hasValidate]="dirty && !loading"
+             [canGoBack]="false">
+</app-toolbar>
+
+<ion-content class="ion-no-padding">
+
+  <app-vessels-table #table
+                     [canEdit]="canEdit"
+                     [canDelete]="canDelete"
+                     (onOpenRow)="onOpenRow($event)"
+  ></app-vessels-table>
+
+</ion-content>
+

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import {
   AppTableDataSource,
@@ -28,20 +28,19 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
 import {DefaultStatusList} from "../../../core/services/model";
 import {debounceTime, filter, tap} from "rxjs/operators";
 import {SharedValidators} from "../../../shared/validator/validators";
+import {toBoolean} from "../../../shared/functions";
 
 @Component({
-  selector: 'page-vessels',
-  templateUrl: 'vessels.html',
-  styleUrls: ['./vessels.scss'],
+  selector: 'app-vessels-table',
+  templateUrl: 'vessels.table.html',
+  styleUrls: ['./vessels.table.scss'],
   providers: [
     { provide: ValidatorService, useClass: VesselValidatorService }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselsPage extends AppTable<Vessel, VesselFilter> implements OnInit {
+export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnInit {
 
-  canEdit: boolean;
-  canDelete: boolean;
   isAdmin: boolean;
   filterForm: FormGroup;
   filterIsEmpty = true;
@@ -49,6 +48,11 @@ export class VesselsPage extends AppTable<Vessel, VesselFilter> implements OnIni
   vesselTypes: Observable<ReferentialRef[]>;
   statusList = DefaultStatusList;
   statusById: any;
+
+  @Input() canEdit: boolean;
+  @Input() canDelete: boolean;
+  @Input() showFabButton = false;
+  @Input() showError = true;
 
   constructor(
     protected route: ActivatedRoute,
@@ -93,9 +97,9 @@ export class VesselsPage extends AppTable<Vessel, VesselFilter> implements OnIni
       'searchText': [null],
       'statusId': [null]
     });
+    this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
-    this.autoLoad = false;
 
     // Fill statusById
     this.statusById = {};
@@ -106,9 +110,9 @@ export class VesselsPage extends AppTable<Vessel, VesselFilter> implements OnIni
 
     super.ngOnInit();
 
-    this.isAdmin = this.accountService.isAdmin();
-    this.canEdit = this.isAdmin || this.accountService.isUser();
-    this.canDelete = this.isAdmin;
+    const isAdmin = this.accountService.isAdmin();
+    this.canEdit = toBoolean(this.canEdit, (isAdmin || this.accountService.isUser()));
+    this.canDelete = toBoolean(this.canDelete, isAdmin);
     if (this.debug) console.debug("[vessels-page] Can user edit table ? " + this.canEdit);
 
     // TODO fill locations
@@ -152,12 +156,6 @@ export class VesselsPage extends AppTable<Vessel, VesselFilter> implements OnIni
     return modal.present();
   }
 
-  protected async openRow(id: number, row?: TableElement<Vessel>): Promise<boolean> {
-    if (!this.allowRowDetail) return false;
-
-    return await this.router.navigateByUrl(`/referential/vessels/${row.currentData.id}` );
-  }
-
   referentialToString = referentialToString;
   statusToColor = statusToColor;
 
@@ -185,6 +183,5 @@ export class VesselsPage extends AppTable<Vessel, VesselFilter> implements OnIni
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }
 

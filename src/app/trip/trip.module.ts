@@ -1,7 +1,7 @@
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {CoreModule} from '../core/core.module';
-import {TripsPage} from './trip/trips.page';
+import {TripTable} from './trip/trips.table';
 import {TripPage} from './trip/trip.page';
 import {TripForm} from './trip/trip.form';
 import {SaleForm} from './sale/sale.form';
@@ -51,7 +51,7 @@ import {LeafletModule} from "@asymmetrik/ngx-leaflet";
 import {LandingValidatorService} from "./services/landing.validator";
 import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
-import {LandingsTablesModal} from "./landing/landings-table.modal";
+import {SelectLandingsModal} from "./landing/select-landings.modal";
 import {AuctionControlPage} from "./auctioncontrol/auction-control.page";
 import {SubBatchesModal} from "./batch/sub-batches.modal";
 import {SubBatchForm} from "./batch/sub-batch.form";
@@ -68,8 +68,9 @@ import {AggregationTypeValidatorService} from "./services/validator/aggregation-
 import {ReferentialModule} from "../referential/referential.module";
 import {SampleForm} from "./sample/sample.form";
 import {SampleModal} from "./sample/sample.modal";
+import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
 
-export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
+export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
 @NgModule({
   imports: [
@@ -78,114 +79,117 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     LeafletModule,
     ReferentialModule
   ],
-    declarations: [
-      TripsPage,
-      TripPage,
-      TripForm,
-      PhysicalGearModal,
-      SaleForm,
-      PhysicalGearForm,
-      PhysicalGearTable,
-      OperationForm,
-      OperationPage,
-      OperationTable,
-      ObservedLocationForm,
-      ObservedLocationPage,
-      ObservedLocationsPage,
-      MeasurementsForm,
-      MeasurementQVFormField,
-      MeasurementFormField,
-      CatchBatchForm,
-      LandingsTable,
-      LandingPage,
-      LandingForm,
-      LandingsTablesModal,
-      SamplesTable,
-      SubSamplesTable,
-      BatchGroupsTable,
-      BatchesTable,
-      SubBatchesTable,
-      SubBatchForm,
-      SubBatchesModal,
-      BatchForm,
-      BatchModal,
-      BatchGroupModal,
-      BatchGroupPage,
-      BatchGroupForm,
-      SubBatchModal,
-      SampleForm,
-      SampleModal,
-      IndividualMonitoringSubSamplesTable,
-      AuctionControlPage,
-      EntityQualityFormComponent
-    ],
-    exports: [
-      TripsPage,
-      TripPage,
-      TripForm,
-      PhysicalGearModal,
-      SaleForm,
-      PhysicalGearForm,
-      PhysicalGearTable,
-      OperationForm,
-      OperationPage,
-      OperationTable,
-      MeasurementsForm,
-      MeasurementQVFormField,
-      EntityQualityFormComponent,
-      LandingsTable,
-      LandingForm,
-      LandingPage,
-      LandingsTablesModal,
-      AuctionControlPage,
-      BatchForm,
-      BatchGroupPage,
-      SubBatchForm,
-      SubBatchModal,
-      SampleForm
-    ],
-    entryComponents: [
-      TripsPage,
-      TripPage,
-      PhysicalGearModal,
-      PhysicalGearTable,
-      OperationTable,
-      OperationPage,
-      ObservedLocationPage,
-      ObservedLocationsPage,
-      LandingPage,
-      LandingsTablesModal,
-      AuctionControlPage,
-      SubBatchesModal,
-      BatchModal,
-      BatchGroupModal,
-      BatchGroupPage,
-      SubBatchModal,
-      SampleModal
-    ],
-    providers: [
-      TripService,
-      TripValidatorService,
-      PhysicalGearValidatorService,
-      OperationService,
-      OperationValidatorService,
-      ObservedLocationService,
-      ObservedLocationValidatorService,
-      LandingService,
-      LandingValidatorService,
-      SaleService,
-      SaleValidatorService,
-      PositionValidatorService,
-      MeasurementsValidatorService,
-      BatchValidatorService,
-      SubBatchValidatorService,
-      BatchGroupValidatorService,
-      SpeciesBatchValidatorService,
-      SampleValidatorService,
-      SubSampleValidatorService,
-      {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
-      AggregationTypeValidatorService
-    ]
+  declarations: [
+    TripTable,
+    TripPage,
+    TripForm,
+    PhysicalGearModal,
+    SaleForm,
+    PhysicalGearForm,
+    PhysicalGearTable,
+    OperationForm,
+    OperationPage,
+    OperationTable,
+    ObservedLocationForm,
+    ObservedLocationPage,
+    ObservedLocationsPage,
+    MeasurementsForm,
+    MeasurementQVFormField,
+    MeasurementFormField,
+    CatchBatchForm,
+    LandingsTable,
+    LandingPage,
+    LandingForm,
+    SelectLandingsModal,
+    SamplesTable,
+    SubSamplesTable,
+    BatchGroupsTable,
+    BatchesTable,
+    SubBatchesTable,
+    SubBatchForm,
+    SubBatchesModal,
+    BatchForm,
+    BatchModal,
+    BatchGroupModal,
+    BatchGroupPage,
+    BatchGroupForm,
+    SubBatchModal,
+    SampleForm,
+    SampleModal,
+    IndividualMonitoringSubSamplesTable,
+    AuctionControlPage,
+    EntityQualityFormComponent,
+    SelectVesselsModal
+  ],
+  exports: [
+    TripTable,
+    TripPage,
+    TripForm,
+    PhysicalGearModal,
+    SaleForm,
+    PhysicalGearForm,
+    PhysicalGearTable,
+    OperationForm,
+    OperationPage,
+    OperationTable,
+    MeasurementsForm,
+    MeasurementQVFormField,
+    EntityQualityFormComponent,
+    LandingsTable,
+    LandingForm,
+    LandingPage,
+    SelectLandingsModal,
+    SelectVesselsModal,
+    AuctionControlPage,
+    BatchForm,
+    BatchGroupPage,
+    SubBatchForm,
+    SubBatchModal,
+    SampleForm
+  ],
+  entryComponents: [
+    TripTable,
+    TripPage,
+    PhysicalGearModal,
+    PhysicalGearTable,
+    OperationTable,
+    OperationPage,
+    ObservedLocationPage,
+    ObservedLocationsPage,
+    LandingPage,
+    SelectLandingsModal,
+    AuctionControlPage,
+    SubBatchesModal,
+    BatchModal,
+    BatchGroupModal,
+    BatchGroupPage,
+    SubBatchModal,
+    SampleModal,
+    SelectVesselsModal
+  ],
+  providers: [
+    TripService,
+    TripValidatorService,
+    PhysicalGearValidatorService,
+    OperationService,
+    OperationValidatorService,
+    ObservedLocationService,
+    ObservedLocationValidatorService,
+    LandingService,
+    LandingValidatorService,
+    SaleService,
+    SaleValidatorService,
+    PositionValidatorService,
+    MeasurementsValidatorService,
+    BatchValidatorService,
+    SubBatchValidatorService,
+    BatchGroupValidatorService,
+    SpeciesBatchValidatorService,
+    SampleValidatorService,
+    SubSampleValidatorService,
+    {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
+    AggregationTypeValidatorService
+  ]
 })
 export class TripModule {
 

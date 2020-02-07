@@ -329,7 +329,7 @@
       "ACCESS_OPERATIONS_HELP": "Veuillez <b>sauvegarder la marée</b>, afin de pouvoir accéder à la saisie des opérations"
     },
     "EDIT": {
-      "TITLE": "{{vessel}} - Marée du {{departureDateTime}}",
+      "TITLE": "<small>{{vessel}}<br></small>Marée du {{departureDateTime}}",
       "OTHER_FEATURES": "Caractéristiques :"
     },
     "TABLE": {
@@ -392,12 +392,13 @@
     },
     "OPERATION": {
       "COMMENTS": "Commentaires",
+      "TITLE_PREFIX": "<small>{{vessel}} - Marée {{departureDateTime}}<br></small>",
       "NEW": {
         "TITLE": "Nouvelle opération"
       },
       "EDIT": {
+        "TITLE": "Ope {{startDateTime}}",
         "BTN_DUPLICATE_POSITION": "Dupliquer la position en fin de pêche",
-        "TITLE": "<small class='hidden-xs hidden-sm'>{{vessel}} - Marée {{departureDateTime}} - </small>Ope {{startDateTime}}",
         "TAB_GENERAL": "Détails",
         "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
         "TAB_CATCH": "Capture",
@@ -507,7 +508,8 @@
         "TITLE": "Nouvel échantillon"
       },
       "EDIT": {
-        "TITLE": "Echantillon {{label}}"
+        "TITLE": "Echantillon {{label}}",
+        "TAXON_GROUP": "Espèce commerciale (FAO)"
       },
       "TABLE": {
         "LABEL": "Lot",
@@ -577,6 +579,11 @@
       "TITLE": "{{location}} - {{dateTime}}",
       "OTHER_FEATURES": "Caractéristiques :"
     },
+    "SELECT_VESSEL_MODAL": {
+      "TITLE": "Ajout d'un navire",
+      "TAB_VESSELS": "Recherche",
+      "TAB_LANDINGS": "Navires déjà observés"
+    },
     "TABLE": {
       "TITLE": "Contrôles en criée",
       "PROGRAM": "Programme",
@@ -614,10 +621,10 @@
     "OBSERVERS": "Observateurs :",
     "OBSERVER_PLACEHOLDER": "Observateur #",
     "NEW": {
-      "TITLE": "Nouveau navire observé"
+      "TITLE": "Nouveau debarquement"
     },
     "EDIT": {
-      "TITLE": "Contrôle {{vessel}}",
+      "TITLE": "Débarquement {{vessel}}",
       "OTHER_FEATURES": "Autres caractéristiques :"
     },
     "TABLE": {
@@ -639,6 +646,13 @@
     }
   },
   "AUCTION_CONTROL": {
+    "TITLE_PREFIX": "<small>Contrôle criée {{location}} {{date}}<br/></small>",
+    "NEW": {
+      "TITLE": "Nouveau navire contrôlé"
+    },
+    "EDIT": {
+      "TITLE": "{{vessel}}"
+    },
     "TAB_SAMPLES": "Points de contrôle",
     "TAXON_GROUP_PLACEHOLDER": "Espèce controllée",
     "SAMPLE": {

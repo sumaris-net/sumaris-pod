@@ -1,8 +1,8 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {fadeInOutAnimation, isNil} from '../../shared/shared.module';
+import {fadeInOutAnimation, isNil, isNotEmptyArray} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
-import {EntityUtils, Landing, ObservedLocation} from "../services/trip.model";
+import {EntityUtils, Landing, ObservedLocation, VesselSnapshot} from "../services/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
 import {LandingEditor, ProgramProperties} from "../../referential/services/model";
@@ -10,9 +10,10 @@ import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {ModalController} from "@ionic/angular";
-import {LandingsTablesModal} from "../landing/landings-table.modal";
+import {SelectLandingsModal} from "../landing/select-landings.modal";
 import {environment} from "../../core/core.module";
 import {HistoryPageReference} from "../../core/services/model";
+import {SelectVesselsModal} from "./vessels/select-vessel.modal";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -146,10 +147,10 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
       this.markForCheck();
 
       try {
-        const landing = await this.openVesselSelectionModal();
-        if (landing && landing.vesselSnapshot) {
+        const vessel = await this.openSelectVesselModal();
+        if (vessel) {
           const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
-          await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselSnapshot.id}&rankOrder=${rankOrder}`);
+          await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
         }
       } finally {
         this.loading = false;
@@ -160,18 +161,22 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
 
   /* -- protected methods -- */
 
-  async openVesselSelectionModal(): Promise<Landing | undefined> {
+  async openSelectVesselModal(): Promise<VesselSnapshot | undefined> {
+
     const modal = await this.modalCtrl.create({
-      component: LandingsTablesModal, componentProps: {
-        program: this.data.program && this.data.program.label,
-        acquisitionLevel: this.landingsTable.acquisitionLevel,
-        filter: {
+      component: SelectVesselsModal,
+      componentProps: {
+        allowMultiple: false,
+        landingFilter: {
+          acquisitionLevel: this.landingsTable.acquisitionLevel,
           programLabel: this.data.program && this.data.program.label,
           startDate: moment(this.data.startDateTime).subtract(15, "days"),
           endDate: moment(this.data.startDateTime).add(1, "days"),
           locationId: EntityUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined
         }
-      }, keyboardClose: true
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
     });
 
     // Open the modal
@@ -180,12 +185,17 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
     // Wait until closed
     const res = await modal.onDidDismiss();
 
-    // If new vessel added, use it
-    if (res && res.data instanceof Landing) {
-      console.debug("[observed-location] Vessel selection modal result:", res.data);
-      return res.data as Landing;
-    } else {
-      console.debug("[observed-location] No vessel added (user cancelled)");
+    // If modal return a landing, use it
+    let data = res && res.data && res.data[0];
+    if (data instanceof Landing) {
+      console.debug("[observed-location] Vessel selection modal result:", data);
+      data = (data as Landing).vesselSnapshot;
+    }
+    if (data instanceof VesselSnapshot) {
+      console.debug("[observed-location] Vessel selection modal result:", data);
+      return data as VesselSnapshot;
+    }else {
+      console.debug("[observed-location] Vessel selection modal was cancelled");
     }
   }
 

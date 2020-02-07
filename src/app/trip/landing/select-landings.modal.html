@@ -27,14 +27,14 @@
     <ion-label color="danger" class="error" [innerHTML]="table.error|translate"></ion-label>
   </ion-item>
 
-  <app-landing-table #table
+  <app-landings-table #table
                      [showObserversColumn]="false"
                      [showDateTimeColumn]="true"
                      [canEdit]="false"
                      [canDelete]="false"
                      (onOpenRow)="selectRow($event)"
                      (onNewRow)="close($event)"
-  ></app-landing-table>
+  ></app-landings-table>
 
   <!-- buttons -->
   <ion-toolbar class="toolbar-buttons hidden-xs hidden-sm">

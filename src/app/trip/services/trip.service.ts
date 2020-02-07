@@ -44,7 +44,7 @@ import {FormErrors} from "../../core/form/form.utils";
 import {ValidatorService} from "angular4-material-table";
 import {LandingValidatorService} from "./landing.validator";
 import {DataRootEntityValidatorService} from "./validator/base.validator";
-import {ProgramProperties} from "../../referential/services/model";
+import {AcquisitionLevelType, ProgramProperties} from "../../referential/services/model";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -233,6 +233,7 @@ export class TripFilter {
   endDate?: Date | Moment;
   recorderDepartmentId?: number;
   synchronizationStatus?: SynchronizationStatus;
+  acquisitionLevel?: AcquisitionLevelType;
 }
 
 const LoadAllQuery: any = gql`

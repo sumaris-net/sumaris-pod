@@ -1,6 +1,13 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {EntityUtils, isNotNil, LocationLevelIds, PmfmIds} from "../../referential/services/model";
+import {
+  EntityUtils,
+  isNil,
+  isNotNil,
+  LocationLevelIds,
+  PmfmIds, referentialToString,
+  vesselSnapshotToString
+} from "../../referential/services/model";
 import {LandingPage} from "../landing/landing.page";
 import {LandingValidatorService} from "../services/landing.validator";
 import {debounceTime, filter, map, mergeMap, startWith, switchMap} from "rxjs/operators";
@@ -11,6 +18,7 @@ import {ModalController} from "@ionic/angular";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {fadeInOutAnimation} from "../../shared/shared.module";
 import {HistoryPageReference} from "../../core/services/model";
+import {ObservedLocation} from "../services/model/observed-location.model";
 
 @Component({
   selector: 'app-auction-control',
@@ -183,4 +191,21 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     await super.setValue(data);
   }
 
+  protected async computeTitle(data: Landing): Promise<string> {
+    const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
+      await this.translate.get('AUCTION_CONTROL.TITLE_PREFIX', {
+        location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
+        date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
+      }).toPromise() || '';
+
+    // new data
+    if (!data || (isNil(data.id) && EntityUtils.isEmpty(data.vesselSnapshot))) {
+      return titlePrefix + (await this.translate.get('AUCTION_CONTROL.NEW.TITLE').toPromise());
+    }
+
+    // Existing data
+    return titlePrefix + (await this.translate.get('AUCTION_CONTROL.EDIT.TITLE', {
+      vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name)
+    }).toPromise());
+  }
 }

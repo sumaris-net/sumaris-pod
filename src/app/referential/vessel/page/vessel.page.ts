@@ -1,24 +1,19 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 import {VesselService} from '../../services/vessel-service';
 import {VesselForm} from '../form/form-vessel';
-import {fromDateISOString, isNotNil, toDateISOString, Vessel} from '../../services/model';
+import {Vessel} from '../../services/model';
 import {AccountService} from "../../../core/services/account.service";
 import {AppEditorPage} from "../../../core/form/editor-page.class";
-import {AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
+import {FormGroup, Validators} from "@angular/forms";
 import {DateFormatPipe, EditorDataServiceLoadOptions} from "../../../shared/shared.module";
 import * as moment from "moment";
 import {VesselFeaturesHistoryComponent} from "./vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel-registration-history.component";
 import {SharedValidators} from "../../../shared/validator/validators";
-import {Moment} from "moment";
-import {control} from "leaflet";
-import {DateAdapter} from "@angular/material";
-import {TranslateService} from "@ngx-translate/core";
-import {AppFormUtils} from "../../../core/form/form.utils";
 
 @Component({
-  selector: 'page-vessel',
-  templateUrl: './page-vessel.html',
+  selector: 'app-vessel-page',
+  templateUrl: './vessel.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterViewInit {

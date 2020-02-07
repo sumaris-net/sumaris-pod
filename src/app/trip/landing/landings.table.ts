@@ -20,7 +20,7 @@ export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'dateTime', '
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
-  selector: 'app-landing-table',
+  selector: 'app-landings-table',
   templateUrl: 'landings.table.html',
   providers: [
     {provide: ValidatorService, useExisting: LandingValidatorService}
@@ -35,6 +35,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   @Input() canEdit = true;
   @Input() canDelete = true;
   @Input() showFabButton = false;
+  @Input() showError = true;
 
   @Input()
   set showObserversColumn(value: boolean) {
@@ -73,7 +74,6 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
-    this._enable = this.canEdit;
     this.pageSize = 1000; // Do not use paginator
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
 
@@ -85,6 +85,9 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   }
 
   ngOnInit() {
+
+    this._enable = this.canEdit;
+
     super.ngOnInit();
 
     this.registerAutocompleteField('vesselSnapshot', {
@@ -106,6 +109,9 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     }
   }
 
+  /**
+   * Publish the existing protected method (need by observed location page)
+   */
   async getMaxRankOrder(): Promise<number> {
     return super.getMaxRankOrder();
   }

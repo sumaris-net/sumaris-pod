@@ -322,7 +322,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
         onNewParentClick: onNewParentClick
       },
       keyboardClose: true,
-      cssClass: 'app-sub-batches-modal'
+      cssClass: 'modal-large'
     });
 
     // Open the modal

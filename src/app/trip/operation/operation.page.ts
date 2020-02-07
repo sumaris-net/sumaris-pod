@@ -383,19 +383,21 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
    */
   protected async computeTitle(data: Operation): Promise<string> {
 
+    // Trip exists
+    const titlePrefix = this.trip && (await this.translate.get('TRIP.OPERATION.TITLE_PREFIX', {
+      vessel: this.trip && this.trip.vesselSnapshot && (this.trip.vesselSnapshot.exteriorMarking || this.trip.vesselSnapshot.name) || '',
+      departureDateTime: this.trip && this.trip.departureDateTime && this.dateFormat.transform(this.trip.departureDateTime) as string || ''
+    }).toPromise()) || '';
+
     // new ope
     if (!data || isNil(data.id)) {
-      return await this.translate.get('TRIP.OPERATION.NEW.TITLE').toPromise();
+      return titlePrefix + (await this.translate.get('TRIP.OPERATION.NEW.TITLE').toPromise());
     }
 
-    // Existing ope
-    const title = (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
-      vessel: this.trip && this.trip.vesselSnapshot && (this.trip.vesselSnapshot.exteriorMarking || this.trip.vesselSnapshot.name) || '',
-      departureDateTime: this.trip && this.trip.departureDateTime && this.dateFormat.transform(this.trip.departureDateTime) as string || '',
+    // Existing operation
+    return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
       startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string
     }).toPromise()) as string;
-
-    return title;
   }
 
   async onSubBatchesChanges(subbatches: Batch[]) {

@@ -51,7 +51,6 @@ import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 
 @Component({
   selector: 'app-sub-batch-form',
-  styleUrls: ['sub-batch.form.scss'],
   templateUrl: 'sub-batch.form.html',
   providers: [
     {provide: ValidatorService, useExisting: SubBatchValidatorService}

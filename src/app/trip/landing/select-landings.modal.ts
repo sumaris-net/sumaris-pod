@@ -2,16 +2,15 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Vi
 import {LandingsTable} from "./landings.table";
 import {ModalController} from "@ionic/angular";
 import {LandingFilter} from "../services/landing.service";
-import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model";
+import {AcquisitionLevelCodes, AcquisitionLevelType, isNotNil} from "../../referential/services/model";
 import {Landing} from "../services/trip.model";
 
 @Component({
-  selector: 'app-landings-table-modal',
-  templateUrl: './landings-table.modal.html',
-  //styleUrls: ['./landings-table.modal.scss'],
+  selector: 'app-select-landings-modal',
+  templateUrl: './select-landings.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandingsTablesModal implements OnInit {
+export class SelectLandingsModal implements OnInit {
 
   @ViewChild('table', { static: true }) table: LandingsTable;
 
@@ -49,8 +48,11 @@ export class LandingsTablesModal implements OnInit {
   async close(event?: any): Promise<boolean> {
     try {
       if (this.hasSelection()) {
-        const json = this.table.selection.selected[0].currentData;
-        this.viewCtrl.dismiss(Landing.fromObject(json));
+        const landings = (this.table.selection.selected || [])
+          .map(row => row.currentData)
+          .map(Landing.fromObject)
+          .filter(isNotNil);
+        this.viewCtrl.dismiss(landings);
       }
       return true;
     } catch (err) {

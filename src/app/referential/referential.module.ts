@@ -8,8 +8,8 @@ import {ReferentialService} from './services/referential.service';
 import {ReferentialValidatorService} from './services/referential.validator';
 import {ProgramService} from './services/program.service';
 import {VesselForm} from "./vessel/form/form-vessel";
-import {VesselPage} from "./vessel/page/page-vessel";
-import {VesselsPage} from "./vessel/list/vessels";
+import {VesselPage} from "./vessel/page/vessel.page";
+import {VesselsTable} from "./vessel/list/vessels.table";
 import {VesselModal} from "./vessel/modal/modal-vessel";
 import {ReferentialsPage} from './list/referentials';
 import {
@@ -51,6 +51,7 @@ import {VesselFeaturesValidatorService} from "./services/vessel-features.validat
 import {VesselRegistrationValidatorService} from "./services/vessel-registration.validator";
 import {SoftwareValidatorService} from "./services/software.validator";
 import {SoftwareService} from "./services/software.service";
+import {VesselsPage} from "./vessel/list/vessels.page";
 
 export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
@@ -70,8 +71,9 @@ export {
   declarations: [
     ReferentialsPage,
     ReferentialForm,
-    VesselsPage,
+    VesselsTable,
     VesselPage,
+    VesselsPage,
     VesselForm,
     VesselModal,
     ProgramPage,
@@ -83,11 +85,12 @@ export {
   exports: [
     ReferentialsPage,
     ReferentialForm,
-    VesselsPage,
+    VesselsTable,
     VesselPage,
     VesselForm,
     ProgramPage,
-    SoftwarePage
+    SoftwarePage,
+    VesselsPage
   ],
   entryComponents: [
     VesselModal

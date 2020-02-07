@@ -19,7 +19,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 
 @Component({
-  selector: 'app-operation-table',
+  selector: 'app-operations-table',
   templateUrl: 'operations.table.html',
   styleUrls: ['operations.table.scss'],
   providers: [

@@ -37,15 +37,15 @@ export const TripsPageSettingsEnum = {
 };
 
 @Component({
-  selector: 'app-trips-page',
-  templateUrl: 'trips.page.html',
-  styleUrls: ['./trips.page.scss'],
+  selector: 'app-trips-table',
+  templateUrl: 'trips.table.html',
+  styleUrls: ['./trips.table.scss'],
   providers: [
     {provide: ValidatorService, useExisting: TripValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
+export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
   canEdit: boolean;
   canDelete: boolean;

@@ -20,9 +20,9 @@
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="landingForm.error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="landingForm.error||error" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+        <ion-label color="danger" class="error" [innerHTML]="(landingForm.error||error) | translate"></ion-label>
       </ion-item>
 
       <ion-grid class="ion-no-padding">
@@ -39,8 +39,7 @@
           </ion-col>
           <ion-col class="ion-no-padding" size="12" size-xl="3">
             <entity-metadata [value]="data">
-              <app-entity-quality-form #qualityForm
-                                       [editor]="this">
+              <app-entity-quality-form [editor]="this">
               </app-entity-quality-form>
             </entity-metadata>
           </ion-col>
@@ -62,12 +61,18 @@
 
         <form [formGroup]="landingForm.form" class="form-container ion-padding">
 
-          <!-- pmfms -->
-          <mat-form-field-measurement *ngFor="let pmfm of landingForm.$pmfms | async; index as i;"
-                                      [pmfm]="pmfm"
-                                      [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
-                                      [tabindex]="50 + i*2">
-          </mat-form-field-measurement>
+          <ion-grid class="ion-no-padding">
+            <ion-row class="ion-no-padding">
+              <!-- pmfms -->
+              <ion-col *ngFor="let pmfm of landingForm.$pmfms | async; index as i;"
+                  size="12" size-md="6">
+                <mat-form-field-measurement [pmfm]="pmfm"
+                                            [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                            [tabindex]="50 + i*2">
+                </mat-form-field-measurement>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
         </form>
 
         <!-- error -->
@@ -111,7 +116,7 @@
 
 
 <ion-fab slot="fixed" vertical="bottom" horizontal="end"
-         *ngIf="selectedTabIndex === 1" @fadeInOutAnimation
+         *ngIf="selectedTabIndex === 1 && samplesTable.defaultTaxonGroup" @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>

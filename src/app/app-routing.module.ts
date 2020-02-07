@@ -3,10 +3,10 @@ import {ActivatedRouteSnapshot, ExtraOptions, RouteReuseStrategy, RouterModule, 
 import {HomePage} from './core/home/home';
 import {RegisterConfirmPage} from './core/register/confirm/confirm';
 import {AccountPage} from './core/account/account';
-import {VesselsPage} from './referential/vessel/list/vessels';
-import {VesselPage} from './referential/vessel/page/page-vessel';
+import {VesselsTable} from './referential/vessel/list/vessels.table';
+import {VesselPage} from './referential/vessel/page/vessel.page';
 import {ReferentialsPage} from './referential/list/referentials';
-import {TripPage, TripsPage} from './trip/trip.module';
+import {TripPage, TripTable} from './trip/trip.module';
 import {OperationPage} from './trip/operation/operation.page';
 import {SoftwarePage} from './referential/software/software.page';
 import {ObservedLocationPage} from "./trip/observedlocation/observed-location.page";
@@ -19,6 +19,7 @@ import {IonicRouteStrategy} from "@ionic/angular";
 import {ProgramPage} from "./referential/program/program.page";
 import {BatchGroupPage} from "./trip/batch/batch-group.page";
 import {AuthGuardService} from "./core/services/auth-guard.service";
+import {VesselsPage} from "./referential/vessel/list/vessels.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -137,7 +138,7 @@ const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        component: TripsPage
+        component: TripTable
       },
       {
         path: ':tripId',
