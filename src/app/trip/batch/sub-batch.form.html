@@ -1,4 +1,4 @@
-<form class="form-container" [formGroup]="form">
+<form class="form-container" [formGroup]="form" >
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
@@ -183,7 +183,8 @@
                     [fill]="invalid ? 'clear' : 'solid'"
                     [disabled]="loading || invalid"
                     (click)="doSubmit($event)"
-                    (keyup.enter)="doSubmit($event)">
+                    (keyup.enter)="doSubmit($event)"
+                    [tabindex]="tabindex + 101">
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_APPLY</ion-label>
         </ion-button>

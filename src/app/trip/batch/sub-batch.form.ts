@@ -13,7 +13,7 @@ import {
 import {ValidatorService} from "angular4-material-table";
 import {Batch} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {DateAdapter} from "@angular/material";
+import {DateAdapter, MatSelect} from "@angular/material";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/forms";
@@ -137,6 +137,10 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   get enableIndividualCount(): boolean {
     return this.enableIndividualCountControl.value;
+  }
+
+  get parent(): any {
+    return this.form.get('parent').value;
   }
 
   @ViewChildren(MeasurementFormField) measurementFormFields: QueryList<MeasurementFormField>;
@@ -311,15 +315,11 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   focusFirstEmpty(event?: UIEvent) {
     // Focus to first input
     this.matInputs
-      .map((input, index) => {
-        if (this.showParent && index === 0) return; // Skip parent
-        if (isInputElement(input)) {
-          return input;
-        } else if (isInputElement(input.nativeElement)) {
-          return input.nativeElement;
-        }
-        return undefined;
-      })
+        // Transform to input
+      .map(element => isInputElement(element) ? element : (isInputElement(element.nativeElement) ? element.nativeElement : undefined))
+        // Exclude parent field, if not empty
+      .filter((input, index) => !(index === 0 && this.showParent && EntityUtils.isNotEmpty(this.parent)))
+        // Exclude nil value
       .filter(input => isNotNil(input) && isNilOrBlank(input.value)
         // Exclude QV with buttons
         && !(this.mobile && input instanceof MeasurementQVFormField))

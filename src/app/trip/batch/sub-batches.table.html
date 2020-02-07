@@ -216,7 +216,7 @@
     </ion-col>
 
     <!-- form -->
-    <ion-col size="12" size-md="3" [hidden]="!showForm" cdkTrapFocus class="ion-padding">
+    <ion-col size="12" size-md="3" [hidden]="!showForm" class="ion-padding">
       <ion-label color="primary" class="ion-padding-bottom">
         <span translate>TRIP.BATCH.EDIT.INDIVIDUAL.BURST_FORM_TITLE</span>
       </ion-label>
@@ -234,12 +234,21 @@
                           (onSubmit)="doSubmitForm($event)"
                           [tabindex]="tabindex">
 
-        <!-- Close form button -->
+        <!-- Reset form button -->
+        <ion-button endButton class="ion-float-end"
+                    fill="clear" color="dark"
+                    (click)="resetForm()"
+                    tabindex="-1">
+          <ion-icon slot="start" name="refresh"></ion-icon>
+          {{'COMMON.BTN_RESET_SHORT'|translate}}
+        </ion-button>
+
+        <!-- Close form button
         <ion-button endButton class="ion-float-end"
                     fill="clear" color="dark"
                     (click)="toggleForm()"
                     tabindex="-1">{{'COMMON.BTN_CLOSE'|translate}}
-        </ion-button>
+        </ion-button>-->
 
       </app-sub-batch-form>
     </ion-col>

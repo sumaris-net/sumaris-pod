@@ -184,12 +184,13 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }
 
 
-  markAsPristine(opts?: {onlySelf?: boolean}) {
-    AppFormUtils.markAsPristine(this.form, opts);
+  markAsPristine(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    this.form.markAsPristine(opts);
+    AppFormUtils.updateValueAndValidity(this.form, opts);
     this.markForCheck();
   }
 
-  markAsUntouched(opts?: {onlySelf?: boolean}) {
+  markAsUntouched(opts?: {onlySelf?: boolean; }) {
     this.form.markAsUntouched(opts);
     this.markForCheck();
   }
@@ -203,6 +204,14 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     onlySelf?: boolean;
   }) {
     this.form.markAsDirty(opts);
+    this.markForCheck();
+  }
+
+  updateValueAndValidity(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }) {
+    AppFormUtils.updateValueAndValidity(this.form, opts);
     this.markForCheck();
   }
 

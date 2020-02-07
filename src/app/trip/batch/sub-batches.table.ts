@@ -270,10 +270,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     const subBatch = this.form.form.value;
     subBatch.individualCount = isNotNil(subBatch.individualCount) ? subBatch.individualCount : 1;
 
-    await this.resetForm(subBatch, {focusFirstEmpty:
-      /* FIXME =!this.mobile ? + une condition si une seule valeur ? */
-        true
-    });
+    await this.resetForm(subBatch, {focusFirstEmpty: true});
 
     // Add batch to table
     if (!row) {
@@ -366,14 +363,19 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     // Reset the form with the new batch
     MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.$pmfms.getValue(), this.form.form);
     this.form.reset(newBatch, {emitEvent: true, normalizeEntityToForm: false /*already done*/});
+    this.form.markAsPristine({onlySelf: true});
+    this.form.markAsUntouched({onlySelf: true});
 
     // If need, enable the form
     if (this.form.disabled) {
-      this.form.enable();
+      this.form.enable(opts);
     }
 
     if (opts && toBoolean(opts.focusFirstEmpty, false)) {
       setTimeout(() => this.form.focusFirstEmpty());
+    }
+    if (!opts || opts.emitEvent !== false) {
+      this.markForCheck();
     }
   }
 

@@ -160,18 +160,14 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
 
     // Adapt measurement values to form (if not skip)
-    //if (!opts || opts.normalizeEntityToForm !== false) {
+    if (!opts || opts.normalizeEntityToForm !== false) {
       MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
-    //}
+    }
 
     super.reset(data, opts);
 
     // Restore form status
     this.restoreFormStatus({onlySelf: true, emitEvent: opts && opts.emitEvent});
-    // // Reuse safeSetValue, to avoid code duplication
-    // this.safeSetValue(data, opts)
-    //   // Then mark the form as pristine
-    //   .then(() => this.markAsPristine());
   }
 
   isReady(): boolean {

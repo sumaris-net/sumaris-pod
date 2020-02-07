@@ -37,9 +37,8 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
       });
       // Link to children
       batches.forEach(s => s.children = batches.filter(p => p.parent && p.parent === s) || []);
-      if (catchBatch.children && catchBatch.children.length) {
-        //console.log("TODO: not need to reset children of catch batch ?", this.catchBatch);
-      } else {
+      // Fill catch children
+      if (!catchBatch.children || !catchBatch.children.length) {
         catchBatch.children = batches.filter(b => b.parent === catchBatch);
       }
     }

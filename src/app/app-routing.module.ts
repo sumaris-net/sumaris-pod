@@ -277,10 +277,10 @@ const routes: Routes = [
 export class CustomReuseStrategy extends IonicRouteStrategy {
 
   shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {
-    const res = super.shouldReuseRoute(future, curr);
+    const result = super.shouldReuseRoute(future, curr);
 
-    // Reuse the route if path change from [/new] -> [/:id]
-    if (!res && future.routeConfig && future.routeConfig === curr.routeConfig) {
+    // Force to reuse the route if path change from [/new] -> [/:id]
+    if (!result && future.routeConfig && future.routeConfig === curr.routeConfig) {
       const pathIdParam = future.routeConfig.data && future.routeConfig.data.pathIdParam || 'id';
       const futureId = future.params[pathIdParam] === 'new' ?
         (future.queryParams[pathIdParam] || future.queryParams['id']) : future.params[pathIdParam];
@@ -288,7 +288,8 @@ export class CustomReuseStrategy extends IonicRouteStrategy {
         (curr.queryParams[pathIdParam] || curr.queryParams['id']) : curr.params[pathIdParam];
       return futureId === currId;
     }
-    return res;
+
+    return result;
   }
 }
 

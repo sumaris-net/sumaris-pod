@@ -5,6 +5,7 @@
     "BTN_OK": "Ok",
     "BTN_ABORT_CHANGES": "Abandonner les modifications",
     "BTN_RESET": "Réinitialiser",
+    "BTN_RESET_SHORT": "RAZ",
     "BTN_ADD": "Ajouter",
     "BTN_APPLY": "Appliquer",
     "BTN_EDIT": "Modifier",
