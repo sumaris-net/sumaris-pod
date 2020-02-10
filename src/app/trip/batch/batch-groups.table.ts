@@ -194,8 +194,8 @@ export class BatchGroupsTable extends BatchesTable {
     measurementValues[i++] = isNotNil(data.individualCount) ? data.individualCount : null;
 
     // Sampling batch
-    if (data.children && data.children.length === 1) {
-      const samplingChild = data.children[0];
+    const samplingChild = BatchUtils.getSamplingChild(data);
+    if (samplingChild) {
       // Column: sampling ratio
       measurementValues[i++] = isNotNil(samplingChild.samplingRatio) ? samplingChild.samplingRatio * 100 : null;
 
