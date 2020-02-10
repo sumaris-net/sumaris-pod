@@ -338,7 +338,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   protected async scrollToTop() {
     // TODO: FIXME (not working as the page is not the window)
     const scrollToTop = window.setInterval(() => {
-      let pos = window.pageYOffset;
+      const pos = window.pageYOffset;
       if (pos > 0) {
         window.scrollTo(0, pos - 20); // how far to scroll on each step
       } else {

@@ -121,7 +121,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     );
 
     // Apply data to table
-    this.value = data;
+    this.setValue(data);
   }
 
   async cancel(event?: UIEvent) {
@@ -307,11 +307,13 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     // Selection the row (this will apply CSS class mat-row-selected)
     this.selection.select(row);
-
+    this.markForCheck();
 
     setTimeout(() => {
       // If row is still selected: unselect it
-      if (this.selection.isSelected(row)) this.selection.toggle(row);
+      if (this.selection.isSelected(row)) {
+        this.selection.toggle(row);
+      }
       this.markForCheck();
     }, 1500);
   }

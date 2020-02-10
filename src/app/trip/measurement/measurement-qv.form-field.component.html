@@ -137,6 +137,9 @@
     <ng-template #disabledLabel>
       <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
     </ng-template>
+
+    <ng-content matSuffix select="[matSuffix]"></ng-content>
+
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   </mat-form-field>
 </ng-container>

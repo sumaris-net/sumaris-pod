@@ -58,6 +58,7 @@
                    *ngIf="!mobile"
                    [formControl]="freezeQvPmfmControl"
                    [title]="'COMMON.BTN_FREEZE_VALUE_HELP'|translate"
+                   (click)="$event.stopPropagation()"
                    tabindex="-1">
       <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
     </mat-checkbox>
@@ -71,9 +72,11 @@
                             [config]="autocompleteFields.taxonName"
                             [tabindex]="tabindex+2"
                             [required]="true">
-      <!-- checkbox to freeze -->
-      <mat-checkbox  matSuffix [formControl]="freezeTaxonNameControl"
+      <!-- checkbox to freeze value -->
+      <mat-checkbox  matSuffix
+                     [formControl]="freezeTaxonNameControl"
                      [title]="'COMMON.BTN_FREEZE_VALUE_HELP'|translate"
+                     (click)="$event.stopPropagation()"
                      tabindex="-1">
         <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
       </mat-checkbox>
@@ -100,6 +103,23 @@
                           [tabindex]="tabindex + 3 + i">
                 {{item.name || item.label}}
               </ion-button>
+            </ion-col>
+            <ion-col size="1" class="ion-no-padding">
+              <!-- Options menu -->
+              <button mat-icon-button matSuffix
+                      [title]="'COMMON.OPTIONS'|translate"
+                      [matMenuTriggerFor]="taxonNameMenu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+
+              <!-- Freeze QV or taxon name menu -->
+              <mat-menu #taxonNameMenu="matMenu" xPosition="before">
+                <button mat-menu-item (click)="freezeTaxonName=!freezeTaxonName">
+                  <mat-icon *ngIf="freezeTaxonName">check_box</mat-icon>
+                  <mat-icon *ngIf="!freezeTaxonName">check_box_outline_blank</mat-icon>
+                  <ion-label translate>COMMON.BTN_FREEZE_VALUE</ion-label>
+                </button>
+              </mat-menu>
             </ion-col>
           </ion-row>
         </ion-grid>

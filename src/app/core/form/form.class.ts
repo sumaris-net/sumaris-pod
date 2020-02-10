@@ -186,7 +186,6 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   markAsPristine(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
     this.form.markAsPristine(opts);
-    AppFormUtils.updateValueAndValidity(this.form, opts);
     this.markForCheck();
   }
 

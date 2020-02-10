@@ -316,7 +316,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       taxonNameAttributes: taxonNameAttributes
     };
     if (this.showTaxonNameColumn) {
-      this.autocompleteFields.parent.attributes = taxonGroupAttributes.map(attr => 'taxonGroup.' + attr);
+      this.autocompleteFields.parent.attributes = ['rankOrder'].concat(taxonGroupAttributes.map(attr => 'taxonGroup.' + attr));
     }
     else {
       this.autocompleteFields.parent.attributes = ['taxonGroup.' + taxonGroupAttributes[0]]
@@ -367,9 +367,6 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     // Reset the form with the new batch
     MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.$pmfms.getValue(), this.form.form);
     this.form.reset(newBatch, {emitEvent: true, normalizeEntityToForm: false /*already done*/});
-    this.form.markAsPristine({onlySelf: true});
-    this.form.markAsUntouched({onlySelf: true});
-    this.form.updateValueAndValidity({onlySelf: true});
 
     // If need, enable the form
     if (this.form.disabled) {
@@ -377,8 +374,17 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     }
 
     if (opts && toBoolean(opts.focusFirstEmpty, false)) {
-      setTimeout(() => this.form.focusFirstEmpty());
+      setTimeout(() => {
+        this.form.focusFirstEmpty();
+        this.form.markAsPristine({onlySelf: true});
+        this.form.markAsUntouched({onlySelf: true});
+      });
     }
+    else {
+      this.form.markAsPristine({onlySelf: true});
+      this.form.markAsUntouched({onlySelf: true});
+    }
+
     if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
     }

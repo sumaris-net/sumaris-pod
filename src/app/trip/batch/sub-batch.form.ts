@@ -146,6 +146,9 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   @Input() set freezeTaxonName(value: boolean) {
     this.freezeTaxonNameControl.setValue(value);
+    if (!value) {
+      this.form.get('taxonName').reset(null);
+    }
   }
 
   get freezeQvPmfm(): boolean {
@@ -154,6 +157,9 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   @Input() set freezeQvPmfm(value: boolean) {
     this.freezeQvPmfmControl.setValue(value);
+    if (!value) {
+      this.form.get('measurements.' + this.qvPmfm.pmfmId).reset(null);
+    }
   }
 
   get parent(): any {
@@ -282,28 +288,36 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
                 this.markForCheck();
               }
             }));
-      })
+      });
     }
 
     // Desktop
     else {
       this.registerAutocompleteField('taxonName', {
-        suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
+        items: this.$taxonNames.asObservable(),
         showAllOnFocus: true
       });
 
       // Reset taxon name combo when parent changed
       this.registerSubscription(
         parentControl.valueChanges
-          .pipe(debounceTime(250))
           .pipe(
             // Warn: skip the first trigger (ignore set value)
             skip(1),
+            debounceTime(250),
             filter(parent => EntityUtils.isNotEmpty(parent) && this.form.enabled),
-            distinctUntilKeyChanged('label')
+            distinctUntilKeyChanged('label'),
+            mergeMap(() => this.suggestTaxonNames())
           )
-          .subscribe((parent) => {
-            taxonNameControl.reset(null, {emitEVent: false});
+          .subscribe((taxonNames) => {
+            this.$taxonNames.next(taxonNames);
+            if (taxonNames.length === 1) {
+              taxonNameControl.patchValue(taxonNames[0], {emitEVent: false});
+            }
+            else {
+              taxonNameControl.reset(null, {emitEVent: false});
+              //taxonNameControl.markAsPristine({onlySelf: true});
+            }
           }));
     }
 
@@ -313,12 +327,13 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
           startWith(this.enableIndividualCountControl.value)
         )
         .subscribe((enable) => {
+          const individualCountControl = this.form.get('individualCount');
           if (enable) {
-            this.form.get('individualCount').enable();
-            this.form.get('individualCount').setValidators(Validators.compose([Validators.required, Validators.min(0)]));
+            individualCountControl.enable();
+            individualCountControl.setValidators(Validators.compose([Validators.required, Validators.min(0)]));
           } else {
-            this.form.get('individualCount').disable();
-            this.form.get('individualCount').setValue(null);
+            individualCountControl.disable();
+            individualCountControl.setValue(null);
           }
         }));
 
@@ -373,7 +388,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
 
     // Reset taxon name button index
-    if (data && data.taxonName && isNotNil(data.taxonName.id)) {
+    if (this.mobile && data && data.taxonName && isNotNil(data.taxonName.id)) {
       this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
     }
     else {
@@ -391,7 +406,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
 
     // Reset taxon name button index
-    if (data && data.taxonName && isNotNil(data.taxonName.id)) {
+    if (this.mobile && data && data.taxonName && isNotNil(data.taxonName.id)) {
       this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
     }
     else {
@@ -452,7 +467,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     value = (typeof value === "string" && value !== "*") && value || undefined;
     if (isNilOrBlank(value)) return this._availableParents; // All
     const ucValueParts = value.trim().toUpperCase().split(" ", 1);
-    if (this.debug) console.debug(`[sub-batch-table] Searching parent {${value || '*'}}...`);
+    if (this.debug) console.debug(`[sub-batch-form] Searching parent {${value || '*'}}...`);
     // Search on attributes
     return this._availableParents.filter(parent => ucValueParts
         .filter(valuePart => this._parentAttributes

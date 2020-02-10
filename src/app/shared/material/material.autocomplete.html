@@ -44,20 +44,22 @@
                     autoActiveFirstOption
                     [displayWith]="displayWith"
                     [class]="classList">
-    <ion-row class="mat-autocomplete-header ion-no-padding" *ngIf="($items | async)?.length">
-      <ion-col *ngFor="let attr of displayAttributes; index as i;" [size]="displayColumnSizes[i]" >
-        <ion-text [innerHTML]="displayColumnNames[i] | translate"></ion-text>
-      </ion-col>
-    </ion-row>
-
-    <mat-option *ngFor="let item of $items | async" [value]="item" class="ion-no-padding">
-      <ion-row>
-        <ion-col *ngFor="let attr of displayAttributes; index as i;"
-                 [size]="displayColumnSizes[i]">
-          <ion-text [innerHTML]="getPropertyByPath(item, attr) | highlight: {search: formControl.value }"></ion-text>
+    <ng-container *ngIf="$items | async as items">
+      <ion-row class="mat-autocomplete-header ion-no-padding" *ngIf="items.length">
+        <ion-col *ngFor="let attr of displayAttributes; index as i;" [size]="displayColumnSizes[i]" >
+          <ion-text [innerHTML]="displayColumnNames[i] | translate"></ion-text>
         </ion-col>
       </ion-row>
-    </mat-option>
+
+      <mat-option *ngFor="let item of items" [value]="item" class="ion-no-padding">
+        <ion-row>
+          <ion-col *ngFor="let attr of displayAttributes; index as i;"
+                   [size]="displayColumnSizes[i]">
+            <ion-text [innerHTML]="getPropertyByPath(item, attr) | highlight: {search: formControl.value }"></ion-text>
+          </ion-col>
+        </ion-row>
+      </mat-option>
+    </ng-container>
   </mat-autocomplete>
 </mat-form-field>
 

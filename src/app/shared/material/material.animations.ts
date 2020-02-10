@@ -51,7 +51,7 @@ export const slideInOutAnimation =
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)'
+            opacity: 1
         })),
 
         // route 'enter' transition
@@ -64,16 +64,16 @@ export const slideInOutAnimation =
                 left: '400%',
 
                 // start with background opacity set to 0 (invisible)
-                backgroundColor: 'rgba(0, 0, 0, 0)'
+                opacity: 0
             }),
 
             // animation and styles at end of transition
-            animate('.5s ease-in-out', style({
+            animate('.3s ease-in-out', style({
                 // transition the right position to 0 which slides the content into view
                 left: 0,
 
                 // transition the background opacity to 0.8 to fade it in
-                backgroundColor: 'rgba(0, 0, 0, 0.8)'
+                opacity: 0.8
             }))
         ]),
 
@@ -85,7 +85,7 @@ export const slideInOutAnimation =
                 left: '400%',
 
                 // transition the background opacity to 0 to fade it out
-                backgroundColor: 'rgba(0, 0, 0, 0)'
+                opacity: 0
             }))
         ])
     ]);

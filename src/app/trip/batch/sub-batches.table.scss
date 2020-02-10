@@ -31,7 +31,7 @@
 }
 
 .table-container {
-  height: calc(100vh - var(--toolbar-min-height, 56px));
+  height: calc(100vh - var(--toolbar-min-height, 56px) * 2);
   overflow-y: auto;
 
   mat-table {

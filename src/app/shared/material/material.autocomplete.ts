@@ -13,14 +13,17 @@ import {
   ViewChild
 } from "@angular/core";
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
-import {BehaviorSubject, merge, Observable, Subject, Subscription} from "rxjs";
-import {debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap, throttleTime} from "rxjs/operators";
+import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
+import {debounceTime, distinctUntilChanged, filter, map, switchMap, tap} from "rxjs/operators";
 import {SuggestFn, SuggestionDataService} from "../services/data-service.class";
 import {
   changeCaseToUnderscore,
   focusInput,
-  getPropertyByPath, isNil,
-  isNilOrBlank, isNotNil, isNotNilOrBlank,
+  getPropertyByPath,
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   joinPropertiesPath,
   selectInputContent,
   suggestFromArray,
@@ -138,7 +141,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   private _subscription = new Subscription();
 
   private _itemsSubscription: Subscription;
-  private _itemsSubject = new BehaviorSubject<any[]>([]);
+  private _itemsSubject: BehaviorSubject<any[]>;
 
   _tabindex: number;
   $items: Observable<any[]>;
@@ -169,6 +172,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this._itemsSubscription.unsubscribe();
     }
 
+    this._itemsSubject = this._itemsSubject || new BehaviorSubject<any[]>(undefined);
     if (value instanceof Observable) {
 
       this._itemsSubscription = this._subscription.add(
@@ -244,7 +248,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     // Configuration from config object
     if (this.config) {
       this.suggestFn = this.suggestFn || this.config.suggestFn;
-      if (isNil(this._itemsSubject.getValue()) && this.config.items) {
+      if (isNil(this._itemsSubject) && this.config.items) {
         this.items = this.config.items;
       }
       this.filter = this.filter || this.config.filter;
@@ -298,13 +302,13 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this.$items = updateEvents$
         .pipe(
           distinctUntilChanged(),
-          throttleTime(100),
+          //throttleTime(1000),
           switchMap((value) => this.suggestFn(value, this.filter)),
           // Store implicit value (will use it onBlur if not other value selected)
           tap(res =>  this.updateImplicitValue(res))
         );
     }
-    else if (this._itemsSubject.getValue()) {
+    else if (isNotNil(this._itemsSubject)) {
       const searchOptions = Object.assign({searchAttributes: this.displayAttributes}, this.filter);
       this.$items = updateEvents$
         .pipe(
