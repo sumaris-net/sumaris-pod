@@ -128,6 +128,12 @@ export class BatchGroupModal implements OnInit, OnDestroy {
           .subscribe(batch => this.computeTitle(batch))
       );
     }
+
+    // Wait that form are ready (because of safeSetValue()) then mark as pristine
+    setTimeout(() => {
+      this.form.markAsPristine();
+      this.form.markAsUntouched();
+    }, 500);
   }
 
   ngOnDestroy(): void {

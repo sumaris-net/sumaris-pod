@@ -120,7 +120,7 @@ export class BatchValidatorService implements ValidatorService {
       && !sampleBatch.weight.calculated && isNotNilOrNaN(samplingWeight) && samplingWeight > 0) {
 
       // Sampling weight must be under total weight
-      if (samplingWeight >= totalWeight) {
+      if (samplingWeight > totalWeight) {
         if (!samplingWeightValueControl.hasError('max') || samplingWeightValueControl.errors['max'] !== totalWeight) {
           samplingWeightValueControl.markAsPending({onlySelf: true, emitEvent: true}); //{onlySelf: true, emitEvent: false});
           samplingWeightValueControl.markAsTouched({onlySelf: true});

@@ -122,6 +122,12 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     this.hasMeasureControl.markAsPristine(opts);
   }
 
+  markAsUntouched(opts?: {onlySelf?: boolean; }) {
+    this.batchForm.markAsUntouched(opts);
+    (this.childrenForms || []).forEach(child => child.markAsUntouched(opts));
+    this.hasMeasureControl.markAsUntouched(opts);
+  }
+
   markAsDirty(opts?: {
     onlySelf?: boolean;
   }) {
@@ -183,7 +189,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
 
   async ngOnInit() {
 
-    this.form = this.batchForm.form;
+    this.setForm(this.batchForm.form);
 
     super.ngOnInit();
 
