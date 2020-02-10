@@ -326,18 +326,16 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   }
 
   protected async resetForm(previousBatch?: Batch, opts?: {focusFirstEmpty?: boolean, emitEvent?: boolean}) {
-
     await this.onReady();
 
     this.form.availableParents = this._availableSortedParents;
-    const enableIndividualCount = this.form.enableIndividualCount;
 
     // Create a new batch
     const newBatch = new Batch();
     await this.onNewEntity(newBatch);
 
     // Reset individual count, if manual mode
-    if (enableIndividualCount) {
+    if (this.form.enableIndividualCount) {
       newBatch.individualCount = null;
     } else if (isNil(newBatch.individualCount)) {
       newBatch.individualCount = 1;
@@ -349,14 +347,20 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       newBatch.parent = previousBatch.parent;
 
       // Copy QV PMFM value, if any
-      if (this.qvPmfm) {
+      if (this.qvPmfm && this.form.freezeQvPmfm) {
         newBatch.measurementValues[this.qvPmfm.pmfmId] = previousBatch.measurementValues[this.qvPmfm.pmfmId];
       }
 
-      // Set taxonName, is only one in list
-      const taxonNames = this.form.taxonNames;
-      if (taxonNames && taxonNames.length === 1) {
-        newBatch.taxonName = taxonNames[0];
+      // Copy taxon name (if freezed)
+      if (previousBatch.taxonName && this.form.freezeTaxonName) {
+        newBatch.taxonName = previousBatch.taxonName;
+      }
+      else {
+        // Set taxonName, is only one in list
+        const taxonNames = this.form.taxonNames;
+        if (taxonNames && taxonNames.length === 1) {
+          newBatch.taxonName = taxonNames[0];
+        }
       }
     }
 
@@ -365,6 +369,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     this.form.reset(newBatch, {emitEvent: true, normalizeEntityToForm: false /*already done*/});
     this.form.markAsPristine({onlySelf: true});
     this.form.markAsUntouched({onlySelf: true});
+    this.form.updateValueAndValidity({onlySelf: true});
 
     // If need, enable the form
     if (this.form.disabled) {

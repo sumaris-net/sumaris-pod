@@ -67,6 +67,8 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   mobile: boolean;
   enableIndividualCountControl: AbstractControl;
+  freezeTaxonNameControl: AbstractControl;
+  freezeQvPmfmControl: AbstractControl;
   $taxonNames = new BehaviorSubject<TaxonNameRef[]>(undefined);
   selectedTaxonNameIndex = -1;
 
@@ -138,6 +140,22 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     return this.enableIndividualCountControl.value;
   }
 
+  get freezeTaxonName(): boolean {
+    return this.freezeTaxonNameControl.value;
+  }
+
+  @Input() set freezeTaxonName(value: boolean) {
+    this.freezeTaxonNameControl.setValue(value);
+  }
+
+  get freezeQvPmfm(): boolean {
+    return this.freezeQvPmfmControl.value;
+  }
+
+  @Input() set freezeQvPmfm(value: boolean) {
+    this.freezeQvPmfmControl.setValue(value);
+  }
+
   get parent(): any {
     return this.form.get('parent').value;
   }
@@ -171,8 +189,16 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
 
     // Control for indiv. count enable
-    this.enableIndividualCountControl = this.formBuilder.control(this.mobile, Validators.required);
+    this.enableIndividualCountControl = this.formBuilder.control(false, Validators.required);
     this.enableIndividualCountControl.setValue(false, {emitEvent: false});
+
+    // Freeze QV value control
+    this.freezeQvPmfmControl = this.formBuilder.control(true, Validators.required);
+    this.freezeQvPmfmControl.setValue(true, {emitEvent: false});
+
+    // Freeze taxon name value control (default: true if NOT mobile)
+    this.freezeTaxonNameControl = this.formBuilder.control(!this.mobile, Validators.required);
+    this.freezeTaxonNameControl.setValue(!this.mobile, {emitEvent: false});
 
     // For DEV only
     //this.debug = !environment.production;
@@ -478,7 +504,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     const json = this.form.value;
 
     // Read the individual count (if has been disable)
-    if (!this.enableIndividualCountControl.value) {
+    if (!this.enableIndividualCount) {
       json.individualCount = this.form.get('individualCount').value || 1;
     }
 

@@ -49,21 +49,34 @@
                                  *ngIf="!($loadingControls|async) && qvPmfm"
                                  [pmfm]="qvPmfm"
                                  [style]="mobile? 'button' : 'autocomplete'"
-                                 [formControl]="form.controls.measurementValues.controls[qvPmfm.pmfmId.toString()]"
+                                 [formControl]="form.controls.measurementValues.controls[qvPmfm.pmfmId]"
                                  [floatLabel]="floatLabel"
                                  [compact]="compact"
                                  [tabindex]="tabindex+1">
+    <!-- checkbox to freeze -->
+    <mat-checkbox  matSuffix
+                   *ngIf="!mobile"
+                   [formControl]="freezeQvPmfmControl"
+                   [title]="'COMMON.BTN_FREEZE_VALUE_HELP'|translate"
+                   tabindex="-1">
+      <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
+    </mat-checkbox>
   </mat-form-field-measurement-qv>
 
   <!-- Espèce scientifique -->
   <div *ngIf="showTaxonName">
-    <mat-autocomplete-field #matInput
-                            *ngIf="!mobile; else taxonNameMobile"
+    <mat-autocomplete-field #matInput  *ngIf="!mobile; else taxonNameMobile"
                             formControlName="taxonName"
                             [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                             [config]="autocompleteFields.taxonName"
                             [tabindex]="tabindex+2"
                             [required]="true">
+      <!-- checkbox to freeze -->
+      <mat-checkbox  matSuffix [formControl]="freezeTaxonNameControl"
+                     [title]="'COMMON.BTN_FREEZE_VALUE_HELP'|translate"
+                     tabindex="-1">
+        <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
+      </mat-checkbox>
     </mat-autocomplete-field>
 
     <ng-template #taxonNameMobile>
@@ -173,7 +186,7 @@
           <mat-checkbox matSuffix [formControl]="enableIndividualCountControl"
                         labelPosition="after"
                         tabindex="-1">
-            <ion-text><small>{{'TRIP.BATCH.EDIT.INDIVIDUAL.BTN_MANUAL_ENTRY'|translate}}</small></ion-text>
+            <ion-text><small translate>TRIP.BATCH.EDIT.INDIVIDUAL.BTN_MANUAL_ENTRY</small></ion-text>
           </mat-checkbox>
         </mat-form-field>
       </ion-col>

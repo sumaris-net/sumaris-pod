@@ -19,7 +19,6 @@
          (blur)="onBlur.emit($event)"
          (focus)="_onFocus($event)"
          (keyup.arrowdown)="formControl.enabled && !autoCombo.showPanel && onDropButtonClick.emit($event)">
-  <ng-content select="[matSuffix]"></ng-content>
 
   <button mat-button matSuffix mat-icon-button tabindex="-1"
           type="button"
@@ -34,6 +33,8 @@
           [hidden]="formControl.disabled">
     <mat-icon>arrow_drop_down</mat-icon>
   </button>
+
+  <ng-content matSuffix select="[matSuffix]"></ng-content>
 
   <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   <mat-error *ngIf="formControl.hasError('entity')||formControl.hasError('object')" translate>ERROR.FIELD_INVALID</mat-error>
