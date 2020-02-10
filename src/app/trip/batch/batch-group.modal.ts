@@ -10,8 +10,8 @@ import {
 } from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppFormUtils} from "../../core/core.module";
-import {ModalController} from "@ionic/angular";
+import {AppFormUtils, isNil} from "../../core/core.module";
+import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
@@ -20,6 +20,7 @@ import {toBoolean} from "../../shared/functions";
 import {throttleTime} from "rxjs/operators";
 import {PlatformService} from "../../core/services/platform.service";
 import {environment} from "../../../environments/environment";
+import {Alerts} from "../../shared/alerts";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -86,6 +87,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   constructor(
     protected injector: Injector,
+    protected alertCtrl: AlertController,
     protected viewCtrl: ModalController,
     protected platform: PlatformService,
     protected settings: LocalSettingsService,
@@ -132,7 +134,22 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     this._subscription.unsubscribe();
   }
 
-  async cancel() {
+  async cancel(event?: UIEvent) {
+    if (this.dirty) {
+      const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
+
+      // User cancelled
+      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
+        return;
+      }
+
+      // Is user confirm: close normally
+      if (saveBeforeLeave === true) {
+        this.close(event);
+        return;
+      }
+    }
+
     await this.viewCtrl.dismiss();
   }
 

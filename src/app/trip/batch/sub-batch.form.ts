@@ -91,7 +91,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
-  get showTaxonName() : boolean {
+  get showTaxonName(): boolean {
     return this._showTaxonName;
   }
 
@@ -435,8 +435,8 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     await this.ready();
 
-    const discardOrLandingControl = this.form.get(`measurementValues.${PmfmIds.DISCARD_OR_LANDING}`);
-    const discardReasonControl = this.form.get(`measurementValues.${PmfmIds.DISCARD_REASON}`);
+    const discardOrLandingControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_OR_LANDING);
+    const discardReasonControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_REASON);
 
     // Manage DISCARD_REASON validator
     if (discardOrLandingControl && discardReasonControl) {
@@ -455,7 +455,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
             discardReasonControl.setValue(null);
             discardReasonControl.setValidators([]);
             discardReasonControl.disable();
-            //discardReasonControl.updateValueAndValidity({onlySelf: true});
           }
         }));
     }
@@ -479,6 +478,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   protected suggestTaxonNames(value?: any, options?: any): Promise<TaxonNameRef[]> {
     const parent = this.form && this.form.get('parent').value;
     if (isNil(parent)) return Promise.resolve([]);
+    if (this.debug) console.debug(`[sub-batch-form] Searching taxon name {${value || '*'}}...`);
     return this.programService.suggestTaxonNames(value,
       {
         program: this.program,
