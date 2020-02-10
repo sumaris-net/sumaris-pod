@@ -12,20 +12,19 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import {entityToString, isNil, isNotNil, PmfmStrategy, Referential} from "../services/trip.model";
-import {combineLatest, merge, Observable, of} from 'rxjs';
-import {filter, map, takeUntil, tap, throttleTime} from 'rxjs/operators';
-import {EntityUtils, ReferentialRef, referentialToString} from '../../referential/referential.module';
+import {entityToString, isNotNil, PmfmStrategy} from "../services/trip.model";
+import {merge, Observable, of} from 'rxjs';
+import {filter, map, takeUntil, tap} from 'rxjs/operators';
+import {EntityUtils, PmfmIds, ReferentialRef, referentialToString} from '../../referential/referential.module';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
-import {FloatLabelType, MatAutocomplete, MatSelect} from "@angular/material";
+import {FloatLabelType} from "@angular/material";
 
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {focusInput, isNotEmptyArray, joinPropertiesPath, suggestFromArray, toBoolean} from "../../shared/functions";
+import {focusInput, isNotEmptyArray, sort, suggestFromArray, toBoolean} from "../../shared/functions";
 import {AppFormUtils} from "../../core/core.module";
-import {sort} from "../../shared/functions";
-import {asInputElement, InputElement} from "../../shared/material/focusable";
+import {InputElement} from "../../shared/material/focusable";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
@@ -133,7 +132,9 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : (attributes[0]);
 
     // Sort values
-    this._sortedQualitativeValues = sort(this.pmfm.qualitativeValues, this.sortAttribute);
+    this._sortedQualitativeValues = (this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
+      sort(this.pmfm.qualitativeValues, this.sortAttribute) :
+      this.pmfm.qualitativeValues;
 
     this.placeholder = this.placeholder || this.pmfm.name || this.computePlaceholder(this.pmfm, this._sortedQualitativeValues);
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
