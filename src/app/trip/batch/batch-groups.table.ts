@@ -97,11 +97,14 @@ export class BatchGroupsTable extends BatchesTable {
     // Transform entities into object array
     data = data.map(batch => {
       const measurementValues = {};
+
       // For each group (one by qualitative value)
       this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
-        const child = (batch.children || []).find(c => c.label === `${batch.label}.${qv.label}`);
+        const childLabel = `${batch.label}.${qv.label}`;
+        const child = (batch.children || []).find(c => c.label === childLabel || c.measurementValues[this.qvPmfm.pmfmId] == qv.id);
         if (child) {
 
+          // Replace measurement values inside a new map, based on fake pmfms
           this.getFakeMeasurementValuesFromQvChild(child, measurementValues, qvIndex);
 
           // Remember method used for the weight (estimated or not)
@@ -114,6 +117,9 @@ export class BatchGroupsTable extends BatchesTable {
               weightMethodValues[qvIndex] = samplingChild.weight && samplingChild.weight.estimated;
             }
           }
+        }
+        else {
+          console.warn("Unable to find child for QV value: " + (qv.label || qv.name));
         }
       });
 
@@ -152,11 +158,12 @@ export class BatchGroupsTable extends BatchesTable {
   protected normalizeEntityToRow(data: Batch, row: TableElement<Batch>) {
     // When batch has the QV value
     if (this.qvPmfm) {
-
       const measurementValues = Object.assign({}, row.currentData.measurementValues);
+
       // For each group (one by qualitative value)
       this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
-        const child = (data.children || []).find(c => c.label === `${data.label}.${qv.label}` || c.measurementValues[this.qvPmfm.pmfmId] == qv.id);
+        const childLabel = `${data.label}.${qv.label}`;
+        const child = (data.children || []).find(c => c.label === childLabel || c.measurementValues[this.qvPmfm.pmfmId] == qv.id);
         if (child) {
 
           // Replace measurement values inside a new map, based on fake pmfms
