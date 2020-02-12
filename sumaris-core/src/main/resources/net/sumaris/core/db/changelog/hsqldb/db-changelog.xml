@@ -58,7 +58,10 @@
 
   <include relativeToChangelogFile="true" file="db-changelog-0.19.8.xml"/>
 
+  <include relativeToChangelogFile="true" file="db-changelog-0.21.1.xml"/>
+
   <!-- Refresh schema objects (functions, procedures, triggers, ...) -->
   <include relativeToChangelogFile="true" file="db-changelog-refresh.xml"/>
-  
+
+
 </databaseChangeLog>
