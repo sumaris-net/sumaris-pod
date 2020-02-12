@@ -69,11 +69,18 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
     private static final Logger log =
             LoggerFactory.getLogger(BatchDaoImpl.class);
 
+    private boolean debug;
+
     @Autowired
     private ReferentialDao referentialDao;
 
     @Autowired
     private TaxonNameDao taxonNameDao;
+
+    public BatchDaoImpl() {
+        super();
+        debug = log.isDebugEnabled();
+    }
 
     @Override
     public List<BatchVO> getAllByOperationId(int operationId) {
@@ -121,8 +128,8 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
             if (source.getId() != null) {
                 existingBatch = sourcesIdsToRemove.remove(source.getId());
             }
-            // No id found
-            else {
+            // Id not exists: try by hash or label
+            if (source.getId() != null && existingBatch == null) {
                 // Try to get iit by hash code
                 Collection<Batch> existingBatchs = sourcesByHashCode.get(source.hashCode());
                 // Not found by hash code: try by label
@@ -136,7 +143,9 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
                     source.setId(existingBatch.getId());
                 }
             }
-            optimizedSave(source, existingBatch, false, newUpdateDate, false);
+
+            // Save the batch, in an optimized way
+            optimizedSave(source, existingBatch, false, newUpdateDate);
         });
 
         // Remove unused entities
@@ -230,11 +239,21 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
     /* -- protected methods -- */
 
+    /**
+     * Save the batch, when saving a full tree (algorithm optimized for this case)
+     * /!\ DO NOT USE when updating only one batch, in a existing tree !
+     *
+     * @param source
+     * @param entity
+     * @param checkUpdateDate
+     * @param newUpdateDate
+     * @param flush
+     * @return
+     */
     protected BatchVO optimizedSave(BatchVO source,
                              Batch entity,
                              boolean checkUpdateDate,
-                             Timestamp newUpdateDate,
-                             boolean flush) {
+                             Timestamp newUpdateDate) {
         Preconditions.checkNotNull(source);
 
         EntityManager entityManager = getEntityManager();
@@ -259,25 +278,29 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         copySomeFieldsFromOperation(source);
 
         // VO -> Entity
+        Integer previousHash = entity.getHash();
         batchVOToEntity(source, entity, true);
 
         // Update update_dt
         entity.setUpdateDate(newUpdateDate);
+        source.setUpdateDate(newUpdateDate);
 
         // Save entityName
         if (isNew) {
             entityManager.persist(entity);
             source.setId(entity.getId());
         } else {
-            entityManager.merge(entity);
-        }
+            boolean needUpdate = !Objects.equals(previousHash, entity.getHash());
 
-        // Update date
-        source.setUpdateDate(newUpdateDate);
-
-        if (flush) {
-            entityManager.flush();
-            entityManager.clear();
+            // Check when (hash code has changed)
+            if (needUpdate) {
+                if (debug) logger.debug(String.format("Bach {%s} updated (hash changed)", entity.getLabel()));
+                entityManager.merge(entity);
+            } else {
+                if (debug) logger.debug(String.format("Bach {%s} is unchanged. TODO: avoid to call entityManager.merge() ?", entity.getLabel()));
+                // TODO: remove next call to merge() after MANY tests + Unit tests
+                entityManager.merge(entity);
+            }
         }
 
         return source;
@@ -385,10 +408,22 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
                 target.setParent(null);
             }
             else {
+                // Detect the previous parent. If changed, remove the batch from tha parent children list - fix #15
+                Batch oldParent = target.getParent();
+                if (oldParent != null && parentId != oldParent.getId() && CollectionUtils.isNotEmpty(oldParent.getChildren())) {
+                    oldParent.getChildren().remove(target);
+                }
+
+                // Set parent
                 Batch parent = load(Batch.class, parentId);
                 target.setParent(parent);
 
-                // Force same operation as parent
+                // This is need in an optimized save
+                //if (!parent.getChildren().contains(target)) {
+                //    parent.getChildren().add(target);
+                //}
+
+                // Force same operation as parent (e.g. in case of bad batch tree copy)
                 opeId = parent.getOperation().getId();
             }
         }
