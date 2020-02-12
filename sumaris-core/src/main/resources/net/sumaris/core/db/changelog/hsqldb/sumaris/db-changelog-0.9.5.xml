@@ -38,8 +38,9 @@
       <column name="CREATION_DATE" valueComputed="sysdate" />
     </insert>
     <!-- increment the sequence -->
-    <sql>
-      select (NEXT VALUE FOR SOFTWARE_SEQ) from SOFTWARE WHERE LABEL='SUMARiS'
+    <sql endDelimiter=";">
+      select (NEXT VALUE FOR SOFTWARE_SEQ) from SOFTWARE WHERE LABEL='SUMARiS';
+      commit;
     </sql>
   </changeSet>
 

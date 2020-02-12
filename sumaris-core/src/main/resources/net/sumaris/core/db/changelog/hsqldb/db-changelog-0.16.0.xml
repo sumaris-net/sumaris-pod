@@ -41,7 +41,10 @@
     <preConditions onFail="HALT">
         <sequenceExists sequenceName="LOCATION_SEQ"/>
     </preConditions>
-    <sql>select NEXT VALUE FOR LOCATION_SEQ from LOCATION where ID > 2000</sql>
+    <sql endDelimiter=";"><![CDATA[
+      select NEXT VALUE FOR LOCATION_SEQ from LOCATION where ID > 2000;
+      commit;
+    ]]></sql>
   </changeSet>
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-2">
@@ -116,8 +119,11 @@
       </not>
     </preConditions>
     <createSequence sequenceName="QUALITATIVE_VALUE_SEQ"/>
-    <sql>ALTER SEQUENCE QUALITATIVE_VALUE_SEQ RESTART WITH 330</sql>
-    <sql>select NEXT VALUE FOR QUALITATIVE_VALUE_SEQ from STATUS where ID=1</sql>
+    <sql endDelimiter=";">
+      ALTER SEQUENCE QUALITATIVE_VALUE_SEQ RESTART WITH 330;
+      select NEXT VALUE FOR QUALITATIVE_VALUE_SEQ from STATUS where ID=1;
+      commit;
+    </sql>
   </changeSet>
 
   <!-- update SYSTEM_VERSION -->

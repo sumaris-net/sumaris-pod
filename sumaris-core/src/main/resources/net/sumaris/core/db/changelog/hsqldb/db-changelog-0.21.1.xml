@@ -28,9 +28,13 @@
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.21.1.xml">
 
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-100">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-100" runOnChange="true">
+    <preConditions onFail="HALT">
+      <sequenceExists sequenceName="USER_TOKEN_SEQ"/>
+    </preConditions>
     <sql endDelimiter=";">
       SELECT NEXT VALUE FOR USER_TOKEN_SEQ from USER_TOKEN;
+      commit;
     </sql>
   </changeSet>
 

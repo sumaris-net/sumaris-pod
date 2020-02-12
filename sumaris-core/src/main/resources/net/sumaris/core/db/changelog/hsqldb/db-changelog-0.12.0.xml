@@ -5,16 +5,15 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.12.0.xml">
 
-    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-1">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-1" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not><sequenceExists sequenceName="LOCATION_LEVEL_SEQ"/></not>
         </preConditions>
         <createSequence sequenceName="LOCATION_LEVEL_SEQ"/>
-        <sql>
-            select NEXT VALUE FOR LOCATION_LEVEL_SEQ from LOCATION_LEVEL
-        </sql>
-        <sql>
-            select NEXT VALUE FOR LOCATION_LEVEL_SEQ from STATUS where ID=1
+        <sql endDelimiter=";">
+            select NEXT VALUE FOR LOCATION_LEVEL_SEQ from LOCATION_LEVEL;
+            select NEXT VALUE FOR LOCATION_LEVEL_SEQ from STATUS where ID=1;
+            commit;
         </sql>
     </changeSet>
     <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-2">
