@@ -1,7 +1,7 @@
 <form [formGroup]="form" novalidate (ngSubmit)="doSubmit($event)" class="form-container ion-padding" (keyup.enter)="doSubmit($event)">
 
   <!-- error -->
-  <ion-item *ngIf="error && !loading" lines="none">
+  <ion-item lines="none" *ngIf="error && !loading" @slideUpDownAnimation>
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>

@@ -6,13 +6,14 @@ import {AuthData} from "../../services/account.service";
 import {environment} from "../../../../environments/environment";
 import {NetworkService} from "../../services/network.service";
 import {LocalSettingsService} from "../../services/local-settings.service";
+import {fadeInAnimation, slideUpDownAnimation} from "../../../shared/material/material.animations";
 
 
 @Component({
-  selector: 'form-auth',
+  selector: 'app-form-auth',
   templateUrl: 'form-auth.html',
-  styleUrls: ['./form-auth.scss']
-
+  styleUrls: ['./form-auth.scss'],
+  animations: [slideUpDownAnimation]
 })
 export class AuthForm implements OnInit {
 

@@ -2,16 +2,15 @@ import { Component, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { AccountService } from "../../services/account.service";
 import { AuthForm } from '../form/form-auth';
+import {firstNotNil, firstNotNilPromise} from "../../../shared/observables";
 
 @Component({
-  selector: 'modal-auth',
   templateUrl: 'modal-auth.html',
   styleUrls: ['./modal-auth.scss']
 })
 export class AuthModal {
 
-  loading: boolean = false;
-  error: string;
+  loading = false;
 
   @ViewChild('form', { static: true }) private form: AuthForm;
 
@@ -35,6 +34,9 @@ export class AuthModal {
     catch (err) {
       this.loading = false;
       this.form.error = err && err.message || err;
+      firstNotNilPromise(this.form.form.valueChanges).then(() => {
+        this.form.error = null;
+      });
       return;
     }
   }
