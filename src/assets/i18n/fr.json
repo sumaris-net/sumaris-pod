@@ -614,6 +614,7 @@
     }
   },
   "LANDING": {
+    "TITLE_PREFIX": "<small>{{location}} - Débarquement {{date}}<br/></small>",
     "TAB_GENERAL": "Détails",
     "PROGRAM": "Programme",
     "VESSEL": "Navire",
@@ -622,11 +623,12 @@
     "LOCATION": "Lieu de débarquement",
     "OBSERVERS": "Observateurs :",
     "OBSERVER_PLACEHOLDER": "Observateur #",
+    "TAB_SAMPLES": "Echantillons",
     "NEW": {
       "TITLE": "Nouveau debarquement"
     },
     "EDIT": {
-      "TITLE": "Débarquement {{vessel}}",
+      "TITLE": "Navire {{vessel}}",
       "OTHER_FEATURES": "Autres caractéristiques :"
     },
     "TABLE": {

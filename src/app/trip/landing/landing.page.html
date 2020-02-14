@@ -48,9 +48,7 @@
     <!-- TAB: samples -->
     <mat-tab label="{{'LANDING.TAB_SAMPLES'|translate}}" [disabled]="isNewData">
       <ng-template mat-tab-label>
-        <mat-icon>
-          <ion-icon matPrefix slot="start" name="flag"></ion-icon>
-        </mat-icon>
+        <mat-icon>center_focus_strong</mat-icon>
         <ion-label translate>LANDING.TAB_SAMPLES</ion-label>
         <ion-icon slot="end" name="alert" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>

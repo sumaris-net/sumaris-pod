@@ -614,6 +614,7 @@
     }
   },
   "LANDING": {
+    "TITLE_PREFIX": "<small>{{location}} - Landing {{date}}<br/></small>",
     "TAB_GENERAL": "Details",
     "PROGRAM": "Program",
     "VESSEL": "Vessel",
@@ -622,6 +623,7 @@
     "LOCATION": "Landing site",
     "OBSERVERS": "Observers:",
     "OBSERVER_PLACEHOLDER": "Observer #",
+    "TAB_SAMPLES": "Samples",
     "NEW": {
       "TITLE": "New landing"
     },

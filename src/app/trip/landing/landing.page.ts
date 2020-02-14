@@ -17,7 +17,6 @@ import {isNotEmptyArray} from "../../shared/functions";
 import {filter, throttleTime} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {VesselService} from "../../referential/services/vessel-service";
 import {PlatformService} from "../../core/services/platform.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 
@@ -238,15 +237,21 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
   }
 
   protected async computeTitle(data: Landing): Promise<string> {
+    const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
+      await this.translate.get('LANDING.TITLE_PREFIX', {
+        location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
+        date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
+      }).toPromise() || '';
+
     // new data
     if (!data || isNil(data.id)) {
-      return await this.translate.get('LANDING.NEW.TITLE').toPromise();
+      return titlePrefix + (await this.translate.get('LANDING.NEW.TITLE').toPromise());
     }
 
     // Existing data
-    return await this.translate.get('LANDING.EDIT.TITLE', {
-      vessel: vesselSnapshotToString(data.vesselSnapshot)
-    }).toPromise();
+    return titlePrefix + (await this.translate.get('LANDING.EDIT.TITLE', {
+      vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name)
+    }).toPromise());
   }
 
 
