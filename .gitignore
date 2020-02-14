@@ -36,7 +36,6 @@ $RECYCLE.BIN/
 Thumbs.db
 UserInterfaceState.xcuserstate
 
-yarn.lock
 package-lock.json
 
 resources/android/build/local
