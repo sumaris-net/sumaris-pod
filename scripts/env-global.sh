@@ -83,11 +83,12 @@ else
 fi
 
 # Install global dependencies
+YARNC_PATH=`which yarn`
 IONIC_PATH=`which ionic`
 CORDOVA_PATH=`which cordova`
-if [[ "_" == "_${IONIC_PATH}" || "_" == "_${CORDOVA_PATH}" ]]; then
+if [[ "_" == "_${YARNC_PATH}" || "_" == "_${IONIC_PATH}" || "_" == "_${CORDOVA_PATH}" ]]; then
   echo "Installing global dependencies..."
-  npm install -g cordova ionic native-run
+  npm install -g yarn cordova ionic native-run
   if [[ $? -ne 0 ]]; then
       exit 1
   fi
@@ -106,5 +107,5 @@ fi
 if [[ ! -d "${PROJECT_DIR}/node_modules" ]]; then
     echo "Installing project dependencies..."
     cd ${PROJECT_DIR}
-    npm install
+    yarn
 fi

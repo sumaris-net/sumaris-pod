@@ -10,12 +10,12 @@ This article will explain how to install your environment, then build the applic
 
 2. Install global dependency: 
 ```bash
-npm install -g ionic@5.4.5 cordova@9.0.0 cordova-res@0.8.1 native-run@0.2.9 
+npm install -g yarn ionic@5.4.5 cordova@9.0.0 cordova-res@0.8.1 native-run@0.2.9 
 ```
 
-You can try with latest versions:
+OR, use latest versions (beta):
 ```bash
-npm install -g ionic@latest cordova@latest cordova-res@latest native-run@latest
+npm install -g yarn ionic@latest cordova@latest cordova-res@latest native-run@latest
 ```
 
 2. Get sources (clone the repo) : `git clone ...`
@@ -29,9 +29,14 @@ sudo apt-get install chromium-browser docker.io
 
 ### For development and test
 
-1. Install the environment:
+1. Install project's dependencies:
 ```bash
-cd sumaris-app/scrips
+cd sumaris-app
+yarn
+```
+OR, alternatively: 
+```bash
+cd sumaris-app/scripts
 ./env-global.sh
 ```
 
@@ -42,7 +47,7 @@ cd sumaris-app/scrips
 3. Start the app
     ```bash
     cd sumaris-app
-    npm start
+    yarn run start
     ```
    By default, the app should be accessible at [http://localhost:4200](http://localhost:4200)
    
@@ -61,7 +66,7 @@ The application should be accessible at [localhost:4200](http://localhost:4200)
 
    - Edit the file `src/environment/environment-prod.ts`
 
-2. Create the release
+2. Create the release:
     ```bash
     npm run build --prod --release
     ```
@@ -70,17 +75,29 @@ The application should be accessible at [localhost:4200](http://localhost:4200)
 
 ### Build a debug APK, for development and test
 
-```bash
-cd scripts
-./build-android.sh
-```
+1. Install the android build environment:
+    ```bash
+    cd sumaris-app/scripts
+    ./env-android.sh
+    ```
+
+2. Create a debug APK file:
+    ```bash
+    cd sumaris-app/scripts
+    ./build-android.sh
+    ```
 
 ### Build a release APK, for production
 
-```bash
-cd scripts
-./release-android.sh
-```
+1. Check environment configuration:
+
+   - Edit the file `src/environment/environment-prod.ts`
+
+2. Create a release APK file:
+    ```bash
+    cd sumaris-app/scripts
+    ./release-android.sh
+    ```
 
 ## Useful links
 
