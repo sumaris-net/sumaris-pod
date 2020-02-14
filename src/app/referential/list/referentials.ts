@@ -18,8 +18,6 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {isNotNilOrBlank} from "../../shared/functions";
 
 
-const DEFAULT_ENTITY_NAME = "Location";
-
 @Component({
   selector: 'page-referentials',
   templateUrl: 'referentials.html',
@@ -29,6 +27,8 @@ const DEFAULT_ENTITY_NAME = "Location";
   ],
 })
 export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
+
+  static DEFAULT_ENTITY_NAME = "Program";
 
   protected entityName: string;
 
@@ -104,7 +104,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         .pipe(first()) // Do not refresh after the first page load (e.g. when location query path changed)
         .subscribe(({entity, q, level, status}) => {
           if (!entity) {
-            this.setEntityName(DEFAULT_ENTITY_NAME);
+            this.setEntityName(ReferentialsPage.DEFAULT_ENTITY_NAME);
           } else {
             this.filterForm.setValue({
               entityName: entity,
