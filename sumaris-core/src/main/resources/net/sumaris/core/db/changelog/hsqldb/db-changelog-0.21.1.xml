@@ -28,7 +28,7 @@
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.21.1.xml">
 
   <!-- Referential sequences (increment by 1) -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-100" runOnChange="true">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-1" runOnChange="true">
     <sql endDelimiter=";"><![CDATA[
     ALTER SEQUENCE ACQUISITION_LEVEL_SEQ INCREMENT BY 1;
     ALTER SEQUENCE APPLIED_STRATEGY_SEQ INCREMENT BY 1;
@@ -87,7 +87,7 @@
   ]]></sql></changeSet>
 
   <!-- Sequence on data (increment by 50) -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-101" runOnChange="true">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-2" runOnChange="true">
     <sql endDelimiter=";"><![CDATA[
     ALTER SEQUENCE BATCH_SEQ INCREMENT BY 50;
     ALTER SEQUENCE EXTRACTION_PRODUCT_COLUMN_SEQ INCREMENT BY 50;
@@ -125,7 +125,7 @@
   ]]></sql></changeSet>
 
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-102" runOnChange="true">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-3" runOnChange="true">
     <preConditions onFail="HALT">
       <sequenceExists sequenceName="USER_TOKEN_SEQ"/>
     </preConditions>
@@ -156,7 +156,7 @@
     ]]></sql>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-103" >
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-4" >
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="sample" columnName="hash"/></not>
     </preConditions>
@@ -164,13 +164,13 @@
       <column name="hash" type="integer"/>
     </addColumn>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-104" >
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-5" >
     <preConditions onFail="MARK_RAN">
       <not><sqlCheck expectedResult="0">SELECT count(*) FROM sample where hash is null</sqlCheck></not>
     </preConditions>
     <sql>UPDATE sample SET hash=id WHERE hash IS NULL</sql>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-105" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-6" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <sqlCheck expectedResult="0">SELECT count(*) FROM sample WHERE hash IS NULL</sqlCheck>
     </preConditions>
@@ -178,7 +178,7 @@
   </changeSet>
 
   <!-- update SYSTEM_VERSION -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-500" runOnChange="true">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
       <where>LABEL='0.21.1'</where>
     </delete>
