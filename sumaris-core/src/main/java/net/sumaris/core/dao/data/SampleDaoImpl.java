@@ -518,10 +518,6 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         source.setBatchId(batchId);
         Integer newHash = source.hashCode();
 
-        if (source.getId() != null && source.getId() == 3301) {
-            logger.warn("OUT: " + source.getUpdateDate());
-        }
-
         // If same hash, then skip (if allow)
         if (allowSkipSameHash && Objects.equals(target.getHash(), newHash)) {
             return true; // Skip
