@@ -33,9 +33,10 @@ import java.util.List;
 
 @Data
 @FieldNameConstants
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class PersonVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
+    @EqualsAndHashCode.Include
     private Integer id;
     private Date updateDate;
     private Date creationDate;

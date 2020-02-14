@@ -45,7 +45,7 @@ public class Parameter implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PARAMETER_SEQ")
-    @SequenceGenerator(name = "PARAMETER_SEQ", sequenceName="PARAMETER_SEQ")
+    @SequenceGenerator(name = "PARAMETER_SEQ", sequenceName="PARAMETER_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -87,5 +87,9 @@ public class Parameter implements IItemReferentialEntity {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<QualitativeValue> qualitativeValues = new ArrayList<>();
 
-
+    public String toString() {
+        return String.format("Paremeter{id=%s, label=%s}",
+                id,
+                label);
+    }
 }

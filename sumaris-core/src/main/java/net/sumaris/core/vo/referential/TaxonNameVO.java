@@ -29,7 +29,7 @@ import net.sumaris.core.model.referential.taxon.TaxonName;
 
 @Data
 @FieldNameConstants
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class TaxonNameVO extends ReferentialVO {
 
     private Integer referenceTaxonId;

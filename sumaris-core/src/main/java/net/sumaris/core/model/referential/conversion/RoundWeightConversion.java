@@ -86,7 +86,7 @@ public class RoundWeightConversion implements IReferentialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ROUND_WEIGHT_CONVERSION_SEQ")
-    @SequenceGenerator(name = "ROUND_WEIGHT_CONVERSION_SEQ", sequenceName="ROUND_WEIGHT_CONVERSION_SEQ")
+    @SequenceGenerator(name = "ROUND_WEIGHT_CONVERSION_SEQ", sequenceName="ROUND_WEIGHT_CONVERSION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

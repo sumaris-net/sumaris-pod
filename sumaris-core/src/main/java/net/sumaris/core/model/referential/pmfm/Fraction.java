@@ -50,7 +50,7 @@ public class Fraction implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "FRACTION_SEQ")
-    @SequenceGenerator(name = "FRACTION_SEQ", sequenceName="FRACTION_SEQ")
+    @SequenceGenerator(name = "FRACTION_SEQ", sequenceName="FRACTION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

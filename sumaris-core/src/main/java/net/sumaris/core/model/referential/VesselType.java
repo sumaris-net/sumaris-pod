@@ -36,7 +36,7 @@ public class VesselType implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "VESSEL_TYPE_SEQ")
-    @SequenceGenerator(name = "VESSEL_TYPE_SEQ", sequenceName="VESSEL_TYPE_SEQ")
+    @SequenceGenerator(name = "VESSEL_TYPE_SEQ", sequenceName="VESSEL_TYPE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

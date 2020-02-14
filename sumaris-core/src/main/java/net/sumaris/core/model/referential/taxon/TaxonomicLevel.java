@@ -104,7 +104,7 @@ public class TaxonomicLevel implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "TAXONOMIC_LEVEL_SEQ")
-    @SequenceGenerator(name = "TAXONOMIC_LEVEL_SEQ", sequenceName="TAXONOMIC_LEVEL_SEQ")
+    @SequenceGenerator(name = "TAXONOMIC_LEVEL_SEQ", sequenceName="TAXONOMIC_LEVEL_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

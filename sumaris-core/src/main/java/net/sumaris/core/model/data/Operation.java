@@ -39,11 +39,13 @@ import java.util.List;
 @Entity
 @Table(name = "operation")
 @Cacheable
-public class Operation implements IDataEntity<Integer> {
+public class Operation implements IDataEntity<Integer>,
+        IWithSamplesEntity<Integer, Sample>,
+        IWithBatchesEntity<Integer, Batch> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OPERATION_SEQ")
-    @SequenceGenerator(name = "OPERATION_SEQ", sequenceName="OPERATION_SEQ")
+    @SequenceGenerator(name = "OPERATION_SEQ", sequenceName="OPERATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "update_date")

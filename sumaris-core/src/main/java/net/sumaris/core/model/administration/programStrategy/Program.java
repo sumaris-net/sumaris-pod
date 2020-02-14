@@ -44,7 +44,7 @@ public class Program implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_SEQ")
-    @SequenceGenerator(name = "PROGRAM_SEQ", sequenceName="PROGRAM_SEQ")
+    @SequenceGenerator(name = "PROGRAM_SEQ", sequenceName="PROGRAM_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

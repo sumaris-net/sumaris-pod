@@ -33,6 +33,8 @@ public interface IDataEntity<ID extends Serializable>
         extends Serializable, IUpdateDateEntityBean<ID, Date>,
         IWithRecorderDepartmentEntity<ID, Department> {
 
+    int SEQUENCE_ALLOCATION_SIZE = 50;
+
     int LENGTH_COMMENTS = 2000;
 
     Date getControlDate();

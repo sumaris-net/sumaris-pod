@@ -39,7 +39,7 @@ public class ProgramPrivilege implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_PRIVILEGE_SEQ")
-    @SequenceGenerator(name = "PROGRAM_PRIVILEGE_SEQ", sequenceName="PROGRAM_PRIVILEGE_SEQ")
+    @SequenceGenerator(name = "PROGRAM_PRIVILEGE_SEQ", sequenceName="PROGRAM_PRIVILEGE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

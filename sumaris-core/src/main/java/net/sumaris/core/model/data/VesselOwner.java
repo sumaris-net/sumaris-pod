@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.location.Location;
 
 import javax.persistence.*;
@@ -39,7 +40,7 @@ public class VesselOwner implements IEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_OWNER_SEQ")
-    @SequenceGenerator(name = "VESSEL_OWNER_SEQ", sequenceName="VESSEL_OWNER_SEQ")
+    @SequenceGenerator(name = "VESSEL_OWNER_SEQ", sequenceName="VESSEL_OWNER_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "registration_code", length = 40)

@@ -63,7 +63,7 @@ public class ProductRdbLandingStatistics implements Serializable, IEntity<Intege
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "p01_rdb_landing_seq")
-    @SequenceGenerator(name = "p01_rdb_landing_seq", sequenceName="p01_rdb_landing_seq")
+    @SequenceGenerator(name = "p01_rdb_landing_seq", sequenceName="p01_rdb_landing_seq", allocationSize = 1)
     private Integer id;
 
     @Column(nullable = false, length = 3, name = COLUMN_LANDING_COUNTRY)

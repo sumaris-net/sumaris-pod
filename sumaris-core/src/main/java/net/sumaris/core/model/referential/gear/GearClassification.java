@@ -39,7 +39,7 @@ public class GearClassification implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy= GenerationType.SEQUENCE, generator = "GEAR_CLASSIFICATION_SEQ")
-    @SequenceGenerator(name = "GEAR_CLASSIFICATION_SEQ", sequenceName="GEAR_CLASSIFICATION_SEQ")
+    @SequenceGenerator(name = "GEAR_CLASSIFICATION_SEQ", sequenceName="GEAR_CLASSIFICATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

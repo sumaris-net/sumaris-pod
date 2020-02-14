@@ -43,11 +43,12 @@ import java.util.Set;
 @Entity
 public class Landing implements IRootDataEntity<Integer>,
         IWithObserversEntity<Integer, Person>,
-        IWithVesselEntity<Integer, Vessel> {
+        IWithVesselEntity<Integer, Vessel>,
+        IWithSamplesEntity<Integer, Sample> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LANDING_SEQ")
-    @SequenceGenerator(name = "LANDING_SEQ", sequenceName="LANDING_SEQ")
+    @SequenceGenerator(name = "LANDING_SEQ", sequenceName="LANDING_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

@@ -42,7 +42,7 @@ public class ImageAttachment implements IDataEntity<Integer>,
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "IMAGE_ATTACHMENT_SEQ")
-    @SequenceGenerator(name = "IMAGE_ATTACHMENT_SEQ", sequenceName="IMAGE_ATTACHMENT_SEQ")
+    @SequenceGenerator(name = "IMAGE_ATTACHMENT_SEQ", sequenceName="IMAGE_ATTACHMENT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

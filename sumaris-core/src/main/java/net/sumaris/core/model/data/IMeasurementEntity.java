@@ -28,6 +28,8 @@ import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 
 public interface IMeasurementEntity extends IDataEntity<Integer> {
 
+    int SEQUENCE_ALLOCATION_SIZE = 50;
+
     interface Fields extends IEntity.Fields {
         String PMFM = "pmfm";
         String NUMERICAL_VALUE = "numericalValue";

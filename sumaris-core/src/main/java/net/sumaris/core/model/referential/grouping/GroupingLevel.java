@@ -49,7 +49,7 @@ public class GroupingLevel implements IItemReferentialEntity  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GROUPING_LEVEL_SEQ")
-    @SequenceGenerator(name = "GROUPING_LEVEL_SEQ", sequenceName="GROUPING_LEVEL_SEQ")
+    @SequenceGenerator(name = "GROUPING_LEVEL_SEQ", sequenceName="GROUPING_LEVEL_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

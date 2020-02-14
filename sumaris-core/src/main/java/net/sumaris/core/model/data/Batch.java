@@ -25,6 +25,7 @@ package net.sumaris.core.model.data;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
@@ -43,7 +44,7 @@ public class Batch implements IDataEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "BATCH_SEQ")
-    @SequenceGenerator(name = "BATCH_SEQ", sequenceName="BATCH_SEQ")
+    @SequenceGenerator(name = "BATCH_SEQ", sequenceName="BATCH_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(length = 40)

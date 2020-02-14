@@ -31,16 +31,20 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import java.util.Date;
 
 @Data
-@EqualsAndHashCode
 @FieldNameConstants
+@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
 public class DepartmentVO extends ReferentialVO {
 
+    // Copy fields from ReferentialVO (workaround need for GraphQL serialisation)
+    @EqualsAndHashCode.Include
     private Integer id;
     private Date updateDate;
     private Date creationDate;
     private String label;
     private String name;
     private Integer statusId;
+
+
     private String siteUrl;
 
     @EqualsAndHashCode.Exclude
@@ -53,3 +57,4 @@ public class DepartmentVO extends ReferentialVO {
         this.setEntityName(Department.class.getSimpleName());
     }
 }
+

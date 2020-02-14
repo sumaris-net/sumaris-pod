@@ -61,7 +61,7 @@ public class Person implements IReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PERSON_SEQ")
-    @SequenceGenerator(name = "PERSON_SEQ", sequenceName="PERSON_SEQ")
+    @SequenceGenerator(name = "PERSON_SEQ", sequenceName="PERSON_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

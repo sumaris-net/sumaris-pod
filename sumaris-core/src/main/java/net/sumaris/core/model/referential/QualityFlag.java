@@ -36,7 +36,7 @@ public class QualityFlag implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "QUALITY_FLAG_SEQ")
-    @SequenceGenerator(name = "QUALITY_FLAG_SEQ", sequenceName="QUALITY_FLAG_SEQ")
+    @SequenceGenerator(name = "QUALITY_FLAG_SEQ", sequenceName="QUALITY_FLAG_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -27,6 +27,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.referential.IReferentialEntity;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
@@ -43,7 +44,7 @@ public class File implements Serializable, IUpdateDateEntityBean<Integer, Date> 
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_SEQ")
-    @SequenceGenerator(name = "FILE_SEQ", sequenceName="FILE_SEQ")
+    @SequenceGenerator(name = "FILE_SEQ", sequenceName="FILE_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(nullable = false)

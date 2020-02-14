@@ -59,7 +59,7 @@ public class ProductRdbSpeciesLength implements Serializable, IEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "p01_rdb_species_length_seq")
-    @SequenceGenerator(name = "p01_rdb_species_length_seq", sequenceName="p01_rdb_species_length_seq")
+    @SequenceGenerator(name = "p01_rdb_species_length_seq", sequenceName="p01_rdb_species_length_seq", allocationSize = 1)
     private Integer id;
 
     @Column(nullable = false, length = 2, name = COLUMN_SAMPLING_TYPE)

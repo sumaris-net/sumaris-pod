@@ -41,7 +41,7 @@ public class ExtractionProductStrata implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_STRATA_SEQ")
-    @SequenceGenerator(name = "EXTRACTION_PRODUCT_STRATA_SEQ", sequenceName="EXTRACTION_PRODUCT_STRATA_SEQ")
+    @SequenceGenerator(name = "EXTRACTION_PRODUCT_STRATA_SEQ", sequenceName="EXTRACTION_PRODUCT_STRATA_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Exclude
     private Integer id;
 

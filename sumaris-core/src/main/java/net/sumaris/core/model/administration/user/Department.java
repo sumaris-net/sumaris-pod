@@ -42,7 +42,7 @@ public class Department implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "DEPARTMENT_SEQ")
-    @SequenceGenerator(name = "DEPARTMENT_SEQ", sequenceName="DEPARTMENT_SEQ")
+    @SequenceGenerator(name = "DEPARTMENT_SEQ", sequenceName="DEPARTMENT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

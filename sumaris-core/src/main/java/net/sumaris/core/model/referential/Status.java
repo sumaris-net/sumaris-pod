@@ -38,7 +38,7 @@ public class Status implements IUpdateDateEntityBean<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "STATUS_SEQ")
-    @SequenceGenerator(name = "STATUS_SEQ", sequenceName="STATUS_SEQ")
+    @SequenceGenerator(name = "STATUS_SEQ", sequenceName="STATUS_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(nullable = false)

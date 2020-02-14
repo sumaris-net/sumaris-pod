@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.referential;
+package net.sumaris.core.model.data;
 
 /*-
  * #%L
@@ -22,33 +22,23 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.referential.QualityFlag;
 
+import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
-@Data
-@FieldNameConstants
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class ReferentialVO implements IReferentialVO {
-    @EqualsAndHashCode.Include
-    private Integer id;
-    private String label;
-    private String name;
-    private String description;
-    private String comments;
-    private Date updateDate;
-    private Date creationDate;
+public interface IWithSamplesEntity<T extends Serializable, S extends IEntity<Integer>> extends IEntity<T> {
 
-    private Integer statusId;
-    private Integer validityStatusId;
+    interface Fields extends IEntity.Fields {
+        String SAMPLES = "samples";
+    }
 
-    //@EqualsAndHashCode.Exclude
-    private Integer levelId;
+    List<S> getSamples();
 
-    // Metadata
-    //@EqualsAndHashCode.Exclude
-    private String entityName;
+    void setSamples(List<S> samples);
 }
-

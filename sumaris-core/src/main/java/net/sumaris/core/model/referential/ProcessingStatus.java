@@ -44,7 +44,7 @@ public class ProcessingStatus implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_STATUS_SEQ")
-    @SequenceGenerator(name = "PROCESSING_STATUS_SEQ", sequenceName="PROCESSING_STATUS_SEQ")
+    @SequenceGenerator(name = "PROCESSING_STATUS_SEQ", sequenceName="PROCESSING_STATUS_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

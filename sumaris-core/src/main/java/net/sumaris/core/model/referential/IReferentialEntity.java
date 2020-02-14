@@ -28,6 +28,9 @@ import java.util.Date;
 
 public interface IReferentialEntity extends IUpdateDateEntityBean<Integer, Date> {
 
+    int SEQUENCE_ALLOCATION_SIZE = 1;
+
+
     interface Fields extends IUpdateDateEntityBean.Fields {
         String STATUS = "status";
     }

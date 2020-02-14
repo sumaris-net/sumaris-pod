@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialEntity;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -43,7 +44,7 @@ public class TaxonGroupHistoricalRecord implements IUpdateDateEntityBean<Integer
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_GROUP_HISTORICAL_REC_SEQ")
-    @SequenceGenerator(name = "TAXON_GROUP_HISTORICAL_REC_SEQ", sequenceName="TAXON_GROUP_HISTORICAL_REC_SEQ")
+    @SequenceGenerator(name = "TAXON_GROUP_HISTORICAL_REC_SEQ", sequenceName="TAXON_GROUP_HISTORICAL_REC_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "start_date", nullable = false)

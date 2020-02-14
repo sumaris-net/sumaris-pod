@@ -25,11 +25,13 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Batch;
+import net.sumaris.core.model.data.IWithBatchesEntity;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
@@ -49,27 +51,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Repository("batchDao")
 public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
-    /** Logger. */
-    private static final Logger log =
+    /**
+     * Logger.
+     */
+    protected static final Logger logger =
             LoggerFactory.getLogger(BatchDaoImpl.class);
+    private static final boolean trace = logger.isTraceEnabled();
 
-    private boolean debug;
+    private boolean enableSaveUsingHash;
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -77,9 +80,9 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
     @Autowired
     private TaxonNameDao taxonNameDao;
 
-    public BatchDaoImpl() {
-        super();
-        debug = log.isDebugEnabled();
+    @PostConstruct
+    protected void init() {
+        this.enableSaveUsingHash = config.enableBatchHashOptimization();
     }
 
     @Override
@@ -110,63 +113,27 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
     @Override
     public List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources) {
 
+        long debugTime = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        if (debugTime != 0L) logger.debug(String.format("Saving operation {id:%s} batches... {hash_optimization:%s}", operationId, enableSaveUsingHash));
+
         // Load parent entity
         Operation parent = get(Operation.class, operationId);
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
 
-        // Remember existing entities
+        sources.forEach(source -> source.setOperationId(operationId));
 
-        final Multimap<Integer, Batch> sourcesByHashCode = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.Fields.HASH);
-        final Multimap<String, Batch> sourcesByLabelMap = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.Fields.LABEL);
-        final Map<Integer, Batch> sourcesIdsToRemove = Beans.splitById(Beans.getList(parent.getBatches()));
+        // Save all by parent
+        boolean dirty = saveAllByParent(parent, sources);
 
-        // Save each batches
-        sources.forEach(source -> {
-            source.setOperationId(operationId);
-
-            Batch existingBatch = null;
-            if (source.getId() != null) {
-                existingBatch = sourcesIdsToRemove.remove(source.getId());
-            }
-            // Id not exists: try by hash or label
-            if (source.getId() != null && existingBatch == null) {
-                // Try to get iit by hash code
-                Collection<Batch> existingBatchs = sourcesByHashCode.get(source.hashCode());
-                // Not found by hash code: try by label
-                if (CollectionUtils.isEmpty(existingBatchs)) {
-                    existingBatchs = sourcesByLabelMap.get(source.getLabel());
-                }
-                // If one on match => use it
-                if (CollectionUtils.size(existingBatchs) == 1) {
-                    existingBatch = existingBatchs.iterator().next();
-                    sourcesIdsToRemove.remove(existingBatch.getId());
-                    source.setId(existingBatch.getId());
-                }
-            }
-
-            // Save the batch, in an optimized way
-            optimizedSave(source, existingBatch, false, newUpdateDate);
-        });
-
-        // Remove unused entities
-        if (MapUtils.isNotEmpty(sourcesIdsToRemove)) {
-            sourcesIdsToRemove.values().forEach(this::delete);
+        // Flush if need
+        if (dirty) {
+            entityManager.flush();
+            entityManager.clear();
         }
 
-        // Remove parent (use only parentId)
-        sources.forEach(batch -> {
-            if (batch.getParent() != null) {
-                batch.setParentId(batch.getParent().getId());
-                batch.setParent(null);
-            }
-        });
-
-        entityManager.flush();
-        entityManager.clear();
+        if (debugTime != 0L) logger.debug(String.format("Saving operation {id:%s} batches [OK] in %s ms", operationId, System.currentTimeMillis() - debugTime));
 
         return sources;
     }
-
 
     @Override
     public BatchVO save(BatchVO source) {
@@ -184,7 +151,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         if (!isNew) {
             // Check update date
-            // FIXME: Cliant app: update entity from the save() result
+            // FIXME: Client app: update entity from the save() result
             //checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
@@ -195,7 +162,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         copySomeFieldsFromOperation(source);
 
         // VO -> Entity
-        batchVOToEntity(source, entity, true);
+        batchVOToEntity(source, entity, true, false);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -220,8 +187,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
     @Override
     public void delete(int id) {
-
-        log.debug(String.format("Deleting batch {id=%s}...", id));
+        if (trace) logger.trace(String.format("Deleting batch {id: %s}...", id));
         delete(Batch.class, id);
     }
 
@@ -239,6 +205,78 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
     /* -- protected methods -- */
 
+    protected boolean saveAllByParent(IWithBatchesEntity<Integer, Batch> parent, List<BatchVO> sources) {
+
+        // Load existing entities
+        final Multimap<Integer, Batch> sourcesByHashCode = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.Fields.HASH);
+        final Multimap<String, Batch> sourcesByLabelMap = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.Fields.LABEL);
+        final Map<Integer, Batch> sourcesIdsToProcess = Beans.splitById(Beans.getList(parent.getBatches()));
+        final Set<Integer> sourcesIdsToSkip = enableSaveUsingHash ? Sets.newHashSet() : null;
+
+        // Save each batches
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        boolean dirty = sources.stream().map(source -> {
+
+            Batch target = null;
+            if (source.getId() != null) {
+                target = sourcesIdsToProcess.remove(source.getId());
+            }
+            // Source has no id (e.g. a sampling batch can have no ID sent by SUMARiS app)
+            else {
+                // Try to get it by hash code
+                Collection<Batch> existingBatchs = sourcesByHashCode.get(source.hashCode());
+                // Not found by hash code: try by label
+                if (CollectionUtils.isEmpty(existingBatchs)) {
+                    existingBatchs = sourcesByLabelMap.get(source.getLabel());
+                }
+                // If one on match => use it
+                if (CollectionUtils.size(existingBatchs) == 1) {
+                    target = sourcesIdsToProcess.remove(existingBatchs.iterator().next().getId());
+                    if (target != null) {
+                        source.setId(target.getId());
+                    }
+                }
+            }
+
+            // Check if batch save can be skipped
+            boolean skip = source.getId() != null && (enableSaveUsingHash && sourcesIdsToSkip.contains(source.getId()));
+            if (!skip) {
+
+                // Save the batch (using a dedicated function)
+                source = optimizedSave(source, target, false, newUpdateDate, enableSaveUsingHash);
+                skip = !Objects.equals(source.getUpdateDate(), newUpdateDate);
+
+                // If skipped, all children are also skipped
+                if (skip) {
+                    getAllChildren(source).forEach(b -> sourcesIdsToSkip.add(b.getId()));
+                }
+            }
+            if (skip && trace) {
+                logger.trace(String.format("Skip batch {id: %s, label: '%s'}", source.getId(), source.getLabel()));
+            }
+            return !skip;
+        })
+                // Count updates
+                .filter(Boolean::booleanValue)
+                .count() > 0;
+
+        // Remove not processed batches
+        if (MapUtils.isNotEmpty(sourcesIdsToProcess)) {
+            sourcesIdsToProcess.values().forEach(this::delete);
+            dirty = true;
+        }
+
+        // Remove parent (use only parentId)
+        sources.forEach(batch -> {
+            if (batch.getParent() != null) {
+                batch.setParentId(batch.getParent().getId());
+                batch.setParent(null);
+            }
+        });
+
+        return dirty;
+    }
+
     /**
      * Save the batch, when saving a full tree (algorithm optimized for this case)
      * /!\ DO NOT USE when updating only one batch, in a existing tree !
@@ -247,13 +285,13 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
      * @param entity
      * @param checkUpdateDate
      * @param newUpdateDate
-     * @param flush
      * @return
      */
     protected BatchVO optimizedSave(BatchVO source,
-                             Batch entity,
-                             boolean checkUpdateDate,
-                             Timestamp newUpdateDate) {
+                                    Batch entity,
+                                    boolean checkUpdateDate,
+                                    Timestamp newUpdateDate,
+                                    boolean enableBatchHashOptimization) {
         Preconditions.checkNotNull(source);
 
         EntityManager entityManager = getEntityManager();
@@ -267,7 +305,6 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         if (!isNew && checkUpdateDate) {
             // Check update date
-            // FIXME: Client app: update entity from the save() result
             checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
@@ -278,29 +315,25 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         copySomeFieldsFromOperation(source);
 
         // VO -> Entity
-        Integer previousHash = entity.getHash();
-        batchVOToEntity(source, entity, true);
+        boolean skipSave = batchVOToEntity(source, entity, true, !isNew && enableBatchHashOptimization);
+
+        // Stop here (without change on the update_date)
+        if (skipSave) return source;
 
         // Update update_dt
         entity.setUpdateDate(newUpdateDate);
         source.setUpdateDate(newUpdateDate);
 
-        // Save entityName
+        // Save entity
         if (isNew) {
+            // Add new batch
             entityManager.persist(entity);
             source.setId(entity.getId());
+            if (trace) logger.trace(String.format("Adding batch {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
         } else {
-            boolean needUpdate = !Objects.equals(previousHash, entity.getHash());
-
-            // Check when (hash code has changed)
-            if (needUpdate) {
-                if (debug) logger.debug(String.format("Bach {%s} updated (hash changed)", entity.getLabel()));
-                entityManager.merge(entity);
-            } else {
-                if (debug) logger.debug(String.format("Bach {%s} is unchanged. TODO: avoid to call entityManager.merge() ?", entity.getLabel()));
-                // TODO: remove next call to merge() after MANY tests + Unit tests
-                entityManager.merge(entity);
-            }
+            // Update existing batch
+            if (trace) logger.trace(String.format("Updating batch {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
+            entityManager.merge(entity);
         }
 
         return source;
@@ -347,10 +380,10 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
     }
 
     protected void copySomeFieldsFromOperation(BatchVO target) {
-        OperationVO source = target.getOperation();
-        if (source == null) return;
+        OperationVO operation = target.getOperation();
+        if (operation == null) return;
 
-        target.setRecorderDepartment(source.getRecorderDepartment());
+        target.setRecorderDepartment(operation.getRecorderDepartment());
     }
 
     protected List<BatchVO> toBatchVOs(List<Batch> source, boolean allFields) {
@@ -363,9 +396,71 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
                 .collect(Collectors.toList());
     }
 
-    protected void batchVOToEntity(BatchVO source, Batch target, boolean copyIfNull) {
+    /**
+     *
+     * @param source
+     * @param target
+     * @param copyIfNull
+     * @return true if can skip batch update (only if hash optimization have been enabled)
+     */
+    protected boolean batchVOToEntity(BatchVO source, Batch target, boolean copyIfNull, boolean allowSkipSameHash) {
+
+        // Get some parent ids
+        Integer parentId = (source.getParent() != null ? source.getParent().getId() : source.getParentId());
+        Integer opeId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
+
+        // Parent batch
+        if (copyIfNull || (parentId != null)) {
+
+            // Check if parent changed.
+            Batch previousParent = target.getParent();
+            if (previousParent != null && !Objects.equals(parentId, previousParent.getId())
+                    && CollectionUtils.isNotEmpty(previousParent.getChildren())) {
+                // Remove in the parent children list (to avoid a DELETE CASCADE if the parent is delete later)
+                previousParent.getChildren().remove(target);
+            }
+
+            if (parentId == null) {
+                target.setParent(null);
+            }
+            else {
+                Batch parent = load(Batch.class, parentId);
+                target.setParent(parent);
+
+                // Not need to update the children collection, because mapped by the 'parent' property
+                //if (!parent.getChildren().contains(target)) {
+                //    parent.getChildren().add(target);
+                //}
+
+                // Force same operation as parent (e.g. in case of bad batch tree copy)
+                opeId = parent.getOperation().getId();
+            }
+        }
+
+        // /!\ IMPORTANT: update source's operationId and parentId, BEFORE calling hashCode()
+        source.setParentId(parentId);
+        source.setOperationId(opeId);
+        Integer newHash = source.hashCode();
+
+        // If same hash, then skip (if allow)
+        if (allowSkipSameHash && Objects.equals(target.getHash(), newHash)) {
+            return true; // Skip
+        }
 
         Beans.copyProperties(source, target);
+
+        // Hash
+        target.setHash(newHash);
+
+        // Operation
+        if (copyIfNull || (opeId != null)) {
+            if (opeId == null) {
+                target.setOperation(null);
+            }
+            else {
+                target.setOperation(load(Operation.class, opeId));
+            }
+        }
 
         // Taxon group
         if (copyIfNull || source.getTaxonGroup() != null) {
@@ -393,48 +488,9 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
                         target.setReferenceTaxon(taxonname.getReferenceTaxon());
                     }
                     else {
-                        throw new DataIntegrityViolationException("Invalid batch: unknown taxon name with id "+ source.getTaxonName().getId());
+                        throw new DataIntegrityViolationException(String.format("Invalid batch: unknown taxon name {id:%s}", source.getTaxonName().getId()));
                     }
                 }
-            }
-        }
-
-        Integer parentId = (source.getParent() != null ? source.getParent().getId() : source.getParentId());
-        Integer opeId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
-
-        // Parent batch
-        if (copyIfNull || (parentId != null)) {
-            if (parentId == null) {
-                target.setParent(null);
-            }
-            else {
-                // Detect the previous parent. If changed, remove the batch from tha parent children list - fix #15
-                Batch oldParent = target.getParent();
-                if (oldParent != null && parentId != oldParent.getId() && CollectionUtils.isNotEmpty(oldParent.getChildren())) {
-                    oldParent.getChildren().remove(target);
-                }
-
-                // Set parent
-                Batch parent = load(Batch.class, parentId);
-                target.setParent(parent);
-
-                // This is need in an optimized save
-                //if (!parent.getChildren().contains(target)) {
-                //    parent.getChildren().add(target);
-                //}
-
-                // Force same operation as parent (e.g. in case of bad batch tree copy)
-                opeId = parent.getOperation().getId();
-            }
-        }
-
-        // Operation
-        if (copyIfNull || (opeId != null)) {
-            if (opeId == null) {
-                target.setOperation(null);
-            }
-            else {
-                target.setOperation(load(Operation.class, opeId));
             }
         }
 
@@ -458,8 +514,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
             }
         }
 
-        // Store hash code
-        target.setHash(source.hashCode());
+        return false;
     }
 
     protected void fillListFromTree(final List<BatchVO> result, final BatchVO source) {
@@ -476,5 +531,12 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         // Not need anymore
         source.setParent(null);
         source.setChildren(null);
+    }
+
+    protected Stream<BatchVO> getAllChildren(BatchVO source) {
+        if (CollectionUtils.isEmpty(source.getChildren())) {
+            return Stream.empty();
+        }
+        return source.getChildren().stream().flatMap(c -> Stream.concat(Stream.of(c), getAllChildren(c)));
     }
 }

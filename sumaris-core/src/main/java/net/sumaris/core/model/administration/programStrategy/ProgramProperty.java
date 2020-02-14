@@ -38,7 +38,7 @@ public class ProgramProperty implements IItemReferentialEntity  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_PROPERTY_SEQ")
-    @SequenceGenerator(name = "PROGRAM_PROPERTY_SEQ", sequenceName="PROGRAM_PROPERTY_SEQ")
+    @SequenceGenerator(name = "PROGRAM_PROPERTY_SEQ", sequenceName="PROGRAM_PROPERTY_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(nullable = false, length = 255)

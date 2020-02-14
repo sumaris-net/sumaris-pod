@@ -24,6 +24,7 @@ package net.sumaris.core.model.file;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.IDataEntity;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -37,7 +38,7 @@ public class FileLine implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_LINE_SEQ")
-    @SequenceGenerator(name = "FILE_LINE_SEQ", sequenceName="FILE_LINE_SEQ")
+    @SequenceGenerator(name = "FILE_LINE_SEQ", sequenceName="FILE_LINE_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(nullable = false, name = "line_number")

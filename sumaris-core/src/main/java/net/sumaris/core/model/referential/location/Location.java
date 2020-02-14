@@ -42,7 +42,7 @@ public class Location implements IItemReferentialEntity, Serializable, IWithVali
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_SEQ")
-    @SequenceGenerator(name = "LOCATION_SEQ", sequenceName="LOCATION_SEQ")
+    @SequenceGenerator(name = "LOCATION_SEQ", sequenceName="LOCATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

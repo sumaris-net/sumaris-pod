@@ -40,7 +40,7 @@ public class LandingMeasurement implements IMeasurementEntity, ISortedMeasuremen
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LANDING_MEASUREMENT_SEQ")
-    @SequenceGenerator(name = "LANDING_MEASUREMENT_SEQ", sequenceName="LANDING_MEASUREMENT_SEQ")
+    @SequenceGenerator(name = "LANDING_MEASUREMENT_SEQ", sequenceName="LANDING_MEASUREMENT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "update_date")

@@ -45,7 +45,7 @@ public class Matrix implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "MATRIX_SEQ")
-    @SequenceGenerator(name = "MATRIX_SEQ", sequenceName="MATRIX_SEQ")
+    @SequenceGenerator(name = "MATRIX_SEQ", sequenceName="MATRIX_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

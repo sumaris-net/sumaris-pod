@@ -37,7 +37,7 @@ public class VesselPosition implements IDataEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_POSITION_SEQ")
-    @SequenceGenerator(name = "VESSEL_POSITION_SEQ", sequenceName="VESSEL_POSITION_SEQ")
+    @SequenceGenerator(name = "VESSEL_POSITION_SEQ", sequenceName="VESSEL_POSITION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "update_date")

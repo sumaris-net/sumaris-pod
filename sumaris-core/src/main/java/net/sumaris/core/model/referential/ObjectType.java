@@ -36,7 +36,7 @@ public class ObjectType implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "OBJECT_TYPE_SEQ")
-    @SequenceGenerator(name = "OBJECT_TYPE_SEQ", sequenceName="OBJECT_TYPE_SEQ")
+    @SequenceGenerator(name = "OBJECT_TYPE_SEQ", sequenceName="OBJECT_TYPE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

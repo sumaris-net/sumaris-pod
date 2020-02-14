@@ -38,7 +38,7 @@ public class TranscribingItem implements IItemReferentialEntity  {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "TRANSCRIBING_ITEM_SEQ")
-    @SequenceGenerator(name = "TRANSCRIBING_ITEM_SEQ", sequenceName="TRANSCRIBING_ITEM_SEQ")
+    @SequenceGenerator(name = "TRANSCRIBING_ITEM_SEQ", sequenceName="TRANSCRIBING_ITEM_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -40,7 +40,7 @@ public class BatchQuantificationMeasurement implements IMeasurementEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "QUANTIF_MEASUREMENT_B_SEQ")
-    @SequenceGenerator(name = "QUANTIF_MEASUREMENT_B_SEQ", sequenceName="QUANTIF_MEASUREMENT_B_SEQ")
+    @SequenceGenerator(name = "QUANTIF_MEASUREMENT_B_SEQ", sequenceName="QUANTIF_MEASUREMENT_B_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "update_date")
@@ -98,4 +98,12 @@ public class BatchQuantificationMeasurement implements IMeasurementEntity {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Batch.class)
     @JoinColumn(name = "batch_fk")
     private Batch batch;
+
+    public String toString() {
+        return String.format("BatchQuantificationMeasurement{id:%s, batch:{id:%s}, pmfm:{id:%s, label:%s}}}",
+                id,
+                batch != null ? batch.getId() : null,
+                pmfm != null ? pmfm.getId() : null,
+                pmfm != null ? pmfm.getLabel() : null);
+    }
 }

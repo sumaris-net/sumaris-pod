@@ -40,7 +40,7 @@ public class VesselPhysicalMeasurement implements IMeasurementEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_PHYSICAL_MEASUREMEN_SEQ")
-    @SequenceGenerator(name = "VESSEL_PHYSICAL_MEASUREMEN_SEQ", sequenceName="VESSEL_PHYSICAL_MEASUREMEN_SEQ")
+    @SequenceGenerator(name = "VESSEL_PHYSICAL_MEASUREMEN_SEQ", sequenceName="VESSEL_PHYSICAL_MEASUREMEN_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "update_date")

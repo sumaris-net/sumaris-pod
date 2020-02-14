@@ -25,6 +25,7 @@ package net.sumaris.core.model.administration.user;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.referential.IReferentialEntity;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -38,7 +39,7 @@ public class UserToken implements IEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_TOKEN_SEQ")
-    @SequenceGenerator(name = "USER_TOKEN_SEQ", sequenceName="USER_TOKEN_SEQ")
+    @SequenceGenerator(name = "USER_TOKEN_SEQ", sequenceName="USER_TOKEN_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

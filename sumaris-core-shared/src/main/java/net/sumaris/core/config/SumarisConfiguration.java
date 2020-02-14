@@ -766,6 +766,14 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.PRESERVE_HISTORICAL_MEASUREMENTS.getKey());
     }
 
+    public boolean enableBatchHashOptimization() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_BATCH_HASH_OPTIMIZATION.getKey());
+    }
+
+    public boolean enableSampleHashOptimization() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_SAMPLE_HASH_OPTIMIZATION.getKey());
+    }
+
     /* -- protected methods -- */
 
     /**

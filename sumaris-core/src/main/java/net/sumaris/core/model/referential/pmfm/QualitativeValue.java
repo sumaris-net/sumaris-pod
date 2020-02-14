@@ -38,7 +38,7 @@ public class QualitativeValue implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "QUALITATIVE_VALUE_SEQ")
-    @SequenceGenerator(name = "QUALITATIVE_VALUE_SEQ", sequenceName="QUALITATIVE_VALUE_SEQ")
+    @SequenceGenerator(name = "QUALITATIVE_VALUE_SEQ", sequenceName="QUALITATIVE_VALUE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -67,4 +67,10 @@ public class QualitativeValue implements IItemReferentialEntity {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Parameter.class)
     @JoinColumn(name = "parameter_fk")
     private Parameter parameter;
+
+    public String toString() {
+        return String.format("QualitativeValue{id=%s, parameter{label=%s}}",
+                id,
+                parameter != null ? parameter.getLabel() : null);
+    }
 }
