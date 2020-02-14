@@ -3,6 +3,7 @@ import {FormBuilder, FormControl, Validators} from "@angular/forms";
 import {Landing} from "./trip.model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {DataRootVesselEntityValidatorService} from "./validator/base.validator";
+import {toNumber} from "../../shared/functions";
 
 @Injectable()
 export class LandingValidatorService extends DataRootVesselEntityValidatorService<Landing> {
@@ -15,17 +16,17 @@ export class LandingValidatorService extends DataRootVesselEntityValidatorServic
   getFormGroupConfig(data?: Landing): { [p: string]: any } {
 
     return Object.assign(super.getFormGroupConfig(data), {
-      __typename: ['LandingVO'],
-      id: [null],
-      updateDate: [null],
-      location: [null, SharedValidators.entity],
-      dateTime: [null],
-      rankOrder: [null, Validators.compose([SharedValidators.integer, Validators.min(1)])],
+      __typename: [Landing.TYPENAME],
+      id: [toNumber(data && data.id, null)],
+      updateDate: [data && data.updateDate || null],
+      location: [data && data.location || null, SharedValidators.entity],
+      dateTime: [data && data.dateTime || null],
+      rankOrder: [toNumber(data && data.rankOrder, null), Validators.compose([SharedValidators.integer, Validators.min(1)])],
       measurementValues: this.formBuilder.group({}),
       observers: this.getObserversFormArray(data),
-      observedLocationId: [null],
-      comments: [null],
-      tripId: [null]
+      observedLocationId: [toNumber(data && data.observedLocationId, null)],
+      tripId: [toNumber(data && data.tripId, null)],
+      comments: [data && data.comments || null]
     });
   }
 

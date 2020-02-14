@@ -3,6 +3,7 @@ import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import { PhysicalGear } from "./trip.model";
 import { SharedValidators } from "../../shared/validator/validators";
+import {toNumber} from "../../shared/functions";
 
 @Injectable()
 export class PhysicalGearValidatorService implements ValidatorService {
@@ -16,14 +17,14 @@ export class PhysicalGearValidatorService implements ValidatorService {
 
   getFormGroup(data?: PhysicalGear): FormGroup {
     return this.formBuilder.group({
-      __typename: ['PhysicalGearVO'],
-      id: [''],
-      updateDate: [''],
-      rankOrder: ['', Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
-      creationDate: [''],
-      gear: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      __typename: [PhysicalGear.TYPENAME],
+      id: [toNumber(data && data.id, null)],
+      updateDate: [data && data.updateDate || null],
+      rankOrder: [toNumber(data && data.rankOrder, null), Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
+      creationDate: [data && data.creationDate || null],
+      gear: [data && data.gear || null, Validators.compose([Validators.required, SharedValidators.entity])],
       measurementValues: this.formBuilder.group({}),
-      comments: ['', Validators.maxLength(2000)]
+      comments: [data && data.comments || null, Validators.maxLength(2000)]
     });
   }
 }

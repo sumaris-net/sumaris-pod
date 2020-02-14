@@ -3,6 +3,7 @@ import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import {Moment} from "moment";
 import {VesselPosition} from "./trip.model";
+import {toNumber} from "../../shared/functions";
 
 @Injectable()
 export class PositionValidatorService implements ValidatorService {
@@ -14,14 +15,14 @@ export class PositionValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: {dateTime: Date|Moment; latitude: number; longitude: number; }, opts?: {required: boolean;}): FormGroup {
+  getFormGroup(data?: {id?: number; dateTime: Date|Moment; latitude: number; longitude: number; updateDate?: Date|Moment}, opts?: {required: boolean;}): FormGroup {
     return this.formBuilder.group({
       __typename: [VesselPosition.TYPENAME],
-      id: [null],
-      updateDate: [null],
-      dateTime: [null],
-      latitude: [null, opts && opts.required ? Validators.required : null],
-      longitude: [null, opts && opts.required ? Validators.required : null]
+      id: [toNumber(data && data.id, null)],
+      updateDate: [data && data.updateDate || null],
+      dateTime: [data && data.dateTime || null],
+      latitude: [toNumber(data && data.latitude, null), opts && opts.required ? Validators.required : null],
+      longitude: [toNumber(data && data.longitude, null), opts && opts.required ? Validators.required : null]
     });
   }
 }

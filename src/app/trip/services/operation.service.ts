@@ -26,7 +26,7 @@ import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {isEmptyArray, isNilOrBlank} from "../../shared/functions";
+import {isEmptyArray, isNilOrBlank, toNumber} from "../../shared/functions";
 import {AcquisitionLevelCodes, ReferentialFragments} from "../../referential/referential.module";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {NetworkService} from "../../core/services/network.service";
@@ -614,8 +614,14 @@ export class OperationService extends BaseDataService
     }
 
     // Fill catch batch label
-    if (entity.catchBatch && isNilOrBlank(entity.catchBatch.label)) {
-      entity.catchBatch.label = AcquisitionLevelCodes.CATCH_BATCH;
+    if (entity.catchBatch) {
+      // Fill catch batch label
+      if (isNilOrBlank(entity.catchBatch.label)) {
+        entity.catchBatch.label = AcquisitionLevelCodes.CATCH_BATCH;
+      }
+
+      // Fill sum and rank order
+      this.fillBatchTree(entity.catchBatch);
     }
   }
 
@@ -650,6 +656,68 @@ export class OperationService extends BaseDataService
     //if (this._debug) BatchUtils.logTree(entity.catchBatch);
   }
 
+  protected fillBatchTree(source: Batch, context?: {
+    parentLabel?: string;
+    totalIndividualCount?: number;
+    individualMeasureCount?: number;
+  }) {
+    context = context || {};
+    context.parentLabel = source.label;
+    context.individualMeasureCount = toNumber(context.individualMeasureCount, 0);
+
+    let childrenIndividualCount = 0;
+
+    (source.children || [])
+      // Sort by id, or new batch at the end
+      .sort((b1, b2) => (b1.id || 9999999) - (b2.id || 9999999))
+      .forEach((b, index) => {
+      b.rankOrder = index + 1;
+
+      if (b.label) {
+        // Sampling batch
+        if (b.label.endsWith(Batch.SAMPLE_BATCH_SUFFIX)) {
+          b.label = context && context.parentLabel && (context.parentLabel + Batch.SAMPLE_BATCH_SUFFIX) || b.label;
+        }
+        // Individual measure batch
+        else if (b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
+          b.rankOrder = context.individualMeasureCount + 1;
+          b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
+          context.individualMeasureCount += 1;
+
+          childrenIndividualCount += toNumber(b.individualCount, 1);
+        }
+      }
+
+      this.fillBatchTree(b, context);
+    });
+
+    if (childrenIndividualCount > 0 && source.label) {
+      // There is a sampling batch: update it
+      if (source.label.endsWith(Batch.SAMPLE_BATCH_SUFFIX)) {
+        if (source.individualCount !== childrenIndividualCount) {
+          console.warn(`[operation-service] Fix batch {${source.label}} individual count  ${source.individualCount} => ${childrenIndividualCount}`);
+          source.individualCount = childrenIndividualCount;
+        }
+      }
+      // No sampling batch
+      else if (source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH)){
+        if (source.individualCount < childrenIndividualCount) {
+          console.warn(`[operation-service] Fix batch {${source.label}} individual count  ${source.individualCount} => ${childrenIndividualCount}`);
+          source.individualCount = childrenIndividualCount;
+        }
+        else if (source.individualCount > childrenIndividualCount) {
+          // Create a sampling batch
+          const samplingBatch = new Batch();
+          samplingBatch.label = source.label + Batch.SAMPLE_BATCH_SUFFIX;
+          samplingBatch.rankOrder = 1;
+          samplingBatch.individualCount = childrenIndividualCount;
+          samplingBatch.children = source.children;
+          source.children = [samplingBatch];
+        }
+      }
+    }
+
+  }
 
   protected copyIdAndUpdateDate(source: Operation | undefined | any, target: Operation) {
     if (!source) return;

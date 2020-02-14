@@ -79,16 +79,17 @@ export const DataFragments = {
     matrix {
       ...ReferentialFragment
     }
-    taxonName {
-      ...ReferentialFragment
-    }
     taxonGroup {
       ...ReferentialFragment
+    }
+    taxonName {
+      ...TaxonNameFragment
     }
     measurementValues
     __typename
   }
-  ${Fragments.referential}`,
+  ${Fragments.referential}
+  ${ReferentialFragments.taxonName}`,
   batch: gql`fragment BatchFragment on BatchVO {
     id
     label

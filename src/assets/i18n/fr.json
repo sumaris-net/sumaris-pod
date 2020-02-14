@@ -5,7 +5,7 @@
     "BTN_OK": "Ok",
     "BTN_ABORT_CHANGES": "Abandonner les modifications",
     "BTN_RESET": "Réinitialiser",
-    "BTN_RESET_SHORT": "RAZ",
+    "BTN_CLEAR": "Vider",
     "BTN_ADD": "Ajouter",
     "BTN_APPLY": "Appliquer",
     "BTN_EDIT": "Modifier",
@@ -162,7 +162,7 @@
   "ABOUT": {
     "TITLE": "À propos",
     "VERSION": "<b>v{{version}}</b>",
-    "LICENSE": "Application <b>libre</b> (Licence GNU AGPLv3).",
+    "LICENSE": "Application <b>libre</b> (Licence GNU AGPL v3).",
     "REPORT_ISSUE": "N'hésitez pas à nous remonter les anomalies rencontrés !",
     "BTN_REPORT_ISSUE": "Remonter un problème",
     "SOURCE_CODE": "Code source :",
@@ -648,12 +648,12 @@
     }
   },
   "AUCTION_CONTROL": {
-    "TITLE_PREFIX": "<small>Contrôle criée {{location}} {{date}}<br/></small>",
+    "TITLE_PREFIX": "<small>{{location}} - Contrôle {{date}}<br/></small>",
     "NEW": {
       "TITLE": "Nouveau navire contrôlé"
     },
     "EDIT": {
-      "TITLE": "{{vessel}}"
+      "TITLE": "Navire {{vessel}}"
     },
     "TAB_SAMPLES": "Points de contrôle",
     "TAXON_GROUP_PLACEHOLDER": "Espèce controllée",

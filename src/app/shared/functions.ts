@@ -45,11 +45,14 @@ export function trimEmptyToNull<T>(str: string | null | undefined): string | nul
 export function toBoolean(obj: boolean | null | undefined | string, defaultValue: boolean): boolean {
   return (obj !== undefined && obj !== null) ? (obj !== "false" ? !!obj : false) : defaultValue;
 }
-export function toFloat(obj: string | null | undefined): number | null {
-  return (obj !== undefined && obj !== null) ? parseFloat(obj) : null;
+export function toNumber(obj: number | null | undefined, defaultValue: number): number {
+  return (obj !== undefined && obj !== null) ? +obj : defaultValue;
 }
-export function toInt(obj: string | null | undefined): number | null {
-  return (obj !== undefined && obj !== null) ? parseInt(obj, 0) : null;
+export function toFloat(obj: string | null | undefined, defaultValue?: number): number | null {
+  return (obj !== undefined && obj !== null) ? parseFloat(obj) : defaultValue;
+}
+export function toInt(obj: string | null | undefined, defaultValue?: number): number | null {
+  return (obj !== undefined && obj !== null) ? parseInt(obj, 0) : defaultValue;
 }
 export function toDateISOString(value: any): string | undefined {
   if (!value) return undefined;

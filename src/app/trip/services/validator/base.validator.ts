@@ -4,7 +4,7 @@ import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {DataEntity, DataRootEntity, DataRootVesselEntity, IWithObserversEntity} from "../model/base.model";
 import {Program} from "../../../referential/services/model";
-import {toBoolean} from "../../../shared/functions";
+import {toBoolean, toNumber} from "../../../shared/functions";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {Optional} from "@angular/core";
 
@@ -39,7 +39,7 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>, O exte
   } {
 
     return {
-      id: [data && data.id || null],
+      id: [toNumber(data && data.id, null)],
       updateDate: [data && data.updateDate || null],
       controlDate: [data && data.controlDate || null],
       qualificationDate: [data && data.qualificationDate || null],

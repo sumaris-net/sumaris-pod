@@ -3,6 +3,7 @@ import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import { SharedValidators } from "../../shared/validator/validators";
 import {Sample} from "./model/sample.model";
+import {toNumber} from "../../shared/functions";
 
 @Injectable()
 export class SubSampleValidatorService implements ValidatorService {
@@ -17,12 +18,12 @@ export class SubSampleValidatorService implements ValidatorService {
   getFormGroup(data?: Sample): FormGroup {
     return this.formBuilder.group({
       __typename: [Sample.TYPENAME],
-      id: [''],
-      updateDate: [''],
-      rankOrder: [null, Validators.required],
-      label: ['', Validators.required],
-      parent: [null, Validators.compose([Validators.required, SharedValidators.entity])],
-      comments: [null]
+      id: [toNumber(data && data.id, null)],
+      updateDate: [data && data.updateDate || null],
+      rankOrder: [toNumber(data && data.rankOrder, null), Validators.required],
+      label: [data && data.label || null, Validators.required],
+      parent: [data && data.parent || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      comments: [data && data.comments || null]
     });
   }
 }

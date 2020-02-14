@@ -17,6 +17,7 @@ export declare interface BatchWeight {
 
 export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<Batch>, ITreeItemEntity<Batch> {
 
+  static TYPENAME = 'BatchVO';
   static SAMPLE_BATCH_SUFFIX = '.%';
 
   static fromObject(source: any, opts?: { withChildren: boolean; }): Batch {

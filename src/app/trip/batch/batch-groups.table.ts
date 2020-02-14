@@ -222,11 +222,11 @@ export class BatchGroupsTable extends BatchesTable {
 
     batch.children = (this.qvPmfm && this.qvPmfm.qualitativeValues || []).reduce((res, qv, qvIndex: number) => {
       let i = qvIndex * 5;
-      const weight = toFloat(groupColumnValues[i++]);
-      const individualCount = toInt(groupColumnValues[i++]);
-      const samplingRatio = toInt(groupColumnValues[i++]);
-      const samplingWeight = toFloat(groupColumnValues[i++]);
-      const samplingIndividualCount = toFloat(groupColumnValues[i++]);
+      const weight = toFloat(groupColumnValues[i++], null);
+      const individualCount = toInt(groupColumnValues[i++], null);
+      const samplingRatio = toInt(groupColumnValues[i++], null);
+      const samplingWeight = toFloat(groupColumnValues[i++], null);
+      const samplingIndividualCount = toFloat(groupColumnValues[i++], null);
 
       // TODO: compute total weight and nb indiv ?
 

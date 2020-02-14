@@ -4,7 +4,7 @@ import {FormBuilder, FormGroup, ValidationErrors, Validators} from "@angular/for
 import {SharedValidators} from "../../shared/validator/validators";
 import {Batch, BatchUtils, BatchWeight} from "./model/batch.model";
 import {debounceTime, filter, map, tap} from "rxjs/operators";
-import {isNil, isNotNilOrNaN} from "../../shared/functions";
+import {isNil, isNotNilOrNaN, toNumber} from "../../shared/functions";
 import {MethodIds} from "../../referential/services/model";
 import {Subject, Subscription} from "rxjs";
 
@@ -26,24 +26,23 @@ export class BatchValidatorService implements ValidatorService {
     if (opts && opts.withWeight) {
       form.addControl('weight', this.getWeightFormGroup(data && data.weight));
     }
-
     return form;
   }
 
   protected getFormGroupConfig(data?: Batch): { [key: string]: any } {
     return {
-      __typename: ['BatchVO'],
-      id: [''],
-      updateDate: [''],
-      rankOrder: ['1', Validators.required],
-      label: [data && data.label || ''],
-      individualCount: ['', Validators.compose([Validators.min(0), SharedValidators.integer])],
-      samplingRatio: ['',  SharedValidators.double()],
-      samplingRatioText: [''],
-      taxonGroup: ['', SharedValidators.entity],
-      taxonName: ['', SharedValidators.entity],
-      comments: [''],
-      parent: ['', SharedValidators.entity],
+      __typename: [Batch.TYPENAME],
+      id: [toNumber(data && data.id, null)],
+      updateDate: [data && data.updateDate || null],
+      rankOrder: [toNumber(data && data.rankOrder, null), Validators.required],
+      label: [data && data.label || null, Validators.required],
+      individualCount: [toNumber(data && data.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
+      samplingRatio: [toNumber(data && data.samplingRatio, null),  SharedValidators.double()],
+      samplingRatioText: [data && data.samplingRatioText || null],
+      taxonGroup: [data && data.taxonGroup || null, SharedValidators.entity],
+      taxonName: [data && data.taxonName || null, SharedValidators.entity],
+      comments: [data && data.comments || null],
+      parent: [data && data.parent || null, SharedValidators.entity],
       measurementValues: this.formBuilder.group({}),
       children: this.formBuilder.array([])
     };
@@ -109,7 +108,6 @@ export class BatchValidatorService implements ValidatorService {
     const samplingWeight = sampleBatch.weight.value;
     const samplingRatioPct = sampleBatch.samplingRatio;
     console.table("[batch-validator]  Start computing: ", totalWeight, samplingRatioPct, samplingWeight);
-
 
     const totalWeightValueControl = form.get('weight.value');
     const samplingWeightValueControl = sampleForm.get('weight.value');

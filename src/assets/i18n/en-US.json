@@ -1,10 +1,11 @@
 {
-  "APP_NAME": "{{appName}}",
+  "APP_NAME": "SUMARiS",
   "COMMON": {
     "BTN_CANCEL": "Cancel",
     "BTN_OK": "Ok",
     "BTN_ABORT_CHANGES": "Abort the changes",
     "BTN_RESET": "Reset",
+    "BTN_CLEAR": "Clear",
     "BTN_ADD": "Add",
     "BTN_APPLY": "Apply",
     "BTN_EDIT": "Edit",
@@ -12,6 +13,8 @@
     "BTN_DONE": "Done",
     "BTN_DOWNLOAD": "Download",
     "BTN_DELETE": "Delete",
+    "BTN_FREEZE_VALUE": "Freeze",
+    "BTN_FREEZE_VALUE_HELP": "Freeze the value",
     "BTN_YES_DELETE": "Oui, delete",
     "BTN_YES_CONTINUE": "Oui, continue",
     "BTN_VALIDATE": "Validate",
@@ -159,7 +162,7 @@
   "ABOUT": {
     "TITLE": "About",
     "VERSION": "<b>v{{version}}</b>",
-    "LICENSE": "<b>Free/libre software</b> (License GNU AGPLv3).",
+    "LICENSE": "<b>Free/libre software</b> (License GNU AGPL v3).",
     "REPORT_ISSUE": "Please report any issue to us!",
     "BTN_REPORT_ISSUE": "Report an issue",
     "SOURCE_CODE": "Source core:",
@@ -391,12 +394,13 @@
     },
     "OPERATION": {
       "COMMENTS": "Comments",
+      "TITLE_PREFIX": "<small>{{vessel}} - Trip {{departureDateTime}}<br></small>",
       "NEW": {
         "TITLE": "New operation"
       },
       "EDIT": {
+        "TITLE": "Ope {{startDateTime}}",
         "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",
-        "TITLE": "<small class='hidden-xs hidden-sm'>{{vessel}} - Trip {{departureDateTime}} - </small>Haul {{startDateTime}}",
         "TAB_GENERAL": "Details",
         "TAB_PHYSICAL_GEAR": "Use of gear",
         "TAB_CATCH": "Catch",
@@ -506,7 +510,8 @@
         "TITLE": "New batch"
       },
       "EDIT": {
-        "TITLE": "Batch {{label}}"
+        "TITLE": "Batch {{label}}",
+        "TAXON_GROUP": "Commercial species (FAO)"
       },
       "TABLE": {
         "LABEL": "Batch",
@@ -573,8 +578,13 @@
       "TITLE": "New control"
     },
     "EDIT": {
-      "TITLE": "{{location}} - Control of {{dateTime}}",
+      "TITLE": "{{location}} - {{dateTime}}",
       "OTHER_FEATURES": "Other features:"
+    },
+    "SELECT_VESSEL_MODAL": {
+      "TITLE": "Add a vessel",
+      "TAB_VESSELS": "Search",
+      "TAB_LANDINGS": "Vessels already observed"
     },
     "TABLE": {
       "TITLE": "Observations",
@@ -589,11 +599,11 @@
         "LOCATION": "Location",
         "START_DATE": "Start period",
         "END_DATE": "End period"
-      },
-      "OPTIONS": {
-        "ENABLE": "Observations > Enable ?",
-        "NAME": "Observations > Title (menu)"
       }
+    },
+    "OPTIONS": {
+      "ENABLE": "Observations > Enable ?",
+      "NAME": "Observations > Title (menu)"
     },
     "ERROR": {
       "LOAD_ERROR": "Error while loading the observation.",
@@ -613,10 +623,10 @@
     "OBSERVERS": "Observers:",
     "OBSERVER_PLACEHOLDER": "Observer #",
     "NEW": {
-      "TITLE": "New observed vessel"
+      "TITLE": "New landing"
     },
     "EDIT": {
-      "TITLE": "Control {{vessel}}",
+      "TITLE": "Landing {{vessel}}",
       "OTHER_FEATURES": "Other features:"
     },
     "TABLE": {
@@ -638,6 +648,13 @@
     }
   },
   "AUCTION_CONTROL": {
+    "TITLE_PREFIX": "<small>{{location}} - Control {{date}}<br/></small>",
+    "NEW": {
+      "TITLE": "New controlled vessel"
+    },
+    "EDIT": {
+      "TITLE": "Vessel {{vessel}}"
+    },
     "TAB_SAMPLES": "Checkpoints",
     "TAXON_GROUP_PLACEHOLDER": "Controlled species",
     "SAMPLE": {
@@ -1082,6 +1099,7 @@
     "AUTH_SERVER_ERROR": "Error during authentication on the server",
     "AUTH_CHALLENGE_ERROR": "Error during authentication on the server (loading challenge failed)",
     "TABLE_INVALID_ROW_ERROR": "A row is invalid",
+    "TABLE_READ_ONLY": "Table is in read only mode",
     "SAVE_DATA_ERROR": "Error while saving data.<small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_DATA_ERROR": "Error while loading data.<small><br/>If the problem persists, please contact your administrator.</small>",
     "NETWORK_REQUIRED": "No network connection.<br/><b>Check your network connection</b> before trying again.",

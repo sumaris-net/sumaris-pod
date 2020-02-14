@@ -19,6 +19,8 @@ import {ReferentialAsObjectOptions} from "../../../core/services/model";
  */
 export class Landing extends DataRootVesselEntity<Landing> implements IWithObserversEntity<Landing> {
 
+  static TYPENAME = 'LandingVO';
+
   static fromObject(source: any): Landing {
     const res = new Landing();
     res.fromObject(source);
