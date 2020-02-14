@@ -109,7 +109,8 @@
            [required]="required"
            [tabIndex]="tabindex"
            (click)="selectInputContent($event)"
-           (keypress)="filterAlphanumericalInput($event)">
+           (keypress)="filterAlphanumericalInput($event)"
+           (keyup.enter)="onKeypressEnter.emit($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>

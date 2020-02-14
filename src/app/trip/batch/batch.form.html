@@ -71,7 +71,7 @@
     <ion-row *ngIf="defaultWeightPmfm">
       <ion-col class="ion-no-padding">
         <mat-form-field-measurement #matInput
-                                    [class.computed]="form.controls.weight.controls.calculated.value"
+                                    [class.computed]="form.controls.weight.controls.computed.value"
                                     [pmfm]="defaultWeightPmfm"
                                     [formControl]="form.controls.weight.controls.value"
                                     [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
@@ -172,7 +172,7 @@
         <ion-col class="ion-no-padding" *ngIf="defaultWeightPmfm">
 
           <mat-form-field-measurement #matInput
-                                      [class.computed]="samplingBatchForm.controls.weight.controls.calculated.value"
+                                      [class.computed]="samplingBatchForm.controls.weight.controls.computed.value"
                                       [pmfm]="defaultWeightPmfm"
                                       [formControl]="samplingBatchForm.controls.weight.controls.value"
                                       [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"

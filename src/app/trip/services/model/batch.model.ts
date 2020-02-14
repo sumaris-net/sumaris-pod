@@ -1,17 +1,14 @@
 import {EntityUtils, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../../core/core.module";
 import {AcquisitionLevelCodes, PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {DataEntity, DataEntityAsObjectOptions, NOT_MINIFY_OPTIONS} from "./base.model";
-import {IEntityWithMeasurement, MeasurementValuesUtils} from "./measurement.model";
+import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {isNilOrBlank, isNotNilOrBlank} from "../../../shared/functions";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {ITreeItemEntity, ReferentialAsObjectOptions} from "../../../core/services/model";
 
-export declare interface BatchWeight {
-  methodId: number;
-  estimated: boolean;
-  calculated: boolean;
-  value: number;
+export declare interface BatchWeight extends IMeasurementValue {
+  unit?: 'kg';
 }
 
 
@@ -111,7 +108,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
 
   constructor() {
     super();
-    this.__typename = 'BatchVO';
+    this.__typename = Batch.TYPENAME;
     this.label = null;
     this.rankOrder = null;
     this.exhaustiveInventory = null;
@@ -138,7 +135,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
   }
 
   asObject(opts?: DataEntityAsObjectOptions & {withChildren?: boolean}): any {
-    let parent = this.parent;
+    const parent = this.parent;
     this.parent = null; // avoid parent conversion
     const target = super.asObject(opts);
     delete target.parentBatch;
@@ -183,13 +180,10 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     if (source.measurementValues) {
       this.measurementValues = source.measurementValues;
     }
-    // Convert measurement to map
-    else if (source.measurements) {
-      this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
-        const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
-        if (value) map[m.pmfmId] = value;
-        return map;
-      }, {}) || undefined;
+    // Convert measurement lists to map
+    else if (source.sortingMeasurements || source.quantificationMeasurements) {
+      const measurements = (source.sortingMeasurements || []).concat(source.quantificationMeasurements);
+      this.measurementValues = MeasurementUtils.toMeasurementValues(measurements);
     }
 
     if (source.children && opts && opts.withChildren) {

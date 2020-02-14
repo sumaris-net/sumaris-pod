@@ -3,6 +3,7 @@
   <!-- integer -->
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
     <input matInput #matInput
+           [readonly]="readonly"
            autocomplete="off" type="number"
            [min]="definition.minValue"
            [max]="definition.maxValue"
@@ -16,9 +17,9 @@
            (click)="selectInputContent($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="formControl.hasError('min')">
-      {{'ERROR.FIELD_MIN' | translate:formControl.errors['min'] }}</mat-error>
+      {{(compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate:formControl.errors['min'] }}</mat-error>
     <mat-error *ngIf="formControl.hasError('max')">
-      {{'ERROR.FIELD_MAX' | translate:formControl.errors['max'] }}</mat-error>
+      {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:formControl.errors['max'] }}</mat-error>
     <mat-error *ngIf="formControl.hasError('pattern')">
       {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
     <mat-error *ngIf="formControl.hasError('integer')">
@@ -34,9 +35,11 @@
 
     <input matInput #matInput
            type="number"
+           [readonly]="readonly"
            autocomplete="off" [min]="definition.minValue" [max]="definition.maxValue"
            decimal="true"
            [placeholder]="placeholder"
+           [step]="numberInputStep"
            (keypress)="filterNumberInput($event, true)"
            [formControl]="formControl"
            [required]="required"
@@ -44,34 +47,40 @@
            (click)="selectInputContent($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="formControl.hasError('min')">
-      {{ 'ERROR.FIELD_MIN' | translate:formControl.errors['min'] }}</mat-error>
+      {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:formControl.errors['min'] }}</mat-error>
     <mat-error *ngIf="formControl.hasError('max')">
-      {{ 'ERROR.FIELD_MAX' | translate:formControl.errors['max'] }}</mat-error>
+      {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:formControl.errors['max'] }}</mat-error>
+    <mat-error *ngIf="formControl.hasError('maxDecimals')">
+      {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS')| translate:{max:
+      definition.maximumNumberDecimals} }}</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
   </mat-form-field>
 
   <!-- boolean -->
-  <mat-boolean-field *ngSwitchCase="'boolean'"
+  <mat-boolean-field *ngSwitchCase="'boolean'" #matInput
                      [formControl]="formControl"
                      [placeholder]="placeholder"
                      [floatLabel]="floatLabel"
                      [required]="required"
-                     [tabindex]="tabindex">
+                     [compact]="compact"
+                     [tabindex]="tabindex"
+                     [readonly]="readonly">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
   </mat-boolean-field>
 
   <!-- date -->
-  <mat-date-time *ngSwitchCase="'date'"
+  <mat-date-time *ngSwitchCase="'date'" #matInput
                  [formControl]="formControl"
-                 [placeholder]="placeholder"
+                 [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                  [floatLabel]="floatLabel"
                  [required]="required"
                  [readonly]="readonly"
                  [displayTime]="false"
+                 [compact]="compact"
                  [tabindex]="tabindex">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
@@ -81,11 +90,12 @@
   <!-- date time -->
   <mat-date-time *ngSwitchCase="'dateTime'"
                  [formControl]="formControl"
-                 [placeholder]="placeholder"
+                 [placeholder]="compact ? ('COMMON.DATE_TIME_PLACEHOLDER'|translate): placeholder"
                  [floatLabel]="floatLabel"
                  [required]="required"
                  [readonly]="readonly"
                  [displayTime]="true"
+                 [compact]="compact"
                  [tabindex]="tabindex">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
@@ -135,8 +145,10 @@
            [formControl]="formControl"
            [placeholder]="placeholder"
            [required]="required"
+           [readonly]="readonly"
            [tabIndex]="tabindex"
            (click)="selectInputContent($event)"
+           (keypress)="filterAlphanumericalInput($event)"
            (keyup.enter)="onKeypressEnter.emit($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <div matSuffix>

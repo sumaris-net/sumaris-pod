@@ -60,7 +60,6 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   protected _initialPmfms: PmfmStrategy[];
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
-  protected localEntitiesService: EntityStorage;
 
   qvPmfm: PmfmStrategy;
   defaultWeightPmfm: PmfmStrategy;

@@ -4,7 +4,7 @@ import {FormBuilder, FormGroup, ValidationErrors, Validators} from "@angular/for
 import {SharedValidators} from "../../shared/validator/validators";
 import {Batch, BatchUtils, BatchWeight} from "./model/batch.model";
 import {debounceTime, filter, map, tap} from "rxjs/operators";
-import {isNil, isNotNilOrNaN, toNumber} from "../../shared/functions";
+import {isNil, isNotNilOrNaN, toBoolean, toNumber} from "../../shared/functions";
 import {MethodIds} from "../../referential/services/model";
 import {Subject, Subscription} from "rxjs";
 
@@ -23,37 +23,41 @@ export class BatchValidatorService implements ValidatorService {
     withWeight?: boolean
   }): FormGroup {
     const form = this.formBuilder.group(this.getFormGroupConfig(data));
+
+    // Add weight sub form
     if (opts && opts.withWeight) {
       form.addControl('weight', this.getWeightFormGroup(data && data.weight));
     }
+
     return form;
   }
 
   protected getFormGroupConfig(data?: Batch): { [key: string]: any } {
     return {
       __typename: [Batch.TYPENAME],
-      id: [toNumber(data && data.id, null)],
+      id: [toNumber(data && data.id, null)],
       updateDate: [data && data.updateDate || null],
       rankOrder: [toNumber(data && data.rankOrder, null), Validators.required],
       label: [data && data.label || null, Validators.required],
       individualCount: [toNumber(data && data.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
-      samplingRatio: [toNumber(data && data.samplingRatio, null),  SharedValidators.double()],
+      samplingRatio: [toNumber(data && data.samplingRatio, null), SharedValidators.double()],
       samplingRatioText: [data && data.samplingRatioText || null],
       taxonGroup: [data && data.taxonGroup || null, SharedValidators.entity],
       taxonName: [data && data.taxonName || null, SharedValidators.entity],
       comments: [data && data.comments || null],
       parent: [data && data.parent || null, SharedValidators.entity],
       measurementValues: this.formBuilder.group({}),
-      children: this.formBuilder.array([])
+      children: this.formBuilder.array([]),
+      qualityFlagId: [toNumber(data && data.qualityFlagId, 0)]
     };
   }
 
   getWeightFormGroup(data?: BatchWeight): FormGroup {
     return this.formBuilder.group({
-      methodId: ['', SharedValidators.integer],
-      estimated: [''],
-      calculated: [''],
-      value: ['', SharedValidators.double({maxDecimals: 2})]
+      methodId: [toNumber(data && data.methodId, null), SharedValidators.integer],
+      estimated: [toBoolean(data && data.estimated, null)],
+      computed: [toBoolean(data && data.computed, null)],
+      value: [toNumber(data && data.value, null), SharedValidators.double({maxDecimals: 2})]
     });
   }
 
@@ -114,8 +118,8 @@ export class BatchValidatorService implements ValidatorService {
     const samplingRatioControl = sampleForm.get('samplingRatio');
 
     // Compute samplingRatio, using weights
-    if (!batch.weight.calculated && isNotNilOrNaN(totalWeight) && totalWeight > 0
-      && !sampleBatch.weight.calculated && isNotNilOrNaN(samplingWeight) && samplingWeight > 0) {
+    if (!batch.weight.computed && isNotNilOrNaN(totalWeight) && totalWeight > 0
+      && !sampleBatch.weight.computed && isNotNilOrNaN(samplingWeight) && samplingWeight > 0) {
 
       // Sampling weight must be under total weight
       if (samplingWeight > totalWeight) {
@@ -128,10 +132,10 @@ export class BatchValidatorService implements ValidatorService {
       }
 
       // Update sampling ratio
-      const calculatedSamplingRatioPct = Math.round(100 * samplingWeight / totalWeight);
-      if (samplingRatioPct !== calculatedSamplingRatioPct) {
+      const computedSamplingRatioPct = Math.round(100 * samplingWeight / totalWeight);
+      if (samplingRatioPct !== computedSamplingRatioPct) {
         sampleForm.patchValue({
-          samplingRatio: calculatedSamplingRatioPct,
+          samplingRatio: computedSamplingRatioPct,
           samplingRatioText: `${totalWeight}/${samplingWeight}`
         }, opts);
       }
@@ -143,17 +147,17 @@ export class BatchValidatorService implements ValidatorService {
 
     // Compute sample weight using ratio and total weight
     else if (isNotNilOrNaN(samplingRatioPct) && samplingRatioPct <= 100 && samplingRatioPct > 0
-      && !batch.weight.calculated && isNotNilOrNaN(totalWeight) && totalWeight >= 0) {
+      && !batch.weight.computed && isNotNilOrNaN(totalWeight) && totalWeight >= 0) {
 
-      if (sampleBatch.weight.calculated || isNil(samplingWeight)) {
-        const calculatedSamplingWeight = Math.round(totalWeight * samplingRatioPct) / 100;
-        if (samplingWeight !== calculatedSamplingWeight) {
+      if (sampleBatch.weight.computed || isNil(samplingWeight)) {
+        const computedSamplingWeight = Math.round(totalWeight * samplingRatioPct) / 100;
+        if (samplingWeight !== computedSamplingWeight) {
           sampleForm.patchValue({
             samplingRatioText: `${samplingRatioPct}%`,
             weight: {
-              calculated: true,
+              computed: true,
               estimated: false,
-              value: calculatedSamplingWeight,
+              value: computedSamplingWeight,
               methodId: MethodIds.CALCULATED
             }
           }, opts);
@@ -167,11 +171,11 @@ export class BatchValidatorService implements ValidatorService {
 
     // Compute total weight using ratio and sample weight
     else if (isNotNilOrNaN(samplingRatioPct) && samplingRatioPct <= 100 && samplingRatioPct > 0
-      && !sampleBatch.weight.calculated && isNotNilOrNaN(samplingWeight) && samplingWeight >= 0) {
-      if (batch.weight.calculated || isNil(totalWeight)) {
+      && !sampleBatch.weight.computed && isNotNilOrNaN(samplingWeight) && samplingWeight >= 0) {
+      if (batch.weight.computed || isNil(totalWeight)) {
         form.patchValue({
           weight: {
-            calculated: true,
+            computed: true,
             estimated: false,
             value: Math.round(samplingWeight * (100 / samplingRatioPct) * 100) / 100,
             methodId: MethodIds.CALCULATED
@@ -187,15 +191,15 @@ export class BatchValidatorService implements ValidatorService {
         samplingRatioControl.enable({...opts, emitEvent: true/*force repaint*/});
       }
     }
-    // Nothing can be calculated: enable all controls
+    // Nothing can be computed: enable all controls
     else {
 
-      // Enable total weight (and remove calculated value, if any)
-      if (batch.weight.calculated) {
+      // Enable total weight (and remove computed value, if any)
+      if (batch.weight.computed) {
         form.patchValue({
           weight: {
             value: null,
-            calculated: false,
+            computed: false,
             estimated: false
           }
         }, opts);
@@ -206,12 +210,12 @@ export class BatchValidatorService implements ValidatorService {
         // Enable sampling ratio
         samplingRatioControl.enable({...opts, emitEvent: true/*force repaint*/});
 
-        // Enable sampling weight (and remove calculated value, if any)
-        if (sampleBatch.weight.calculated) {
+        // Enable sampling weight (and remove computed value, if any)
+        if (sampleBatch.weight.computed) {
           sampleForm.patchValue({
             weight: {
               value: null,
-              calculated: false,
+              computed: false,
               estimated: false
             }
           }, opts);

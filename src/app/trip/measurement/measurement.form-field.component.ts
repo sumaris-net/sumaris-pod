@@ -156,21 +156,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
     }
   }
 
-  computeNumberInputStep(pmfm: PmfmStrategy): string {
 
-    if (pmfm.maximumNumberDecimals > 0) {
-      let step = "0.";
-      if (pmfm.maximumNumberDecimals > 1) {
-        for (let i = 0; i < pmfm.maximumNumberDecimals - 1; i++) {
-          step += "0";
-        }
-      }
-      step += "1";
-      return step;
-    } else {
-      return "1";
-    }
-  }
 
   filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) {
     if (event.keyCode === 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
@@ -193,6 +179,24 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
   }
 
   selectInputContent = AppFormUtils.selectInputContent;
+
+  /* -- protected method -- */
+
+  protected computeNumberInputStep(pmfm: PmfmStrategy): string {
+
+    if (pmfm.maximumNumberDecimals > 0) {
+      let step = "0.";
+      if (pmfm.maximumNumberDecimals > 1) {
+        for (let i = 0; i < pmfm.maximumNumberDecimals - 1; i++) {
+          step += "0";
+        }
+      }
+      step += "1";
+      return step;
+    } else {
+      return "1";
+    }
+  }
 
   protected updateTabIndex() {
     if (isNil(this.tabindex) || this.tabindex === -1) return;

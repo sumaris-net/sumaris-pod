@@ -10,6 +10,7 @@ import {Moment} from "moment/moment";
 import {DataEntityAsObjectOptions, DataRootEntity} from "./base.model";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {ITreeItemEntity, NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model";
+import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 
 
 export class Sample extends DataRootEntity<Sample>
@@ -94,7 +95,7 @@ export class Sample extends DataRootEntity<Sample>
     this.sampleDate = fromDateISOString(source.sampleDate);
     this.individualCount = isNotNil(source.individualCount) && source.individualCount !== "" ? source.individualCount : null;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
-    this.taxonName = source.taxonName && ReferentialRef.fromObject(source.taxonName) || undefined;
+    this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
     this.size = source.size;
     this.sizeUnit = source.sizeUnit;
     this.matrixId = source.matrixId;

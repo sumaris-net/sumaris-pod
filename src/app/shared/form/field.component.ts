@@ -24,6 +24,7 @@ import {FormFieldDefinition} from "./field.model";
 import {DisplayFn} from "../material/material.autocomplete";
 import {TranslateService} from "@ngx-translate/core";
 import {getColorContrast} from "../graph/colors.utils";
+import {PmfmStrategy} from "../../referential/services/model";
 
 const noop = () => {
 };
@@ -49,6 +50,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
   private _definition: FormFieldDefinition;
 
   type: string;
+  numberInputStep: string;
 
   @Input()
   set definition(value: FormFieldDefinition) {
@@ -64,6 +66,8 @@ export class AppFormField implements OnInit, ControlValueAccessor {
 
   @Input() required: boolean;
 
+  @Input() readonly = false;
+
   @Input() disabled = false;
 
   @Input() formControl: FormControl;
@@ -71,6 +75,8 @@ export class AppFormField implements OnInit, ControlValueAccessor {
   @Input() formControlName: string;
 
   @Input() placeholder: string;
+
+  @Input() compact = false;
 
   @Input() floatLabel: FloatLabelType = "auto";
 
@@ -105,6 +111,9 @@ export class AppFormField implements OnInit, ControlValueAccessor {
 
     this.updateTabIndex();
 
+    if (this.type === "double") {
+      this.numberInputStep = this.computeNumberInputStep(this._definition);
+    }
   }
 
   writeValue(obj: any): void {
@@ -136,17 +145,8 @@ export class AppFormField implements OnInit, ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    if (this.disabling) return;
-
-    this.disabling = true;
-
+    if (this.disabled === isDisabled) return;
     this.disabled = isDisabled;
-    if (isDisabled) {
-      //this.formControl.disable({ onlySelf: true, emitEvent: false });
-    } else {
-      //this.formControl.enable({ onlySelf: true, emitEvent: false });
-    }
-    this.disabling = false;
     this.cd.markForCheck();
   }
 
@@ -163,6 +163,14 @@ export class AppFormField implements OnInit, ControlValueAccessor {
       return;
     }
     filterNumberInput(event, allowDecimals);
+  }
+
+  filterAlphanumericalInput(event: KeyboardEvent) {
+    if (event.keyCode === 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
+      this.onKeypressEnter.emit(event);
+      return;
+    }
+    // Add features (e.g. check against a pattern)
   }
 
   focus() {
@@ -185,6 +193,22 @@ export class AppFormField implements OnInit, ControlValueAccessor {
 
   /* -- protected method -- */
 
+  protected computeNumberInputStep(definition: FormFieldDefinition): string {
+
+    if (definition.maximumNumberDecimals > 0) {
+      let step = "0.";
+      if (definition.maximumNumberDecimals > 1) {
+        for (let i = 0; i < definition.maximumNumberDecimals - 1; i++) {
+          step += "0";
+        }
+      }
+      step += "1";
+      return step;
+    } else {
+      return "1";
+    }
+  }
+
   protected checkAndResolveFormControl() {
     if (this.formControl) return;
     if (this.formGroupDir && this.formControlName) {
@@ -195,7 +219,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
       }
     }
     if (!this.formControl) {
-      throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-config-option-form-field>.");
+      throw new Error("Missing attribute 'formControl' or 'formControlName' in <app-form-field> component.");
     }
   }
 

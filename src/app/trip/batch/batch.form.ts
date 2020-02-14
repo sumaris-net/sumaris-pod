@@ -145,7 +145,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       const weightPmfm = (this.weightPmfms || []).find(p => isNotNil(data.measurementValues[p.pmfmId.toString()]));
       data.weight = {
         methodId: weightPmfm && weightPmfm.methodId,
-        calculated: false,
+        computed: false,
         estimated: weightPmfm && weightPmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
         value : weightPmfm && data.measurementValues[weightPmfm.pmfmId.toString()],
       };
@@ -180,7 +180,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         const samplingWeightPmfm = (this.weightPmfms || []).find(p => isNotNil(samplingBatch.measurementValues[p.pmfmId.toString()]));
         samplingBatch.weight = {
           methodId: samplingWeightPmfm && samplingWeightPmfm.methodId,
-          calculated: false,
+          computed: false,
           estimated: samplingWeightPmfm && samplingWeightPmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
           value: samplingWeightPmfm && samplingBatch.measurementValues[samplingWeightPmfm.pmfmId.toString()],
         };

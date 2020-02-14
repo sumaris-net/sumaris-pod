@@ -11,6 +11,9 @@ export declare class FormFieldValue {
 export declare interface FormFieldDefinition<T = any> {
   key: string;
   label: string;
+  minValue?: number;
+  maxValue?: number;
+  maximumNumberDecimals?: number;
   defaultValue?: any;
   isTransient?: boolean; // Useful only for remote configuration
   values?: (string|FormFieldValue)[];

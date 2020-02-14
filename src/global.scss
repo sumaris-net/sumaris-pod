@@ -438,7 +438,9 @@ mat-table {
     }
 
     .mat-cell.computed mat-form-field,
-    .mat-cell-computed {
+    .mat-cell-computed,
+    .mat-cell.calculated mat-form-field,
+    .mat-cell-calculated {
       color: var(--ion-color-primary-tint);
       font-style: italic;
     }
@@ -469,6 +471,10 @@ mat-table {
 
     .mat-form-field-underline {
       bottom: 9px !important;
+    }
+
+    app-form-field {
+      width: 100%;
     }
 
     .mat-form-field {

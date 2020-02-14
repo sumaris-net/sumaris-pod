@@ -49,6 +49,7 @@
     "DATE_SHORT_PATTERN": "DD/MM/YY",
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
+    "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
 
     "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
     "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",

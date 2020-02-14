@@ -25,6 +25,15 @@ export declare interface IEntityWithMeasurement<T> extends Entity<T> {
   comments?: string;
 }
 
+export declare interface IMeasurementValue {
+  methodId: number;
+  estimated: boolean;
+  computed: boolean;
+  value: number;
+
+  unit?: string; // is need ?
+}
+
 export declare type MeasurementType = 'ObservedLocationMeasurement' | 'SaleMeasurement' | 'LandingMeasurement'
     | 'VesselUseMeasurement'| 'VesselPhysicalMeasurement'
     | 'GearUseMeasurement' | 'PhysicalGearUseMeasurement'

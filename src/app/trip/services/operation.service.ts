@@ -9,7 +9,7 @@ import {
   isNil,
   isNotNil,
   Measurement,
-  Operation,
+  Operation, QualityFlagIds,
   Sample,
   VesselPosition
 } from "./trip.model";
@@ -621,7 +621,7 @@ export class OperationService extends BaseDataService
       }
 
       // Fill sum and rank order
-      this.fillBatchTree(entity.catchBatch);
+      this.fillBatchTreeDefaults(entity.catchBatch);
     }
   }
 
@@ -656,7 +656,7 @@ export class OperationService extends BaseDataService
     //if (this._debug) BatchUtils.logTree(entity.catchBatch);
   }
 
-  protected fillBatchTree(source: Batch, context?: {
+  protected fillBatchTreeDefaults(source: Batch, context?: {
     parentLabel?: string;
     totalIndividualCount?: number;
     individualMeasureCount?: number;
@@ -665,7 +665,7 @@ export class OperationService extends BaseDataService
     context.parentLabel = source.label;
     context.individualMeasureCount = toNumber(context.individualMeasureCount, 0);
 
-    let childrenIndividualCount = 0;
+    let childrenIndividualCount: number = null;
 
     (source.children || [])
       // Sort by id, or new batch at the end
@@ -683,30 +683,27 @@ export class OperationService extends BaseDataService
           b.rankOrder = context.individualMeasureCount + 1;
           b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
           context.individualMeasureCount += 1;
-
-          childrenIndividualCount += toNumber(b.individualCount, 1);
+          childrenIndividualCount = toNumber(childrenIndividualCount, 0) + toNumber(b.individualCount, 1);
         }
       }
 
-      this.fillBatchTree(b, context);
+      this.fillBatchTreeDefaults(b, context); // Recursive call
     });
 
-    if (childrenIndividualCount > 0 && source.label) {
+    if (source.label) {
       // There is a sampling batch: update it
       if (source.label.endsWith(Batch.SAMPLE_BATCH_SUFFIX)) {
-        if (source.individualCount !== childrenIndividualCount) {
-          console.warn(`[operation-service] Fix batch {${source.label}} individual count  ${source.individualCount} => ${childrenIndividualCount}`);
-          source.individualCount = childrenIndividualCount;
-        }
+        source.individualCount = childrenIndividualCount || null;
       }
       // No sampling batch
-      else if (source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH)){
-        if (source.individualCount < childrenIndividualCount) {
+      else if (isNotNil(childrenIndividualCount) && source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH)){
+        if (isNotNil(source.individualCount) && source.individualCount < childrenIndividualCount) {
+          //source.individualCount = childrenIndividualCount;
           console.warn(`[operation-service] Fix batch {${source.label}} individual count  ${source.individualCount} => ${childrenIndividualCount}`);
-          source.individualCount = childrenIndividualCount;
+          source.qualityFlagId = QualityFlagIds.BAD;
         }
-        else if (source.individualCount > childrenIndividualCount) {
-          // Create a sampling batch
+        else if (isNil(source.individualCount) || source.individualCount > childrenIndividualCount) {
+          // Create a sampling batch, to hold the sampling individual count
           const samplingBatch = new Batch();
           samplingBatch.label = source.label + Batch.SAMPLE_BATCH_SUFFIX;
           samplingBatch.rankOrder = 1;

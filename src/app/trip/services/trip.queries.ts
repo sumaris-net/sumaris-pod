@@ -86,6 +86,7 @@ export const DataFragments = {
       ...TaxonNameFragment
     }
     measurementValues
+    qualityFlagId
     __typename
   }
   ${Fragments.referential}
@@ -108,6 +109,7 @@ export const DataFragments = {
       ...TaxonNameFragment
     }
     measurementValues
+    qualityFlagId
     __typename
   }
   ${Fragments.referential}
