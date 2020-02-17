@@ -117,6 +117,11 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     this.markForCheck();
   }
 
+  isUnknownProperty(propertyForm: FormGroup) {
+    const key = propertyForm.controls['key'].value;
+    return key && isNil(this.propertyDefinitionsByKey[key]);
+  }
+
   /* -- protected methods -- */
 
   protected canUserWrite(data: Program): boolean {

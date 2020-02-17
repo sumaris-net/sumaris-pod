@@ -69,8 +69,15 @@
                                         (selectionChange)="updatePropertyDefinition(i)"
                                         [tabindex]="20+i*2"
                                         required>
+
+                              <!-- When option's key not a well known option, add it as first select option -->
+                              <mat-option *ngIf="isUnknownProperty(propertyForm)" [value]="propertyForm.controls.key.value">
+                                {{propertyForm.controls.key.value}}
+                              </mat-option>
+
                               <mat-option *ngFor="let item of propertyDefinitions" [value]="item.key">{{ item.label | translate }}
                               </mat-option>
+
                             </mat-select>
 
                             <mat-error *ngIf="propertyForm.controls.key.hasError('required') && !propertiesFormHelper.isLast(i)"
@@ -80,15 +87,24 @@
                         </ion-col>
 
                         <!-- property value -->
-                        <ion-col class="ion-no-padding" padding-left>
-                          <app-form-field *ngIf="getPropertyDefinition(i); let definition"
-                                            floatLabel="never"
+                        <ion-col class="ion-no-padding" padding-left >
+                          <app-form-field *ngIf="getPropertyDefinition(i) else unknownValue; let definition; "
+                                          floatLabel="never"
                                            [definition]="definition"
                                            [formControl]="propertyForm.controls.value"
                                            [placeholder]="'PROGRAM.PROPERTY_VALUE' | translate"
                                            [required]="true"
                                            [tabindex]="20+i*2 + 1">
                           </app-form-field>
+                          <ng-template #unknownValue>
+                            <mat-form-field floatLabel="never">
+                              <input type="text" matInput
+                                     [placeholder]="'PROGRAM.PROPERTY_VALUE' | translate"
+                                     [formControl]="propertyForm.controls.value"
+                                     [required]="true"
+                                     [tabindex]="20+i*2 + 1">
+                            </mat-form-field>
+                          </ng-template>
                         </ion-col>
 
                         <ion-col size="auto" class="ion-no-padding">
