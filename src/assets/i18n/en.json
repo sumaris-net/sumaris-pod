@@ -166,7 +166,8 @@
     "REPORT_ISSUE": "Please report any issue to us!",
     "BTN_REPORT_ISSUE": "Report an issue",
     "SOURCE_CODE": "Source core:",
-    "DEVELOPED_BY": "Developed by:"
+    "DEVELOPED_BY": "Developed by:",
+    "PARTNERS": "Partners and sponsors:"
   },
   "HOME": {
     "WELCOME_WEB": "Welcome to the {{appName}} web site!",
