@@ -132,7 +132,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         query.orderBy(cb.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
 
         return toSampleVOs(getEntityManager().createQuery(query)
-                .setParameter(idParam, landingId).getResultList(), false);
+                .setParameter(idParam, landingId).getResultStream(), false);
     }
 
 
@@ -430,9 +430,25 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         if (source.getOperation() != null) {
             target.setOperationId(source.getOperation().getId());
         }
+
+        // Landing
+        if (source.getLanding() != null) {
+            target.setLandingId(source.getLanding().getId());
+        }
+
+        // TODO: Add link to Sale
+        //if (source.getSale() != null) {
+        //    target.setSaleId(source.getSale().getId());
+        //}
+
         // Batch
         if (source.getBatch() != null) {
             target.setBatchId(source.getBatch().getId());
+        }
+
+        // Quality Flag
+        if (source.getQualityFlag() != null) {
+            target.setQualityFlagId(source.getQualityFlag().getId());
         }
 
         // If full export

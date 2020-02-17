@@ -101,7 +101,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         query.orderBy(cb.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
 
         return toBatchVOs(getEntityManager().createQuery(query)
-                .setParameter(tripIdParam, operationId).getResultList(), false);
+                .setParameter(tripIdParam, operationId).getResultStream(), false);
     }
 
     @Override
@@ -367,6 +367,11 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         // Operation
         if (source.getOperation() != null) {
             target.setOperationId(source.getOperation().getId());
+        }
+
+        // Quality Flag
+        if (source.getQualityFlag() != null) {
+            target.setQualityFlagId(source.getQualityFlag().getId());
         }
 
         // If full export
