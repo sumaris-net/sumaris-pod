@@ -325,7 +325,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     this.autocompleteFields.parent.displayWith = (value) => BatchUtils.parentToString(value, parentToStringOptions);
   }
 
-  protected async resetForm(previousBatch?: Batch, opts?: {focusFirstEmpty?: boolean, emitEvent?: boolean}) {
+  public async resetForm(previousBatch?: Batch, opts?: {focusFirstEmpty?: boolean, emitEvent?: boolean}) {
     await this.onReady();
 
     this.form.availableParents = this._availableSortedParents;

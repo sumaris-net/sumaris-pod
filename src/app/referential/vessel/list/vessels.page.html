@@ -1,5 +1,5 @@
-<app-toolbar [title]="'VESSEL.LIST.TITLE'|translate" color="primary" (onValidate)="save() "
-             [hasValidate]="dirty && !loading"
+<app-toolbar [title]="'VESSEL.LIST.TITLE'|translate" color="primary" (onValidate)="table.save()"
+             [hasValidate]="table.dirty && !table.loading"
              [canGoBack]="false">
 </app-toolbar>
 
