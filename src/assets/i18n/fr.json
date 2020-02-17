@@ -167,7 +167,8 @@
     "REPORT_ISSUE": "N'hésitez pas à nous remonter les anomalies rencontrés !",
     "BTN_REPORT_ISSUE": "Remonter un problème",
     "SOURCE_CODE": "Code source :",
-    "DEVELOPED_BY": "Développé par :"
+    "DEVELOPED_BY": "Développé par :",
+    "PARTNERS": "Partenaires et sponsors :"
   },
   "HOME": {
     "WELCOME_WEB": "Bienvenue sur le site web {{appName}} !",

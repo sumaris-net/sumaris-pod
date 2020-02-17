@@ -3,7 +3,14 @@ import {ModalController} from '@ionic/angular';
 import {RegisterModal} from '../register/modal/modal-register';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
-import {Account, Configuration, Department, HistoryPageReference, LocalSettings} from '../services/model';
+import {
+  Account,
+  ConfigOptions,
+  Configuration,
+  Department,
+  HistoryPageReference,
+  LocalSettings
+} from '../services/model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
 import {fadeInAnimation, isNotNil, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
@@ -239,9 +246,9 @@ export class HomePage implements OnDestroy {
 
         setTimeout(() => {
           this.appPlatformName = 'Android';
-          const apkLink = config.properties['sumaris.android.install.url'];
-          if (isNotNilOrBlank(apkLink)) {
-            this.appInstallUrl = apkLink;
+          const appInstallUrl = config.properties[ConfigOptions.ANDROID_INSTALL_URL.key];
+          if (isNotNilOrBlank(appInstallUrl)) {
+            this.appInstallUrl = appInstallUrl;
             this.appInstallName = this.appName;
           }
           else {

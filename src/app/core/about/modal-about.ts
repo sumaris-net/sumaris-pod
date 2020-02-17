@@ -5,8 +5,9 @@ import { environment } from '../../../environments/environment';
 
 
 @Component({
-    selector: 'modal-about',
-    templateUrl: './modal-about.html'
+  selector: 'modal-about',
+  styleUrls: ['./modal-about.scss'],
+  templateUrl: './modal-about.html'
 })
 export class AboutModal {
 
