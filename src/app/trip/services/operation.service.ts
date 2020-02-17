@@ -120,9 +120,11 @@ export const OperationFragments = {
 export class OperationFilter {
 
   static searchFilter<T extends Operation>(f: OperationFilter): (T) => boolean {
-    return (t: T) => {
-      // Program
-      if (isNotNil(f.tripId) && f.tripId !== t.tripId && t.trip && f.tripId !== t.trip.id) {
+    return (o: T) => {
+      // Trip
+      if (isNotNil(f.tripId) &&
+        ((isNotNil(o.tripId) && f.tripId !== o.tripId) ||
+        (isNil(o.tripId) && o.trip && f.tripId !== o.trip.id))) {
         return false;
       }
 
