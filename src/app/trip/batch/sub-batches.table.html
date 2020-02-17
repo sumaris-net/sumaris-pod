@@ -134,7 +134,7 @@
 
         <!-- individualCount column -->
         <ng-container matColumnDef="individualCount">
-          <mat-header-cell *matHeaderCellDef>
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
             <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
           </mat-header-cell>
           <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
