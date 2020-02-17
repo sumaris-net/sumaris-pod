@@ -376,9 +376,12 @@ mat-table {
   }
 
   .mat-header-cell > ion-label,
-  .mat-header-cell button > ion-label {
+  .mat-header-cell > mat-label,
+  .mat-header-cell button > ion-label,
+  .mat-header-cell button > mat-label {
     margin-top: 0;
     margin-bottom: 0;
+    text-align: start;
   }
 
   .mat-header-cell > ion-label[text-wrap],
@@ -388,13 +391,18 @@ mat-table {
   }
 
   .mat-header-cell[align-self-center] > ion-label,
+  .mat-header-cell[align-self-center] > mat-label,
   .mat-header-cell[align-self-center] button > ion-label,
+  .mat-header-cell[align-self-center] button > mat-label,
   .mat-row[align-self-center] {
     text-align: center;
+    align-self: center;
   }
 
   .mat-header-row,
   .mat-row {
+    --mat-cell-vertical-padding: 8px;
+
     border-left: 2px solid transparent;
     max-height: 52px;
     z-index: 999;
@@ -414,17 +422,17 @@ mat-table {
 
     .mat-column-id {
       max-width: 50px;
-      padding-left: 0px;
+      padding-left: 0;
     }
 
     .mat-column-comments {
       max-width: 30px;
-      padding-left: 0px;
+      padding-left: 0;
     }
 
     .mat-column-actions {
       max-width: 40px;
-      padding-left: 0px;
+      padding-left: 0;
     }
 
     .mat-cell-date-time {
@@ -444,9 +452,25 @@ mat-table {
       color: var(--ion-color-primary-tint);
       font-style: italic;
     }
+
+    /* Special case if cell need left padding (e.g. BatchGroupsTable) */
+    .mat-header-cell.content-padding-left > ion-label,
+    .mat-header-cell.content-padding-left > mat-label {
+      padding: 0 var(--mat-cell-vertical-padding, 8px);
+    }
+    .mat-cell.content-padding-left {
+      .mat-form-field-label {
+        width: 100%;
+        padding-left: var(--mat-cell-vertical-padding, 8px);
+      }
+      .mat-form-field-infix {
+        padding-left: var(--mat-cell-vertical-padding, 8px);
+      }
+    }
   }
 
   .mat-row {
+
     .mat-form-field-disabled,
     .mat-input-element:disabled,
     .mat-form-field-disabled * {
@@ -530,23 +554,11 @@ mat-table {
       padding-top: 0.4em;
     }
 
-    .mat-cell {
-      // Need by mat-boolean-field, for checkbox ripple effect
-      //overflow: visible;
-    }
+
+
   }
 
-  /* Special case if cell need left padding */
-  .mat-row.left-padding {
-    .mat-form-field-label {
-      width: 100%;
-      padding-left: 5px;
-    }
 
-    .mat-form-field-infix {
-      padding-left: 5px;
-    }
-  }
 
   /* Special case to have small row */
   .mat-row-small {

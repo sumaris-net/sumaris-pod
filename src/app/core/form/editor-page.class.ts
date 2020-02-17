@@ -255,7 +255,6 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     // Get data
     const data = await this.getValue();
-    const isNew = this.isNewData;
 
     this.disable();
 

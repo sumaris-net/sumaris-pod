@@ -84,8 +84,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     opts = super.fillDefaultOptions(opts);
 
     opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
-
-    console.debug("TODO: validator will use options:", opts);
+    //console.debug("[operation-validator] Ope Validator will use options:", opts);
 
     return opts;
   }

@@ -14,6 +14,16 @@
   .mat-column-taxonGroup {
     min-width: 50px;
   }
+
+  .mat-header-cell.mat-column-id,
+  .mat-cell.mat-column-id {
+    mat-label,
+    ion-label {
+      padding: 0 8px;
+      width: 100%;
+      text-align: right;
+    }
+  }
 }
 
 .mat-row.mat-row-selected {

@@ -184,6 +184,12 @@ const sortByEndDateOrStartDateFn = (n1: Operation, n2: Operation) => {
   return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
 };
 
+export declare interface OperationSaveOptions {
+  tripId?: number;
+  computeBatchRankOrder?: boolean;
+  computeBatchIndividualCount?: boolean;
+}
+
 @Injectable({providedIn: 'root'})
 export class OperationService extends BaseDataService
   implements TableDataService<Operation, OperationFilter>,
@@ -374,7 +380,7 @@ export class OperationService extends BaseDataService
    * Save many operations
    * @param data
    */
-  async saveAll(entities: Operation[], options?: any): Promise<Operation[]> {
+  async saveAll(entities: Operation[], options?: OperationSaveOptions): Promise<Operation[]> {
     if (!entities) return entities;
 
     if (!options || !options.tripId) {
@@ -422,13 +428,13 @@ export class OperationService extends BaseDataService
    * Save an operation
    * @param data
    */
-  async save(entity: Operation): Promise<Operation> {
+  async save(entity: Operation, options?: OperationSaveOptions): Promise<Operation> {
 
     const now = Date.now();
     if (this._debug) console.debug("[operation-service] Saving operation...");
 
     // Fill default properties (as recorder department and person)
-    this.fillDefaultProperties(entity, {});
+    this.fillDefaultProperties(entity, options);
 
     // If new, create a temporary if (for offline mode)
     const isNew = isNil(entity.id);
@@ -594,7 +600,7 @@ export class OperationService extends BaseDataService
     return copy;
   }
 
-  protected fillDefaultProperties(entity: Operation, options?: any) {
+  protected fillDefaultProperties(entity: Operation, options?: Partial<OperationSaveOptions>) {
 
     const department = this.accountService.department;
 
@@ -623,7 +629,7 @@ export class OperationService extends BaseDataService
       }
 
       // Fill sum and rank order
-      this.fillBatchTreeDefaults(entity.catchBatch);
+      this.fillBatchTreeDefaults(entity.catchBatch, options);
     }
   }
 
@@ -658,58 +664,60 @@ export class OperationService extends BaseDataService
     //if (this._debug) BatchUtils.logTree(entity.catchBatch);
   }
 
-  protected fillBatchTreeDefaults(source: Batch, context?: {
-    parentLabel?: string;
-    totalIndividualCount?: number;
-    individualMeasureCount?: number;
-  }) {
-    context = context || {};
-    context.parentLabel = source.label;
-    context.individualMeasureCount = toNumber(context.individualMeasureCount, 0);
+  protected fillBatchTreeDefaults(source: Batch,
+                                  options?: Partial<OperationSaveOptions>) {
 
-    let childrenIndividualCount: number = null;
+    if (!source.label || !source.children ) return; // skip
+    if (!options || (options.computeBatchRankOrder !== true && options.computeBatchIndividualCount !== true)) return; // skip (nothing to do)
 
-    (source.children || [])
-      // Sort by id, or new batch at the end
-      .sort((b1, b2) => (b1.id || 9999999) - (b2.id || 9999999))
-      .forEach((b, index) => {
-      b.rankOrder = index + 1;
+    let sumChildrenIndividualCount: number = null;
 
-      if (b.label) {
-        // Sampling batch
-        if (b.label.endsWith(Batch.SAMPLE_BATCH_SUFFIX)) {
-          b.label = context && context.parentLabel && (context.parentLabel + Batch.SAMPLE_BATCH_SUFFIX) || b.label;
-        }
-        // Individual measure batch
-        else if (b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
-          b.rankOrder = context.individualMeasureCount + 1;
-          b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
-          context.individualMeasureCount += 1;
-          childrenIndividualCount = toNumber(childrenIndividualCount, 0) + toNumber(b.individualCount, 1);
-        }
+    // Sort by id and rankOrder (new batch at the end)
+    if (options.computeBatchRankOrder === true && source.children) {
+      source.children = source.children
+        .sort((b1, b2) => ((b1.id || 0) * 10000 + (b1.rankOrder || 0)) - ((b2.id || 0) * 10000 + (b2.rankOrder || 0)));
+    }
+
+    source.children.forEach((b, index) => {
+      b.rankOrder = options.computeBatchRankOrder ? index + 1 : b.rankOrder;
+
+      // Sampling batch
+      if (b.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX)) {
+        b.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
+      }
+      // Individual measure batch
+      else if (b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
+        b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
       }
 
-      this.fillBatchTreeDefaults(b, context); // Recursive call
+      this.fillBatchTreeDefaults(b, options); // Recursive call
+
+      // Update sum of individual count
+      if (options.computeBatchIndividualCount && b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
+        sumChildrenIndividualCount = toNumber(sumChildrenIndividualCount, 0) + toNumber(b.individualCount, 1);
+      }
     });
 
-    if (source.label) {
-      // There is a sampling batch: update it
-      if (source.label.endsWith(Batch.SAMPLE_BATCH_SUFFIX)) {
-        source.individualCount = childrenIndividualCount || null;
+    if (options.computeBatchIndividualCount) {
+
+      // Parent batch is a sampling batch: update individual count
+      if (source.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX)) {
+        source.individualCount = sumChildrenIndividualCount || null;
       }
-      // No sampling batch
-      else if (isNotNil(childrenIndividualCount) && source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH)){
-        if (isNotNil(source.individualCount) && source.individualCount < childrenIndividualCount) {
+
+      // Parent is NOT a sampling batch
+      else if (isNotNil(sumChildrenIndividualCount) && source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH)){
+        if (isNotNil(source.individualCount) && source.individualCount < sumChildrenIndividualCount) {
+          console.warn(`[operation-service] Fix batch {${source.label}} individual count  ${source.individualCount} => ${sumChildrenIndividualCount}`);
           //source.individualCount = childrenIndividualCount;
-          console.warn(`[operation-service] Fix batch {${source.label}} individual count  ${source.individualCount} => ${childrenIndividualCount}`);
           source.qualityFlagId = QualityFlagIds.BAD;
         }
-        else if (isNil(source.individualCount) || source.individualCount > childrenIndividualCount) {
+        else if (isNil(source.individualCount) || source.individualCount > sumChildrenIndividualCount) {
           // Create a sampling batch, to hold the sampling individual count
           const samplingBatch = new Batch();
-          samplingBatch.label = source.label + Batch.SAMPLE_BATCH_SUFFIX;
+          samplingBatch.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
           samplingBatch.rankOrder = 1;
-          samplingBatch.individualCount = childrenIndividualCount;
+          samplingBatch.individualCount = sumChildrenIndividualCount;
           samplingBatch.children = source.children;
           source.children = [samplingBatch];
         }

@@ -24,7 +24,7 @@ import {FormFieldDefinition} from "./field.model";
 import {DisplayFn} from "../material/material.autocomplete";
 import {TranslateService} from "@ngx-translate/core";
 import {getColorContrast} from "../graph/colors.utils";
-import {PmfmStrategy} from "../../referential/services/model";
+import {asInputElement} from "../material/focusable";
 
 const noop = () => {
 };
@@ -226,10 +226,11 @@ export class AppFormField implements OnInit, ControlValueAccessor {
   protected updateTabIndex() {
     if (this.tabindex && this.tabindex !== -1) {
       setTimeout(() => {
-        if (this.matInput) {
-          this.matInput.nativeElement.tabIndex = this.tabindex;
+        const element = asInputElement(this.matInput);
+        if (element) {
+          element.tabIndex = this.tabindex;
+          this.cd.markForCheck();
         }
-        this.cd.markForCheck();
       });
     }
   }

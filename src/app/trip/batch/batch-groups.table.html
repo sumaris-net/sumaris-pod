@@ -114,7 +114,9 @@
       <ion-label *ngIf="!loading">#</ion-label>
       <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label>{{ row.currentData?.rankOrder }}</ion-label>
+    </mat-cell>
   </ng-container>
 
   <!-- Taxon group (commercial species) -->
@@ -155,13 +157,14 @@
   <!-- Dynamic columns -->
   <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef; let index;" [matColumnDef]="col.key">
 
-    <mat-header-cell *matHeaderCellDef mat-sort-header
+    <mat-header-cell *matHeaderCellDef
                      [class.total]="col.rankOrder % 5 < 2"
                      [class.odd]="isQvOdd(col)"
                      [class.even]="isQvEven(col)"
                      [class.hidden-xs]="col.rankOrder % 5 !== 0"
-                     [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3">
-      <mat-label float-center padding-left no-padding-xs no-padding-sm>
+                     [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
+                     class="content-padding-left">
+      <mat-label>
         <span>{{col.label|translate}}</span>
         <small *ngIf="col.unit"><br />({{col.unit}})</small>
       </mat-label>
@@ -173,7 +176,8 @@
               [class.even]="isQvEven(col)"
               [class.hidden-xs]="col.rankOrder % 5 !== 0"
               [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
-              [class.mat-cell-computed]="col.computed">
+              [class.mat-cell-computed]="col.computed"
+              class="content-padding-left">
       <app-form-field
         floatLabel="never"
         [definition]="col"
@@ -181,13 +185,6 @@
         [formControl]="row.validator.controls.measurementValues.controls[col.rankOrder]"
         [compact]="true">
       </app-form-field>
-
-<!--      <app-form-field-->
-<!--        [definition]="columnDef"-->
-<!--        [readonly]="columnDef.re || !row.editing"-->
-<!--        [pmfm]="columnDef" [formControl]="row.validator.controls.measurementValues.controls[columnDef.rankOrder]"-->
-<!--        [compact]="true" floatLabel="never">-->
-<!--      </app-form-field>-->
     </mat-cell>
   </ng-container>
 
@@ -252,6 +249,10 @@
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 
-  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid || row.validator.controls['qualityFlagId'].value === 4" class="left-padding"
-    [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing" (click)="clickRow($event, row)"></mat-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;"
+           [class.mat-row-error]="row.validator.invalid || row.validator.controls['qualityFlagId'].value === 4"
+           [class.mat-row-dirty]="row.validator.dirty"
+           [class.mat-row-disabled]="!row.editing"
+           (click)="clickRow($event, row)">
+  </mat-row>
 </mat-table>

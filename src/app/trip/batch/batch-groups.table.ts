@@ -317,7 +317,7 @@ export class BatchGroupsTable extends BatchesTable {
 
       // If sampling
       if (isNotNil(samplingRatio) || isNotNil(samplingIndividualCount) || isNotNil(samplingWeight)) {
-        const samplingLabel = childLabel + Batch.SAMPLE_BATCH_SUFFIX;
+        const samplingLabel = childLabel + Batch.SAMPLING_BATCH_SUFFIX;
         const samplingChild: Batch = isNotNil(child.id) && (child.children || []).find(b => b.label === samplingLabel) || new Batch();
         samplingChild.rankOrder = 1;
         samplingChild.label = samplingLabel;
@@ -403,11 +403,22 @@ export class BatchGroupsTable extends BatchesTable {
       this.dynamicColumns = qvPmfm.qualitativeValues.reduce((res, qv, qvIndex) => {
         const offset = qvIndex * DEFS.length;
         const qvColumns = DEFS.map((columnDef, index) => {
+          const key = `${qv.label}_${columnDef.key}`;
+          const rankOrder = offset + index;
+          if (columnDef.key.endsWith('_WEIGHT')) {
+            return {
+              ...this.defaultWeightPmfm,
+              ...columnDef,
+              key,
+              qvIndex,
+              rankOrder
+            };
+          }
           return {
             ...columnDef,
-            key: `${qv.label}_${columnDef.key}`,
+            key,
             qvIndex,
-            rankOrder: (offset + index)
+            rankOrder
           };
         });
         return res.concat(qvColumns);

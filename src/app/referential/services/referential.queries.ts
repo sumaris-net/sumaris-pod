@@ -68,6 +68,18 @@ export const ReferentialFragments = {
     isReferent
     __typename
   }`,
+  fullTaxonName: gql`fragment FullTaxonNameFragment on TaxonNameVO {
+    id
+    label
+    name
+    statusId
+    levelId
+    referenceTaxonId
+    entityName
+    isReferent
+    taxonGroupIds
+    __typename
+  }`,
   taxonGroup: gql`fragment TaxonGroupFragment on TaxonGroupVO {
     id
     label

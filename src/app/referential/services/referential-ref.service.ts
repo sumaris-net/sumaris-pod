@@ -52,10 +52,10 @@ const LoadAllWithCountQuery: any = gql`
 const LoadAllTaxonNamesQuery: any = gql`
   query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
     taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...TaxonNameFragment
+      ...FullTaxonNameFragment
     }
   }
-  ${ReferentialFragments.taxonName}
+  ${ReferentialFragments.fullTaxonName}
 `;
 
 @Injectable({providedIn: 'root'})
@@ -289,7 +289,7 @@ export class ReferentialRefService extends BaseDataService
         searchAttribute: filter.searchAttribute,
         levelIds: filter.levelIds || (isNotNil(filter.levelId) && [filter.levelId]) || [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES],
         statusIds: filter.statusIds || (isNotNil(filter.statusId) && [filter.statusId]) || [StatusIds.ENABLE],
-        taxonGroupIds: filter.taxonGroupIds || (isNotNil(filter.taxonGroupId) && [filter.taxonGroupId]) || undefined
+        taxonGroupIds: isNotNil(filter.taxonGroupId) ? [filter.taxonGroupId] : (filter.taxonGroupIds || undefined)
       }
     };
 
@@ -396,7 +396,7 @@ export class ReferentialRefService extends BaseDataService
                 statusIds: [StatusIds.ENABLE],
                 levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
               }, {
-                fetchPolicy: "network-only",
+                fetchPolicy: 'network-only',
                 debug: false,
                 toEntity: false
               }).then(data => {
@@ -408,7 +408,7 @@ export class ReferentialRefService extends BaseDataService
             logPrefix);
           break;
         case 'Metier':
-          filter = {entityName, statusIds, searchJoin: "TaxonGroup" };
+          filter = {entityName, statusIds, searchJoin: 'TaxonGroup' };
           break;
         case 'TaxonGroup':
           filter = {entityName, statusIds, levelIds: [TaxonGroupIds.FAO] };
@@ -424,7 +424,7 @@ export class ReferentialRefService extends BaseDataService
         promise = fetchAllPagesWithProgress<any>((offset, size) =>
             this.referentialService.loadAll(offset, size, 'id', null, filter, {
               debug: false,
-              fetchPolicy: "network-only",
+              fetchPolicy: 'network-only',
               withTotal: (offset === 0), // Compute total only once
               toEntity: false
             }),
@@ -497,11 +497,19 @@ export class ReferentialRefService extends BaseDataService
 
     // Filter by taxon group id, or list of id
     if (isNotNil(f.taxonGroupId)) {
-      filterFns.push((entity: TaxonNameRef) => entity.taxonGroupIds && entity.taxonGroupIds.indexOf(f.taxonGroupId) !== -1);
+      filterFns.push((entity: TaxonNameRef) =>  {
+        const res = entity.taxonGroupIds && entity.taxonGroupIds.indexOf(f.taxonGroupId) !== -1;
+        console.debug(`TODO TaxonName offline filter, by {taxonGroupId: ${f.taxonGroupId} => ${entity.label}:${res}`);
+        return res;
+      });
     }
     else if (isNotEmptyArray(f.taxonGroupIds)) {
-      filterFns.push((entity: TaxonNameRef) => f.taxonGroupIds.findIndex(filterTgId =>
-        entity.taxonGroupIds && entity.taxonGroupIds.indexOf(filterTgId) !== -1) !== -1);
+      filterFns.push((entity: TaxonNameRef) => {
+        const res = f.taxonGroupIds.findIndex(filterTgId =>
+          entity.taxonGroupIds && entity.taxonGroupIds.indexOf(filterTgId) !== -1) !== -1;
+        console.debug(`TODO TaxonName offline filter, by {taxonGroupIds: ${f.taxonGroupIds.join(',')} => ${entity.label}:${res}`);
+        return res;
+      });
     }
 
     const baseSearchFilter = this.createSearchFilterFn(f);

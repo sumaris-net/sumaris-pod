@@ -556,10 +556,22 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "true",
     type: 'boolean'
   },
+  TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE: {
+    key: "sumaris.trip.operation.batch.individualCount.compute",
+    label: "PROGRAM.OPTIONS.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE: {
     key: "sumaris.trip.operation.batch.individualCount.enable",
     label: "PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE",
     defaultValue: "true",
+    type: 'boolean'
+  },
+  TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE: {
+    key: "sumaris.trip.operation.batch.rankOrder.compute",
+    label: "PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE",
+    defaultValue: "false",
     type: 'boolean'
   },
   TRIP_SAMPLE_TAXON_NAME_ENABLE: {

@@ -1,5 +1,5 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {OperationFilter, OperationService} from '../services/operation.service';
+import {OperationFilter, OperationSaveOptions, OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
 import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
 import {TripService} from '../services/trip.service';
@@ -38,6 +38,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   trip: Trip;
   programSubject = new BehaviorSubject<string>(null);
   onProgramChanged = new Subject<Program>();
+  saveOptions: OperationSaveOptions = {};
 
   rankOrder: number;
   selectedBatchTabIndex = 0;
@@ -309,6 +310,8 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
             this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn;
             this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
           }
+          this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
+          this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
         })
     );
   }
@@ -575,10 +578,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   }
 
   protected async getValue(): Promise<Operation> {
-    const json = await this.getJsonValueToSave();
-
-    const data = new Operation();
-    data.fromObject(json);
+    const data = await super.getValue();
 
     data.catchBatch = this.catchBatchForm.value;
 
@@ -621,6 +621,10 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     json.measurements = this.measurementsForm.value;
     json.tripId = this.trip.id;
     return json;
+  }
+
+  async save(event, options?: any): Promise<boolean> {
+    return super.save(event, {...options, ...this.saveOptions});
   }
 
   protected canUserWrite(data: Operation): boolean {

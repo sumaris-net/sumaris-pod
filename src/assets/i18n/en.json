@@ -372,7 +372,7 @@
       "SYNCHRONIZE_TRIP_ERROR": "Synchronization error"
     },
     "MEASUREMENT": {
-      "FEATURE_PLACEHOLDER" : "Feature #{{rankOrder}}"
+      "FEATURE_PLACEHOLDER": "Feature #{{rankOrder}}"
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Comments",
@@ -529,7 +529,7 @@
   },
   "SALE": {
     "TITLE": "Sale",
-    "SALE_FIELD": "Sale :",
+    "SALE_FIELD": "Sale:",
     "DATE_TIME": "Date/Time",
     "START": "Start sale:",
     "START_DATE": "Start date",
@@ -685,7 +685,7 @@
     "QUALIFIED_ON": "Qualified on ",
     "QUALIFICATION_COMMENT": "Qualification comment",
     "QUALITY_FLAG": "Quality level",
-    "QUALITY_FLAG_SHORT": "Quality :",
+    "QUALITY_FLAG_SHORT": "Quality:",
     "QUALITY_FLAGS": {
       "NOT_QUALIFIED": "Not qualified",
       "GOOD": "Good",
@@ -840,7 +840,7 @@
     "TAB_GENERAL": "Details",
     "TAB_STRATEGIES": "Strategies",
     "TAB_ACCESS_RIGHTS": "Access rights",
-    "PROPERTIES_DIVIDER": "Program settings :",
+    "PROPERTIES_DIVIDER": "Program settings:",
     "PROPERTY_KEY": "Setting",
     "PROPERTY_VALUE": "Value",
     "BTN_SHOW_MORE_HELP": "More settings",
@@ -851,20 +851,22 @@
       "TITLE": "Program {{label}} - {{name}}"
     },
     "OPTIONS": {
-      "TRIP_EDITOR": "Trip : Editor",
+      "TRIP_EDITOR": "Trip: Editor",
       "TRIP_EDITOR_OBSERVED_TRIP": "Observed trip",
       "TRIP_EDITOR_TRIP_FROM_LANDING": "Trip from landing",
-      "TRIP_SALE_ENABLE": "Trip : Enter the sale ?",
-      "TRIP_OBSERVERS_ENABLE": "Trip : Enter observers ?",
-      "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear : Enter the gear number ?",
-      "TRIP_BATCH_TAXON_GROUP_ENABLE": "Catch > Species batch : Commercial species ?",
-      "TRIP_BATCH_TAXON_NAME_ENABLE": "Catch > Species batch : Scientific species ?",
-      "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Catch > Individual measure : Enter individual number ?",
-      "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Catch > Sample : Commercial species ?",
-      "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Catch > Sample : Scientific species ?",
-      "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Catch > Survival test : Scientific species ?",
-      "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Catch > Survival test : Commercial species ?",
-      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation > End date ?",
+      "TRIP_SALE_ENABLE": "Trip: Enter the sale?",
+      "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",
+      "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
+      "TRIP_BATCH_TAXON_GROUP_ENABLE": "Catch > Species batch: Commercial species?",
+      "TRIP_BATCH_TAXON_NAME_ENABLE": "Catch > Species batch: Scientific species?",
+      "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Catch > Species batch: compute sampling nb indiv?",
+      "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Individual measure: sort items on save?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Catch > Individual measure: Enter individual number?",
+      "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Catch > Sample: Commercial species?",
+      "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Catch > Sample: Scientific species?",
+      "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Catch > Survival test: Scientific species?",
+      "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Catch > Survival test: Commercial species?",
+      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation > End date?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation > Location level",
       "LOCATION_LEVEL_PORT": "Ports",
       "LOCATION_LEVEL_AUCTION": "Auctions",
@@ -1118,7 +1120,7 @@
     "DELETE_ROW": "<b>Are you sure</b> you want to delete this row?",
     "DELETE_ROWS": "<b>Are you sure</b> you want to delete this rows?"
   },
-  "INFO" : {
+  "INFO": {
     "SYNCHRONIZATION_SUCCEED": "Synchronization completed! <br/> The data has been received by the server."
   }
 }

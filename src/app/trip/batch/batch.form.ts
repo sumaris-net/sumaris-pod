@@ -228,7 +228,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         const childJson = json.children && json.children[0] || {};
 
         childJson.rankOrder = 1;
-        childJson.label = json.label && (json.label  + Batch.SAMPLE_BATCH_SUFFIX) || undefined;
+        childJson.label = json.label && (json.label  + Batch.SAMPLING_BATCH_SUFFIX) || undefined;
 
         childJson.measurementValues = childJson.measurementValues || {};
 

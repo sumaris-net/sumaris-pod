@@ -15,7 +15,7 @@ export declare interface BatchWeight extends IMeasurementValue {
 export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<Batch>, ITreeItemEntity<Batch> {
 
   static TYPENAME = 'BatchVO';
-  static SAMPLE_BATCH_SUFFIX = '.%';
+  static SAMPLING_BATCH_SUFFIX = '.%';
 
   static fromObject(source: any, opts?: { withChildren: boolean; }): Batch {
     const target = new Batch();
@@ -244,7 +244,7 @@ export class BatchUtils {
   }
 
   static isSampleBatch(batch: Batch) {
-    return batch && isNotNilOrBlank(batch.label) && batch.label.endsWith(Batch.SAMPLE_BATCH_SUFFIX);
+    return batch && isNotNilOrBlank(batch.label) && batch.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX);
   }
 
   static isSampleNotEmpty(sampleBatch: Batch): boolean {
@@ -268,7 +268,7 @@ export class BatchUtils {
   }
 
   static getOrCreateSamplingChild(parent: Batch) {
-    const samplingLabel = parent.label + Batch.SAMPLE_BATCH_SUFFIX;
+    const samplingLabel = parent.label + Batch.SAMPLING_BATCH_SUFFIX;
 
     const samplingChild = (parent.children || []).find(b => b.label === samplingLabel) || new Batch();
     const isNew = !samplingChild.label;
@@ -288,7 +288,7 @@ export class BatchUtils {
   }
 
   static getSamplingChild(parent: Batch): Batch | undefined {
-    const samplingLabel = parent.label + Batch.SAMPLE_BATCH_SUFFIX;
+    const samplingLabel = parent.label + Batch.SAMPLING_BATCH_SUFFIX;
     return (parent.children || []).find(b => b.label === samplingLabel);
   }
 
@@ -347,9 +347,7 @@ export class BatchUtils {
           children.forEach(c => c.parentId = b.children[0].id);
         } else {
           b.children = children;
-          children.forEach(c => {
-            c.parentId = b.id;
-          });
+          children.forEach(c => c.parentId = b.id);
         }
       });
     });
