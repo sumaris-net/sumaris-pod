@@ -28,6 +28,7 @@ import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 
 @Transactional
@@ -41,4 +42,6 @@ public interface TaxonGroupService {
                                                  int size,
                                                  String sortAttribute,
                                                  SortDirection sortDirection);
+
+    List<Integer> getAllIdByReferenceTaxonId(int referenceTaxonId, Date startDate, Date endDate);
 }

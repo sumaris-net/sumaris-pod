@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -80,15 +81,6 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-
-
-        // TODO: not used in app: remove
-        //if ("TargetSpecies".equals(entityName)) {
-        //    return taxonGroupService.findTargetSpeciesByFilter(
-        //            filter != null ? filter : new ReferentialFilterVO(),
-        //            offset, size, sort,
-        //            SortDirection.valueOf(direction.toUpperCase()));
-        //}
 
         // Special case
         if ("Metier".equals(entityName)) {
@@ -164,7 +156,19 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         filter = filter != null ? filter : new TaxonNameFilterVO();
-        return taxonNameService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+        List<TaxonNameVO> result = taxonNameService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+
+
+
+        return result;
     }
 
+    @GraphQLQuery(name = "taxonGroupIds", description = "Get taxon groups from a taxon name")
+    public List<Integer> getTaxonGroupIdsByTaxonName(@GraphQLContext TaxonNameVO taxonNameVO) {
+        if (taxonNameVO.getReferenceTaxonId() != null) {
+            return taxonGroupService.getAllIdByReferenceTaxonId(taxonNameVO.getReferenceTaxonId(), new Date(), null);
+        }
+        // Should never occur !
+        return null;
+    }
 }

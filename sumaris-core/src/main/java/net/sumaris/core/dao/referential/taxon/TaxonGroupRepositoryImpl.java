@@ -55,6 +55,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.Parameter;
 import javax.persistence.TemporalType;
@@ -339,5 +340,18 @@ public class TaxonGroupRepositoryImpl
             throw new DataRetrievalFailureException("PMFM for preservation not found");
         }
         return pmfm.getQualitativeValues();
+    }
+
+    @Override
+    public List<Integer> getAllIdByReferenceTaxonId(int referenceTaxonId, Date startDate, @Nullable Date endDate) {
+        Preconditions.checkNotNull(startDate);
+
+        return getEntityManager()
+                .createNamedQuery("TaxonGroup2TaxonHierarchy.taxonGroupIdByReferenceTaxonId", Integer.class)
+                .setParameter("referenceTaxonId", referenceTaxonId)
+                .setParameter("startDate", startDate, TemporalType.DATE)
+                // If no end date, use start date
+                .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
+                .getResultList();
     }
 }
