@@ -160,6 +160,12 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
+    ANDROID_INSTALL_URL(
+            "sumaris.android.install.url",
+            n("sumaris.config.option.android.install.url.description"),
+            "${server.url}/download/android/sumaris-app-latest.apk",
+            String.class,
+            false),
     ;
 
     /** Configuration key. */
