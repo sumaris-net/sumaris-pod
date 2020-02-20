@@ -165,6 +165,11 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     return this.hasMeasureControl.value === true;
   }
 
+  @Input()
+  set hasMeasure(value: boolean) {
+    this.hasMeasureControl.setValue(value);
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: FormBuilder,
@@ -222,7 +227,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
 
     }
     else {
-      let hasSamplingBatch = false;
+      let hasSamplingBatch = this.hasMeasure;
 
       // Prepare data array, for each qualitative values
       data.children = this.qvPmfm.qualitativeValues.map((qv, index) => {
@@ -257,7 +262,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
       });
 
       // Enable measure, when there is a sampling batch
-      this.hasMeasureControl.setValue(hasSamplingBatch);
+      this.hasMeasure = hasSamplingBatch;
     }
   }
 

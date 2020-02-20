@@ -65,6 +65,7 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
     }
     const target: any = super.asObject(options);
     if (options && options.keepEntityName !== true) delete target.entityName; // delete by default
+    delete target.taxonGroupIds; // Not need
     return target;
   }
 
@@ -126,7 +127,8 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef> implements IReferential
       };
     }
     const target: any = super.asObject(options);
-    delete target.entityName;
+    if (options && options.keepEntityName !== true) delete target.entityName; // delete by default
+    delete target.taxonNames; // Not need
     return target;
   }
 

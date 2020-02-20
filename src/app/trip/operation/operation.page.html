@@ -87,8 +87,7 @@
                      [hidden]="!showBatchTables"
                      animationDuration="0s"
                      [(selectedIndex)]="selectedBatchTabIndex"
-                     (selectedTabChange)="onBatchTabChange($event)"
-                     >
+                     (selectedTabChange)="onBatchTabChange($event)">
 
         <!-- TAB: species list -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
@@ -117,8 +116,7 @@
 
         <!-- TAB: individual measure -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
-                 [disabled]="!enableSubBatchesTable"
-                 [hidden]="mobile">
+                 [disabled]="!enableSubBatchesTable || mobile">
           <ng-template mat-tab-label>
             <mat-icon>assessment</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>

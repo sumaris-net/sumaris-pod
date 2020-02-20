@@ -16,12 +16,15 @@ export class SubBatchValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Batch): FormGroup {
+  getFormGroup(data?: Batch, opts?: {
+    rankOrderRequired?: boolean;
+  }): FormGroup {
+    const rankOrder = toNumber(data && data.rankOrder, null);
     return this.formBuilder.group({
       __typename: [Batch.TYPENAME],
       id: [toNumber(data && data.id, null)],
       updateDate: [data && data.updateDate || null],
-      rankOrder: [toNumber(data && data.rankOrder, null), Validators.required],
+      rankOrder: !opts || opts.rankOrderRequired !== false ? [rankOrder, Validators.required] : [rankOrder],
       label: [data && data.label || null],
       individualCount: [toNumber(data && data.individualCount, null), Validators.compose([Validators.min(1), SharedValidators.integer])],
       samplingRatio: [toNumber(data && data.samplingRatio, null), SharedValidators.empty], // Make no sense to have sampling ratio

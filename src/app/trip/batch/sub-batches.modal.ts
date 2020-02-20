@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {Batch} from "../services/model/batch.model";
+import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {SubBatchForm} from "./sub-batch.form";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
@@ -9,9 +9,10 @@ import {AppMeasurementsTableOptions} from "../measurement/measurements.table.cla
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {AppFormUtils, EntityUtils, environment, isNil} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
-import {isNotNilOrBlank} from "../../shared/functions";
+import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
 import {AudioProvider} from "../../shared/audio/audio";
 import {Alerts} from "../../shared/alerts";
+import {Subject} from "rxjs";
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
@@ -44,10 +45,15 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   private _selectedParent: Batch;
   private _hiddenData: Batch[];
 
+  $title = new Subject<string>();
+
   @Input() onNewParentClick: () => Promise<Batch | undefined>;
 
   @Input()
   availableSubBatchesFn: () => Promise<Batch[]>;
+
+  @Input()
+  showParent: boolean;
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
 
@@ -84,7 +90,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     // default values
     this.showCommentsColumn = false;
     this.showParentColumn = false;
-    this.showIndividualCount = !this.isOnFieldMode; // Hide individual count on mobile device
 
     // TODO: for DEV only ---
     this.debug = !environment.production;
@@ -94,6 +99,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   async ngOnInit() {
     super.ngOnInit();
 
+    // default values
+    this.showIndividualCount = !this.isOnFieldMode; // Hide individual count on mobile device
+    this.showParent = toBoolean(this.showParent, true);
 
     await this.form.ready();
 
@@ -122,6 +130,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     // Apply data to table
     this.setValue(data);
+
+    // Compute the title
+    await this.computeTitle();
   }
 
   async cancel(event?: UIEvent) {
@@ -203,6 +214,19 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
   /* -- protected methods -- */
 
+  protected async computeTitle() {
+
+    let titlePrefix;
+    if (!this.showParent && this._selectedParent) {
+      const label = BatchUtils.parentToString(this._selectedParent);
+      titlePrefix = await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE_PREFIX', {label}).toPromise();
+    }
+    else {
+      titlePrefix = '';
+    }
+    this.$title.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE').toPromise()));
+  }
+
   protected async onParentChange(parent?: Batch) {
     // Skip if same parent
     if (Batch.equals(this._selectedParent, parent)) return;
@@ -229,21 +253,20 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     // Filter by parent
     if (data && this._selectedParent) {
       const showIndividualCount = this.showIndividualCount; // Read once the getter value
-      const filteredData = [];
+
       const hiddenData = [];
       let maxRankOrder = this._previousMaxRankOrder || this._initialMaxRankOrder;
-      data.forEach(b => {
+      const filteredData = data.reduce((res, b) => {
+        maxRankOrder = Math.max(maxRankOrder, b.rankOrder || 0);
         // Filter on individual count = 1 when individual count is hide
         // AND same parent
         if ( (showIndividualCount || b.individualCount === 1)
           && Batch.equals(this._selectedParent, b.parent)) {
-          filteredData.push(b);
+          return res.concat(b);
         }
-        else {
-          hiddenData.push(b);
-        }
-        maxRankOrder = Math.max(maxRankOrder, b.rankOrder || 0);
-      });
+        hiddenData.push(b);
+        return res;
+      }, []);
       this._hiddenData = hiddenData;
       this._previousMaxRankOrder = maxRankOrder;
       return super.onLoadData(filteredData);

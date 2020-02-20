@@ -96,7 +96,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     protected settings: LocalSettingsService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
-      validatorService.getFormGroup(null, {withWeight: true}), // Allow to be set by parent component
+      validatorService.getFormGroup(null, {withWeight: true, rankOrderRequired: false, labelRequired: false}), // Allow to be set by parent component
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onUpdateControls: (form) => this.onUpdateControls(form)

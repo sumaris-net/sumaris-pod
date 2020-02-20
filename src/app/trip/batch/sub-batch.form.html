@@ -64,7 +64,7 @@
     </mat-checkbox>
   </mat-form-field-measurement-qv>
 
-  <!-- Espèce scientifique -->
+  <!-- Taxon name -->
   <div *ngIf="showTaxonName">
     <mat-autocomplete-field #matInput  *ngIf="!mobile; else taxonNameMobile"
                             formControlName="taxonName"

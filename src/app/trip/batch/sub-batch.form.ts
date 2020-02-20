@@ -52,9 +52,6 @@ import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 @Component({
   selector: 'app-sub-batch-form',
   templateUrl: 'sub-batch.form.html',
-  providers: [
-    {provide: ValidatorService, useExisting: SubBatchValidatorService}
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SubBatchForm extends MeasurementValuesForm<Batch>
@@ -163,18 +160,18 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   get parent(): any {
-    return this.form.get('parent').value;
+    return this.form.controls.parent.value;
   }
 
   @ViewChildren(MeasurementFormField) measurementFormFields: QueryList<MeasurementFormField>;
-  @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
+  @ViewChildren('matInput', {read: true}) matInputs: QueryList<ElementRef>;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
-    protected validatorService: ValidatorService,
+    protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected settings: LocalSettingsService,
     protected platform: PlatformService,
@@ -182,11 +179,17 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
-      validatorService.getRowValidator(),
+      validatorService.getFormGroup(null, {
+        rankOrderRequired: false, // Avoid to have form.invalid, in Burst mode
+      }),
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onUpdateControls: (form) => this.onUpdateControls(form)
       });
+
+    // Remove required label/rankOrder
+    this.form.controls.label.setValidators(null);
+    this.form.controls.rankOrder.setValidators(null);
 
     this.mobile = platform.mobile;
     this._enable = false;

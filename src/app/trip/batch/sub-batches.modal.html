@@ -8,8 +8,7 @@
       </ion-button>
     </ion-buttons>
 
-    <ion-title>
-      {{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL' | translate}}
+    <ion-title [innerHTML]="$title|async">
     </ion-title>
 
     <ion-buttons slot="end">
@@ -53,7 +52,7 @@
                             [acquisitionLevel]="acquisitionLevel"
                             [pmfms]="$pmfms|async"
                             [qvPmfm]="qvPmfm"
-                            [showParent]="true"
+                            [showParent]="showParent"
                             [showTaxonName]="showTaxonNameColumn"
                             [displayParentPmfm]="displayParentPmfm"
                             [onNewParentClick]="onNewParentClick"

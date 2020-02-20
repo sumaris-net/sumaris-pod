@@ -27,7 +27,6 @@ import {UsageMode} from "../../core/services/model";
 import {SubBatchesModal} from "./sub-batches.modal";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {BatchModal} from "./batch.modal";
-import {EntityStorage} from "../../core/services/entities-storage.service";
 import {MatDialog} from '@angular/material/dialog';
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 
@@ -170,7 +169,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
 
   protected async openNewRowDetail(): Promise<boolean> {
     const batch = new Batch();
-    await this.onNewEntity(batch);
+    //await this.onNewEntity(batch);
 
     const res = await this.openDetailModal(batch, {isNew: true});
     if (res) {
@@ -190,6 +189,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
 
     // Override rankOrder (keep computed value)
     newBatch.rankOrder = row.currentData.rankOrder;
+    await this.onNewEntity(newBatch);
 
     // Affect new row
     if (row.validator) {
@@ -271,19 +271,24 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     return (data instanceof Batch) ? data : undefined;
   }
 
-  async onSubBatchesClick(event: UIEvent, row: TableElement<Batch>): Promise<void> {
+  async onSubBatchesClick(event: UIEvent, row: TableElement<Batch>, opts?: {
+    showParent?: boolean;
+  }): Promise<Batch[] | undefined> {
     if (event) event.preventDefault();
-
     const selectedParent = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
-    await this.openSubBatchesModal(selectedParent);
+    return await this.openSubBatchesModal(selectedParent, opts);
   }
 
-  async openSubBatchesModal(selectedParent?: Batch) {
+  async openSubBatchesModal(selectedParent?: Batch, opts?: {
+    showParent?: boolean;
+  }): Promise<Batch[] | undefined> {
 
     if (this.debug) console.debug("[batches-table] Open individual measures modal...");
 
+    const showParent = !opts || opts.showParent !== false; // True by default
+
     // Define a function to add new parent
-    const onNewParentClick = this.mobile ? async () => {
+    const onNewParentClick = showParent ? async () => {
       const newBatch = await this.openDetailModal();
       if (!newBatch) return undefined;
       await this.addBatchToTable(newBatch);
@@ -310,15 +315,14 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
         usageMode: this.usageMode,
         selectedParent: selectedParent,
         qvPmfm: this.qvPmfm,
-
+        showParent,
         // Scientific species is required, if not set in root batches
         showTaxonNameColumn: !this.showTaxonNameColumn,
-
         // If on field mode: use individualCount=1 on each sub-batches
         showIndividualCount: !this.isOnFieldMode,
         availableParents: availableParents,
         availableSubBatchesFn: this.availableSubBatchesFn,
-        onNewParentClick: onNewParentClick
+        onNewParentClick
       },
       keyboardClose: true,
       cssClass: 'modal-large'
@@ -328,7 +332,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     await modal.present();
 
     // Wait until closed
-    const data = (await modal.onDidDismiss()).data;
+    const {data} = await modal.onDidDismiss();
 
     onModalDismiss.next(); // disconnect to service
 
@@ -340,6 +344,8 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
       if (this.debug) console.debug("[batches-table] Sub-batches modal result: ", data);
       this.onSubBatchesChanges.emit(data);
     }
+
+    return data;
   }
 
   /* -- protected methods -- */

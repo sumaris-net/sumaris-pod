@@ -20,9 +20,11 @@ export class BatchValidatorService implements ValidatorService {
   }
 
   getFormGroup(data?: Batch, opts?: {
-    withWeight?: boolean
+    withWeight?: boolean;
+    rankOrderRequired?: boolean;
+    labelRequired?: boolean;
   }): FormGroup {
-    const form = this.formBuilder.group(this.getFormGroupConfig(data));
+    const form = this.formBuilder.group(this.getFormGroupConfig(data, {...opts}));
 
     // Add weight sub form
     if (opts && opts.withWeight) {
@@ -32,13 +34,18 @@ export class BatchValidatorService implements ValidatorService {
     return form;
   }
 
-  protected getFormGroupConfig(data?: Batch): { [key: string]: any } {
+  protected getFormGroupConfig(data?: Batch,  opts?: {
+    rankOrderRequired?: boolean;
+    labelRequired?: boolean;
+  }): { [key: string]: any } {
+    const rankOrder = toNumber(data && data.rankOrder, null);
+    const label = data && data.label || null;
     return {
       __typename: [Batch.TYPENAME],
       id: [toNumber(data && data.id, null)],
       updateDate: [data && data.updateDate || null],
-      rankOrder: [toNumber(data && data.rankOrder, null), Validators.required],
-      label: [data && data.label || null, Validators.required],
+      rankOrder: !opts || opts.rankOrderRequired !== false ? [rankOrder, Validators.required] : [rankOrder],
+      label: !opts || opts.labelRequired !== false ? [label, Validators.required] : [label],
       individualCount: [toNumber(data && data.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
       samplingRatio: [toNumber(data && data.samplingRatio, null), SharedValidators.double()],
       samplingRatioText: [data && data.samplingRatioText || null],

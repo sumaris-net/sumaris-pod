@@ -142,7 +142,7 @@ export function suggestFromArray<T=any>(items: T[], value: any, options?: {
   }
 
   // If wildcard, search using startsWith
-  return items.filter(v => keys.findIndex(key => startsWithUpperCase(getPropertyByPathAsString(v, key), value)) !== -1);
+  return (items||[]).filter(v => keys.findIndex(key => startsWithUpperCase(getPropertyByPathAsString(v, key), value)) !== -1);
 }
 
 export function suggestFromStringArray(values: string[], value: any, options?: {

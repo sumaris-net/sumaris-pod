@@ -332,7 +332,6 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     // Create a new batch
     const newBatch = new Batch();
-    await this.onNewEntity(newBatch);
 
     // Reset individual count, if manual mode
     if (this.form.enableIndividualCount) {
@@ -522,8 +521,9 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       row = await this.addRowToTable();
       if (!row) throw new Error("Could not add row t table");
 
-      // Override rankOrder (keep computed value)
+      // Keep rankOrder, then make sure to entity (e.g. label should be computed)
       newBatch.rankOrder = row.currentData.rankOrder;
+      await this.onNewEntity(newBatch);
 
       // Affect new row
       if (row.validator) {

@@ -468,6 +468,7 @@
         "SAMPLING_RATIO": "Taux échant. (%)",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "INDIVIDUAL": {
+          "TITLE_PREFIX": "<small>Lot {{label}}<br/></small>",
           "TITLE": "Mesures individuelles",
           "INDIVIDUAL_COUNT": "Nb individus",
           "BURST_FORM_TITLE": "Saisie rafale :",

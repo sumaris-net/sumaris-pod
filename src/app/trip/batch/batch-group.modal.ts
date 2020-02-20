@@ -56,6 +56,8 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() qvPmfm: PmfmStrategy;
 
+  @Input() hasMeasure: boolean;
+
   @Input()
   set value(value: Batch) {
     this.data = value;
@@ -107,6 +109,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     this.form.setValue(this.data || new Batch());
 
     this.disabled = toBoolean(this.disabled, false);
+    this.hasMeasure = toBoolean(this.hasMeasure, false);
 
     if (this.disabled) {
       this.form.disable();

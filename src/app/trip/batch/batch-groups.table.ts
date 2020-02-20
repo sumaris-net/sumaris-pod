@@ -13,9 +13,10 @@ import {ModalController} from "@ionic/angular";
 import {BatchUtils, BatchWeight} from "../services/model/batch.model";
 import {ColumnItem, TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
-import {isNotNilOrNaN, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNotNilOrNaN, toNumber} from "../../shared/functions";
 import {BatchGroupModal} from "./batch-group.modal";
 import {FormFieldDefinition} from "../../shared/form/field.model";
+import {withIdentifier} from "codelyzer/util/astQuery";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
@@ -164,30 +165,29 @@ export class BatchGroupsTable extends BatchesTable {
     data = data.map(batch => {
       const measurementValues = {};
 
-      // For each group (one by qualitative value)
-      this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
-        const childLabel = `${batch.label}.${qv.label}`;
-        const child = (batch.children || []).find(c => c.label === childLabel || c.measurementValues[this.qvPmfm.pmfmId] == qv.id);
-        if (child) {
+      if (isNotEmptyArray(batch.children)) {
+        // For each group (one by qualitative value)
+        this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
+          const childLabel = `${batch.label}.${qv.label}`;
+          const child = batch.children.find(c => c.label === childLabel || c.measurementValues[this.qvPmfm.pmfmId] == qv.id);
+          if (child) {
 
-          // Replace measurement values inside a new map, based on fake pmfms
-          this.getFakeMeasurementValuesFromQvChild(child, measurementValues, qvIndex);
+            // Replace measurement values inside a new map, based on fake pmfms
+            this.getFakeMeasurementValuesFromQvChild(child, measurementValues, qvIndex);
 
-          // Remember method used for the weight (estimated or not)
-          if (!weightMethodValues[qvIndex]) {
-            if (child.weight && child.weight.estimated) {
-              weightMethodValues[qvIndex] = true;
-            }
-            else if (child.children && child.children.length === 1) {
-              const samplingChild = child.children[0];
-              weightMethodValues[qvIndex] = samplingChild.weight && samplingChild.weight.estimated;
+            // Remember method used for the weight (estimated or not)
+            if (!weightMethodValues[qvIndex]) {
+              if (child.weight && child.weight.estimated) {
+                weightMethodValues[qvIndex] = true;
+              }
+              else if (child.children && child.children.length === 1) {
+                const samplingChild = child.children[0];
+                weightMethodValues[qvIndex] = samplingChild.weight && samplingChild.weight.estimated;
+              }
             }
           }
-        }
-        else {
-          console.warn("Unable to find child for QV value: " + (qv.label || qv.name));
-        }
-      });
+        });
+      }
 
       // Make entity compatible with reactive form
       batch.measurementValues = measurementValues;
@@ -219,29 +219,28 @@ export class BatchGroupsTable extends BatchesTable {
 
   /* -- protected methods -- */
 
-  protected normalizeEntityToRow(data: Batch, row: TableElement<Batch>) {
+  protected normalizeEntityToRow(batch: Batch, row: TableElement<Batch>) {
     // When batch has the QV value
     if (this.qvPmfm) {
       const measurementValues = Object.assign({}, row.currentData.measurementValues);
 
-      // For each group (one by qualitative value)
-      this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
-        const childLabel = `${data.label}.${qv.label}`;
-        const child = (data.children || []).find(c => c.label === childLabel || c.measurementValues[this.qvPmfm.pmfmId] == qv.id);
-        if (child) {
+      if (isNotEmptyArray(batch.children)) {
+        // For each group (one by qualitative value)
+        this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
+          const childLabel = `${batch.label}.${qv.label}`;
+          const child = batch.children.find(c => c.label === childLabel || c.measurementValues[this.qvPmfm.pmfmId] == qv.id);
+          if (child) {
 
-          // Replace measurement values inside a new map, based on fake pmfms
-          this.getFakeMeasurementValuesFromQvChild(child, measurementValues, qvIndex);
-        }
-        else {
-          console.warn("Unable to find child for QV value: " + (qv.label || qv.name));
-        }
-      });
-      data.measurementValues = measurementValues;
+            // Replace measurement values inside a new map, based on fake pmfms
+            this.getFakeMeasurementValuesFromQvChild(child, measurementValues, qvIndex);
+          }
+        });
+      }
+      batch.measurementValues = measurementValues;
     }
 
     // Inherited method
-    super.normalizeEntityToRow(data, row);
+    super.normalizeEntityToRow(batch, row);
 
   }
 
@@ -514,27 +513,46 @@ export class BatchGroupsTable extends BatchesTable {
       .filter(name => !this.excludesColumns.includes(name));
   }
 
-  async openDetailModal(batch?: Batch, opts?: { isNew?: boolean; }): Promise<Batch | undefined> {
+  async openDetailModal(batch?: Batch, opts?: {
+    isNew?: boolean;
+    hasMeasure?: boolean;
+  }): Promise<Batch | undefined> {
+    batch = batch || (!opts || opts.isNew !== true) && this.editedRow && (this.editedRow.validator ? Batch.fromObject(this.editedRow.currentData) : this.editedRow.currentData) || undefined;
+
+    const onSubBatchesClick = async (parent) => {
+
+      // If row not added yet, wait
+      if (!this.editedRow) {
+        await setTimeout(() => {
+          onSubBatchesClick(parent);
+        }, 100);
+      }
+
+      const subBatches = await this.onSubBatchesClick(null, this.editedRow, {
+        showParent: false
+      });
+
+      this.updateRowFromSubbatches(this.editedRow, subBatches);
+
+      await this.openRow(null, this.editedRow); // Reopen the detail modal
+    };
+
     const modal = await this.modalCtrl.create({
       component: BatchGroupModal,
       componentProps: {
         program: this.program,
         acquisitionLevel: this.acquisitionLevel,
         value: batch,
-        isNew: opts && opts.isNew || false,
+        isNew: opts && opts.isNew === true,
         disabled: this.disabled,
         qvPmfm: this.qvPmfm,
+        hasMeasure: opts && opts.hasMeasure === true,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
         // Not need on a root species batch (fill in sub-batches)
         showTotalIndividualCount: false,
         showIndividualCount: false,
-        showSubBatchesCallback: (res) => {
-          if (!res) return;
-          setTimeout(() => {
-            if (this.editedRow) this.onSubBatchesClick(null, this.editedRow);
-          });
-        }
+        showSubBatchesCallback: onSubBatchesClick
       },
       keyboardClose: true,
       cssClass: 'app-batch-group-modal'
@@ -546,7 +564,7 @@ export class BatchGroupsTable extends BatchesTable {
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
-    return (data instanceof Batch) ? data : undefined;
+    return (data && data instanceof Batch) ? data : undefined;
   }
 
   async openSelectColumnsModal() {
@@ -589,6 +607,30 @@ export class BatchGroupsTable extends BatchesTable {
     await this.settings.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
 
     this.updateColumns();
+  }
+
+  protected updateRowFromSubbatches(row: TableElement<Batch>, subbatches: Batch[]) {
+    if (isEmptyArray(subbatches)) return; // skip
+
+    const parent = row.currentData;
+    const children = subbatches.filter(b => Batch.equals(parent, b.parent));
+
+    if (!this.qvPmfm) {
+      console.warn("TODO: implement updating batch (without QV pmfm) by subbatches");
+    }
+    else {
+      this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
+        const offset = (qvIndex * BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length);
+        const samplingIndividualCount = children.filter(c => {
+          const qvValue = c.measurementValues[this.qvPmfm.pmfmId];
+          return qvValue && qvValue.id === qv.id;
+        })
+          .reduce((sum, c) => sum + toNumber(c.individualCount, 1), 0);
+        parent.measurementValues[offset + 4] = samplingIndividualCount;
+      });
+    }
+
+    row.currentData = parent;
   }
 
 }
