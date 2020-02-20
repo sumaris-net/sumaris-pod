@@ -25,6 +25,7 @@ package net.sumaris.server.config;
 
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
 import net.sumaris.core.util.ApplicationUtils;
+import net.sumaris.rdf.model.ModelURIs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -144,10 +145,13 @@ public class Application extends SpringBootServletInitializer {
                 registry.addRedirectViewController("/ontology/webvowl/", "/webvowl/");
                 registry.addViewController("/webvowl/")
                         .setViewName("forward:/webvowl/index.html");
+
                 // WebVOWL data files
-                registry.addViewController("/webvowl/data/owl.json").setViewName("forward:/webvowl/convert?iri=http://www.w3.org/2002/07/owl");
                 registry.addViewController("/webvowl/data/taxon.json").setViewName("forward:/ontology/schema/taxon/?format=vowl");
                 registry.addViewController("/webvowl/data/gear.json").setViewName("forward:/ontology/schema/gear/?format=vowl");
+                ModelURIs.URI_BY_NAMESPACE.keySet().forEach(ns -> registry
+                                .addViewController(String.format("/webvowl/data/%s.json", ns))
+                                .setViewName(String.format("forward:/webvowl/convert?ns=%s", ns)));
 
                 // YasGUI
                 registry.addRedirectViewController("/sparql/ui/", "/sparql/ui");

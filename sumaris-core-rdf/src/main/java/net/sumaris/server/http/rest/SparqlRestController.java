@@ -48,13 +48,17 @@ import java.util.List;
 @ConditionalOnBean({RdfConfiguration.class})
 public class SparqlRestController {
 
+    public static final String SPARQL_PATH = "/sparql";
+
     private static final Logger log = LoggerFactory.getLogger(SparqlRestController.class);
 
     @Resource
     private RdfExportService service;
 
-    @Value( "${rdf.model.uri}" )
-    private String rdfModelUri;
+    @PostConstruct
+    public void afterPropertySet() {
+        log.info("Starting SparQL endpoint {{}}...", RdfRestPaths.SPARQL_PATH);
+    }
 
     @RequestMapping(
             method = {RequestMethod.GET, RequestMethod.POST},
@@ -83,7 +87,6 @@ public class SparqlRestController {
             query.setLimit(1000);
         }
         log.info(String.format("Received SparQL query {limit: %s, accept: %s}: \n%s", query.getLimit(), acceptHeader, queryString));
-
 
         List<String> acceptedContentTypes = Splitter.on(",").trimResults().splitToList(acceptHeader);
 
@@ -156,9 +159,6 @@ public class SparqlRestController {
         return ResponseEntity.badRequest().body(errorMessage);
     }
 
-    @PostConstruct
-    public void afterPropertySet() {
-        log.info(String.format("Starting SparQL rest controller at {%s}...", RdfRestPaths.SPARQL_PATH));
-    }
+
 
 }

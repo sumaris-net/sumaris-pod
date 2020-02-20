@@ -25,35 +25,23 @@ package net.sumaris.server.http.rest;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelType;
 import net.sumaris.rdf.service.RdfExportOptions;
 import net.sumaris.rdf.service.RdfExportService;
 import net.sumaris.rdf.util.ModelUtils;
-import org.apache.coyote.Response;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.riot.RiotException;
-import org.apache.jena.shacl.validation.ReportEntry;
-import org.apache.jena.shared.JenaException;
-import org.nuiton.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -63,27 +51,31 @@ import java.util.Map;
 @ConditionalOnBean({RdfConfiguration.class})
 public class RdfRestController {
 
+    // Base path
+    public static final String BASE_PATH = "/ontology";
+    public static final String ONTOLOGY = BASE_PATH + "/{type:schema|data|entities}/";
+    public static final String ONTOLOGY_BY_CLASS = ONTOLOGY + "{class:[a-zA-Z]+}/";
+    public static final String ONTOLOGY_BY_OBJECT = ONTOLOGY_BY_CLASS + "{id:[0-9a-zA-Z]+}";
+    public static final String CONVERT = BASE_PATH + "/convert";
+
     private static final Logger log = LoggerFactory.getLogger(RdfRestController.class);
 
     @Resource
     private RdfExportService service;
 
-    @Value( "${server.url}" )
-    private String serverUrl;
-
     @Value( "${rdf.model.uri}" )
-    private String rdfModelUri;
+    private String rdfModelUriPrefix;
 
     @PostConstruct
     public void afterPropertySet() {
-        log.info(String.format("Starting RDF rest controller at {%s}...", RdfRestPaths.BASE_PATH));
+        log.info("Starting RDF endpoint {{}}...", BASE_PATH);
     }
 
     @GetMapping(
             value = {
-                    RdfRestPaths.ONTOLOGY,
-                    RdfRestPaths.ONTOLOGY_BY_CLASS,
-                    RdfRestPaths.ONTOLOGY_BY_OBJECT
+                    ONTOLOGY,
+                    ONTOLOGY_BY_CLASS,
+                    ONTOLOGY_BY_OBJECT
             },
             produces = {
                     MediaType.APPLICATION_XML_VALUE,
@@ -115,7 +107,7 @@ public class RdfRestController {
                 .body(content);
     }
 
-    @GetMapping(value = RdfRestPaths.CONVERT,
+    @GetMapping(value = CONVERT,
             produces = {
                 MediaType.APPLICATION_XML_VALUE,
                 MediaType.APPLICATION_JSON_VALUE,
@@ -156,7 +148,7 @@ public class RdfRestController {
         log.info(String.format("Reading %s model {%s}...", format.toJenaFormat(), iri));
 
         // Path match /ontology/{modelType}/{class}/{id}
-        String apiPath = rdfModelUri + RdfRestPaths.BASE_PATH;
+        String apiPath = rdfModelUriPrefix + BASE_PATH;
         if (iri.startsWith(apiPath)) {
             URI relativeUri = URI.create(iri.substring(apiPath.length()));
             List<String> pathParams = Splitter.on('/').omitEmptyStrings().trimResults().splitToList(relativeUri.getPath());
@@ -178,113 +170,6 @@ public class RdfRestController {
         else {
             return ModelUtils.readModel(iri, sourceFormat);
         }
-    }
-
-    protected Map<String, String> webvowlSessions = Maps.newConcurrentMap();
-    @GetMapping(value = "/webvowl/serverTimeStamp", produces = {"text/plain", "application/text"})
-    @ResponseBody
-    public String getServerTimestamp() {
-        String sessionId = String.valueOf(System.currentTimeMillis());
-        webvowlSessions.put(sessionId, String.format("* Initializing session #%s", sessionId));
-        return sessionId;
-    }
-
-    @GetMapping(value = "/webvowl/convert", produces = {
-            RdfMediaType.APPLICATION_JSON_VALUE,
-            RdfMediaType.APPLICATION_X_JAVASCRIPT_VALUE,
-            RdfMediaType.APPLICATION_WEBVOWL_VALUE
-    })
-    public ResponseEntity<String> convertRdfIriToVowl(@RequestParam(name = "iri") String iri,
-                                                      @RequestParam(name = "sessionId") String sessionId) {
-        if (StringUtils.isBlank(iri)) {
-            throw new IllegalArgumentException("Invalid IRI: " + iri);
-        }
-
-        try {
-            // Read from IRI
-            RdfFormat sourceFormat = RdfFormat.RDF;
-            webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Analyzing %s model...", sourceFormat.toJenaFormat()));
-            Model model = getModelFromIri(iri, sourceFormat.name());
-
-            // Convert to WebVOWL
-            RdfFormat targetFormat = RdfFormat.VOWL;
-            log.info(String.format("Converting model {%s} to %s...", iri, targetFormat.toJenaFormat()));
-            webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Converting model to %s...", targetFormat.toJenaFormat()));
-            String content = ModelUtils.modelToString(model, targetFormat);
-
-            return ResponseEntity.ok()
-                    .contentType(targetFormat.mineType())
-                    .body(content);
-        }
-        catch(Exception e) {
-            Throwable rootCause = getJenaExceptionCauseOrSelf(e);
-            webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* ERROR: %s", rootCause.getMessage()));
-            throw e;
-        }
-    }
-
-    @PostMapping(value = "/webvowl/convert",
-            produces = {
-                RdfMediaType.APPLICATION_JSON_VALUE,
-                RdfMediaType.APPLICATION_X_JAVASCRIPT_VALUE,
-                RdfMediaType.APPLICATION_WEBVOWL_VALUE
-        })
-    public ResponseEntity<String> convertRdfFileToVowl(@RequestParam(name = "ontology") MultipartFile file,
-                                                      @RequestParam(name = "sessionId") String sessionId) {
-
-        String contentType = file.getContentType() != null ? file.getContentType() : RdfFormat.RDF.mineType().toString();
-        RdfFormat sourceFormat = RdfFormat.fromContentType(contentType);
-
-        log.info(String.format("Reading %s model from uploaded file {%s} ...", file.getOriginalFilename(), sourceFormat.toJenaFormat()));
-        webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Analyzing %s model...", sourceFormat.toJenaFormat()));
-
-        try (InputStream is = new ByteArrayInputStream(file.getBytes());) {
-
-            Model model = ModelUtils.readModel(is, sourceFormat);
-            is.close();
-
-            // Convert to WebVOWL
-            RdfFormat targetFormat = RdfFormat.VOWL;
-            log.info(String.format("Converting model into {%s}...", targetFormat.toJenaFormat()));
-            webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Converting model to %s...", targetFormat.toJenaFormat()));
-            String content = ModelUtils.modelToString(model, targetFormat);
-
-            return ResponseEntity.ok()
-                    .contentType(targetFormat.mineType())
-                    .body(content);
-        }
-        catch(IOException e) {
-            Throwable rootCause = getJenaExceptionCauseOrSelf(e);
-            webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* ERROR: %s", rootCause.getMessage()));
-            throw new SumarisTechnicalException(e);
-        }
-        catch(Exception e) {
-            Throwable rootCause = getJenaExceptionCauseOrSelf(e);
-            webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* ERROR: %s", rootCause.getMessage()));
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                    .contentType(RdfMediaType.APPLICATION_JSON)
-                    .body(String.format("{\"error\": \"%s\"}", rootCause.getMessage()));
-        }
-    }
-
-
-    @GetMapping(value = "/webvowl/loadingStatus", produces = {"text/plain", "application/text"})
-    public ResponseEntity<String> getLoadingStatus(@RequestParam(name = "sessionId", required = false) String sessionId) {
-
-        if (StringUtils.isNotBlank(sessionId)) {
-            return ResponseEntity.ok().body(webvowlSessions.get(sessionId));
-        }
-        else {
-            return ResponseEntity.badRequest().body("Invalid session");
-        }
-    }
-
-
-    @GetMapping(value = "/webvowl/conversionDone", produces = {"text/plain", "application/text"})
-    @ResponseBody
-    public String getVowlConversionDone(@RequestParam(defaultValue = "sessionId") String sessionId) {
-        String message = webvowlSessions.remove(sessionId);
-        return message + " * Conversion succeed";
     }
 
     /* -- protected methods -- */
@@ -359,23 +244,4 @@ public class RdfRestController {
         return result;
     }
 
-    protected JenaException getJenaExceptionCause(Throwable e) {
-        if (e instanceof JenaException) {
-            return (JenaException) e;
-        }
-
-        Throwable cause = e.getCause();
-        if (cause != null) {
-            // Loop
-            return getJenaExceptionCause(cause);
-        }
-
-        return null;
-    }
-
-    protected Throwable getJenaExceptionCauseOrSelf(Throwable e) {
-        JenaException jeanCause = getJenaExceptionCause(e);
-        if (jeanCause != null) return jeanCause;
-        return e;
-    }
 }

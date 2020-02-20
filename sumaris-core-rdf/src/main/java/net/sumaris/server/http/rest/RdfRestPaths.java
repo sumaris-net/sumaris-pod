@@ -26,12 +26,6 @@ public interface RdfRestPaths {
 
     String SPARQL_PATH = "/sparql";
 
-    // Base path
-    String BASE_PATH = "/ontology";
-    String ONTOLOGY = BASE_PATH + "/{type:(schema|data|entities))}/";
-    String ONTOLOGY_BY_CLASS = ONTOLOGY + "{class:.*}/";
-    String ONTOLOGY_BY_OBJECT = ONTOLOGY_BY_CLASS + "{id:.*}";
 
-    String CONVERT = BASE_PATH + "/convert";
 
 }

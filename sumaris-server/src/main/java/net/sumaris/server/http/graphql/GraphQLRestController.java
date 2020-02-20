@@ -54,7 +54,7 @@ public class GraphQLRestController {
                                  ObjectMapper objectMapper) {
         this.graphQL = GraphQL.newGraphQL(schema).build();
         this.objectMapper = objectMapper;
-        log.info(String.format("Starting GraphQL rest controller at {%s}...", GraphQLPaths.BASE_PATH));
+        log.info(String.format("Starting GraphQL endpoint {%s}...", GraphQLPaths.BASE_PATH));
     }
 
 

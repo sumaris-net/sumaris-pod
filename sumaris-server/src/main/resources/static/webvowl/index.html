@@ -26,8 +26,6 @@
 <body>
     <main>
 
-
-
         <section id="canvasArea">
             <div id="browserCheck" class="hidden">
                 WebVOWL does not work properly in Internet Explorer and Microsoft Edge.
@@ -131,12 +129,15 @@
 
                 <!--Ontology Menu-->
                 <ul id="m_select" class="toolTipMenu noselect">
-                    <li><a href="#owl" id="http://www.w3.org/2002/07/owl">OWL</a></li>
+                    <li><a href="#rdf" id="rdf">RDF: RDF Core</a></li>
+                    <li><a href="#rdfs" id="rdfs">RDFS: RDF Schema</a></li>
+                    <li><a href="#owl" id="owl">OWL 2</a></li>
+                    <li><a href="#skos" id="skos">SKOS</a></li>
+                    <li><a href="#foaf" id="foaf">FOAF: Friend of a Friend</a></li>
 
-                    <li><a href="#taxon" id="taxon">Taxon vocabulary</a></li>
-                    <li><a href="#gear" id="gear">Gear vocabulary</a></li>
+                    <li><a href="#taxon" id="taxon">SUMARiS: Taxon</a></li>
+                    <li><a href="#gear" id="gear">SUMARiS: Gear</a></li>
 
-<!--                    <li><a href="#foaf" id="foaf">Friend of a Friend (FOAF) vocabulary</a></li>-->
 <!--                    <li><a href="#goodrelations" id="goodrelations">GoodRelations Vocabulary for E-Commerce</a></li>-->
 <!--                    <li><a href="#muto" id="muto">Modular and Unified Tagging Ontology (MUTO)</a></li>-->
 <!--                    <li><a href="#ontovibe" id="ontovibe">Ontology Visualization Benchmark (OntoViBe)</a></li>-->
@@ -536,9 +537,15 @@
 
         window.addEventListener("load", () => {
 
-            $('#logo').html(''); // Clean logo
+            // Clean logo
+            $('#logo').html('');
 
-            $('#menuElementContainer').prepend('<li id="c_home" class="inner-addon left-addon"><a draggable="false" href="#" onclick="goHome()"><i><img class="menuElementSvgElement" src="/api/favicon" alt=""></i>&nbsp;<span class="menu-title"></span></a></li>');
+            // Add link to API Home, in the menu
+            $('#menuElementContainer')
+                .prepend('<li id="c_home" class="inner-addon left-addon">'
+                    +'<a draggable="false" href="#" onclick="goHome()"><i><img class="menuElementSvgElement" src="/api/favicon" alt=""></i>'
+                    +'&nbsp;<span class="menu-title"></span>'
+                    +'</a></li>');
             menu.loadTitle('.menu-title');
 
             webvowl.app().initialize();
