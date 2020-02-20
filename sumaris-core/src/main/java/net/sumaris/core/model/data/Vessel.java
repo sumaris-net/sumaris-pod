@@ -49,7 +49,7 @@ public class Vessel implements IRootDataEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_SEQ")
-    @SequenceGenerator(name = "VESSEL_SEQ", sequenceName="VESSEL_SEQ")
+    @SequenceGenerator(name = "VESSEL_SEQ", sequenceName="VESSEL_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

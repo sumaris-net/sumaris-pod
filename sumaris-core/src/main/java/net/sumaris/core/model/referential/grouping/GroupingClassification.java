@@ -39,7 +39,7 @@ public class GroupingClassification implements IItemReferentialEntity  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GROUPING_CLASSIFICATION_SEQ")
-    @SequenceGenerator(name = "GROUPING_CLASSIFICATION_SEQ", sequenceName="GROUPING_CLASSIFICATION_SEQ")
+    @SequenceGenerator(name = "GROUPING_CLASSIFICATION_SEQ", sequenceName="GROUPING_CLASSIFICATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

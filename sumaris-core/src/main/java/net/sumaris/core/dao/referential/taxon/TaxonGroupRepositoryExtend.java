@@ -56,4 +56,5 @@ public interface TaxonGroupRepositoryExtend {
 
     List<ReferentialVO> getAllPreservingByTaxonGroupId(int taxonGroupId, Date startDate, Date endDate, int locationId);
 
+    List<Integer> getAllIdByReferenceTaxonId(int referenceTaxonId, Date startDate, Date endDate);
 }

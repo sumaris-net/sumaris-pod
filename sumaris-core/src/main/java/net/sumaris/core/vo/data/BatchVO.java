@@ -45,6 +45,7 @@ public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
     @EqualsAndHashCode.Exclude
     private Integer id;
     private String comments;
+    @EqualsAndHashCode.Exclude
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;
@@ -69,24 +70,16 @@ public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
     private BatchVO parent;
     private Integer parentId;
 
-    @EqualsAndHashCode.Exclude
     private List<BatchVO> children;
 
-    @EqualsAndHashCode.Exclude
-    private List<MeasurementVO> sortingMeasurements;
-    @EqualsAndHashCode.Exclude
-    private List<MeasurementVO> quantificationMeasurements;
-
-    private Map<Integer, String> measurementValues;
-
-
-    @EqualsAndHashCode.Exclude
-    private Map<Integer, String> sortingMeasurementValues;     // TODO: remove (not used anymore - now using measurementValues)
-    @EqualsAndHashCode.Exclude
-    private Map<Integer, String> quantificationMeasurementValues;     // TODO: remove (not used anymore - now using measurementValues)
-
+    private Map<Integer, String> measurementValues; // = sorting_measurement_b or quantification_measurement_b
+    private List<MeasurementVO> sortingMeasurements; // = sorting_measurement_b (from a list)
+    private List<MeasurementVO> quantificationMeasurements; // = quantification_measurement_b (from a list)
 
     public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+        return new StringBuilder().append("BatchVO(")
+                .append("id=").append(id)
+                .append(",label=").append(label)
+                .append(")").toString();
     }
 }

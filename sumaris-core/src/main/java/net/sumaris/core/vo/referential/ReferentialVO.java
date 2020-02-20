@@ -30,8 +30,9 @@ import java.util.Date;
 
 @Data
 @FieldNameConstants
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ReferentialVO implements IReferentialVO {
+    @EqualsAndHashCode.Include
     private Integer id;
     private String label;
     private String name;
@@ -41,12 +42,13 @@ public class ReferentialVO implements IReferentialVO {
     private Date creationDate;
 
     private Integer statusId;
+    private Integer validityStatusId;
 
-    @EqualsAndHashCode.Exclude
+    //@EqualsAndHashCode.Exclude
     private Integer levelId;
 
     // Metadata
-    @EqualsAndHashCode.Exclude
+    //@EqualsAndHashCode.Exclude
     private String entityName;
 }
 

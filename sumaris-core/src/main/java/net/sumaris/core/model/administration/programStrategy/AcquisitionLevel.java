@@ -40,7 +40,7 @@ public class AcquisitionLevel implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "ACQUISITION_LEVEL_SEQ")
-    @SequenceGenerator(name = "ACQUISITION_LEVEL_SEQ", sequenceName="ACQUISITION_LEVEL_SEQ")
+    @SequenceGenerator(name = "ACQUISITION_LEVEL_SEQ", sequenceName="ACQUISITION_LEVEL_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

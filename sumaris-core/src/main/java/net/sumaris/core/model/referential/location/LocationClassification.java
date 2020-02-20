@@ -40,7 +40,7 @@ public class LocationClassification implements Serializable, IItemReferentialEnt
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_CLASSIFICATION_SEQ")
-    @SequenceGenerator(name = "LOCATION_CLASSIFICATION_SEQ", sequenceName="LOCATION_CLASSIFICATION_SEQ")
+    @SequenceGenerator(name = "LOCATION_CLASSIFICATION_SEQ", sequenceName="LOCATION_CLASSIFICATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

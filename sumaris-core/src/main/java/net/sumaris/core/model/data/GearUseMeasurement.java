@@ -40,7 +40,7 @@ public class GearUseMeasurement implements IMeasurementEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEAR_USE_MEASUREMENT_SEQ")
-    @SequenceGenerator(name = "GEAR_USE_MEASUREMENT_SEQ", sequenceName="GEAR_USE_MEASUREMENT_SEQ")
+    @SequenceGenerator(name = "GEAR_USE_MEASUREMENT_SEQ", sequenceName="GEAR_USE_MEASUREMENT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "update_date")

@@ -43,6 +43,17 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_group2taxon_hierarchy")
+@NamedQueries({
+        @NamedQuery(name = "TaxonGroup2TaxonHierarchy.taxonGroupIdByReferenceTaxonId", query =
+                "SELECT\n" +
+                "  DISTINCT h.id.parentTaxonGroup.id\n" +
+                "FROM TaxonGroup2TaxonHierarchy h\n" +
+                "WHERE h.id.childReferenceTaxon.id = :referenceTaxonId\n" +
+                "  AND NOT(\n" +
+                "    h.startDate > :endDate\n" +
+                "    OR coalesce(h.endDate, :startDate) < :startDate\n" +
+                "  )")
+})
 public class TaxonGroup2TaxonHierarchy implements Serializable {
 
     @Id

@@ -40,7 +40,7 @@ public class ObservedLocationMeasurement implements IMeasurementEntity, ISortedM
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OBSERVED_LOCATION_MEASURME_SEQ")
-    @SequenceGenerator(name = "OBSERVED_LOCATION_MEASURME_SEQ", sequenceName="OBSERVED_LOCATION_MEASURME_SEQ")
+    @SequenceGenerator(name = "OBSERVED_LOCATION_MEASURME_SEQ", sequenceName="OBSERVED_LOCATION_MEASURME_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "update_date")

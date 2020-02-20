@@ -44,18 +44,17 @@
         </preConditions>
         <createSequence sequenceName="SALE_MEASUREMENT_SEQ"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-13-1">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-13-1" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
                 <sequenceExists sequenceName="PROGRAM_SEQ"/>
             </not>
         </preConditions>
         <createSequence sequenceName="PROGRAM_SEQ"/>
-        <sql>
-            select NEXT VALUE FOR PROGRAM_SEQ from PROGRAM
-        </sql>
-        <sql>
-            select NEXT VALUE FOR PROGRAM_SEQ from STATUS where ID=1
+        <sql endDelimiter=";">
+            select NEXT VALUE FOR PROGRAM_SEQ from PROGRAM;
+            select NEXT VALUE FOR PROGRAM_SEQ from STATUS where ID=1;
+            commit;
         </sql>
     </changeSet>
 

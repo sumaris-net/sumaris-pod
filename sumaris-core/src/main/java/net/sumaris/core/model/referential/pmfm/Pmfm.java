@@ -43,7 +43,7 @@ public class Pmfm implements IReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")
-    @SequenceGenerator(name = "PMFM_SEQ", sequenceName="PMFM_SEQ")
+    @SequenceGenerator(name = "PMFM_SEQ", sequenceName="PMFM_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

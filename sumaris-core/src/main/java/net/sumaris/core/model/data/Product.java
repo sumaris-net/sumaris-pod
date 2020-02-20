@@ -46,7 +46,7 @@ public class Product implements IRootDataEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PRODUCT_SEQ")
-    @SequenceGenerator(name = "PRODUCT_SEQ", sequenceName="PRODUCT_SEQ")
+    @SequenceGenerator(name = "PRODUCT_SEQ", sequenceName="PRODUCT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(length = 40, nullable = false)

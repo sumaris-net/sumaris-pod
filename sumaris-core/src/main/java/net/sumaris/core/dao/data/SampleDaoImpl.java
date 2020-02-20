@@ -22,15 +22,14 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
-import net.sumaris.core.model.data.Batch;
-import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.Sample;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.Matrix;
 import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
@@ -43,7 +42,9 @@ import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SampleVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +58,9 @@ import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,8 +68,8 @@ import java.util.stream.Stream;
 public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
     /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(SampleDaoImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(SampleDaoImpl.class);
+    private static final boolean trace = logger.isTraceEnabled();
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -77,11 +80,17 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
     @Autowired
     private PersonDao personDao;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private int unitIdNone;
+
+    private boolean enableSaveUsingHash;
 
     @PostConstruct
     protected void init() {
         this.unitIdNone = config.getUnitIdNone();
+        this.enableSaveUsingHash = config.enableSampleHashOptimization();
     }
 
     @Override
@@ -123,7 +132,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         query.orderBy(cb.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
 
         return toSampleVOs(getEntityManager().createQuery(query)
-                .setParameter(idParam, landingId).getResultList(), false);
+                .setParameter(idParam, landingId).getResultStream(), false);
     }
 
 
@@ -136,74 +145,59 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
     @Override
     public List<SampleVO> saveByOperationId(int operationId, List<SampleVO> sources) {
 
+        long debugTime = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        if (debugTime != 0L) logger.debug(String.format("Saving operation {id:%s} samples... {hash_optimization:%s}", operationId, enableSaveUsingHash));
+
         // Load parent entity
         Operation parent = get(Operation.class, operationId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getTrip().getProgram().getId());
 
-        // Remember existing entities
-        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getSamples()));
-
-        // Save each entities
-        List<SampleVO> result = sources.stream().map(source -> {
+        sources.forEach(source -> {
             source.setOperationId(operationId);
             source.setProgram(parentProgram);
-            if (source.getId() != null) {
-                sourcesIdsToRemove.remove(source.getId());
-            }
-            return save(source);
-        }).collect(Collectors.toList());
-
-        // Remove unused entities
-        if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
-            sourcesIdsToRemove.forEach(this::delete);
-        }
-
-        // Remove parent (use only parentId)
-        result.stream().forEach(sample -> {
-            if (sample.getParent() != null) {
-                sample.setParentId(sample.getParent().getId());
-                sample.setParent(null);
-            }
         });
 
-        return result;
+        // Save all, by parent
+        boolean dirty = saveAllByParent(parent, sources);
+
+        if (dirty) {
+            entityManager.flush();
+            entityManager.clear();
+        }
+
+        if (debugTime != 0L) logger.debug(String.format("Saving operation {id:%s} samples [OK] in %s ms", operationId, System.currentTimeMillis() - debugTime));
+
+        return sources;
     }
 
     @Override
     public List<SampleVO> saveByLandingId(int landingId, List<SampleVO> sources) {
+        long debugTime = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
+        if (debugTime != 0L) logger.debug(String.format("Saving landing {id:%s} samples... {hash_optimization:%s}", landingId, enableSaveUsingHash));
+
         // Load parent entity
         Landing parent = get(Landing.class, landingId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 
-        // Remember existing entities
-        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getSamples()));
-
         // Save each entities
-        List<SampleVO> result = sources.stream().map(source -> {
+        sources.forEach(source -> {
             source.setLandingId(landingId);
             source.setProgram(parentProgram);
-            if (source.getId() != null) {
-                sourcesIdsToRemove.remove(source.getId());
-            }
-            return save(source);
-        }).collect(Collectors.toList());
-
-        // Remove unused entities
-        if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
-            sourcesIdsToRemove.forEach(this::delete);
-        }
-
-        // Remove parent (use only parentId)
-        result.stream().forEach(sample -> {
-            if (sample.getParent() != null) {
-                sample.setParentId(sample.getParent().getId());
-                sample.setParent(null);
-            }
         });
 
-        return result;
+        // Save all, by parent
+        boolean dirty = saveAllByParent(parent, sources);
+
+        if (dirty) {
+            entityManager.flush();
+            entityManager.clear();
+        }
+
+        if (debugTime != 0L) logger.debug(String.format("Saving landing {id:%s} samples [OK] in %s ms", landingId, System.currentTimeMillis() - debugTime));
+
+        return sources;
     }
 
     @Override
@@ -222,7 +216,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
         if (!isNew) {
             // Check update date
-            // TODO: check why SUMARiS app did not refresh sample's updateDate after a first save
+            // FIXME: Client app: update entity from the save() result
             //checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
@@ -233,7 +227,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         copySomeFieldsFromParent(source);
 
         // VO -> Entity
-        sampleVOToEntity(source, entity, true);
+        sampleVOToEntity(source, entity, true, false);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -249,7 +243,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
             source.setId(entity.getId());
         } else {
             if (entity.getCreationDate() == null) {
-                log.warn("Recording a sample without creation date. Should never occur! Sample ID=" + entity.getId());
+                logger.warn(String.format("Updating a sample {id: %s, label: '%s'} without creation_date!", entity.getId(), entity.getLabel()));
                 entity.setCreationDate(newUpdateDate);
                 source.setCreationDate(newUpdateDate);
             }
@@ -271,8 +265,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
     @Override
     public void delete(int id) {
-
-        log.debug(String.format("Deleting sample {id=%s}...", id));
+        if (trace) logger.trace(String.format("Deleting sample {id: %s}...", id));
         delete(Sample.class, id);
     }
 
@@ -283,6 +276,121 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
 
     /* -- protected methods -- */
+
+    protected boolean saveAllByParent(IWithSamplesEntity<Integer, Sample> parent,
+                                             List<SampleVO> sources) {
+
+        // Load existing entities
+        final Map<Integer, Sample> sourcesIdsToProcess = Beans.splitById(Beans.getList(parent.getSamples()));
+        final Set<Integer> sourcesIdsToSkip = enableSaveUsingHash ? Sets.newHashSet() : null;
+
+        // Save each samples
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        boolean dirty = sources.stream().map(source -> {
+            Sample target = null;
+            if (source.getId() != null) {
+                target = sourcesIdsToProcess.remove(source.getId());
+            }
+            // Check if batch save can be skipped
+            boolean skip = source.getId() != null && (enableSaveUsingHash && sourcesIdsToSkip.contains(source.getId()));
+            if (!skip) {
+                source = optimizedSave(source, target, false, newUpdateDate, enableSaveUsingHash);
+                skip = !Objects.equals(source.getUpdateDate(), newUpdateDate);
+
+                // If not changed, add children to the skip list
+                if (skip) {
+                    getAllChildren(source).forEach(b -> sourcesIdsToSkip.add(b.getId()));
+                }
+            }
+            if (skip && trace) {
+                logger.trace(String.format("Skip sample {id: %s, label: '%s'}", source.getId(), source.getLabel()));
+            }
+            return !skip;
+        })
+                // Count updates
+                .filter(Boolean::booleanValue)
+                .count() > 0;
+
+        // Remove unused entities
+        if (MapUtils.isNotEmpty(sourcesIdsToProcess)) {
+            sourcesIdsToProcess.values().forEach(this::delete);
+            dirty = true;
+        }
+
+        // Remove parent (use only parentId)
+        sources.forEach(sample -> {
+            if (sample.getParent() != null) {
+                sample.setParentId(sample.getParent().getId());
+                sample.setParent(null);
+            }
+        });
+
+        return dirty;
+    }
+
+    protected SampleVO optimizedSave(SampleVO source,
+                                     Sample entity,
+                                     boolean checkUpdateDate,
+                                     Timestamp newUpdateDate,
+                                     boolean enableHashOptimization) {
+        Preconditions.checkNotNull(source);
+
+        EntityManager entityManager = getEntityManager();
+        if (entity == null && source.getId() != null) {
+            entity = get(Sample.class, source.getId());
+        }
+        boolean isNew = (entity == null);
+        if (isNew) {
+            entity = new Sample();
+        }
+
+        if (!isNew && checkUpdateDate) {
+            // Check update date
+            checkUpdateDateForUpdate(source, entity);
+
+            // Lock entityName
+            //lockForUpdate(entity);
+        }
+
+        // Copy some fields from the trip
+        copySomeFieldsFromParent(source);
+
+        // VO -> Entity
+        boolean skipSave = sampleVOToEntity(source, entity, true, !isNew && enableHashOptimization);
+
+        // Stop here (without change on the update_date)
+        if (skipSave) return source;
+
+        // Update update_dt
+        entity.setUpdateDate(newUpdateDate);
+        source.setUpdateDate(newUpdateDate);
+
+        // Save entity
+        if (isNew) {
+            // Set creation date
+            entity.setCreationDate(newUpdateDate);
+            source.setCreationDate(newUpdateDate);
+
+            // Add the new sample
+            entityManager.persist(entity);
+            source.setId(entity.getId());
+            if (trace) logger.trace(String.format("Adding sample {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
+        } else {
+
+            // Workaround, to be sure to have a creation_date
+            if (entity.getCreationDate() == null) {
+                logger.warn(String.format("Updating a sample {id: %s, label: '%s'} without creation_date!", entity.getId(), entity.getLabel()));
+                entity.setCreationDate(newUpdateDate);
+                source.setCreationDate(newUpdateDate);
+            }
+
+            // Update existing sample
+            if (trace) logger.trace(String.format("Updating sample {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
+            entityManager.merge(entity);
+        }
+
+        return source;
+    }
 
     protected SampleVO toSampleVO(Sample source, boolean allFields) {
 
@@ -309,7 +417,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
         // Taxon name (from reference)
         if (source.getReferenceTaxon() != null) {
-            ReferentialVO taxonName = taxonNameDao.getTaxonNameReferent(source.getReferenceTaxon().getId());
+            TaxonNameVO taxonName = taxonNameDao.getTaxonNameReferent(source.getReferenceTaxon().getId());
             target.setTaxonName(taxonName);
         }
 
@@ -322,9 +430,25 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         if (source.getOperation() != null) {
             target.setOperationId(source.getOperation().getId());
         }
+
+        // Landing
+        if (source.getLanding() != null) {
+            target.setLandingId(source.getLanding().getId());
+        }
+
+        // TODO: Add link to Sale
+        //if (source.getSale() != null) {
+        //    target.setSaleId(source.getSale().getId());
+        //}
+
         // Batch
         if (source.getBatch() != null) {
             target.setBatchId(source.getBatch().getId());
+        }
+
+        // Quality Flag
+        if (source.getQualityFlag() != null) {
+            target.setQualityFlagId(source.getQualityFlag().getId());
         }
 
         // If full export
@@ -366,9 +490,78 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
                 .collect(Collectors.toList());
     }
 
-    protected void sampleVOToEntity(SampleVO source, Sample target, boolean copyIfNull) {
+    protected boolean sampleVOToEntity(SampleVO source, Sample target, boolean copyIfNull, boolean allowSkipSameHash) {
 
+        // Get some parent ids
+        Integer parentId = source.getParent() != null ? source.getParent().getId() : source.getParentId();
+        Integer opeId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
+        Integer landingId = source.getLandingId() != null ? source.getLandingId() : (source.getLanding() != null ? source.getLanding().getId() : null);
+        Integer matrixId = source.getMatrixId() != null ? source.getMatrixId() : (source.getMatrix() != null ? source.getMatrix().getId() : null);
+        Integer batchId = source.getBatchId() != null ? source.getBatchId() : (source.getBatch() != null ? source.getBatch().getId() : null);
+
+        // Parent sample
+        if (copyIfNull || (parentId != null)) {
+
+            // Check if parent changed
+            Sample previousParent = target.getParent();
+            if (previousParent != null && !Objects.equals(parentId, previousParent.getId()) && CollectionUtils.isNotEmpty(previousParent.getChildren())) {
+                // Remove in the parent children list (to avoid a DELETE CASCADE if the parent is delete later - fix #15)
+                previousParent.getChildren().remove(target);
+            }
+
+            if (parentId == null) {
+                target.setParent(null);
+            }
+            else {
+                Sample parent = load(Sample.class, parentId);
+                target.setParent(parent);
+
+                // Not need to update the children collection, because mapped by the 'parent' property
+                //if (!parent.getChildren().contains(target)) {
+                //    parent.getChildren().add(target);
+                //}
+
+                // Force operation from parent's operation
+                opeId = parent.getOperation().getId();
+            }
+        }
+
+        // /!\ IMPORTANT: update source's parentId, operationId and landingId, BEFORE calling hashCode()
+        source.setParentId(parentId);
+        source.setOperationId(opeId);
+        source.setLandingId(landingId);
+        source.setMatrixId(matrixId);
+        source.setBatchId(batchId);
+        Integer newHash = source.hashCode();
+
+        // If same hash, then skip (if allow)
+        if (allowSkipSameHash && Objects.equals(target.getHash(), newHash)) {
+            return true; // Skip
+        }
+
+        // Copy properties, and data stuff (program, qualityFlag, recorder, ...)
         copyRootDataProperties(source, target, copyIfNull);
+
+        // Hash
+        target.setHash(newHash);
+
+        // Operation
+        if (copyIfNull || (opeId != null)) {
+            if (opeId == null) {
+                target.setOperation(null);
+            } else {
+                target.setOperation(load(Operation.class, opeId));
+            }
+        }
+
+        // Landing
+        if (copyIfNull || (landingId != null)) {
+            if (landingId == null) {
+                target.setLanding(null);
+            } else {
+                target.setLanding(load(Landing.class, landingId));
+            }
+        }
 
         // Matrix
         if (copyIfNull || source.getMatrix() != null) {
@@ -414,44 +607,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
             }
         }
 
-        Integer parentId = source.getParent() != null ? source.getParent().getId() : source.getParentId();
-        Integer opeId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
-        Integer landingId = source.getLandingId() != null ? source.getLandingId() : (source.getLanding() != null ? source.getLanding().getId() : null);
-
-        // Parent sample
-        if (copyIfNull || (parentId != null)) {
-            if (parentId == null) {
-                target.setParent(null);
-            }
-            else {
-                Sample parent = load(Sample.class, parentId);
-                target.setParent(parent);
-
-                // Force operation from parent's operation
-                opeId = parent.getOperation().getId();
-            }
-        }
-
-        // Operation
-        if (copyIfNull || (opeId != null)) {
-            if (opeId == null) {
-                target.setOperation(null);
-            } else {
-                target.setOperation(load(Operation.class, opeId));
-            }
-        }
-
-        // Landing
-        if (copyIfNull || (landingId != null)) {
-            if (landingId == null) {
-                target.setLanding(null);
-            } else {
-                target.setLanding(load(Landing.class, landingId));
-            }
-        }
-
         // Batch
-        Integer batchId = source.getBatchId() != null ? source.getBatchId() : (source.getBatch() != null ? source.getBatch().getId() : null);
         if (copyIfNull || (batchId != null)) {
             if (batchId == null) {
                 target.setBatch(null);
@@ -460,5 +616,14 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
                 target.setBatch(load(Batch.class, batchId));
             }
         }
+
+        return false;
+    }
+
+    protected Stream<SampleVO> getAllChildren(SampleVO source) {
+        if (CollectionUtils.isEmpty(source.getChildren())) {
+            return Stream.empty();
+        }
+        return source.getChildren().stream().flatMap(c -> Stream.concat(Stream.of(c), getAllChildren(c)));
     }
 }

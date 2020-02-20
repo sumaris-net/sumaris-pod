@@ -472,8 +472,19 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "sumaris.persistence.preserve.historicalMeasurements",
             n("sumaris.config.option.persistence.preserve.historicalMeasurements.description"),
             Boolean.FALSE.toString(),
-            Boolean.class)
+            Boolean.class),
 
+    ENABLE_BATCH_HASH_OPTIMIZATION(
+            "sumaris.persistence.batch.hashOptimization",
+            n("sumaris.config.option.persistence.batch.hashOptimization.description"),
+            Boolean.FALSE.toString(),
+            Boolean.class),
+
+    ENABLE_SAMPLE_HASH_OPTIMIZATION(
+            "sumaris.persistence.sample.hashOptimization",
+            n("sumaris.config.option.persistence.sample.hashOptimization.description"),
+            Boolean.FALSE.toString(),
+            Boolean.class)
     ;
 
     /** Configuration key. */

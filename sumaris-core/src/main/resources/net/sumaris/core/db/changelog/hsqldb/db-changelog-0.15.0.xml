@@ -331,32 +331,41 @@
     <addNotNullConstraint columnDataType="int" columnName="hash" tableName="batch"/>
   </changeSet>
 
-    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-35">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-35" runOnChange="true">
       <preConditions onFail="MARK_RAN">
           <not>
               <sequenceExists sequenceName="METIER_SEQ"/>
           </not>
       </preConditions>
       <createSequence sequenceName="METIER_SEQ"/>
-      <sql>select NEXT VALUE FOR METIER_SEQ from METIER</sql>
+      <sql endDelimiter=";">
+        select NEXT VALUE FOR METIER_SEQ from METIER;
+        commit;
+      </sql>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-36">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-36" runOnChange="true">
       <preConditions onFail="MARK_RAN">
           <not>
               <sequenceExists sequenceName="TAXON_GROUP_SEQ"/>
           </not>
       </preConditions>
       <createSequence sequenceName="TAXON_GROUP_SEQ"/>
-      <sql>select NEXT VALUE FOR TAXON_GROUP_SEQ from TAXON_GROUP</sql>
+      <sql endDelimiter=";">
+        select NEXT VALUE FOR TAXON_GROUP_SEQ from TAXON_GROUP;
+        commit;
+      </sql>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-37">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-37" runOnChange="true">
       <preConditions onFail="MARK_RAN">
           <not>
               <sequenceExists sequenceName="GEAR_SEQ"/>
           </not>
       </preConditions>
       <createSequence sequenceName="GEAR_SEQ"/>
-      <sql>select NEXT VALUE FOR GEAR_SEQ from GEAR</sql>
+      <sql endDelimiter=";">
+        select NEXT VALUE FOR GEAR_SEQ from GEAR;
+        commit;
+      </sql>
     </changeSet>
 
   <!-- update SYSTEM_VERSION -->

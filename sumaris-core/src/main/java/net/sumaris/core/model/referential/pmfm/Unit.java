@@ -39,7 +39,7 @@ public class Unit implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "UNIT_SEQ")
-    @SequenceGenerator(name = "UNIT_SEQ", sequenceName="UNIT_SEQ")
+    @SequenceGenerator(name = "UNIT_SEQ", sequenceName="UNIT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

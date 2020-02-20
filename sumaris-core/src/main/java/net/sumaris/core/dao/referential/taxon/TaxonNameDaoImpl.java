@@ -67,6 +67,7 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
         boolean withSynonyms = filter.getWithSynonyms() != null ? filter.getWithSynonyms() : false;
 
         // Taxon group
+        ParameterExpression<Integer> taxonGroupIdParam = builder.parameter(Integer.class);
         ParameterExpression<Collection> taxonGroupIdsParam = builder.parameter(Collection.class);
 
         // Where clause visitor
@@ -78,11 +79,19 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
             }
 
             Expression<Boolean> taxonGroupClause = null;
-            if (ArrayUtils.isNotEmpty(filter.getTaxonGroupIds())) {
+            if (filter.getTaxonGroupId() != null) {
+                Join<TaxonName, ReferenceTaxon> rt = root.join(TaxonName.Fields.REFERENCE_TAXON, JoinType.INNER);
+                ListJoin<ReferenceTaxon, TaxonGroup2TaxonHierarchy> tgh = rt.joinList(ReferenceTaxon.Fields.PARENT_TAXON_GROUPS, JoinType.INNER);
+                taxonGroupClause = builder.equal(tgh.get(TaxonGroup2TaxonHierarchy.Fields.PARENT_TAXON_GROUP).get(TaxonGroup.Fields.ID), taxonGroupIdParam);
+            }
+            else if (ArrayUtils.isNotEmpty(filter.getTaxonGroupIds())) {
                 Join<TaxonName, ReferenceTaxon> rt = root.join(TaxonName.Fields.REFERENCE_TAXON, JoinType.INNER);
                 ListJoin<ReferenceTaxon, TaxonGroup2TaxonHierarchy> tgh = rt.joinList(ReferenceTaxon.Fields.PARENT_TAXON_GROUPS, JoinType.INNER);
                 taxonGroupClause = builder.in(tgh.get(TaxonGroup2TaxonHierarchy.Fields.PARENT_TAXON_GROUP).get(TaxonGroup.Fields.ID))
                         .value(taxonGroupIdsParam);
+            }
+
+            if (taxonGroupClause != null) {
                 whereClause = whereClause == null ?  taxonGroupClause : builder.and(whereClause, taxonGroupClause);
             }
 
@@ -100,7 +109,10 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
         TypedQuery<TaxonName> typedQuery = referentialDao.createFindQuery(TaxonName.class, referentialFilter,
                 sortAttribute, sortDirection, queryVisitor);
 
-        if (ArrayUtils.isNotEmpty(filter.getTaxonGroupIds())) {
+        if (filter.getTaxonGroupId() != null) {
+            typedQuery.setParameter(taxonGroupIdParam,  filter.getTaxonGroupId());
+        }
+        else if (ArrayUtils.isNotEmpty(filter.getTaxonGroupIds())) {
             typedQuery.setParameter(taxonGroupIdsParam,  ImmutableList.copyOf(filter.getTaxonGroupIds()));
         }
 

@@ -39,7 +39,7 @@ public class FileStatus implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_STATUS_SEQ")
-    @SequenceGenerator(name = "FILE_STATUS_SEQ", sequenceName="FILE_STATUS_SEQ")
+    @SequenceGenerator(name = "FILE_STATUS_SEQ", sequenceName="FILE_STATUS_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(nullable = false, length = LENGTH_LABEL)

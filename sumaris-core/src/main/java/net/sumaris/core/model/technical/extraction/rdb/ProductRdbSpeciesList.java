@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
+import net.sumaris.core.model.referential.IReferentialEntity;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -59,7 +60,7 @@ public class ProductRdbSpeciesList implements Serializable, IEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "p01_rdb_species_list_seq")
-    @SequenceGenerator(name = "p01_rdb_species_list_seq", sequenceName="p01_rdb_species_list_seq")
+    @SequenceGenerator(name = "p01_rdb_species_list_seq", sequenceName="p01_rdb_species_list_seq", allocationSize = 1)
     private Integer id;
 
     @Column(nullable = false, length = 2, name = COLUMN_SAMPLING_TYPE)

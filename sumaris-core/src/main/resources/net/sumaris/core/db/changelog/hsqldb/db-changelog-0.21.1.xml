@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.21.1.xml">
+
+  <!-- Referential sequences (increment by 1) -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-1" runOnChange="true">
+    <sql endDelimiter=";"><![CDATA[
+    ALTER SEQUENCE ACQUISITION_LEVEL_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE APPLIED_STRATEGY_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE DEPARTMENT_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE EXTRACTION_PRODUCT_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE EXTRACTION_PRODUCT_STRATA_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE EXTRACTION_PRODUCT_TABLE_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE FILE_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE FILE_STATUS_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE FRACTION_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE GEAR_CLASSIFICATION_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE GEAR_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE GROUPING_CLASSIFICATION_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE GROUPING_LEVEL_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE GROUPING_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE LOCATION_CLASSIFICATION_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE LOCATION_LEVEL_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE LOCATION_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE MATRIX_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE METHOD_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE METIER_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE OBJECT_TYPE_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE PARAMETER_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE PERSON_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE PMFM_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE PMFM_STRATEGY_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE PROCESSING_HISTORY_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE PROCESSING_STATUS_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE PROCESSING_TYPE_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE PROGRAM_PRIVILEGE_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE PROGRAM_PROPERTY_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE PROGRAM_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE QUALITATIVE_VALUE_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE QUALITY_FLAG_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE REFERENCE_TAXON_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE ROUND_WEIGHT_CONVERSION_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE SALE_TYPE_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE SOFTWARE_PROPERTY_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE SOFTWARE_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE STATUS_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE STRATEGY_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE TAXONOMIC_LEVEL_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE TAXON_GROUP_HISTORICAL_REC_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE TAXON_GROUP_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE TAXON_GROUP_TYPE_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE TAXON_NAME_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE TRANSCRIBING_ITEM_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE TRANSCRIBING_ITEM_TYPE_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE TRANSCRIBING_SYSTEM_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE UNIT_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE USER_PROFILE_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE USER_SETTINGS_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE USER_TOKEN_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE VALIDITY_STATUS_SEQ INCREMENT BY 1;
+    ALTER SEQUENCE VESSEL_TYPE_SEQ INCREMENT BY 1;
+  ]]></sql></changeSet>
+
+  <!-- Sequence on data (increment by 50) -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-2" runOnChange="true">
+    <sql endDelimiter=";"><![CDATA[
+    ALTER SEQUENCE BATCH_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE EXTRACTION_PRODUCT_COLUMN_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE EXTRACTION_PRODUCT_VALUE_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE FILE_LINE_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE GEAR_USE_MEASUREMENT_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE GROUPING_ITEM_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE IMAGE_ATTACHMENT_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE LANDING_MEASUREMENT_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE LANDING_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE OBSERVED_LOCATION_MEASURME_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE OBSERVED_LOCATION_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE OPERATION_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE PHYSICAL_GEAR_MEASUREMENT_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE PHYSICAL_GEAR_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE PRODUCT_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE QUANTIF_MEASUREMENT_B_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE QUANTIF_MEASUREMENT_P_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE SALE_MEASUREMENT_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE SALE_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE SAMPLE_MEASUREMENT_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE SAMPLE_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE SORTING_MEASUREMENT_B_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE SORTING_MEASUREMENT_P_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE SYSTEM_VERSION_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE TRIP_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE USER_EVENT_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE VESSEL_FEATURES_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE VESSEL_OWNER_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE VESSEL_PHYSICAL_MEASUREMEN_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE VESSEL_POSITION_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE VESSEL_REGISTRATION_PERIOD_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE VESSEL_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE VESSEL_USE_MEASUREMENT_SEQ INCREMENT BY 50;
+  ]]></sql></changeSet>
+
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-3" runOnChange="true">
+    <preConditions onFail="HALT">
+      <sequenceExists sequenceName="USER_TOKEN_SEQ"/>
+    </preConditions>
+    <sql endDelimiter="//"><![CDATA[
+      DROP FUNCTION GENERATE_IDS IF EXISTS;
+      //
+      CREATE FUNCTION GENERATE_IDS(p_max INT) RETURNS TABLE(r_id INT)
+      SPECIFIC GENERATE_IDS_ROUTINE
+      READS SQL DATA
+      SIGNAL SQLSTATE '45000';
+      //
+      ALTER SPECIFIC ROUTINE GENERATE_IDS_ROUTINE
+      BEGIN ATOMIC
+        DECLARE TABLE L_TEMP_TABLE (id INT);
+        DECLARE L_ID INT;
+        SET L_ID = 1;
+        while (L_ID <= p_max) DO
+          INSERT INTO L_TEMP_TABLE VALUES L_ID;
+          SET L_ID = L_ID + 1;
+        end while;
+        RETURN TABLE(SELECT * FROM L_TEMP_TABLE);
+      END;
+      //
+      SELECT NEXT VALUE FOR USER_TOKEN_SEQ from TABLE(GENERATE_IDS(
+        (select max(ID) from USER_TOKEN)
+      ));
+      //
+    ]]></sql>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-4" >
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="sample" columnName="hash"/></not>
+    </preConditions>
+    <addColumn tableName="sample">
+      <column name="hash" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-5" >
+    <preConditions onFail="MARK_RAN">
+      <not><sqlCheck expectedResult="0">SELECT count(*) FROM sample where hash is null</sqlCheck></not>
+    </preConditions>
+    <sql>UPDATE sample SET hash=id WHERE hash IS NULL</sql>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-6" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count(*) FROM sample WHERE hash IS NULL</sqlCheck>
+    </preConditions>
+    <addNotNullConstraint columnDataType="int" columnName="hash" tableName="sample"/>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='0.21.1'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">0.21.1</column>
+      <column name="DESCRIPTION">
+        - Force sequences allocation size;
+        - Alter sequence USER_TOKEN_SEQ to the max(USER_TOKEN.ID);
+        - Add column SAMPLE.HASH to optimize save;
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

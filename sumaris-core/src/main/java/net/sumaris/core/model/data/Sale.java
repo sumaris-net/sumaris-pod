@@ -48,7 +48,7 @@ public class Sale implements IRootDataEntity<Integer>,
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SALE_SEQ")
-    @SequenceGenerator(name = "SALE_SEQ", sequenceName = "SALE_SEQ")
+    @SequenceGenerator(name = "SALE_SEQ", sequenceName = "SALE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

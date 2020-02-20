@@ -23,6 +23,7 @@ package net.sumaris.core.vo.administration.programStrategy;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.referential.IReferentialVO;
 
@@ -32,8 +33,10 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
 public class ProgramVO implements IReferentialVO {
 
+    @EqualsAndHashCode.Include
     private Integer id;
     private String label;
     private String name;

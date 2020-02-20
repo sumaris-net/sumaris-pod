@@ -25,6 +25,7 @@ package net.sumaris.core.model.referential.grouping;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.IWithValidityStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.ValidityStatus;
 
@@ -47,11 +48,12 @@ import java.util.Date;
 @Entity
 @Table(name = "grouping",
         uniqueConstraints = @UniqueConstraint(name="grouping_unique_c", columnNames = {"label", "grouping_level_fk"}))
-public class Grouping implements IItemReferentialEntity  {
+public class Grouping implements IItemReferentialEntity,
+        IWithValidityStatusEntity<Integer, ValidityStatus> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GROUPING_SEQ")
-    @SequenceGenerator(name = "GROUPING_SEQ", sequenceName="GROUPING_SEQ")
+    @SequenceGenerator(name = "GROUPING_SEQ", sequenceName="GROUPING_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

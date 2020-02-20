@@ -36,7 +36,7 @@ public class SaleType implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "SALE_TYPE_SEQ")
-    @SequenceGenerator(name = "SALE_TYPE_SEQ", sequenceName="SALE_TYPE_SEQ")
+    @SequenceGenerator(name = "SALE_TYPE_SEQ", sequenceName="SALE_TYPE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

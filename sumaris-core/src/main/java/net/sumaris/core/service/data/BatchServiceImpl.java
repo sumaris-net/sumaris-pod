@@ -74,7 +74,7 @@ public class BatchServiceImpl implements BatchService {
 		List<BatchVO> result = batchDao.saveByOperationId(operationId, sources);
 
 		// Save measurements
-		result.stream().forEach(savedBatch -> {
+		result.forEach(savedBatch -> {
 			// If only one maps: distinguish each item
 			if (savedBatch.getMeasurementValues() != null) {
 
@@ -82,10 +82,15 @@ public class BatchServiceImpl implements BatchService {
 				Map<Integer, String> sortingMeasurements = Maps.newLinkedHashMap();
 				savedBatch.getMeasurementValues().forEach((pmfmId, value) -> {
 					if (pmfmService.isWeightPmfm(pmfmId)) {
-						quantificationMeasurements.put(pmfmId, value);
+						quantificationMeasurements.putIfAbsent(pmfmId, value);
 					}
 					else {
-						sortingMeasurements.put(pmfmId, value);
+						if (sortingMeasurements.containsKey(pmfmId)) {
+							log.warn(String.format("Duplicate measurement width {pmfmId: %s} on batch {id: %s}", pmfmId, savedBatch.getId()));
+						}
+						else {
+							sortingMeasurements.putIfAbsent(pmfmId, value);
+						}
 					}
 				});
 				measurementDao.saveBatchSortingMeasurementsMap(savedBatch.getId(), sortingMeasurements);
@@ -93,9 +98,7 @@ public class BatchServiceImpl implements BatchService {
 			}
 			else {
 				// Sorting measurement
-				if (savedBatch.getSortingMeasurements() != null) {
-					measurementDao.saveBatchSortingMeasurementsMap(savedBatch.getId(), savedBatch.getSortingMeasurementValues());
-				} else {
+				{
 					List<MeasurementVO> measurements = Beans.getList(savedBatch.getSortingMeasurements());
 					measurements.forEach(m -> fillDefaultProperties(savedBatch, m, BatchSortingMeasurement.class));
 					measurements = measurementDao.saveBatchSortingMeasurements(savedBatch.getId(), measurements);
@@ -103,9 +106,7 @@ public class BatchServiceImpl implements BatchService {
 				}
 
 				// Quantification measurement
-				if (savedBatch.getQuantificationMeasurements() != null) {
-					measurementDao.saveBatchQuantificationMeasurementsMap(savedBatch.getId(), savedBatch.getQuantificationMeasurementValues());
-				} else {
+				{
 					List<MeasurementVO> measurements = Beans.getList(savedBatch.getQuantificationMeasurements());
 					measurements.forEach(m -> fillDefaultProperties(savedBatch, m, BatchQuantificationMeasurement.class));
 					measurements = measurementDao.saveBatchQuantificationMeasurements(savedBatch.getId(), measurements);

@@ -40,7 +40,7 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SORTING_MEASUREMENT_B_SEQ")
-    @SequenceGenerator(name = "SORTING_MEASUREMENT_B_SEQ", sequenceName="SORTING_MEASUREMENT_B_SEQ")
+    @SequenceGenerator(name = "SORTING_MEASUREMENT_B_SEQ", sequenceName="SORTING_MEASUREMENT_B_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "update_date")
@@ -95,4 +95,12 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Batch.class)
     @JoinColumn(name = "batch_fk")
     private Batch batch;
+
+    public String toString() {
+        return String.format("BatchSortingMeasurement{id:%s, batch:{id:%s}, pmfm:{id:%s, label:%s}}}",
+                id,
+                batch != null ? batch.getId() : null,
+                pmfm != null ? pmfm.getId() : null,
+                pmfm != null ? pmfm.getLabel() : null);
+    }
 }

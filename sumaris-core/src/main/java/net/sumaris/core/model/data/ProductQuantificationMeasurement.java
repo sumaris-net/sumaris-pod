@@ -40,7 +40,7 @@ public class ProductQuantificationMeasurement implements IMeasurementEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "QUANTIF_MEASUREMENT_P_SEQ")
-    @SequenceGenerator(name = "QUANTIF_MEASUREMENT_P_SEQ", sequenceName="QUANTIF_MEASUREMENT_P_SEQ")
+    @SequenceGenerator(name = "QUANTIF_MEASUREMENT_P_SEQ", sequenceName="QUANTIF_MEASUREMENT_P_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "update_date")

@@ -26,15 +26,9 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.gear.GearClassification;
-import net.sumaris.core.model.referential.taxon.TaxonGroupType;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Objects;
 
 @Data
 @FieldNameConstants
@@ -45,7 +39,7 @@ public class ProgramPrivilege implements IItemReferentialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_PRIVILEGE_SEQ")
-    @SequenceGenerator(name = "PROGRAM_PRIVILEGE_SEQ", sequenceName="PROGRAM_PRIVILEGE_SEQ")
+    @SequenceGenerator(name = "PROGRAM_PRIVILEGE_SEQ", sequenceName="PROGRAM_PRIVILEGE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

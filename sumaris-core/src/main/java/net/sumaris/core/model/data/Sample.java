@@ -47,7 +47,7 @@ public class Sample implements IRootDataEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLE_SEQ")
-    @SequenceGenerator(name = "SAMPLE_SEQ", sequenceName="SAMPLE_SEQ")
+    @SequenceGenerator(name = "SAMPLE_SEQ", sequenceName="SAMPLE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(length = 40, nullable = false)
@@ -83,6 +83,9 @@ public class Sample implements IRootDataEntity<Integer> {
 
     @Column(length = LENGTH_COMMENTS)
     private String comments;
+
+    @Column(name = "hash")
+    private Integer hash;
 
     /* -- Quality insurance -- */
 

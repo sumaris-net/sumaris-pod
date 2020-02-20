@@ -145,7 +145,7 @@ public class DataTestUtils {
             catchBatch.setComments("Catch batch on OPE #1");
 
             // Measurements (as map)
-            catchBatch.setSortingMeasurementValues(
+            catchBatch.setMeasurementValues(
                     ImmutableMap.<Integer, String>builder()
                             .put(60, "155")
                             .put(80, "185")
@@ -163,7 +163,7 @@ public class DataTestUtils {
                 batch.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAOId(0)));
 
                 // Measurements (as map)
-                batch.setSortingMeasurementValues(
+                batch.setMeasurementValues(
                         ImmutableMap.<Integer, String>builder()
                                 .put(60, "155") // TODO: change this
                                 .put(80, "185")

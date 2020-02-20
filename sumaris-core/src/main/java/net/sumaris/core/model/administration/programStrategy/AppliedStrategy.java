@@ -25,6 +25,7 @@ package net.sumaris.core.model.administration.programStrategy;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.location.Location;
 import org.hibernate.annotations.Cascade;
 
@@ -40,7 +41,7 @@ public class AppliedStrategy implements IEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "APPLIED_STRATEGY_SEQ")
-    @SequenceGenerator(name = "APPLIED_STRATEGY_SEQ", sequenceName="APPLIED_STRATEGY_SEQ")
+    @SequenceGenerator(name = "APPLIED_STRATEGY_SEQ", sequenceName="APPLIED_STRATEGY_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

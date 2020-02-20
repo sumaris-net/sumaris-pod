@@ -23,12 +23,14 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonNameVO;
 
 import java.util.Date;
 import java.util.List;
@@ -36,12 +38,15 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
-public class SampleVO implements  IRootDataVO<Integer>,
+@EqualsAndHashCode
+public class SampleVO implements
+        IRootDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
-
+    @EqualsAndHashCode.Exclude
     private Integer id;
     private String comments;
     private Date creationDate;
+    @EqualsAndHashCode.Exclude
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;
@@ -52,29 +57,41 @@ public class SampleVO implements  IRootDataVO<Integer>,
     private PersonVO recorderPerson;
 
     private ProgramVO program;
+
     private String label;
     private Date sampleDate;
     private Integer rankOrder;
     private Integer individualCount;
     private Double size;
     private String sizeUnit;
-    private ReferentialVO matrix;
-    private ReferentialVO taxonGroup;
-    private ReferentialVO taxonName;
 
+    @EqualsAndHashCode.Exclude
+    private ReferentialVO matrix;
+    private Integer matrixId;
+
+    private ReferentialVO taxonGroup;
+    private TaxonNameVO taxonName;
+
+    @EqualsAndHashCode.Exclude
     private SampleVO parent;
     private Integer parentId;
+
     private List<SampleVO> children;
 
+    @EqualsAndHashCode.Exclude
     private BatchVO batch;
     private Integer batchId;
+
+    @EqualsAndHashCode.Exclude
     private OperationVO operation;
     private Integer operationId;
+
+    @EqualsAndHashCode.Exclude
     private LandingVO landing;
     private Integer landingId;
 
-    private List<MeasurementVO> measurements; // sample_measurement
-    private Map<Integer, String> measurementValues; // sample_measurement
+    private Map<Integer, String> measurementValues; // = sample_measurement  (from a map)
+    private List<MeasurementVO> measurements; // = sample_measurement (from a list)
 
     public String toString() {
         return new StringBuilder().append("SampleVO(")

@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.util.Date;
 import java.util.List;
 
 @Service("taxonGroupService")
@@ -95,5 +96,10 @@ public class TaxonGroupServiceImpl implements TaxonGroupService, DatabaseSchemaL
                                            String sortAttribute,
                                            SortDirection sortDirection) {
         return taxonGroupRepository.findTargetSpeciesByFilter(filter, offset, size, sortAttribute, sortDirection);
+    }
+
+    @Override
+    public List<Integer> getAllIdByReferenceTaxonId(int referenceTaxonId, Date startDate, Date endDate) {
+        return taxonGroupRepository.getAllIdByReferenceTaxonId(referenceTaxonId, startDate, endDate);
     }
 }
