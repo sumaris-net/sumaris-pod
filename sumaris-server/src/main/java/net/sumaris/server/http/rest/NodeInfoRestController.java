@@ -47,7 +47,9 @@ public class NodeInfoRestController {
 
     @ResponseBody
     @RequestMapping(value = RestPaths.NODE_INFO_PATH, method = RequestMethod.GET,
-            produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+            produces = {
+                MediaType.APPLICATION_JSON_UTF8_VALUE
+        })
     public NodeSummaryVO getNodeSummary() {
         NodeSummaryVO result = new NodeSummaryVO();
 

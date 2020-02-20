@@ -55,7 +55,7 @@ public abstract class Owl2Bean {
         this.modelPrefix = modelPrefix;
     }
 
-    protected String getModelPrefix() {
+    protected String getModelUriPrefix() {
         return modelPrefix;
     }
 
@@ -195,7 +195,7 @@ public abstract class Owl2Bean {
                     .forEach(stmt -> {
                         String pred = stmt.getPredicate().getURI();
                         RDFNode val = stmt.getObject();
-                        if ((pred.startsWith(getModelPrefix()) || pred.startsWith(OwlUtils.ADAGIO_PREFIX)) && pred.contains("#")) {
+                        if ((pred.startsWith(getModelUriPrefix()) || pred.startsWith(OwlUtils.ADAGIO_PREFIX)) && pred.contains("#")) {
                             String fName = attributeOf(pred);
                             try {
 

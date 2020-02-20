@@ -161,6 +161,14 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
+     * <p>getUploadDirectory</p>
+     * @return a {@link File} object.
+     */
+    public File getUploadDirectory() {
+        return applicationConfig.getOptionAsFile(SumarisServerConfigurationOption.UPLOAD_DIRECTORY.getKey());
+    }
+
+    /**
      * <p>getServerAddress.</p>
      *
      * @return a {@link String} object.
@@ -325,14 +333,15 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         // Download directory
         FileUtils.forceMkdir(getDownloadDirectory());
 
+        // Upload directory
+        FileUtils.forceMkdir(getUploadDirectory());
+
         // temp directory
         File tempDirectory = getTempDirectory();
         if (tempDirectory.exists()) {
             // clean temp files
             FileUtils.cleanDirectory(tempDirectory);
         }
-
-
     }
 
     /**

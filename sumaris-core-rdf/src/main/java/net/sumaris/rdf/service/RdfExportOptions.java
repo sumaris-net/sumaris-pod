@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.rdf.model.ModelDomain;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -35,15 +36,15 @@ import java.util.List;
 @Builder
 @FieldNameConstants
 @EqualsAndHashCode
-@ToString(onlyExplicitlyIncluded = false)
+@ToString
 public class RdfExportOptions {
 
-    private String domain;
-    private String classname;
+    private ModelDomain domain;
+    private String className;
     private String id;
 
-    private boolean withMethods = false;
     private boolean withDisjoints = false;
+    private boolean withSchema = true;
     private boolean withInterfaces = false;
 
     private Class<? extends Annotation> annotatedType;

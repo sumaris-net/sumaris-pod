@@ -51,17 +51,16 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.app.name.description"),
             "SUMARiS",
             String.class),
-
     VERSION(
             "sumaris.version",
-            n("sumaris.config.option.persistence.version.description"),
+            n("sumaris.config.option.app.version.description"),
             "1.0.0",
             Version.class),
 
     BASEDIR(
             "sumaris.basedir",
             n("sumaris.config.option.basedir.description"),
-            "${user.home}/.${sumaris.name}",
+            "${user.home}/.${app.name}",
             File.class),
 
     DATA_DIRECTORY(

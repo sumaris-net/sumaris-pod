@@ -20,25 +20,15 @@
  * #L%
  */
 
-package net.sumaris.rdf.dao;
+package net.sumaris.rdf.model;
 
-import net.sumaris.rdf.model.ModelDomain;
+public enum ModelDomain {
+    REFERENTIAL,
 
-import javax.annotation.Nullable;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
+    DATA,
 
-public interface RdfModelDao {
-
-    <T> T getById(ModelDomain domain, String className, Class<T> aClass, Serializable id);
-
-    <T> Stream<T> streamAll(ModelDomain domain, String className, Class<T> aClass);
-
-    Set<String> getClassNamesByDomain(ModelDomain domain);
-
-    ModelDomain getDomainByClassName(String className);
-
-    Set<String> getClassNamesByRootClass(@Nullable ModelDomain domain, String className);
+    // TODO: unused
+    SOCIAL,
+    TECHNICAL,
+    VO
 }

@@ -23,6 +23,7 @@
 package net.sumaris.rdf.service;
 
 import net.sumaris.rdf.dao.DatabaseResource;
+import net.sumaris.rdf.model.ModelDomain;
 import org.apache.jena.ontology.OntModel;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -55,7 +56,7 @@ public class SynchroServiceTest extends AbstractServiceTest{
     public void testSynchro() {
         String ontologyUrl = dbResource.getFixtures().getRemoteOntologyUrl();
         String ontologyIri = dbResource.getFixtures().getRemoteOntologyIri();
-        OntModel mappedModel = service.importFromRemote(ontologyUrl, ontologyIri, "referential", "net.sumaris.core.model.referential");
+        OntModel mappedModel = service.importFromRemote(ontologyUrl, ontologyIri, ModelDomain.REFERENTIAL, "net.sumaris.core.model.referential");
         Assert.assertNotNull(mappedModel);
     }
 }

@@ -113,6 +113,12 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             "${sumaris.data.directory}/download",
             File.class),
 
+    UPLOAD_DIRECTORY(
+            "sumaris.upload.directory",
+            n("sumaris.config.option.upload.directory.description"),
+            "${sumaris.data.directory}/uploads",
+            File.class),
+
     ACTIVEMQ_ENABLE(
             "spring.activemq.pool.enabled",
             n("sumaris.config.option.spring.activemq.pool.enabled.description"),
@@ -128,7 +134,7 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     SITE_FAVICON(
             "sumaris.favicon",
             n("sumaris.config.option.favicon.description"),
-            "${sumaris.site.url}/favicon.ico",
+            "${sumaris.site.url}/api/favicon",
             Integer.class,
             false),
 
