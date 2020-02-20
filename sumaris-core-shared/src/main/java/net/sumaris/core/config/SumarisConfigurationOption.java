@@ -60,7 +60,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     BASEDIR(
             "sumaris.basedir",
             n("sumaris.config.option.basedir.description"),
-            "${user.home}/.${app.name}",
+            "${user.home}/.${sumaris.name}",
             File.class),
 
     DATA_DIRECTORY(
@@ -485,6 +485,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.persistence.sample.hashOptimization.description"),
             Boolean.FALSE.toString(),
             Boolean.class)
+
     ;
 
     /** Configuration key. */
