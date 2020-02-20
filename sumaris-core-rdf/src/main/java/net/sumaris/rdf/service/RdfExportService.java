@@ -33,13 +33,10 @@ import javax.annotation.Nullable;
 @Transactional(readOnly = true)
 public interface RdfExportService {
 
-    OntModel createOntModel(String uri);
+    String getModelSchemaUri();
 
-    @Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#domain + #options.hashCode()", condition = " #options != null", unless = "#result == null")
-    OntModel getOntModelWithClasses(String domain, @Nullable RdfExportOptions options);
+    @Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#options.hashCode()", condition = " #options != null", unless = "#result == null")
+    OntModel getOntologyModel(@Nullable RdfExportOptions options);
 
-    //@Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#modelSuffix + #options.hashCode()", unless = "#result == null || #options == null")
-    //OntModel getOntologyByDomainAndClass(String modelSuffix, String className, @Nullable RdfModelExportOptions options);
-
-    Model getOntModelWithInstances(String domain, RdfExportOptions options);
+    Model getDataModel(@Nullable RdfExportOptions options);
 }

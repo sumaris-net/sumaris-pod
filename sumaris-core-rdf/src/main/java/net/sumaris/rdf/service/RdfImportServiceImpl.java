@@ -29,7 +29,9 @@ import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.util.Dates;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.RdfModelDao;
+import net.sumaris.rdf.model.ModelDomain;
 import net.sumaris.rdf.model.ModelEntities;
+import net.sumaris.rdf.model.ModelType;
 import net.sumaris.rdf.util.Bean2Owl;
 import net.sumaris.rdf.util.Owl2Bean;
 import net.sumaris.rdf.util.OwlUtils;
@@ -61,7 +63,7 @@ import java.util.List;
 import java.util.function.Function;
 
 
-@Service("rdfSynchroService")
+@Service("rdfImportService")
 @ConditionalOnBean({RdfConfiguration.class})
 public class RdfImportServiceImpl {
 
@@ -90,9 +92,9 @@ public class RdfImportServiceImpl {
     @PostConstruct
     protected void afterPropertiesSet() {
 
-        beanConverter = new Bean2Owl(config.getModelPrefix());
+        beanConverter = new Bean2Owl(config.getModelUriPrefix());
 
-        owlConverter = new Owl2Bean(this.entityManager, config.getModelPrefix()) {
+        owlConverter = new Owl2Bean(this.entityManager, config.getModelUriPrefix()) {
             @Override
             protected List getCacheStatus() {
                 return RdfImportServiceImpl.this.getCacheStatus();
@@ -122,15 +124,16 @@ public class RdfImportServiceImpl {
     }
 
     @Transactional
-    public OntModel importFromRemote(String remoteUrl, String remoteOntUri,
-                                     String domain,
+    public OntModel importFromRemote(String remoteUrl,
+                                     String remoteOntUri,
+                                     ModelDomain domain,
                                      String baseTargetPackage) {
 
         // Reading remote model
         OntModel sourceModel = getRemoteModel(remoteUrl);
 
         // Recomposed object, from the remote model
-        RdfImportContext context = createImportContext(domain, baseTargetPackage);
+        RdfImportContext context = createImportContext(domain.name().toLowerCase(), baseTargetPackage);
 
         long start = System.currentTimeMillis();
         List<? extends Object> recomposed = objectsFromOnt(sourceModel, context);
@@ -140,13 +143,15 @@ public class RdfImportServiceImpl {
         }
         log.info(String.format("Mapped ont to list of %s objects, Making it OntClass again %s", recomposed.size(), Dates.elapsedTime(start)));
 
-        OntModel targetModel = exportService.getOntModelWithClasses(domain, RdfExportOptions.builder()
+        OntModel targetModel = exportService.getOntologyModel(RdfExportOptions.builder()
+                .domain(domain)
                 .withInterfaces(true)
                 .build());
+        String modelUri = exportService.getModelSchemaUri();
 
-        recomposed.forEach(r -> beanConverter.bean2Owl(targetModel, r, 2, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes));
+        recomposed.forEach(r -> beanConverter.bean2Owl(targetModel, modelUri, r, 2, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes));
 
-        float successPct = Math.round((targetModel.size() / sourceModel.size()) * 10000) / 100;
+        float successPct = Math.round((targetModel.size() / sourceModel.size()) * 10000) / 100f;
         log.info(String.format("Recomposed list of %s objects from %s triples. %s - %s%%", recomposed.size(), targetModel.size(), Dates.elapsedTime(start), successPct));
 
         if (sourceModel.size() == targetModel.size()) {

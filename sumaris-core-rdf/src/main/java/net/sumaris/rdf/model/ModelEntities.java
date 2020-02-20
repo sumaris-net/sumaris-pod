@@ -28,6 +28,7 @@ import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.rdf.util.OwlUtils;
 
 import java.lang.reflect.Method;
@@ -39,6 +40,8 @@ public class ModelEntities {
             .add(OwlUtils.getterOfField(TaxonName.class, TaxonName.Fields.TAXONOMIC_LEVEL),
                     OwlUtils.getterOfField(TaxonName.class, TaxonName.Fields.REFERENCE_TAXON),
                     OwlUtils.getterOfField(TaxonName.class, TaxonName.Fields.STATUS),
+                    OwlUtils.getterOfField(TaxonomicLevel.class, TaxonomicLevel.Fields.STATUS),
+                    OwlUtils.getterOfField(Gear.class, Gear.Fields.STATUS),
                     OwlUtils.getterOfField(Location.class, Location.Fields.STATUS),
                     OwlUtils.getterOfField(Location.class, Location.Fields.LOCATION_LEVEL),
                     OwlUtils.getterOfField(PmfmStrategy.class, PmfmStrategy.Fields.STRATEGY),

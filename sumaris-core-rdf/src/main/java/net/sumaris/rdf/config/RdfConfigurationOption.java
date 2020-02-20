@@ -32,13 +32,12 @@ import static org.nuiton.i18n.I18n.n;
 
 public enum RdfConfigurationOption implements ConfigOptionDef {
 
-    RDF_ENABLE(
-            "rdf.enable",
-            n("sumaris.config.option.rdf.enable.description"),
+    RDF_ENABLED(
+            "rdf.enabled",
+            n("sumaris.config.option.rdf.enabled.description"),
             "false",
             Boolean.class,
             false),
-
 
     RDF_MODEL_DATE(
             "rdf.model.version",
@@ -47,10 +46,24 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
-    RDF_MODEL_PREFIX(
+    RDF_MODEL_NS(
+            "rdf.model.ns",
+            n("sumaris.config.option.rdf.model.ns.description"),
+            "${sumaris.name}",
+            String.class,
+            false),
+
+    RDF_MODEL_VERSION(
+            "rdf.model.version",
+            n("sumaris.config.option.rdf.model.version.description"),
+            "${sumaris.version}",
+            String.class,
+            false),
+
+    RDF_MODEL_URI_PREFIX(
             "rdf.model.uri",
             n("sumaris.config.option.rdf.model.uri.description"),
-            "${server.url}/ontologies",
+            "${server.url}/ontology/",
             String.class,
             false),
 

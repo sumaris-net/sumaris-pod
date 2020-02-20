@@ -101,10 +101,11 @@ public class Application extends SpringBootServletInitializer {
                         .setViewName("forward:/core/index.html");
 
                 // define path /graphiql
-                registry.addRedirectViewController("/graphiql/", "/graphiql");
-                registry.addRedirectViewController("/api/graphiql", "/graphiql");
-                registry.addRedirectViewController("/api/graphiql/", "/graphiql");
-                registry.addViewController("/graphiql").setViewName(
+                registry.addRedirectViewController("/graphiql", "/api/graphiql");
+                registry.addRedirectViewController("/graphiql/", "/api/graphiql");
+                //registry.addRedirectViewController("/api/graphiql", "/graphiql");
+                //registry.addRedirectViewController("/api/graphiql/", "/graphiql");
+                registry.addViewController("/api/graphiql").setViewName(
                         "forward:/graphiql/index.html");
                 // define path /error
                 registry.addViewController("/error")
@@ -120,9 +121,41 @@ public class Application extends SpringBootServletInitializer {
                         .setViewName("forward:/websocket/index.html");
 
                 // define path to /api/rdf test page
-                registry.addRedirectViewController("/api/rdf/test/", "/api/rdf/test");
-                registry.addViewController("/api/rdf/test")
+                registry.addRedirectViewController("/rdf", "/ontology");
+                registry.addRedirectViewController("/rdf/", "/ontology");
+                //registry.addRedirectViewController("/ontology", "/ontology");
+                registry.addRedirectViewController("/ontology/", "/ontology");
+                registry.addRedirectViewController("/ontology/test", "/ontology");
+                registry.addRedirectViewController("/ontology/test/", "/ontology");
+                registry.addRedirectViewController("/ontologies", "/ontology");
+                registry.addRedirectViewController("/ontologies/", "/ontology");
+                registry.addRedirectViewController("/ontologies/test/", "/ontology");
+                registry.addRedirectViewController("/api/ontology", "/ontology");
+                registry.addRedirectViewController("/api/ontology/", "/ontology");
+                registry.addRedirectViewController("/api/ontology/", "/ontology");
+                registry.addViewController("/ontology")
                         .setViewName("forward:/rdf/index.html");
+
+                // define path /webvowl
+                registry.addRedirectViewController("/webvowl", "/webvowl/");
+                registry.addRedirectViewController("/api/webvowl", "/webvowl/");
+                registry.addRedirectViewController("/api/webvowl/", "/webvowl/");
+                registry.addRedirectViewController("/ontology/webvowl", "/webvowl/");
+                registry.addRedirectViewController("/ontology/webvowl/", "/webvowl/");
+                registry.addViewController("/webvowl/")
+                        .setViewName("forward:/webvowl/index.html");
+                // WebVOWL data files
+                registry.addViewController("/webvowl/data/owl.json").setViewName("forward:/webvowl/convert?iri=http://www.w3.org/2002/07/owl");
+                registry.addViewController("/webvowl/data/taxon.json").setViewName("forward:/ontology/schema/taxon/?format=vowl");
+                registry.addViewController("/webvowl/data/gear.json").setViewName("forward:/ontology/schema/gear/?format=vowl");
+
+                // YasGUI
+                registry.addRedirectViewController("/sparql/ui/", "/sparql/ui");
+                registry.addRedirectViewController("/api/sparql/", "/sparql/ui");
+                registry.addRedirectViewController("/api/sparql/ui/", "/sparql/ui");
+                registry.addViewController("/sparql/ui")
+                        .setViewName("forward:/yasgui/index.html");
+
             }
 
             @Override

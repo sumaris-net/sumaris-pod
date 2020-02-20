@@ -1,0 +1,14 @@
+*, ::after, ::before {
+    box-sizing: unset;
+}
+
+*, ::after, ::before {
+    box-sizing: unset;
+}
+
+.yasgui .autocompleteWrapper {
+    /*display: none !important;*/
+}
+.yasgui .controlbar {
+    min-height: 35px;
+}

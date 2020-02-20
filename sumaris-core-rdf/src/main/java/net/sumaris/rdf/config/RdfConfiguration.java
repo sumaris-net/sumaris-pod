@@ -23,7 +23,6 @@
 package net.sumaris.rdf.config;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
 import net.sumaris.core.config.SumarisConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
@@ -35,7 +34,7 @@ import javax.annotation.Resource;
         prefix = "rdf",
         name = {"enabled"},
         matchIfMissing = true)
-public class RdfConfiguration {
+public class RdfConfiguration  {
 
     @Resource(name = "sumarisConfiguration")
     private SumarisConfiguration config;
@@ -43,20 +42,30 @@ public class RdfConfiguration {
     private String modelPrefix;
 
     public boolean isRdfEnable() {
-        return config.getApplicationConfig().getOptionAsBoolean(RdfConfigurationOption.RDF_ENABLE.getKey());
+        return config.getApplicationConfig().getOptionAsBoolean(RdfConfigurationOption.RDF_ENABLED.getKey());
     }
 
-    public String getModelPrefix() {
+
+    public String getModelUriPrefix() {
         if (this.modelPrefix != null) return this.modelPrefix;
 
         // Init property, if not init yet
-        String modelPrefix = config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_PREFIX.getKey());
-        Preconditions.checkNotNull(modelPrefix, String.format("Missing configuration option {%s}", RdfConfigurationOption.RDF_MODEL_PREFIX.getKey()));
+        String modelPrefix = config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_URI_PREFIX.getKey());
+        Preconditions.checkNotNull(modelPrefix, String.format("Missing configuration option {%s}", RdfConfigurationOption.RDF_MODEL_URI_PREFIX.getKey()));
         if (modelPrefix.lastIndexOf('/') != modelPrefix.length() - 1) {
             modelPrefix += "/";
         }
+
         this.modelPrefix = modelPrefix;
         return modelPrefix;
+    }
+
+    public String getModelNamespace() {
+        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_NS.getKey()).toLowerCase();
+    }
+
+    public String getModelVersion() {
+        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_VERSION.getKey());
     }
 
     public String getModelTitle() {

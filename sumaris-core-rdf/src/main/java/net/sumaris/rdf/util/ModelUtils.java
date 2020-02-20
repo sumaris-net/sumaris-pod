@@ -25,43 +25,48 @@ package net.sumaris.rdf.util;
 import de.uni_stuttgart.vis.vowl.owl2vowl.Owl2Vowl;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.shared.JenaException;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import javax.annotation.Nullable;
+import java.io.*;
 
 public class ModelUtils {
+
+
 
     protected ModelUtils() {
         // Helper class
     }
 
 
-    public static String toJenaOutputFormat(String userFormat) {
+    /**
+     * Convert to Jena format, and use XML/RDF by default
+     * @param userFormat
+     * @return
+     */
+    public static String toJenaFormat(String userFormat) {
         if (StringUtils.isBlank(userFormat)) {
-            return "RDF/XML";
+            return RdfFormat.RDF.toJenaFormat();
         }
-
-        switch(userFormat.toLowerCase()) {
-            case "rdf":
-                return "RDF/XML";
-            case "json":
-                return "RDF/JSON";
-            case "n3":
-                return "N3";
-            case "trig":
-                return "TriG";
-            case "trix":
-                return "TriX";
-            case "jsonld":
-            case "json-ld":
-                return "JSON-LD";
-            case "ttl":
-                return "TURTLE";
-            default:
-                return userFormat.toUpperCase();
+        try {
+            return RdfFormat.fromUserString(userFormat).toJenaFormat();
         }
+        catch(IllegalArgumentException e) {
+            return userFormat.toUpperCase();
+        }
+    }
+    /**
+     * Serialize model in requested format
+     *
+     * @param model  input model
+     * @param format output format if null then output to RDF/XML
+     * @return a string representation of the model
+     */
+    public static String modelToString(Model model, RdfFormat format) {
+        return modelToString(model, format.name());
     }
 
     /**
@@ -71,14 +76,14 @@ public class ModelUtils {
      * @param format output format if null then output to RDF/XML
      * @return a string representation of the model
      */
-    public static String modelToString(Model model, String format) {
+    public static String modelToString(Model model, @Nullable String format) {
 
-        format = toJenaOutputFormat(format);
+        format = toJenaFormat(format);
 
         // Special case for VOWL format
         if ("VOWL".equalsIgnoreCase(format)) {
             try (
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
+                ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
             ) {
                 model.write(bos);
                 bos.flush();
@@ -103,6 +108,99 @@ public class ModelUtils {
             } catch (IOException e) {
                 throw new SumarisTechnicalException("Unable to serialize model to string: " + e.getMessage(), e);
             }
+        }
+    }
+
+    /**
+     * Serialize model in requested format
+     *
+     * @param model  input model
+     * @param format output format if null then output to RDF/XML
+     * @return a string representation of the model
+     */
+    public static void writeModel(Model model, @Nullable String format, OutputStream os) {
+
+        format = toJenaFormat(format);
+
+        // Special case for VOWL format
+        if ("VOWL".equalsIgnoreCase(format)) {
+            try (
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
+            ) {
+                model.write(bos);
+                bos.flush();
+
+                String jsonString = new Owl2Vowl(new ByteArrayInputStream(bos.toByteArray())).getJsonAsString();
+                os.write(jsonString.getBytes("UTF8"));
+            } catch (Exception e) {
+                throw new SumarisTechnicalException("Error when writing model into VOWL", e);
+            }
+        }
+
+        // Other case
+        else {
+            try (final BufferedOutputStream bos = new BufferedOutputStream(os)) {
+                if (format == null) {
+                    model.write(bos);
+                } else {
+                    model.write(bos, format);
+                }
+                bos.flush();
+            } catch (IOException e) {
+                throw new SumarisTechnicalException("Error when writing model to stream: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     *
+     * @param iri The IRI to parse
+     * @param format input format if null then output to RDF/XML
+     * @return a ontology model
+     */
+    public static Model readModel(String iri, RdfFormat format) {
+        try {
+            Model model = ModelFactory.createDefaultModel();
+            model.read(iri, format.toJenaFormat());
+            return model;
+        } catch(JenaException e) {
+            throw new SumarisTechnicalException("Cannot parse model from IRI: " + iri, e);
+        }
+    }
+
+    /**
+     *
+     * @param iri The IRI to parse
+     * @param format input format if null then output to RDF/XML
+     * @return a ontology model
+     */
+    public static Model readModel(String iri, @Nullable  String format) {
+        format = toJenaFormat(format);
+
+        try {
+            Model model = ModelFactory.createDefaultModel();
+            model.read(iri, format);
+            return model;
+        } catch(JenaException e) {
+            throw new SumarisTechnicalException("Cannot parse model from IRI: " + iri, e);
+        }
+    }
+
+    /**
+     *
+     * @param is The Input model
+     * @param format input format if null then output to RDF/XML
+     * @return a ontology model
+     */
+    public static Model readModel(InputStream is, @Nullable  RdfFormat format) {
+        format = format != null ? format : RdfFormat.RDF;
+
+        try {
+            Model model = ModelFactory.createDefaultModel();
+            model.read(is, format.toJenaFormat());
+            return model;
+        } catch(JenaException e) {
+            throw new SumarisTechnicalException("Read model error: " + e.getMessage(), e);
         }
     }
 }

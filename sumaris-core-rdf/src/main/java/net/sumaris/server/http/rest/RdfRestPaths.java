@@ -24,24 +24,14 @@ package net.sumaris.server.http.rest;
 
 public interface RdfRestPaths {
 
-
-    String ONTOLOGY_PATH = "/ontologies/{name}/";
-
-    String ONTOLOGY_CLASS_PATH = "/ontologies/{name}/{class}/";
-
-    String DATA_CLASS_PATH = "/data/{name}/{class}/";
+    String SPARQL_PATH = "/sparql";
 
     // Base path
-    String BASE_PATH = "/api";
+    String BASE_PATH = "/ontology";
+    String ONTOLOGY = BASE_PATH + "/{type:(schema|data|entities))}/";
+    String ONTOLOGY_BY_CLASS = ONTOLOGY + "{class:.*}/";
+    String ONTOLOGY_BY_OBJECT = ONTOLOGY_BY_CLASS + "{id:.*}";
 
-    String RDF_BASE_PATH = BASE_PATH + "/{format}";
-
-    String RDF_TYPE_NAME_PATH = RDF_BASE_PATH + "/{type}/{name}/";
-
-    String RDF_NTRIPLE_PATH = BASE_PATH + "/ntriple/{type}/{name}/";
-
-    String RDF_TYPE_NAME_CLASS_PATH = RDF_BASE_PATH + "/{type}/{name}/{class}/";
-
-    //String NTRIPLE_PATH = RDF_API_BASE_PATH + "/ntriple/{query}/{name}";
+    String CONVERT = BASE_PATH + "/convert";
 
 }

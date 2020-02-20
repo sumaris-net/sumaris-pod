@@ -51,10 +51,9 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.app.name.description"),
             "SUMARiS",
             String.class),
-
     VERSION(
             "sumaris.version",
-            n("sumaris.config.option.persistence.version.description"),
+            n("sumaris.config.option.app.version.description"),
             "1.0.0",
             Version.class),
 
@@ -486,6 +485,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.persistence.sample.hashOptimization.description"),
             Boolean.FALSE.toString(),
             Boolean.class)
+
     ;
 
     /** Configuration key. */

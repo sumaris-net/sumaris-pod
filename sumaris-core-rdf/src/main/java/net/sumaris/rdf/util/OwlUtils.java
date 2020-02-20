@@ -23,6 +23,8 @@
 package net.sumaris.rdf.util;
 
 import com.google.common.collect.ImmutableMap;
+import net.sumaris.rdf.model.ModelType;
+import net.sumaris.rdf.model.ModelURIs;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntProperty;
@@ -49,6 +51,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -132,22 +135,22 @@ public abstract class OwlUtils {
     }
 
 
-    public static String classToURI(Resource ont, Class c) {
-        String uri = ont + c.getSimpleName();
-        if (uri.substring(1).contains("<")) {
-            uri = uri.substring(0, uri.indexOf("<"));
-        }
-//        if (uri.endsWith("<java.lang.Integer, java.util.Date>")) {
-//            uri = uri.replace("<java.lang.Integer, java.util.Date>", "");
-//        }
-
-        if (uri.contains("$")) {
-            log.error("Inner classes not handled " + uri);
-        }
-
-        return uri;
+    public static String classToURI(Resource schema, Class clazz) {
+        return ModelURIs.getClassUri(schema, clazz);
     }
 
+    public static String classToURI(String schemaUri, Class clazz) {
+        return ModelURIs.getClassUri(schemaUri, clazz);
+    }
+
+    public static String beanToURI(Resource schema, Class clazz) {
+        return ModelURIs.getBeanUri(schema, clazz);
+    }
+
+
+    public static String beanToURI(String schemaUri, Class clazz) {
+        return ModelURIs.getBeanUri(schemaUri, clazz);
+    }
 
     public static boolean isJavaType(Type type) {
         return Class2Resources.keySet().stream().anyMatch(type::equals);
