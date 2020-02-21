@@ -68,10 +68,10 @@ function AppYasgui(yasGuiDivId) {
         // default query
         {
             name: "default",
-            prefixes: ['rdf', 'rdfs', 'owl', 'this'],
+            prefixes: ['rdf', 'this'],
             query: "SELECT * WHERE {\n" +
                 "  ?sub ?pred ?obj .\n" +
-                "  ?sub rdf:type <http://server.e-is.pro:8080/ontology/schema/TaxonName> .  \n" +
+                "  ?sub rdf:type this:TaxonName .  \n" +
                 "  filter( ?obj=\"Lophius budegassa\" )\n" +
                 "} LIMIT 10"
         },
@@ -147,7 +147,7 @@ function AppYasgui(yasGuiDivId) {
             endpointsById.THIS = defaultEndpoint
 
             // Compute default URI
-            defaultPrefixUri = window.location.origin + '/ontology/schema/Taxon';
+            defaultPrefixUri = window.location.origin + '/ontology/schema/';
             examplePrefixes[0].prefix = defaultPrefixUri;
         }
 
