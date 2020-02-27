@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>0.22.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -243,9 +243,9 @@
     <site.path>/var/www/doc.e-is.pro/sumaris</site.path>
     <site.repository>scpexe://${site.host}${site.path}</site.repository>
     <release.server>eis-nexus-deploy</release.server>
-    <release.repository>https://nexus.e-is.pro/nexus/content/repositories/sumaris-releases</release.repository>
+    <release.repository>http://nexus.e-is.pro/nexus/content/repositories/sumaris-releases</release.repository>
     <snapshot.server>eis-nexus-deploy</snapshot.server>
-    <snapshot.repository>https://nexus.e-is.pro/nexus/content/repositories/sumaris-snapshots</snapshot.repository>
+    <snapshot.repository>http://nexus.e-is.pro/nexus/content/repositories/sumaris-snapshots</snapshot.repository>
 
     <assembly.skip>false</assembly.skip>
 
