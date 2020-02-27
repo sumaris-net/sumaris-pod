@@ -22,7 +22,6 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import net.sumaris.core.dao.administration.user.PersonDao;
@@ -79,9 +78,6 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
     @Autowired
     private PersonDao personDao;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private int unitIdNone;
 

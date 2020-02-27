@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -40,6 +41,7 @@ import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.VesselType;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselRegistrationVO;
@@ -76,6 +78,9 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
     @Autowired
     private ReferentialDao referentialDao;
+
+    @Autowired
+    private ProgramDao programDao;
 
     @Override
     public VesselVO get(int id) {
@@ -545,7 +550,11 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
         // Default program
         if (copyIfNull && target.getProgram() == null) {
-            target.setProgram(load(Program.class, ProgramEnum.SIH.getId()));
+            String defaultProgramLabel = config.getVesselDefaultProgramLabel();
+            ProgramVO defaultProgram =  StringUtils.isNotBlank(defaultProgramLabel) ? programDao.getByLabel(defaultProgramLabel) : null;
+            if (defaultProgram  != null && defaultProgram.getId() != null) {
+                target.setProgram(load(Program.class, defaultProgram.getId()));
+            }
         }
     }
 

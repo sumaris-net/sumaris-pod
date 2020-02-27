@@ -484,8 +484,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "sumaris.persistence.sample.hashOptimization",
             n("sumaris.config.option.persistence.sample.hashOptimization.description"),
             Boolean.FALSE.toString(),
-            Boolean.class)
+            Boolean.class),
 
+    VESSEL_DEFAULT_PROGRAM_LABEL(
+            "sumaris.persistence.vessel.defaultProgram.label",
+            n("sumaris.config.option.persistence.vessel.defaultProgram.label.description"),
+            "SIH",
+            Boolean.class)
     ;
 
     /** Configuration key. */

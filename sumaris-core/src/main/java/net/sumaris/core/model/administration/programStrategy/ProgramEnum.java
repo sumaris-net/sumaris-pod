@@ -27,7 +27,7 @@ import java.util.Arrays;
 
 public enum ProgramEnum implements Serializable {
 
-    SIH(0);
+    SIH(0); // TODO: allow to override using enumeration file
 
     private int id;
 

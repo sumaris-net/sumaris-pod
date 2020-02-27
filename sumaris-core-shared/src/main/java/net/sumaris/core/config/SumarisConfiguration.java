@@ -774,6 +774,11 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_SAMPLE_HASH_OPTIMIZATION.getKey());
     }
 
+    public String getVesselDefaultProgramLabel() {
+        return applicationConfig.getOption(SumarisConfigurationOption.VESSEL_DEFAULT_PROGRAM_LABEL.getKey());
+    }
+
+
     /* -- protected methods -- */
 
     /**
