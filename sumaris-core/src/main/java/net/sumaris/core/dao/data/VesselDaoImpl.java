@@ -54,6 +54,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.TypedQuery;
@@ -313,20 +314,10 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     public void delete(int id) {
 
         // Get the entity
-        VesselFeatures entity = get(VesselFeatures.class, id);
+        Vessel entity = get(Vessel.class, id);
+        if (entity == null) throw new DataRetrievalFailureException(String.format("Vessel with id %s not exists", id));
 
-        boolean deleteParentVessel = CollectionUtils.size(entity.getVessel().getVesselFeatures()) == 1;
-
-        // Vessel features will be deleted by cascade - see Vessel mapping
-        if (deleteParentVessel) {
-
-            log.debug(String.format("Deleting vessel {id=%s}...", entity.getVessel().getId()));
-            delete(Vessel.class, entity.getVessel().getId());
-        } else {
-
-            log.debug(String.format("Deleting vessel features {id=%s}...", id));
-            delete(VesselFeatures.class, id);
-        }
+        delete(entity);
     }
 
     /* -- protected methods -- */

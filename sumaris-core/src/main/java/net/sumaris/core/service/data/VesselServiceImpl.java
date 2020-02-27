@@ -157,12 +157,16 @@ public class VesselServiceImpl implements VesselService {
 
 	@Override
 	public void delete(int id) {
+
+		// TODO: check if there is data on this vessel, and thro exception
+
 		vesselDao.delete(id);
 	}
 
 	@Override
 	public void delete(List<Integer> ids) {
 		Preconditions.checkNotNull(ids);
+
 		ids.stream()
 				.filter(Objects::nonNull)
 				.forEach(this::delete);
