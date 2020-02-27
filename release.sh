@@ -2,7 +2,7 @@
 
 mkdir -p .local
 
-RELEASE_OPTS="-DskipTests"
+RELEASE_OPTS="-DskipTests -Denv=hsqldb"
 
 # Rollback previous release, if need
 if [[ -f "pom.xml.releaseBackup" ]]; then
@@ -33,7 +33,7 @@ echo "Prepare release [OK]"
 echo "**********************************"
 echo "* Performing release..."
 echo "**********************************"
-mvn release:perform -Darguments="-DskipTests -Denv=hsqldb"
+mvn release:perform -Darguments="${RELEASE_OPTS}"
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
