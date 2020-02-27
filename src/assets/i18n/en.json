@@ -49,12 +49,13 @@
     "DATE_SHORT_PATTERN": "DD/MM/YY",
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
     "DATE_PLACEHOLDER": "dd/mm/yyyy",
+    "DATE_TIME_PLACEHOLDER": "dd/mm/yyyy hh:mm",
 
     "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
     "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",
     "DD_PLACEHOLDER": "+DD.DDD°",
-    "DDDMMSS_PLACEHOLDER": "DD° MM' SS\" E|W",
-    "DDDMM_PLACEHOLDER": "DD° MM.MMM' E|W",
+    "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\" E|W",
+    "DDDMM_PLACEHOLDER": "DDD° MM.MMM' E|W",
     "DDD_PLACEHOLDER": "+DDD.DDD°",
 
     "METADATA": "Metadata:",
@@ -467,6 +468,7 @@
         "SAMPLING_RATIO": "Sampling fraction (%)",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "INDIVIDUAL": {
+          "TITLE_PREFIX": "<small>Batch {{label}}<br/></small>",
           "TITLE": "Individual measures",
           "INDIVIDUAL_COUNT": "Individual count",
           "BURST_FORM_TITLE": "Burst capture:",
