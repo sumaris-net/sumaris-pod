@@ -312,20 +312,20 @@ export class VesselService
             });
 
             // update features history FIXME: marche pas
-            if (options && options.isNewFeatures && this.vesselFeatureService.lastVariables()) {
+            if (options && options.isNewFeatures && this.vesselFeatureService.lastVariables) {
               const lastFeatures = vessels[vessels.length - 1].features;
               this.graphql.addToQueryCache(proxy, {
                 query: LoadFeaturesQuery,
-                variables: this.vesselFeatureService.lastVariables()
+                variables: this.vesselFeatureService.lastVariables
               }, 'vesselFeaturesHistory', lastFeatures);
             }
 
             // update registration history FIXME: marche pas
-            if (options && options.isNewRegistration && this.vesselRegistrationService.lastVariables()) {
+            if (options && options.isNewRegistration && this.vesselRegistrationService.lastVariables) {
               const lastRegistration = vessels[vessels.length - 1].registration;
               this.graphql.addToQueryCache(proxy, {
                 query: LoadRegistrationsQuery,
-                variables: this.vesselRegistrationService.lastVariables()
+                variables: this.vesselRegistrationService.lastVariables
               }, 'vesselRegistrationHistory', lastRegistration);
             }
 
@@ -444,17 +444,30 @@ export class VesselService
     return this.deleteAll([data]);
   }
 
-  deleteAll(vessels: Vessel[]): Promise<any> {
+  async deleteAll(vessels: Vessel[]): Promise<any> {
     const ids = vessels && vessels
       .map(t => t.id)
       .filter(id => (id > 0));
 
     console.debug("[vessel-service] Deleting vessels... ids:", ids);
 
-    return this.graphql.mutate<any>({
+    await this.graphql.mutate<any>({
       mutation: DeleteVessels,
       variables: {
         ids: ids
+      },
+      update: (proxy, {data}) => {
+        // Update the cache
+        if (this._lastVariables.loadAll) {
+          this.graphql.removeToQueryCacheByIds(proxy, {
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'vessels', ids);
+          this.graphql.updateToQueryCache(proxy, {
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'vesselCount', null);
+        }
       }
     });
   }

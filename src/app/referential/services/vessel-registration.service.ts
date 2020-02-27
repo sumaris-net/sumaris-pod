@@ -44,7 +44,7 @@ export class VesselRegistrationService
     super(graphql);
   }
 
-  lastVariables() {
+  get lastVariables() {
     return this._lastVariables;
   }
 

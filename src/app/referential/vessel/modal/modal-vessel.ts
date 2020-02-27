@@ -73,6 +73,8 @@ export class VesselModal implements OnInit, OnDestroy {
     // Avoid multiple call
     if (this.disabled) return;
 
+    await AppFormUtils.waitWhilePending(this.formVessel);
+
     if (this.formVessel.invalid) {
       this.formVessel.markAsTouched({emitEvent: true});
 

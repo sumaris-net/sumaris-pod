@@ -1,29 +1,23 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
-import { ValidatorService, TableElement } from "angular4-material-table";
+import {ValidatorService} from "angular4-material-table";
 import {
-  AppTableDataSource,
   AppTable,
-  AppFormUtils,
-  RESERVED_START_COLUMNS,
-  RESERVED_END_COLUMNS, StatusIds, isNil, environment
+  AppTableDataSource,
+  environment,
+  isNil,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
 } from "../../../core/core.module";
-import { VesselValidatorService } from "../../services/vessel.validator";
-import { VesselService, VesselFilter } from "../../services/vessel-service";
-import { VesselModal } from "../modal/modal-vessel";
-import {
-  Referential,
-  toDateISOString,
-  fromDateISOString,
-  referentialToString,
-  ReferentialRef,
-  Vessel, statusToColor
-} from "../../services/model";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { AccountService } from "../../../core/services/account.service";
-import { Location } from '@angular/common';
-import { Observable } from 'rxjs';
-import { FormGroup, FormBuilder } from "@angular/forms";
+import {VesselValidatorService} from "../../services/vessel.validator";
+import {VesselFilter, VesselService} from "../../services/vessel-service";
+import {VesselModal} from "../modal/modal-vessel";
+import {ReferentialRef, referentialToString, statusToColor, Vessel} from "../../services/model";
+import {ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {AccountService} from "../../../core/services/account.service";
+import {Location} from '@angular/common';
+import {Observable} from 'rxjs';
+import {FormBuilder, FormGroup} from "@angular/forms";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {DefaultStatusList} from "../../../core/services/model";
 import {debounceTime, filter, tap} from "rxjs/operators";

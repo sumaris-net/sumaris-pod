@@ -65,7 +65,7 @@ export class VesselFeaturesService
     super(graphql);
   }
 
-  lastVariables() {
+  get lastVariables() {
     return this._lastVariables;
   }
 
