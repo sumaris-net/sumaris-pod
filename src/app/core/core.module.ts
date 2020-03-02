@@ -227,13 +227,17 @@ export class CoreModule {
     translate.onLangChange.subscribe(event => {
       if (event && event.lang) {
 
+        // force 'en' as 'en_GB'
+        if (event.lang === 'en') {
+          event.lang = "en_GB";
+        }
+
         // Config date adapter
         dateAdapter.setLocale(event.lang);
 
         // config moment lib
         try {
-          const momentLocale: string = event.lang.substr(0, 2);
-          moment.locale(momentLocale);
+          moment.locale(event.lang);
           console.debug('[app] Use locale {' + event.lang + '}');
         }
           // If error, fallback to en
