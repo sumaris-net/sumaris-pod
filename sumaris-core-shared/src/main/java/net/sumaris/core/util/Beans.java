@@ -87,6 +87,13 @@ public class Beans {
         return list.stream();
     }
 
+    public static <E> Stream<E> getStream(E[] array) {
+        if (array == null) {
+            return Stream.empty();
+        }
+        return Arrays.stream(array);
+    }
+
     /**
      * <p>getListWithoutNull.</p>
      *

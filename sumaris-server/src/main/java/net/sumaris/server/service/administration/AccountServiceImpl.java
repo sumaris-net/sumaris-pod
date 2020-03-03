@@ -31,12 +31,12 @@ import it.ozimov.springboot.mail.service.EmailService;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.administration.user.UserSettingsDao;
 import net.sumaris.core.dao.administration.user.UserTokenDao;
-import net.sumaris.core.event.DataEntityCreatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
@@ -47,16 +47,16 @@ import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
 import net.sumaris.server.service.crypto.ServerCryptoService;
+import org.apache.commons.collections.CollectionUtils;
+import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.nuiton.i18n.I18n;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
@@ -326,7 +326,7 @@ public class AccountServiceImpl implements AccountService {
         if (person == null) {
             throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
         }
-        return person.getProfiles().stream()
+        return Beans.getStream(person.getProfiles())
                 .map(UserProfileEnum::valueOf)
                 .map(up -> up.id)
                 .collect(Collectors.toList());

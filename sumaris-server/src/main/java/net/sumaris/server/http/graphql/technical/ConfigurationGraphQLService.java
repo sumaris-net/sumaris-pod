@@ -10,12 +10,12 @@ package net.sumaris.server.http.graphql.technical;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -27,7 +27,11 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLEnvironment;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import net.sf.ehcache.CacheException;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Ehcache;
 import net.sumaris.core.service.administration.DepartmentService;
+import net.sumaris.core.service.technical.CacheStatistics;
 import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.technical.ConfigurationVO;
@@ -49,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -74,6 +79,12 @@ public class ConfigurationGraphQLService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private CacheStatistics cacheStatistics;
+
+    @Autowired
+    private CacheManager cacheManager;
+
     private String imageUrl;
 
     @Autowired
@@ -86,10 +97,10 @@ public class ConfigurationGraphQLService {
 
     @GraphQLQuery(name = "configuration", description = "A software configuration")
     public ConfigurationVO getConfiguration(
-            @GraphQLArgument(name = "id") Integer id,
-            @GraphQLArgument(name = "label") String label,
-            @GraphQLEnvironment() Set<String> fields
-    ){
+        @GraphQLArgument(name = "id") Integer id,
+        @GraphQLArgument(name = "label") String label,
+        @GraphQLEnvironment() Set<String> fields
+    ) {
         SoftwareVO software = getSoftware(id, label);
         return toConfiguration(software, fields);
     }
@@ -97,8 +108,8 @@ public class ConfigurationGraphQLService {
     @GraphQLMutation(name = "saveConfiguration", description = "Save a configuration")
     @IsAdmin
     public ConfigurationVO saveConfiguration(
-            @GraphQLArgument(name = "config") ConfigurationVO configuration,
-                     @GraphQLEnvironment() Set<String> fields){
+        @GraphQLArgument(name = "config") ConfigurationVO configuration,
+        @GraphQLEnvironment() Set<String> fields) {
 
         SoftwareVO software = service.save(configuration);
         return toConfiguration(software, fields);
@@ -107,9 +118,9 @@ public class ConfigurationGraphQLService {
     @GraphQLQuery(name = "software", description = "A software config")
     @IsAdmin
     public SoftwareVO getSoftware(
-            @GraphQLArgument(name = "id") Integer id,
-            @GraphQLArgument(name = "label") String label
-    ){
+        @GraphQLArgument(name = "id") Integer id,
+        @GraphQLArgument(name = "label") String label
+    ) {
         if (id != null) {
             return service.get(id);
         }
@@ -125,9 +136,39 @@ public class ConfigurationGraphQLService {
         return service.save(software);
     }
 
+    @GraphQLQuery(name = "cacheStatistics", description = "Get cache statistics")
+    @IsAdmin
+    public Map<String, Map<String, Long>> getCacheStats() {
+        return cacheStatistics.getCacheDetails();
+    }
+
+    @GraphQLQuery(name = "clearCache", description = "Clear a single cache or all caches")
+    @IsAdmin
+    public boolean clearCache(
+        @GraphQLArgument(name = "name") String name
+    ) {
+        try {
+            if (StringUtils.isBlank(name)) {
+                log.info("Clearing caches...");
+                cacheManager.clearAll();
+
+            } else {
+                log.info(String.format("Clearing cache (%s)...", name));
+                Ehcache cache = cacheManager.getEhcache(name);
+                if (cache != null)
+                    cache.removeAll();
+            }
+        } catch (IllegalStateException | CacheException e) {
+            log.error("Error while clearing caches", e);
+            return false;
+        }
+        log.info("Caches cleared.");
+        return true;
+    }
+
     /* -- protected methods -- */
 
-    protected ConfigurationVO toConfiguration(SoftwareVO software,  Set<String> fields) {
+    protected ConfigurationVO toConfiguration(SoftwareVO software, Set<String> fields) {
         if (software == null) return null;
         ConfigurationVO result = new ConfigurationVO(software);
 
@@ -146,8 +187,8 @@ public class ConfigurationGraphQLService {
         if (StringUtils.isNotBlank(logoUri)) {
             String logoUrl = getImageUrl(logoUri);
             result.getProperties().put(
-                    SumarisServerConfigurationOption.SITE_LOGO_SMALL.getKey(),
-                    logoUrl);
+                SumarisServerConfigurationOption.SITE_LOGO_SMALL.getKey(),
+                logoUrl);
             result.setSmallLogo(logoUrl);
         }
 
@@ -156,8 +197,8 @@ public class ConfigurationGraphQLService {
         if (StringUtils.isNotBlank(logoLargeUri)) {
             String logoLargeUrl = getImageUrl(logoLargeUri);
             result.getProperties().put(
-                    SumarisServerConfigurationOption.LOGO_LARGE.getKey(),
-                    logoLargeUrl);
+                SumarisServerConfigurationOption.LOGO_LARGE.getKey(),
+                logoLargeUrl);
             result.setLargeLogo(logoLargeUrl);
         }
 
@@ -195,34 +236,34 @@ public class ConfigurationGraphQLService {
 
             // Get department from IDs
             int[] ids = Stream.of(values)
-                    .map(String::trim)
-                    .mapToInt(uri -> {
-                if (uri.startsWith(DepartmentService.URI_DEPARTMENT_SUFFIX)) {
-                    return Integer.parseInt(uri.substring(DepartmentService.URI_DEPARTMENT_SUFFIX.length()));
-                }
-                return -1;
-            })
-            .filter(id -> id >= 0).toArray();
+                .map(String::trim)
+                .mapToInt(uri -> {
+                    if (uri.startsWith(DepartmentService.URI_DEPARTMENT_SUFFIX)) {
+                        return Integer.parseInt(uri.substring(DepartmentService.URI_DEPARTMENT_SUFFIX.length()));
+                    }
+                    return -1;
+                })
+                .filter(id -> id >= 0).toArray();
             List<DepartmentVO> departments = departmentService.getByIds(ids);
 
             // Get department from JSON
             List<DepartmentVO> deserializeDepartments = Stream.of(values)
-                    .map(String::trim)
-                    .map(jsonStr -> {
-                if (jsonStr.startsWith(JSON_START_SUFFIX)) {
-                    try {
-                        return objectMapper.readValue(jsonStr, DepartmentVO.class);
-                    } catch(IOException e) {
-                        log.warn(String.format("Unable to deserialize a value for option {%s}: %s", SumarisServerConfigurationOption.SITE_PARTNER_DEPARTMENTS.getKey(), jsonStr), e);
-                        return null;
+                .map(String::trim)
+                .map(jsonStr -> {
+                    if (jsonStr.startsWith(JSON_START_SUFFIX)) {
+                        try {
+                            return objectMapper.readValue(jsonStr, DepartmentVO.class);
+                        } catch (IOException e) {
+                            log.warn(String.format("Unable to deserialize a value for option {%s}: %s", SumarisServerConfigurationOption.SITE_PARTNER_DEPARTMENTS.getKey(), jsonStr), e);
+                            return null;
+                        }
                     }
-                }
-                return null;
-            }).filter(Objects::nonNull).collect(Collectors.toList());
+                    return null;
+                }).filter(Objects::nonNull).collect(Collectors.toList());
 
             departments = Stream.concat(departments.stream(), deserializeDepartments.stream())
-                    .map(administrationGraphQLService::fillLogo)
-                    .collect(Collectors.toList());
+                .map(administrationGraphQLService::fillLogo)
+                .collect(Collectors.toList());
             result.setPartners(departments);
         }
     }
@@ -233,8 +274,8 @@ public class ConfigurationGraphQLService {
         if (ArrayUtils.isNotEmpty(values)) {
 
             List<String> urls = Stream.of(values)
-                    .map(this::getImageUrl)
-                    .collect(Collectors.toList());
+                .map(this::getImageUrl)
+                .collect(Collectors.toList());
             result.setBackgroundImages(urls);
         }
     }
