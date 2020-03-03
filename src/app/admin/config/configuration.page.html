@@ -13,7 +13,7 @@
         <mat-icon>
           <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
         </mat-icon>
-        <ion-label translate>PROGRAM.TAB_GENERAL</ion-label>
+        <ion-label translate>CONFIGURATION.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && referentialForm.invalid"></ion-icon>
       </ng-template>
 
@@ -21,7 +21,8 @@
         <!-- error -->
         <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
+          <ion-label color="danger" class="error"
+                     [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
         </ion-item>
 
         <ion-grid class="ion-no-padding">
@@ -41,7 +42,7 @@
                 </h3>
 
                 <!-- Properties -->
-                <form  [formGroup]="form" class="form-container">
+                <form [formGroup]="form" class="form-container">
                   <ion-grid *ngIf="!loading || saving; else propertiesSkeleton"
                             formArrayName="properties" class="ion-no-padding">
                     <ion-row class="ion-no-padding">
@@ -69,12 +70,14 @@
                                         (selectionChange)="updatePropertyDefinition(i)"
                                         [tabindex]="20+i*2"
                                         required>
-                              <mat-option *ngFor="let item of propertyDefinitions" [value]="item.key">{{ item.label | translate }}
+                              <mat-option *ngFor="let item of propertyDefinitions"
+                                          [value]="item.key">{{ item.label | translate }}
                               </mat-option>
                             </mat-select>
 
-                            <mat-error *ngIf="propertyForm.controls.key.hasError('required') && !propertiesFormHelper.isLast(i)"
-                                       translate>ERROR.FIELD_REQUIRED
+                            <mat-error
+                              *ngIf="propertyForm.controls.key.hasError('required') && !propertiesFormHelper.isLast(i)"
+                              translate>ERROR.FIELD_REQUIRED
                             </mat-error>
                           </mat-form-field>
                         </ion-col>
@@ -127,11 +130,13 @@
                     <ion-row>
                       <ion-col>
                         <img *ngIf="config?.smallLogo"
-                             src="{{ config?.smallLogo }}" [title]="'CONFIGURATION.OPTIONS.LOGO'|translate" width="110"/>
+                             src="{{ config?.smallLogo }}" [title]="'CONFIGURATION.OPTIONS.LOGO'|translate"
+                             width="110"/>
                       </ion-col>
                       <ion-col>
                         <img *ngIf="config?.largeLogo"
-                             src="{{ config?.largeLogo }}" [title]="'CONFIGURATION.OPTIONS.HOME.LOGO_LARGE'|translate" width="250"/>
+                             src="{{ config?.largeLogo }}" [title]="'CONFIGURATION.OPTIONS.HOME.LOGO_LARGE'|translate"
+                             width="250"/>
                       </ion-col>
                     </ion-row>
                   </ion-grid>
@@ -159,6 +164,129 @@
         </ion-grid>
       </div>
     </mat-tab>
+
+    <!-- TAB: cache -->
+    <mat-tab label="{{'CONFIGURATION.TAB_CACHE'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="stats"></ion-icon>
+        </mat-icon>
+        <ion-label translate>CONFIGURATION.TAB_CACHE</ion-label>
+      </ng-template>
+
+      <mat-toolbar class="ion-no-padding">
+        <button mat-icon-button color="light" *ngIf="network.online" [title]="'COMMON.BTN_REFRESH'|translate"
+                (click)="loadCacheStat()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+
+        <div class="toolbar-spacer"></div>
+
+        <button mat-icon-button *ngIf="enabled"
+                [matMenuTriggerFor]="optionsMenu"
+                [title]=" 'COMMON.BTN_OPTIONS'|translate">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+      </mat-toolbar>
+
+      <!-- Type = options menu -->
+      <mat-menu #optionsMenu="matMenu" xPosition="after">
+        <button mat-menu-item *ngIf="network.online" (click)="clearCache()">
+          <ion-label translate>CONFIGURATION.BTN_CLEAR_CACHE</ion-label>
+        </button>
+      </mat-menu>
+
+      <div class="ion-padding">
+
+        <ion-grid class="ion-no-padding">
+
+          <ion-row class="ion-no-padding">
+            <ion-col class="ion-no-padding ion-padding-top">
+
+              <!-- cache divider-->
+              <h3>
+                <ion-text translate>CONFIGURATION.CACHE_DIVIDER</ion-text>
+              </h3>
+
+              <ion-grid>
+                <b>
+                  <ion-row>
+                    <ion-col size="12" size-lg="6">
+                      <ion-label translate>CONFIGURATION.CACHE.NAME</ion-label>
+                    </ion-col>
+                    <ion-col>
+                      <ion-label translate>CONFIGURATION.CACHE.SIZE</ion-label>
+                    </ion-col>
+                    <ion-col>
+                      <ion-label translate>CONFIGURATION.CACHE.HEAP_SIZE</ion-label>
+                    </ion-col>
+                    <ion-col>
+                      <ion-label translate>CONFIGURATION.CACHE.OFF_HEAP_SIZE</ion-label>
+                    </ion-col>
+                    <ion-col>
+                      <ion-label translate>CONFIGURATION.CACHE.DISK_SIZE</ion-label>
+                    </ion-col>
+                    <ion-col size="1">
+                    </ion-col>
+                  </ion-row>
+                </b>
+                <b>
+                  <ion-row *ngIf="cacheStatisticTotal | async as total">
+                    <ion-col size="12" size-lg="6">
+                      <ion-label class="ion-text-wrap" translate>CONFIGURATION.CACHE.TOTAL</ion-label>
+                    </ion-col>
+                    <ion-col>
+                      <ion-label>{{total.size}}</ion-label>
+                    </ion-col>
+                    <ion-col>
+                      <ion-label>{{total.heapSize | fileSize}}</ion-label>
+                    </ion-col>
+                    <ion-col>
+                      <ion-label>{{total.offHeapSize | fileSize}}</ion-label>
+                    </ion-col>
+                    <ion-col>
+                      <ion-label>{{total.diskSize | fileSize}}</ion-label>
+                    </ion-col>
+                    <ion-col size="1">
+                    </ion-col>
+                  </ion-row>
+                </b>
+                <ion-row *ngFor="let stat of cacheStatistics | async">
+                  <ion-col size="12" size-lg="6">
+                    <ion-label class="ion-text-wrap">{{stat.name}}</ion-label>
+                  </ion-col>
+                  <ion-col>
+                    <ion-label>{{stat.size}}</ion-label>
+                  </ion-col>
+                  <ion-col>
+                    <ion-label>{{stat.heapSize | fileSize}}</ion-label>
+                  </ion-col>
+                  <ion-col>
+                    <ion-label>{{stat.offHeapSize | fileSize}}</ion-label>
+                  </ion-col>
+                  <ion-col>
+                    <ion-label>{{stat.diskSize | fileSize}}</ion-label>
+                  </ion-col>
+                  <ion-col size="1">
+                    <button [title]="'COMMON.BTN_CLEAR'|translate" mat-icon-button (click)="clearCache(stat.name)">
+                      <mat-icon>
+                        <ion-icon name="trash"></ion-icon>
+                      </mat-icon>
+                    </button>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+
+
+            </ion-col>
+          </ion-row>
+
+        </ion-grid>
+
+      </div>
+
+    </mat-tab>
+
   </mat-tab-group>
 </ion-content>
 

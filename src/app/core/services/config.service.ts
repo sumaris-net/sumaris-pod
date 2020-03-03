@@ -77,6 +77,17 @@ const SaveMutation: any = gql`
   ${Fragments.config}
 `;
 
+const ClearCache: any = gql`
+  query ClearCache($name: String) {
+    clearCache(name: $name)
+  }
+`;
+
+const CacheStatistics: any = gql`
+  query CacheStatistics {
+    cacheStatistics
+  }
+`;
 
 export const APP_CONFIG_OPTIONS = new InjectionToken<FormFieldDefinitionMap>('defaultOptions');
 
@@ -242,6 +253,41 @@ export class ConfigService extends BaseDataService implements EditorDataService<
     }
 
     return reloadedConfig;
+  }
+
+  async getCacheStatistics(): Promise<string> {
+
+    const now = Date.now();
+    console.debug("[config] Loading server cache statistics...");
+
+    const res = await this.graphql.query<{ cacheStatistics: any }>({
+      query: CacheStatistics,
+      variables: null,
+      error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
+      fetchPolicy: "network-only"
+    });
+
+    const data = res && res.cacheStatistics || undefined;
+    console.info(`[config] Server cache statistics loaded in ${Date.now() - now}ms:`, data);
+    return data;
+  }
+
+  async clearCache(opts?: {cacheName?: string}) {
+    const now = Date.now();
+    console.debug("[config] Clear server cache...");
+
+    const variables = {name: opts && opts.cacheName} || undefined;
+
+    const res = await this.graphql.query<{ clearCache: boolean }>({
+      query: ClearCache,
+      variables,
+      error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
+      fetchPolicy: "network-only"
+    });
+
+    const data = res && res.clearCache || undefined;
+    console.info(`[config] Clear server cache in ${Date.now() - now}ms:`, data);
+    return data;
   }
 
   delete(data: Configuration, options?: any): Promise<any> {

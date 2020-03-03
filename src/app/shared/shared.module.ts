@@ -67,6 +67,7 @@ import {Hotkeys, HotkeysModule} from "./hotkeys/hotkeys.module";
 import {FileService} from "./file/file.service";
 import {HAMMER_GESTURE_CONFIG} from "@angular/platform-browser";
 import {AppGestureConfig} from "./gesture/gesture-config";
+import {FileSizePipe} from "./pipes/file-size.pipe";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -109,6 +110,7 @@ export {
     LatLongFormatPipe,
     HighlightPipe,
     NumberFormatPipe,
+    FileSizePipe,
     MatDate,
     MatDateTime,
     MatLatLong,
@@ -130,6 +132,7 @@ export {
     LatLongFormatPipe,
     HighlightPipe,
     NumberFormatPipe,
+    FileSizePipe,
     TextMaskModule,
     TranslateModule,
     MatDate,
