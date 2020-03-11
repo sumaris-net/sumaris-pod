@@ -24,7 +24,6 @@ package net.sumaris.core.service.data;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableTable;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.PmfmService;
@@ -61,7 +60,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
     @Test
     public void save() {
         TripVO vo = createTrip();
-        TripVO savedVO = service.save(vo, false);
+        TripVO savedVO = service.save(vo, TripSaveOptions.builder().build());
 
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
@@ -91,7 +90,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
         trip.setOperations(ImmutableList.of(operation));
 
-        TripVO savedVO = service.save(trip, true);
+        TripVO savedVO = service.save(trip, TripSaveOptions.builder().withOperations(true).build());
 
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
@@ -119,7 +118,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
     public void deleteAfterCreate() {
         TripVO savedVO = null;
         try {
-            savedVO = service.save(createTrip(), false);
+            savedVO = service.save(createTrip(), TripSaveOptions.builder().build());
             Assume.assumeNotNull(savedVO);
             Assume.assumeNotNull(savedVO.getId());
         }

@@ -37,6 +37,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.vo.referential.MetierVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +65,9 @@ public class TripServiceImpl implements TripService {
 
     @Autowired
     protected OperationService operationService;
+
+    @Autowired
+    protected OperationGroupService operationGroupService;
 
     @Autowired
     protected PhysicalGearService physicalGearService;
@@ -105,7 +109,7 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public TripVO save(final TripVO source, final boolean withOperation) {
+    public TripVO save(final TripVO source, TripSaveOptions saveOptions) {
         Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(source.getProgram(), "Missing program");
         Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
@@ -159,8 +163,15 @@ public class TripServiceImpl implements TripService {
             savedTrip.setMeasurements(measurements);
         }
 
+        // Save metier (only if asked)
+        if (saveOptions.isWithMetiers()) {
+            List<MetierVO> metiers = Beans.getList(source.getMetiers());
+            metiers = operationGroupService.saveMetiersByTripId(savedTrip.getId(), metiers);
+            savedTrip.setMetiers(metiers);
+        }
+
         // Save operations (only if asked)
-        if (withOperation) {
+        if (saveOptions.isWithOperations()) {
             List<OperationVO> operations = Beans.getList(source.getOperations());
             operations = operationService.saveAllByTripId(savedTrip.getId(), operations);
             savedTrip.setOperations(operations);
@@ -178,11 +189,11 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public List<TripVO> save(List<TripVO> trips, final boolean withOperation) {
+    public List<TripVO> save(List<TripVO> trips, TripSaveOptions saveOptions) {
         Preconditions.checkNotNull(trips);
 
         return trips.stream()
-                .map(t -> save(t, withOperation))
+                .map(t -> save(t, saveOptions))
                 .collect(Collectors.toList());
     }
 

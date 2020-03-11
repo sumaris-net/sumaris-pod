@@ -37,6 +37,7 @@ import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.ImageService;
@@ -47,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,6 +68,9 @@ public class DataGraphQLService {
 
     @Autowired
     private OperationService operationService;
+
+    @Autowired
+    private OperationGroupService operationGroupService;
 
     @Autowired
     private LandingService landingService;
@@ -238,7 +242,11 @@ public class DataGraphQLService {
     public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip,
                            @GraphQLArgument(name = "withOperation", defaultValue = "false") boolean withOperation,
                            @GraphQLEnvironment() Set<String> fields) {
-        final TripVO result = tripService.save(trip, withOperation);
+        final TripVO result = tripService.save(trip,
+            TripSaveOptions.builder()
+                .withOperations(withOperation)
+                .withMetiers(hasMetiersField(fields))
+                .build());
 
         // Add additional properties if needed
         fillTripFields(result, fields);
@@ -251,7 +259,10 @@ public class DataGraphQLService {
     public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips,
                                   @GraphQLArgument(name = "withOperation", defaultValue = "false") boolean withOperation,
                                   @GraphQLEnvironment() Set<String> fields) {
-        final List<TripVO> result = tripService.save(trips, withOperation);
+        final List<TripVO> result = tripService.save(trips, TripSaveOptions.builder()
+            .withOperations(withOperation)
+            .withMetiers(hasMetiersField(fields))
+            .build());
 
         // Add additional properties if needed
         fillTrips(result, fields);
@@ -526,6 +537,62 @@ public class DataGraphQLService {
         return changesPublisherService.getPublisher(Operation.class, OperationVO.class, id, minIntervalInSecond, true);
     }
 
+    /* -- Operation Groups -- */
+
+    @GraphQLQuery(name = "operationGroups", description = "Get trip's operation groups")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<OperationGroupVO> getOperationGroupsByTripId(@GraphQLArgument(name = "filter") OperationFilterVO filter,
+                                                   @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                   @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                   @GraphQLArgument(name = "sortBy", defaultValue = OperationGroupVO.Fields.RANK_ORDER_ON_PERIOD) String sort,
+                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        Preconditions.checkNotNull(filter, "Missing tripFilter or tripFilter.tripId");
+        Preconditions.checkNotNull(filter.getTripId(), "Missing tripFilter or tripFilter.tripId");
+        return operationGroupService.getAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+    }
+
+    @GraphQLQuery(name = "operationGroup", description = "Get an operation group")
+    @Transactional(readOnly = true)
+    @IsUser
+    public OperationGroupVO getOperationGroup(@GraphQLArgument(name = "id") int id) {
+        return operationGroupService.get(id);
+    }
+
+    @GraphQLMutation(name = "saveOperationGroups", description = "Save operation groups")
+    @IsUser
+    public List<OperationGroupVO> saveOperationGroups(@GraphQLArgument(name = "operationGroups") List<OperationGroupVO> operationGroups) {
+        return operationGroupService.save(operationGroups);
+    }
+
+    @GraphQLMutation(name = "saveOperationGroup", description = "Create or update an operation group")
+    @IsUser
+    public OperationGroupVO saveOperationGroup(@GraphQLArgument(name = "operationGroup") OperationGroupVO operationGroup) {
+        return operationGroupService.save(operationGroup);
+    }
+
+    @GraphQLMutation(name = "deleteOperationGroup", description = "Delete an operation group")
+    @IsUser
+    public void deleteOperationGroup(@GraphQLArgument(name = "id") int id) {
+        operationGroupService.delete(id);
+    }
+
+    @GraphQLMutation(name = "deleteOperationGroups", description = "Delete many operation groups")
+    @IsUser
+    public void deleteOperationGroups(@GraphQLArgument(name = "ids") List<Integer> ids) {
+        operationGroupService.delete(ids);
+    }
+
+    @GraphQLSubscription(name = "updateOperationGroup", description = "Subscribe to changes on an operation group")
+    @IsUser
+    public Publisher<OperationGroupVO> updateOperationGroup(@GraphQLArgument(name = "id") final int id,
+                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
+
+        Preconditions.checkArgument(id >= 0, "Invalid id");
+        return changesPublisherService.getPublisher(Operation.class, OperationGroupVO.class, id, minIntervalInSecond, true);
+    }
+
+
     /* -- Vessel position -- */
 
     @GraphQLQuery(name = "positions", description = "Get operation's position")
@@ -709,6 +776,33 @@ public class DataGraphQLService {
         return measurementService.getOperationGearUseMeasurementsMap(operation.getId());
     }
 
+    // Operation Group
+    @GraphQLQuery(name = "measurements", description = "Get operation group's measurements")
+    public List<MeasurementVO> getOperationGroupVesselUseMeasurements(@GraphQLContext OperationGroupVO operationGroup) {
+        return measurementService.getOperationVesselUseMeasurements(operationGroup.getId());
+    }
+
+    @GraphQLQuery(name = "measurementValues", description = "Get operation group's measurements")
+    public Map<Integer, String> getOperationGroupVesselUseMeasurementsMap(@GraphQLContext OperationGroupVO operationGroup) {
+        if (operationGroup.getMeasurementValues() != null) {
+            return operationGroup.getMeasurementValues();
+        }
+        return measurementService.getOperationVesselUseMeasurementsMap(operationGroup.getId());
+    }
+
+    @GraphQLQuery(name = "gearMeasurements", description = "Get operation group's gear measurements")
+    public List<MeasurementVO> getOperationGroupGearUseMeasurements(@GraphQLContext OperationGroupVO operationGroup) {
+        return measurementService.getOperationGearUseMeasurements(operationGroup.getId());
+    }
+
+    @GraphQLQuery(name = "gearMeasurementValues", description = "Get operation group's gear measurements")
+    public Map<Integer, String> getOperationGroupGearUseMeasurementsMap(@GraphQLContext OperationGroupVO operationGroup) {
+        if (operationGroup.getGearMeasurementValues() != null) {
+            return operationGroup.getGearMeasurementValues();
+        }
+        return measurementService.getOperationGearUseMeasurementsMap(operationGroup.getId());
+    }
+
 
     // Physical gear
     @GraphQLQuery(name = "measurements", description = "Get physical gear measurements")
@@ -820,6 +914,9 @@ public class DataGraphQLService {
 
         // Add vessel if need
         fillVesselSnapshot(trip, fields);
+
+        // Add metiers if need
+        fillMetiers(trip, fields);
     }
 
     protected void fillTrips(List<TripVO> trips, Set<String> fields) {
@@ -828,6 +925,9 @@ public class DataGraphQLService {
 
         // Add vessel if need
         fillVesselSnapshot(trips, fields);
+
+        // Add metiers if need
+        fillMetiers(trips, fields);
     }
 
     protected void fillObservedLocationFields(ObservedLocationVO observedLocation, Set<String> fields) {
@@ -857,13 +957,18 @@ public class DataGraphQLService {
     }
 
     protected boolean hasImageField(Set<String> fields) {
-        return fields.contains(TripVO.Fields.RECORDER_DEPARTMENT + File.separator + DepartmentVO.Fields.LOGO) ||
-                fields.contains(TripVO.Fields.RECORDER_PERSON + File.separator + PersonVO.Fields.AVATAR);
+        return fields.contains(TripVO.Fields.RECORDER_DEPARTMENT + '/' + DepartmentVO.Fields.LOGO) ||
+                fields.contains(TripVO.Fields.RECORDER_PERSON + '/' + PersonVO.Fields.AVATAR);
     }
 
     protected boolean hasVesselFeaturesField(Set<String> fields) {
-        return fields.contains(TripVO.Fields.VESSEL_SNAPSHOT + File.separator + VesselSnapshotVO.Fields.EXTERIOR_MARKING)
-                || fields.contains(TripVO.Fields.VESSEL_SNAPSHOT + File.separator + VesselSnapshotVO.Fields.NAME);
+        return fields.contains(TripVO.Fields.VESSEL_SNAPSHOT + '/' + VesselSnapshotVO.Fields.EXTERIOR_MARKING)
+                || fields.contains(TripVO.Fields.VESSEL_SNAPSHOT + '/' + VesselSnapshotVO.Fields.NAME);
+    }
+
+    protected boolean hasMetiersField(Set<String> fields) {
+        return fields.contains(TripVO.Fields.METIERS + '/' + ReferentialVO.Fields.ID)
+            || fields.contains(TripVO.Fields.METIERS + '/' + ReferentialVO.Fields.LABEL);
     }
 
     protected <T extends IRootDataVO<?>> List<T> fillImages(final List<T> results) {
@@ -890,13 +995,8 @@ public class DataGraphQLService {
     }
 
     protected <T extends IRootDataVO<?>> T fillImages(T result, Set<String> fields) {
-        if (hasImageField(fields) && result != null) {
-
-            // Fill avatar on recorder department (if not null)
-            imageService.fillLogo(result.getRecorderDepartment());
-
-            // Fill avatar on recorder persons (if not null)
-            imageService.fillAvatar(result.getRecorderPerson());
+        if (hasImageField(fields)) {
+            return fillImages(result);
         }
 
         return result;
@@ -919,6 +1019,26 @@ public class DataGraphQLService {
                     bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), bean.getVesselDateTime()));
                 }
             });
+        }
+    }
+
+    protected void fillMetiers(TripVO trip, Set<String> fields) {
+        // Add metier if need
+        if (trip != null && hasMetiersField(fields)) {
+            fillMetiers(trip);
+        }
+    }
+
+    protected void fillMetiers(Collection<TripVO> trips, Set<String> fields) {
+        // Add metier if need
+        if (trips != null && hasMetiersField(fields)) {
+            trips.forEach(this::fillMetiers);
+        }
+    }
+
+    protected void fillMetiers(TripVO trip) {
+        if (trip != null) {
+            trip.setMetiers(operationGroupService.getMetiersByTripId(trip.getId()));
         }
     }
 

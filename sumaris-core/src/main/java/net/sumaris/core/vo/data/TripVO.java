@@ -31,6 +31,7 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.referential.MetierVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -73,6 +74,9 @@ public class TripVO implements IRootDataVO<Integer>,
     private List<SaleVO> sales;
     @EqualsAndHashCode.Exclude
     private SaleVO sale; // shortcut when only one sale
+
+    @EqualsAndHashCode.Exclude
+    private List<MetierVO> metiers;
 
     @EqualsAndHashCode.Exclude
     private List<OperationVO> operations;

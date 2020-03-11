@@ -52,7 +52,7 @@ public class TripServiceQualityTest extends AbstractServiceTest {
         // Make sure control date is NOT set
         if (trip.getControlDate() != null) {
             trip.setControlDate(null);
-            service.save(trip, false);
+            service.save(trip, TripSaveOptions.builder().build());
             trip = service.get(dbResource.getFixtures().getTripId(0));
             Assert.assertNotNull(trip);
         }

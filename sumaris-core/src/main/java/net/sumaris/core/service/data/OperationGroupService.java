@@ -22,56 +22,41 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
-
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.vo.data.OperationGroupVO;
+import net.sumaris.core.vo.referential.MetierVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 /**
- * @author BLA
+ * @author ludovic.pecquot@e-is.pro
  * 
- *    Service in charge of trip data
+ *    Service in charge of operation group beans
  * 
  */
 @Transactional
-public interface TripService {
-
-
-	@Transactional(readOnly = true)
-	List<TripVO> getAllTrips(int offset, int size);
+public interface OperationGroupService {
 
 	@Transactional(readOnly = true)
-	List<TripVO> findByFilter(TripFilterVO filter, int offset, int size);
+	List<MetierVO> getMetiersByTripId(int tripId);
+
+	List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers);
 
 	@Transactional(readOnly = true)
-	List<TripVO> findByFilter(TripFilterVO filter, int offset, int size,
-							  String sortAttribute,
-							  SortDirection sortDirection,
-							  DataFetchOptions fieldOptions);
+	List<OperationGroupVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	@Transactional(readOnly = true)
-	Long countByFilter(TripFilterVO filter);
+	OperationGroupVO get(int id);
 
-	@Transactional(readOnly = true)
-	TripVO get(int id);
+	OperationGroupVO save(OperationGroupVO operation);
 
-	TripVO save(TripVO trip, TripSaveOptions saveOptions);
+	List<OperationGroupVO> save(List<OperationGroupVO> operations);
 
-	List<TripVO> save(List<TripVO> trips, TripSaveOptions saveOptions);
+	List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> operations);
 
 	void delete(int id);
 
 	void delete(List<Integer> ids);
 
-    TripVO control(TripVO trip);
-
-	TripVO validate(TripVO trip);
-
-	TripVO unvalidate(TripVO trip);
-
-	TripVO qualify(TripVO trip);
 }
