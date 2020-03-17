@@ -72,6 +72,10 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
           if (!this.tripForm.showObservers) {
             this.data.observers = []; // make sure to reset data observers, if any
           }
+          this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
+          if (!this.tripForm.showMetiers) {
+            this.data.metiers = []; // make sure to reset data metiers, if any
+          }
         })
     );
 

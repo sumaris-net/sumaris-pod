@@ -20,7 +20,8 @@
       <!-- error -->
       <ion-item *ngIf="observedLocationForm.error" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
+        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+        >
       </ion-item>
 
       <ion-grid class="ion-no-padding">
@@ -66,12 +67,13 @@
         </ion-item>
 
         <app-landings-table #landingsTable
-                           acquisitionLevel="LANDING"
-                           [program]="programSubject|async"
-                           [showObserversColumn]="false"
-                           [showDateTimeColumn]="false"
-                           (onOpenRow)="onOpenLanding($event)"
-                           (onNewRow)="onNewLanding($event)">
+                            acquisitionLevel="LANDING"
+                            [program]="programSubject|async"
+                            [showObserversColumn]="false"
+                            [showDateTimeColumn]="false"
+                            (onOpenRow)="onOpenLanding($event)"
+                            (onNewRow)="onNewLanding($event)"
+                            (onNewTrip)="onNewTrip($event)">
         </app-landings-table>
 
       </div>
@@ -83,7 +85,8 @@
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
+                    [disabledCancel]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
@@ -100,7 +103,7 @@
          visible-xs visible-sm visible-mobile>
 
   <ion-fab-button color="tertiary" (click)="landingsTable.addRow($event)">
-    <ion-icon name="add" ></ion-icon>
+    <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 
 </ion-fab>

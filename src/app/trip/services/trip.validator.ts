@@ -8,10 +8,12 @@ import {SaleValidatorService} from "./sale.validator";
 import {MeasurementsValidatorService} from "./measurement.validator";
 import {toBoolean} from "../../shared/functions";
 import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/services/model";
+import {MetierRef} from "../../referential/services/model/taxon.model";
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSale?: boolean;
   withMeasurements?: boolean;
+  withMetiers?: boolean;
 }
 
 @Injectable()
@@ -70,6 +72,11 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       formConfig.observers = this.getObserversFormArray(data);
     }
 
+    // Add metiers
+    if (opts.withMetiers) {
+      formConfig.metiers = this.getMetiersArray(data);
+    }
+
     return formConfig;
   }
 
@@ -101,12 +108,27 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
     ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === "true"));
 
+    opts.withMetiers = toBoolean(opts.withMetiers,
+      toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE),
+    ProgramProperties.TRIP_METIERS_ENABLE.defaultValue === "true"));
+
     opts.withSale = toBoolean(opts.withSale,
       toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
 
     opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
 
     return opts;
+  }
+
+  getMetiersArray(data?: Trip) {
+    return this.formBuilder.array(
+      (data && data.metiers || []).map(this.getMetierControl),
+      SharedValidators.requiredArrayMinLength(1)
+    );
+  }
+
+  getMetierControl(metier: MetierRef) {
+    return this.formBuilder.control(metier || '', [Validators.required, SharedValidators.entity]);
   }
 }
 

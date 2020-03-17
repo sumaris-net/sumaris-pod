@@ -259,7 +259,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     this.disable();
 
     try {
-      // Save saleControl form (with sale)
+      // Save form
       const updatedData = await this.dataService.save(data, options);
 
       // Update the view (e.g metadata)

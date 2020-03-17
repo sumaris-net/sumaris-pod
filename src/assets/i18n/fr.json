@@ -335,11 +335,17 @@
     "RETURN_LOCATION": "Port de retour",
     "OBSERVER_PLACEHOLDER": "Observateur #",
     "OBSERVERS": "Observateurs :",
+    "METIER_PLACEHOLDER": "Métier #",
+    "METIERS": "Métiers:",
     "COMMENTS": "Commentaires",
     "QUALITY": "État de saisie",
     "TAB_GENERAL": "Détails",
     "TAB_PHYSICAL_GEAR": "Engins",
     "TAB_OPERATIONS": "Opérations",
+    "TAB_OPERATION_GROUPS": "Effort",
+    "TAB_CATCHES": "Captures",
+    "TAB_SALES": "Ventes",
+    "TAB_EXPENSES": "Dépenses",
     "NEW": {
       "TITLE": "Nouvelle marée",
       "ACCESS_OPERATIONS_HELP": "Veuillez <b>sauvegarder la marée</b>, afin de pouvoir accéder à la saisie des opérations"
@@ -648,6 +654,8 @@
     },
     "TABLE": {
       "VESSEL": "Navire",
+      "VESSEL_TYPE": "Type",
+      "VESSEL_BASE_PORT_LOCATION": "Port d'attache",
       "DATE_TIME": "Date/heure",
       "LOCATION": "Lieu de débarquement",
       "OBSERVERS": "Observateurs",
@@ -866,11 +874,9 @@
       "TITLE": "Programme {{label}} - {{name}}"
     },
     "OPTIONS": {
-      "TRIP_EDITOR": "Marée : Editeur",
-      "TRIP_EDITOR_OBSERVED_TRIP": "Marée observée",
-      "TRIP_EDITOR_TRIP_FROM_LANDING": "Marée au débarquement",
       "TRIP_SALE_ENABLE": "Marée : Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée : Saisir les observateurs ?",
+      "TRIP_METIERS_ENABLE": "Marée : Saisir les métiers ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin : Saisir le numéro d'engin ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce : Espèces commerciales ?",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce : Espèces scientiques ?",
@@ -887,7 +893,10 @@
       "LOCATION_LEVEL_AUCTION": "Criées",
       "LANDING_EDITOR": "Observation sur site > Débarquement: éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
-      "LANDING_EDITOR_CONTROL": "Contrôle"
+      "LANDING_EDITOR_CONTROL": "Contrôle",
+      "LANDING_EDITOR_TRIP": "Marée",
+      "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
+      "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?"
     },
     "STRATEGY": {
 

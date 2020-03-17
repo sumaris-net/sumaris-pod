@@ -5,7 +5,12 @@ import {ObservedLocationForm} from "./observed-location.form";
 import {EntityUtils, Landing, ObservedLocation, VesselSnapshot} from "../services/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
-import {LandingEditor, ProgramProperties} from "../../referential/services/model";
+import {
+  AcquisitionLevelCodes,
+  AcquisitionLevelType,
+  LandingEditor,
+  ProgramProperties
+} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
@@ -14,6 +19,8 @@ import {SelectLandingsModal} from "../landing/select-landings.modal";
 import {environment} from "../../core/core.module";
 import {HistoryPageReference} from "../../core/services/model";
 import {SelectVesselsModal} from "./vessels/select-vessel.modal";
+import {TableElement} from "angular4-material-table";
+import {PageEvent} from "@angular/material";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -58,9 +65,14 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
         if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
         this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
         this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+        this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
 
         const landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
-        this.landingEditor = (landingEditor === 'landing' || landingEditor === 'control') ? landingEditor : 'landing';
+        this.landingEditor = (landingEditor === 'landing' || landingEditor === 'control' || landingEditor === 'trip') ? landingEditor : 'landing';
+
+        if (this.landingEditor === 'trip') {
+          this.landingsTable.tripEditor = true;
+        }
       });
   }
 
@@ -105,6 +117,16 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
     }
   }
 
+  protected async getJsonValueToSave(): Promise<any> {
+    const json = await super.getJsonValueToSave();
+
+    if (this.landingsTable.dirty) {
+      await this.landingsTable.save();
+    }
+
+    return json;
+  }
+
   protected async computeTitle(data: ObservedLocation): Promise<string> {
     // new data
     if (this.isNewData) {
@@ -126,10 +148,28 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
         : -1);
   }
 
-  async onOpenLanding({id}) {
+  async onOpenLanding({id, row}) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${id}`);
+
+      // or
+      // let nextId = id;
+      // let query;
+      // if (this.landingEditor === 'trip') {
+      //   const tripId = row.validator.controls['tripId'];
+      //   if (tripId) {
+      //     nextId = tripId.value;
+      //   } else {
+      //     query = `landingId=${id}`;
+      //     nextId = 'new';
+      //   }
+      // }
+      // let url = `/observations/${this.data.id}/${this.landingEditor}/${nextId}`;
+      // if (query)
+      //   url = url + '?' + query;
+      // await this.router.navigateByUrl(url);
+
     }
   }
 
@@ -157,6 +197,28 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
         this.markForCheck();
       }
     }
+  }
+
+  async onNewTrip({id, row}) {
+    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+      // If on field mode: try to save silently
+      ? this.save(undefined)
+      // If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm();
+
+    const savedOrContinue = await savePromise;
+    if (savedOrContinue) {
+      this.loading = true;
+      this.markForCheck();
+
+      try {
+        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${row.currentData.vesselSnapshot.id}&landing=${row.currentData.id}`);
+      } finally {
+        this.loading = false;
+        this.markForCheck();
+      }
+    }
+
   }
 
   /* -- protected methods -- */

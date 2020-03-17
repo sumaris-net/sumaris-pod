@@ -5451,10 +5451,15 @@ ionic-cache@^4.1.0:
   resolved "https://registry.yarnpkg.com/ionic-cache/-/ionic-cache-4.1.0.tgz#20ff3ec993d728905d7d1cf0b9f95e5120634607"
   integrity sha512-0/jsoY7nYleFYkG+/YVJ6zK3r0oPQSYHV+zOWwtoU/yO+W77gFqkyEjkBvkhTcQaHeyzynlEo7G6zUnKEcnVfw==
 
-ionicons@^4.5.6, ionicons@^4.6.3:
+ionicons@^4.6.3:
   version "4.6.3"
   resolved "https://registry.yarnpkg.com/ionicons/-/ionicons-4.6.3.tgz#e4f3a3e9b66761eb8c0db27798cc1a8ce97777d2"
   integrity sha512-cgP+VIr2cTJpMfFyVHTerq6n2jeoiGboVoe3GlaAo5zoSBDAEXORwUZhv6m+lCyxlsHCS3nqPUE+MKyZU71t8Q==
+
+ionicons@^4.6.4-1:
+  version "4.6.4-1"
+  resolved "https://registry.yarnpkg.com/ionicons/-/ionicons-4.6.4-1.tgz#215ab6168797c4527e44283003fcb0cd0159f163"
+  integrity sha512-sSK59KTdXGX3U/C524It+O8a1sOHzlq4oVmb8Xw67L5iwgHD8WdhoCInMl4pgoT2/nDQxsbH3S7Vxfi+xZxRdQ==
 
 ip-regex@^2.1.0:
   version "2.1.0"

@@ -24,7 +24,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     formBuilder: FormBuilder,
     settings: LocalSettingsService,
     private positionValidator: PositionValidatorService,
-    protected measurementsValidatorService: MeasurementsValidatorService) {
+    protected measurementsValidatorService: MeasurementsValidatorService
+  ) {
     super(formBuilder, settings);
   }
 

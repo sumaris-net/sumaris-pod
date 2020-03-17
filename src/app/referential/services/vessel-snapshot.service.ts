@@ -25,6 +25,19 @@ export const VesselSnapshotFragments = {
       ...LocationFragment
     }
     vesselStatusId
+  }`,
+  vesselSnapshot: gql`fragment VesselSnapshotFragment on VesselSnapshotVO {
+    id
+    name
+    exteriorMarking
+    registrationCode
+    basePortLocation {
+      ...LocationFragment
+    }
+    vesselType {
+      ...ReferentialFragment
+    }
+    vesselStatusId
   }`
 };
 

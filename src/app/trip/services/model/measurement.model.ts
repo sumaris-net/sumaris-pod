@@ -1,4 +1,12 @@
-import {AppFormUtils, Entity, fromDateISOString, isNil, isNotNil, toDateISOString} from "../../../core/core.module";
+import {
+  AppFormUtils,
+  Entity,
+  fromDateISOString,
+  isNil,
+  isNotNil,
+  joinPropertiesPath,
+  toDateISOString
+} from "../../../core/core.module";
 import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {DataEntity, DataEntityAsObjectOptions} from "./base.model";
 import {FormGroup} from "@angular/forms";
@@ -240,7 +248,7 @@ export class MeasurementValuesUtils {
       || !pmfms.find(pmfm => !MeasurementValuesUtils.valueEquals(m1[pmfm.pmfmId], m2[pmfm.pmfmId]));
   }
 
-  static valueToString(value: any, pmfm: PmfmStrategy, propertyName?: string): string | undefined {
+  static valueToString(value: any, pmfm: PmfmStrategy, propertyNames?: string[]): string | undefined {
     if (isNil(value) || !pmfm) return null;
     switch (pmfm.type) {
       case "qualitative_value":
@@ -248,7 +256,7 @@ export class MeasurementValuesUtils {
           const qvId = parseInt(value);
           value = pmfm.qualitativeValues && pmfm.qualitativeValues.find(qv => qv.id === qvId) || null;
         }
-        return value && (value[propertyName] || value.name || value.label) || null;
+        return value && ((propertyNames && joinPropertiesPath(value, propertyNames)) || value.name || value.label) || null;
       case "integer":
       case "double":
         return isNotNil(value) ? value : null;

@@ -2,7 +2,7 @@ import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
 import {EntityUtils, fillRankOrder, fromDateISOString, isNil, Operation, PhysicalGear, Trip} from "./trip.model";
 import {
-  EditorDataService,
+  EditorDataService, EditorDataServiceLoadOptions,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
@@ -45,6 +45,7 @@ import {ValidatorService} from "angular4-material-table";
 import {LandingValidatorService} from "./landing.validator";
 import {DataRootEntityValidatorService} from "./validator/base.validator";
 import {AcquisitionLevelType, ProgramProperties} from "../../referential/services/model";
+import {ReferentialFragments} from "../../referential/services/referential.queries";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -155,6 +156,9 @@ export const TripFragments = {
     observers {
       ...LightPersonFragment
     }
+    metiers {
+      ...LightMetierFragment
+    }
   }
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
@@ -163,6 +167,7 @@ export const TripFragments = {
   ${Fragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${physicalGearFragment}
+  ${Fragments.lightMetier}
   `
 };
 
@@ -255,8 +260,8 @@ const LoadQuery: any = gql`
   ${TripFragments.trip}
 `;
 const SaveAllQuery: any = gql`
-  mutation saveTrips($trips:[TripVOInput], $withOperation: Boolean!){
-    saveTrips(trips: $trips, withOperation: $withOperation){
+  mutation saveTrips($trips:[TripVOInput], $withOperation: Boolean!, $withMetier: Boolean!){
+    saveTrips(trips: $trips, withOperation: $withOperation, withMetier: $withMetier){
       ...TripFragment
     }
   }
@@ -411,7 +416,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       );
   }
 
-  async load(id: number, options?: {fetchPolicy: FetchPolicy}): Promise<Trip | null> {
+  async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Trip | null> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = this._debug && Date.now();
@@ -526,11 +531,13 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
   /**
    * Save a trip
-   * @param data
+   * @param entity
+   * @param opts
    */
-  async save(entity: Trip, opts?: {withOperation?: boolean;}): Promise<Trip> {
+  async save(entity: Trip, opts?: {withOperation?: boolean; withMetier?: boolean}): Promise<Trip> {
 
     const withOperation = toBoolean(opts && opts.withOperation, false);
+    const withMetier = toBoolean(opts && opts.withMetier, false);
 
     const now = Date.now();
     if (this._debug) console.debug("[trip-service] Saving a trip...", entity);
@@ -585,7 +592,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
        mutation: SaveAllQuery,
        variables: {
          trips: [json],
-         withOperation
+         withOperation,
+         withMetier
        },
        offlineResponse,
        error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" },
@@ -614,7 +622,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
                  await this.operationService.deleteLocallyByTripId(entity.id);
                }
              }
-             catch(err) {
+             catch (err) {
                console.error(`[trip-service] Failed to locally delete operations of trip {${entity.id}}`, err);
              }
            }
@@ -626,13 +634,13 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
            // Add to cache
            if (isNew && this._lastVariables.loadAll) {
-             this.graphql.addToQueryCache(proxy,{
+             this.graphql.addToQueryCache(proxy, {
                query: LoadAllQuery,
                variables: this._lastVariables.loadAll
              }, 'trips', savedEntity);
            }
            else if (this._lastVariables.load) {
-             this.graphql.updateToQueryCache(proxy,{
+             this.graphql.updateToQueryCache(proxy, {
                query: LoadQuery,
                variables: this._lastVariables.load
              }, 'trip', savedEntity);
@@ -1078,7 +1086,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     // Copy the operations
     if (opts && opts.withOperations) {
-      const res = await this.operationService.watchAll(0,1000, null, null, {
+      const res = await this.operationService.watchAll(0, 1000, null, null, {
         tripId: id
       }, {
         fetchPolicy: "network-only"

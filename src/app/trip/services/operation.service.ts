@@ -351,7 +351,7 @@ export class OperationService extends BaseDataService
   public listenChanges(id: number): Observable<Operation> {
     if (isNil(id)) throw new Error("Missing argument 'id' ");
 
-    if (this._debug) console.debug(`[operation-service] [WS] Listening changes for trip {${id}}...`);
+    if (this._debug) console.debug(`[operation-service] [WS] Listening changes for operation {${id}}...`);
 
     return this.graphql.subscribe<{ updateOperation: Operation }, { id: number, interval: number }>({
       query: UpdateSubscription,
@@ -534,7 +534,7 @@ export class OperationService extends BaseDataService
       .map(t => t.id)
       .filter(id => id < 0);
     if (isNotEmptyArray(localIds)) {
-      if (this._debug) console.debug("[trip-service] Deleting trips locally... ids:", localIds);
+      if (this._debug) console.debug("[operation-service] Deleting trips locally... ids:", localIds);
       await this.entities.deleteMany<Operation>(localIds, 'OperationVO');
     }
 
@@ -567,7 +567,7 @@ export class OperationService extends BaseDataService
 
   /**
    * Save many operations
-   * @param entities
+   * @param tripId
    */
   async deleteLocallyByTripId(tripId: number): Promise<any> {
     if (tripId >= 0) throw new Error('Invalid tripId: must be a local trip (id<0)!');

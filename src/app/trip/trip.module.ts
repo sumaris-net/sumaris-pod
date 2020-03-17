@@ -69,6 +69,12 @@ import {ReferentialModule} from "../referential/referential.module";
 import {SampleForm} from "./sample/sample.form";
 import {SampleModal} from "./sample/sample.modal";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
+import {LandedTripPage} from "./landedtrip/landed-trip.page";
+import {OperationGroupTable} from "./operationgroup/operation-groups.table";
+import {OperationGroupForm} from "./operationgroup/operation-group.form";
+import {OperationGroupPage} from "./operationgroup/operation-group.page";
+import {OperationGroupService} from "./services/operation-group.service";
+import {OperationGroupValidatorService} from "./services/operation-group.validator";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -119,7 +125,11 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     IndividualMonitoringSubSamplesTable,
     AuctionControlPage,
     EntityQualityFormComponent,
-    SelectVesselsModal
+    SelectVesselsModal,
+    LandedTripPage,
+    OperationGroupTable,
+    OperationGroupPage,
+    OperationGroupForm
   ],
   exports: [
     TripTable,
@@ -173,6 +183,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     PhysicalGearValidatorService,
     OperationService,
     OperationValidatorService,
+    OperationGroupService,
+    OperationGroupValidatorService,
     ObservedLocationService,
     ObservedLocationValidatorService,
     LandingService,

@@ -10,7 +10,13 @@ import {
   Person,
   ReferentialRef
 } from "./base.model";
-import {IEntityWithMeasurement, Measurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
+import {
+  IEntityWithMeasurement,
+  Measurement, MeasurementFormValues,
+  MeasurementModelValues,
+  MeasurementUtils,
+  MeasurementValuesUtils
+} from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
@@ -21,7 +27,9 @@ import {isEmptyArray} from "../../../shared/functions";
 
 /* -- Helper function -- */
 
-const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => { return n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1); };
+const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => {
+  return n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
+};
 
 /* -- Data -- */
 
@@ -44,6 +52,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   gears: PhysicalGear[];
   measurements: Measurement[];
   observers: Person[];
+  metiers: MetierRef[];
   operations?: Operation[];
 
   constructor() {
@@ -53,6 +62,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.returnLocation = null;
     this.measurements = [];
     this.observers = [];
+    this.metiers = [];
   }
 
   clone(): Trip {
@@ -69,12 +79,13 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     const target = super.asObject(options);
     target.departureDateTime = toDateISOString(this.departureDateTime);
     target.returnDateTime = toDateISOString(this.returnDateTime);
-    target.departureLocation = this.departureLocation && this.departureLocation.asObject({...options, ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.returnLocation = this.returnLocation && this.returnLocation.asObject({...options, ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.departureLocation = this.departureLocation && this.departureLocation.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
+    target.returnLocation = this.returnLocation && this.returnLocation.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
     target.sale = this.sale && this.sale.asObject(options) || undefined;
     target.gears = this.gears && this.gears.map(p => p && p.asObject(options)) || undefined;
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
-    target.observers = this.observers && this.observers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.observers = this.observers && this.observers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
+    target.metiers = this.metiers && this.metiers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
     target.operations = this.operations && this.operations.map(o => o.asObject(options)) || undefined;
     return target;
   }
@@ -93,6 +104,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
+    this.metiers = source.metiers && source.metiers.map(MetierRef.fromObject) || [];
 
     // Remove fake dates (e.g. if returnDateTime = departureDateTime)
     if (this.returnDateTime && this.returnDateTime.isSameOrBefore(this.departureDateTime)) {
@@ -155,7 +167,7 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
     target.rankOrder = this.rankOrder;
 
     // Measurements
-    target.measurementValues = MeasurementValuesUtils.asObject( this.measurementValues, opts);
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
     if (isEmptyArray(target.measurements)) delete target.measurements;
 
     return target;
@@ -228,7 +240,7 @@ export class Operation extends DataEntity<Operation> {
     return target;
   }
 
-  asObject(opts?: DataEntityAsObjectOptions & {batchAsTree?: boolean}): any {
+  asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
     const target = super.asObject(opts);
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
@@ -241,7 +253,7 @@ export class Operation extends DataEntity<Operation> {
       target.endPosition.dateTime = target.endPosition.dateTime || target.fishingEndDateTime || target.endDateTime;
     }
 
-    target.metier = this.metier && this.metier.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/ } as ReferentialAsObjectOptions) || undefined;
+    target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/} as ReferentialAsObjectOptions) || undefined;
 
     // Create an array of position, instead of start/end
     target.positions = [this.startPosition, this.endPosition]
@@ -255,10 +267,9 @@ export class Operation extends DataEntity<Operation> {
       // Existing gear: keep only the id
       target.physicalGearId = this.physicalGear && this.physicalGear.id;
       delete target.physicalGear;
-    }
-    else if (this.physicalGear){
+    } else if (this.physicalGear) {
       // Not minify or local physical gear (id < 0)
-      target.physicalGear = this.physicalGear.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/ });
+      target.physicalGear = this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
       delete target.physicalGear.measurementValues;
     }
 
@@ -301,8 +312,7 @@ export class Operation extends DataEntity<Operation> {
       this.startPosition = source.startPosition && VesselPosition.fromObject(source.startPosition);
       this.endPosition = source.endPosition && VesselPosition.fromObject(source.endPosition);
       this.positions = undefined;
-    }
-    else if (source.positions) {
+    } else if (source.positions) {
       const positions = source.positions.map(VesselPosition.fromObject).sort(sortByDateTimeFn) || undefined;
       if (positions.length >= 1 && positions.length <= 2) {
         this.startPosition = positions[0];
@@ -310,8 +320,7 @@ export class Operation extends DataEntity<Operation> {
           this.endPosition = positions.pop(); // last
         }
         this.positions = undefined;
-      }
-      else {
+      } else {
         this.startPosition = undefined;
         this.endPosition = undefined;
         this.positions = positions;
@@ -346,9 +355,129 @@ export class Operation extends DataEntity<Operation> {
   equals(other: Operation): boolean {
     return super.equals(other)
       || ((this.startDateTime === other.startDateTime
-        || (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime))
+          || (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime))
         && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
       );
+  }
+}
+
+export class OperationGroup extends DataEntity<OperationGroup> {
+
+  static TYPENAME = 'OperationGroupVO';
+
+  static fromObject(source: any): OperationGroup {
+    const res = new OperationGroup();
+    res.fromObject(source);
+    return res;
+  }
+
+  comments: string;
+  rankOrderOnPeriod: number;
+  hasCatch: boolean;
+
+  metier: MetierRef;
+  physicalGear: PhysicalGear;
+  tripId: number;
+  trip: Trip;
+
+  measurements: Measurement[];
+  gearMeasurements: Measurement[];
+
+  measurementValues: MeasurementModelValues | MeasurementFormValues;
+  measurementValuesDistribution: { [key: string]: number[] }; // key as 'measurements', 'gearMeasurements', 'physicalGearMeasurements'
+
+  catchBatch: Batch;
+
+  // TODO products: any[];
+
+  constructor() {
+    super();
+    this.__typename = 'OperationVO';
+    this.metier = null;
+    this.physicalGear = null;
+    this.catchBatch = null;
+    this.measurements = [];
+    this.gearMeasurements = [];
+  }
+
+  clone(): OperationGroup {
+    const target = new OperationGroup();
+    target.fromObject(this.asObject());
+    return target;
+  }
+
+  asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
+    const target = super.asObject(opts);
+
+    target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/} as ReferentialAsObjectOptions) || undefined;
+
+    // Physical gear
+    if (opts && opts.minify && this.physicalGear && this.physicalGear.id >= 0) {
+      // Existing gear: keep only the id
+      target.physicalGearId = this.physicalGear && this.physicalGear.id;
+      delete target.physicalGear;
+    } else if (this.physicalGear) {
+      // Not minify or local physical gear (id < 0)
+      target.physicalGear = this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
+      delete target.physicalGear.measurementValues;
+    }
+
+    // Measurements
+    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
+    target.gearMeasurements = this.gearMeasurements && this.gearMeasurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
+
+    // Batch
+    if (target.catchBatch) {
+      // Serialize batches in tree (will keep only children arrays, and removed parentId and parent)
+      if (!opts || opts.batchAsTree !== false) {
+        target.catchBatch = this.catchBatch && this.catchBatch.asObject(opts) || undefined;
+      }
+      // Serialize as batches array (this will fill parentId, and remove children and parent properties)
+      else {
+        target.batches = Batch.treeAsObjectArray(target.catchBatch, opts);
+        delete target.catchBatch;
+      }
+    }
+
+    return target;
+  }
+
+  fromObject(source: any): OperationGroup {
+    super.fromObject(source);
+    this.hasCatch = source.hasCatch;
+    this.comments = source.comments;
+    this.tripId = source.tripId;
+    this.rankOrderOnPeriod = source.rankOrderOnPeriod;
+    this.metier = source.metier && MetierRef.fromObject(source.metier, true/*Copy taxonGroup label/name*/) || undefined;
+    this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
+
+    // Measurements
+    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
+    this.gearMeasurements = source.gearMeasurements && source.gearMeasurements.map(Measurement.fromObject) || [];
+
+    this.measurementValues = {
+      ...MeasurementUtils.toMeasurementValues(this.measurements),
+      ...MeasurementUtils.toMeasurementValues(this.gearMeasurements),
+      ...this.physicalGear.measurementValues
+    };
+    if (Object.keys(this.measurementValues).length === 0) {
+      console.warn("Source as no measurement. Should never occur ! ", source);
+    }
+
+    // Batches
+    this.catchBatch = source.catchBatch && !source.batches ?
+      // Reuse existing catch batch (useful for local entity)
+      Batch.fromObject(source.catchBatch, {withChildren: true}) :
+      // Convert list to tree (useful when fetching from a pod)
+      Batch.fromObjectArrayAsTree(source.batches);
+
+    return this;
+  }
+
+  equals(other: OperationGroup): boolean {
+    return super.equals(other)
+      && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
+      ;
   }
 }
 
