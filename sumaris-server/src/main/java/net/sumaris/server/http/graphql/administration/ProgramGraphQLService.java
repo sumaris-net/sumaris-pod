@@ -31,6 +31,7 @@ import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
@@ -41,7 +42,6 @@ import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,8 +151,8 @@ public class ProgramGraphQLService {
     protected StrategyFetchOptions getFetchOptions(Set<String> fields) {
         return StrategyFetchOptions.builder()
                 .withPmfmStrategyInheritance(
-                        fields.contains(Strategy.Fields.PMFM_STRATEGIES + "/" + PmfmStrategyVO.Fields.LABEL)
-                        && !fields.contains(Strategy.Fields.PMFM_STRATEGIES + "/" + PmfmStrategyVO.Fields.PMFM)
+                        fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.LABEL))
+                        && !fields.contains(StringUtils.slashing(Strategy.Fields.PMFM_STRATEGIES, PmfmStrategyVO.Fields.PMFM))
                 )
                 .build();
     }

@@ -31,6 +31,7 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.PmfmService;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
@@ -241,11 +242,12 @@ public class DataGraphQLService {
     @IsUser
     public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip,
                            @GraphQLArgument(name = "withOperation", defaultValue = "false") boolean withOperation,
+                           @GraphQLArgument(name = "withMetier", defaultValue = "false") boolean withMetier,
                            @GraphQLEnvironment() Set<String> fields) {
         final TripVO result = tripService.save(trip,
             TripSaveOptions.builder()
                 .withOperations(withOperation)
-                .withMetiers(hasMetiersField(fields))
+                .withMetiers(withMetier)
                 .build());
 
         // Add additional properties if needed
@@ -258,10 +260,11 @@ public class DataGraphQLService {
     @IsUser
     public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips,
                                   @GraphQLArgument(name = "withOperation", defaultValue = "false") boolean withOperation,
+                                  @GraphQLArgument(name = "withMetier", defaultValue = "false") boolean withMetier,
                                   @GraphQLEnvironment() Set<String> fields) {
         final List<TripVO> result = tripService.save(trips, TripSaveOptions.builder()
             .withOperations(withOperation)
-            .withMetiers(hasMetiersField(fields))
+            .withMetiers(withMetier)
             .build());
 
         // Add additional properties if needed
@@ -957,18 +960,18 @@ public class DataGraphQLService {
     }
 
     protected boolean hasImageField(Set<String> fields) {
-        return fields.contains(TripVO.Fields.RECORDER_DEPARTMENT + '/' + DepartmentVO.Fields.LOGO) ||
-                fields.contains(TripVO.Fields.RECORDER_PERSON + '/' + PersonVO.Fields.AVATAR);
+        return fields.contains(StringUtils.slashing(TripVO.Fields.RECORDER_DEPARTMENT, DepartmentVO.Fields.LOGO))
+            || fields.contains(StringUtils.slashing(TripVO.Fields.RECORDER_PERSON, PersonVO.Fields.AVATAR));
     }
 
     protected boolean hasVesselFeaturesField(Set<String> fields) {
-        return fields.contains(TripVO.Fields.VESSEL_SNAPSHOT + '/' + VesselSnapshotVO.Fields.EXTERIOR_MARKING)
-                || fields.contains(TripVO.Fields.VESSEL_SNAPSHOT + '/' + VesselSnapshotVO.Fields.NAME);
+        return fields.contains(StringUtils.slashing(TripVO.Fields.VESSEL_SNAPSHOT, VesselSnapshotVO.Fields.EXTERIOR_MARKING))
+            || fields.contains(StringUtils.slashing(TripVO.Fields.VESSEL_SNAPSHOT, VesselSnapshotVO.Fields.NAME));
     }
 
     protected boolean hasMetiersField(Set<String> fields) {
-        return fields.contains(TripVO.Fields.METIERS + '/' + ReferentialVO.Fields.ID)
-            || fields.contains(TripVO.Fields.METIERS + '/' + ReferentialVO.Fields.LABEL);
+        return fields.contains(StringUtils.slashing(TripVO.Fields.METIERS, ReferentialVO.Fields.ID))
+            || fields.contains(StringUtils.slashing(TripVO.Fields.METIERS, ReferentialVO.Fields.LABEL));
     }
 
     protected <T extends IRootDataVO<?>> List<T> fillImages(final List<T> results) {
@@ -1044,9 +1047,9 @@ public class DataGraphQLService {
 
     protected DataFetchOptions getFetchOptions(Set<String> fields) {
         return DataFetchOptions.builder()
-                .withObservers(fields.contains(IWithObserversEntity.Fields.OBSERVERS + "/" + IEntity.Fields.ID))
-                .withRecorderDepartment(fields.contains(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT + "/" + IEntity.Fields.ID))
-                .withRecorderPerson(fields.contains(IWithRecorderPersonEntity.Fields.RECORDER_PERSON + "/" + IEntity.Fields.ID))
+                .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
+                .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+                .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 .build();
     }
 }

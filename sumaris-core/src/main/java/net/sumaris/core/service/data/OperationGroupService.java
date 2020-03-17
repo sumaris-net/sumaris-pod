@@ -27,6 +27,7 @@ import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -41,13 +42,16 @@ public interface OperationGroupService {
 	@Transactional(readOnly = true)
 	List<MetierVO> getMetiersByTripId(int tripId);
 
-	List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers);
 
 	@Transactional(readOnly = true)
 	List<OperationGroupVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	@Transactional(readOnly = true)
 	OperationGroupVO get(int id);
+
+	List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers);
+
+	void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate);
 
 	OperationGroupVO save(OperationGroupVO operation);
 

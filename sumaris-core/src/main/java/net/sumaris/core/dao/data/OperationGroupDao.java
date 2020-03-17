@@ -26,6 +26,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.referential.MetierVO;
 
+import java.util.Date;
 import java.util.List;
 
 public interface OperationGroupDao {
@@ -44,6 +45,8 @@ public interface OperationGroupDao {
     List<MetierVO> getMetiersByTripId(int tripId);
 
     List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers);
+
+    void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate);
 
     /**
      * Get operation groups

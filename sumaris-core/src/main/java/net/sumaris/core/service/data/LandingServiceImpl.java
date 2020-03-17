@@ -29,10 +29,17 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.LandingRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.LandingMeasurement;
+import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.LandingVO;
+import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.SampleVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -41,7 +48,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -76,6 +82,11 @@ public class LandingServiceImpl implements LandingService {
 	@Override
 	public List<LandingVO> findAll(LandingFilterVO filter, int offset, int size, String sortAttribute,
                                    SortDirection sortDirection, DataFetchOptions fetchOptions) {
+
+		// LP test: sorting by 'vessel' will sort by registration code
+		if (Landing.Fields.VESSEL.equals(sortAttribute)) {
+			sortAttribute = StringUtils.doting(Landing.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE);
+		}
 
 		return landingRepository.findAll(filter, offset, size, sortAttribute, sortDirection, fetchOptions)
 				.stream().collect(Collectors.toList());

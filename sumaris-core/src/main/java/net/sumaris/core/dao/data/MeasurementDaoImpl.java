@@ -39,6 +39,7 @@ import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.referential.ParameterValueType;
@@ -46,7 +47,6 @@ import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,7 +137,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getTripVesselUseMeasurementsMap(int tripId) {
         return getMeasurementsMapByParentId(VesselUseMeasurement.class,
                 VesselUseMeasurement.Fields.TRIP,
@@ -165,7 +164,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<MeasurementVO> getOperationVesselUseMeasurements(int operationId) {
         return getMeasurementsByParentId(VesselUseMeasurement.class,
                 VesselUseMeasurement.Fields.OPERATION,
@@ -175,7 +173,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getOperationVesselUseMeasurementsMap(int operationId) {
         return getMeasurementsMapByParentId(VesselUseMeasurement.class,
                 VesselUseMeasurement.Fields.OPERATION,
@@ -194,7 +191,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<MeasurementVO> getOperationGearUseMeasurements(int operationId) {
         return getMeasurementsByParentId(GearUseMeasurement.class,
                 GearUseMeasurement.Fields.OPERATION,
@@ -204,7 +200,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<MeasurementVO> getSampleMeasurements(int sampleId) {
         return getMeasurementsByParentId(SampleMeasurement.class,
                 SampleMeasurement.Fields.SAMPLE,
@@ -223,7 +218,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getSampleMeasurementsMap(int sampleId) {
         return getMeasurementsMapByParentId(SampleMeasurement.class,
                 SampleMeasurement.Fields.SAMPLE,
@@ -233,7 +227,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getBatchSortingMeasurementsMap(int batchId) {
         return getMeasurementsMapByParentId(BatchSortingMeasurement.class,
                 BatchSortingMeasurement.Fields.BATCH,
@@ -243,7 +236,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId) {
         return getMeasurementsMapByParentId(BatchQuantificationMeasurement.class,
                 BatchQuantificationMeasurement.Fields.BATCH,
@@ -253,7 +245,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getObservedLocationMeasurementsMap(int observedLocationId) {
         return getMeasurementsMapByParentId(ObservedLocationMeasurement.class,
                 ObservedLocationMeasurement.Fields.OBSERVED_LOCATION,
@@ -264,7 +255,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getLandingMeasurementsMap(int landingId) {
         return getMeasurementsMapByParentId(LandingMeasurement.class,
                 LandingMeasurement.Fields.LANDING,
@@ -274,7 +264,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<MeasurementVO> getLandingMeasurements(int landingId) {
         return getMeasurementsByParentId(LandingMeasurement.class,
                 LandingMeasurement.Fields.LANDING,
@@ -550,7 +539,8 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return classname;
     }
 
-    protected <T extends IDataEntity> Class<T> getEntityClass(T source) {
+    @SuppressWarnings("unchecked")
+    protected <T extends IDataEntity<?>> Class<T> getEntityClass(T source) {
         String classname = source.getClass().getName();
         int index = classname.indexOf("$HibernateProxy");
         if (index > 0) {
@@ -577,7 +567,8 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
         // Remember existing measurements, to be able to remove unused measurements
         // note: Need Beans.getList() to avoid NullPointerException if target=null
-        final Map<Integer, T> sourceToRemove = Beans.splitByProperty(Beans.getList(target), IMeasurementEntity.Fields.PMFM + "." + IMeasurementEntity.Fields.ID);
+        final Map<Integer, T> sourceToRemove = Beans.splitByProperty(Beans.getList(target),
+            StringUtils.doting(IMeasurementEntity.Fields.PMFM, IMeasurementEntity.Fields.ID));
 
         int rankOrder = 1;
         for (Map.Entry<Integer, String> source: sources.entrySet()) {
@@ -805,7 +796,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         ParameterValueType type = ParameterValueType.fromPmfm(pmfm);
         switch (type) {
             case BOOLEAN:
-                return (source.getNumericalValue() != null && source.getNumericalValue().doubleValue() == 1d ? Boolean.TRUE : Boolean.FALSE);
+                return (source.getNumericalValue() != null && source.getNumericalValue() == 1d ? Boolean.TRUE : Boolean.FALSE);
             case QUALITATIVE_VALUE:
                 // If get a object structure (e.g. ReferentialVO), try to get the id
                 return ((source.getQualitativeValue() != null && source.getQualitativeValue().getId() != null) ? source.getQualitativeValue().getId() : null);
@@ -813,7 +804,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
             case DATE:
                 return source.getAlphanumericalValue();
             case INTEGER:
-                return ((source.getNumericalValue() != null) ? new Integer(source.getNumericalValue().intValue()) : null);
+                return ((source.getNumericalValue() != null) ? source.getNumericalValue().intValue() : null);
             case DOUBLE:
                 return source.getNumericalValue();
             default:

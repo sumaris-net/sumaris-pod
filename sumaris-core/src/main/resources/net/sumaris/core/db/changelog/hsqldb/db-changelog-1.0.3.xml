@@ -27,8 +27,17 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.0.3.xml">
 
-
-
+  <!-- add LANDING.RANK_ORDER_ON_VESSEL -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-1">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="LANDING" columnName="RANK_ORDER_ON_VESSEL"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="LANDING">
+      <column name="RANK_ORDER_ON_VESSEL" type="INTEGER"/>
+    </addColumn>
+  </changeSet>
 
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1583765897706-200" runOnChange="true">

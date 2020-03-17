@@ -10,12 +10,12 @@ package net.sumaris.core.model.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -39,13 +39,34 @@ import java.util.List;
 @Entity
 @Table(name = "operation")
 @Cacheable
+@NamedQueries({
+    @NamedQuery(name = "Operation.updateUndefinedOperationDates",
+        query = "UPDATE Operation o\n" +
+            "SET\n" +
+            "  o.startDateTime = :startDateTime,\n" +
+            "  o.fishingStartDateTime = :startDateTime,\n" +
+            "  o.endDateTime = :endDateTime,\n" +
+            "  o.fishingEndDateTime = :endDateTime\n" +
+            "WHERE o.id IN (\n" +
+            "   SELECT o2.id\n" +
+            "   FROM Operation o2\n" +
+            "   INNER JOIN o2.trip ft\n" +
+            "   WHERE ft.id = :tripId\n" +
+            "   AND o2.startDateTime = ft.departureDateTime\n" +
+            "   AND o2.endDateTime = ft.returnDateTime\n" +
+            "   AND (o2.startDateTime != :startDateTime\n" +
+            "       OR o2.fishingStartDateTime != :startDateTime\n" +
+            "       OR o2.endDateTime != :endDateTime\n" +
+            "       OR o2.fishingEndDateTime != :endDateTime)\n" +
+            ")")
+})
 public class Operation implements IDataEntity<Integer>,
-        IWithSamplesEntity<Integer, Sample>,
-        IWithBatchesEntity<Integer, Batch> {
+    IWithSamplesEntity<Integer, Sample>,
+    IWithBatchesEntity<Integer, Batch> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OPERATION_SEQ")
-    @SequenceGenerator(name = "OPERATION_SEQ", sequenceName="OPERATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @SequenceGenerator(name = "OPERATION_SEQ", sequenceName = "OPERATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "update_date")
@@ -59,15 +80,15 @@ public class Operation implements IDataEntity<Integer>,
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
-    @Column(name="control_date")
+    @Column(name = "control_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;
 
-    @Column(name="qualification_date")
+    @Column(name = "qualification_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Column(name="qualification_comments", length = LENGTH_COMMENTS)
+    @Column(name = "qualification_comments", length = LENGTH_COMMENTS)
     private String qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)
@@ -108,7 +129,6 @@ public class Operation implements IDataEntity<Integer>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPosition.class, mappedBy = VesselPosition.Fields.OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselPosition> positions = new ArrayList<>();
-
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.Fields.OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)

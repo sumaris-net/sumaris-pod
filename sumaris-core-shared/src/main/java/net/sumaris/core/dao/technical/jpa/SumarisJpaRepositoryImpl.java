@@ -23,7 +23,6 @@ package net.sumaris.core.dao.technical.jpa;
  */
 
 import com.querydsl.jpa.impl.JPAQuery;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -31,6 +30,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -39,7 +39,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
-import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -47,7 +46,6 @@ import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Arrays;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -99,8 +97,8 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
      *
      * @param clazz a {@link Class} object.
      * @param id a {@link Serializable} object.
-     * @param <T> a T object.
-     * @return a T object.
+     * @param <C> a C object.
+     * @return a C object.
      */
     @SuppressWarnings("unchecked")
     public <C extends Serializable> C get(Class<? extends C> clazz, Serializable id) {
@@ -112,9 +110,9 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
      *
      * @param clazz a {@link Class} object.
      * @param id a {@link Serializable} object.
-     * @param lockOptions a {@link LockOptions} object.
-     * @param <T> a T object.
-     * @return a T object.
+     * @param lockModeType a {@link LockOptions} object.
+     * @param <C> a C object.
+     * @return a C object.
      */
     @SuppressWarnings("unchecked")
     public <C extends Serializable> C get(Class<? extends C> clazz, Serializable id, LockModeType lockModeType) {
@@ -129,15 +127,21 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
         return entityManager;
     }
 
+    protected Session getSession() {
+        return (Session) getEntityManager().getDelegate();
+    }
+
+    protected SessionFactoryImplementor getSessionFactory() {
+        return (SessionFactoryImplementor) getSession().getSessionFactory();
+    }
+
     protected Timestamp getDatabaseCurrentTimestamp() {
 
         if (dataSource == null) return new Timestamp(System.currentTimeMillis());
 
         try {
-            final Dialect dialect = Dialect.getDialect(SumarisConfiguration.getInstance().getConnectionProperties());
-            final String sql = dialect.getCurrentTimestampSelectString();
-            Object r = Daos.sqlUnique(dataSource, sql);
-            return Daos.toTimestampFromJdbcResult(r);
+            final Dialect dialect = getSessionFactory().getJdbcServices().getDialect();
+            return Daos.getDatabaseCurrentTimestamp(dataSource, dialect);
         } catch (DataAccessResourceFailureException | SQLException e) {
             throw new SumarisTechnicalException(e);
         }

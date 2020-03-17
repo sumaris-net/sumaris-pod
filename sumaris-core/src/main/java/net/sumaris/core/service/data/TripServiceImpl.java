@@ -127,6 +127,11 @@ public class TripServiceImpl implements TripService {
 
         boolean isNew = source.getId() == null;
 
+        // Update undefined operations (=metiers) on existing trip, dates can be changed
+        if (!isNew && saveOptions.isWithMetiers()) {
+            operationGroupService.updateUndefinedOperationDates(source.getId(), source.getDepartureDateTime(), source.getReturnDateTime());
+        }
+
         // Save
         TripVO savedTrip = tripDao.save(source);
 

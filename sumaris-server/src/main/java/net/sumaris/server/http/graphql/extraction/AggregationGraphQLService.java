@@ -37,6 +37,7 @@ import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
 import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
 import net.sumaris.server.http.geojson.extraction.GeoJsonExtractions;
@@ -148,8 +149,8 @@ public class AggregationGraphQLService {
 
     protected ProductFetchOptions getFetchOptions(Set<String> fields) {
         return ProductFetchOptions.builder()
-                .withRecorderDepartment(fields.contains(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT + "/" + IEntity.Fields.ID))
-                .withRecorderPerson(fields.contains(IWithRecorderPersonEntity.Fields.RECORDER_PERSON + "/" + IEntity.Fields.ID))
+                .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+                .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 // Tables (=sheets)
                 .withTables(fields.contains(AggregationTypeVO.PROPERTY_SHEET_NAMES))
                 // Columns not need

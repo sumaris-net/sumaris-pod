@@ -103,6 +103,9 @@ public class Landing implements IRootDataEntity<Integer>,
     @Column(name = "rank_order")
     private Integer rankOrder;
 
+    @Column(name = "rank_order_on_vessel")
+    private Integer rankOrderOnVessel;
+
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;

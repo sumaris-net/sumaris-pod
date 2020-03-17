@@ -11,12 +11,15 @@ import net.sumaris.core.model.data.GearUseMeasurement;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.BatchVO;
+import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -53,6 +56,15 @@ public class OperationGroupServiceImpl implements OperationGroupService {
         Preconditions.checkNotNull(metiers);
 
         return operationGroupDao.saveMetiersByTripId(tripId, metiers);
+    }
+
+    @Override
+    public void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate) {
+
+        Preconditions.checkNotNull(startDate);
+        Preconditions.checkNotNull(endDate);
+
+        operationGroupDao.updateUndefinedOperationDates(tripId, startDate, endDate);
     }
 
     @Override

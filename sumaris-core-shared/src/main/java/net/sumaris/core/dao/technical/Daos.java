@@ -961,10 +961,14 @@ public class Daos {
     public static Object sqlUniqueTimestamp(DataSource dataSource, String sql) throws DataAccessResourceFailureException {
         Connection connection = DataSourceUtils.getConnection(dataSource);
         try {
-            return sqlUnique(connection, sql, true);
+            return sqlUniqueTimestamp(connection, sql);
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }
+    }
+
+    public static Object sqlUniqueTimestamp(Connection connection, String sql) throws DataAccessResourceFailureException {
+        return sqlUnique(connection, sql, true);
     }
 
     /**
@@ -1453,7 +1457,13 @@ public class Daos {
      */
     public static Timestamp getDatabaseCurrentTimestamp(Connection connection, Dialect dialect) throws SQLException {
         final String sql = dialect.getCurrentTimestampSelectString();
-        Object result = Daos.sqlUniqueTyped(connection, sql);
+        Object result = Daos.sqlUniqueTimestamp(connection, sql);
+        return toTimestampFromJdbcResult(result);
+    }
+
+    public static Timestamp getDatabaseCurrentTimestamp(DataSource dataSource, Dialect dialect) throws SQLException {
+        final String sql = dialect.getCurrentTimestampSelectString();
+        Object result = Daos.sqlUniqueTimestamp(dataSource, sql);
         return toTimestampFromJdbcResult(result);
     }
 

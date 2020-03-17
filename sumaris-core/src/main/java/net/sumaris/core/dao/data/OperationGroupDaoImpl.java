@@ -48,10 +48,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository("operationGroupDao")
@@ -175,10 +172,29 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
 
         // Remove unused entities
         if (CollectionUtils.isNotEmpty(groupsByMetierId.values())) {
-            groupsByMetierId.values().forEach(this::delete);
+            groupsByMetierId.values().stream().map(OperationGroupVO::getId).forEach(this::delete);
         }
 
         return sources;
+    }
+
+    @Override
+    public void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate) {
+
+        int nbRowUpdated = getEntityManager()
+            .createNamedQuery("Operation.updateUndefinedOperationDates")
+            .setParameter("tripId", tripId)
+            .setParameter("startDateTime", startDate)
+            .setParameter("endDateTime", endDate)
+            .executeUpdate();
+
+        if (log.isDebugEnabled() && nbRowUpdated > 0) {
+            log.debug(String.format("%s undefined operations updated for trip is=%s", nbRowUpdated, tripId));
+        }
+
+        // This is need to make sure next load will have the good dates
+        getEntityManager().flush();
+        getEntityManager().clear();
     }
 
     @Override

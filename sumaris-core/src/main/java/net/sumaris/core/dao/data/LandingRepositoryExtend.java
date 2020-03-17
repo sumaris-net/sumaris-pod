@@ -48,6 +48,11 @@ public interface LandingRepositoryExtend extends IEntityConverter<Landing, Landi
         return (root, query, cb) -> cb.equal(root.get(Landing.Fields.LOCATION).get(IEntity.Fields.ID), locationId);
     }
 
+    default Specification<Landing> hasVesselId(Integer vesselId) {
+        if (vesselId == null) return null;
+        return (root, query, cb) -> cb.equal(root.get(Landing.Fields.VESSEL).get(IEntity.Fields.ID), vesselId);
+    }
+
     default Specification<Landing> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {

@@ -22,10 +22,6 @@ package net.sumaris.core.util;
  * #L%
  */
 
-import org.hibernate.boot.model.naming.Identifier;
-
-import java.util.regex.Pattern;
-
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
@@ -63,5 +59,13 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         String regex = "([a-z])([A-Z])";
         String replacement = "$1_$2";
         return value.replaceAll(regex, replacement).toLowerCase();
+    }
+
+    public static String doting(String... strings) {
+        return join(strings, '.');
+    }
+
+    public static String slashing(String... strings) {
+        return join(strings, '/');
     }
 }
