@@ -26,12 +26,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import net.sumaris.core.dao.referential.ReferentialDaoImpl;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.rdf.model.ModelDomain;
+import net.sumaris.rdf.model.ModelVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,6 @@ import javax.persistence.TypedQuery;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Repository("rdfModelDao")
@@ -63,7 +63,9 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
     protected ReferentialDaoImpl referentialDao;
 
     @Override
-    public <T> T getById(ModelDomain domain, String className, Class<T> aClass, Serializable id) {
+    public <T> T getById(ModelVocabulary domain, String className, Class<T> aClass, Serializable id) {
+        Preconditions.checkNotNull(id);
+
         String hql = getSelectHqlQuery(domain, className);
 
         // When using fetch join, stream are not supported, so use a list
@@ -77,6 +79,12 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
             hql += " where id=:id";
         }
 
+        try {
+            id = Integer.valueOf(id.toString());
+        }
+        catch (NumberFormatException t) {/*continue*/}
+
+
         TypedQuery<T> typedQuery = entityManager.createQuery(hql, aClass)
                 .setParameter("id", id)
                 .setMaxResults(1);
@@ -85,7 +93,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
     }
 
     @Override
-    public <T> Stream<T> streamAll(ModelDomain domain, String className, Class<T> aClass) {
+    public <T> Stream<T> streamAll(ModelVocabulary domain, String className, Class<T> aClass) {
 
         String hql = getSelectHqlQuery(domain, className);
         TypedQuery<T> typedQuery = entityManager.createQuery(hql, aClass)
@@ -101,7 +109,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
     }
 
     @Override
-    public Set<String> getClassNamesByDomain(ModelDomain domain) {
+    public Set<String> getClassNamesByDomain(ModelVocabulary domain) {
         Preconditions.checkNotNull(domain);
         Multimap<String, String> classNamesByRootClass;
         switch (domain) {
@@ -118,7 +126,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
     }
 
     @Override
-    public Set<String> getClassNamesByRootClass(@Nullable ModelDomain domain, String className) {
+    public Set<String> getClassNamesByRootClass(@Nullable ModelVocabulary domain, String className) {
         Preconditions.checkNotNull(className);
         domain = domain != null ? domain : getDomainByClassName(className);
         switch (domain) {
@@ -132,24 +140,24 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
     }
 
     @Override
-    public ModelDomain getDomainByClassName(String className) {
+    public ModelVocabulary getDomainByClassName(String className) {
         Preconditions.checkNotNull(className);
         if (referentialClassNamesByRootClass.containsKey(className.toLowerCase())) {
-            return ModelDomain.REFERENTIAL;
+            return ModelVocabulary.REFERENTIAL;
         }
         else if (dataClassNamesByRootClass.containsKey(className.toLowerCase())) {
-            return ModelDomain.DATA;
+            return ModelVocabulary.DATA;
         }
         throw new IllegalArgumentException(String.format("Class {%s} not exists in ontology", className));
     }
 
     /* -- protected methods -- */
 
-    protected String getSelectHqlQuery(ModelDomain domain, String className) {
-        Preconditions.checkNotNull(domain);
+    protected String getSelectHqlQuery(ModelVocabulary vocabulary, String className) {
+        Preconditions.checkNotNull(vocabulary);
         Preconditions.checkNotNull(className);
         String hqlQuery = null;
-        switch (domain) {
+        switch (vocabulary) {
             case REFERENTIAL:
                 hqlQuery = referentialQueriesByName.get(className.toLowerCase());
                 break;
@@ -159,7 +167,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
         }
 
         if (StringUtils.isBlank(hqlQuery)) {
-            throw new IllegalArgumentException(String.format("%s with name %s not exists", domain, className));
+            throw new IllegalArgumentException(String.format("Vocabulary {%s} has no class named {%s}", vocabulary.name().toLowerCase(), className));
         }
         return hqlQuery;
     }
@@ -193,6 +201,9 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
 
         referentialQueriesByName.put("referencetaxon", "from ReferenceTaxon");
         referentialQueriesByName.put("status", "from Status");
+        referentialClassNamesByRootClass.put("status", Status.class.getSimpleName());
+
+        referentialClassNamesByRootClass.put("person", Person.class.getSimpleName());
 
         // Add missing query, from referential entity names
         referentialDao.getAllTypes().forEach(type -> {
@@ -202,7 +213,6 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
                 referentialClassNamesByRootClass.putAll(entityName.toLowerCase(), ImmutableList.of(entityName, Status.class.getSimpleName()));
             }
         });
-
 
     }
 

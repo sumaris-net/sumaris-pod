@@ -1,0 +1,33 @@
+*, ::after, ::before {
+    box-sizing: unset;
+}
+
+*, ::after, ::before {
+    box-sizing: unset;
+}
+
+.yasgui .autocompleteWrapper {
+    display: none !important;
+}
+.yasgui .controlbar {
+    min-height: 35px;
+}
+
+/* debug mode */
+
+#debug {
+    max-height: 300px;
+}
+#debug .col {
+    padding: 0;
+}
+
+#output {
+   overflow-y: scroll;
+   max-height: 300px;
+}
+#output * {
+    padding-left: 5px;
+    font-size: 12pt;
+    line-height: 12pt;
+}

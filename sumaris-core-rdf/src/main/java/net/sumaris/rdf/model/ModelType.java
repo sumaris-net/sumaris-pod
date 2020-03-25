@@ -18,6 +18,7 @@ public enum ModelType {
             case "schema":
                 return SCHEMA;
             case "data":
+            case "entities":
             case "object":
                 return DATA;
             default:

@@ -39,6 +39,14 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
             Boolean.class,
             false),
 
+    RDF_DIRECTORY(
+            "rdf.directory",
+            n("sumaris.config.option.rdf.directory.description"),
+            "${sumaris.data.directory}/rdf",
+            File.class,
+            false),
+
+
     RDF_MODEL_DATE(
             "rdf.model.version",
             n("sumaris.config.option.rdf.model.version.description"),
@@ -46,9 +54,9 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
-    RDF_MODEL_NS(
-            "rdf.model.ns",
-            n("sumaris.config.option.rdf.model.ns.description"),
+    RDF_MODEL_PREFIX(
+            "rdf.model.prefix",
+            n("sumaris.config.option.rdf.model.prefix.description"),
             "${sumaris.name}",
             String.class,
             false),
@@ -60,9 +68,9 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
-    RDF_MODEL_URI_PREFIX(
-            "rdf.model.uri",
-            n("sumaris.config.option.rdf.model.uri.description"),
+    RDF_MODEL_BASE_URI(
+            "rdf.model.baseUri",
+            n("sumaris.config.option.rdf.model.baseUri.description"),
             "${server.url}/ontology/",
             String.class,
             false),

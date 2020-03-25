@@ -32,6 +32,7 @@ import org.apache.jena.shared.JenaException;
 
 import javax.annotation.Nullable;
 import java.io.*;
+import java.nio.charset.Charset;
 
 public class ModelUtils {
 
@@ -51,12 +52,9 @@ public class ModelUtils {
         if (StringUtils.isBlank(userFormat)) {
             return RdfFormat.RDF.toJenaFormat();
         }
-        try {
-            return RdfFormat.fromUserString(userFormat).toJenaFormat();
-        }
-        catch(IllegalArgumentException e) {
-            return userFormat.toUpperCase();
-        }
+        return RdfFormat.fromUserString(userFormat)
+                .map(RdfFormat::toJenaFormat)
+                .orElse(userFormat.toUpperCase());
     }
     /**
      * Serialize model in requested format
@@ -66,7 +64,7 @@ public class ModelUtils {
      * @return a string representation of the model
      */
     public static String modelToString(Model model, RdfFormat format) {
-        return modelToString(model, format.name());
+        return modelToString(model, format.getLabel());
     }
 
     /**
@@ -105,6 +103,59 @@ public class ModelUtils {
                 os.flush();
                 os.close();
                 return new String(os.toByteArray(), "UTF8");
+            } catch (IOException e) {
+                throw new SumarisTechnicalException("Unable to serialize model to string: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * Serialize model into byte array, using the expected format
+     *
+     * @param model  input model
+     * @param format output format if null then output to RDF/XML
+     * @return a byte array representation of the model
+     */
+    public static byte[] modelToBytes(Model model, RdfFormat format) {
+        return modelToBytes(model, format.getName());
+    }
+
+    /**
+     * Serialize model into byte array, using the expected format
+     *
+     * @param model  input model
+     * @param format output format if null then output to RDF/XML
+     * @return a byte array representation of the model
+     */
+    public static byte[] modelToBytes(Model model, @Nullable String format) {
+
+        format = toJenaFormat(format);
+
+        // Special case for VOWL format
+        if ("VOWL".equalsIgnoreCase(format)) {
+            try (
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
+            ) {
+                model.write(bos);
+                bos.flush();
+
+                return new Owl2Vowl(new ByteArrayInputStream(bos.toByteArray())).getJsonAsString().getBytes();
+            } catch (Exception e) {
+                throw new SumarisTechnicalException("Error converting model into VOWL", e);
+            }
+        }
+
+        // Other case
+        else {
+            try (final ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+                if (format == null) {
+                    model.write(os);
+                } else {
+                    model.write(os, format);
+                }
+                os.flush();
+                os.close();
+                return os.toByteArray();
             } catch (IOException e) {
                 throw new SumarisTechnicalException("Unable to serialize model to string: " + e.getMessage(), e);
             }
@@ -158,7 +209,7 @@ public class ModelUtils {
      * @param format input format if null then output to RDF/XML
      * @return a ontology model
      */
-    public static Model readModel(String iri, RdfFormat format) {
+    public static Model loadModelByUri(String iri, RdfFormat format) {
         try {
             Model model = ModelFactory.createDefaultModel();
             model.read(iri, format.toJenaFormat());
@@ -174,7 +225,7 @@ public class ModelUtils {
      * @param format input format if null then output to RDF/XML
      * @return a ontology model
      */
-    public static Model readModel(String iri, @Nullable  String format) {
+    public static Model loadModelByUri(String iri, @Nullable  String format) {
         format = toJenaFormat(format);
 
         try {

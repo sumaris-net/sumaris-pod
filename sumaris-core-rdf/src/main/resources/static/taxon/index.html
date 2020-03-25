@@ -1,0 +1,103 @@
+<!doctype html>
+<!--
+  #%L
+  SUMARiS:: Server
+  %%
+  Copyright (C) 2018 SUMARiS Consortium
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/gpl-3.0.html>.
+  #L%
+  -->
+
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="keywords" content="taxon, taxonomic, sparql, web ontology language, owl, rdf, ontology queries, ontologies, semantic web" />
+    <meta name="description" content="Taxon Search, using ontologies" />
+    <meta name="robots" content="noindex,nofollow" />
+
+    <title>Pod Api - Taxon search</title>
+    <link rel="icon" href="/api/favicon" type="image/x-icon" />
+
+    <link rel="stylesheet" href="/core/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/core/css/bootstrap-grid.min.css" />
+
+    <link href="/yasgui/css/yasgui.min.css" rel="stylesheet" type="text/css" />
+    <link href="/taxon/css/app-taxon-search.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+    <!-- Top menu-->
+    <div id="menu"></div>
+
+    <div class="container">
+
+        <h1>Taxon search</h1>
+
+        <div class="form-group">
+            <div class="form-inline">
+                <input type="text" name="q" id="q" class="form-control" placeholder="Lophius, Dipturus, ..." style="width: 80%;">
+                &nbsp;
+                <button id="buttonSearch" type="button" onclick="app.doSearch()" class="btn btn-primary" tabindex="-1" style="width: 15%; min-width: 150px;">Search</button>
+            </div>
+            <p>
+                Examples:&nbsp
+                <a href="#" onclick="app.showExample('simple');">simple</a>&nbsp;|&nbsp;
+            </p>
+        </div>
+
+
+        <div class="form-group text-center">
+            <button type="button" onclick="$('#debug').toggleClass('d-none')" class="btn btn-light btn-lg">Show/Hide editor</button>
+        </div>
+
+        <div id="debug" class="row">
+            <!-- SparQL editor -->
+            <div id="yasqe" class="col col-8"></div>
+
+            <!-- Log -->
+            <div id="output" class="col col-4"></div>
+        </div>
+
+        <!-- SparQL  result -->
+        <div id="yasr" class="d-none">
+        </div>
+
+
+    </div>
+
+<!--    <script type="text/javascript" src="https://test.sumaris.net/core/js/jquery.slim.min.js"></script>-->
+<!--    <script type="text/javascript" src="https://test.sumaris.net/core/js/popper.min.js"></script>-->
+<!--    <script type="text/javascript" src="https://test.sumaris.net/core/js/bootstrap.min.js"></script>-->
+<!--    <script type="text/javascript" src="https://test.sumaris.net/core/js/app-menu.js"></script>-->
+
+    <script type="text/javascript" src="/core/js/jquery.slim.min.js"></script>
+    <script type="text/javascript" src="/core/js/popper.min.js"></script>
+    <script type="text/javascript" src="/core/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/core/js/app-menu.js"></script>
+
+    <script type="text/javascript" src="/rdfuri/js/rdf-helper.js"></script>
+    <script type="text/javascript" src="/yasgui/js/yasgui.min.js"></script>
+    <script type="text/javascript" src="/taxon/js/app-taxon-search.js"></script>
+
+    <script language="JavaScript" type="text/javascript">
+        const menu = new AppMenu('#menu', {active: '#nav-item-tools'});
+        const app = new AppTaxonSearch({yasqe: 'yasqe', yasr: 'yasr'});
+    </script>
+</body>
+</html>

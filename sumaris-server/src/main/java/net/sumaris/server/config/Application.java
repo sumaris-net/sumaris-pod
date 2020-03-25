@@ -25,9 +25,12 @@ package net.sumaris.server.config;
 
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
 import net.sumaris.core.util.ApplicationUtils;
+import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelURIs;
+import net.sumaris.server.http.rest.RdfFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -47,6 +50,11 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 @SpringBootApplication(
         scanBasePackages = {
@@ -90,76 +98,45 @@ public class Application extends SpringBootServletInitializer {
     }
 
     @Bean
-    public WebMvcConfigurer forwardToIndex() {
+    public WebMvcConfigurer configureStaticPages() {
         return new WebMvcConfigurer() {
             @Override
             public void addViewControllers(ViewControllerRegistry registry) {
 
-                // define path /
-                registry.addRedirectViewController("/", "/api");
-                registry.addRedirectViewController("/api/", "/api");
-                registry.addViewController("/api")
-                        .setViewName("forward:/core/index.html");
-
-                // define path /graphiql
-                registry.addRedirectViewController("/graphiql", "/api/graphiql");
-                registry.addRedirectViewController("/graphiql/", "/api/graphiql");
-                //registry.addRedirectViewController("/api/graphiql", "/graphiql");
-                //registry.addRedirectViewController("/api/graphiql/", "/graphiql");
-                registry.addViewController("/api/graphiql").setViewName(
-                        "forward:/graphiql/index.html");
-                // define path /error
+                // Error path
                 registry.addViewController("/error")
                         .setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR)
                         .setViewName("forward:/core/error.html");
                 registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
 
-                // define path to /graphql/websocket test page
-                registry.addRedirectViewController("/graphql/websocket/test/", "/graphql/websocket/test");
-                registry.addRedirectViewController("/api/graphql/websocket/test", "/graphql/websocket/test");
-                registry.addRedirectViewController("/api/graphql/websocket/test/", "/graphql/websocket/test");
-                registry.addViewController("/graphql/websocket/test")
-                        .setViewName("forward:/websocket/index.html");
+                // API path
+                {
+                    final String API_PATH = "/api";
+                    registry.addRedirectViewController("/", API_PATH);
+                    registry.addRedirectViewController(API_PATH + "/", API_PATH);
+                    registry.addViewController(API_PATH)
+                            .setViewName("forward:/core/index.html");
+                }
 
-                // define path to /api/rdf test page
-                registry.addRedirectViewController("/rdf", "/ontology");
-                registry.addRedirectViewController("/rdf/", "/ontology");
-                //registry.addRedirectViewController("/ontology", "/ontology");
-                registry.addRedirectViewController("/ontology/", "/ontology");
-                registry.addRedirectViewController("/ontology/test", "/ontology");
-                registry.addRedirectViewController("/ontology/test/", "/ontology");
-                registry.addRedirectViewController("/ontologies", "/ontology");
-                registry.addRedirectViewController("/ontologies/", "/ontology");
-                registry.addRedirectViewController("/ontologies/test/", "/ontology");
-                registry.addRedirectViewController("/api/ontology", "/ontology");
-                registry.addRedirectViewController("/api/ontology/", "/ontology");
-                registry.addRedirectViewController("/api/ontology/", "/ontology");
-                registry.addViewController("/ontology")
-                        .setViewName("forward:/rdf/index.html");
+                // GraphiQL path
+                {
+                    final String GRAPHIQL_PATH = "/api/graphiql";
+                    registry.addRedirectViewController(GRAPHIQL_PATH + "/", GRAPHIQL_PATH);
+                    registry.addRedirectViewController("/graphiql", GRAPHIQL_PATH);
+                    registry.addRedirectViewController("/graphiql/", GRAPHIQL_PATH);
+                    registry.addViewController(GRAPHIQL_PATH).setViewName(
+                            "forward:/graphiql/index.html");
+                }
 
-                // define path /webvowl
-                registry.addRedirectViewController("/webvowl", "/webvowl/");
-                registry.addRedirectViewController("/api/webvowl", "/webvowl/");
-                registry.addRedirectViewController("/api/webvowl/", "/webvowl/");
-                registry.addRedirectViewController("/ontology/webvowl", "/webvowl/");
-                registry.addRedirectViewController("/ontology/webvowl/", "/webvowl/");
-                registry.addViewController("/webvowl/")
-                        .setViewName("forward:/webvowl/index.html");
-
-                // WebVOWL data files
-                registry.addViewController("/webvowl/data/taxon.json").setViewName("forward:/ontology/schema/taxon/?format=vowl");
-                registry.addViewController("/webvowl/data/gear.json").setViewName("forward:/ontology/schema/gear/?format=vowl");
-                ModelURIs.URI_BY_NAMESPACE.keySet().forEach(ns -> registry
-                                .addViewController(String.format("/webvowl/data/%s.json", ns))
-                                .setViewName(String.format("forward:/webvowl/convert?ns=%s", ns)));
-
-                // YasGUI
-                registry.addRedirectViewController("/sparql/ui/", "/sparql/ui");
-                registry.addRedirectViewController("/api/sparql/", "/sparql/ui");
-                registry.addRedirectViewController("/api/sparql/ui/", "/sparql/ui");
-                registry.addViewController("/sparql/ui")
-                        .setViewName("forward:/yasgui/index.html");
-
+                // WebSocket test path
+                {
+                    final String WS_TEST_PATH = "/graphql/websocket/test";
+                    registry.addRedirectViewController(WS_TEST_PATH + "/", WS_TEST_PATH);
+                    registry.addRedirectViewController("/api/graphql/websocket/test", WS_TEST_PATH);
+                    registry.addRedirectViewController("/api/graphql/websocket/test/", WS_TEST_PATH);
+                    registry.addViewController(WS_TEST_PATH)
+                            .setViewName("forward:/websocket/index.html");
+                }
             }
 
             @Override

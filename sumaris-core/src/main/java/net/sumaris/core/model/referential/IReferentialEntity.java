@@ -33,6 +33,7 @@ public interface IReferentialEntity extends IUpdateDateEntityBean<Integer, Date>
 
     interface Fields extends IUpdateDateEntityBean.Fields {
         String STATUS = "status";
+        String CREATION_DATE = "creationDate";
     }
 
     Date getCreationDate();

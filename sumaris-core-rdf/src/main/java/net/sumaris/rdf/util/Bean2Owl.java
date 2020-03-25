@@ -30,7 +30,6 @@ import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,31 +65,26 @@ public class Bean2Owl {
     }
 
     /**
-     * Returns and adds OntClass to the model
+     * // Create the ontology class, from a java class
      *
      * @param ontology
      * @param clazz
      * @return
      */
-    public OntClass classToOwl(OntModel ontology, Class clazz, Map<OntClass, List<OntClass>> mutuallyDisjoint, boolean addInterface) {
+    public OntClass classToOwl(OntModel ontology, Class clazz, Map<OntClass, List<OntClass>> mutuallyDisjoint, boolean withInterfaces) {
 
         Resource schema = ontology.listSubjectsWithProperty(RDF.type, OWL.Ontology).nextResource();
 
         if (debug) log.debug(String.format("Converting class {%s} to ontology...", clazz.getSimpleName()));
 
         try {
-
-            OntClass aClass = ontology.createClass(classToURI(schema, clazz));
+            final String classUri = classToURI(schema, clazz);
+            OntClass aClass = ontology.createClass(classUri);
             aClass.setIsDefinedBy(schema);
+            aClass.addLabel(clazz.getSimpleName(), "en");
+            aClass.addComment(clazz.getName(), "en"); // Class name into comment
 
-            String label = clazz.getName().substring(clazz.getName().lastIndexOf(".") + 1);
-            aClass.addLabel(label, "en");
-
-            String entityName = clazz.getName();
-            if (!"".equals(entityName))
-                aClass.addComment(entityName, "en");
-
-            if (mutuallyDisjoint != null && addInterface) {
+            if (mutuallyDisjoint != null && withInterfaces) {
                 Stream.of(clazz.getGenericInterfaces())
                         .filter(interfaze -> !ParameterizedType.class.equals(interfaze))
                         .forEach(interfaze -> {
@@ -118,54 +112,68 @@ public class Bean2Owl {
                     .filter(OwlUtils::isGetter)
                     .map(OwlUtils::getFieldOfGetteR)
                     .forEach(field -> {
-                        //LOG.info("processing Field : " + field + " - type?" + isJavaType(field) + " - list?" + isListType(field.getGenericType()));
-                        String fieldName = classToURI(schema, clazz) + "#" + field.getName();
+                        String propertyUri = classUri + "#" + field.getName();
 
+                        // Simple java type
                         if (isJavaType(field)) {
-                            Resource type = getStdType(field);
+                            Resource range = getStdType(field);
 
-                            OntProperty stdType = ontology.createDatatypeProperty(fieldName, true);
+                            OntProperty property = ontology.createDatatypeProperty(propertyUri, true);
 
-                            stdType.setDomain(aClass.asResource());
-                            stdType.setRange(type);
-                            stdType.setIsDefinedBy(schema);
+                            property.setDomain(aClass.asResource());
+                            property.setRange(range);
+                            property.setIsDefinedBy(schema);
 
-                            //link.addRDFType(ontology.createResource(type));
-                            stdType.addLabel(field.getName(), "en");
-                            //LOG.info("Simple property of type " + type + " for " + fieldName + "\n" + link);*
+                            property.addLabel(field.getName(), "en");
 
                         } else if (field.getDeclaringClass().isArray()) {
+                            log.warn("Property {} is an array: NOT implemented yet. Skip", propertyUri);
+                        }
 
-                        } else if (isListType(field.getGenericType())) {
-                            Type contained = getListType(field.getGenericType());
-                            OntProperty list = null;
-                            Resource resou = null;
-                            if (debug) log.debug(String.format("List property %s %s", fieldName, contained.getTypeName()));
+                        // List
+                        else if (isListType(field.getGenericType())) {
+                            Type listParametrizedType = getListParametrizedType(field.getGenericType());
+                            if (debug) log.debug(String.format("List property %s %s", propertyUri, listParametrizedType.getTypeName()));
 
-                            if (isJavaType(contained)) {
-                                list = ontology.createDatatypeProperty(fieldName, true);
-                                resou = getStdType(contained);
+                            OntProperty listProperty;
+                            Resource range;
+                            if (isJavaType(listParametrizedType)) {
+                                listProperty = ontology.createDatatypeProperty(propertyUri, true);
+
+                                // TODO: use Bag for Set ?
+                                range = getStdType(listParametrizedType);
                             } else {
-                                list = ontology.createObjectProperty(fieldName, false);
-                                resou = typeToUri(schema, contained);
+                                listProperty = ontology.createObjectProperty(propertyUri, false);
+                                range = typeToUri(schema, listParametrizedType);
                             }
 
-                            list.addRange(resou);
-                            list.addDomain(aClass.asResource());
-                            list.setIsDefinedBy(schema);
-                            list.addLabel(field.getName(), "en");
+                            listProperty.addRange(range);
+                            listProperty.addDomain(aClass.asResource());
+                            listProperty.setIsDefinedBy(schema);
+                            listProperty.addLabel(field.getName(), "en");
 
-                            createZeroToMany(ontology, aClass, list, resou);
+                            // TODO: add a description ? comment ?
+                            // list.addComment(, "en");
 
-                        } else {
+                            createZeroToMany(ontology, aClass, listProperty, range);
+
+                        }
+
+                        // Another entity
+                        else {
+
+                            if (debug) log.debug(String.format("Entity property %s %s", propertyUri, field.getType().getSimpleName()));
 
                             // var type = ontology.createObjectProperty();
-                            OntProperty bean = ontology.createObjectProperty(fieldName, true);
-                            bean.addDomain(aClass.asResource());
-                            bean.addRange(typeToUri(schema, field.getType()));
-                            bean.setIsDefinedBy(schema);
-                            bean.addLabel(field.getName(), "en");
+                            OntProperty property = ontology.createObjectProperty(propertyUri, true);
+                            property.addDomain(aClass.asResource());
+                            property.addRange(typeToUri(schema, field.getType()));
+                            property.setIsDefinedBy(schema);
+                            property.addLabel(field.getName(), "en");
                             // LOG.info("Default Object property x " + link);
+
+                            // TODO: add a description ? comment ?
+                            // bean.addComment(, "en");
 
                         }
                     });
@@ -199,6 +207,9 @@ public class Bean2Owl {
         }
 
         ont.setIsDefinedBy(schema);
+
+        // TODO: add description ? comment ?
+        // Add javaTYpe ?
         ont.addComment(t.getTypeName(), "en");
 
         return ont;
@@ -213,8 +224,8 @@ public class Bean2Owl {
         return model.createClass(getModelUriPrefix() + name);
     }
 
-    public Resource bean2Owl(OntModel model,
-                             String modelUri,
+    public Resource bean2Owl(Model model,
+                             String baseUri,
                              Object obj, int depth,
                              List<Method> includes,
                              List<Method> excludes) {
@@ -226,17 +237,17 @@ public class Bean2Owl {
         // try using the ID field if exists to represent the node
         String individualURI;
         try {
-            Method m = findGetterAnnotatedID(clazz);
-            individualURI = beanToURI(modelUri,  clazz) + "/" + m.invoke(obj);
+            Method getIdMethod = findGetterAnnotatedID(clazz);
+            individualURI = beanToURI(baseUri,  clazz) + "/" + getIdMethod.invoke(obj);
         } catch (Exception e) {
             if (debug) log.error(String.format("Cannot get ID on class {%s}", clazz.getSimpleName()));
             return null;
         }
 
-        String classSchemaURI = classToURI(modelUri, clazz);
+        String classSchemaURI = classToURI(baseUri, clazz);
         Resource ontClass = model.getResource(classSchemaURI);
         if (ontClass == null) ontClass = model.createResource(classSchemaURI);
-        Resource individual = model.createIndividual(individualURI, ontClass);
+        Resource individual = model.createResource(individualURI, ontClass);
         if (depth < 0) {
             if (debug) log.warn("Max depth reached!");
             return individual;
@@ -272,13 +283,13 @@ public class Bean2Owl {
                                 log.debug(" not java generic, recurse on node..." + propertyValue);
                             }
 
-                            Resource propertyValueResource = bean2Owl(model, modelUri, propertyValue, (depth - 1), includes, excludes);
+                            Resource propertyValueResource = bean2Owl(model, baseUri, propertyValue, (depth - 1), includes, excludes);
                             if (propertyValueResource != null) individual.addProperty(propertyResource, propertyValueResource);
 
                         } else if (getter.getGenericReturnType() instanceof ParameterizedType) {
 
                             Resource anonId = model.createResource(new AnonId("params" + new Random().nextInt(1000000)));
-                            Optional<Resource> listNode = fillDataList(model, modelUri, getter.getGenericReturnType(), propertyValue, propertyResource, anonId, depth - 1,
+                            Optional<Resource> listNode = fillDataList(model, baseUri, getter.getGenericReturnType(), propertyValue, propertyResource, anonId, depth - 1,
                                     includes,
                                     excludes);
                             if (listNode.isPresent()) {
@@ -313,8 +324,8 @@ public class Bean2Owl {
         return null;
     }
 
-    protected Optional<Resource> fillDataList(OntModel model,
-                                              String modelUri,
+    protected Optional<Resource> fillDataList(Model model,
+                                              String baseUri,
                                               Type type,
                                               Object listObject,
                                               Property prop,
@@ -334,7 +345,7 @@ public class Bean2Owl {
                 return Optional.empty();
             }
             for (Object x : asList) {
-                Resource listItem = bean2Owl(model, modelUri, x, (depth - 1), includes, excludes);
+                Resource listItem = bean2Owl(model, baseUri, x, (depth - 1), includes, excludes);
                 nodes.add(listItem);
             }
 

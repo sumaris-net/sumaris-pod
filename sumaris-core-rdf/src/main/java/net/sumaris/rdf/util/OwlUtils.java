@@ -23,7 +23,6 @@
 package net.sumaris.rdf.util;
 
 import com.google.common.collect.ImmutableMap;
-import net.sumaris.rdf.model.ModelType;
 import net.sumaris.rdf.model.ModelURIs;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
@@ -92,7 +91,7 @@ public abstract class OwlUtils {
         return Optional.empty();
     }
 
-    public static Map<Class, Resource> Class2Resources = ImmutableMap.<Class, Resource>builder()
+    public static Map<Class, Resource> JAVA2XSD_TYPE_MAP = ImmutableMap.<Class, Resource>builder()
             .put(Date.class, XSD.date)
             .put(LocalDateTime.class, XSD.dateTime)
             .put(Timestamp.class, XSD.dateTimeStamp)
@@ -111,8 +110,6 @@ public abstract class OwlUtils {
             .put(String.class, XSD.xstring)
             .put(void.class, RDFS.Literal)
             .build();
-
-    public static Map<Resource, Class> Resource2Classes = Class2Resources.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey, (x, y) -> x));
 
     public static List<Class> ACCEPTED_LIST_CLASS = Arrays.asList(List.class, ArrayList.class, Set.class);
 
@@ -153,7 +150,7 @@ public abstract class OwlUtils {
     }
 
     public static boolean isJavaType(Type type) {
-        return Class2Resources.keySet().stream().anyMatch(type::equals);
+        return JAVA2XSD_TYPE_MAP.keySet().stream().anyMatch(type::equals);
     }
 
     public static boolean isJavaType(Method getter) {
@@ -224,21 +221,11 @@ public abstract class OwlUtils {
     }
 
     public static Resource getStdType(Field f) {
-        return Class2Resources.getOrDefault(f.getType(), RDFS.Literal);
-//        return Class2Resources.entrySet().stream()
-//                .filter((entry) -> entry.getKey().getTypeName().equals(f.getStdType().getSimpleName()))
-//                .map(Map.Entry::getValue)
-//                .findAny()
-//                .orElse(RDFS.Literal);
+        return JAVA2XSD_TYPE_MAP.getOrDefault(f.getType(), RDFS.Literal);
     }
 
     public static Resource getStdType(Type type) {
-        return Class2Resources.getOrDefault(type, RDFS.Literal);
-//        return Class2Resources.entrySet().stream()
-//                .filter((entry) -> entry.getKey().getTypeName().equals(type.getTypeName()))
-//                .map(Map.Entry::getValue)
-//                .findAny()
-//                .orElse(RDFS.Literal);
+        return JAVA2XSD_TYPE_MAP.getOrDefault(type, RDFS.Literal);
     }
 
 
@@ -258,7 +245,7 @@ public abstract class OwlUtils {
 
     }
 
-    public static Type getListType(Type type) {
+    public static Type getListParametrizedType(Type type) {
         if (type instanceof ParameterizedType) {
             ParameterizedType parameterized = (ParameterizedType) type;// This would be Class<List>, say
             Type raw = parameterized.getRawType();

@@ -27,196 +27,317 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.model.ModelType;
-import net.sumaris.rdf.service.RdfExportOptions;
-import net.sumaris.rdf.service.RdfExportService;
+import net.sumaris.rdf.model.ModelURIs;
+import net.sumaris.rdf.service.data.RdfDataExportOptions;
+import net.sumaris.rdf.service.data.RdfDataExportService;
+import net.sumaris.rdf.service.schema.RdfSchemaExportOptions;
+import net.sumaris.rdf.service.schema.RdfSchemaExportService;
 import net.sumaris.rdf.util.ModelUtils;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @RestController
 @ConditionalOnBean({RdfConfiguration.class})
 public class RdfRestController {
 
-    // Base path
-    public static final String BASE_PATH = "/ontology";
-    public static final String ONTOLOGY = BASE_PATH + "/{type:schema|data|entities}/";
-    public static final String ONTOLOGY_BY_CLASS = ONTOLOGY + "{class:[a-zA-Z]+}/";
-    public static final String ONTOLOGY_BY_OBJECT = ONTOLOGY_BY_CLASS + "{id:[0-9a-zA-Z]+}";
-    public static final String CONVERT = BASE_PATH + "/convert";
+    protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";
+
+    // Schema path
+    public static final String ONTOLOGY_PATH = "/ontology";
+    public static final String SCHEMA_PATH = ONTOLOGY_PATH + "/schema";
+    public static final String SCHEMA_PATH_SLASH = SCHEMA_PATH + "/";
+    public static final String SCHEMA_BY_CLASS = SCHEMA_PATH_SLASH + "{class:[a-zA-Z]+}";
+    public static final String SCHEMA_BY_CLASS_SLASH = SCHEMA_BY_CLASS + "/";
+
+    // Data path
+    public static final String DATA_PATH = ONTOLOGY_PATH + "/data";
+    public static final String DATA_SLASH_PATH = DATA_PATH + "/";
+    public static final String DATA_BY_CLASS_PATH = DATA_SLASH_PATH + "{class:[a-zA-Z]+}";
+    public static final String DATA_BY_CLASS_SLASH_PATH = DATA_BY_CLASS_PATH + "/";
+    public static final String DATA_BY_OBJECT_PATH = DATA_BY_CLASS_SLASH_PATH + "{id:[0-9a-zA-Z]+}";
+
+    public static final String CONVERT = ONTOLOGY_PATH + "/convert";
 
     private static final Logger log = LoggerFactory.getLogger(RdfRestController.class);
 
     @Resource
-    private RdfExportService service;
+    private RdfSchemaExportService schemaExportService;
 
-    @Value( "${rdf.model.uri}" )
-    private String rdfModelUriPrefix;
+    @Resource
+    private RdfDataExportService dataExportService;
+
+    @Resource
+    private RdfConfiguration config;
+
+    private String ontologyBaseUri;
 
     @PostConstruct
-    public void afterPropertySet() {
-        log.info("Starting RDF endpoint {{}}...", BASE_PATH);
+    public void init() {
+        // Compute /ontology full path
+        String modelBaseUri = config.getModelBaseUri();
+        if (modelBaseUri.endsWith("/")) {
+            modelBaseUri = modelBaseUri.substring(0, modelBaseUri.length()-1);
+        }
+        this.ontologyBaseUri = modelBaseUri + ONTOLOGY_PATH;
+
+        log.info("Starting OWL endpoint {{}}...", SCHEMA_PATH_SLASH);
+        log.info("Starting OWL endpoint {{}}...", DATA_SLASH_PATH);
     }
 
     @GetMapping(
             value = {
-                    ONTOLOGY,
-                    ONTOLOGY_BY_CLASS,
-                    ONTOLOGY_BY_OBJECT
+                    SCHEMA_PATH,
+                    SCHEMA_PATH + EXTENSION_PATH_PARAM,
+                    SCHEMA_PATH_SLASH,
+                    SCHEMA_BY_CLASS,
+                    SCHEMA_BY_CLASS + EXTENSION_PATH_PARAM,
+                    SCHEMA_BY_CLASS_SLASH
             },
             produces = {
-                    MediaType.APPLICATION_XML_VALUE,
-                    MediaType.APPLICATION_JSON_VALUE,
                     RdfMediaType.APPLICATION_RDF_XML_VALUE,
+                    RdfMediaType.APPLICATION_XML_VALUE,
+                    RdfMediaType.APPLICATION_RDF_JSON_VALUE,
+                    RdfMediaType.APPLICATION_JSON_VALUE,
                     RdfMediaType.APPLICATION_JSON_LD_VALUE,
                     RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
-                    RdfMediaType.TEXT_N_TRIPLES_VALUE,
+                    RdfMediaType.APPLICATION_N_QUADS_VALUE,
+                    RdfMediaType.TEXT_N3_VALUE,
+                    RdfMediaType.APPLICATION_TRIG_VALUE,
                     RdfMediaType.TEXT_TRIG_VALUE,
+                    RdfMediaType.APPLICATION_TRIX_VALUE,
                     RdfMediaType.TEXT_TRIX_VALUE,
-                    RdfMediaType.TEXT_TURTLE_VALUE
+                    RdfMediaType.APPLICATION_TURTLE_VALUE,
+                    RdfMediaType.TEXT_TURTLE_VALUE,
+                    // Browser HTML requests
+                    MediaType.APPLICATION_XHTML_XML_VALUE,
+                    MediaType.TEXT_HTML_VALUE
             })
-    public ResponseEntity<String> getOwlModel(@PathVariable(name = "type") String userModelType,
-                                              @PathVariable(name = "class", required = false) String className,
-                                              @PathVariable(name = "id", required = false) String objectId,
-                                              @RequestParam(defaultValue = "false") String disjoints,
-                                              @RequestParam(name ="format", defaultValue = "RDF", required = false) String userFormat,
-                                              @RequestParam(name ="schema", defaultValue = "true", required = false) String withSchema,
-                                              @RequestParam(required = false) String packages) {
+    public ResponseEntity<byte[]> getSchemaOntology(@PathVariable(name = "class", required = false) String className,
+                                                    @RequestParam(name = "extension", required = false) String extension,
+                                                    @RequestParam(name = "format", required = false) String userFormat,
+                                                    @RequestParam(name = "disjoints", defaultValue = "true", required = false) String disjoints,
+                                                    @RequestParam(name = "equivalences", defaultValue = "false", required = false) String equivalences,
+                                                    final HttpServletRequest request) {
 
-        RdfExportOptions options = buildOptions(className, objectId, disjoints, withSchema, packages);
-        RdfFormat format = RdfFormat.fromUserString(userFormat);
-        ModelType modelType = ModelType.fromUserString(userModelType);
+        // Find output format
+        RdfFormat format = findRdfFormat(request, userFormat, RdfFormat.RDF);
 
-        String content = getModelAsString(modelType, options, format);
+        // Generate the schema ontology
+        Model schema = schemaExportService.getSchemaOntology(RdfSchemaExportOptions.builder()
+                .className(className)
+                .withDisjoints(!"false".equalsIgnoreCase(disjoints)) // True by default
+                .withEquivalences("true".equalsIgnoreCase(equivalences))
+                // TODO .withInterfaces()
+                .build());
 
         return ResponseEntity.ok()
                 .contentType(format.mineType())
-                .body(content);
+                .body(ModelUtils.modelToBytes(schema, format));
+    }
+
+    @GetMapping(
+            value = {
+                    DATA_BY_CLASS_PATH,
+                    DATA_BY_CLASS_PATH + EXTENSION_PATH_PARAM,
+                    DATA_BY_CLASS_SLASH_PATH,
+                    DATA_BY_OBJECT_PATH,
+                    DATA_BY_OBJECT_PATH + EXTENSION_PATH_PARAM
+            },
+            produces = {
+                    RdfMediaType.APPLICATION_RDF_XML_VALUE,
+                    RdfMediaType.APPLICATION_XML_VALUE,
+                    RdfMediaType.APPLICATION_RDF_JSON_VALUE,
+                    RdfMediaType.APPLICATION_JSON_VALUE,
+                    RdfMediaType.APPLICATION_JSON_LD_VALUE,
+                    RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
+                    RdfMediaType.APPLICATION_N_QUADS_VALUE,
+                    RdfMediaType.TEXT_N3_VALUE,
+                    RdfMediaType.APPLICATION_TRIG_VALUE,
+                    RdfMediaType.TEXT_TRIG_VALUE,
+                    RdfMediaType.APPLICATION_TRIX_VALUE,
+                    RdfMediaType.TEXT_TRIX_VALUE,
+                    RdfMediaType.APPLICATION_TURTLE_VALUE,
+                    RdfMediaType.TEXT_TURTLE_VALUE,
+                    // Browser HTML requests
+                    MediaType.APPLICATION_XHTML_XML_VALUE,
+                    MediaType.TEXT_HTML_VALUE
+            })
+    public ResponseEntity<byte[]> getIndividuals(@PathVariable(name = "class") String className,
+                                                 @PathVariable(name = "id", required = false) String objectId,
+                                                 @PathVariable(name = "extension", required = false) String extension,
+                                                 @RequestParam(name = "format", required = false) String userFormat,
+                                                 final HttpServletRequest request) {
+
+        RdfDataExportOptions options = RdfDataExportOptions.builder()
+                .className(className)
+                .id(objectId)
+                .build();
+
+        // Find the output format
+        RdfFormat outputFormat = findRdfFormat(request, userFormat, RdfFormat.RDF);
+
+        // Get individuals
+        Model individuals = dataExportService.getIndividuals(options);
+
+        // Add schema
+
+        return ResponseEntity.ok()
+                .contentType(outputFormat.mineType())
+                .body(ModelUtils.modelToBytes(individuals, outputFormat));
     }
 
     @GetMapping(value = CONVERT,
             produces = {
-                MediaType.APPLICATION_XML_VALUE,
-                MediaType.APPLICATION_JSON_VALUE,
-                RdfMediaType.APPLICATION_RDF_XML_VALUE,
-                RdfMediaType.APPLICATION_JSON_LD_VALUE,
-                RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
-                RdfMediaType.TEXT_N_TRIPLES_VALUE,
-                RdfMediaType.TEXT_TRIG_VALUE,
-                RdfMediaType.TEXT_TRIX_VALUE,
-                RdfMediaType.TEXT_TURTLE_VALUE
-            })
-    public ResponseEntity<String> getOwlModelFromIri(@RequestParam(name = "iri") String iri,
-                                                     @RequestParam(name = "sourceFormat", defaultValue = "RDF") String sourceFormat,
-                                                     @RequestParam(name = "format", defaultValue = "RDF") String userFormat) {
-        if (StringUtils.isBlank(iri)) {
-            throw new IllegalArgumentException("Invalid IRI: " + iri);
-        }
+                    MediaType.APPLICATION_XML_VALUE,
+                    RdfMediaType.APPLICATION_RDF_XML_VALUE,
+                    MediaType.APPLICATION_JSON_VALUE,
+                    RdfMediaType.APPLICATION_RDF_JSON_VALUE,
+                    RdfMediaType.APPLICATION_JSON_LD_VALUE,
+                    RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
+                    RdfMediaType.APPLICATION_N_QUADS_VALUE,
+                    RdfMediaType.TEXT_N3_VALUE,
+                    RdfMediaType.TEXT_TRIG_VALUE,
+                    RdfMediaType.TEXT_TRIX_VALUE,
+                    RdfMediaType.TEXT_TURTLE_VALUE
+                })
+    public ResponseEntity<byte[]> convertFromUri(@RequestParam(name = "uri", required = false) String uri,
+                                                 @RequestParam(name = "prefix", required = false) String prefix,
+                                                 @RequestParam(name = "sourceFormat", required = false) String sourceFormat,
+                                                 @RequestParam(name = "format", defaultValue = "RDF") String userFormat,
+                                                 final HttpServletRequest request) {
 
-        RdfFormat format = RdfFormat.fromUserString(userFormat);
-        Model model = getModelFromIri(iri, sourceFormat);
-
-        log.info(String.format("Converting ontology {%s} into {%s}...", iri, format.toJenaFormat()));
-
-        String content = ModelUtils.modelToString(model, format);
-        return ResponseEntity.ok()
-                .contentType(format.mineType())
-                .body(content);
-    }
-
-    /* -- WebVOWL service -- */
-
-    public Model getModelFromIri(String iri, String sourceFormat) {
-        if (StringUtils.isBlank(iri)) {
-            throw new IllegalArgumentException("Invalid IRI: " + iri);
-        }
-
-        RdfFormat format = RdfFormat.fromUserString(sourceFormat);
-        log.info(String.format("Reading %s model {%s}...", format.toJenaFormat(), iri));
-
-        // Path match /ontology/{modelType}/{class}/{id}
-        String apiPath = rdfModelUriPrefix + BASE_PATH;
-        if (iri.startsWith(apiPath)) {
-            URI relativeUri = URI.create(iri.substring(apiPath.length()));
-            List<String> pathParams = Splitter.on('/').omitEmptyStrings().trimResults().splitToList(relativeUri.getPath());
-            if (pathParams.size() < 1 || pathParams.size() > 3) {
-                throw new IllegalArgumentException("Invalid IRI: " + iri);
+        if (StringUtils.isBlank(uri)) {
+            if (StringUtils.isBlank(prefix)) {
+                throw new IllegalArgumentException("Required query parameters 'uri' or 'prefix'.");
             }
 
-            RdfExportOptions options = buildOptions(relativeUri);
-            ModelType modelType = ModelType.fromUserString(pathParams.get(0));
-            String className = pathParams.size() > 1 ? pathParams.get(1) : null;
-            options.setClassName(className);
-            String objectId = pathParams.size() > 2 ? pathParams.get(2) : null;
-            options.setId(objectId);
-
-            return getModel(modelType, options);
+            // Split prefix string, to allow prefix=<prefix1>+<prefix2>
+            uri = Arrays.stream(prefix.split("[,|+]"))
+                    .map(p -> ModelURIs.RDF_URL_BY_PREFIX.get(p))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining("+"));
+            if (StringUtils.isBlank(uri))
+                throw new IllegalArgumentException(String.format("Invalid prefix '%s'", prefix));
         }
 
-        // External IRI
+        // Find the output format
+        RdfFormat outputFormat = findRdfFormat(request, userFormat, RdfFormat.RDF);
+
+        // Read input model
+        String[] parts = uri.split("[,|+]"); // Split, to allow to passe many URI
+        Model model = Arrays.stream(parts)
+                .map(aUri -> {
+                    if (StringUtils.isBlank(aUri)) throw new IllegalArgumentException("Invalid 'uri': " + aUri);
+
+                    // Retrieve the source format
+                    RdfFormat inputFormat;
+                    if (StringUtils.isNotBlank(sourceFormat)) {
+                        inputFormat = RdfFormat.fromUserString(sourceFormat)
+                                .orElseThrow(() -> new IllegalArgumentException("Unknown sourceFormat: " + sourceFormat));
+                    }
+                    else {
+                        inputFormat = RdfFormat.fromUrlExtension(request.getRequestURI())
+                                .orElse(RdfFormat.RDF);
+                    };
+
+                    log.info("Converting {} model {{}} into {}...", inputFormat.toJenaFormat(), aUri, outputFormat.toJenaFormat());
+
+                    // Read from URI
+                    return loadModelByUri(aUri.trim(), inputFormat);
+                })
+                // Union on all models
+                .reduce(ModelFactory::createUnion).orElse(null);
+
+        return ResponseEntity.ok()
+                .contentType(outputFormat.mineType())
+                .body(ModelUtils.modelToBytes(model, outputFormat));
+    }
+
+    /* -- Conversion service -- */
+
+    public Model loadModelByUri(String uri, RdfFormat uriFormat) {
+        if (StringUtils.isBlank(uri)) {
+            throw new IllegalArgumentException("Invalid IRI: " + uri);
+        }
+        Preconditions.checkNotNull(uriFormat);
+
+        log.info(String.format("Reading %s model {%s}...", uriFormat.toJenaFormat(), uri));
+
+        // If URI is on current Pod
+        // Path match /ontology/{schema|data}/{class}/{id}
+        if (uri.startsWith(ontologyBaseUri)) {
+            URI relativeUri = URI.create(uri.substring(ontologyBaseUri.length()));
+            List<String> pathParams = Splitter.on('/').omitEmptyStrings().trimResults().splitToList(relativeUri.getPath());
+            if (pathParams.size() < 1 || pathParams.size() > 3) {
+                throw new IllegalArgumentException("Invalid URI: " + uri);
+            }
+
+            String modelType = pathParams.get(0);
+            String className = pathParams.size() > 1 ? pathParams.get(1) : null;
+
+            switch (modelType) {
+                case "schema":
+                    RdfSchemaExportOptions schemaOptions = RdfSchemaExportOptions.builder()
+                            .className(className)
+                            .build();
+                    fillOptionsUsingRequestUri(schemaOptions, relativeUri);
+                    return schemaExportService.getSchemaOntology(schemaOptions);
+                case "data":
+                    String objectId = pathParams.size() > 2 ? pathParams.get(2) : null;
+                    RdfDataExportOptions dataOptions = RdfDataExportOptions.builder()
+                            .className(className)
+                            .id(objectId)
+                            .build();
+                    return dataExportService.getIndividuals(dataOptions);
+                default:
+                    throw new IllegalArgumentException("Invalid URI: " + uri);
+            }
+        }
+
+        // External URI
         else {
-            return ModelUtils.readModel(iri, sourceFormat);
+            return ModelUtils.loadModelByUri(uri, uriFormat);
         }
     }
 
     /* -- protected methods -- */
 
-    protected Model getModel(ModelType modelType,
-                             RdfExportOptions options) {
-        Preconditions.checkNotNull(modelType);
+
+    protected RdfSchemaExportOptions fillOptionsUsingRequestUri(RdfSchemaExportOptions options, URI uri) {
         Preconditions.checkNotNull(options);
-
-        switch (modelType) {
-            case SCHEMA:
-                return service.getOntologyModel(options);
-            case DATA:
-                return service.getDataModel(options);
-            default:
-                throw new IllegalArgumentException("Invalid modelType: " + modelType);
-        }
-    }
-
-    protected String getModelAsString(ModelType modelType,
-                                      RdfExportOptions options,
-                                      RdfFormat format) {
-        Preconditions.checkNotNull(format);
-
-        Model model = getModel(modelType, options);
-        return ModelUtils.modelToString(model, format);
-    }
-
-
-    protected RdfExportOptions buildOptions(String className, String objectId, String disjoints, String withSchema, String packages) {
-
-        return RdfExportOptions.builder()
-                .className(className)
-                .id(objectId)
-                .withDisjoints("true".equalsIgnoreCase(disjoints))
-                .withSchema("true".equalsIgnoreCase(withSchema))
-                .packages(StringUtils.isNotBlank(packages) ? Splitter.on(',').omitEmptyStrings().trimResults().splitToList(packages) : null)
-                .build();
-    }
-
-    protected RdfExportOptions buildOptions(URI uri) {
         Preconditions.checkNotNull(uri);
         Map<String, String> requestParams = parseQueryParams(uri);
+
+        // With disjoint ? true by default
         String disjoints = requestParams.get("disjoints");
-        String methods = requestParams.get("methods");
+        if (StringUtils.isNotBlank(disjoints)) options.setWithDisjoints(! "false".equalsIgnoreCase(disjoints));
+
+        // With equivalences ? false by default
+        String equivalences = requestParams.get("equivalences");
+        if (StringUtils.isNotBlank(equivalences)) options.setWithEquivalences("true".equalsIgnoreCase(equivalences)); // false by default
+
+        // packages ? empty by default
         String packages = requestParams.get("packages");
-        RdfExportOptions options = buildOptions(null, null, disjoints, methods, packages);
+        if (StringUtils.isNotBlank(packages)) {
+            options.setPackages(Splitter.on(',').omitEmptyStrings().trimResults().splitToList(packages));
+        }
+
         return options;
     }
 
@@ -244,4 +365,23 @@ public class RdfRestController {
         return result;
     }
 
+    protected RdfFormat findRdfFormat(final HttpServletRequest request, @Nullable final String userFormat, @Nullable final RdfFormat defaultFormat) {
+        if (StringUtils.isNotBlank(userFormat)) {
+            return RdfFormat.fromUserString(userFormat)
+                    .orElseThrow(() -> new IllegalArgumentException("Unknown output format: " + userFormat));
+        }
+
+        // Analyse HTTP header 'Accept' content types
+        else {
+            return RdfFormat.fromUrlExtension(request.getRequestURI())
+                    .orElseGet(() -> {
+                        Collection<String> acceptedContentTypes = Splitter.on(",").trimResults().splitToList(request.getHeader(HttpHeaders.ACCEPT));
+                        return acceptedContentTypes.stream()
+                                .map(contentType -> RdfFormat.fromContentType(contentType).orElse(null))
+                                .filter(Objects::nonNull)
+                                .findFirst()
+                                .orElse(defaultFormat);
+                    });
+        }
+    }
 }

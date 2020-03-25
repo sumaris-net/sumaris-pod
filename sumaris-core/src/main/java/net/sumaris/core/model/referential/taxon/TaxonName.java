@@ -25,6 +25,7 @@ package net.sumaris.core.model.referential.taxon;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
@@ -39,7 +40,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_name")
-public class TaxonName implements IItemReferentialEntity {
+public class TaxonName implements IItemReferentialEntity, IWithDescriptionAndCommentEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_NAME_SEQ")

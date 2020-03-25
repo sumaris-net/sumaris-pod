@@ -144,7 +144,7 @@ public class PersonServiceImpl implements PersonService {
 	public void delete(List<Integer> ids) {
 		Preconditions.checkNotNull(ids);
 
-		ids.stream().forEach(id -> delete(id));
+		ids.forEach(this::delete);
 	}
 
 	/* -- protected methods -- */
