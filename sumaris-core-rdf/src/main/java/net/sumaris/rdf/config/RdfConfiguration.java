@@ -77,6 +77,8 @@ public class RdfConfiguration  {
                     registry.addRedirectViewController("/api/ontology/", RDF_URI_TEST_PATH);
                     registry.addViewController(RDF_URI_TEST_PATH).setViewName("forward:/rdfuri/index.html");
 
+                    registry.addStatusController("/ontology/data/TaxonName/1", HttpStatus.BAD_REQUEST);
+
                     ModelURIs.RDF_URL_BY_PREFIX.keySet()
                             .forEach(ns -> Arrays.stream(RdfFormat.values())
                                     .map(RdfFormat::toJenaLang)
@@ -207,6 +209,14 @@ public class RdfConfiguration  {
 
     public String getModelAuthors() {
         return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_AUTHORS.getKey());
+    }
+
+    public int getDefaultPageSize() {
+        return config.getApplicationConfig().getOptionAsInt(RdfConfigurationOption.RDF_DEFAULT_PAGE_SIZE.getKey());
+    }
+
+    public int getMaxPageSize() {
+        return config.getApplicationConfig().getOptionAsInt(RdfConfigurationOption.RDF_MAX_PAGE_SIZE.getKey());
     }
 
 

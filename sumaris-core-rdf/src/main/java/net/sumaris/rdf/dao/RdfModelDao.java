@@ -22,6 +22,7 @@
 
 package net.sumaris.rdf.dao;
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.rdf.model.ModelVocabulary;
 
 import javax.annotation.Nullable;
@@ -34,6 +35,8 @@ public interface RdfModelDao {
     <T> T getById(ModelVocabulary domain, String className, Class<T> aClass, Serializable id);
 
     <T> Stream<T> streamAll(ModelVocabulary domain, String className, Class<T> aClass);
+
+    <T> Stream<T> streamAll(ModelVocabulary domain, String className, Class<T> aClass, Page page);
 
     Set<String> getClassNamesByDomain(ModelVocabulary domain);
 

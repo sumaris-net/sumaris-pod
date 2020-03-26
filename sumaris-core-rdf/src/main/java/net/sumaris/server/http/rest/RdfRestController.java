@@ -25,16 +25,19 @@ package net.sumaris.server.http.rest;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelURIs;
 import net.sumaris.rdf.service.data.RdfDataExportOptions;
 import net.sumaris.rdf.service.data.RdfDataExportService;
-import net.sumaris.rdf.service.schema.RdfSchemaExportOptions;
-import net.sumaris.rdf.service.schema.RdfSchemaExportService;
+import net.sumaris.rdf.service.schema.RdfSchemaOptions;
+import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
+import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.reasoner.ReasonerRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -77,7 +80,7 @@ public class RdfRestController {
     private static final Logger log = LoggerFactory.getLogger(RdfRestController.class);
 
     @Resource
-    private RdfSchemaExportService schemaExportService;
+    private RdfSchemaService schemaExportService;
 
     @Resource
     private RdfDataExportService dataExportService;
@@ -85,17 +88,9 @@ public class RdfRestController {
     @Resource
     private RdfConfiguration config;
 
-    private String ontologyBaseUri;
 
     @PostConstruct
     public void init() {
-        // Compute /ontology full path
-        String modelBaseUri = config.getModelBaseUri();
-        if (modelBaseUri.endsWith("/")) {
-            modelBaseUri = modelBaseUri.substring(0, modelBaseUri.length()-1);
-        }
-        this.ontologyBaseUri = modelBaseUri + ONTOLOGY_PATH;
-
         log.info("Starting OWL endpoint {{}}...", SCHEMA_PATH_SLASH);
         log.info("Starting OWL endpoint {{}}...", DATA_SLASH_PATH);
     }
@@ -139,12 +134,13 @@ public class RdfRestController {
         RdfFormat format = findRdfFormat(request, userFormat, RdfFormat.RDF);
 
         // Generate the schema ontology
-        Model schema = schemaExportService.getSchemaOntology(RdfSchemaExportOptions.builder()
+        Model schema = schemaExportService.getOntology(RdfSchemaOptions.builder()
                 .className(className)
                 .withDisjoints(!"false".equalsIgnoreCase(disjoints)) // True by default
                 .withEquivalences("true".equalsIgnoreCase(equivalences))
                 // TODO .withInterfaces()
-                .build());
+                .build())
+                .getDeductionsModel();
 
         return ResponseEntity.ok()
                 .contentType(format.mineType())
@@ -182,11 +178,17 @@ public class RdfRestController {
                                                  @PathVariable(name = "id", required = false) String objectId,
                                                  @PathVariable(name = "extension", required = false) String extension,
                                                  @RequestParam(name = "format", required = false) String userFormat,
+                                                 @RequestParam(name = "from", required = false, defaultValue = "0") int offset,
+                                                 @RequestParam(name = "size", required = false, defaultValue = "100") int size,
                                                  final HttpServletRequest request) {
 
         RdfDataExportOptions options = RdfDataExportOptions.builder()
                 .className(className)
                 .id(objectId)
+                .page(Page.builder()
+                        .offset(objectId == null ? offset : 0)
+                        .size(objectId == null ? size : 1)
+                        .build())
                 .build();
 
         // Find the output format
@@ -196,6 +198,7 @@ public class RdfRestController {
         Model individuals = dataExportService.getIndividuals(options);
 
         // Add schema
+        //individuals = ModelFactory.createInfModel(ReasonerRegistry.getOWLReasoner(), schemaExportService.getOntology(className, extension, ));
 
         return ResponseEntity.ok()
                 .contentType(outputFormat.mineType())
@@ -281,8 +284,8 @@ public class RdfRestController {
 
         // If URI is on current Pod
         // Path match /ontology/{schema|data}/{class}/{id}
-        if (uri.startsWith(ontologyBaseUri)) {
-            URI relativeUri = URI.create(uri.substring(ontologyBaseUri.length()));
+        if (uri.startsWith(config.getModelBaseUri())) {
+            URI relativeUri = URI.create(uri.substring(config.getModelBaseUri().length()));
             List<String> pathParams = Splitter.on('/').omitEmptyStrings().trimResults().splitToList(relativeUri.getPath());
             if (pathParams.size() < 1 || pathParams.size() > 3) {
                 throw new IllegalArgumentException("Invalid URI: " + uri);
@@ -293,17 +296,19 @@ public class RdfRestController {
 
             switch (modelType) {
                 case "schema":
-                    RdfSchemaExportOptions schemaOptions = RdfSchemaExportOptions.builder()
+                    RdfSchemaOptions schemaOptions = RdfSchemaOptions.builder()
+                            .withEquivalences(true)
                             .className(className)
                             .build();
-                    fillOptionsUsingRequestUri(schemaOptions, relativeUri);
-                    return schemaExportService.getSchemaOntology(schemaOptions);
+                    fillSchemaOptionsByRequestUri(schemaOptions, relativeUri);
+                    return schemaExportService.getOntology(schemaOptions);
                 case "data":
                     String objectId = pathParams.size() > 2 ? pathParams.get(2) : null;
                     RdfDataExportOptions dataOptions = RdfDataExportOptions.builder()
                             .className(className)
                             .id(objectId)
                             .build();
+                    fillDataOptionsByRequestUri(dataOptions, relativeUri);
                     return dataExportService.getIndividuals(dataOptions);
                 default:
                     throw new IllegalArgumentException("Invalid URI: " + uri);
@@ -319,24 +324,40 @@ public class RdfRestController {
     /* -- protected methods -- */
 
 
-    protected RdfSchemaExportOptions fillOptionsUsingRequestUri(RdfSchemaExportOptions options, URI uri) {
+    protected RdfSchemaOptions fillSchemaOptionsByRequestUri(RdfSchemaOptions options, URI uri) {
         Preconditions.checkNotNull(options);
         Preconditions.checkNotNull(uri);
         Map<String, String> requestParams = parseQueryParams(uri);
 
-        // With disjoint ? true by default
+        // With disjoint ?
         String disjoints = requestParams.get("disjoints");
-        if (StringUtils.isNotBlank(disjoints)) options.setWithDisjoints(! "false".equalsIgnoreCase(disjoints));
+        if (StringUtils.isNotBlank(disjoints)) options.setWithDisjoints(! "false".equalsIgnoreCase(disjoints)); // true by default
 
-        // With equivalences ? false by default
+        // With equivalences ?
         String equivalences = requestParams.get("equivalences");
-        if (StringUtils.isNotBlank(equivalences)) options.setWithEquivalences("true".equalsIgnoreCase(equivalences)); // false by default
+        if (StringUtils.isNotBlank(equivalences)) options.setWithEquivalences(!"false".equalsIgnoreCase(equivalences)); // true by default
 
         // packages ? empty by default
         String packages = requestParams.get("packages");
         if (StringUtils.isNotBlank(packages)) {
             options.setPackages(Splitter.on(',').omitEmptyStrings().trimResults().splitToList(packages));
         }
+
+        return options;
+    }
+
+    protected RdfDataExportOptions fillDataOptionsByRequestUri(RdfDataExportOptions options, URI uri) {
+        Preconditions.checkNotNull(options);
+        Preconditions.checkNotNull(uri);
+        Map<String, String> requestParams = parseQueryParams(uri);
+
+        // Page offset = 'from' query param
+        String pageOffset = requestParams.get("from");
+        if (StringUtils.isNotBlank(pageOffset)) options.getPage().setOffset(Integer.parseInt(pageOffset));
+
+        // Page size = 'size' query param
+        String pageSize = requestParams.get("size");
+        if (StringUtils.isNotBlank(pageSize)) options.getPage().setSize(Integer.parseInt(pageSize));
 
         return options;
     }

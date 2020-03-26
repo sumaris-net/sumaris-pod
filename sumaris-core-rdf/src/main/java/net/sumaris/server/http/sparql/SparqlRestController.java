@@ -28,15 +28,28 @@ import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.service.data.RdfDataExportOptions;
 import net.sumaris.rdf.service.data.RdfDataExportService;
-import net.sumaris.rdf.service.schema.RdfSchemaExportOptions;
-import net.sumaris.rdf.service.schema.RdfSchemaExportService;
+import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.server.http.rest.RdfFormat;
 import net.sumaris.server.http.rest.RdfMediaType;
+import net.sumaris.server.http.rest.RdfRestController;
+import org.apache.jena.atlas.lib.StrUtils;
+import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.fuseki.server.Operation;
+import org.apache.jena.ontology.OntModel;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
+import org.apache.jena.dboe.base.file.Location;
+import org.apache.jena.reasoner.ReasonerRegistry;
+import org.apache.jena.system.Txn;
+import org.apache.jena.tdb2.TDB2Factory;
+import org.apache.jena.update.UpdateExecutionFactory;
+import org.apache.jena.update.UpdateFactory;
+import org.apache.jena.update.UpdateProcessor;
+import org.apache.jena.update.UpdateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,6 +64,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -66,7 +80,10 @@ public class SparqlRestController {
     private static final Logger log = LoggerFactory.getLogger(SparqlRestController.class);
 
     @Resource
-    private RdfSchemaExportService schemaExportService;
+    private RdfRestController rdfRestController;
+
+    @Resource
+    private RdfSchemaService schemaExportService;
 
     @Resource
     private RdfDataExportService dataExportService;
@@ -77,9 +94,34 @@ public class SparqlRestController {
     @Value("${server.url}/" + SPARQL_ENDPOINT)
     private String sparqlEndpointUrl;
 
+    @Value("${rdf.tdb2.enabled:false}")
+    private boolean enableTdb2;
+
+    private Model defaultModel;
+    private Dataset dataset;
+
+
     @PostConstruct
     public void init() {
         log.info("Starting SparQL endpoint {{}}...", sparqlEndpointUrl);
+
+        // TODO add inference ?
+        //  this.defaultModel = ModelFactory.createInfModel(ReasonerRegistry.getOWLReasoner(), getFullSchemaOntology()).getDeductionsModel();
+        this.defaultModel = getFullSchemaOntology();
+
+        // Init the query dataset
+        this.dataset = createDataset();
+
+        // TODO: fill dataset ?
+        //fillDataset(this.dataset);
+
+//        FusekiServer server = FusekiServer.create()
+//                .port(8888)
+//                //.loopback(false)
+//                .add("/rdf", dataset)
+//                .addOperation("/rdf", Operation.Query)
+//                .build() ;
+//        server.start() ;
     }
 
     @RequestMapping(
@@ -119,7 +161,6 @@ public class SparqlRestController {
 
             })
     public ResponseEntity<byte[]> executeRequest(@RequestParam(name = "query") String queryString,
-                                                 @RequestParam(name = "service", required = false) String externalService,
                                                  @RequestHeader(name = HttpHeaders.ACCEPT) String acceptHeader) {
 
         Query query = QueryFactory.create(queryString) ;
@@ -131,27 +172,10 @@ public class SparqlRestController {
 
         List<String> acceptedContentTypes = Splitter.on(",").trimResults().splitToList(acceptHeader);
 
-        // Execute into an external endpoint
-        if (StringUtils.isNotBlank(externalService) && !externalService.startsWith(sparqlEndpointUrl)) {
-            // TODO
-        }
+        Dataset dataset = DatasetFactory.create();
+        //dataset.setDefaultModel(rdfRestController.loadModelByUri("http://www.w3.org/2002/07/owl", RdfFormat.RDF));
+        fillDataset(dataset);
 
-        // Load the schema
-        Model schema = schemaExportService.getSchemaOntology( RdfSchemaExportOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
-                .className("TaxonName")
-                .build());
-
-        // Load instances (as individuals)
-        Model instances = dataExportService.getIndividuals(RdfDataExportOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL) // TODO change this
-                .className("TaxonName") // TODO change this
-                .build());
-
-        Dataset dataset = DatasetFactory.create(instances);
-        dataset.setDefaultModel(schema);
-
-        //        try (QueryExecution qExec = QueryExecutionFactory.create(query, dataset)) {
         Optional<ResponseEntity<byte[]>> response;
         try (RDFConnection conn = RDFConnectionFactory.connect(dataset); QueryExecution qExec = conn.query(query)) {
 
@@ -164,6 +188,7 @@ public class SparqlRestController {
                 Model model = qExec.execDescribe();
                 response = outputModel(model, acceptedContentTypes);
             }
+
 
             // Ask / Select query
             else if (query.isAskType()) {
@@ -249,4 +274,70 @@ public class SparqlRestController {
                 .findFirst();
     }
 
+    protected OntModel getFullSchemaOntology() {
+        return (OntModel)getReferentialSchemaOntology().add(getDataSchemaOntology());
+    }
+
+    protected OntModel getReferentialSchemaOntology() {
+        return schemaExportService.getOntology(ModelVocabulary.REFERENTIAL);
+    }
+
+    protected OntModel getDataSchemaOntology() {
+        return schemaExportService.getOntology(ModelVocabulary.DATA);
+    }
+
+    protected Dataset createDataset() {
+        if (enableTdb2) {
+
+            // Connect or create the TDB2 dataset
+            File tdbDir = new File(config.getRdfDirectory(), "tdb");
+            log.info("Starting {TDB2} triple store at {{}}...", tdbDir);
+
+            Location location = Location.create(tdbDir.getAbsolutePath());
+            dataset = TDB2Factory.connectDataset(location);
+        }
+        else {
+            log.info("Starting {memory} triple store...");
+            dataset = DatasetFactory.create()
+                    .setDefaultModel(this.defaultModel);
+        }
+
+
+
+        return dataset;
+    }
+
+    /**
+     * Fill dataset
+     * @param dataset
+     * @return
+     */
+    protected void fillDataset(Dataset dataset) {
+
+//        dataset.begin(ReadWrite.WRITE);
+//        String sparqlUpdateString = StrUtils.strjoinNL(
+//                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
+//                "PREFIX this: <http://192.168.0.20:8080/ontology/schema/>",
+//                "INSERT { <http://192.168.0.20:8080/ontology/data/TaxonName/1> rdfs:label ?now } WHERE { BIND(now() AS ?now ) }"
+//        ) ;
+//
+//        UpdateRequest updateRequest = UpdateFactory.create(sparqlUpdateString);
+//        UpdateProcessor updateProcessor =
+//                UpdateExecutionFactory.create(updateRequest, dataset);
+//        updateProcessor.execute();
+//        dataset.commit();
+
+        // TODO: change this
+        // Load TaxonName
+        String graphName = config.getModelBaseUri() + "data/TaxonName";
+        Model instances = dataExportService.getIndividuals(RdfDataExportOptions.builder()
+                .className("TaxonName")
+                .build());
+
+        // TODO enable inferences
+        //instances = ModelFactory.createInfModel(ReasonerRegistry.getOWLReasoner(), instances);
+
+        dataset.addNamedModel(graphName, instances);
+
+    }
 }

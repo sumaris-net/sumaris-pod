@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.rdf.model.ModelVocabulary;
 
 import java.lang.annotation.Annotation;
@@ -43,8 +44,13 @@ public class RdfDataExportOptions {
     private String className;
     private String id;
 
+    @Builder.Default
+    private int maxDepth = 0;
+
     private Class<? extends Annotation> annotatedType;
     private Class type;
 
     private List<String> packages;
+
+    private Page page;
 }

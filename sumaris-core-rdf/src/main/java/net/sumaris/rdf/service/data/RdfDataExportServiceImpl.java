@@ -25,8 +25,8 @@ package net.sumaris.rdf.service.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.vo.IValueObject;
 import net.sumaris.rdf.config.RdfConfiguration;
@@ -35,8 +35,7 @@ import net.sumaris.rdf.dao.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.ModelEntities;
-import net.sumaris.rdf.model.ModelType;
-import net.sumaris.rdf.service.schema.RdfSchemaExportService;
+import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.Bean2Owl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -59,6 +59,7 @@ import javax.annotation.PostConstruct;
 import javax.persistence.Entity;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service("rdfDataExportService")
@@ -77,20 +78,26 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
     protected RdfCacheConfiguration cacheConfiguration;
 
     @Autowired
-    protected RdfSchemaExportService schemaExportService;
+    protected RdfSchemaService schemaService;
 
     protected Bean2Owl beanConverter;
 
-    protected List<IModelVisitor> modelVisitors = Lists.newCopyOnWriteArrayList();
+    protected int defaultPageSize;
+    protected int maxPageSize;
+
+    protected List<IModelVisitor<Model, RdfDataExportOptions>> modelVisitors = Lists.newCopyOnWriteArrayList();
 
     @PostConstruct
-    protected void afterPropertiesSet() {
+    protected void init() {
 
         beanConverter = new Bean2Owl(config.getModelBaseUri());
+
+        defaultPageSize = config.getDefaultPageSize();
+        maxPageSize = config.getMaxPageSize();
     }
 
     @Override
-    public void register(IModelVisitor visitor) {
+    public void register(IModelVisitor<Model, RdfDataExportOptions> visitor) {
         if (!modelVisitors.contains(modelVisitors)) modelVisitors.add(visitor);
     }
 
@@ -102,8 +109,9 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
 
         // Create base model
         Model model = ModelFactory.createDefaultModel();
-        String schemaUri = schemaExportService.getOntologySchemaUri();
-        model.setNsPrefix(schemaExportService.getOntologySchemaPrefix(), schemaUri);
+        String prefix = schemaService.getPrefix();
+        String namespace = schemaService.getNamespace();
+        model.setNsPrefix(schemaService.getPrefix(), namespace);
         model.setNsPrefix("dc", DC_11.getURI()); // http://purl.org/dc/elements/1.1/
 
         boolean hasClassName = StringUtils.isNotBlank(options.getClassName());
@@ -112,28 +120,34 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
             throw new IllegalArgumentException("Unable to export data without a class name!");
         }
 
-        final int entityGraphDepth =  options.getDomain() == ModelVocabulary.DATA ? 3 : 0; // TODO: check if enought
+        final int entityGraphDepth =  options.getDomain() == ModelVocabulary.DATA ? 3 : 0; // TODO: check if enougth
+
+        // Filter visitors, then notify them
+        List<IModelVisitor> modelVisitors = getModelVisitors(model, prefix, namespace, options);
+
+        // Notify visitors
+        modelVisitors.forEach(visitor -> visitor.visitModel(model, prefix, namespace));
 
         // When having classname and id
         if (hasClassName && StringUtils.isNotBlank(options.getId())) {
             // Get the bean
-            IUpdateDateEntityBean entity = modelDao.getById(options.getDomain(), options.getClassName(), IUpdateDateEntityBean.class, options.getId());
+            IEntity entity = modelDao.getById(options.getDomain(), options.getClassName(), IEntity.class, options.getId());
 
             // Convert into model
-            Resource beanModel = beanConverter.bean2Owl(model, schemaUri, entity, entityGraphDepth, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes);
+            Resource beanModel = beanConverter.bean2Owl(model, namespace, entity, entityGraphDepth, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes);
 
-            // Notify visitor
-            onInidividualCreated(model, beanModel, entity.getClass());
+            // Notify visitors
+            modelVisitors.forEach(visitor -> visitor.visitIndividual(model, beanModel, entity.getClass()));
         }
         else {
             getClassesAsStream(options)
-                .forEach(clazz -> modelDao.streamAll(options.getDomain(), clazz.getSimpleName(), IEntity.class)
+                .forEach(clazz -> modelDao.streamAll(options.getDomain(), clazz.getSimpleName(), IEntity.class, options.getPage())
                     .forEach(entity -> {
                         // Create the resource
-                        Resource beanModel = beanConverter.bean2Owl(model, schemaUri, entity, entityGraphDepth, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes);
+                        Resource beanModel = beanConverter.bean2Owl(model, namespace, entity, entityGraphDepth, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes);
 
-                        // Notify visitor
-                        onInidividualCreated(model, beanModel, clazz);
+                        // Notify visitors
+                        modelVisitors.forEach(visitor -> visitor.visitIndividual(model, beanModel, clazz));
                     }));
         }
 
@@ -155,6 +169,17 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
                 domain = ModelVocabulary.REFERENTIAL; // default
             }
             options.setDomain(domain);
+        }
+
+        // Page
+        if (options.getPage() == null) {
+            options.setPage(Page.builder()
+                    .offset(0)
+                    .size(defaultPageSize)
+                    .build());
+        }
+        else if (options.getPage().getSize() > maxPageSize) {
+            throw new DataRetrievalFailureException("Size must be <= " + maxPageSize);
         }
 
         switch(domain) {
@@ -193,20 +218,8 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
         return options;
     }
 
-    @Override
-    public String getModelDataUri() {
-        String uri = config.getModelBaseUri() + ModelType.SCHEMA.name().toLowerCase() + "/";
 
-        // model should ends with '/'
-        if (uri.endsWith("#")) {
-            uri = uri.substring(0, uri.length() -1);
-        }
-        if (!uri.endsWith("/")) {
-            uri += "/";
-        }
-        return uri;
-    }
-
+    // TODO: move this into SchemaService, with a cache !!
     protected Stream<Class<?>> getClassesAsStream(RdfDataExportOptions options) {
 
         Reflections reflections;
@@ -264,4 +277,7 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
     }
 
 
+    public List<IModelVisitor> getModelVisitors(Model model, String ns, String schemaUri, RdfDataExportOptions options) {
+        return modelVisitors.stream().filter(visitor -> visitor.accept(model, ns, schemaUri, options)).collect(Collectors.toList());
+    }
 }

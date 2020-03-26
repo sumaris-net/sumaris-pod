@@ -22,7 +22,7 @@
         <config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
 
         <!-- Jena (RDF) -->
-        <jena.version>3.10.0</jena.version>
+        <jena.version>3.14.0</jena.version>
     </properties>
 
     <dependencies>
@@ -61,6 +61,28 @@
             <artifactId>jena-arq</artifactId>
             <version>${jena.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-fuseki-main</artifactId>
+            <version>${jena.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.jena</groupId>
+                    <artifactId>jena-cmds</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-tdb2</artifactId>
+            <version>${jena.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.github.VisualDataWeb</groupId>
             <artifactId>OWL2VOWL</artifactId>

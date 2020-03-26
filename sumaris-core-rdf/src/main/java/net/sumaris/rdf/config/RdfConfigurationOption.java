@@ -109,6 +109,20 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
             "${sumaris.organizationName}",
             String.class,
             false),
+
+    RDF_DEFAULT_PAGE_SIZE(
+            "rdf.data.pageSize.default",
+            n("sumaris.config.option.rdf.data.pageSize.default.description"),
+            "100",
+            Integer.class,
+            false),
+
+    RDF_MAX_PAGE_SIZE(
+            "rdf.data.pageSize.max",
+            n("sumaris.config.option.rdf.data.pageSize.max.description"),
+            "1000",
+            Integer.class,
+            false)
     ;
 
     /** Configuration key. */

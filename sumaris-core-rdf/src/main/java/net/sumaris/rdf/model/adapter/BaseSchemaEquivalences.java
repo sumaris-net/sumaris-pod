@@ -28,35 +28,35 @@ import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationArea;
 import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.model.IModelVisitor;
-import net.sumaris.rdf.service.schema.RdfSchemaExportService;
+import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.*;
+import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.GEO;
+import org.eclipse.rdf4j.model.vocabulary.GEOF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Objects;
 
 
-@Component("defaultModelAdapter")
+@Component("baseSchemaEquivalences")
 @ConditionalOnBean({RdfConfiguration.class})
 @ConditionalOnProperty(
-        prefix = "rdf",
-        name = {"adapter.default.enabled"},
+        prefix = "rdf.equivalences",
+        name = {"enabled"},
         matchIfMissing = true)
-public class DefaultModelAdapter extends AbstractModelAdapter {
+public class BaseSchemaEquivalences extends AbstractSchemaEquivalences {
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultModelAdapter.class);
+    private static final Logger log = LoggerFactory.getLogger(BaseSchemaEquivalences.class);
 
     private boolean debug;
 
@@ -68,9 +68,14 @@ public class DefaultModelAdapter extends AbstractModelAdapter {
     }
 
     @Override
-    public void visitSchema(Model model, String ns, String schemaUri) {
+    public void visitModel(Model model, String ns, String schemaUri) {
         log.info("Adding {{}} equivalences to {{}}...", basePrefix, schemaUri);
 
+        if (model instanceof OntModel) {
+            // Add Geomtry -> SpatialObject
+            OntModel ontModel = (OntModel)model;
+            //ontModel.createClass()
+        }
     }
 
     @Override
@@ -94,22 +99,22 @@ public class DefaultModelAdapter extends AbstractModelAdapter {
         // Entity
         if (IEntity.class.isAssignableFrom(clazz)) {
             model.getResource(classUri + "#" + IEntity.Fields.ID)
-                    .addProperty(subPropertyOf, DC.identifier)
-                    .addProperty(subPropertyOf, DCTerms.identifier);
+                    .addProperty(equivalentProperty, DC.identifier)
+                    .addProperty(equivalentProperty, DCTerms.identifier);
 
             // Update entity
             if (IUpdateDateEntityBean.class.isAssignableFrom(clazz)) {
 
                 // Update date
                 model.getResource(classUri + "#" + IUpdateDateEntityBean.Fields.UPDATE_DATE)
-                        .addProperty(subPropertyOf, DCTerms.modified);
+                        .addProperty(equivalentProperty, DCTerms.modified);
 
                 // Referential entity
                 if (IReferentialEntity.class.isAssignableFrom(clazz)) {
 
                     // Creation date
                     model.getResource(classUri + "#" + IItemReferentialEntity.Fields.CREATION_DATE)
-                            .addProperty(subPropertyOf, DCTerms.dateSubmitted);
+                            .addProperty(equivalentProperty, DCTerms.dateSubmitted);
 
                     // Item referential
                     if (IItemReferentialEntity.class.isAssignableFrom(clazz)) {
@@ -121,7 +126,7 @@ public class DefaultModelAdapter extends AbstractModelAdapter {
 
                         // Name
                         model.getResource(classUri + "#" + IItemReferentialEntity.Fields.NAME)
-                                .addProperty(subPropertyOf, RDFS.label);
+                                .addProperty(equivalentProperty, RDFS.label);
                     }
                 }
             }
@@ -130,12 +135,12 @@ public class DefaultModelAdapter extends AbstractModelAdapter {
 
                 // Description
                 model.getResource(classUri + "#" + IWithDescriptionAndCommentEntity.Fields.DESCRIPTION)
-                        .addProperty(subPropertyOf, DC.description)
-                        .addProperty(subPropertyOf, DCTerms.description);
+                        .addProperty(equivalentProperty, DC.description)
+                        .addProperty(equivalentProperty, DCTerms.description);
 
                 // Comment
                 model.getResource(classUri + "#" + IWithDescriptionAndCommentEntity.Fields.COMMENTS)
-                        .addProperty(subPropertyOf, RDFS.comment);
+                        .addProperty(equivalentProperty, RDFS.comment);
             }
         }
     }
@@ -147,21 +152,21 @@ public class DefaultModelAdapter extends AbstractModelAdapter {
         if (clazz == Person.class) {
 
             // = FOAF.Person, FOAF.OnlineAccount
-            ontClass.addProperty(subClassOf, FOAF.Person)
-                    .addProperty(subClassOf, FOAF.OnlineAccount);
+            ontClass.addProperty(equivalentClass, FOAF.Person)
+                    .addProperty(equivalentClass, FOAF.OnlineAccount);
 
             // First name
             model.getResource(classUri + "#" + Person.Fields.FIRST_NAME)
-                    .addProperty(subPropertyOf, FOAF.firstName);
+                    .addProperty(equivalentProperty, FOAF.firstName);
 
             // Last name
             model.getResource(classUri + "#" + Person.Fields.LAST_NAME)
-                    .addProperty(subPropertyOf, FOAF.lastName)
-                    .addProperty(subPropertyOf, FOAF.familyName);
+                    .addProperty(equivalentProperty, FOAF.lastName)
+                    .addProperty(equivalentProperty, FOAF.familyName);
 
             // Email
             model.getResource(classUri + "#" + Person.Fields.EMAIL)
-                    .addProperty(subPropertyOf, FOAF.mbox);
+                    .addProperty(equivalentProperty, FOAF.mbox);
 
             // Email hash (MD5)
             //model.getResource(classUri + "#" + Person.Fields.EMAIL_M_D5)
@@ -169,13 +174,24 @@ public class DefaultModelAdapter extends AbstractModelAdapter {
 
             // pubkey = OnlineAccount.accountName
             model.getResource(classUri + "#" + Person.Fields.PUBKEY)
-                    .addProperty(subPropertyOf, FOAF.accountName);
+                    .addProperty(equivalentProperty, FOAF.accountName);
 
             // Avatar = image
             model.getResource(classUri + "#" + Person.Fields.AVATAR)
-                    .addProperty(subPropertyOf, FOAF.img);
+                    .addProperty(equivalentProperty, FOAF.img);
         }
 
+        // Location
+        if (clazz == Location.class) {
+            // = Place
+            //ontClass.addProperty(equivalentClass, DCTERMS.)
+            //        .addProperty(equivalentClass, FOAF.OnlineAccount);
+        }
 
+        // Location Area
+        if (clazz == LocationArea.class) {
+            // = Place ?
+            //model.getResource(classUri + "#" + LocationArea.Fields.POSITION).addProperty(equivalentClass, GEO.NAMESPACE + "SpatialObject");
+        }
     }
 }

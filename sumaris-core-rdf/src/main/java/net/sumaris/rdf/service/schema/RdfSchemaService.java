@@ -23,25 +23,23 @@
 package net.sumaris.rdf.service.schema;
 
 import net.sumaris.rdf.model.IModelVisitor;
+import net.sumaris.rdf.model.ModelVocabulary;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
-
 @Transactional(readOnly = true)
-public interface RdfSchemaExportService {
+public interface RdfSchemaService {
 
-    String getOntologySchemaPrefix();
+    String getPrefix();
 
-    String getOntologySchemaUri();
-
+    String getNamespace();
 
     /**
      * Register a schema visitor
      * @param visitor
      */
-    void register(IModelVisitor visitor);
+    void register(IModelVisitor<Model, RdfSchemaOptions> visitor);
 
     /**
      * Get schema, as an ontology (classes with properties)
@@ -49,5 +47,7 @@ public interface RdfSchemaExportService {
      * @return a schema representation as an ontology
      */
     //@Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#options.hashCode()", condition = " #options != null", unless = "#result == null")
-    OntModel getSchemaOntology(@Nullable RdfSchemaExportOptions options);
+    OntModel getOntology(RdfSchemaOptions options);
+
+    OntModel getOntology(ModelVocabulary voc);
 }

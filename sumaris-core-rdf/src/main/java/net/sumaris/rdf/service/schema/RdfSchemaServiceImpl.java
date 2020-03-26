@@ -24,10 +24,9 @@ package net.sumaris.rdf.service.schema;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.IValueObject;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;
@@ -37,13 +36,16 @@ import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.ModelType;
 import net.sumaris.rdf.util.Bean2Owl;
+import org.apache.commons.collections.MultiMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.ext.com.google.common.collect.Multimaps;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.*;
 import org.reflections.Reflections;
@@ -57,21 +59,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.persistence.Entity;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Service("rdfSchemaExportService")
+@Service("rdfSchemaService")
 @ConditionalOnBean({RdfConfiguration.class})
-public class RdfSchemaExportServiceImpl implements RdfSchemaExportService {
+public class RdfSchemaServiceImpl implements RdfSchemaService {
 
-    private static final Logger log = LoggerFactory.getLogger(RdfSchemaExportServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(RdfSchemaServiceImpl.class);
 
     @Autowired
     protected RdfConfiguration config;
@@ -82,47 +82,52 @@ public class RdfSchemaExportServiceImpl implements RdfSchemaExportService {
     @Autowired
     protected RdfCacheConfiguration cacheConfiguration;
 
-    @javax.annotation.Resource(name = "rdfSchemaExportService")
-    protected RdfSchemaExportService self; // Use to call method with cache
+    @javax.annotation.Resource(name = "rdfSchemaService")
+    protected RdfSchemaService self; // Use to call method with cache
 
     protected Bean2Owl beanConverter;
 
-    protected List<IModelVisitor> modelVisitors = Lists.newCopyOnWriteArrayList();
+    private boolean debug;
+
+    protected List<IModelVisitor<Model, RdfSchemaOptions>> modelVisitors = Lists.newCopyOnWriteArrayList();
 
     @PostConstruct
-    protected void afterPropertiesSet() {
+    protected void init() {
+
+        debug = log.isDebugEnabled();
 
         beanConverter = new Bean2Owl(config.getModelBaseUri());
 
         // Check schema URI validity
         {
-            String ns = getModelNamespace();
-            String uri = getOntologySchemaUri();
+            String prefix = getPrefix();
+            String ns = getNamespace();
             try {
-                new URI(uri);
+                new URI(ns); // validate namespace
             } catch (URISyntaxException e) {
-                throw new BeanInitializationException(String.format("Bad RDF model URI {%s}. Please fix the option '%s' in the configuration.", config.getModelBaseUri(), RdfConfigurationOption.RDF_MODEL_BASE_URI.getKey(), e.getMessage()));
+                throw new BeanInitializationException(String.format("Bad RDF schema namespace {%s}. Please fix the option '%s' in the configuration.", config.getModelBaseUri(), RdfConfigurationOption.RDF_MODEL_BASE_URI.getKey(), e.getMessage()));
             }
             try {
-                createSchemaOntology(ns, uri);
+                createSchemaOntology(prefix, ns); // validate prefix
             } catch (PrefixMapping.IllegalPrefixException e) {
-                throw new BeanInitializationException(String.format("Bad RDF model namespace {%s}. Please fix the option '%s' in the configuration.", config.getModelBaseUri(), RdfConfigurationOption.RDF_MODEL_PREFIX.getKey(), e.getMessage()));
+                throw new BeanInitializationException(String.format("Bad RDF schema prefix {%s}. Please fix the option '%s' in the configuration.", config.getModelPrefix(), RdfConfigurationOption.RDF_MODEL_PREFIX.getKey(), e.getMessage()));
             }
         }
     }
 
     @Override
-    public void register(IModelVisitor visitor) {
+    public void register(IModelVisitor<Model, RdfSchemaOptions> visitor) {
         if (!modelVisitors.contains(modelVisitors)) modelVisitors.add(visitor);
     }
 
     @Override
-    public OntModel getSchemaOntology(@Nullable RdfSchemaExportOptions options) {
+    public OntModel getOntology(ModelVocabulary voc) {
+        return getOntology(createOptions(voc));
+    }
 
-        // When no options, init option for the domain, then loop (throw cache)
-        if (options == null) {
-            return self.getSchemaOntology(createOptions());
-        }
+    @Override
+    public OntModel getOntology(RdfSchemaOptions options) {
+        Preconditions.checkNotNull(options);
 
         int cacheKey = options.hashCode();
 
@@ -133,84 +138,25 @@ public class RdfSchemaExportServiceImpl implements RdfSchemaExportService {
         // Cache key changed by applyDomainToOptions() => loop using self, to force cache used
         boolean optionsChanged = (cacheKey != fixedCacheKey);
         if (optionsChanged) {
-            if (log.isDebugEnabled())
-                log.debug("Ontology export options was fixed! Will use: " + options.toString());
-            return self.getSchemaOntology(options);
+            if (debug) log.debug("Ontology export options was fixed! Will use: " + options.toString());
+            return self.getOntology(options);
         }
 
-        return getOntologyNoCache(options);
+        // Run export
+        return getSchemaOntologyNoCache(options);
     }
-//
-//
-//    @Override
-//    public void addLink(Model model, @Nullable RdfSchemaExportOptions options) {
-//
-//        // Make sure to fix options (set packages, ...)
-//        fillOptions(options);
-//
-//
-//        ResIterator classes = model.listSubjectsWithProperty(RDF.type, OWL.Class);
-//
-//        //log.debug(String.format("Add class {%s} link to other schema...", clazz.getSimpleName()));
-//
-//        try {
-//            while (classes.hasNext()) {
-//                Resource ontClass = classes.next();
-//                String classUri = ontClass.getURI();
-//
-//
-//
-//                // Taxon name
-//                if (classUri.endsWith("TaxonName")) {
-//
-//                    log.debug("Add alignment on class" + classUri);
-//                    ontClass.addProperty(OWL2.equivalentClass, DWC.TaxonName.asResource());
-//
-//                    // Id
-//                    Resource idProperty = model.getResource(classUri + "#" + IEntity.Fields.ID);
-//                    if (idProperty != null) {
-//                        idProperty.addProperty(OWL2.equivalentProperty, DC_11.identifier)
-//                                .addProperty(RDFS.subPropertyOf, DC_11.identifier);
-//                    }
-//
-//                    // Complete name
-//                    model.getResource(classUri + "#" + TaxonName.Fields.COMPLETE_NAME)
-//                            .addProperty(RDFS.subPropertyOf, DWC_TERMS.scientificName.asResource())
-//                            .addProperty(OWL2.equivalentProperty, DWC_TERMS.scientificName.asResource())
-//                            .addProperty(RDFS.subPropertyOf, RDFS.label)
-//                            .addProperty(OWL2.equivalentProperty, RDFS.label);
-//
-//                } else {
-//                    Resource idProperty = model.getResource(classUri + "#" + IEntity.Fields.ID);
-//                    if (idProperty != null) {
-//                        idProperty.addProperty(OWL2.sameAs, DC_11.identifier);
-//                    }
-//
-//                    Resource nameProperty = model.getResource(classUri + "#" + IItemReferentialEntity.Fields.NAME);
-//                    if (nameProperty != null) {
-//                        nameProperty.addProperty(OWL2.sameAs, RDFS.label);
-//                    }
-//                }
-//            }
-//        }
-//        catch(Exception e) {
-//            log.error(e.getMessage(), e);
-//        }
-//
-//    }
 
     /* -- protected methods -- */
 
-    protected RdfSchemaExportOptions createOptions() {
-        RdfSchemaExportOptions options = RdfSchemaExportOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
+    protected RdfSchemaOptions createOptions(ModelVocabulary voc) {
+        RdfSchemaOptions options = RdfSchemaOptions.builder()
+                .domain(voc)
                 .build();
         fillOptions(options);
         return options;
     }
 
-
-    protected RdfSchemaExportOptions fillOptions(RdfSchemaExportOptions options) {
+    protected RdfSchemaOptions fillOptions(RdfSchemaOptions options) {
         Preconditions.checkNotNull(options);
 
         ModelVocabulary domain = options.getDomain();
@@ -260,37 +206,31 @@ public class RdfSchemaExportServiceImpl implements RdfSchemaExportService {
         return options;
     }
 
-
-
-    protected OntModel createBaseOntModel(String namespace, String uri) {
+    protected OntModel createBaseOntModel(String prefix, String namespace) {
+        Preconditions.checkNotNull(prefix);
         Preconditions.checkNotNull(namespace);
-        Preconditions.checkNotNull(uri);
 
         OntModel ontology = ModelFactory.createOntologyModel();
-        ontology.setNsPrefix(namespace, uri);
-        ontology.setNsPrefix("dc", DC_11.getURI()); // http://purl.org/dc/elements/1.1/
+        ontology.setNsPrefix(prefix, namespace);
+        ontology.setNsPrefix("dc", DC.getURI()); // http://purl.org/dc/elements/1.1/
         ontology.setStrictMode(true);
 
         return ontology;
     }
 
-    protected OntModel createSchemaOntology() {
-        return createSchemaOntology(getOntologySchemaPrefix(), getOntologySchemaUri());
-    }
+    protected OntModel createSchemaOntology(String prefix, String namespace) {
+        Preconditions.checkNotNull(namespace);
 
-    protected OntModel createSchemaOntology(String namespace, String uri) {
-        Preconditions.checkNotNull(uri);
+        log.info(String.format("Generating ontology {%s}...", namespace));
 
-        log.info(String.format("Generating ontology {%s}...", uri));
-
-        OntModel ontology = createBaseOntModel(namespace, uri);
+        OntModel ontology = createBaseOntModel(prefix, namespace);
 
         // Add ontology metadata
         String modelLanguage = config.getModelDefaultLanguage();
-        Resource schema =  ontology.createResource(uri)
+        Resource schema =  ontology.createResource(namespace)
                 .addProperty(RDF.type, OWL.Ontology.asResource())
                 .addProperty(OWL2.versionInfo, config.getModelVersion())
-                .addProperty(OWL2.versionIRI, uri)
+                .addProperty(OWL2.versionIRI, namespace)
                 // Dublin Core
                 .addProperty(DC.language, modelLanguage)
                 .addProperty(DC.description, config.getModelDescription(), modelLanguage)
@@ -305,27 +245,31 @@ public class RdfSchemaExportServiceImpl implements RdfSchemaExportService {
         Iterable<String> authors = Splitter.on(',').omitEmptyStrings().trimResults().split(config.getModelAuthors());
         authors.forEach(author -> schema.addProperty(DC.creator, author));
 
-        // Notify visitors
-        onSchemaCreated(ontology, namespace, uri);
-
-
         return ontology;
-
     }
 
-    protected OntModel getOntologyNoCache(RdfSchemaExportOptions options) {
+    protected OntModel getSchemaOntologyNoCache(RdfSchemaOptions options) {
         Preconditions.checkNotNull(options);
         Preconditions.checkNotNull(options.getDomain());
 
-        OntModel schema = createSchemaOntology();
+        String prefix = getPrefix();
+        String namespace = getNamespace();
 
-        Map<OntClass, List<OntClass>> mutuallyDisjoint = options.isWithDisjoints() ? Maps.newHashMap() : null;
+        OntModel schema = createSchemaOntology(prefix, namespace);
+
+        // Filter visitors, then notify them
+        List<IModelVisitor> modelVisitors = getModelVisitors(schema, prefix, namespace, options);
+
+        // Notify visitors
+        modelVisitors.forEach(visitor -> visitor.visitModel(schema, prefix, namespace));
+
+        Multimap<OntClass, OntClass> mutuallyDisjoint = options.isWithDisjoints() ? HashMultimap.create() : null;
         getClassesAsStream(options).forEach(clazz -> {
             // Create the ontology class, from tha java class
             OntClass ontClass = beanConverter.classToOwl(schema, clazz, mutuallyDisjoint, options.isWithInterfaces());
 
-            // Notify visitors
-            onClassCreated(schema, ontClass, clazz);
+            // Notify visitors (e.g. for equivalences)
+            modelVisitors.forEach(visitor -> visitor.visitClass(schema, ontClass, clazz));
         });
 
         if (options.isWithDisjoints()) withDisjoints(mutuallyDisjoint);
@@ -334,13 +278,13 @@ public class RdfSchemaExportServiceImpl implements RdfSchemaExportService {
     }
 
     @Override
-    public String getOntologySchemaPrefix() {
+    public String getPrefix() {
         String namespace = config.getModelPrefix();
         return StringUtils.isNotBlank(namespace) ? namespace : "this";
     }
 
     @Override
-    public String getOntologySchemaUri() {
+    public String getNamespace() {
         String uri = config.getModelBaseUri() + ModelType.SCHEMA.name().toLowerCase() + "/";
         // TODO: append version ?
 
@@ -354,12 +298,7 @@ public class RdfSchemaExportServiceImpl implements RdfSchemaExportService {
         return uri;
     }
 
-    protected String getModelNamespace() {
-        String namespace = config.getModelPrefix();
-        return StringUtils.isNotBlank(namespace) ? namespace : "this";
-    }
-
-    protected Stream<Class<?>> getClassesAsStream(RdfSchemaExportOptions options) {
+    protected Stream<Class<?>> getClassesAsStream(RdfSchemaOptions options) {
 
         Reflections reflections;
         Stream<Class<?>> result;
@@ -411,36 +350,30 @@ public class RdfSchemaExportServiceImpl implements RdfSchemaExportService {
         return result;
     }
 
-    protected void withDisjoints(Map<OntClass, List<OntClass>> mutuallyDisjoint) {
+    protected void withDisjoints(Multimap<OntClass, OntClass> mutuallyDisjoint) {
 
         if (mutuallyDisjoint != null && !mutuallyDisjoint.isEmpty()) {
-            boolean debug = log.isDebugEnabled();
-            if (debug) log.debug("setting disjoints " + mutuallyDisjoint.size());
+            log.info("Adding {} disjoints...", mutuallyDisjoint.size());
             // add mutually disjoint classes
-            mutuallyDisjoint.entrySet().stream()
-                    .filter(e -> e.getValue().size() > 1) // having more than one child
-                    .forEach(e -> {
-                        List<OntClass> list = e.getValue();
-                        for (int i = 0; i < list.size(); i++) {
-                            OntClass r1 = list.get(i);
-                            for (int j = i + 1; j < list.size(); j++) {
-                                OntClass r2 = list.get(j);
-                                if (debug) log.debug("setting disjoint " + i + " " + j + " " + r1 + " " + r2);
-                                r1.addDisjointWith(r2);
+            mutuallyDisjoint.keys().stream()
+                    .forEach(clazz -> {
+                        Collection<OntClass> subClassesCollection = mutuallyDisjoint.get(clazz);
+                        if (subClassesCollection.size() > 1) {
+                            OntClass[] subClasses = subClassesCollection.toArray(new OntClass[subClassesCollection.size()]);
+                            for (int i = 0; i < subClasses.length; i++) {
+                                for (int j = i + 1; j < subClasses.length; j++) {
+                                    if (debug) log.debug("Adding disjoint between {{}} and {{}}", subClasses[i], subClasses[j]);
+                                    subClasses[i].addDisjointWith(subClasses[j]);
+                                }
                             }
                         }
+
                     });
         }
 
     }
 
-    public void onSchemaCreated(Model model, String ns, String schemaUri) {
-        modelVisitors.forEach(visitor -> visitor.visitSchema(model, ns, schemaUri));
+    public List<IModelVisitor> getModelVisitors(Model model, String ns, String schemaUri, RdfSchemaOptions options) {
+        return modelVisitors.stream().filter(visitor -> visitor.accept(model, ns, schemaUri, options)).collect(Collectors.toList());
     }
-
-    public void onClassCreated(Model model, Resource ontClass, Class clazz) {
-        modelVisitors.forEach(visitor -> visitor.visitClass(model, ontClass, clazz));
-    }
-
-
 }

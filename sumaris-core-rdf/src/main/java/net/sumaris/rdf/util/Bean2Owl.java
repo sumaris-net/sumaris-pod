@@ -23,13 +23,14 @@
 package net.sumaris.rdf.util;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.XSD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +42,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Stream;
+
 import static net.sumaris.rdf.util.OwlUtils.*;
 
 public class Bean2Owl {
@@ -53,7 +55,6 @@ public class Bean2Owl {
 
     private String modelPrefix;
     private boolean debug;
-    private Map<Class, Object> getIdMethodByClass = Maps.newHashMap();
 
     public Bean2Owl(String modelPrefix) {
         this.modelPrefix = modelPrefix;
@@ -71,7 +72,7 @@ public class Bean2Owl {
      * @param clazz
      * @return
      */
-    public OntClass classToOwl(OntModel ontology, Class clazz, Map<OntClass, List<OntClass>> mutuallyDisjoint, boolean withInterfaces) {
+    public OntClass classToOwl(OntModel ontology, Class clazz, Multimap<OntClass, OntClass> mutuallyDisjoint, boolean withInterfaces) {
 
         Resource schema = ontology.listSubjectsWithProperty(RDF.type, OWL.Ontology).nextResource();
 
@@ -89,13 +90,12 @@ public class Bean2Owl {
                         .filter(interfaze -> !ParameterizedType.class.equals(interfaze))
                         .forEach(interfaze -> {
                             if (debug) log.debug(String.format("%s %s %s", interfaze, Class.class, interfaze.getClass()));
-                            OntClass r = typeToUri(schema, interfaze);
-                            if (!mutuallyDisjoint.containsKey(r)) {
-                                mutuallyDisjoint.put(r, new ArrayList<>());
+                            OntClass interfaceUri = typeToUri(schema, interfaze);
+                            if (!mutuallyDisjoint.containsEntry(interfaceUri, aClass)) {
+                                mutuallyDisjoint.put(interfaceUri, aClass);
                             }
-                            mutuallyDisjoint.get(r).add(aClass);
 
-                            aClass.addSuperClass(r);
+                            aClass.addSuperClass(interfaceUri);
                         });
             }
 
@@ -110,7 +110,7 @@ public class Bean2Owl {
 
             Stream.of(clazz.getMethods())
                     .filter(OwlUtils::isGetter)
-                    .map(OwlUtils::getFieldOfGetteR)
+                    .map(OwlUtils::getFieldByGetter)
                     .forEach(field -> {
                         String propertyUri = classUri + "#" + field.getName();
 
@@ -235,23 +235,24 @@ public class Bean2Owl {
         if (debug) log.debug(String.format("Converting object {%s} to ontology...", clazz.getSimpleName()));
 
         // try using the ID field if exists to represent the node
-        String individualURI;
+        String individualUri;
         try {
             Method getIdMethod = findGetterAnnotatedID(clazz);
-            individualURI = beanToURI(baseUri,  clazz) + "/" + getIdMethod.invoke(obj);
+            individualUri = beanToURI(baseUri,  clazz) + "/" + getIdMethod.invoke(obj);
         } catch (Exception e) {
             if (debug) log.error(String.format("Cannot get ID on class {%s}", clazz.getSimpleName()));
             return null;
         }
 
-        String classSchemaURI = classToURI(baseUri, clazz);
-        Resource ontClass = model.getResource(classSchemaURI);
-        if (ontClass == null) ontClass = model.createResource(classSchemaURI);
-        Resource individual = model.createResource(individualURI, ontClass);
         if (depth < 0) {
             if (debug) log.warn("Max depth reached!");
-            return individual;
+            return model.getResource(individualUri);
         }
+
+        String classUri = classToURI(baseUri, clazz);
+        Resource ontClass = model.getResource(classUri);
+        if (ontClass == null) ontClass = model.createResource(classUri);
+        Resource individual = model.createResource(individualUri, ontClass);
 
         // Handle Methods
         Stream.of(clazz.getMethods())
@@ -263,46 +264,46 @@ public class Bean2Owl {
                     return (!exclude || include);
                 })
                 .forEach(getter -> {
-                    if (debug) log.debug("processing method " + getter.getDeclaringClass().getSimpleName()+"."+ getter.getName()+" "+getter.getGenericReturnType());
+                    Field field = OwlUtils.getFieldByGetter(getter);
+                    if (debug) log.debug("processing method " + field.getDeclaringClass().getSimpleName()+"."+ field.getName()+" "+field.getGenericType());
 
                     try {
                         Object propertyValue = getter.invoke(obj);
                         if (propertyValue == null) return; // Stop here
 
-                        Property propertyResource = model.createProperty(classSchemaURI, "#" + getter.getName().replace("get", ""));
+                        Property propertyResource = model.createProperty(classUri, "#" + field.getName());
 
-                        if (isId(getter)) {
+                        if (isId(field)) {
                             individual.addProperty(propertyResource, propertyValue + "");
-                        } else if ("getClass".equals(getter.getName())) {
+                        } else if ("class".equals(field.getName())) {
                             individual.addProperty(RDF.type, propertyResource);
                         } else if (propertyValue.getClass().getCanonicalName().contains("$")) {
                             // Inner class: Skip
-                        } else if (!isJavaType(getter)) {
+                        } else if (!isJavaType(field)) {
                             if (debug) {
-                                log.debug(" recurse for " + getter.getName());
+                                log.debug(" recurse for " + field.getName());
                                 log.debug(" not java generic, recurse on node..." + propertyValue);
                             }
 
                             Resource propertyValueResource = bean2Owl(model, baseUri, propertyValue, (depth - 1), includes, excludes);
                             if (propertyValueResource != null) individual.addProperty(propertyResource, propertyValueResource);
 
-                        } else if (getter.getGenericReturnType() instanceof ParameterizedType) {
+                        } else if (field.getGenericType() instanceof ParameterizedType) {
 
                             Resource anonId = model.createResource(new AnonId("params" + new Random().nextInt(1000000)));
-                            Optional<Resource> listNode = fillDataList(model, baseUri, getter.getGenericReturnType(), propertyValue, propertyResource, anonId, depth - 1,
+                            Optional<Resource> listNode = fillDataList(model, baseUri, field.getGenericType(), propertyValue, propertyResource, anonId, depth - 1,
                                     includes,
                                     excludes);
                             if (listNode.isPresent()) {
                                 if (debug) log.debug(" --and res  : " + listNode.get().getURI());
                                 individual.addProperty(propertyResource, listNode.get());
                             }
-                        } else {
-                            if (getter.getName().toLowerCase().contains("date")) {
-                                individual.addProperty(propertyResource, SIMPLE_DATE_FORMAT.format((Date) propertyValue));
+                        } else if (isDateType(field)) {
 
-                            } else {
-                                individual.addProperty(propertyResource, propertyValue + "");
-                            }
+                            individual.addProperty(propertyResource, DATE_ISO_FORMAT.format((Date) propertyValue), XSD.dateTime.getURI());
+
+                        } else {
+                            individual.addProperty(propertyResource, propertyValue + "");
                         }
 
                     } catch (Exception e) {

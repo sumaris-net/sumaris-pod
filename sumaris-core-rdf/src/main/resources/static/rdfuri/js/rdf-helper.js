@@ -3,11 +3,6 @@ function RdfHelper() {
     const constants = {
             prefixes: [
                 {
-                  name: 'Geo',
-                  ns: 'geo',
-                  prefix: 'http://www.opengis.net/ont/geosparql#'
-                },
-                {
                     name: 'Dublin Core',
                     ns: 'dc',
                     prefix: 'http://purl.org/dc/elements/1.1/'
@@ -53,12 +48,12 @@ function RdfHelper() {
                     prefix: 'https://w3id.org/rdfp/'
                 },
                 {
-                    name: 'RDFS',
+                    name: 'RDF Schema',
                     ns: 'rdfs',
                     prefix: 'http://www.w3.org/2000/01/rdf-schema#'
                 },
                 {
-                    name: 'Appel Taxon',
+                    name: 'Appellation Taxon (Sandre)',
                     ns: 'apt',
                     prefix: 'http://owl.sandre.eaufrance.fr/apt/2.1/sandre_fmt_owl_apt.owl'
                 },
@@ -73,7 +68,7 @@ function RdfHelper() {
                     prefix: 'http://rs.tdwg.org/dwc/iri/'
                 },
                 {
-                    name: 'LOD',
+                    name: 'LOD (TaxRef)',
                     ns: 'lod',
                     prefix: 'http://taxref.mnhn.fr/lod/'
                 },
@@ -81,7 +76,23 @@ function RdfHelper() {
                     name: 'SKOS thesaurus',
                     ns: 'skos',
                     prefix: 'http://www.w3.org/2004/02/skos/core#'
-                }
+                },
+                // Spatial
+                {
+                    name: 'Spatial',
+                    ns: 'spatial',
+                    prefix: 'http://www.w3.org/2004/02/skos/core#'
+                },
+                {
+                    name: 'GeoSparql',
+                    ns: 'geo',
+                    prefix: 'http://www.opengis.net/ont/geosparql#'
+                },
+                {
+                    name: 'GeoNames',
+                    ns: 'gn',
+                    prefix: 'http://www.geonames.org/ontology#'
+                },
             ]
     };
 

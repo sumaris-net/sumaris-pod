@@ -24,7 +24,7 @@ package net.sumaris.rdf.service;
 
 import net.sumaris.rdf.dao.DatabaseResource;
 import net.sumaris.rdf.model.ModelVocabulary;
-import net.sumaris.rdf.service.data.RdfImportServiceImpl;
+import net.sumaris.rdf.service.data.RdfDataImportServiceImpl;
 import org.apache.jena.ontology.OntModel;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -42,7 +42,7 @@ public class SynchroServiceTest extends AbstractServiceTest{
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private RdfImportServiceImpl service;
+    private RdfDataImportServiceImpl service;
 
     @Test
     @Ignore

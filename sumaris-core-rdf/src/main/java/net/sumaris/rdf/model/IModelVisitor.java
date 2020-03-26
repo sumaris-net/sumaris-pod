@@ -25,10 +25,10 @@ package net.sumaris.rdf.model;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 
-public interface IModelVisitor<M extends Model> {
+public interface IModelVisitor<M extends Model, O extends Object> {
 
 
-    default boolean accept(Model model, String ns, String schemaUri) {
+    default boolean accept(Model model, String prefix, String namespace, O options) {
         return true;
     };
 
@@ -38,7 +38,7 @@ public interface IModelVisitor<M extends Model> {
      * @param ns
      * @param schemaUri
      */
-    default void visitSchema(Model model, String ns, String schemaUri) {
+    default void visitModel(Model model, String ns, String schemaUri) {
 
     }
 

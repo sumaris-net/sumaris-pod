@@ -31,8 +31,8 @@ import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.RdfModelDao;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.ModelEntities;
-import net.sumaris.rdf.service.schema.RdfSchemaExportOptions;
-import net.sumaris.rdf.service.schema.RdfSchemaExportService;
+import net.sumaris.rdf.service.schema.RdfSchemaOptions;
+import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.Bean2Owl;
 import net.sumaris.rdf.util.Owl2Bean;
 import net.sumaris.rdf.util.OwlUtils;
@@ -64,11 +64,11 @@ import java.util.List;
 import java.util.function.Function;
 
 
-@Service("rdfImportService")
+@Service("rdfDataImportService")
 @ConditionalOnBean({RdfConfiguration.class})
-public class RdfImportServiceImpl {
+public class RdfDataImportServiceImpl {
 
-    public static Logger log = LoggerFactory.getLogger(RdfImportServiceImpl.class);
+    public static Logger log = LoggerFactory.getLogger(RdfDataImportServiceImpl.class);
 
     protected Owl2Bean owlConverter;
     protected List tl = new ArrayList();
@@ -84,7 +84,7 @@ public class RdfImportServiceImpl {
     protected RdfModelDao modelDao;
 
     @Autowired
-    private RdfSchemaExportService exportService;
+    private RdfSchemaService exportService;
 
     protected Bean2Owl beanConverter;
 
@@ -96,12 +96,12 @@ public class RdfImportServiceImpl {
         owlConverter = new Owl2Bean(this.entityManager, config.getModelBaseUri()) {
             @Override
             protected List getCacheStatus() {
-                return RdfImportServiceImpl.this.getCacheStatus();
+                return RdfDataImportServiceImpl.this.getCacheStatus();
             }
 
             @Override
             protected List getCacheTL() {
-                return RdfImportServiceImpl.this.getCacheTL();
+                return RdfDataImportServiceImpl.this.getCacheTL();
             }
         };
     }
@@ -142,11 +142,11 @@ public class RdfImportServiceImpl {
         }
         log.info(String.format("Mapped ont to list of %s objects, Making it OntClass again %s", recomposed.size(), Dates.elapsedTime(start)));
 
-        OntModel targetModel = exportService.getSchemaOntology(RdfSchemaExportOptions.builder()
+        OntModel targetModel = exportService.getOntology(RdfSchemaOptions.builder()
                 .domain(domain)
                 .withInterfaces(true)
                 .build());
-        String modelUri = exportService.getOntologySchemaUri();
+        String modelUri = exportService.getNamespace();
 
         recomposed.forEach(r -> beanConverter.bean2Owl(targetModel, modelUri, r, 2, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes));
 
@@ -220,12 +220,12 @@ public class RdfImportServiceImpl {
 
         context.B2O_ARBITRARY_MAPPER.put(OwlUtils.ADAGIO_PREFIX + "TaxonomicLevel", ontResource -> {
 
-            String clName = OwlUtils.ADAGIO_PREFIX + TaxonomicLevel.class.getTypeName();
+            String classUri = OwlUtils.ADAGIO_PREFIX + TaxonomicLevel.class.getTypeName();
             TaxonomicLevel tl = (TaxonomicLevel) context.URI_2_OBJ_REF.get(ontResource.getURI());
 
             try {
                 // first try to get it from cache
-                Property propCode = ontResource.getModel().getProperty(clName + "#Code");
+                Property propCode = ontResource.getModel().getProperty(classUri + "#code");
                 String label = ontResource.asIndividual().getPropertyValue(propCode).toString();
 
 
@@ -237,7 +237,7 @@ public class RdfImportServiceImpl {
 
 
                 // not in cache, create a new object
-                Property name = ontResource.getModel().getProperty(clName + "#Name");
+                Property name = ontResource.getModel().getProperty(classUri + "#name");
                 tl.setName(ontResource
                         .asIndividual()
                         .getProperty(name)
@@ -245,12 +245,12 @@ public class RdfImportServiceImpl {
                         .asLiteral()
                         .getString());
 
-                Property cd = ontResource.getModel().getProperty(clName + "#CreationDate");
+                Property cd = ontResource.getModel().getProperty(classUri + "#creationDate");
                 LocalDateTime ld = LocalDateTime.parse(ontResource.asIndividual().getPropertyValue(cd).asLiteral().getString(), OwlUtils.DATE_TIME_FORMATTER);
 
                 tl.setCreationDate(OwlUtils.convertToDateViaInstant(ld));
 
-                Property order = ontResource.getModel().getProperty(clName + "#RankOrder");
+                Property order = ontResource.getModel().getProperty(classUri + "#rankOrder");
                 tl.setRankOrder(ontResource.asIndividual().getPropertyValue(order).asLiteral().getInt());
 
 

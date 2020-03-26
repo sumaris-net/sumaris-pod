@@ -25,8 +25,8 @@ package net.sumaris.rdf.service;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.service.data.RdfDataExportOptions;
 import net.sumaris.rdf.service.data.RdfDataExportService;
-import net.sumaris.rdf.service.schema.RdfSchemaExportOptions;
-import net.sumaris.rdf.service.schema.RdfSchemaExportService;
+import net.sumaris.rdf.service.schema.RdfSchemaOptions;
+import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.jena.query.*;
@@ -45,14 +45,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class RdfSchemaExportServiceTest extends AbstractServiceTest {
+public class RdfSchemaFactoryTest extends AbstractServiceTest {
 
 
 
-    private static final Logger log = LoggerFactory.getLogger(RdfSchemaExportServiceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(RdfSchemaFactoryTest.class);
 
     @Resource
-    private RdfSchemaExportService schemaExportService;
+    private RdfSchemaService schemaExportService;
 
     @Resource
     private RdfDataExportService dataExportService;
@@ -61,12 +61,10 @@ public class RdfSchemaExportServiceTest extends AbstractServiceTest {
     private File dataModelFile;
 
 
-    final String QUERY = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+    final String QUERY_ALL = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
             "PREFIX this: <http://192.168.0.20:8080/ontology/schema/>\n" +
             "SELECT * WHERE {\n" +
             "  ?sub ?pred ?obj .\n" +
-            "  ?sub rdf:type this:TaxonName .\n" +
-            "\tfilter( regex( ?obj, \"^Lophius budegassa.*\" ) ) \n" +
             "} LIMIT 10";
 
     final String QUERY2 = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
@@ -84,17 +82,21 @@ public class RdfSchemaExportServiceTest extends AbstractServiceTest {
 
     @Test
     public void executeQuery() throws IOException {
-        //Model schema = service.getOntologyModel(options.build());
-        //service.addLink(schema, options.build());
+        Model schema = schemaExportService.getOntology(RdfSchemaOptions.builder()
+                .domain(ModelVocabulary.REFERENTIAL)
+                .withEquivalences(false)
+                .build());
 
-        Dataset dataset = DatasetFactory.create() ;
-        dataset.setDefaultModel(schemaExportService.getSchemaOntology(null)) ;
+        Model instances = dataExportService.getIndividuals(RdfDataExportOptions.builder()
+                .className("TaxonName")
+                .id("1001")
+                .build());
 
-//        Model instances = service.getDataModel(options
-//                .withSchema(true)
-//                .build());
+        Dataset dataset = DatasetFactory.create(schema)
+            .setDefaultModel(instances) ;
 
-        try (QueryExecution qExec = QueryExecutionFactory.create(QUERY2, dataset)) {
+
+        try (QueryExecution qExec = QueryExecutionFactory.create(QUERY_ALL, dataset)) {
             ResultSet rs = qExec.execSelect() ;
             Assert.assertTrue(rs.hasNext());
 
@@ -109,7 +111,7 @@ public class RdfSchemaExportServiceTest extends AbstractServiceTest {
                 .className("TaxonName")
                 .build());
 
-        Model schema = schemaExportService.getSchemaOntology(RdfSchemaExportOptions.builder()
+        Model schema = schemaExportService.getOntology(RdfSchemaOptions.builder()
                 .domain(ModelVocabulary.REFERENTIAL)
                 .className("TaxonName")
                 .withEquivalences(true)
@@ -133,7 +135,7 @@ public class RdfSchemaExportServiceTest extends AbstractServiceTest {
     /* -- -- */
 
     protected File createSchemaModelFile(boolean forceIfExists)  throws IOException {
-        Model model = schemaExportService.getSchemaOntology(RdfSchemaExportOptions.builder()
+        Model model = schemaExportService.getOntology(RdfSchemaOptions.builder()
                 .domain(ModelVocabulary.REFERENTIAL)
                 .className("TaxonName")
                 .build());

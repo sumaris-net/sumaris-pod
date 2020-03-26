@@ -25,6 +25,8 @@ package net.sumaris.rdf.dao;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import net.sumaris.core.dao.referential.ReferentialDaoImpl;
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.Status;
@@ -36,6 +38,7 @@ import net.sumaris.rdf.model.ModelVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
@@ -53,6 +56,8 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
 
     private static final Logger log = LoggerFactory.getLogger(RdfModelDaoImpl.class);
 
+    public static final String ORDER_BY_CLAUSE = " ORDER BY t.%s %s";
+
     protected Map<String, String> referentialQueriesByName = Maps.newHashMap();
     protected Map<String, String> dataQueriesByName = Maps.newHashMap();
 
@@ -62,22 +67,15 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
     @Autowired
     protected ReferentialDaoImpl referentialDao;
 
+    @Value("${rdf.data.pageSize.default:1000}")
+    protected int defaultPageSize;
+
     @Override
     public <T> T getById(ModelVocabulary domain, String className, Class<T> aClass, Serializable id) {
-        Preconditions.checkNotNull(id);
+        String hql = getSelectHqlQuery(domain, className, null, null);
 
-        String hql = getSelectHqlQuery(domain, className);
-
-        // When using fetch join, stream are not supported, so use a list
-        boolean queryHasSelect = hql.indexOf("select ") == 0;
-        if (queryHasSelect) {
-            int index = hql.substring(7).indexOf(" ");
-            String alias = hql.substring(7, 7 + index);
-            hql += String.format(" where %s.id=:id", alias);
-        }
-        else {
-            hql += " where id=:id";
-        }
+        // Add where clause, on id
+        hql += " where t.id=:id";
 
         try {
             id = Integer.valueOf(id.toString());
@@ -95,9 +93,20 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
     @Override
     public <T> Stream<T> streamAll(ModelVocabulary domain, String className, Class<T> aClass) {
 
-        String hql = getSelectHqlQuery(domain, className);
+        return streamAll(domain, className, aClass,  Page.builder()
+                .offset(0)
+                .size(defaultPageSize)
+                .build());
+    }
+
+    @Override
+    public <T> Stream<T> streamAll(ModelVocabulary domain, String className, Class<T> aClass, Page page) {
+        Preconditions.checkNotNull(page);
+
+        String hql = getSelectHqlQuery(domain, className, page.getSortAttribute(), page.getSortDirection());
         TypedQuery<T> typedQuery = entityManager.createQuery(hql, aClass)
-                .setMaxResults(20000);
+                .setFirstResult(page.getOffset())
+                .setMaxResults(page.getSize());
 
         // When using fetch join, stream are not supported, so use a list
         boolean queryHasFetchJoins = hql.indexOf(" fetch ") != -1;
@@ -153,7 +162,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
 
     /* -- protected methods -- */
 
-    protected String getSelectHqlQuery(ModelVocabulary vocabulary, String className) {
+    protected String getSelectHqlQuery(ModelVocabulary vocabulary, String className, String sortAttribute, SortDirection sortDirection) {
         Preconditions.checkNotNull(vocabulary);
         Preconditions.checkNotNull(className);
         String hqlQuery = null;
@@ -169,16 +178,22 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
         if (StringUtils.isBlank(hqlQuery)) {
             throw new IllegalArgumentException(String.format("Vocabulary {%s} has no class named {%s}", vocabulary.name().toLowerCase(), className));
         }
+
+        // Add sort by
+        if (StringUtils.isNotBlank(sortAttribute)) {
+            hqlQuery += String.format(ORDER_BY_CLAUSE, sortAttribute, sortDirection != null ? sortDirection.name() : "ASC");
+        }
+
         return hqlQuery;
     }
 
     @PostConstruct
     protected void fillNamedQueries() {
         // Taxon
-        referentialQueriesByName.put("taxon", "select tn from TaxonName as tn" +
-                " left join fetch tn.taxonomicLevel as tl" +
-                " join fetch tn.referenceTaxon as rt" +
-                " join fetch tn.status st");
+        referentialQueriesByName.put("taxon", "select t from TaxonName as t" +
+                " left join fetch t.taxonomicLevel as tl" +
+                " join fetch t.referenceTaxon as rt" +
+                " join fetch t.status st");
         referentialClassNamesByRootClass.putAll("taxon", ImmutableList.of(
                 TaxonName.class.getSimpleName(),
                 TaxonomicLevel.class.getSimpleName(),
@@ -186,21 +201,21 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
                 Status.class.getSimpleName()
                 ));
 
-        referentialQueriesByName.put("transcription", "select ti from TranscribingItem ti" +
-                " join fetch ti.type tit " +
-                " join fetch ti.status st");
-        referentialQueriesByName.put("location", "select l from Location l " +
-                " join fetch l.locationLevel ll " +
-                " join fetch l.validityStatus vs " +
-                " join fetch l.status st");
-        referentialQueriesByName.put("gear", "select g from Gear g " +
-                " join fetch g.gearClassification gl " +
-                " join fetch g.strategies s " +
-                " join fetch g.status st");
+        referentialQueriesByName.put("transcription", "select t from TranscribingItem t" +
+                " join fetch t.type tit " +
+                " join fetch t.status st");
+        referentialQueriesByName.put("location", "select t from Location t " +
+                " join fetch t.locationLevel ll " +
+                " join fetch t.validityStatus vs " +
+                " join fetch t.status st");
+        referentialQueriesByName.put("gear", "select t from Gear t " +
+                " join fetch t.gearClassification gl " +
+                " join fetch t.strategies s " +
+                " join fetch t.status st");
 
 
-        referentialQueriesByName.put("referencetaxon", "from ReferenceTaxon");
-        referentialQueriesByName.put("status", "from Status");
+        referentialQueriesByName.put("referencetaxon", "from ReferenceTaxon t");
+        referentialQueriesByName.put("status", "from Status t");
         referentialClassNamesByRootClass.put("status", Status.class.getSimpleName());
 
         referentialClassNamesByRootClass.put("person", Person.class.getSimpleName());
@@ -208,7 +223,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
         // Add missing query, from referential entity names
         referentialDao.getAllTypes().forEach(type -> {
             String entityName = type.getId();
-            referentialQueriesByName.putIfAbsent(entityName.toLowerCase(), "from " + entityName);
+            referentialQueriesByName.putIfAbsent(entityName.toLowerCase(), "from " + entityName + " t");
             if (!referentialClassNamesByRootClass.containsKey(entityName.toLowerCase())) {
                 referentialClassNamesByRootClass.putAll(entityName.toLowerCase(), ImmutableList.of(entityName, Status.class.getSimpleName()));
             }

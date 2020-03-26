@@ -22,40 +22,31 @@
 
 package net.sumaris.rdf.model.adapter;
 
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
-import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.rdf.model.IModelVisitor;
-import net.sumaris.rdf.service.schema.RdfSchemaExportService;
+import net.sumaris.rdf.service.schema.RdfSchemaOptions;
+import net.sumaris.rdf.service.schema.RdfSchemaService;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.vocabulary.FOAF;
-import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.DC_11;
 import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.Objects;
 
 
-public abstract class AbstractModelAdapter implements IModelVisitor {
+public abstract class AbstractSchemaEquivalences implements IModelVisitor<Model, RdfSchemaOptions> {
 
-    @Autowired
-    protected RdfSchemaExportService exportSchemaService;
+    @Resource
+    protected RdfSchemaService exportSchemaService;
 
-    @Value("${rdf.adapter.default.owl.enabled:true}")
-    protected boolean enableOwlAdapter;
+    @Value("${rdf.equivalences.owl.enabled:true}")
+    protected boolean useOwlEquivalences;
 
-    protected Property subClassOf = RDFS.subClassOf;
-    protected Property subPropertyOf =  RDFS.subPropertyOf;
+    protected Property equivalentClass = RDFS.subClassOf;
+    protected Property equivalentProperty =  RDFS.subPropertyOf;
     protected String basePrefix = org.eclipse.rdf4j.model.vocabulary.RDFS.PREFIX;
     protected String baseUri = org.eclipse.rdf4j.model.vocabulary.RDFS.NAMESPACE;
 
@@ -64,17 +55,17 @@ public abstract class AbstractModelAdapter implements IModelVisitor {
         // Register to schema service
         exportSchemaService.register(this);
 
-        if (this.enableOwlAdapter) {
-            subClassOf = OWL2.equivalentClass;
-            subPropertyOf = OWL2.equivalentProperty;
+        if (this.useOwlEquivalences) {
+            equivalentClass = OWL2.equivalentClass;
+            equivalentProperty = OWL2.equivalentProperty;
             basePrefix = OWL.PREFIX;
             baseUri = OWL2.NS;
         }
     }
 
     @Override
-    public boolean accept(Model model, String ns, String schemaUri) {
-        return Objects.equals(exportSchemaService.getOntologySchemaUri(), schemaUri);
+    public boolean accept(Model model, String prefix, String namespace, RdfSchemaOptions options) {
+        return options.isWithEquivalences() && Objects.equals(exportSchemaService.getNamespace(), namespace);
     }
 
 }

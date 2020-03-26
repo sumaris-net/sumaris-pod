@@ -60,8 +60,9 @@ public abstract class OwlUtils {
 
     public static String ADAGIO_PREFIX = "http://www.e-is.pro/2019/03/adagio/";
     public static ZoneId ZONE_ID = ZoneId.systemDefault();
-    public static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
-    public static SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+    public static String DATE_ISO_TIMESTAMP = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+    public static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_ISO_TIMESTAMP);
+    public static SimpleDateFormat DATE_ISO_FORMAT = new SimpleDateFormat(DATE_ISO_TIMESTAMP);
 
     public static Method getterOfField(Class t, String field) {
         try {
@@ -161,6 +162,9 @@ public abstract class OwlUtils {
         return isJavaType(field.getType());
     }
 
+    public static boolean isDateType(Field field) {
+        return Date.class.isAssignableFrom(field.getType()) || Timestamp.class.isAssignableFrom(field.getType());
+    }
 
     /**
      * check the getter and its corresponding field's annotations
@@ -171,6 +175,18 @@ public abstract class OwlUtils {
     public static boolean isId(Method met) {
         return "getId".equals(met.getName())
                 && Stream.concat(annotsOfField(getFieldOfGetter(met)), Stream.of(met.getAnnotations()))
+                .anyMatch(annot -> annot instanceof Id || annot instanceof org.springframework.data.annotation.Id);
+    }
+
+    /**
+     * check the getter and its corresponding field's annotations
+     *
+     * @param field the field to test
+     * @return true if it is a technical id to exclude from the model
+     */
+    public static boolean isId(Field field) {
+        return "id".equals(field.getName())
+                && Stream.concat(annotsOfField(Optional.of(field)), Stream.of(field.getAnnotations()))
                 .anyMatch(annot -> annot instanceof Id || annot instanceof org.springframework.data.annotation.Id);
     }
 
@@ -198,7 +214,7 @@ public abstract class OwlUtils {
         return met.getName().startsWith("set");
     }
 
-    public static Field getFieldOfGetteR(Method getter) {
+    public static Field getFieldByGetter(Method getter) {
         String fieldName = getter.getName().substring(3, 4).toLowerCase() + getter.getName().substring(4);
         try {
             return getter.getDeclaringClass().getDeclaredField(fieldName);

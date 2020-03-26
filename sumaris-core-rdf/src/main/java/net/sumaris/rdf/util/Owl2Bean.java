@@ -169,7 +169,7 @@ public abstract class Owl2Bean {
             } else if (classEquals(setterParam, Integer.class) || classEquals(setterParam, int.class)) {
                 setter.invoke(obj, Integer.parseInt(value));
             } else if (classEquals(setterParam, Date.class)) {
-                setter.invoke(obj, OwlUtils.SIMPLE_DATE_FORMAT.parse(val.asLiteral().getString()));
+                setter.invoke(obj, OwlUtils.DATE_ISO_FORMAT.parse(val.asLiteral().getString()));
             } else if (classEquals(setterParam, Boolean.class) || classEquals(setterParam, boolean.class)) {
                 setter.invoke(obj, val.asLiteral().getBoolean());
             }

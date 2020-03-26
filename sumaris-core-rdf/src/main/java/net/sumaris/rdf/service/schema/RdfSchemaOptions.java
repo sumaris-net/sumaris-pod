@@ -37,11 +37,19 @@ import java.util.List;
 @FieldNameConstants
 @EqualsAndHashCode
 @ToString
-public class RdfSchemaExportOptions {
+public class RdfSchemaOptions {
 
+    @Builder.Default
     private boolean withDisjoints = true;
-    private boolean withEquivalences = false;
-    private boolean withInterfaces = false;
+
+    @Builder.Default
+    private boolean withEquivalences = true;
+
+    @Builder.Default
+    private boolean withInterfaces = true;
+
+    @Builder.Default
+    private boolean withDeductions = true;
 
     private ModelVocabulary domain;
     private String className;

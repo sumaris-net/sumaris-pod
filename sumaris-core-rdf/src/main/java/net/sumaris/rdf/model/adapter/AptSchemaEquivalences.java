@@ -25,54 +25,35 @@ package net.sumaris.rdf.model.adapter;
 import fr.eaufrance.sandre.schema.apt.APT;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.model.IModelVisitor;
-import net.sumaris.rdf.service.schema.RdfSchemaExportService;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.util.Objects;
-
-@Component("aptModelAdapter")
+@Component("aptSchemaEquivalences")
 @ConditionalOnBean({RdfConfiguration.class})
 @ConditionalOnProperty(
-        prefix = "rdf",
-        name = {"adapter.sandre.enabled"},
+        prefix = "rdf.equivalences",
+        name = {"sandre.enabled"},
         matchIfMissing = true)
-public class AptModelAdapter implements IModelVisitor {
+public class AptSchemaEquivalences extends AbstractSchemaEquivalences {
 
-    private static final Logger log = LoggerFactory.getLogger(AptModelAdapter.class);
-
-    @Autowired
-    private RdfSchemaExportService service;
-
-    @PostConstruct
-    public void init() {
-        service.register(this);
-    }
+    private static final Logger log = LoggerFactory.getLogger(AptSchemaEquivalences.class);
 
     @Override
-    public boolean accept(Model model, String ns, String schemaUri) {
-        return Objects.equals(service.getOntologySchemaUri(), schemaUri);
-    }
-
-    @Override
-    public void visitSchema(Model model, String ns, String schemaUri) {
+    public void visitModel(Model model, String ns, String schemaUri) {
         log.info("Adding {{}} equivalences to {{}}...", APT.PREFIX, schemaUri);
     }
 
     @Override
-    public void visitClass(Model model, Resource onClass, Class clazz) {
+    public void visitClass(Model model, Resource ontClass, Class clazz) {
         if (TaxonName.class == clazz) {
             log.info("Adding {{}} equivalence on Class {{}}...", APT.PREFIX, clazz.getSimpleName());
 
+            ontClass.addProperty(equivalentClass, APT.AppelTaxon.asResource());
         }
     }
 }

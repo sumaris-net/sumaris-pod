@@ -4,7 +4,6 @@ package net.sumaris.rdf.model;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import fr.eaufrance.sandre.schema.apt.APT;
-import net.sumaris.rdf.model.adapter.AptModelAdapter;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.*;
@@ -23,6 +22,11 @@ public class ModelURIs {
             .put("dcam", "http://purl.org/dc/dcam/") // DCMI abstract model
             .put("dcterms", DCTerms.NS) // DCMI Terms
             .put("dctypes", DCTypes.NS) // DCMI Types
+
+            // Spatial
+            .put("spatial", "http://www.opengis.net/ont/geosparql#") // GeoSparql
+            .put("geo", "http://www.w3.org/2003/01/geo/wgs84_pos#")
+            .put("gn", "http://www.geonames.org/ontology#") // Geo names
 
             .put("foaf", FOAF.NS)
             .put("skos", SKOS.getURI())
@@ -44,6 +48,11 @@ public class ModelURIs {
             .put("dcterms", "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin_core_terms.rdf")
             .put("dctypes", "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin_core_type.rdf")
 
+            // TODO: find the prefix
+            .put("spatial", "http://www.opengis.net/ont/geosparql")
+            .put("geo", "http://www.w3.org/2003/01/geo/wgs84_pos")
+            .put("gn", "http://www.geonames.org/ontology") // Geo names
+
             //.put("", "http://www.w3.org/2000/10/swap/pim/contact")
             .put("foaf", "http://xmlns.com/foaf/spec/index.rdf")
             .put("skos", SKOS.getURI())
@@ -60,6 +69,15 @@ public class ModelURIs {
 
     public static String getClassUri(String schemaUri, Class clazz) {
         String uri = schemaUri + clazz.getSimpleName();
+        if (uri.substring(1).contains("<")) {
+            uri = uri.substring(0, uri.indexOf("<"));
+        }
+
+        return uri;
+    }
+
+    public static String getClassUri(String schemaUri, String simpleClassName) {
+        String uri = schemaUri + simpleClassName;
         if (uri.substring(1).contains("<")) {
             uri = uri.substring(0, uri.indexOf("<"));
         }

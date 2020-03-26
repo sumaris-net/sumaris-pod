@@ -22,43 +22,31 @@
 
 package net.sumaris.rdf.model.adapter;
 
-import fr.eaufrance.sandre.schema.apt.APT;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.rdf.config.RdfConfiguration;
-import net.sumaris.rdf.model.IModelVisitor;
-import net.sumaris.rdf.service.schema.RdfSchemaExportService;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.OWL2;
-import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.tdwg.rs.DWC;
 
-import javax.annotation.PostConstruct;
-import java.util.Objects;
-
-@Component("dwcModelAdapter")
+@Component("dwcSchemaEquivalences")
 @ConditionalOnBean({RdfConfiguration.class})
 @ConditionalOnProperty(
-        prefix = "rdf",
-        name = {"adapter.dwc.enabled"},
+        prefix = "rdf.equivalences",
+        name = {"dwc.enabled"},
         matchIfMissing = true)
-public class DwcModelAdapter extends AbstractModelAdapter {
+public class DwcSchemaEquivalences extends AbstractSchemaEquivalences {
 
-    private static final Logger log = LoggerFactory.getLogger(DwcModelAdapter.class);
+    private static final Logger log = LoggerFactory.getLogger(DwcSchemaEquivalences.class);
 
 
     @Override
-    public void visitSchema(Model model, String ns, String schemaUri) {
+    public void visitModel(Model model, String ns, String schemaUri) {
         log.info("Adding {{}} equivalences to {{}}...", DWC.Terms.PREFIX, schemaUri);
     }
 
@@ -70,26 +58,26 @@ public class DwcModelAdapter extends AbstractModelAdapter {
         if (clazz == ReferenceTaxon.class) {
             if (log.isDebugEnabled()) log.debug("Adding {{}} equivalence on Class {{}}...", DWC.Terms.PREFIX, clazz.getSimpleName());
 
-            ontClass.addProperty(subClassOf, DWC.Terms.Taxon);
+            ontClass.addProperty(equivalentClass, DWC.Terms.Taxon);
 
             // Id
             model.getResource(classUri + "#" + ReferenceTaxon.Fields.ID)
-                    .addProperty(subPropertyOf, DWC.Terms.taxonID);
+                    .addProperty(equivalentProperty, DWC.Terms.taxonID);
         }
 
         // Taxon Name
         else if (clazz == TaxonName.class) {
             if (log.isDebugEnabled()) log.debug("Adding {{}} equivalence on Class {{}}...", DWC.Terms.PREFIX, clazz.getSimpleName());
 
-            ontClass.addProperty(subClassOf, DWC.Voc.TaxonName);
+            ontClass.addProperty(equivalentClass, DWC.Voc.TaxonName);
 
             // Id
             model.getResource(classUri + "#" + ReferenceTaxon.Fields.ID)
-                    .addProperty(subPropertyOf, DWC.Terms.scientificNameID);
+                    .addProperty(equivalentProperty, DWC.Terms.scientificNameID);
 
             // Complete name
             model.getResource(classUri + "#" + TaxonName.Fields.COMPLETE_NAME)
-                .addProperty(subPropertyOf, DWC.Terms.scientificName);
+                .addProperty(equivalentProperty, DWC.Terms.scientificName);
         }
     }
 }
