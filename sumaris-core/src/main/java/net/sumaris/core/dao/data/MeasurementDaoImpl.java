@@ -420,7 +420,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @Override
     public List<MeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<MeasurementVO> sources) {
         Batch parent = get(Batch.class, batchId);
-        return saveMeasurements(BatchSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
+        return saveMeasurements(BatchQuantificationMeasurement.class, sources, parent.getSortingMeasurements(), parent);
     }
 
     @Override
