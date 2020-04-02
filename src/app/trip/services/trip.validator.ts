@@ -122,7 +122,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
   getMetiersArray(data?: Trip) {
     return this.formBuilder.array(
-      (data && data.metiers || []).map(this.getMetierControl),
+      (data && data.metiers || []).map(metier => this.getMetierControl(metier)),
       SharedValidators.requiredArrayMinLength(1)
     );
   }

@@ -90,8 +90,10 @@
                        [startDate]="form.controls.departureDateTime.value"
                        [required]="!isOnFieldMode">
           <mat-hint align="end" *ngIf="form.controls.returnDateTime.value">
-            <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.get('departureDateTime').value,
-            endValue: form.get('returnDateTime').value} | dateDiffDuration }}
+            <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
+            startValue: form.get('departureDateTime').value,
+            endValue: form.get('returnDateTime').value
+          } | dateDiffDuration }}
           </mat-hint>
         </mat-date-time>
       </ion-col>
@@ -103,7 +105,7 @@
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
         <ion-label class="ion-float-end" *ngIf="!i" translate>TRIP.OBSERVERS</ion-label>
       </ion-col>
-      <ion-col >
+      <ion-col>
         <mat-autocomplete-field [formControl]="observersHelper.at(i)"
                                 [placeholder]="('TRIP.OBSERVER_PLACEHOLDER'|translate) + (i+1)"
                                 [appAutofocus]="observerFocusIndex === i"
@@ -134,16 +136,38 @@
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
         <ion-label class="ion-float-end" *ngIf="!i" translate>TRIP.METIERS</ion-label>
       </ion-col>
-      <ion-col >
+      <ion-col>
         <mat-autocomplete-field [formControl]="metiersHelper.at(i)"
                                 [placeholder]="('TRIP.METIER_PLACEHOLDER'|translate) + (i+1)"
                                 [appAutofocus]="metierFocusIndex === i"
                                 [config]="autocompleteFields.metier"
+                                [filter]="metierFilter()"
                                 [tabindex]="tabindex+10+i*3"
                                 [i18nPrefix]="'REFERENTIAL.'"
                                 [required]="showMetiers && first">
-<!--          <ion-icon matPrefix name="locate"></ion-icon>-->
+
+          <button matSuffix type="button" mat-icon-button
+                  [title]="'TRIP.METIERS_FILTER'|translate"
+                  (click)="metiersFiltered = !metiersFiltered">
+            <mat-icon [color]="metiersFiltered ? 'accent' : undefined">filter_list</mat-icon>
+          </button>
+
+          <!--          <button matSuffix mat-icon-button-->
+          <!--                  [matMenuTriggerFor]="metierOptionsMenu"-->
+          <!--                  [title]=" 'COMMON.BTN_OPTIONS'|translate">-->
+          <!--            <mat-icon>more_vert</mat-icon>-->
+          <!--          </button>-->
+
         </mat-autocomplete-field>
+
+        <mat-menu #metierOptionsMenu="matMenu" xPosition="after">
+          <mat-checkbox
+            [checked]="metiersFiltered"
+            (change)="metiersFiltered = $event.checked">
+            <ion-label translate>TRIP.METIERS_FILTER</ion-label>
+          </mat-checkbox>
+        </mat-menu>
+
       </ion-col>
       <ion-col size="auto" class="ion-align-self-center">
         <button type="button" mat-icon-button [tabindex]="tabindex+10++i*3+1" [disabled]="disabled"
@@ -170,7 +194,8 @@
                     formControlName="comments"></textarea>
           <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
           <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls.comments.hasError('maxlength')">{{ 'ERROR.FIELD_REQUIRED' | translate:form.controls.comments.errors.maxlength }}
+          <mat-error
+            *ngIf="form.controls.comments.hasError('maxlength')">{{ 'ERROR.FIELD_REQUIRED' | translate:form.controls.comments.errors.maxlength }}
           </mat-error>
 
         </mat-form-field>

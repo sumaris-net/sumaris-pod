@@ -13,7 +13,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {isNilOrBlank, suggestFromArray} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {PlatformService} from "../../core/services/platform.service";
-import {OperationGroupValidatorService} from "../services/operation-group.validator";
+import {OperationGroupValidatorService} from "../services/validator/operation-group.validator";
 
 @Component({
   selector: 'app-operation-group-form',

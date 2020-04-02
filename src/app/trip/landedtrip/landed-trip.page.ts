@@ -1,37 +1,38 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
-import {
-  fromDateISOString,
-  isNotNil,
-  Landing,
-  ObservedLocation,
-  ReferentialRef,
-  Trip,
-  VesselSnapshot
-} from '../services/trip.model';
+import {isNotNil, Landing, ObservedLocation, PhysicalGear, Trip} from '../services/trip.model';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {environment} from '../../core/core.module';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNilOrBlank} from '../../shared/shared.module';
-import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
+import {
+  EditorDataServiceLoadOptions,
+  fadeInOutAnimation,
+  isNil,
+  isNotEmptyArray,
+  isNotNilOrBlank
+} from '../../shared/shared.module';
 import * as moment from "moment";
 import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
-import {FormGroup} from "@angular/forms";
+import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {LandingService} from "../services/landing.service";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
 import {MetierRef} from "../../referential/services/model/taxon.model";
-import {TripService} from "../services/trip.service";
+import {TripService, TripServiceSaveOption} from "../services/trip.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model";
-import {TripPage} from "../trip/trip.page";
 import {EntityStorage} from "../../core/services/entities-storage.service";
-import {TripValidatorOptions, TripValidatorService} from "../services/trip.validator";
-import {TripsPageSettingsEnum} from "../trip/trips.table";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {isEmptyArray} from "../../shared/functions";
 import {OperationGroupTable} from "../operationgroup/operation-groups.table";
+import {OperationGroup} from "../services/model/trip.model";
+import {MatAutocompleteConfigHolder, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
+import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
+import {ProductsTable} from "../product/products.table";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {Product} from "../services/model/product.model";
+import {arraysAreEqual} from "tslint/lib/utils";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -46,16 +47,33 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   observedLocationId: number;
   landingId: number;
   landing: Landing;
+
+  selectedCatchTabIndex = 0;
+  selectedSaleTabIndex = 0;
+
   showOperationGroupTab = false;
   showCatchTab = false;
   showSaleTab = false;
   showExpenseTab = false;
 
-  metiersSubject = new BehaviorSubject<MetierRef[]>(null);
+  autocompleteHelper: MatAutocompleteConfigHolder;
+  autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
+
+  // List of trip's metier, used to populate operation group's metier combobox
+  $metiers = new BehaviorSubject<MetierRef[]>(null);
+
+  // List of trip's operation groups, use to populate product filter
+  $operationGroups = new BehaviorSubject<OperationGroup[]>(null);
+  catchFilterForm: FormGroup;
+
+  operationGroupAttributes = ['metier.label', 'metier.name'];
 
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
   @ViewChild('operationGroupTable', { static: true }) operationGroupTable: OperationGroupTable;
+  @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
+  @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
+
 
   constructor(
     injector: Injector,
@@ -63,13 +81,19 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     protected landingService: LandingService,
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
-    public network: NetworkService // Used for DEV (to debug OFFLINE mode)
+    public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
+    protected formBuilder: FormBuilder
   ) {
     super(injector,
       Trip,
       injector.get(TripService));
     this.idAttribute = 'tripId';
     // this.defaultBackHref = "/trips";
+
+    this.autocompleteHelper = new MatAutocompleteConfigHolder(this.settings && {
+      getUserAttributes: (a, b) => this.settings.getFieldDisplayAttributes(a, b)
+    });
+    this.autocompleteFields = this.autocompleteHelper.fields;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -93,28 +117,51 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
           } else {
             this.tripForm.metiersForm.valueChanges.subscribe(value => {
               const metiers = ((value || []) as MetierRef[]).filter(metier => isNotNilOrBlank(metier));
-              if (this.debug) console.debug('[landedTrip-page] metiers array has changed', metiers);
-              this.metiersSubject.next(metiers);
+              if (JSON.stringify(metiers) !== JSON.stringify(this.$metiers.value || [])) {
+                if (this.debug) console.debug('[landedTrip-page] metiers array has changed', metiers);
+                this.$metiers.next(metiers);
+              }
             });
           }
         })
     );
 
+    this.catchFilterForm = this.formBuilder.group({
+      operationGroup: [null]
+    });
+
+    // Init operationGroupFilter combobox
+    this.autocompleteHelper.add('operationGroupFilter', {
+      showAllOnFocus: true,
+      items: this.$operationGroups,
+      attributes: this.operationGroupAttributes
+    });
+
+
+
+
     // Cascade refresh to operation tables
-    this.onUpdateView.subscribe(() => this.operationGroupTable.onRefresh.emit());
+    this.registerSubscription(
+      this.onUpdateView.subscribe(() => {
+        this.operationGroupTable.onRefresh.emit();
+        this.productsTable.onRefresh.emit();
+      })
+    );
+
   }
 
   protected registerFormsAndTables() {
     this.registerForms([this.tripForm, this.measurementsForm])
-      .registerTables([this.operationGroupTable]);
+      .registerTables([this.operationGroupTable, this.productsTable]);
   }
 
 
   async load(id?: number, options?: EditorDataServiceLoadOptions): Promise<void> {
 
-    this.defaultBackHref = `/observations/${options.observedLocationId}`;
+    this.observedLocationId = options.observedLocationId;
+    this.defaultBackHref = `/observations/${this.observedLocationId}`;
 
-    super.load(id, {withMetiers: true, ...options});
+    super.load(id, {isLandedTrip: true, ...options});
   }
 
   protected async onEntityLoaded(data: Trip, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -245,17 +292,25 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     const isNew = isNil(data.id);
     if (!isNew) {
       this.programSubject.next(data.program.label);
-      this.metiersSubject.next(data.metiers);
+      this.$metiers.next(data.metiers);
     }
     this.measurementsForm.value = data && data.measurements || [];
 
-    // Physical gear table
-    // this.physicalGearTable.value = data && data.gears || [];
-
     // Operations table
-    if (!isNew && this.operationGroupTable) {
-      this.operationGroupTable.setTrip(data);
-    }
+    const operationGroups = data && data.operationGroups || [];
+    this.operationGroupTable.value = operationGroups;
+    this.$operationGroups.next(operationGroups);
+
+    // Products table
+    let products: Product[] = [];
+    operationGroups.forEach(operationGroup => products = products.concat(operationGroup.products));
+    this.productsTable.value = products;
+
+    // todo set other tables
+  }
+
+  onOperationGroupChange() {
+    this.$operationGroups.next(this.operationGroupTable.value);
   }
 
   // todo attention à cette action
@@ -293,40 +348,6 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     }
   }
 
-  async save(event, options?: any): Promise<boolean> {
-
-    const saved = await super.save(event, {...options, withMetier: true} );
-
-    if (saved) {
-      // save landing
-      if (!this.landing) {
-
-        const observedLocation = await this.getObservedLocationById(this.observedLocationId);
-
-        // create new landing
-        this.landing = new Landing();
-        this.landing.observedLocationId = this.observedLocationId;
-        this.landing.program = observedLocation.program;
-        this.landing.location = observedLocation.location;
-        this.landing.vesselSnapshot = this.data.vesselSnapshot;
-        // this.landing.synchronizationStatus = "DIRTY";
-      }
-
-      // update landing to trip link
-      if (isNil(this.landing.tripId)) {
-        this.landing.tripId = this.data.id;
-      }
-
-      // update other properties
-      this.landing.dateTime = this.data.returnDateTime;
-      this.landing.observers = this.data.observers;
-
-      this.landing = await this.landingService.save(this.landing);
-    }
-
-    return saved;
-  }
-
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): boolean {
     const enabled = super.enable(opts);
 
@@ -349,7 +370,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     if (!this.data) return;
 
     // Copy the trip
-    await (this.dataService as TripService).downloadToLocal(this.data.id, {withOperations: true});
+    await (this.dataService as TripService).downloadToLocal(this.data.id, {isLandedTrip: true, withOperationGroup: true});
 
   }
 
@@ -385,6 +406,9 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     }).toPromise();
   }
 
+  /**
+   * Called by super.save()
+   */
   protected async getJsonValueToSave(): Promise<any> {
     const json = await super.getJsonValueToSave();
 
@@ -394,13 +418,62 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     // json.sale = !this.saleForm.empty ? this.saleForm.value : null;
     json.measurements = this.measurementsForm.value;
 
-    // if (this.physicalGearTable.dirty) {
-    //   await this.physicalGearTable.save();
-    // }
-    // json.gears = this.physicalGearTable.value;
+    const operationGroups: OperationGroup[] = this.operationGroupTable.value || [];
+    json.operationGroups = operationGroups;
+    json.gears = operationGroups.map(value => value.physicalGear);
+
+
+    // todo affect others tables
 
     return json;
   }
+
+  async save(event, options?: any): Promise<boolean> {
+
+    const saveOptions: TripServiceSaveOption = {
+      isLandedTrip: true // indicate service to reload with LandedTrip query
+    };
+
+    // Save children in-memory datasources
+    if (this.operationGroupTable.dirty) {
+      await this.operationGroupTable.save();
+      saveOptions.withOperationGroup = true;
+    }
+
+    // todo same for products, productsale, expense
+
+    const saved = await super.save(event, {...options, ...saveOptions} );
+
+    if (saved) {
+      // save landing
+      if (!this.landing) {
+
+        const observedLocation = await this.getObservedLocationById(this.observedLocationId);
+
+        // create new landing
+        this.landing = new Landing();
+        this.landing.observedLocationId = this.observedLocationId;
+        this.landing.program = observedLocation.program;
+        this.landing.location = observedLocation.location;
+        this.landing.vesselSnapshot = this.data.vesselSnapshot;
+        // this.landing.synchronizationStatus = "DIRTY";
+      }
+
+      // update landing to trip link
+      if (isNil(this.landing.tripId)) {
+        this.landing.tripId = this.data.id;
+      }
+
+      // update other properties
+      this.landing.dateTime = this.data.returnDateTime;
+      this.landing.observers = this.data.observers;
+
+      this.landing = await this.landingService.save(this.landing);
+    }
+
+    return saved;
+  }
+
 
   /**
    * Get the first invalid tab
@@ -423,4 +496,20 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  filter($event: Event) {
+    console.debug('[landed-trip.page] filter : ', $event);
+
+  }
+
+  // todo see operation.page.ts
+  onCatchTabChange($event: MatTabChangeEvent) {
+    super.onSubTabChange($event);
+    if (!this.loading) {
+      // todo On each tables, confirm editing row
+      // this.productTABLE.confirmEditCreate();
+      // this.batchTABLE.confirmEditCreate();
+    }
+  }
+
 }

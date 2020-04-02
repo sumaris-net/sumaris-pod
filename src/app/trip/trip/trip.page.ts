@@ -274,6 +274,14 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     return json;
   }
 
+  async save(event, options?: any): Promise<boolean> {
+
+    // TODO set save options
+
+
+    return super.save(event, options);
+  }
+
   /**
    * Get the first invalid tab
    */

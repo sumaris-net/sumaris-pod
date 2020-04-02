@@ -3,6 +3,7 @@ import {isMoment, Moment} from "moment";
 import {asInputElement, FocusableElement, isInputElement} from "./material/focusable";
 import {ElementRef} from "@angular/core";
 import {environment} from "../../environments/environment";
+import {Duration} from "moment";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 export const DATE_UNIX_TIMESTAMP = 'X';
@@ -91,6 +92,23 @@ export function fromDateISOString(value: any): Moment | undefined {
     }
   }
   return undefined;
+}
+
+export function toDuration(value: number, unit?: moment.unitOfTime.DurationConstructor): Duration {
+  if (!value) return undefined;
+
+  const duration = moment.duration(value, unit);
+
+  // fix 990+ ms
+  if (duration.milliseconds() >= 990) {
+    duration.add(1000 - duration.milliseconds(), "ms");
+  }
+  // fix 59 s
+  if (duration.seconds() >= 59) {
+    duration.add(60 - duration.seconds(), "s");
+  }
+
+  return duration;
 }
 
 export function startsWithUpperCase(input: string, search: string): boolean {

@@ -444,11 +444,11 @@ export class OperationService extends BaseDataService
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
 
-      const json = entity.asObject({...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false});
-      if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', json);
+      const jsonLocal = this.asObject(entity, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false});
+      if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', jsonLocal);
 
       // Save response locally
-      await this.entities.save(json);
+      await this.entities.save(jsonLocal);
 
       return entity;
     }

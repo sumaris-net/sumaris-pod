@@ -18,12 +18,13 @@ import {ReferentialRefService, referentialToString, VesselModal} from "../../ref
 import {UsageMode, UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {FormArray, FormBuilder} from "@angular/forms";
+import {AbstractControl, FormArray, FormBuilder} from "@angular/forms";
 import {PersonService} from "../../admin/services/person.service";
 import {toBoolean} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
 import {Vessel} from "../../referential/services/model";
 import {MetierRef} from "../../referential/services/model/taxon.model";
+import {MetierRefService} from "../../referential/services/metier-ref.service";
 
 @Component({
   selector: 'form-trip',
@@ -40,6 +41,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   observerFocusIndex = -1;
   metiersHelper: FormArrayHelper<MetierRef>;
   metierFocusIndex = -1;
+  metiersFiltered = false;
   mobile: boolean;
 
   @Input() showComment = true;
@@ -110,6 +112,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     protected validatorService: TripValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
+    protected metierRefService: MetierRefService,
     protected personService: PersonService,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
@@ -171,14 +174,24 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     });
 
     // Combo: metiers
+    this.metiersFiltered = false;
     this.registerAutocompleteField('metier', {
-      service: this.referentialRefService,
-      filter: {
-        entityName: 'Metier',
-        statusId: StatusIds.ENABLE
-      }
+      service: this.metierRefService,
+      filter: this.metierFilter()
     });
 
+  }
+
+  protected metierFilter(): any {
+    const defaultFilter = {statusId: StatusIds.ENABLE};
+    return this.metiersFiltered
+      ? {
+        ...defaultFilter,
+        date: this.form.controls['returnDateTime'].value,
+        vesselId: this.form.controls['vesselSnapshot'].value.id,
+        tripId: this.form.controls['id'].value
+      }
+      : defaultFilter;
   }
 
   setValue(value: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
@@ -191,8 +204,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Resize observers array
     if (this._showObservers) {
       this.observersHelper.resize(Math.max(1, value.observers.length));
-    }
-    else {
+    } else {
       this.observersHelper.removeAllEmpty();
     }
 
@@ -201,8 +213,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Resize metiers array
     if (this._showMetiers) {
       this.metiersHelper.resize(Math.max(1, value.metiers.length));
-    }
-    else {
+    } else {
       this.metiersHelper.removeAllEmpty();
     }
 
@@ -230,9 +241,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       console.debug("[trip-form] New vessel added : updating form...", vesselSnapshot);
       this.form.controls['vesselSnapshot'].setValue(vesselSnapshot);
       this.markForCheck();
-    }
-
-    else {
+    } else {
       console.debug("[trip-form] No vessel added (user cancelled)");
     }
   }
@@ -283,8 +292,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       if (this.observersHelper.size() === 0) {
         this.observersHelper.resize(1);
       }
-    }
-    else if (this.observersHelper.size() > 0) {
+    } else if (this.observersHelper.size() > 0) {
       this.observersHelper.resize(0);
     }
   }
@@ -310,8 +318,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         this.metiersHelper.resize(1);
 
       }
-    }
-    else if (this.metiersHelper.size() > 0) {
+    } else if (this.metiersHelper.size() > 0) {
       this.metiersHelper.resize(0);
     }
   }

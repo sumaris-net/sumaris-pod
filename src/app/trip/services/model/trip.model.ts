@@ -5,7 +5,7 @@ import {
   DataEntityAsObjectOptions,
   DataRootEntity,
   DataRootVesselEntity,
-  IWithObserversEntity,
+  IWithObserversEntity, IWithProductsEntity,
   NOT_MINIFY_OPTIONS,
   Person,
   ReferentialRef
@@ -22,7 +22,8 @@ import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
 import {MetierRef} from "../../../referential/services/model/taxon.model";
 import {ReferentialAsObjectOptions} from "../../../core/services/model";
-import {isEmptyArray} from "../../../shared/functions";
+import {isEmptyArray, isNotEmptyArray} from "../../../shared/functions";
+import {Product} from "./product.model";
 
 
 /* -- Helper function -- */
@@ -54,6 +55,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   observers: Person[];
   metiers: MetierRef[];
   operations?: Operation[];
+  operationGroups?: OperationGroup[];
 
   constructor() {
     super();
@@ -75,7 +77,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.fromObject(this);
   }
 
-  asObject(options?: DataEntityAsObjectOptions): any {
+  asObject(options?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
     const target = super.asObject(options);
     target.departureDateTime = toDateISOString(this.departureDateTime);
     target.returnDateTime = toDateISOString(this.returnDateTime);
@@ -87,6 +89,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.observers = this.observers && this.observers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
     target.metiers = this.metiers && this.metiers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
     target.operations = this.operations && this.operations.map(o => o.asObject(options)) || undefined;
+    target.operationGroups = this.operationGroups && this.operationGroups.map(o => o.asObject(options)) || undefined;
     return target;
   }
 
@@ -105,12 +108,12 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
     this.metiers = source.metiers && source.metiers.map(MetierRef.fromObject) || [];
+    this.operationGroups = source.operationGroups && source.operationGroups.map(OperationGroup.fromObject) || [];
 
     // Remove fake dates (e.g. if returnDateTime = departureDateTime)
     if (this.returnDateTime && this.returnDateTime.isSameOrBefore(this.departureDateTime)) {
       this.returnDateTime = undefined;
     }
-
 
     return this;
   }
@@ -164,6 +167,10 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
   asObject(opts?: DataEntityAsObjectOptions): any {
     const target = super.asObject(opts);
     target.gear = this.gear && this.gear.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+    // Fixme gear entityName here
+    if (target.gear)
+      target.gear.entityName = 'GearVO';
+
     target.rankOrder = this.rankOrder;
 
     // Measurements
@@ -361,7 +368,7 @@ export class Operation extends DataEntity<Operation> {
   }
 }
 
-export class OperationGroup extends DataEntity<OperationGroup> {
+export class OperationGroup extends DataEntity<OperationGroup> implements IWithProductsEntity<OperationGroup> {
 
   static TYPENAME = 'OperationGroupVO';
 
@@ -383,21 +390,22 @@ export class OperationGroup extends DataEntity<OperationGroup> {
   measurements: Measurement[];
   gearMeasurements: Measurement[];
 
+  // all measurements in table
   measurementValues: MeasurementModelValues | MeasurementFormValues;
-  measurementValuesDistribution: { [key: string]: number[] }; // key as 'measurements', 'gearMeasurements', 'physicalGearMeasurements'
 
   catchBatch: Batch;
-
-  // TODO products: any[];
+  products: Product[];
 
   constructor() {
     super();
-    this.__typename = 'OperationVO';
+    this.__typename = 'OperationGroupVO';
     this.metier = null;
     this.physicalGear = null;
     this.catchBatch = null;
+    this.measurementValues = {};
     this.measurements = [];
     this.gearMeasurements = [];
+    this.products = [];
   }
 
   clone(): OperationGroup {
@@ -412,19 +420,14 @@ export class OperationGroup extends DataEntity<OperationGroup> {
     target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/} as ReferentialAsObjectOptions) || undefined;
 
     // Physical gear
-    if (opts && opts.minify && this.physicalGear && this.physicalGear.id >= 0) {
-      // Existing gear: keep only the id
-      target.physicalGearId = this.physicalGear && this.physicalGear.id;
-      delete target.physicalGear;
-    } else if (this.physicalGear) {
-      // Not minify or local physical gear (id < 0)
-      target.physicalGear = this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
-      delete target.physicalGear.measurementValues;
-    }
+    target.physicalGear = this.physicalGear && this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
+    delete target.physicalGear.measurementValues;
 
     // Measurements
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
     target.gearMeasurements = this.gearMeasurements && this.gearMeasurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
+    delete target.gearMeasurementValues; // all measurements are stored only measurementValues
 
     // Batch
     if (target.catchBatch) {
@@ -439,6 +442,16 @@ export class OperationGroup extends DataEntity<OperationGroup> {
       }
     }
 
+    // Products
+    target.products = this.products && this.products.map(o => o.asObject(opts)) || undefined;
+    // Affect parent link
+    if (isNotEmptyArray(target.products)) {
+      target.products.forEach(product => {
+        product.operationId = target.id;
+        delete product.parent;
+      });
+    }
+
     return target;
   }
 
@@ -448,18 +461,19 @@ export class OperationGroup extends DataEntity<OperationGroup> {
     this.comments = source.comments;
     this.tripId = source.tripId;
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
-    this.metier = source.metier && MetierRef.fromObject(source.metier, true/*Copy taxonGroup label/name*/) || undefined;
+    this.metier = source.metier && MetierRef.fromObject(source.metier, false) || undefined;
     this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
 
     // Measurements
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.gearMeasurements = source.gearMeasurements && source.gearMeasurements.map(Measurement.fromObject) || [];
-
-    this.measurementValues = {
-      ...MeasurementUtils.toMeasurementValues(this.measurements),
-      ...MeasurementUtils.toMeasurementValues(this.gearMeasurements),
-      ...this.physicalGear.measurementValues
-    };
+    this.measurementValues = Object.assign(
+      {},
+      MeasurementUtils.toMeasurementValues(this.measurements),
+      MeasurementUtils.toMeasurementValues(this.gearMeasurements),
+      this.physicalGear.measurementValues,
+      source.measurementValues // important: keep at last assignment
+      );
     if (Object.keys(this.measurementValues).length === 0) {
       console.warn("Source as no measurement. Should never occur ! ", source);
     }
@@ -470,6 +484,13 @@ export class OperationGroup extends DataEntity<OperationGroup> {
       Batch.fromObject(source.catchBatch, {withChildren: true}) :
       // Convert list to tree (useful when fetching from a pod)
       Batch.fromObjectArrayAsTree(source.batches);
+
+    // Products
+    this.products = source.products && source.products.map(Product.fromObject) || [];
+    // Affect parent
+    this.products.forEach(product => {
+      product.parent = this;
+    });
 
     return this;
   }

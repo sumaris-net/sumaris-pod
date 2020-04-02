@@ -114,5 +114,142 @@ export const DataFragments = {
     __typename
   }
   ${Fragments.referential}
-  ${ReferentialFragments.taxonName}`
+  ${ReferentialFragments.taxonName}`,
+  product: gql`fragment ProductFragment on ProductVO {
+    id
+    label
+    rankOrder
+    individualCount
+    subgroupCount
+    weight
+    weightMethod {
+      ...ReferentialFragment
+    }
+    comments
+    updateDate
+    taxonGroup {
+      ...ReferentialFragment
+    }
+    saleType {
+      ...ReferentialFragment
+    }
+    measurementValues
+    quantificationMeasurements {
+      ...MeasurementFragment
+    }
+    sortingMeasurements {
+      ...MeasurementFragment
+    }
+    qualityFlagId
+    operationId
+    saleId
+    landingId
+    batchId
+    __typename
+  }
+  ${Fragments.referential}
+  ${Fragments.measurement}
+  `
 };
+
+export const PhysicalGearFragments = {
+  physicalGear: gql`fragment PhysicalGearFragment on PhysicalGearVO {
+  id
+  rankOrder
+  updateDate
+  creationDate
+  comments
+  gear {
+    ...ReferentialFragment
+  }
+  recorderDepartment {
+    ...LightDepartmentFragment
+  }
+  measurementValues
+}
+`};
+
+
+export const OperationGroupFragment = {
+  operationGroup: gql`fragment OperationGroupFragment on OperationGroupVO {
+    id
+    rankOrderOnPeriod
+    physicalGearId
+    tripId
+    comments
+    hasCatch
+    updateDate
+    metier {
+      ...MetierFragment
+    }
+    physicalGear {
+      ...PhysicalGearFragment
+    }
+    recorderDepartment {
+      ...LightDepartmentFragment
+    }
+    measurements {
+      ...MeasurementFragment
+    }
+    gearMeasurements {
+      ...MeasurementFragment
+    }
+    batches {
+      ...BatchFragment
+    }
+    products {
+      ...ProductFragment
+    }
+  }
+  ${ReferentialFragments.lightDepartment}
+  ${ReferentialFragments.metier}
+  ${DataFragments.batch}
+  ${DataFragments.product}
+  ${PhysicalGearFragments.physicalGear}
+  ${Fragments.measurement}
+  `
+};
+
+export const SaleFragments = {
+  lightSale: gql`fragment LightSaleFragment on SaleVO {
+    id
+    startDateTime
+    creationDate
+    updateDate
+    comments
+    saleType {
+      ...ReferentialFragment
+    }
+    saleLocation {
+      ...LocationFragment
+    }
+  }
+  ${Fragments.referential}
+  ${Fragments.location}
+  `,
+  sale: gql`fragment SaleFragment on SaleVO {
+    id
+    startDateTime
+    creationDate
+    updateDate
+    comments
+    saleType {
+      ...ReferentialFragment
+    }
+    saleLocation {
+      ...LocationFragment
+    }
+    measurements {
+      ...MeasurementFragment
+    }
+    products {
+      ...ProductFragment
+    }
+  }
+  ${Fragments.referential}
+  ${Fragments.location}
+  ${Fragments.measurement}
+  ${DataFragments.product}
+  `
+};
+

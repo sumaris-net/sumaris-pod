@@ -1,11 +1,10 @@
-import {Pipe, Injectable, PipeTransform} from '@angular/core';
+import {Injectable, Pipe, PipeTransform} from '@angular/core';
 import {Moment} from "moment/moment";
 import {DateAdapter} from "@angular/material";
 import {DATE_ISO_PATTERN} from '../constants';
 import {TranslateService} from "@ngx-translate/core";
-import {firstNotNilPromise} from "../observables";
 
-let moment = require('moment');
+const moment = require('moment');
 
 @Pipe({
   name: 'dateDiffDuration'
@@ -13,7 +12,7 @@ let moment = require('moment');
 @Injectable({providedIn: 'root'})
 export class DateDiffDurationPipe implements PipeTransform {
 
-  private dayUnit: string;
+  protected dayUnit: string;
 
   constructor(
     private dateAdapter: DateAdapter<Moment>,
@@ -34,8 +33,7 @@ export class DateDiffDurationPipe implements PipeTransform {
       .hour(duration.hours())
       .minute(duration.minutes());
 
-    let days = Math.floor(duration.asDays());
-    const result = (days > 0 ? days.toString() + (this.dayUnit + ' ') : '') + timeDuration.format('HH:mm');
-    return result;
+    const days = Math.floor(duration.asDays());
+    return (days > 0 ? days.toString() + (this.dayUnit + ' ') : '') + timeDuration.format('HH:mm');
   }
 }

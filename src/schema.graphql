@@ -221,6 +221,8 @@ type LandingVO {
   observedLocation: ObservedLocationVO
   observedLocationId: Int
   observers: [PersonVO]
+  "Get landing's products"
+  products: [ProductVO]
   program: ProgramVO
   qualificationComments: String
   qualificationDate: Date
@@ -337,10 +339,6 @@ type Mutation {
   deleteObservedLocations(ids: [Int]): Boolean!
   "Delete an operation"
   deleteOperation(id: Int!): Boolean!
-  "Delete an operation group"
-  deleteOperationGroup(id: Int!): Boolean!
-  "Delete many operation groups"
-  deleteOperationGroups(ids: [Int]): Boolean!
   "Delete many operations"
   deleteOperations(ids: [Int]): Boolean!
   "Delete many person (by ids)"
@@ -369,6 +367,10 @@ type Mutation {
   saveConfiguration(config: ConfigurationVOInput): ConfigurationVO
   "Create or update a department"
   saveDepartment(department: DepartmentVOInput): DepartmentVO
+  "Create or update a landed trip"
+  saveLandedTrip(trip: TripVOInput, withOperationGroup: Boolean = false): TripVO
+  "Create or update many landed trips"
+  saveLandedTrips(trips: [TripVOInput], withOperationGroup: Boolean = false): [TripVO]
   "Create or update an landing"
   saveLanding(landing: LandingVOInput): LandingVO
   "Create or update many landings"
@@ -379,10 +381,6 @@ type Mutation {
   saveObservedLocations(observedLocations: [ObservedLocationVOInput]): [ObservedLocationVO]
   "Create or update an operation"
   saveOperation(operation: OperationVOInput): OperationVO
-  "Create or update an operation group"
-  saveOperationGroup(operationGroup: OperationGroupVOInput): OperationGroupVO
-  "Save operation groups"
-  saveOperationGroups(operationGroups: [OperationGroupVOInput]): [OperationGroupVO]
   "Save operations"
   saveOperations(operations: [OperationVOInput]): [OperationVO]
   "Create or update many persons"
@@ -396,9 +394,9 @@ type Mutation {
   "Save a software configuration"
   saveSoftware(software: SoftwareVOInput): SoftwareVO
   "Create or update a trip"
-  saveTrip(trip: TripVOInput, withMetier: Boolean = false, withOperation: Boolean = false): TripVO
+  saveTrip(trip: TripVOInput, withOperation: Boolean = false): TripVO
   "Create or update many trips"
-  saveTrips(trips: [TripVOInput], withMetier: Boolean = false, withOperation: Boolean = false): [TripVO]
+  saveTrips(trips: [TripVOInput], withOperation: Boolean = false): [TripVO]
   "Create or update a vessel"
   saveVessel(vessel: VesselVOInput): VesselVO
   "Create or update many vessels"
@@ -439,6 +437,7 @@ type ObservedLocationVO {
 }
 
 type OperationGroupVO {
+  "Get operation group's batches"
   batches: [BatchVO]
   catchBatch: BatchVO
   comments: String
@@ -456,6 +455,7 @@ type OperationGroupVO {
   metier: MetierVO
   physicalGear: PhysicalGearVO
   physicalGearId: Int
+  "Get operation group's products"
   products: [ProductVO]
   qualityFlagId: Int
   rankOrderOnPeriod: Int
@@ -598,18 +598,37 @@ type PmfmVO {
 }
 
 type ProductVO {
+  batch: BatchVO
+  batchId: Int
   comments: String
   controlDate: Date
   creationDate: Date
   id: Int
-  program: ProgramVO
+  individualCount: Int
+  label: String
+  landing: LandingVO
+  landingId: Int
+  "Get measurement values (as a key/value map, using pmfmId as key)"
+  measurementValues: Map_Integer_StringScalar
+  operation: OperationVO
+  operationId: Int
   qualificationComments: String
   qualificationDate: Date
   qualityFlagId: Int
+  quantificationMeasurements: [MeasurementVO]
+  rankOrder: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
+  sale: SaleVO
+  saleId: Int
+  saleType: ReferentialVO
+  sortingMeasurements: [MeasurementVO]
+  subgroupCount: Float
+  taxonGroup: ReferentialVO
   updateDate: Date
   validationDate: Date
+  weight: Float
+  weightMethod: ReferentialVO
 }
 
 type ProgramVO {
@@ -668,6 +687,10 @@ type Query {
   landings(filter: LandingFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "dateTime", sortDirection: String = "asc"): [LandingVO]
   "Get total number of landings"
   landingsCount(filter: LandingFilterVOInput): Long!
+  "Get a metier by id"
+  metier(id: Int!): MetierVO
+  "Search in metiers"
+  metiers(filter: MetierFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [MetierVO]
   "Get an observed location, by id"
   observedLocation(id: Int!): ObservedLocationVO
   "Search in observed locations"
@@ -676,8 +699,6 @@ type Query {
   observedLocationsCount(filter: ObservedLocationFilterVOInput): Long!
   "Get an operation"
   operation(id: Int!): OperationVO
-  "Get an operation group"
-  operationGroup(id: Int!): OperationGroupVO
   "Get trip's operation groups"
   operationGroups(filter: OperationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "rankOrderOnPeriod", sortDirection: String = "asc"): [OperationGroupVO]
   "Get trip's operations"
@@ -752,6 +773,8 @@ type SaleVO {
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVO]
   observers: [PersonVO]
+  "Get sale's products"
+  products: [ProductVO]
   program: ProgramVO
   qualificationComments: String
   qualificationDate: Date
@@ -838,38 +861,32 @@ type StrategyVO {
 type Subscription {
   "Subscribe to an account update"
   updateAccount(
-    #Minimum interval to get changes, in seconds.
+    "Minimum interval to get changes, in seconds."
     interval: Int = 30,
     pubkey: String
   ): AccountVO
   "Subscribe to changes on an landing"
   updateLanding(
     id: Int!,
-    #Minimum interval to get changes, in seconds.
+    "Minimum interval to get changes, in seconds."
     interval: Int = 30
   ): LandingVO
   "Subscribe to changes on an observed location"
   updateObservedLocation(
     id: Int!,
-    #Minimum interval to get changes, in seconds.
+    "Minimum interval to get changes, in seconds."
     interval: Int = 30
   ): ObservedLocationVO
   "Subscribe to changes on an operation"
   updateOperation(
     id: Int!,
-    #Minimum interval to get changes, in seconds.
+    "Minimum interval to get changes, in seconds."
     interval: Int = 30
   ): OperationVO
-  "Subscribe to changes on an operation group"
-  updateOperationGroup(
-    id: Int!,
-    #Minimum interval to get changes, in seconds.
-    interval: Int = 30
-  ): OperationGroupVO
   "Subscribe to changes on a trip"
   updateTrip(
     id: Int!,
-    #Minimum interval to get changes, in seconds.
+    "Minimum interval to get changes, in seconds."
     interval: Int = 30
   ): TripVO
 }
@@ -939,8 +956,11 @@ type TripVO {
   measurementValues: Map_Integer_StringScalar
   "Get trip's measurements"
   measurements: [MeasurementVO]
+  "Get trip metiers"
   metiers: [MetierVO]
   observers: [PersonVO]
+  "Get trip's operation groups"
+  operationGroups: [OperationGroupVO]
   "Get trip's operations"
   operations: [OperationVO]
   program: ProgramVO
@@ -1391,6 +1411,20 @@ input MeasurementVOInput {
   validationDate: Date
 }
 
+input MetierFilterVOInput {
+  date: Date
+  label: String
+  levelId: Int
+  levelIds: [Int]
+  name: String
+  searchAttribute: String
+  searchJoin: String
+  searchText: String
+  statusIds: [Int]
+  tripId: Int
+  vesselId: Int
+}
+
 input MetierVOInput {
   comments: String
   creationDate: Date
@@ -1595,18 +1629,36 @@ input PmfmVOInput {
 }
 
 input ProductVOInput {
+  batch: BatchVOInput
+  batchId: Int
   comments: String
   controlDate: Date
   creationDate: Date
   id: Int
-  program: ProgramVOInput
+  individualCount: Int
+  label: String
+  landing: LandingVOInput
+  landingId: Int
+  measurementValues: Map_Integer_StringScalar
+  operation: OperationVOInput
+  operationId: Int
   qualificationComments: String
   qualificationDate: Date
   qualityFlagId: Int
+  quantificationMeasurements: [MeasurementVOInput]
+  rankOrder: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
+  sale: SaleVOInput
+  saleId: Int
+  saleType: ReferentialVOInput
+  sortingMeasurements: [MeasurementVOInput]
+  subgroupCount: Float
+  taxonGroup: ReferentialVOInput
   updateDate: Date
   validationDate: Date
+  weight: Float
+  weightMethod: ReferentialVOInput
 }
 
 input ProgramFilterVOInput {
@@ -1662,6 +1714,7 @@ input SaleVOInput {
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVOInput]
   observers: [PersonVOInput]
+  products: [ProductVOInput]
   program: ProgramVOInput
   qualificationComments: String
   qualificationDate: Date
@@ -1817,6 +1870,7 @@ input TripVOInput {
   measurements: [MeasurementVOInput]
   metiers: [MetierVOInput]
   observers: [PersonVOInput]
+  operationGroups: [OperationGroupVOInput]
   operations: [OperationVOInput]
   program: ProgramVOInput
   qualificationComments: String

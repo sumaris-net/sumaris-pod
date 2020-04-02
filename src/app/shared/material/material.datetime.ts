@@ -44,7 +44,6 @@ const DAY_MASK = [/\d/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/];
 
 const HOUR_TIME_PATTERN = /[0-2]\d:[0-5]\d/;
 const HOUR_MASK = [/[0-2]/, /\d/, ':', /[0-5]/, /\d/];
-;
 
 const noop = () => {
 };

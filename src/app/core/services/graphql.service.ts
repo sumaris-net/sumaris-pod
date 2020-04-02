@@ -610,6 +610,8 @@ export class GraphqlService {
       (err.graphQLErrors && err.graphQLErrors[0]) || 
       err;
     console.error("[graphql] " + (error && error.message || error), error.stack || '');
+    if (error && error.code === ErrorCodes.UNKNOWN_NETWORK_ERROR && err.networkError && err.networkError.message)
+      console.error("[graphql] original error: " + err.networkError.message);
     if ((!error || !error.code) && defaultError) {
       error = {...defaultError, details: error, stack: err.stack};
     }

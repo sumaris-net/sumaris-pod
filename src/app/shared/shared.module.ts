@@ -68,6 +68,9 @@ import {FileService} from "./file/file.service";
 import {HAMMER_GESTURE_CONFIG} from "@angular/platform-browser";
 import {AppGestureConfig} from "./gesture/gesture-config";
 import {FileSizePipe} from "./pipes/file-size.pipe";
+import {MatDuration} from "./material/material.duration";
+import {DurationPipe} from "./pipes/duration.pipe";
+import {DurationPickerModule} from "ngx-duration-picker";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -106,6 +109,7 @@ export {
     NumpadComponent,
     DateFormatPipe,
     DateDiffDurationPipe,
+    DurationPipe,
     DateFromNowPipe,
     LatLongFormatPipe,
     HighlightPipe,
@@ -113,6 +117,7 @@ export {
     FileSizePipe,
     MatDate,
     MatDateTime,
+    MatDuration,
     MatLatLong,
     MatBooleanField,
     MatAutocompleteField,
@@ -129,6 +134,7 @@ export {
     DateFormatPipe,
     DateFromNowPipe,
     DateDiffDurationPipe,
+    DurationPipe,
     LatLongFormatPipe,
     HighlightPipe,
     NumberFormatPipe,
@@ -137,6 +143,7 @@ export {
     TranslateModule,
     MatDate,
     MatDateTime,
+    MatDuration,
     MatLatLong,
     MatBooleanField,
     MatAutocompleteField,

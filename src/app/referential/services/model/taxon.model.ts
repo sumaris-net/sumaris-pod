@@ -177,6 +177,7 @@ export class MetierRef extends ReferentialRef<MetierRef> {
 
   fromObject(source: any): Entity<MetierRef> {
     super.fromObject(source);
+    this.entityName = source.entityName || 'MetierVO';
     this.gear = source.gear && ReferentialRef.fromObject(source.gear);
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup);
     return this;
@@ -186,6 +187,10 @@ export class MetierRef extends ReferentialRef<MetierRef> {
     const target = super.asObject(options);
     if (!options || options.minify !== true) {
       target.gear = this.gear && this.gear.asObject(options) || undefined;
+      // Fixme gear entityName here
+      if (target.gear)
+        target.gear.entityName = 'GearVO';
+
       target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(options) || undefined;
     }
     return target;

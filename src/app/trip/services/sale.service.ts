@@ -14,7 +14,7 @@ import {SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 
 export const SaleFragments = {
-  lightSale: gql`fragment LightSaleFragment on SaleVO {
+  lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {
     id
     startDateTime
     endDateTime
@@ -35,7 +35,7 @@ export const SaleFragments = {
   ${Fragments.lightDepartment}
   ${VesselSnapshotFragments.lightVesselSnapshot}
   `,
-  sale: gql`fragment SaleFragment on SaleVO {
+  sale: gql`fragment SaleFragment_PENDING on SaleVO {
     id
     startDateTime
     endDateTime

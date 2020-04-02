@@ -1,0 +1,34 @@
+<!-- readonly -->
+<mat-form-field *ngIf="readonly else writable">
+  <input matInput hidden type="text" readonly="true" [formControl]="formControl">
+  <ion-text>{{ formControl.value|duration }}</ion-text>
+</mat-form-field>
+
+<!-- writable -->
+<ng-template #writable>
+  <form [formGroup]="form">
+
+    <mat-form-field [floatLabel]="floatLabel"
+                    [class.mat-form-field-invalid]="formControl.touched && form.controls.duration.invalid">
+      <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.TIME</mat-label>
+
+      <div matPrefix>
+        <ng-content select="[matPrefix]"></ng-content>
+      </div>
+
+      <input matInput #matInput type="text"
+             autocomplete="off"
+             *ngIf="!mobile"
+             formControlName="duration"
+             [textMask]="{mask: hourMask, keepCharPositions: true, placeholderChar: placeholderChar, guide: true}"
+             [placeholder]="'COMMON.DURATION_PLACEHOLDER'|translate"
+             [required]="required"
+             (keyup.escape)="preventEvent($event)"
+             (blur)="checkIfTouched()"
+             [tabindex]="tabindex !== undefined ? tabindex+1 : undefined">
+
+    </mat-form-field>
+
+  </form>
+</ng-template>
+

@@ -45,6 +45,7 @@
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
+    "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
@@ -66,6 +67,7 @@
     "HOUR": "Heure",
     "MINUTE": "Minute",
     "TIME_PLACEHOLDER": "hh:mm",
+    "DURATION_PLACEHOLDER": "hhh:mm",
     "DURATION_DOTS": "Durée :",
 
     "YES": "Oui",
@@ -337,13 +339,14 @@
     "OBSERVERS": "Observateurs :",
     "METIER_PLACEHOLDER": "Métier #",
     "METIERS": "Métiers:",
+    "METIERS_FILTER": "Filtrer les métiers",
     "COMMENTS": "Commentaires",
     "QUALITY": "État de saisie",
     "TAB_GENERAL": "Détails",
     "TAB_PHYSICAL_GEAR": "Engins",
     "TAB_OPERATIONS": "Opérations",
     "TAB_OPERATION_GROUPS": "Effort",
-    "TAB_CATCHES": "Captures",
+    "TAB_CATCHES": "Captures débarquées",
     "TAB_SALES": "Ventes",
     "TAB_EXPENSES": "Dépenses",
     "NEW": {
@@ -462,6 +465,19 @@
         "ON_DECK": "Arrivée sur pont :",
         "SORTING": "Debut/fin de tri :",
         "TOTAL_CATCH": "Capture totale :"
+      }
+    },
+    "LANDED_CATCH": {
+      "TAB_PRODUCT": "Captures par espèce",
+      "TAB_BATCH": "Captures en paquet",
+      "OPERATION_GROUP_FILTER": "Filtrer par effort"
+    },
+    "PRODUCT": {
+      "LIST": {
+        "PARENT": "Effort",
+        "TAXON_GROUP": "Espèce commerciale (FAO)",
+        "WEIGHT": "Poids (kg)",
+        "INDIVIDUAL_COUNT": "Nombre individus"
       }
     },
     "BATCH": {

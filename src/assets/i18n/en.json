@@ -45,6 +45,7 @@
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
+    "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
@@ -66,6 +67,7 @@
     "HOUR": "Hour",
     "MINUTE": "Minute",
     "TIME_PLACEHOLDER": "hh:mm",
+    "DURATION_PLACEHOLDER": "hhh:mm",
     "DURATION_DOTS": "Duration:",
 
     "YES": "yes",
@@ -343,7 +345,7 @@
     "TAB_PHYSICAL_GEAR": "Gears",
     "TAB_OPERATIONS": "Operations",
     "TAB_OPERATION_GROUPS": "Effort",
-    "TAB_CATCHES": "Catches",
+    "TAB_CATCHES": "Landed catches",
     "TAB_SALES": "Sales",
     "TAB_EXPENSES": "Expenses",
     "NEW": {
@@ -462,6 +464,19 @@
         "ON_DECK": "On deck:",
         "SORTING": "Start/end sorting:",
         "TOTAL_CATCH": "Total catch:"
+      }
+    },
+    "LANDED_CATCH": {
+      "TAB_PRODUCT": "By species",
+      "TAB_BATCH": "By packet",
+      "OPERATION_GROUP_FILTER": "Filter by effort"
+    },
+    "PRODUCT": {
+      "LIST": {
+        "PARENT": "Effort",
+        "TAXON_GROUP": "Commercial species (FAO)",
+        "WEIGHT": "Weight (kg)",
+        "INDIVIDUAL_COUNT": "Individual count"
       }
     },
     "BATCH": {

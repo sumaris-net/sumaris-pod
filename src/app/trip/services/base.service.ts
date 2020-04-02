@@ -3,7 +3,7 @@ import {FormErrors} from "../../core/form/form.utils";
 
 export interface DataQualityService<T extends DataEntity<T>, O = any> {
 
-  synchronize(data: T): Promise<T>;
+  synchronize(data: T, options?: any): Promise<T>;
 
   control(data: T, opts?: O): Promise<FormErrors>;
   terminate(data: T): Promise<T>;

@@ -73,8 +73,9 @@ import {LandedTripPage} from "./landedtrip/landed-trip.page";
 import {OperationGroupTable} from "./operationgroup/operation-groups.table";
 import {OperationGroupForm} from "./operationgroup/operation-group.form";
 import {OperationGroupPage} from "./operationgroup/operation-group.page";
-import {OperationGroupService} from "./services/operation-group.service";
-import {OperationGroupValidatorService} from "./services/operation-group.validator";
+import {OperationGroupValidatorService} from "./services/validator/operation-group.validator";
+import {ProductsTable} from "./product/products.table";
+import {ProductValidatorService} from "./services/validator/product.validator";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -129,7 +130,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     LandedTripPage,
     OperationGroupTable,
     OperationGroupPage,
-    OperationGroupForm
+    OperationGroupForm,
+    ProductsTable
   ],
   exports: [
     TripTable,
@@ -183,7 +185,6 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     PhysicalGearValidatorService,
     OperationService,
     OperationValidatorService,
-    OperationGroupService,
     OperationGroupValidatorService,
     ObservedLocationService,
     ObservedLocationValidatorService,
@@ -200,7 +201,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     SampleValidatorService,
     SubSampleValidatorService,
     {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
-    AggregationTypeValidatorService
+    AggregationTypeValidatorService,
+    ProductValidatorService
   ]
 })
 export class TripModule {

@@ -1,13 +1,13 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormGroup, Validators, FormBuilder} from "@angular/forms";
-import {SharedValidators} from "../../shared/validator/validators";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {OperationGroup} from "./model/trip.model";
-import {AcquisitionLevelCodes, Program} from "../../referential/services/model";
-import {toBoolean} from "../../shared/functions";
-import {DataEntityValidatorOptions, DataEntityValidatorService} from "./validator/base.validator";
-import {MeasurementsValidatorService} from "./measurement.validator";
+import {SharedValidators} from "../../../shared/validator/validators";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {OperationGroup} from "../model/trip.model";
+import {AcquisitionLevelCodes, Program} from "../../../referential/services/model";
+import {toBoolean} from "../../../shared/functions";
+import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.validator";
+import {MeasurementsValidatorService} from "../measurement.validator";
 
 export interface OperationGroupValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
@@ -56,7 +56,8 @@ export class OperationGroupValidatorService<O extends OperationGroupValidatorOpt
         __typename: [OperationGroup.TYPENAME],
         rankOrderOnPeriod: [data && data.rankOrderOnPeriod || null],
         metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        // physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        physicalGear: [data && data.physicalGear || null, Validators.required], // Just required because new physicalGear fails the entity validator
         comments: [data && data.comments || null, Validators.maxLength(2000)]
       });
 
