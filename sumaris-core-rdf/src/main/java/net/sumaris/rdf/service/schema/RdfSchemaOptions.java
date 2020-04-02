@@ -28,6 +28,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.rdf.model.ModelVocabulary;
+import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -49,7 +50,7 @@ public class RdfSchemaOptions {
     private boolean withInterfaces = true;
 
     @Builder.Default
-    private boolean withDeductions = true;
+    private ReasoningLevel reasoningLevel = ReasoningLevel.RDFS;
 
     private ModelVocabulary domain;
     private String className;

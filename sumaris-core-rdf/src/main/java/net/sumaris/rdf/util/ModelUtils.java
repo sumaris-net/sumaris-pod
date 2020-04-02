@@ -22,17 +22,26 @@
 
 package net.sumaris.rdf.util;
 
+import com.google.common.base.Preconditions;
 import de.uni_stuttgart.vis.vowl.owl2vowl.Owl2Vowl;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 import net.sumaris.server.http.rest.RdfFormat;
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.reasoner.ReasonerRegistry;
+import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
+import org.apache.jena.vocabulary.*;
 
 import javax.annotation.Nullable;
 import java.io.*;
-import java.nio.charset.Charset;
 
 public class ModelUtils {
 
@@ -161,6 +170,78 @@ public class ModelUtils {
             }
         }
     }
+    /**
+     * Serialize model into a file, using the expected format
+     *
+     * @param file  output file
+     * @param model  input model
+     * @param format output format if null then output to RDF/XML
+     */
+    public static void modelToFile(File file, Model model, @Nullable String format) {
+        modelToFile(file, model, RdfFormat.fromUserString(format).orElse(null));
+    }
+
+    /**
+     * Serialize model into a file, using the expected format
+     *
+     * @param file  output file
+     * @param model  input model
+     * @param format output format if null then output to RDF/XML
+     */
+    public static void modelToFile(File file, Model model, @Nullable RdfFormat format) {
+
+        // Special case for VOWL format
+        if (format == RdfFormat.VOWL) {
+            try (
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
+            ) {
+                model.write(bos);
+                bos.flush();
+
+                new Owl2Vowl(new ByteArrayInputStream(bos.toByteArray())).writeToFile(file);
+            } catch (Exception e) {
+                throw new SumarisTechnicalException("Error converting model into VOWL", e);
+            }
+        }
+
+        // Other case
+        else {
+            try (FileOutputStream fos = new FileOutputStream(file);
+                 BufferedOutputStream bos = new BufferedOutputStream(fos);) {
+                if (format == null) {
+                    model.write(bos);
+                } else {
+                    model.write(bos, format.toJenaFormat());
+                }
+                bos.flush();
+            } catch (IOException e) {
+                throw new SumarisTechnicalException("Unable to serialize model to file: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * Serialize model into byte array, using the expected format
+     *
+     * @param model  input model
+     * @param format output format if null then output to RDF/XML
+     * @return a byte array representation of the model
+     */
+    public static byte[] datasetToBytes(Dataset dataset, RdfFormat format) {
+        try (final ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            if (format == null) {
+                RDFDataMgr.write(os, dataset, RdfFormat.TURTLE);
+            } else {
+                RDFDataMgr.write(os, dataset, format);
+            }
+            os.flush();
+            os.close();
+            return os.toByteArray();
+        } catch (IOException e) {
+            throw new SumarisTechnicalException("Unable to serialize model to string: " + e.getMessage(), e);
+        }
+    }
+
 
     /**
      * Serialize model in requested format
@@ -210,6 +291,7 @@ public class ModelUtils {
      * @return a ontology model
      */
     public static Model loadModelByUri(String iri, RdfFormat format) {
+
         try {
             Model model = ModelFactory.createDefaultModel();
             model.read(iri, format.toJenaFormat());
@@ -253,5 +335,53 @@ public class ModelUtils {
         } catch(JenaException e) {
             throw new SumarisTechnicalException("Read model error: " + e.getMessage(), e);
         }
+    }
+
+    public static OntModel createOntologyModel(String prefix, String namespace, ReasoningLevel reasoningLevel) {
+        return createOntologyModel(prefix, namespace, reasoningLevel, null);
+    }
+
+    public static OntModel createOntologyModel(String prefix, String namespace, ReasoningLevel reasoningLevel, Model schema) {
+
+        Preconditions.checkNotNull(prefix);
+        Preconditions.checkNotNull(namespace);
+        Preconditions.checkNotNull(reasoningLevel);
+
+        OntModel ontology;
+        switch (reasoningLevel) {
+            case NONE:
+                ontology = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
+                break;
+            case RDFS:
+                ontology = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM_RDFS_INF);
+                if (schema != null) {
+                    ontology.getReasoner().bindSchema(schema.getGraph());
+                }
+                break;
+            case OWL:
+            default:
+                Reasoner reasoner = ReasonerRegistry.getOWLMicroReasoner();
+                InfModel infModel = schema != null ?
+                        ModelFactory.createInfModel(reasoner, schema, ModelFactory.createDefaultModel()) :
+                        ModelFactory.createInfModel(reasoner, ModelFactory.createDefaultModel());
+                ontology = ModelFactory.createOntologyModel(
+                        OntModelSpec.OWL_MEM_MICRO_RULE_INF
+                        //OntModelSpec.OWL_DL_MEM
+                        , infModel);
+        }
+
+        ontology.setNsPrefix(prefix, namespace);
+
+        ontology.setNsPrefix("rdf", RDF.getURI());
+        ontology.setNsPrefix("rdfs", RDFS.getURI());
+        ontology.setNsPrefix("xsd", XSD.getURI());
+        ontology.setNsPrefix("owl", OWL.getURI());
+
+        ontology.setNsPrefix("dc", DC.getURI()); // http://purl.org/dc/elements/1.1/
+        ontology.setNsPrefix("dcterms", DCTerms.getURI()); // http://purl.org/dc/terms/
+
+        ontology.setStrictMode(true);
+
+        return ontology;
     }
 }

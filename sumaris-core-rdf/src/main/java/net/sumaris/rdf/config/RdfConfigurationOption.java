@@ -110,6 +110,13 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
+    RDF_MODEL_PUBLISHER (
+            "rdf.model.publisher",
+            n("sumaris.config.option.rdf.model.publisher.description"),
+            "${sumaris.site.url}",
+            String.class,
+            false),
+
     RDF_DEFAULT_PAGE_SIZE(
             "rdf.data.pageSize.default",
             n("sumaris.config.option.rdf.data.pageSize.default.description"),

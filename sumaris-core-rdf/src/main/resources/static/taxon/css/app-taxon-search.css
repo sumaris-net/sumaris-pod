@@ -1,8 +1,4 @@
-*, ::after, ::before {
-    box-sizing: unset;
-}
-
-*, ::after, ::before {
+yasr ::after, yasr ::before {
     box-sizing: unset;
 }
 

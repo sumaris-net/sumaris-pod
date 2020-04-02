@@ -24,12 +24,16 @@ package net.sumaris.rdf.model.adapter;
 
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationArea;
+import net.sumaris.core.model.referential.location.LocationLine;
+import net.sumaris.core.model.referential.location.LocationPoint;
 import net.sumaris.rdf.config.RdfConfiguration;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
@@ -65,6 +69,8 @@ public class BaseSchemaEquivalences extends AbstractSchemaEquivalences {
     protected void init() {
         super.init();
         debug = log.isDebugEnabled();
+
+
     }
 
     @Override
@@ -72,8 +78,8 @@ public class BaseSchemaEquivalences extends AbstractSchemaEquivalences {
         log.info("Adding {{}} equivalences to {{}}...", basePrefix, schemaUri);
 
         if (model instanceof OntModel) {
-            // Add Geomtry -> SpatialObject
-            OntModel ontModel = (OntModel)model;
+            // Add Geometry -> SpatialObject
+           // OntModel ontModel = (OntModel)model;
             //ontModel.createClass()
         }
     }
@@ -96,11 +102,18 @@ public class BaseSchemaEquivalences extends AbstractSchemaEquivalences {
     public void addGenericEquivalences(Model model, Resource ontClass, Class clazz) {
         String classUri = ontClass.getURI();
 
+        Resource schema = model.getResource(schemaService.getNamespace());
+
         // Entity
         if (IEntity.class.isAssignableFrom(clazz)) {
-            model.getResource(classUri + "#" + IEntity.Fields.ID)
-                    .addProperty(equivalentProperty, DC.identifier)
-                    .addProperty(equivalentProperty, DCTerms.identifier);
+
+            ontClass.addProperty(RDF.type, SKOS.Concept)
+                    .addProperty(SKOS.inScheme, schema);
+
+            // ID
+//            model.getResource(classUri + "#" + IEntity.Fields.ID)
+//                    .addProperty(equivalentProperty, DC.identifier)
+//                    .addProperty(equivalentProperty, DCTerms.identifier);
 
             // Update entity
             if (IUpdateDateEntityBean.class.isAssignableFrom(clazz)) {
@@ -114,7 +127,7 @@ public class BaseSchemaEquivalences extends AbstractSchemaEquivalences {
 
                     // Creation date
                     model.getResource(classUri + "#" + IItemReferentialEntity.Fields.CREATION_DATE)
-                            .addProperty(equivalentProperty, DCTerms.dateSubmitted);
+                            .addProperty(equivalentProperty, DCTerms.created);
 
                     // Item referential
                     if (IItemReferentialEntity.class.isAssignableFrom(clazz)) {
@@ -179,19 +192,62 @@ public class BaseSchemaEquivalences extends AbstractSchemaEquivalences {
             // Avatar = image
             model.getResource(classUri + "#" + Person.Fields.AVATAR)
                     .addProperty(equivalentProperty, FOAF.img);
+
+            // Avatar = image
+            model.getResource(classUri + "#" + Person.Fields.DEPARTMENT)
+                    .addProperty(equivalentProperty, FOAF.member);
+        }
+
+        // Department
+        else if (clazz == Department.class) {
+            // = Organization
+            ontClass.addProperty(equivalentClass, FOAF.Organization);
+
+            // Home page
+            model.getResource(classUri + "#" + Department.Fields.SITE_URL)
+                    .addProperty(equivalentProperty, FOAF.homepage);
         }
 
         // Location
-        if (clazz == Location.class) {
-            // = Place
-            //ontClass.addProperty(equivalentClass, DCTERMS.)
-            //        .addProperty(equivalentClass, FOAF.OnlineAccount);
+        else if (clazz == Location.class) {
+            // = SpatialThing
+            ontClass.addProperty(equivalentClass, org.w3.GEO.WGS84Pos.SpatialThing);
         }
 
         // Location Area
-        if (clazz == LocationArea.class) {
-            // = Place ?
-            //model.getResource(classUri + "#" + LocationArea.Fields.POSITION).addProperty(equivalentClass, GEO.NAMESPACE + "SpatialObject");
+        else if (clazz == LocationPoint.class) {
+            // = Geometry
+            model.getResource(classUri + "#" + LocationArea.Fields.POSITION)
+                    .addProperty(equivalentClass, GEO.NAMESPACE + "Geometry");
         }
+        else if (clazz == LocationLine.class) {
+            // = Geometry + LineString
+            model.getResource(classUri + "#" + LocationArea.Fields.POSITION)
+                    .addProperty(equivalentClass, GEO.NAMESPACE + "Geometry")
+                    .addProperty(equivalentClass, "http://www.opengis.net/ont/sf#LineString");
+        }
+        else if (clazz == LocationArea.class) {
+            // = Geometry + Polygonal surface
+            model.getResource(classUri + "#" + LocationArea.Fields.POSITION)
+                    .addProperty(equivalentClass, GEO.NAMESPACE + "Geometry")
+                    .addProperty(equivalentClass, "http://www.opengis.net/ont/sf#PolyhedralSurface");
+        }
+
+        // Program
+        else if (clazz == Program.class) {
+            // = Project
+            ontClass.addProperty(equivalentClass, FOAF.Project);
+        }
+    }
+
+    @Override
+    public void visitIndividual(Model model, Resource instance, Class clazz) {
+
+        String individualUri = instance.getURI();
+
+        // ID
+        instance
+                .addProperty(DC.identifier, individualUri)
+                .addProperty(DCTerms.identifier, individualUri);
     }
 }

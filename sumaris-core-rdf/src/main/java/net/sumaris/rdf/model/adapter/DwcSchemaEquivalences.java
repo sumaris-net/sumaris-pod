@@ -76,7 +76,7 @@ public class DwcSchemaEquivalences extends AbstractSchemaEquivalences {
                     .addProperty(equivalentProperty, DWC.Terms.scientificNameID);
 
             // Complete name
-            model.getResource(classUri + "#" + TaxonName.Fields.COMPLETE_NAME)
+            model.getResource(classUri + "#" + TaxonName.Fields.NAME)
                 .addProperty(equivalentProperty, DWC.Terms.scientificName);
         }
     }

@@ -40,7 +40,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_name")
-public class TaxonName implements IItemReferentialEntity, IWithDescriptionAndCommentEntity<Integer> {
+public class TaxonName implements IItemReferentialEntity, IWithDescriptionAndCommentEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_NAME_SEQ")

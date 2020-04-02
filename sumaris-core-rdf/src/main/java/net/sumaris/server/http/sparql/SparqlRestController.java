@@ -22,34 +22,25 @@
 
 package net.sumaris.server.http.sparql;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.config.RdfConfiguration;
+import net.sumaris.rdf.service.DatasetService;
 import net.sumaris.rdf.model.ModelVocabulary;
-import net.sumaris.rdf.service.data.RdfDataExportOptions;
-import net.sumaris.rdf.service.data.RdfDataExportService;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.ModelUtils;
 import net.sumaris.server.http.rest.RdfFormat;
 import net.sumaris.server.http.rest.RdfMediaType;
-import net.sumaris.server.http.rest.RdfRestController;
-import org.apache.jena.atlas.lib.StrUtils;
-import org.apache.jena.fuseki.main.FusekiServer;
-import org.apache.jena.fuseki.server.Operation;
-import org.apache.jena.ontology.OntModel;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
-import org.apache.jena.dboe.base.file.Location;
-import org.apache.jena.reasoner.ReasonerRegistry;
-import org.apache.jena.system.Txn;
-import org.apache.jena.tdb2.TDB2Factory;
-import org.apache.jena.update.UpdateExecutionFactory;
-import org.apache.jena.update.UpdateFactory;
-import org.apache.jena.update.UpdateProcessor;
-import org.apache.jena.update.UpdateRequest;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.Transactional;
+import org.apache.jena.sparql.resultset.ResultsFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,7 +55,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -80,49 +70,22 @@ public class SparqlRestController {
     private static final Logger log = LoggerFactory.getLogger(SparqlRestController.class);
 
     @Resource
-    private RdfRestController rdfRestController;
-
-    @Resource
-    private RdfSchemaService schemaExportService;
-
-    @Resource
-    private RdfDataExportService dataExportService;
-
-    @Resource
-    private RdfConfiguration config;
+    private RdfSchemaService schemaService;
 
     @Value("${server.url}/" + SPARQL_ENDPOINT)
     private String sparqlEndpointUrl;
 
-    @Value("${rdf.tdb2.enabled:false}")
-    private boolean enableTdb2;
+    @Value("${rdf.sparql.maxLimit:10000}")
+    private long maxLimit;
 
-    private Model defaultModel;
-    private Dataset dataset;
-
+    @Resource
+    private DatasetService datasetService;
 
     @PostConstruct
-    public void init() {
+    public void start() {
         log.info("Starting SparQL endpoint {{}}...", sparqlEndpointUrl);
-
-        // TODO add inference ?
-        //  this.defaultModel = ModelFactory.createInfModel(ReasonerRegistry.getOWLReasoner(), getFullSchemaOntology()).getDeductionsModel();
-        this.defaultModel = getFullSchemaOntology();
-
-        // Init the query dataset
-        this.dataset = createDataset();
-
-        // TODO: fill dataset ?
-        //fillDataset(this.dataset);
-
-//        FusekiServer server = FusekiServer.create()
-//                .port(8888)
-//                //.loopback(false)
-//                .add("/rdf", dataset)
-//                .addOperation("/rdf", Operation.Query)
-//                .build() ;
-//        server.start() ;
     }
+
 
     @RequestMapping(
             method = {RequestMethod.GET, RequestMethod.POST},
@@ -161,58 +124,105 @@ public class SparqlRestController {
 
             })
     public ResponseEntity<byte[]> executeRequest(@RequestParam(name = "query") String queryString,
+                                                 @RequestParam(name = "service", required = false) String service,
                                                  @RequestHeader(name = HttpHeaders.ACCEPT) String acceptHeader) {
 
-        Query query = QueryFactory.create(queryString) ;
-
-        if (query.getLimit() > 1000) {
-            query.setLimit(1000);
-        }
-        log.info(String.format("Received SparQL query {limit: %s, accept: %s}: \n%s", query.getLimit(), acceptHeader, queryString));
-
         List<String> acceptedContentTypes = Splitter.on(",").trimResults().splitToList(acceptHeader);
+        Query query = QueryFactory.create(queryString);
 
-        Dataset dataset = DatasetFactory.create();
-        //dataset.setDefaultModel(rdfRestController.loadModelByUri("http://www.w3.org/2002/07/owl", RdfFormat.RDF));
-        fillDataset(dataset);
+        long limit = query.getLimit() < 0 ? -1L : query.getLimit();
+        log.info(String.format("Received SparQL query {limit: %s, accept: %s}: \n%s", limit, acceptHeader, queryString));
+
+        // Limit to the max
+        if (limit > maxLimit) {
+            query.setLimit(maxLimit);
+            log.warn("Reducing limit to the max {{}}", maxLimit);
+        }
+
+        // Remote execution
+        if (StringUtils.isNotBlank(service)) {
+            try (RDFConnection conn = RDFConnectionFactory.connect(service); QueryExecution qexec = conn.query(query)) {
+                return executeQuery(conn, qexec, acceptedContentTypes);
+            }
+        }
+
+        // Local execution
+        else {
+            // Construct the dataset for this query
+            Dataset dataset = datasetService.prepareDatasetForQuery(query);
+
+            try (RDFConnection conn = RDFConnectionFactory.connect(dataset); QueryExecution qexec = conn.query(query)) {
+                return executeQuery(conn, qexec, acceptedContentTypes);
+            }
+        }
+    }
+
+    protected ResponseEntity<byte[]> executeQuery(Transactional transactional,
+                                                  QueryExecution qExec,
+                                                  List<String> acceptedContentTypes ) {
+        Preconditions.checkNotNull(transactional);
+        Preconditions.checkNotNull(qExec);
+        Preconditions.checkNotNull(acceptedContentTypes);
 
         Optional<ResponseEntity<byte[]>> response;
-        try (RDFConnection conn = RDFConnectionFactory.connect(dataset); QueryExecution qExec = conn.query(query)) {
 
-            // Construct / Describe query
-            if (query.isConstructType()) {
+        try {
+            // Construct Quad query
+            Query query = qExec.getQuery();
+            if (query.isConstructQuad()) {
+                if (!transactional.isInTransaction()) transactional.begin(ReadWrite.READ);
+                Dataset resultDataset = qExec.execConstructDataset();
+                response = outputDataset(resultDataset,
+                        new ImmutableList.Builder<String>()
+                                .addAll(acceptedContentTypes)
+                                .add(ResultsFormat.FMT_RDF_TRIG.getSymbol())
+                                .build());
+            }
+
+            // Construct query
+            else if (query.isConstructType()) {
+                if (!transactional.isInTransaction()) transactional.begin(ReadWrite.READ);
                 Model model = qExec.execConstruct();
                 response = outputModel(model, acceptedContentTypes);
             }
+
+            // Describe query
             else if (query.isDescribeType()) {
+                if (!transactional.isInTransaction()) transactional.begin(ReadWrite.READ);
                 Model model = qExec.execDescribe();
                 response = outputModel(model, acceptedContentTypes);
             }
 
-
-            // Ask / Select query
+            // Ask query
             else if (query.isAskType()) {
+                if (!transactional.isInTransaction()) transactional.begin(ReadWrite.READ);
                 response = outputBoolean(qExec.execAsk(), acceptedContentTypes);
             }
+
+            // Select query
             else if (query.isSelectType()) {
+                if (!transactional.isInTransaction()) transactional.begin(ReadWrite.READ);
                 response = outputResultSet(qExec.execSelect(), acceptedContentTypes);
             }
+
+            // TODO: add update ?
 
             // Unknown, or not supported type
             else if (query.isUnknownType()) {
                 return ResponseEntity.badRequest()
                         .body("Unknown query type".getBytes());
-            }
-            else {
+            } else {
                 return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
                         .body(String.format("SparQL query of type %s is not supported yet by this endpoint.", query.getQueryType()).getBytes());
             }
+
+            return response
+                    .orElseGet(() -> ResponseEntity.badRequest()
+                            .body(String.format("Invalid header {Accept: %s}. Unknown content type.", acceptedContentTypes).getBytes()));
         }
-
-        return response
-                .orElseGet(() -> ResponseEntity.badRequest()
-                .body(String.format("Invalid header {Accept: %s}. Unknown content type.", acceptedContentTypes).getBytes()));
-
+        finally {
+            if (transactional.isInTransaction())  transactional.end();
+        }
     }
 
     protected Optional<ResponseEntity<byte[]>> outputResultSet(
@@ -249,6 +259,21 @@ public class SparqlRestController {
                 });
     }
 
+    protected Optional<ResponseEntity<byte[]>> outputDataset(
+            final Dataset dataset,
+            final Collection<String> acceptedContentTypes) {
+
+        return firstValidFormat(acceptedContentTypes, RdfFormat::fromContentType)
+                .map(format -> {
+                    // Convert model to bytes
+                    byte[] content = ModelUtils.datasetToBytes(dataset, format);
+                    // Return response
+                    return ResponseEntity.ok()
+                            .contentType(format.mineType())
+                            .body(content);
+                });
+    }
+
     protected Optional<ResponseEntity<byte[]>> outputBoolean(
             final boolean result,
             final Collection<String> acceptedContentTypes) {
@@ -274,70 +299,16 @@ public class SparqlRestController {
                 .findFirst();
     }
 
-    protected OntModel getFullSchemaOntology() {
-        return (OntModel)getReferentialSchemaOntology().add(getDataSchemaOntology());
+    protected Model getFullSchemaOntology() {
+        return ModelFactory.createDefaultModel().add(getReferentialSchemaOntology()).add(getDataSchemaOntology());
     }
 
-    protected OntModel getReferentialSchemaOntology() {
-        return schemaExportService.getOntology(ModelVocabulary.REFERENTIAL);
+    protected Model getReferentialSchemaOntology() {
+        return schemaService.getOntology(ModelVocabulary.REFERENTIAL);
     }
 
-    protected OntModel getDataSchemaOntology() {
-        return schemaExportService.getOntology(ModelVocabulary.DATA);
+    protected Model getDataSchemaOntology() {
+        return schemaService.getOntology(ModelVocabulary.DATA);
     }
 
-    protected Dataset createDataset() {
-        if (enableTdb2) {
-
-            // Connect or create the TDB2 dataset
-            File tdbDir = new File(config.getRdfDirectory(), "tdb");
-            log.info("Starting {TDB2} triple store at {{}}...", tdbDir);
-
-            Location location = Location.create(tdbDir.getAbsolutePath());
-            dataset = TDB2Factory.connectDataset(location);
-        }
-        else {
-            log.info("Starting {memory} triple store...");
-            dataset = DatasetFactory.create()
-                    .setDefaultModel(this.defaultModel);
-        }
-
-
-
-        return dataset;
-    }
-
-    /**
-     * Fill dataset
-     * @param dataset
-     * @return
-     */
-    protected void fillDataset(Dataset dataset) {
-
-//        dataset.begin(ReadWrite.WRITE);
-//        String sparqlUpdateString = StrUtils.strjoinNL(
-//                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
-//                "PREFIX this: <http://192.168.0.20:8080/ontology/schema/>",
-//                "INSERT { <http://192.168.0.20:8080/ontology/data/TaxonName/1> rdfs:label ?now } WHERE { BIND(now() AS ?now ) }"
-//        ) ;
-//
-//        UpdateRequest updateRequest = UpdateFactory.create(sparqlUpdateString);
-//        UpdateProcessor updateProcessor =
-//                UpdateExecutionFactory.create(updateRequest, dataset);
-//        updateProcessor.execute();
-//        dataset.commit();
-
-        // TODO: change this
-        // Load TaxonName
-        String graphName = config.getModelBaseUri() + "data/TaxonName";
-        Model instances = dataExportService.getIndividuals(RdfDataExportOptions.builder()
-                .className("TaxonName")
-                .build());
-
-        // TODO enable inferences
-        //instances = ModelFactory.createInfModel(ReasonerRegistry.getOWLReasoner(), instances);
-
-        dataset.addNamedModel(graphName, instances);
-
-    }
 }

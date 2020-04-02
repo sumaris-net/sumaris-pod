@@ -105,7 +105,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
 
         String hql = getSelectHqlQuery(domain, className, page.getSortAttribute(), page.getSortDirection());
         TypedQuery<T> typedQuery = entityManager.createQuery(hql, aClass)
-                .setFirstResult(page.getOffset())
+                .setFirstResult((int)page.getOffset())
                 .setMaxResults(page.getSize());
 
         // When using fetch join, stream are not supported, so use a list

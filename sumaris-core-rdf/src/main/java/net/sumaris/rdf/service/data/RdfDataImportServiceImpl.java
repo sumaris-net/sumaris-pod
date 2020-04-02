@@ -40,6 +40,7 @@ import net.sumaris.rdf.util.RdfImportContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntResource;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
@@ -123,7 +124,7 @@ public class RdfDataImportServiceImpl {
     }
 
     @Transactional
-    public OntModel importFromRemote(String remoteUrl,
+    public Model importFromRemote(String remoteUrl,
                                      String remoteOntUri,
                                      ModelVocabulary domain,
                                      String baseTargetPackage) {
@@ -142,7 +143,7 @@ public class RdfDataImportServiceImpl {
         }
         log.info(String.format("Mapped ont to list of %s objects, Making it OntClass again %s", recomposed.size(), Dates.elapsedTime(start)));
 
-        OntModel targetModel = exportService.getOntology(RdfSchemaOptions.builder()
+        Model targetModel = exportService.getOntology(RdfSchemaOptions.builder()
                 .domain(domain)
                 .withInterfaces(true)
                 .build());

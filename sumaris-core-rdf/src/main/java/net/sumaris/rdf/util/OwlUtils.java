@@ -51,7 +51,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class OwlUtils {
@@ -174,7 +173,7 @@ public abstract class OwlUtils {
      */
     public static boolean isId(Method met) {
         return "getId".equals(met.getName())
-                && Stream.concat(annotsOfField(getFieldOfGetter(met)), Stream.of(met.getAnnotations()))
+                && Stream.concat(getFieldAnnotations(getOptionalFieldByGetter(met)), Stream.of(met.getAnnotations()))
                 .anyMatch(annot -> annot instanceof Id || annot instanceof org.springframework.data.annotation.Id);
     }
 
@@ -186,35 +185,56 @@ public abstract class OwlUtils {
      */
     public static boolean isId(Field field) {
         return "id".equals(field.getName())
-                && Stream.concat(annotsOfField(Optional.of(field)), Stream.of(field.getAnnotations()))
+                && Arrays.stream(field.getAnnotations())
                 .anyMatch(annot -> annot instanceof Id || annot instanceof org.springframework.data.annotation.Id);
     }
 
     public static boolean isManyToOne(Method met) {
-        return annotsOfField(getFieldOfGetter(met)).anyMatch(annot -> annot instanceof ManyToOne) // check the corresponding field's annotations
+        return getFieldAnnotations(getOptionalFieldByGetter(met)).anyMatch(annot -> annot instanceof ManyToOne) // check the corresponding field's annotations
                 ||
                 Stream.of(met.getAnnotations()).anyMatch(annot -> annot instanceof ManyToOne)  // check the method's annotations
                 ;
     }
 
-    public static Stream<Annotation> annotsOfField(Optional<Field> field) {
-        return field.map(field1 -> Stream.of(field1.getAnnotations())).orElseGet(Stream::empty);
+    public static Stream<Annotation> getFieldAnnotations(Optional<Field> field) {
+        return field.map(field1 -> Arrays.stream(field1.getAnnotations())).orElseGet(Stream::empty);
     }
 
     public static boolean isGetter(Method met) {
         return met.getName().startsWith("get") // only getters
                 && !"getBytes".equals(met.getName()) // ignore ugly
                 && met.getParameterCount() == 0 // ignore getters that are not getters
-                && getFieldOfGetter(met).isPresent()
+                && getOptionalFieldByGetter(met).isPresent()
                 ;
     }
 
+    public static Class cleanProxyClass(Class clazz) {
+        int index = clazz.getCanonicalName().indexOf("$HibernateProxy");
+        if (index != -1) {
+            String entityClassName = clazz.getCanonicalName().substring(0, index);
+            try {
+                return Class.forName(entityClassName);
+            } catch (ClassNotFoundException e) {
+            }
+        }
+
+        return clazz;
+    }
+
+    public static Method findIdGetter(Class clazz) {
+        for (Field f : clazz.getDeclaredFields())
+            for (Annotation an : f.getDeclaredAnnotations())
+                if (an instanceof Id)
+                    return getterOfField(clazz, f.getName());
+
+        return null;
+    }
 
     public static boolean isSetter(Method met) {
         return met.getName().startsWith("set");
     }
 
-    public static Field getFieldByGetter(Method getter) {
+    public static Field getFieldOrNullByGetter(Method getter) {
         String fieldName = getter.getName().substring(3, 4).toLowerCase() + getter.getName().substring(4);
         try {
             return getter.getDeclaringClass().getDeclaredField(fieldName);
@@ -224,7 +244,7 @@ public abstract class OwlUtils {
     }
 
 
-    public static Optional<Field> getFieldOfGetter(Method getter) {
+    public static Optional<Field> getOptionalFieldByGetter(Method getter) {
 
         String fieldName = getter.getName().substring(3, 4).toLowerCase() + getter.getName().substring(4);
         //log.info("searching field : " + fieldName);

@@ -35,14 +35,26 @@ import net.sumaris.rdf.dao.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.ModelEntities;
+import net.sumaris.rdf.model.reasoner.ReasoningLevel;
+import net.sumaris.rdf.service.schema.RdfSchemaOptions;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.rdf.util.Bean2Owl;
+import net.sumaris.rdf.util.ModelUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.ontology.Individual;
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.ontology.OntResource;
+import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.DC_11;
+import org.apache.jena.reasoner.Derivation;
+import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.reasoner.ReasonerRegistry;
+import org.apache.jena.vocabulary.DC;
+import org.apache.jena.vocabulary.DCTerms;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -108,11 +120,18 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
         fillOptions(options);
 
         // Create base model
-        Model model = ModelFactory.createDefaultModel();
         String prefix = schemaService.getPrefix();
         String namespace = schemaService.getNamespace();
-        model.setNsPrefix(schemaService.getPrefix(), namespace);
-        model.setNsPrefix("dc", DC_11.getURI()); // http://purl.org/dc/elements/1.1/
+
+        OntModel schema = null;
+        if (options.getReasoningLevel() != ReasoningLevel.NONE) {
+            schema = (OntModel)schemaService.getOntology(RdfSchemaOptions.builder()
+                    .domain(options.getDomain())
+                    .className(options.getClassName())
+                    .reasoningLevel(options.getReasoningLevel())
+                    .build());
+        }
+        OntModel model = ModelUtils.createOntologyModel(prefix, namespace, options.getReasoningLevel(), schema);
 
         boolean hasClassName = StringUtils.isNotBlank(options.getClassName());
 
@@ -120,7 +139,7 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
             throw new IllegalArgumentException("Unable to export data without a class name!");
         }
 
-        final int entityGraphDepth =  options.getDomain() == ModelVocabulary.DATA ? 3 : 0; // TODO: check if enougth
+        final int entityGraphDepth =  options.getDomain() == ModelVocabulary.DATA ? 3 : 0; // TODO: check if enougth for data
 
         // Filter visitors, then notify them
         List<IModelVisitor> modelVisitors = getModelVisitors(model, prefix, namespace, options);
@@ -134,22 +153,25 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
             IEntity entity = modelDao.getById(options.getDomain(), options.getClassName(), IEntity.class, options.getId());
 
             // Convert into model
-            Resource beanModel = beanConverter.bean2Owl(model, namespace, entity, entityGraphDepth, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes);
+            Resource individual = beanConverter.bean2Owl(model, namespace, entity, entityGraphDepth, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes);
 
             // Notify visitors
-            modelVisitors.forEach(visitor -> visitor.visitIndividual(model, beanModel, entity.getClass()));
+            if (individual != null) {
+                modelVisitors.forEach(visitor -> visitor.visitIndividual(model, individual, entity.getClass()));
+            }
         }
         else {
             getClassesAsStream(options)
                 .forEach(clazz -> modelDao.streamAll(options.getDomain(), clazz.getSimpleName(), IEntity.class, options.getPage())
                     .forEach(entity -> {
                         // Create the resource
-                        Resource beanModel = beanConverter.bean2Owl(model, namespace, entity, entityGraphDepth, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes);
+                        Resource individual = beanConverter.bean2Owl(model, namespace, entity, entityGraphDepth, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes);
 
                         // Notify visitors
-                        modelVisitors.forEach(visitor -> visitor.visitIndividual(model, beanModel, clazz));
+                        modelVisitors.forEach(visitor -> visitor.visitIndividual(model, individual, clazz));
                     }));
         }
+
 
         return model;
     }
@@ -171,18 +193,8 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
             options.setDomain(domain);
         }
 
-        // Page
-        if (options.getPage() == null) {
-            options.setPage(Page.builder()
-                    .offset(0)
-                    .size(defaultPageSize)
-                    .build());
-        }
-        else if (options.getPage().getSize() > maxPageSize) {
-            throw new DataRetrievalFailureException("Size must be <= " + maxPageSize);
-        }
-
-        switch(domain) {
+        // Annotation and package
+        switch (domain) {
             case DATA:
                 options.setAnnotatedType(Entity.class);
                 options.setPackages(Lists.newArrayList("net.sumaris.core.model.data"));
@@ -215,6 +227,23 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
             default:
                 throw new SumarisTechnicalException(String.format("Unknown ontology {%s}", domain));
         }
+
+        // Reasoning level
+        if (options.getReasoningLevel() == null) {
+            options.setReasoningLevel(ReasoningLevel.NONE);
+        }
+
+        // Page
+        if (options.getPage() == null) {
+            options.setPage(Page.builder()
+                    .offset(0)
+                    .size(defaultPageSize)
+                    .build());
+        }
+        else if (options.getPage().getSize() > maxPageSize) {
+            throw new DataRetrievalFailureException("Size must be <= " + maxPageSize);
+        }
+
         return options;
     }
 
@@ -280,4 +309,5 @@ public class RdfDataExportServiceImpl implements RdfDataExportService {
     public List<IModelVisitor> getModelVisitors(Model model, String ns, String schemaUri, RdfDataExportOptions options) {
         return modelVisitors.stream().filter(visitor -> visitor.accept(model, ns, schemaUri, options)).collect(Collectors.toList());
     }
+
 }

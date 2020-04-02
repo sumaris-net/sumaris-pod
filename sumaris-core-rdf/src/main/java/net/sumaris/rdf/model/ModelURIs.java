@@ -8,6 +8,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.*;
 import org.tdwg.rs.DWC;
+import org.w3.GEO;
 
 import java.util.Map;
 
@@ -24,7 +25,7 @@ public class ModelURIs {
             .put("dctypes", DCTypes.NS) // DCMI Types
 
             // Spatial
-            .put("spatial", "http://www.opengis.net/ont/geosparql#") // GeoSparql
+            .put("spatial",org.eclipse.rdf4j.model.vocabulary.GEO.NAMESPACE) // GeoSparql
             .put("geo", "http://www.w3.org/2003/01/geo/wgs84_pos#")
             .put("gn", "http://www.geonames.org/ontology#") // Geo names
 
@@ -49,8 +50,8 @@ public class ModelURIs {
             .put("dctypes", "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin_core_type.rdf")
 
             // TODO: find the prefix
-            .put("spatial", "http://www.opengis.net/ont/geosparql")
-            .put("geo", "http://www.w3.org/2003/01/geo/wgs84_pos")
+            .put("spatial", org.eclipse.rdf4j.model.vocabulary.GEO.NAMESPACE)
+            .put("geo", GEO.WGS84Pos.NS)
             .put("gn", "http://www.geonames.org/ontology") // Geo names
 
             //.put("", "http://www.w3.org/2000/10/swap/pim/contact")

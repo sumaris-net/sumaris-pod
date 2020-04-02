@@ -127,7 +127,7 @@ public class RdfRestController {
                                                     @RequestParam(name = "extension", required = false) String extension,
                                                     @RequestParam(name = "format", required = false) String userFormat,
                                                     @RequestParam(name = "disjoints", defaultValue = "true", required = false) String disjoints,
-                                                    @RequestParam(name = "equivalences", defaultValue = "false", required = false) String equivalences,
+                                                    @RequestParam(name = "equivalences", defaultValue = "true", required = false) String equivalences,
                                                     final HttpServletRequest request) {
 
         // Find output format
@@ -137,10 +137,8 @@ public class RdfRestController {
         Model schema = schemaExportService.getOntology(RdfSchemaOptions.builder()
                 .className(className)
                 .withDisjoints(!"false".equalsIgnoreCase(disjoints)) // True by default
-                .withEquivalences("true".equalsIgnoreCase(equivalences))
-                // TODO .withInterfaces()
-                .build())
-                .getDeductionsModel();
+                .withEquivalences(!"false".equalsIgnoreCase(equivalences))
+                .build());
 
         return ResponseEntity.ok()
                 .contentType(format.mineType())
@@ -185,6 +183,7 @@ public class RdfRestController {
         RdfDataExportOptions options = RdfDataExportOptions.builder()
                 .className(className)
                 .id(objectId)
+                .maxDepth(1)
                 .page(Page.builder()
                         .offset(objectId == null ? offset : 0)
                         .size(objectId == null ? size : 1)

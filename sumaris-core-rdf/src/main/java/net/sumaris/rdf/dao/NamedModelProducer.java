@@ -1,49 +1,37 @@
-package net.sumaris.core.dao.technical;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core shared
+ * SUMARiS
  * %%
- * Copyright (C) 2018 - 2019 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import lombok.Builder;
-import lombok.Data;
+package net.sumaris.rdf.dao;
 
-import java.io.Serializable;
+import net.sumaris.core.dao.technical.Page;
+import org.apache.jena.rdf.model.Model;
 
-/**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
- */
-@Data
-@Builder
-public class Page implements Serializable {
+import java.util.stream.Stream;
 
-    @Builder.Default
-    private long offset = 0L;
+public interface NamedModelProducer {
 
-    @Builder.Default
-    private int size = 100;
+    Stream<Model> streamAllByPages(long maxStatements);
 
-    @Builder.Default
-    private String sortAttribute = "id";
+    Model loadOnePage(Page page);
 
-    @Builder.Default
-    private SortDirection sortDirection = SortDirection.ASC;
+    String getName();
 }
-

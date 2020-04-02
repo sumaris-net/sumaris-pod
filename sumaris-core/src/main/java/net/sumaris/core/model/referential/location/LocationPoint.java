@@ -1,10 +1,10 @@
-package net.sumaris.core.dao.technical;
+package net.sumaris.core.model.referential.location;
 
 /*-
  * #%L
- * SUMARiS:: Core shared
+ * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 - 2019 SUMARiS Consortium
+ * Copyright (C) 2018 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,28 +22,31 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
-import lombok.Builder;
+import com.vividsolutions.jts.geom.Geometry;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
+import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
-/**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
- */
 @Data
-@Builder
-public class Page implements Serializable {
+@FieldNameConstants
+@Entity
+@Table(name="location_line")
+public class LocationPoint implements Serializable {
 
-    @Builder.Default
-    private long offset = 0L;
+    @Id
+    private Integer id;
 
-    @Builder.Default
-    private int size = 100;
+    @OneToOne(fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn(name="id", referencedColumnName="id")
+    private Location location;
 
-    @Builder.Default
-    private String sortAttribute = "id";
+    @Column(name = "update_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date updateDate;
 
-    @Builder.Default
-    private SortDirection sortDirection = SortDirection.ASC;
+    @Column(nullable = false)
+    private Geometry position;
 }
-

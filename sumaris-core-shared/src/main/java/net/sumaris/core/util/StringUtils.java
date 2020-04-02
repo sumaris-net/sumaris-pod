@@ -24,6 +24,9 @@ package net.sumaris.core.util;
 
 import org.hibernate.boot.model.naming.Identifier;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
 /**
@@ -63,5 +66,16 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         String regex = "([a-z])([A-Z])";
         String replacement = "$1_$2";
         return value.replaceAll(regex, replacement).toLowerCase();
+    }
+
+    /**
+     * Method to encode a string value using `UTF-8` encoding scheme
+     */
+    public static String encodeValueForUrl(String value) {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException(ex.getCause());
+        }
     }
 }

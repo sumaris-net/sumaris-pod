@@ -24,28 +24,28 @@ package net.sumaris.rdf.service.schema;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.IValueObject;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;
 import net.sumaris.rdf.dao.RdfModelDao;
 import net.sumaris.rdf.dao.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.model.IModelVisitor;
-import net.sumaris.rdf.model.ModelVocabulary;
 import net.sumaris.rdf.model.ModelType;
+import net.sumaris.rdf.model.ModelVocabulary;
+import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.util.Bean2Owl;
-import org.apache.commons.collections.MultiMap;
+import net.sumaris.rdf.util.ModelUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jena.ext.com.google.common.collect.Multimaps;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.*;
 import org.reflections.Reflections;
@@ -63,13 +63,16 @@ import javax.annotation.PostConstruct;
 import javax.persistence.Entity;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service("rdfSchemaService")
 @ConditionalOnBean({RdfConfiguration.class})
 public class RdfSchemaServiceImpl implements RdfSchemaService {
+
 
     private static final Logger log = LoggerFactory.getLogger(RdfSchemaServiceImpl.class);
 
@@ -108,7 +111,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
                 throw new BeanInitializationException(String.format("Bad RDF schema namespace {%s}. Please fix the option '%s' in the configuration.", config.getModelBaseUri(), RdfConfigurationOption.RDF_MODEL_BASE_URI.getKey(), e.getMessage()));
             }
             try {
-                createSchemaOntology(prefix, ns); // validate prefix
+                ModelUtils.createOntologyModel(prefix, ns, ReasoningLevel.NONE); // validate prefix
             } catch (PrefixMapping.IllegalPrefixException e) {
                 throw new BeanInitializationException(String.format("Bad RDF schema prefix {%s}. Please fix the option '%s' in the configuration.", config.getModelPrefix(), RdfConfigurationOption.RDF_MODEL_PREFIX.getKey(), e.getMessage()));
             }
@@ -121,12 +124,12 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     }
 
     @Override
-    public OntModel getOntology(ModelVocabulary voc) {
+    public Model getOntology(ModelVocabulary voc) {
         return getOntology(createOptions(voc));
     }
 
     @Override
-    public OntModel getOntology(RdfSchemaOptions options) {
+    public Model getOntology(RdfSchemaOptions options) {
         Preconditions.checkNotNull(options);
 
         int cacheKey = options.hashCode();
@@ -206,24 +209,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         return options;
     }
 
-    protected OntModel createBaseOntModel(String prefix, String namespace) {
-        Preconditions.checkNotNull(prefix);
-        Preconditions.checkNotNull(namespace);
-
-        OntModel ontology = ModelFactory.createOntologyModel();
-        ontology.setNsPrefix(prefix, namespace);
-        ontology.setNsPrefix("dc", DC.getURI()); // http://purl.org/dc/elements/1.1/
-        ontology.setStrictMode(true);
-
-        return ontology;
-    }
-
-    protected OntModel createSchemaOntology(String prefix, String namespace) {
-        Preconditions.checkNotNull(namespace);
-
-        log.info(String.format("Generating ontology {%s}...", namespace));
-
-        OntModel ontology = createBaseOntModel(prefix, namespace);
+    protected Resource createSchemaResource(OntModel ontology, String namespace) {
 
         // Add ontology metadata
         String modelLanguage = config.getModelDefaultLanguage();
@@ -237,6 +223,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
                 .addProperty(DC.title, config.getModelTitle(), modelLanguage)
                 .addProperty(DC.date, config.getModelDate(), modelLanguage)
                 .addProperty(DC.rights, config.getModelLicense(), modelLanguage)
+                .addProperty(DC.publisher, config.getModelPublisher(), modelLanguage)
                 // RDFS
                 .addProperty(RDFS.label, config.getModelLabel(), modelLanguage)
                 .addProperty(RDFS.comment, config.getModelComment(), modelLanguage);
@@ -245,36 +232,38 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         Iterable<String> authors = Splitter.on(',').omitEmptyStrings().trimResults().split(config.getModelAuthors());
         authors.forEach(author -> schema.addProperty(DC.creator, author));
 
-        return ontology;
+        return schema;
     }
 
-    protected OntModel getSchemaOntologyNoCache(RdfSchemaOptions options) {
+    protected Model getSchemaOntologyNoCache(RdfSchemaOptions options) {
         Preconditions.checkNotNull(options);
         Preconditions.checkNotNull(options.getDomain());
 
         String prefix = getPrefix();
         String namespace = getNamespace();
 
-        OntModel schema = createSchemaOntology(prefix, namespace);
+        log.info("Generating {} ontology {{}}...", options.getDomain().name().toLowerCase(), namespace);
+        OntModel model = ModelUtils.createOntologyModel(prefix, namespace, options.getReasoningLevel());
+        createSchemaResource(model, namespace);
 
         // Filter visitors, then notify them
-        List<IModelVisitor> modelVisitors = getModelVisitors(schema, prefix, namespace, options);
+        List<IModelVisitor> modelVisitors = getModelVisitors(model, prefix, namespace, options);
 
         // Notify visitors
-        modelVisitors.forEach(visitor -> visitor.visitModel(schema, prefix, namespace));
+        modelVisitors.forEach(visitor -> visitor.visitModel(model, prefix, namespace));
 
         Multimap<OntClass, OntClass> mutuallyDisjoint = options.isWithDisjoints() ? HashMultimap.create() : null;
         getClassesAsStream(options).forEach(clazz -> {
             // Create the ontology class, from tha java class
-            OntClass ontClass = beanConverter.classToOwl(schema, clazz, mutuallyDisjoint, options.isWithInterfaces());
+            OntClass ontClass = beanConverter.classToOwl(model, clazz, mutuallyDisjoint, options.isWithInterfaces());
 
             // Notify visitors (e.g. for equivalences)
-            modelVisitors.forEach(visitor -> visitor.visitClass(schema, ontClass, clazz));
+            modelVisitors.forEach(visitor -> visitor.visitClass(model, ontClass, clazz));
         });
 
         if (options.isWithDisjoints()) withDisjoints(mutuallyDisjoint);
 
-        return schema;
+        return model;
     }
 
     @Override
@@ -362,7 +351,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
                             OntClass[] subClasses = subClassesCollection.toArray(new OntClass[subClassesCollection.size()]);
                             for (int i = 0; i < subClasses.length; i++) {
                                 for (int j = i + 1; j < subClasses.length; j++) {
-                                    if (debug) log.debug("Adding disjoint between {{}} and {{}}", subClasses[i], subClasses[j]);
+                                    if (debug) log.trace("Adding disjoint between {{}} and {{}}", subClasses[i], subClasses[j]);
                                     subClasses[i].addDisjointWith(subClasses[j]);
                                 }
                             }

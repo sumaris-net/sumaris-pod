@@ -40,9 +40,9 @@ import java.util.Objects;
 public abstract class AbstractSchemaEquivalences implements IModelVisitor<Model, RdfSchemaOptions> {
 
     @Resource
-    protected RdfSchemaService exportSchemaService;
+    protected RdfSchemaService schemaService;
 
-    @Value("${rdf.equivalences.owl.enabled:true}")
+    @Value("${rdf.equivalences.owl.enabled:false}")
     protected boolean useOwlEquivalences;
 
     protected Property equivalentClass = RDFS.subClassOf;
@@ -53,7 +53,7 @@ public abstract class AbstractSchemaEquivalences implements IModelVisitor<Model,
     @PostConstruct
     protected void init() {
         // Register to schema service
-        exportSchemaService.register(this);
+        schemaService.register(this);
 
         if (this.useOwlEquivalences) {
             equivalentClass = OWL2.equivalentClass;
@@ -65,7 +65,7 @@ public abstract class AbstractSchemaEquivalences implements IModelVisitor<Model,
 
     @Override
     public boolean accept(Model model, String prefix, String namespace, RdfSchemaOptions options) {
-        return options.isWithEquivalences() && Objects.equals(exportSchemaService.getNamespace(), namespace);
+        return options.isWithEquivalences() && Objects.equals(schemaService.getNamespace(), namespace);
     }
 
 }

@@ -66,6 +66,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.nuiton.i18n.I18n.t;
 
@@ -1548,4 +1550,30 @@ public class Daos {
         return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
     }
 
+    public static <T> Stream<T> streamByPageIteration(final Function<Page, T> processPageFn,
+                                                      final Function<T, Boolean> hasNextFn,
+                                                      final int pageSize,
+                                                      final long maxPageCount) {
+        final Page page = Page.builder().size(pageSize).build();
+        final Iterator<T> iterator = new Iterator<T>() {
+            boolean hasNext = true;
+
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
+
+            @Override
+            public T next() {
+                T pageModel = processPageFn.apply(page);
+                page.setOffset(page.getOffset() + pageSize);
+                hasNext = hasNextFn.apply(pageModel)
+                        && (maxPageCount == -1 || page.getOffset() < maxPageCount);
+                return pageModel;
+            }
+        };
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(
+                iterator,
+                Spliterator.ORDERED | Spliterator.IMMUTABLE), false);
+    }
 }

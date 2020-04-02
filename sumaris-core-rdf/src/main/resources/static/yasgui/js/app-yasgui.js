@@ -23,11 +23,11 @@ function AppYasgui(yasGuiDivId) {
         // default query
         {
             name: "default",
-            prefixes: ['rdf', 'this'],
+            prefixes: ['rdf', 'dwc', 'this'],
             query: "SELECT * WHERE {\n" +
-                "  ?sub ?pred ?obj .\n" +
-                "  ?sub rdf:type this:TaxonName .  \n" +
-                "  filter( ?obj=\"Lophius budegassa\" )\n" +
+                "  ?sub rdf:type this:TaxonName ; \n" +
+                "       dwc:scientificName ?label .  \n" +
+                "  filter( ?label=\"Lophius budegassa\" )\n" +
                 "} LIMIT 10"
         },
         {

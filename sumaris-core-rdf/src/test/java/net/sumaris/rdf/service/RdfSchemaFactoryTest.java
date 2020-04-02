@@ -160,7 +160,7 @@ public class RdfSchemaFactoryTest extends AbstractServiceTest {
 
         if (!testFile.exists()) {
             log.debug("Creating file: " + testFile.getPath());
-            outputToFile(model, testFile.toPath(), RdfFormat.TTL);
+            outputToFile(model, testFile.toPath(), RdfFormat.TURTLE);
         }
         return testFile;
     }

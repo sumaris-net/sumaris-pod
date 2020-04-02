@@ -29,6 +29,7 @@ import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.rdf.model.ModelVocabulary;
+import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -46,6 +47,9 @@ public class RdfDataExportOptions {
 
     @Builder.Default
     private int maxDepth = 0;
+
+    @Builder.Default
+    private ReasoningLevel reasoningLevel = ReasoningLevel.OWL; // Need OWL for individual, because of owl:class
 
     private Class<? extends Annotation> annotatedType;
     private Class type;

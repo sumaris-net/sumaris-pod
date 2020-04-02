@@ -22,31 +22,26 @@ function RdfHelper() {
                     ns: 'rdf',
                     prefix: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
                 },
-                {
-                    name: 'RDFA',
-                    ns: 'rdfa',
-                    prefix: 'http://www.w3.org/ns/rdfa#'
-                },
-                {
-                    name: 'RDF Data',
-                    ns: 'rdfdata',
-                    prefix: 'http://rdf.data-vocabulary.org/rdf.xml#'
-                },
-                {
-                    name: 'RDF Data format',
-                    ns: 'rdfdf',
-                    prefix: 'http://www.openlinksw.com/virtrdf-data-formats#'
-                },
-                {
-                    name: 'RDF FG',
-                    ns: 'rdfg',
-                    prefix: 'http://www.w3.org/2004/03/trix/rdfg-1/'
-                },
-                {
-                    name: 'RDF FP',
-                    ns: 'rdfp',
-                    prefix: 'https://w3id.org/rdfp/'
-                },
+                // {
+                //     name: 'RDF Data',
+                //     ns: 'rdfdata',
+                //     prefix: 'http://rdf.data-vocabulary.org/rdf.xml#'
+                // },
+                // {
+                //     name: 'RDF Data format',
+                //     ns: 'rdfdf',
+                //     prefix: 'http://www.openlinksw.com/virtrdf-data-formats#'
+                // },
+                // {
+                //     name: 'RDF FG',
+                //     ns: 'rdfg',
+                //     prefix: 'http://www.w3.org/2004/03/trix/rdfg-1/'
+                // },
+                // {
+                //     name: 'RDF FP',
+                //     ns: 'rdfp',
+                //     prefix: 'https://w3id.org/rdfp/'
+                // },
                 {
                     name: 'RDF Schema',
                     ns: 'rdfs',
@@ -55,7 +50,7 @@ function RdfHelper() {
                 {
                     name: 'Appellation Taxon (Sandre)',
                     ns: 'apt',
-                    prefix: 'http://owl.sandre.eaufrance.fr/apt/2.1/sandre_fmt_owl_apt.owl'
+                    prefix: 'http://id.eaufrance.fr/ddd/APT/'
                 },
                 {
                     name: 'Darwin core terms (string literal objects)',
@@ -66,6 +61,11 @@ function RdfHelper() {
                     name: 'Darwin core terms (IRI reference objects)',
                     ns: 'dwciri',
                     prefix: 'http://rs.tdwg.org/dwc/iri/'
+                },
+                {
+                    name: 'Darwin core TaxonName',
+                    ns: 'dwctn',
+                    prefix: 'http://rs.tdwg.org/ontology/voc/TaxonName#'
                 },
                 {
                     name: 'LOD (TaxRef)',

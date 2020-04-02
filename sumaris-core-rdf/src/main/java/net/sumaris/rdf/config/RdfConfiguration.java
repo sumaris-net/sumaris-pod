@@ -65,6 +65,7 @@ public class RdfConfiguration  {
             @Override
             public void addViewControllers(ViewControllerRegistry registry) {
                 log.info("Adding RDF web redirects...");
+                boolean debug = log.isDebugEnabled();
 
                 // Ontology
                 {
@@ -85,7 +86,7 @@ public class RdfConfiguration  {
                                     .filter(Objects::nonNull)
                                     .flatMap(lang -> lang.getFileExtensions().stream())
                                     .forEach(fileExt -> {
-                                        log.info(String.format("Adding virtual rdf file: /ontology/files/%s.%s", ns, fileExt));
+                                        if (debug) log.debug(String.format("Adding virtual rdf file: /ontology/files/%s.%s", ns, fileExt));
                                         registry
                                                 .addViewController(String.format("/ontology/files/%s.%s", ns, fileExt))
                                                 .setViewName(String.format("forward:/ontology/convert?prefix=%s&format=%s", ns, fileExt));
@@ -209,6 +210,10 @@ public class RdfConfiguration  {
 
     public String getModelAuthors() {
         return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_AUTHORS.getKey());
+    }
+
+    public String getModelPublisher() {
+        return config.getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_PUBLISHER.getKey());
     }
 
     public int getDefaultPageSize() {

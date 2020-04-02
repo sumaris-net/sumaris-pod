@@ -28,7 +28,7 @@ import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import java.io.Serializable;
 import java.util.Date;
 
-public interface IWithDescriptionAndCommentEntity<ID extends Serializable> extends IEntity<ID> {
+public interface IWithDescriptionAndCommentEntity extends IEntity<Integer> {
 
 
     interface Fields extends IUpdateDateEntityBean.Fields {

@@ -49,29 +49,41 @@
 
         <h1>Taxon search</h1>
 
-        <div class="form-group">
-            <div class="form-inline">
-                <input type="text" name="q" id="q" class="form-control" placeholder="Lophius, Dipturus, ..." style="width: 80%;">
+        <div class="form-group" style="padding-top: 15px;">
+            <div class="form-inline d-flex justify-content-center">
+                <input type="text" name="q" id="q" class="form-control w-75"
+                       placeholder="Lophius, Dipturus, ..."
+                       aria-label="Search">
+
                 &nbsp;
-                <button id="buttonSearch" type="button" onclick="app.doSearch()" class="btn btn-primary" tabindex="-1" style="width: 15%; min-width: 150px;">Search</button>
+                <!-- search button -->
+                <button id="buttonSearch" type="button" onclick="app.doSearch()" class="btn btn-primary " tabindex="-1"
+                        >Search</button>
             </div>
-            <p>
-                Examples:&nbsp
-                <a href="#" onclick="app.showExample('simple');">simple</a>&nbsp;|&nbsp;
-            </p>
+            <div class="form-inline justify-content-center">
+                <p class="form-inline">
+                    <input type="checkbox" id="showDebug" name="showDebug" onclick="app.showDebug(this.checked)" >&nbsp;
+                    <label for="showDebug">debug mode ?</label>
+                </p>
+            </div>
         </div>
 
 
-        <div class="form-group text-center">
-            <button type="button" onclick="$('#debug').toggleClass('d-none')" class="btn btn-light btn-lg">Show/Hide editor</button>
+        <div id="examples" style="padding-bottom: 15px;" class="d-none">
+            <!-- examples will be inserted here -->
         </div>
 
-        <div id="debug" class="row">
+        <div class="debug row d-none">
             <!-- SparQL editor -->
             <div id="yasqe" class="col col-8"></div>
 
             <!-- Log -->
             <div id="output" class="col col-4"></div>
+        </div>
+
+        <!-- loading spinner -->
+        <div id="loading" class="spinner-border spinner-border-sm d-none" role="status" >
+            <span class="sr-only">Loading...</span>
         </div>
 
         <!-- SparQL  result -->
@@ -98,6 +110,7 @@
     <script language="JavaScript" type="text/javascript">
         const menu = new AppMenu('#menu', {active: '#nav-item-tools'});
         const app = new AppTaxonSearch({yasqe: 'yasqe', yasr: 'yasr'});
+
     </script>
 </body>
 </html>

@@ -25,14 +25,14 @@ public class RdfFormat extends Lang {
     public static RdfFormat TRIG = new RdfFormat(Lang.TRIG, RdfMediaType.TEXT_TRIG);
     public static RdfFormat TRIX = new RdfFormat(Lang.TRIX, RdfMediaType.TEXT_TRIX);
     public static RdfFormat JSONLD = new RdfFormat(Lang.JSONLD, RdfMediaType.APPLICATION_JSON_LD);
-    public static RdfFormat TTL = new RdfFormat( Lang.TURTLE, RdfMediaType.TEXT_TURTLE);
+    public static RdfFormat TURTLE = new RdfFormat( Lang.TURTLE, RdfMediaType.TEXT_TURTLE);
 
     // RDF binary - see https://jena.apache.org/documentation/io/rdf-binary.html
     public static RdfFormat RDFTHRIFT = new RdfFormat( Lang.RDFTHRIFT, RdfMediaType.TEXT_TURTLE);
 
     public static RdfFormat VOWL = new RdfFormat("VOWL", RdfMediaType.APPLICATION_WEBVOWL, ImmutableList.of("json", "vowl"));
 
-    public static Collection<RdfFormat> allValues = ImmutableList.of(RDF, JSON, N3, NTRIPLES, NQUADS, TRIG, TRIX, JSONLD, TTL, RDFTHRIFT, VOWL);
+    public static Collection<RdfFormat> allValues = ImmutableList.of(RDF, JSON, N3, NTRIPLES, NQUADS, TRIG, TRIX, JSONLD, TURTLE, RDFTHRIFT, VOWL);
 
     private MediaType contentType;
 
@@ -91,7 +91,7 @@ public class RdfFormat extends Lang {
                 return Optional.of(JSONLD);
             case "TTL":
             case "TURTLE":
-                return Optional.of(TTL);
+                return Optional.of(TURTLE);
             case "THRIFT":
                 return Optional.of(RDFTHRIFT);
             case "VOWL":
@@ -117,7 +117,7 @@ public class RdfFormat extends Lang {
             case RdfMediaType.APPLICATION_TURTLE_VALUE:
             case RdfMediaType.TEXT_TURTLE_VALUE:
             case "text/ttl":
-                return Optional.of(TTL);
+                return Optional.of(TURTLE);
             case RdfMediaType.APPLICATION_TRIX_VALUE:
             case RdfMediaType.TEXT_TRIX_VALUE:
                 return Optional.of(TRIX);
@@ -164,7 +164,7 @@ public class RdfFormat extends Lang {
                     return Optional.of(JSONLD);
                 case "ttl":
                 case "turtle":
-                    return Optional.of(TTL);
+                    return Optional.of(TURTLE);
                 case "trix":
                     return Optional.of(TRIX);
                 case "trig":

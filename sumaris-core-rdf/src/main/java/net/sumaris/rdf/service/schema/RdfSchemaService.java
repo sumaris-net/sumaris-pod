@@ -24,6 +24,7 @@ package net.sumaris.rdf.service.schema;
 
 import net.sumaris.rdf.model.IModelVisitor;
 import net.sumaris.rdf.model.ModelVocabulary;
+import net.sumaris.rdf.model.reasoner.ReasoningLevel;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +48,7 @@ public interface RdfSchemaService {
      * @return a schema representation as an ontology
      */
     //@Cacheable(cacheNames = RdfCacheNames.ONTOLOGY_BY_NAME, key="#options.hashCode()", condition = " #options != null", unless = "#result == null")
-    OntModel getOntology(RdfSchemaOptions options);
+    Model getOntology(RdfSchemaOptions options);
 
-    OntModel getOntology(ModelVocabulary voc);
+    Model getOntology(ModelVocabulary voc);
 }
