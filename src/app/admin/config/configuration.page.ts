@@ -6,7 +6,15 @@ import {ConfigOptions, Configuration, Department} from "../../core/services/mode
 import {isEmptyArray, isNilOrBlank, isNotEmptyArray} from "../../shared/functions";
 import {BehaviorSubject} from "rxjs";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
+import {NetworkService} from "../../core/services/network.service";
 
+declare interface CacheStatistic {
+  name: string;
+  size: number;
+  heapSize: number;
+  offHeapSize: number;
+  diskSize: number;
+}
 
 @Component({
   selector: 'app-configuration-page',
@@ -16,17 +24,19 @@ import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.c
 })
 export class ConfigurationPage extends SoftwarePage<Configuration> {
 
-
   partners = new BehaviorSubject<Department[]>(null);
+  cacheStatistics = new BehaviorSubject<CacheStatistic[]>(null);
+  cacheStatisticTotal = new BehaviorSubject<CacheStatistic>(null);
 
   get config(): Configuration {
-    return this.data && (this.data as Configuration) || undefined;
+    return this.data && (this.data as Configuration) || undefined;
   }
 
   constructor(
     protected injector: Injector,
-    protected validatorService: SoftwareValidatorService
-      ) {
+    protected validatorService: SoftwareValidatorService,
+    protected network: NetworkService
+  ) {
     super(injector,
       validatorService);
     this.dataType = Configuration;
@@ -44,6 +54,11 @@ export class ConfigurationPage extends SoftwarePage<Configuration> {
 
     // Force the load of the config
     super.load(config.id, {...opts, fetchPolicy: "network-only"});
+
+    this.cacheStatistics.subscribe(value => this.computeStatisticTotal(value));
+
+    // Get server cache statistics
+    this.loadCacheStat();
   }
 
   protected setValue(data: Configuration) {
@@ -64,7 +79,7 @@ export class ConfigurationPage extends SoftwarePage<Configuration> {
     return json;
   }
 
-  async removePartnerAt(index: number){
+  async removePartnerAt(index: number) {
 
     const partners = this.partners.getValue();
     const partner = partners && index < partners.length && partners[index];
@@ -94,8 +109,7 @@ export class ConfigurationPage extends SoftwarePage<Configuration> {
         }
         try {
           dep = JSON.parse(dep);
-        }
-        catch(err){
+        } catch (err) {
           // Unknown format: keep it
           return true;
         }
@@ -114,6 +128,37 @@ export class ConfigurationPage extends SoftwarePage<Configuration> {
     this.partners.next(partners);
     this.markAsTouched();
 
+  }
+
+  clearCache(cacheName?: string) {
+    this.configService.clearCache({cacheName: cacheName}).then(() => this.loadCacheStat());
+  }
+
+  loadCacheStat() {
+    this.configService.getCacheStatistics().then(value => {
+      const stats: CacheStatistic[] = Object.keys(value).map(cacheName => {
+        const stat = value[cacheName];
+        return {
+          name: cacheName,
+          size: stat.size,
+          heapSize: stat.heapSize,
+          offHeapSize: stat.offHeapSize,
+          diskSize: stat.diskSize
+        };
+      });
+      this.cacheStatistics.next(stats);
+    });
+  }
+
+  computeStatisticTotal(stats: CacheStatistic[]) {
+    const total: CacheStatistic = {name: undefined, size: 0, heapSize: 0, offHeapSize: 0, diskSize: 0};
+    (stats || []).forEach(stat => {
+      total.size += stat.size;
+      total.heapSize += stat.heapSize;
+      total.offHeapSize += stat.offHeapSize;
+      total.diskSize += stat.diskSize;
+    });
+    this.cacheStatisticTotal.next(total);
   }
 }
 

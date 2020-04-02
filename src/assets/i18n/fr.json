@@ -93,6 +93,8 @@
     }
   },
   "CONFIGURATION": {
+    "TAB_GENERAL": "Détails",
+    "TAB_CACHE": "Cache serveur",
     "APP_NAME": "Nom de l'application",
     "DESCRIPTION": "Description (page d'accueil)",
     "STATUS": "Etat",
@@ -103,6 +105,8 @@
     "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
     "BTN_ADD_PROPERTY": "Ajouter une option",
+    "BTN_CLEAR_CACHE": "Vider le cache serveur",
+    "CACHE_DIVIDER": "Statistique du cache server",
     "NEW": {
       "TITLE": "Nouvelle configuration"
     },
@@ -138,6 +142,14 @@
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Statut par défaut pour un nouveau navire"
       }
+    },
+    "CACHE": {
+      "NAME": "Nom",
+      "SIZE": "Nb élément",
+      "HEAP_SIZE": "Taille HEAP",
+      "OFF_HEAP_SIZE": "Taille OFF-HEAP",
+      "DISK_SIZE": "Taille sur disque",
+      "TOTAL": "Total"
     }
   },
   "MENU": {

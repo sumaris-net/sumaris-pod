@@ -59,8 +59,8 @@ export class AuthForm implements OnInit {
     // For DEV only
     if (environment.production === false) {
       this.form.patchValue({
-        username: 'benoit.lavenier@e-is.pro',
-        password: 'priezPourMoi!'
+        username: 'admin@sumaris.net',
+        password: 'admin'
       });
     }
   }
