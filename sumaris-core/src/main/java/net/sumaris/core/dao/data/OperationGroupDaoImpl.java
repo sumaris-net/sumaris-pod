@@ -204,6 +204,12 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
     }
 
     @Override
+    public List<OperationGroupVO> getAllByTripId(int tripId) {
+
+        return getOperationGroupsByTripId(tripId, OperationGroupFilter.DEFINED, 0, 1000, Operation.Fields.RANK_ORDER_ON_PERIOD, SortDirection.ASC);
+    }
+
+    @Override
     public OperationGroupVO get(int id) {
         return toOperationGroupVO(get(Operation.class, id));
     }

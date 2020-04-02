@@ -51,14 +51,12 @@ public enum ParameterValueType {
         else if (Objects.equals(Boolean.TRUE, parameter.getIsAlphanumeric())) {
             return ParameterValueType.STRING;
         }
-
         else if (Objects.equals(Boolean.TRUE, parameter.getIsDate())) {
             return ParameterValueType.DATE;
         }
         else if (source.getMaximumNumberDecimals() == null || source.getMaximumNumberDecimals() > 0) {
             return  ParameterValueType.DOUBLE;
         }
-
         else {
             return ParameterValueType.INTEGER;
         }

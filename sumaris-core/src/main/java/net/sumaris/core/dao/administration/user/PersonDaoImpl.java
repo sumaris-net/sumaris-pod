@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.data.ImageAttachmentDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SoftwareDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
@@ -392,15 +393,7 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
                         )
                 ));
 
-        String searchText = StringUtils.trimToNull(filter.getSearchText());
-        String searchTextAnyMatch = null;
-        if (StringUtils.isNotBlank(searchText)) {
-            searchTextAnyMatch = ("*" + searchText + "*"); // add trailing escape char
-            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]+", "*"); // group escape chars
-            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[%]", "\\%"); // protected '%' chars
-            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]", "%"); // replace asterix
-        }
-
+        String searchTextAnyMatch = Daos.getEscapedSearchText(filter.getSearchText(), true);
 
         return entityManager.createQuery(query)
                 .setParameter(hasUserProfileIdsParam, CollectionUtils.isNotEmpty(userProfileIds))

@@ -1,8 +1,8 @@
 package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.OperationGroupDao;
@@ -10,6 +10,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.GearUseMeasurement;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.VesselUseMeasurement;
+import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -44,6 +46,9 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
     @Autowired
     protected PhysicalGearService physicalGearService;
+
+    @Autowired
+    protected PmfmService pmfmService;
 
     @Override
     public List<MetierVO> getMetiersByTripId(int tripId) {
@@ -73,6 +78,11 @@ public class OperationGroupServiceImpl implements OperationGroupService {
     }
 
     @Override
+    public List<OperationGroupVO> getAllByTripId(int tripId) {
+        return operationGroupDao.getAllByTripId(tripId);
+    }
+
+    @Override
     public OperationGroupVO get(int id) {
         return operationGroupDao.get(id);
     }
@@ -90,6 +100,31 @@ public class OperationGroupServiceImpl implements OperationGroupService {
         }
 
         OperationGroupVO savedOperationGroup = operationGroupDao.save(source);
+
+        // Dispatch measurements from measurementValues (which should contains all measurements)
+        {
+            Map<Integer, String> vesselUseMeasurements = Maps.newLinkedHashMap();
+            Map<Integer, String> gearUseMeasurements = Maps.newLinkedHashMap();
+//            Map<Integer, String> gearPhysicalMeasurements = Maps.newLinkedHashMap();
+            source.getMeasurementValues().forEach((pmfmId, value) -> {
+                if (pmfmService.isVesselUsePmfm(pmfmId)) {
+                    vesselUseMeasurements.putIfAbsent(pmfmId, value);
+                } else if (pmfmService.isGearUsePmfm(pmfmId)) {
+                    gearUseMeasurements.putIfAbsent(pmfmId, value);
+//                } else if (pmfmService.isGearPhysicalPmfm(pmfmId)) {
+//                    gearPhysicalMeasurements.putIfAbsent(pmfmId, value);
+                }
+            });
+
+            // Re-affect to correct map
+            source.setMeasurementValues(vesselUseMeasurements);
+            source.setGearMeasurementValues(gearUseMeasurements);
+//            source.getPhysicalGear().setMeasurementValues(gearPhysicalMeasurements);
+//            if (savedOperationGroup.getPhysicalGear() != source.getPhysicalGear()) {
+                // if not same entity
+//                savedOperationGroup.getPhysicalGear().setMeasurementValues(gearPhysicalMeasurements);
+//            }
+        }
 
         // Save measurements (vessel use measurement)
         {
@@ -117,29 +152,29 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
         // Save gear measurements (gear physical measurement)
         {
-            physicalGearService.save(savedOperationGroup.getTripId(), ImmutableList.of(savedOperationGroup.getPhysicalGear()));
+//            physicalGearService.save(savedOperationGroup.getTripId(), ImmutableList.of(savedOperationGroup.getPhysicalGear()));
         }
 
         // Save batches
-        {
-            List<BatchVO> batches = getAllBatches(savedOperationGroup);
-            batches.forEach(b -> fillDefaultProperties(savedOperationGroup, b));
-            batches = batchService.saveByOperationId(savedOperationGroup.getId(), batches);
-
-            // Transform saved batches into flat list (e.g. to be used as graphQL query response)
-            batches.forEach(batch -> {
-                // Set parentId (instead of parent object)
-                if (batch.getParentId() == null && batch.getParent() != null) {
-                    batch.setParentId(batch.getParent().getId());
-                }
-                // Remove link parent/children
-                batch.setParent(null);
-                batch.setChildren(null);
-            });
-
-            savedOperationGroup.setCatchBatch(null);
-            savedOperationGroup.setBatches(batches);
-        }
+//        {
+//            List<BatchVO> batches = getAllBatches(savedOperationGroup);
+//            batches.forEach(b -> fillDefaultProperties(savedOperationGroup, b));
+//            batches = batchService.saveByOperationId(savedOperationGroup.getId(), batches);
+//
+//            // Transform saved batches into flat list (e.g. to be used as graphQL query response)
+//            batches.forEach(batch -> {
+//                // Set parentId (instead of parent object)
+//                if (batch.getParentId() == null && batch.getParent() != null) {
+//                    batch.setParentId(batch.getParent().getId());
+//                }
+//                // Remove link parent/children
+//                batch.setParent(null);
+//                batch.setChildren(null);
+//            });
+//
+//            savedOperationGroup.setCatchBatch(null);
+//            savedOperationGroup.setBatches(batches);
+//        }
 
         // TODO save products
 

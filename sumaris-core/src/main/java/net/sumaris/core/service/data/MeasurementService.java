@@ -75,6 +75,12 @@ public interface MeasurementService {
     Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId);
 
     @Transactional(readOnly = true)
+    Map<Integer, String> getProductSortingMeasurementsMap(int productId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, String> getProductQuantificationMeasurementsMap(int productId);
+
+    @Transactional(readOnly = true)
     List<MeasurementVO> getObservedLocationMeasurements(int observedLocationId);
 
     @Transactional(readOnly = true)

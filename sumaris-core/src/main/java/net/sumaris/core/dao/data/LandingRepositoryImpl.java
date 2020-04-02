@@ -182,9 +182,10 @@ public class LandingRepositoryImpl
         int result = 1;
 
         // Find landings
-        LandingFilterVO filter = new LandingFilterVO();
-        filter.setObservedLocationId(landing.getObservedLocation().getId());
-        filter.setVesselId(landing.getVessel().getId());
+        LandingFilterVO filter = LandingFilterVO.builder()
+            .observedLocationId(landing.getObservedLocation().getId())
+            .vesselId(landing.getVessel().getId())
+            .build();
         Optional<Integer> currentRankOrder = findAll(filter).stream()
             // exclude itself
             .filter(landingVO -> !landingVO.getId().equals(landing.getId()))

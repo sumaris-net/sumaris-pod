@@ -88,10 +88,18 @@ public interface MeasurementDao {
     // Batch
     Map<Integer, String> getBatchSortingMeasurementsMap(int batchId);
     Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId);
-    List<MeasurementVO> saveBatchSortingMeasurements(int sampleId, List<MeasurementVO> sources);
-    List<MeasurementVO> saveBatchQuantificationMeasurements(int sampleId, List<MeasurementVO> sources);
+    List<MeasurementVO> saveBatchSortingMeasurements(int batchId, List<MeasurementVO> sources);
+    List<MeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<MeasurementVO> sources);
     Map<Integer, String> saveBatchSortingMeasurementsMap(final int batchId, Map<Integer, String> sources);
     Map<Integer, String> saveBatchQuantificationMeasurementsMap(final int batchId, Map<Integer, String> sources);
+
+    // Product
+    Map<Integer, String> getProductSortingMeasurementsMap(int productId);
+    Map<Integer, String> getProductQuantificationMeasurementsMap(int productId);
+    List<MeasurementVO> saveProductSortingMeasurements(int productId, List<MeasurementVO> sources);
+    List<MeasurementVO> saveProductQuantificationMeasurements(int productId, List<MeasurementVO> sources);
+    Map<Integer, String> saveProductSortingMeasurementsMap(final int productId, Map<Integer, String> sources);
+    Map<Integer, String> saveProductQuantificationMeasurementsMap(final int productId, Map<Integer, String> sources);
 
     // Vessel
     List<MeasurementVO> getVesselFeaturesMeasurements(int vesselFeaturesId);

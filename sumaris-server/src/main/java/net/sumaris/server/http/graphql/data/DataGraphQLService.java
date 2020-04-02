@@ -49,9 +49,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -105,6 +105,9 @@ public class DataGraphQLService {
 
     @Autowired
     private MetierRepository metierRepository;
+
+    @Autowired
+    private ProductService productService;
 
     /* -- Vessel -- */
 
@@ -242,13 +245,8 @@ public class DataGraphQLService {
     @IsUser
     public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip,
                            @GraphQLArgument(name = "withOperation", defaultValue = "false") boolean withOperation,
-                           @GraphQLArgument(name = "withMetier", defaultValue = "false") boolean withMetier,
                            @GraphQLEnvironment() Set<String> fields) {
-        final TripVO result = tripService.save(trip,
-            TripSaveOptions.builder()
-                .withOperations(withOperation)
-                .withMetiers(withMetier)
-                .build());
+        final TripVO result = tripService.save(trip, withOperation, false);
 
         // Add additional properties if needed
         fillTripFields(result, fields);
@@ -260,12 +258,34 @@ public class DataGraphQLService {
     @IsUser
     public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips,
                                   @GraphQLArgument(name = "withOperation", defaultValue = "false") boolean withOperation,
-                                  @GraphQLArgument(name = "withMetier", defaultValue = "false") boolean withMetier,
                                   @GraphQLEnvironment() Set<String> fields) {
-        final List<TripVO> result = tripService.save(trips, TripSaveOptions.builder()
-            .withOperations(withOperation)
-            .withMetiers(withMetier)
-            .build());
+        final List<TripVO> result = tripService.save(trips, withOperation, false);
+
+        // Add additional properties if needed
+        fillTrips(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "saveLandedTrip", description = "Create or update a landed trip")
+    @IsUser
+    public TripVO saveLandedTrip(@GraphQLArgument(name = "trip") TripVO trip,
+                           @GraphQLArgument(name = "withOperationGroup", defaultValue = "false") boolean withOperationGroup,
+                           @GraphQLEnvironment() Set<String> fields) {
+        final TripVO result = tripService.save(trip, false, withOperationGroup);
+
+        // Add additional properties if needed
+        fillTripFields(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "saveLandedTrips", description = "Create or update many landed trips")
+    @IsUser
+    public List<TripVO> saveLandedTrips(@GraphQLArgument(name = "trips") List<TripVO> trips,
+                                  @GraphQLArgument(name = "withOperationGroup", defaultValue = "false") boolean withOperationGroup,
+                                  @GraphQLEnvironment() Set<String> fields) {
+        final List<TripVO> result = tripService.save(trips, false, withOperationGroup);
 
         // Add additional properties if needed
         fillTrips(result, fields);
@@ -545,6 +565,14 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "operationGroups", description = "Get trip's operation groups")
     @Transactional(readOnly = true)
     @IsUser
+    public List<OperationGroupVO> getOperationGroupsByTrip(@GraphQLContext TripVO trip) {
+        return Optional.ofNullable(trip.getOperationGroups()).orElse(operationGroupService.getAllByTripId(trip.getId()));
+    }
+
+    @GraphQLQuery(name = "operationGroups", description = "Get trip's operation groups")
+    @Transactional(readOnly = true)
+    @IsUser
+    @Deprecated
     public List<OperationGroupVO> getOperationGroupsByTripId(@GraphQLArgument(name = "filter") OperationFilterVO filter,
                                                    @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                    @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
@@ -555,46 +583,73 @@ public class DataGraphQLService {
         return operationGroupService.getAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
-    @GraphQLQuery(name = "operationGroup", description = "Get an operation group")
-    @Transactional(readOnly = true)
-    @IsUser
-    public OperationGroupVO getOperationGroup(@GraphQLArgument(name = "id") int id) {
-        return operationGroupService.get(id);
+//    @GraphQLQuery(name = "operationGroup", description = "Get an operation group")
+//    @Transactional(readOnly = true)
+//    @IsUser
+//    public OperationGroupVO getOperationGroup(@GraphQLArgument(name = "id") int id) {
+//        return operationGroupService.get(id);
+//    }
+//
+//    @GraphQLMutation(name = "saveOperationGroups", description = "Save operation groups")
+//    @IsUser
+//    public List<OperationGroupVO> saveOperationGroups(@GraphQLArgument(name = "operationGroups") List<OperationGroupVO> operationGroups) {
+//        return operationGroupService.save(operationGroups);
+//    }
+//
+//    @GraphQLMutation(name = "saveOperationGroup", description = "Create or update an operation group")
+//    @IsUser
+//    public OperationGroupVO saveOperationGroup(@GraphQLArgument(name = "operationGroup") OperationGroupVO operationGroup) {
+//        return operationGroupService.save(operationGroup);
+//    }
+//
+//    @GraphQLMutation(name = "deleteOperationGroup", description = "Delete an operation group")
+//    @IsUser
+//    public void deleteOperationGroup(@GraphQLArgument(name = "id") int id) {
+//        operationGroupService.delete(id);
+//    }
+//
+//    @GraphQLMutation(name = "deleteOperationGroups", description = "Delete many operation groups")
+//    @IsUser
+//    public void deleteOperationGroups(@GraphQLArgument(name = "ids") List<Integer> ids) {
+//        operationGroupService.delete(ids);
+//    }
+//
+//    @GraphQLSubscription(name = "updateOperationGroup", description = "Subscribe to changes on an operation group")
+//    @IsUser
+//    public Publisher<OperationGroupVO> updateOperationGroup(@GraphQLArgument(name = "id") final int id,
+//                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
+//
+//        Preconditions.checkArgument(id >= 0, "Invalid id");
+//        return changesPublisherService.getPublisher(Operation.class, OperationGroupVO.class, id, minIntervalInSecond, true);
+//    }
+
+
+    /* -- Products -- */
+
+    @GraphQLQuery(name = "products", description = "Get operation group's products")
+    public List<ProductVO> getProductsByOperationGroup(@GraphQLContext OperationGroupVO operationGroup) {
+
+        if (CollectionUtils.isNotEmpty(operationGroup.getProducts())) {
+            return operationGroup.getProducts();
+        }
+
+        return productService.getByOperationId(operationGroup.getId());
     }
 
-    @GraphQLMutation(name = "saveOperationGroups", description = "Save operation groups")
-    @IsUser
-    public List<OperationGroupVO> saveOperationGroups(@GraphQLArgument(name = "operationGroups") List<OperationGroupVO> operationGroups) {
-        return operationGroupService.save(operationGroups);
+    @GraphQLQuery(name = "products", description = "Get sale's products")
+    public List<ProductVO> getProductsBySale(@GraphQLContext SaleVO sale) {
+
+        if (CollectionUtils.isNotEmpty(sale.getProducts())) {
+            return sale.getProducts();
+        }
+
+        return productService.getBySaleId(sale.getId());
     }
 
-    @GraphQLMutation(name = "saveOperationGroup", description = "Create or update an operation group")
-    @IsUser
-    public OperationGroupVO saveOperationGroup(@GraphQLArgument(name = "operationGroup") OperationGroupVO operationGroup) {
-        return operationGroupService.save(operationGroup);
+    @GraphQLQuery(name = "products", description = "Get landing's products")
+    public List<ProductVO> getProductsByLanding(@GraphQLContext LandingVO landing) {
+        return productService.getByLandingId(landing.getId());
     }
-
-    @GraphQLMutation(name = "deleteOperationGroup", description = "Delete an operation group")
-    @IsUser
-    public void deleteOperationGroup(@GraphQLArgument(name = "id") int id) {
-        operationGroupService.delete(id);
-    }
-
-    @GraphQLMutation(name = "deleteOperationGroups", description = "Delete many operation groups")
-    @IsUser
-    public void deleteOperationGroups(@GraphQLArgument(name = "ids") List<Integer> ids) {
-        operationGroupService.delete(ids);
-    }
-
-    @GraphQLSubscription(name = "updateOperationGroup", description = "Subscribe to changes on an operation group")
-    @IsUser
-    public Publisher<OperationGroupVO> updateOperationGroup(@GraphQLArgument(name = "id") final int id,
-                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
-
-        Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.getPublisher(Operation.class, OperationGroupVO.class, id, minIntervalInSecond, true);
-    }
-
 
     /* -- Vessel position -- */
 
@@ -650,17 +705,28 @@ public class DataGraphQLService {
         return batchService.getAllByOperationId(operation.getId());
     }
 
+    @GraphQLQuery(name = "batches", description = "Get operation group's batches")
+    public List<BatchVO> getBatchesByOperationGroup(@GraphQLContext OperationGroupVO operationGroup) {
+        // Avoid a reloading (e.g. when saving): reuse existing VO
+        if (operationGroup.getBatches() != null) {
+            return operationGroup.getBatches();
+        }
+
+        // Reload, if not exist in VO
+        return batchService.getAllByOperationId(operationGroup.getId());
+    }
+
     /* -- Landings -- */
 
     @GraphQLQuery(name = "landings", description = "Search in landings")
     @Transactional(readOnly = true)
     //@IsUser
-    public List<LandingVO> findAllLandings(@GraphQLArgument(name = "filter") LandingFilterVO filter,
-                                           @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                           @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                           @GraphQLArgument(name = "sortBy", defaultValue = LandingVO.Fields.DATE_TIME) String sort,
-                                           @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                           @GraphQLEnvironment() Set<String> fields
+    public List<LandingVO> findLandings(@GraphQLArgument(name = "filter") LandingFilterVO filter,
+                                        @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                        @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                        @GraphQLArgument(name = "sortBy", defaultValue = LandingVO.Fields.DATE_TIME) String sort,
+                                        @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                        @GraphQLEnvironment() Set<String> fields
     ) {
         final List<LandingVO> result = landingService.findAll(filter, offset, size, sort,
                 direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
@@ -834,6 +900,14 @@ public class DataGraphQLService {
         return metierRepository.getById(metierId);
     }
 
+    @GraphQLQuery(name = "metiers", description = "Get trip metiers")
+    public List<MetierVO> getTripMetiers(@GraphQLContext TripVO trip) {
+        if (trip.getMetiers() != null) {
+            return trip.getMetiers();
+        }
+        return operationGroupService.getMetiersByTripId(trip.getId());
+    }
+
     // Sample
     @GraphQLQuery(name = "measurements", description = "Get sample measurements")
     public List<MeasurementVO> getSampleMeasurements(@GraphQLContext SampleVO sample) {
@@ -860,6 +934,18 @@ public class DataGraphQLService {
         Map<Integer, String> map = Maps.newHashMap();
         map.putAll(measurementService.getBatchSortingMeasurementsMap(batch.getId()));
         map.putAll(measurementService.getBatchQuantificationMeasurementsMap(batch.getId()));
+        return map;
+    }
+
+    // Product
+    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+    public Map<Integer, String> getProductMeasurementValues(@GraphQLContext ProductVO product) {
+        if (product.getMeasurementValues() != null) {
+            return product.getMeasurementValues();
+        }
+        Map<Integer, String> map = Maps.newHashMap();
+        map.putAll(measurementService.getProductSortingMeasurementsMap(product.getId()));
+        map.putAll(measurementService.getProductQuantificationMeasurementsMap(product.getId()));
         return map;
     }
 
@@ -917,9 +1003,6 @@ public class DataGraphQLService {
 
         // Add vessel if need
         fillVesselSnapshot(trip, fields);
-
-        // Add metiers if need
-        fillMetiers(trip, fields);
     }
 
     protected void fillTrips(List<TripVO> trips, Set<String> fields) {
@@ -928,9 +1011,6 @@ public class DataGraphQLService {
 
         // Add vessel if need
         fillVesselSnapshot(trips, fields);
-
-        // Add metiers if need
-        fillMetiers(trips, fields);
     }
 
     protected void fillObservedLocationFields(ObservedLocationVO observedLocation, Set<String> fields) {
@@ -1022,26 +1102,6 @@ public class DataGraphQLService {
                     bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), bean.getVesselDateTime()));
                 }
             });
-        }
-    }
-
-    protected void fillMetiers(TripVO trip, Set<String> fields) {
-        // Add metier if need
-        if (trip != null && hasMetiersField(fields)) {
-            fillMetiers(trip);
-        }
-    }
-
-    protected void fillMetiers(Collection<TripVO> trips, Set<String> fields) {
-        // Add metier if need
-        if (trips != null && hasMetiersField(fields)) {
-            trips.forEach(this::fillMetiers);
-        }
-    }
-
-    protected void fillMetiers(TripVO trip) {
-        if (trip != null) {
-            trip.setMetiers(operationGroupService.getMetiersByTripId(trip.getId()));
         }
     }
 

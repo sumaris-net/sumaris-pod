@@ -41,28 +41,29 @@ import java.util.List;
 @Cacheable
 @NamedQueries({
     @NamedQuery(name = "Operation.updateUndefinedOperationDates",
-        query = "UPDATE Operation o\n" +
-            "SET\n" +
-            "  o.startDateTime = :startDateTime,\n" +
-            "  o.fishingStartDateTime = :startDateTime,\n" +
-            "  o.endDateTime = :endDateTime,\n" +
-            "  o.fishingEndDateTime = :endDateTime\n" +
-            "WHERE o.id IN (\n" +
-            "   SELECT o2.id\n" +
-            "   FROM Operation o2\n" +
-            "   INNER JOIN o2.trip ft\n" +
-            "   WHERE ft.id = :tripId\n" +
-            "   AND o2.startDateTime = ft.departureDateTime\n" +
-            "   AND o2.endDateTime = ft.returnDateTime\n" +
-            "   AND (o2.startDateTime != :startDateTime\n" +
-            "       OR o2.fishingStartDateTime != :startDateTime\n" +
-            "       OR o2.endDateTime != :endDateTime\n" +
-            "       OR o2.fishingEndDateTime != :endDateTime)\n" +
+        query = "UPDATE Operation o " +
+            "SET " +
+            "  o.startDateTime = :startDateTime, " +
+            "  o.fishingStartDateTime = :startDateTime, " +
+            "  o.endDateTime = :endDateTime, " +
+            "  o.fishingEndDateTime = :endDateTime " +
+            "WHERE o.id IN ( " +
+            "   SELECT o2.id " +
+            "   FROM Operation o2 " +
+            "   INNER JOIN o2.trip ft " +
+            "   WHERE ft.id = :tripId " +
+            "   AND o2.startDateTime = ft.departureDateTime " +
+            "   AND o2.endDateTime = ft.returnDateTime " +
+            "   AND (o2.startDateTime != :startDateTime " +
+            "       OR o2.fishingStartDateTime != :startDateTime " +
+            "       OR o2.endDateTime != :endDateTime " +
+            "       OR o2.fishingEndDateTime != :endDateTime) " +
             ")")
 })
 public class Operation implements IDataEntity<Integer>,
     IWithSamplesEntity<Integer, Sample>,
-    IWithBatchesEntity<Integer, Batch> {
+    IWithBatchesEntity<Integer, Batch>,
+    IWithProductsEntity<Integer, Product> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OPERATION_SEQ")
@@ -145,4 +146,8 @@ public class Operation implements IDataEntity<Integer>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Batch.class, mappedBy = Batch.Fields.OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Batch> batches;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Product.class, mappedBy = Product.Fields.OPERATION)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<Product> products = new ArrayList<>();
 }

@@ -29,6 +29,7 @@ import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -46,7 +47,6 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,10 +106,7 @@ public class TaxonGroupRepositoryImpl
             .and(inStatusIds(filter.getStatusIds()))
             .and(inGearIds(gearIds));
 
-        String searchText = StringUtils.isBlank(filter.getSearchText()) ? null : (filter.getSearchText() + "*") // add trailing wildcard
-                .replaceAll("[*]+", "*") // group escape chars
-                .replaceAll("[%]", "\\%") // protected '%' chars
-                .replaceAll("[*]", "%"); // replace asterix
+        String searchText = Daos.getEscapedSearchText(filter.getSearchText());
 
         TypedQuery<TaxonGroup> query = getQuery(specification, TaxonGroup.class, getPageable(offset, size, sortAttribute, sortDirection));
 

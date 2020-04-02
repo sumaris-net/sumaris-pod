@@ -1558,4 +1558,17 @@ public class Daos {
         return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
     }
 
+    public static String getEscapedSearchText(String searchText) {
+        return getEscapedSearchText(searchText, false);
+    }
+
+    public static String getEscapedSearchText(String searchText, boolean searchAny) {
+        searchText = StringUtils.trimToNull(searchText);
+        return StringUtils.isBlank(searchText) ? null : (searchAny ? "*" : "" + searchText + "*") // add leading wildcard (if searchAny specified) and trailing wildcard
+            .replaceAll("[*]+", "*") // group escape chars
+            .replaceAll("[%]", "\\%") // protected '%' chars
+            .replaceAll("[*]", "%"); // replace asterisk mark
+    }
+
+
 }

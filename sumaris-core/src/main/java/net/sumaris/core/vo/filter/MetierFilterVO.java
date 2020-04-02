@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.vo.filter;
 
 /*-
  * #%L
@@ -10,24 +10,30 @@ package net.sumaris.core.dao.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import net.sumaris.core.model.data.IRootDataEntity;
-import net.sumaris.core.vo.data.IRootDataVO;
-import net.sumaris.core.vo.filter.IRootDataFilter;
-import org.springframework.data.repository.NoRepositoryBean;
+import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
-@NoRepositoryBean
-public interface RootDataRepository<E extends IRootDataEntity<ID>, ID extends Integer, V extends IRootDataVO<ID>, F extends IRootDataFilter>
-    extends DataRepository<E, ID, V, F> {
+import java.util.Date;
+
+@Data
+@FieldNameConstants
+public class MetierFilterVO extends ReferentialFilterVO {
+
+    // options used for predocumentation
+    private Date date;
+    private Integer vesselId;
+    private Integer tripId; // optional
+
 }

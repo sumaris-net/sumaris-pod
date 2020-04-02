@@ -61,9 +61,8 @@ public class LandingDaoReadTest extends AbstractDaoTest{
 
         // by observed location
         {
-            LandingFilterVO filter = new LandingFilterVO();
+            LandingFilterVO filter = LandingFilterVO.builder().observedLocationId(1).build();
             //filter.setProgramLabel("ADAP-MER");
-            filter.setObservedLocationId(1);
 
             List<LandingVO> vos = repository.findAll(filter);
             assertNotNull(vos);
@@ -72,8 +71,7 @@ public class LandingDaoReadTest extends AbstractDaoTest{
 
         // by program
         {
-            LandingFilterVO filter = new LandingFilterVO();
-            filter.setProgramLabel("ADAP-CONTROL");
+            LandingFilterVO filter = LandingFilterVO.builder().programLabel("ADAP-CONTROL").build();
 
             List<LandingVO> vos = repository.findAll(filter);
             assertNotNull(vos);

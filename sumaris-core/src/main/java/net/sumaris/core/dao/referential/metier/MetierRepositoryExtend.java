@@ -24,11 +24,8 @@ package net.sumaris.core.dao.referential.metier;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import java.util.List;
@@ -38,12 +35,12 @@ public interface MetierRepositoryExtend {
 
     MetierVO toMetierVO(Metier metier);
 
-    List<ReferentialVO> findByFilter(
-            ReferentialFilterVO filter,
-            int offset,
-            int size,
-            String sortAttribute,
-            SortDirection sortDirection);
+    List<MetierVO> findByFilter(
+        ReferentialFilterVO filter,
+        int offset,
+        int size,
+        String sortAttribute,
+        SortDirection sortDirection);
 
     MetierVO getById(int id);
 }

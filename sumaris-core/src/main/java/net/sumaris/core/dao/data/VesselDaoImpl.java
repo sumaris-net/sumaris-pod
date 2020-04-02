@@ -29,6 +29,7 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.QualityFlagEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -393,14 +394,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 )
             );
 
-            String searchText = StringUtils.trimToNull(filter.getSearchText());
-            String searchTextAsPrefix = null;
-            if (StringUtils.isNotBlank(searchText)) {
-                searchTextAsPrefix = (searchText + "*"); // add trailing escape char
-                searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]+", "*"); // group escape chars
-                searchTextAsPrefix = searchTextAsPrefix.replaceAll("[%]", "\\%"); // protected '%' chars
-                searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]", "%"); // replace asterix
-            }
+            String searchTextAsPrefix = Daos.getEscapedSearchText(filter.getSearchText());
             String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%" + searchTextAsPrefix) : null;
 
             List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds())

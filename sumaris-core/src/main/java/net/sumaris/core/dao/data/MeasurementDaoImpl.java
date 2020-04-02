@@ -409,7 +409,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @Override
     public List<MeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<MeasurementVO> sources) {
         Batch parent = get(Batch.class, batchId);
-        return saveMeasurements(BatchSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
+        return saveMeasurements(BatchQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
     }
 
     @Override
@@ -423,6 +423,52 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     public Map<Integer, String> saveBatchQuantificationMeasurementsMap(int batchId, Map<Integer, String> sources) {
         Batch parent = get(Batch.class, batchId);
         return saveMeasurementsMap(BatchQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> getProductSortingMeasurementsMap(int productId) {
+        return getMeasurementsMapByParentId(ProductSortingMeasurement.class,
+            ProductSortingMeasurement.Fields.PRODUCT,
+            productId,
+            ProductSortingMeasurement.Fields.RANK_ORDER
+        );
+    }
+
+    @Override
+    public Map<Integer, String> getProductQuantificationMeasurementsMap(int productId) {
+        return getMeasurementsMapByParentId(ProductQuantificationMeasurement.class,
+            ProductQuantificationMeasurement.Fields.PRODUCT,
+            productId,
+            ProductQuantificationMeasurement.Fields.ID
+        );
+    }
+
+    @Override
+    public List<MeasurementVO> saveProductSortingMeasurements(int productId, List<MeasurementVO> sources) {
+        Product parent = get(Product.class, productId);
+        Preconditions.checkNotNull(parent, "Could not found product with id=" + productId);
+        return saveMeasurements(ProductSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
+    }
+
+    @Override
+    public List<MeasurementVO> saveProductQuantificationMeasurements(int productId, List<MeasurementVO> sources) {
+        Product parent = get(Product.class, productId);
+        Preconditions.checkNotNull(parent, "Could not found product with id=" + productId);
+        return saveMeasurements(ProductQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveProductSortingMeasurementsMap(int productId, Map<Integer, String> sources) {
+        Product parent = get(Product.class, productId);
+        Preconditions.checkNotNull(parent, "Could not found product with id=" + productId);
+        return saveMeasurementsMap(ProductSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveProductQuantificationMeasurementsMap(int productId, Map<Integer, String> sources) {
+        Product parent = get(Product.class, productId);
+        Preconditions.checkNotNull(parent, "Could not found product with id=" + productId);
+        return saveMeasurementsMap(ProductQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
     }
 
     @Override

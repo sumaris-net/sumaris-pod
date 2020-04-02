@@ -25,6 +25,7 @@ package net.sumaris.core.dao.referential;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -617,13 +618,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
         // Bind parameters
         if (searchTextClause != null) {
-            String searchTextAsPrefix = null;
-            if (StringUtils.isNotBlank(searchText)) {
-                searchTextAsPrefix = (searchText + "*") // add trailing escape char
-                        .replaceAll("[*]+", "*") // group escape chars
-                        .replaceAll("[%]", "\\%") // protected '%' chars
-                        .replaceAll("[*]", "%"); // replace asterix
-            }
+            String searchTextAsPrefix = Daos.getEscapedSearchText(searchText);
             String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
             typedQuery.setParameter(searchAsPrefixParam, searchTextAsPrefix);
             typedQuery.setParameter(searchAnyMatchParam, searchTextAnyMatch);

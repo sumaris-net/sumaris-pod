@@ -36,4 +36,23 @@ public interface PmfmService {
 
     @Transactional(readOnly = true)
     boolean isWeightPmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
+    boolean isSortingPmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
+    boolean isQuantificationPmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
+    boolean isCalculatedPmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
+    boolean isVesselUsePmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
+    boolean isGearUsePmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
+    boolean isGearPhysicalPmfm(int pmfmId);
+
 }

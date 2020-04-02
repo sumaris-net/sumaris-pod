@@ -44,7 +44,8 @@ import java.util.Set;
 @Entity
 @Table(name = "sale")
 public class Sale implements IRootDataEntity<Integer>,
-        IWithVesselEntity<Integer, Vessel> {
+        IWithVesselEntity<Integer, Vessel>,
+        IWithProductsEntity<Integer, Product> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SALE_SEQ")
@@ -118,6 +119,10 @@ public class Sale implements IRootDataEntity<Integer>,
             inverseJoinColumns = {
                     @JoinColumn(name = "person_fk", nullable = false, updatable = false)})
     private Set<Person> observers = Sets.newHashSet();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Product.class, mappedBy = Product.Fields.SALE)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<Product> products = new ArrayList<>();
 
     /* -- measurements -- */
 

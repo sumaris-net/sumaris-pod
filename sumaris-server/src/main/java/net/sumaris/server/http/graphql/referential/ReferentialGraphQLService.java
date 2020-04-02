@@ -31,8 +31,10 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
+import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
+import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
@@ -91,6 +93,28 @@ public class ReferentialGraphQLService {
         }
 
         return referentialService.findByFilter(entityName, filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+    }
+
+    @GraphQLQuery(name = "metiers", description = "Search in metiers")
+    @Transactional(readOnly = true)
+    public List<MetierVO> findMetiersByFilter(
+            @GraphQLArgument(name = "filter") MetierFilterVO filter,
+            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+            @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
+            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+
+        if (filter == null)
+            filter = new MetierFilterVO();
+
+        return metierRepository.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+
+    }
+
+    @GraphQLQuery(name = "metier", description = "Get a metier by id")
+    @Transactional(readOnly = true)
+    public MetierVO getMetierById(@GraphQLArgument(name = "id") int id) {
+        return metierRepository.getById(id);
     }
 
     @GraphQLQuery(name = "referentialsCount", description = "Get referentials count")

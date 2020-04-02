@@ -98,7 +98,7 @@ public class LandingServiceImpl implements LandingService {
 	}
 
 	@Override
-	public LandingVO get(int landingId) {
+	public LandingVO get(Integer landingId) {
 		return landingRepository.get(landingId);
 	}
 

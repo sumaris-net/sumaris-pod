@@ -22,12 +22,9 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.vo.data.OperationGroupVO;
-import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.data.ProductVO;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -37,32 +34,38 @@ import java.util.List;
  * 
  */
 @Transactional
-public interface OperationGroupService {
+public interface ProductService {
 
 	@Transactional(readOnly = true)
-	List<MetierVO> getMetiersByTripId(int tripId);
+	ProductVO get(Integer id);
 
 	@Transactional(readOnly = true)
-	List<OperationGroupVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+	List<ProductVO> getByLandingId(int landingId);
 
 	@Transactional(readOnly = true)
-	List<OperationGroupVO> getAllByTripId(int tripId);
+	List<ProductVO> getByOperationId(int operationId);
 
 	@Transactional(readOnly = true)
-	OperationGroupVO get(int id);
+	List<ProductVO> getBySaleId(int saleId);
 
-	List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers);
+	ProductVO save(ProductVO product);
 
-	void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate);
+	List<ProductVO> save(List<ProductVO> products);
 
-	OperationGroupVO save(OperationGroupVO operation);
+	List<ProductVO> saveByLandingId(int landingId, List<ProductVO> products);
 
-	List<OperationGroupVO> save(List<OperationGroupVO> operations);
+	List<ProductVO> saveByOperationId(int operationId, List<ProductVO> products);
 
-	List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> operations);
+	List<ProductVO> saveBySaleId(int saleId, List<ProductVO> products);
 
 	void delete(int id);
 
 	void delete(List<Integer> ids);
+
+	ProductVO control(ProductVO product);
+
+	ProductVO validate(ProductVO product);
+
+	ProductVO unvalidate(ProductVO product);
 
 }

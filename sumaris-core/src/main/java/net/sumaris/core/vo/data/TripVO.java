@@ -82,6 +82,9 @@ public class TripVO implements IRootDataVO<Integer>,
     private List<OperationVO> operations;
 
     @EqualsAndHashCode.Exclude
+    private List<OperationGroupVO> operationGroups;
+
+    @EqualsAndHashCode.Exclude
     private List<MeasurementVO> measurements; // vessel_use_measurement
     private Map<Integer, String> measurementValues; // vessel_use_measurement
 

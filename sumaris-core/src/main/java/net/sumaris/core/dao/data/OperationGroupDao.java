@@ -60,6 +60,8 @@ public interface OperationGroupDao {
      */
     List<OperationGroupVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
+    List<OperationGroupVO> getAllByTripId(int tripId);
+
     OperationGroupVO get(int id);
 
     void delete(int id);

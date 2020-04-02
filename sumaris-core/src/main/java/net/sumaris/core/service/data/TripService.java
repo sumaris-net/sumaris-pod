@@ -59,9 +59,9 @@ public interface TripService {
 	@Transactional(readOnly = true)
 	TripVO get(int id);
 
-	TripVO save(TripVO trip, TripSaveOptions saveOptions);
+	TripVO save(TripVO trip, boolean withOperation, boolean withOperationGroup);
 
-	List<TripVO> save(List<TripVO> trips, TripSaveOptions saveOptions);
+	List<TripVO> save(List<TripVO> trips, boolean withOperation, boolean withOperationGroup);
 
 	void delete(int id);
 
