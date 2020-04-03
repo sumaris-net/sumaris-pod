@@ -1,96 +1,15 @@
-class YasrTaxonPlugin {
-    // A priority value. If multiple plugin support rendering of a result, this value is used
-    // to select the correct plugin
-    priority = 10;
 
-    // Name
-    label = "Taxon";
-
-    // Whether to show a select-button for this plugin
-    hideFromSelection = false;
-
-    constructor(yasr) {
-        this.yasr = yasr;
-    }
-
-    getTaxonsFromBindings(bindings) {
-        const taxonsByUri = {};
-        bindings.forEach(binding => {
-            const uri = binding.subject.value;
-            if (!taxonsByUri[uri]) {
-                taxonsByUri[uri] = {
-                    uri,
-                    scientificName: binding.scientificName.value,
-                    seeAlso : [],
-                    exactMatch : []
-                }
-            }
-            if (binding.exactMatch && binding.exactMatch.value && !taxonsByUri[uri].exactMatch.includes(binding.exactMatch.value)) {
-                taxonsByUri[uri].exactMatch.push(binding.exactMatch.value)
-            }
-            if (binding.seeAlso && binding.seeAlso.value && !taxonsByUri[uri].seeAlso.includes(binding.seeAlso.value)) {
-                taxonsByUri[uri].seeAlso.push(binding.seeAlso.value)
-            }
-        });
-        return Object.keys(taxonsByUri).map(key => taxonsByUri[key]).sort((t1, t2) => t1.scientificName === t2.scientificName ? 0 : (t1.scientificName > t2.scientificName ? 1 : -1));
-    }
-
-    // Draw the resultset. This plugin simply draws the string 'True' or 'False'
-    draw() {
-        const el = document.createElement("div");
-
-        // Get taxon list
-        const taxons = this.getTaxonsFromBindings(this.yasr.results.json.results.bindings);
-
-        el.innerHTML = "<table class='table table-striped'>" +
-            "<thead>" +
-            " <tr>" +
-            "  <th scope='col'>#</th>" +
-            "  <th scope='col'>Scientific name</th>" +
-            "  <th scope='col'>Source</th>" +
-            "  <th scope='col'>Exact match / seeAlso</th>" +
-            " </tr>" +
-            "</thead>" +
-            taxons.map((taxon, index) => {
-                return "<tr>" +
-                    " <th scope=\"row\">" + (index+1) + "</th>" +
-                    " <td class='col col-50'>" + taxon.scientificName + "</td>" +
-                    " <td>" +
-                    "  <a href='"+ taxon.uri +"'>"+taxon.uri+"</a>" +
-                    " </td>" +
-                    " <td>" +
-                    taxon.exactMatch.concat(taxon.seeAlso).map(uri => {
-                        return "  <a href='"+ uri +"'>"+uri+"</a>"
-                    }).join("<br>") +
-                    " </td>" +
-                    "</tr>";
-            }).join('\n') + "</table>";
-        this.yasr.resultsEl.appendChild(el);
-    }
-
-    // A required function, used to indicate whether this plugin can draw the current
-    // resultset from yasr
-    canHandleResults() {
-        return (
-            this.yasr.results.type === 'json' && this.yasr.results.json.head
-            && this.yasr.results.json.head.vars.includes('scientificName')
-            && this.yasr.results.json.head.vars.includes('subject')
-        );
-    }
-    // A required function, used to identify the plugin, works best with an svg
-    getIcon() {
-        const textIcon = document.createElement("div");
-        textIcon.classList.add("plugin_icon");
-        textIcon.innerText = "✓";
-        return textIcon;
-    }
-}
 
 function AppTaxonSearch(config) {
-    const defaultOptions = {
+    const defaultConfig = {
         yasqe: 'yasqe',
-        yasqr: 'yasqr',
-        examplesDiv: 'examples'
+        yasr: 'yasr',
+        tabs: 'tabs',
+        optionsDiv: 'options',
+
+        exactMatch: undefined,
+        limit: 50,
+        prefix: 'this'
     };
 
     const endpointsById = {
@@ -100,11 +19,11 @@ function AppTaxonSearch(config) {
     };
 
     const helper = new RdfHelper();
-    const examplePrefixes = [
+    const prefixDefs = [
         {
             name: 'this',
-            ns: 'this',
-            prefix: undefined
+            prefix: 'this',
+            namespace: undefined
         }].concat(helper.constants.prefixes);
 
 
@@ -115,35 +34,57 @@ function AppTaxonSearch(config) {
     const filtersMap = {
         // Schema filter
         rdfType: 'rdf:type {{rdfType}}',
-        rdfsLabel: '?subject rdfs:label ?scientificName .',
-        dwcScientificName: '?subject dwc:scientificName ?scientificName .',
+        rdfsLabel: '?sourceUriUri rdfs:label ?scientificName .',
+        dwcScientificName: '?sourceUriUri dwc:scientificName ?scientificName .',
 
-        // Regex filter
+        // Regex filter, on scientific name
         exactMatch: '?scientificName="{{q}}"',
         prefixMatch: 'regex( ?scientificName, "^{{q}}", "i" )',
         anyMatch: 'regex( ?scientificName, "{{q}}", "i" )',
-        codeMatch: 'regex( str(?subject), "/{{q}}$", "i" )'
+
+        // Regex filter, on uri (code)
+        codeExactMatch: 'strEnds( str(?sourceUri), "/{{q}}" )',
+        codePrefixMatch: 'regex( str(?sourceUri), "/{{q}}$", "i" )'
     };
-    const examples = [
+    const queries = [
         {
             id: 'local-name',
-            name: 'Search on name',
+            name: 'Search by name',
             canHandleTerm: (term) => term && term.trim().match(/^[A-Za-z ]+$/),
+            yasrPlugin : 'taxon',
             q: 'Lophius budegassa',
-            prefixes: ['rdf', 'owl', 'skos', 'foaf', 'dwc', 'dwctn', 'apt', 'rdfs'],
-            query: 'SELECT DISTINCT ?scientificName ?subject ?exactMatch ?seeAlso \n' +
+            prefixes: ['dc', 'rdf', 'owl', 'skos', 'foaf', 'dwc', 'dwctax', 'rdfs',
+                'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'this'],
+            query: 'SELECT DISTINCT \n' +
+                '  ?sourceUri ?scientificName ?parent ?author ?rank \n' +
+                '  ?created ?modified \n' +
+                '  ?exactMatch ?seeAlso ?created ?modified \n' +
                 'WHERE {\n' +
-                '  ?subject dwc:scientificName ?scientificName ;\n' +
-                '       rdf:type dwctn:TaxonName .\n' +
+                '  ?sourceUri dwc:scientificName ?scientificName ;\n' +
+                '       rdf:type ?type .\n' +
                 '  FILTER (\n' +
                 '     {{filter}}\n' +
+                '     && (?type = dwctax:TaxonName || ?type = {{defaultPrefix}}:TaxonName) \n' +
                 '  ) .\n' +
                 '  OPTIONAL {\n' +
-                '    ?subject skos:exactMatch|owl:sameAs ?exactMatch .\n' +
+                '    ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
                 '  }\n' +
                 '  OPTIONAL {\n' +
-                '    ?subject rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                '    ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
                 '  }\n' +
+                '  OPTIONAL {\n' +
+                '    ?sourceUri skos:broader ?parent .\n' +
+                '  }\n' +
+                '  OPTIONAL {\n' +
+                '    ?sourceUri dc:created ?created ;\n' +
+                '      dc:modified ?modified .\n' +
+                '  }\n' +
+                '  OPTIONAL {\n' +
+                '    ?sourceUri dc:author ?author .\n' +
+                '  }\n' +
+                '  OPTIONAL {\n' +
+                '    ?sourceUri taxrefprop:hasRank ?rank .\n' +
+                '  }' +
                 '} LIMIT {{limit}}',
             filters: ['prefixMatch'],
             binding: {}
@@ -151,77 +92,123 @@ function AppTaxonSearch(config) {
 
         {
             id: 'local-code',
-            name: 'Search on code',
+            name: 'Search by code',
             canHandleTerm: (term) => term && term.trim().match(/^[0-9]+$/),
+            yasrPlugin : 'taxon',
             q: '847866',
-            prefixes: ['rdf', 'owl', 'skos', 'foaf', 'dwc', 'dwctn', 'apt', 'rdfs'],
-            query: 'SELECT DISTINCT ?subject ?scientificName ?exactMatch ?seeAlso \n' +
+            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
+                'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'this'],
+            query:  'SELECT DISTINCT \n' +
+                '  ?sourceUri ?scientificName ?parent ?author ?rank \n' +
+                '  ?created ?modified \n' +
+                '  ?exactMatch ?seeAlso ?created ?modified \n' +
                 'WHERE {\n' +
-                '  ?subject dwc:scientificName ?scientificName ;\n' +
-                '       rdf:type dwctn:TaxonName .\n' +
+                '  ?sourceUri dwc:scientificName ?scientificName ;\n' +
+                '       rdf:type ?type .\n' +
                 '  FILTER (\n' +
                 '     {{filter}}\n' +
+                '     && (?type = dwctax:TaxonName || ?type = {{defaultPrefix}}:TaxonName) \n' +
                 '  ) .\n' +
                 '  OPTIONAL {\n' +
-                '    ?subject skos:exactMatch|owl:sameAs ?exactMatch .\n' +
+                '    ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
                 '  }\n' +
                 '  OPTIONAL {\n' +
-                '    ?subject rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                '    ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
                 '  }\n' +
+                '  OPTIONAL {\n' +
+                '    ?sourceUri skos:broader ?parent .\n' +
+                '  }\n' +
+                '  OPTIONAL {\n' +
+                '    ?sourceUri dc:created ?created ;\n' +
+                '      dc:modified ?modified .\n' +
+                '  }\n' +
+                '  OPTIONAL {\n' +
+                '    ?sourceUri dc:author ?author .\n' +
+                '  }' +
+                '  OPTIONAL {\n' +
+                '    ?sourceUri taxrefprop:hasRank ?rank .\n' +
+                '  }' +
                 '} LIMIT {{limit}}',
-            filters: ['codeMatch'],
+            filters: ['codePrefixMatch'],
             binding: {
             }
         },
 
         {
             id: 'remote-name',
-            name: 'Remote search',
+            name: 'Search by name (remotely)',
             canHandleTerm: (term) => term && term.trim().match(/^[A-Za-z ]+$/),
+            yasrPlugin : 'taxon',
             debug: false,
             q: 'Lophius budegassa',
-            prefixes: ['rdf',  'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctn', 'apt'],
-            query: 'CONSTRUCT {\n' +
-                '  ?subject2 dwc:scientificName ?scientificName2 ;\n' +
-                '    rdf:type dwctn:TaxonName ;\n' +
-                '    skos:exactMatch ?match2 ;\n' +
-                '    rdfs:seeAlso ?seeAlso2 .\n' +
-                '  ?subject3 dwc:scientificName ?scientificName3 ;\n' +
-                '    rdf:type dwctn:TaxonName ;\n' +
-                '    skos:exactMatch ?match3 ;    \n' +
-                '    rdfs:seeAlso ?seeAlso3 .\n' +
-                '}\n' +
+            prefixes: ['dc', 'rdf',  'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
+                'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'eaufrance'],
+            query: 'SELECT DISTINCT \n' +
+                '  ?sourceUri ?scientificName ?author ?rank ?parent \n' +
+                '  ?created ?modified \n' +
+                '  ?exactMatch ?seeAlso \n' +
                 'WHERE {\n' +
-                '  SERVICE <http://taxref.mnhn.fr/sparql> {\n' +
-                '    ?subject2 dwc:scientificName ?scientificName2 ; rdf:type dwctn:TaxonName .\t\n' +
+
+                // -- MNHN endpoint part
+                ' { SERVICE <{{mnhnEndpoint}}> {\n' +
+                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
+                '      rdf:type dwctax:TaxonName ;\n' +
+                '      taxrefprop:hasAuthority ?author ;\n' +
+                '      taxrefprop:hasRank ?rank \n' +
                 '    FILTER(\n' +
-                '       ( ?scientificName2 = "{{q}}" )\n' + // TODO: regexp not supported
+                '       ( ?scientificName = "{{q}}" )\n' + // TODO: regexp not supported
                 '    )\n' +
                 '    OPTIONAL {\n' +
-                '      ?subject2 skos:exactMatch|owl:sameAs ?match2 .\n' +
+                '      ?sourceUri skos:broader ?parent .\n' +
                 '    }\n' +
                 '    OPTIONAL {\n' +
-                '      ?subject2 rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso2 .\n' +
-                '    }\n' +
-                '  }\n' +
-                '  SERVICE <http://id.eaufrance.fr/sparql> {\n' +
-                '    ?subject3 dwc:scientificName ?scientificName3 ; rdf:type ?type3 .\t\n' +
-                '    FILTER(\n' +
-                '      ( ?scientificName3 = "{{q}}"  || regex( str(?scientificName3), "^{{q}}") )\n' +
-                '       && ( ?type3 = dwctn:TaxonName || URI(?type3) = apt:AppelTaxon ) \n' +
-                '    )\n' +
-                '    OPTIONAL {\n' +
-                '      ?subject3 skos:exactMatch|owl:sameAs ?match3 .\n' +
-                '      FILTER ( isURI(?match3) )\n' +
+                '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
                 '    }\n' +
                 '    OPTIONAL {\n' +
-                '      ?subject3 rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso3 .\n' +
-                '      FILTER ( isURI(?seeAlso3) )\n' +
+                '      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri dc:create ?created ;\n' +
+                '        dc:modified ?modified .\n' +
                 '    }\n' +
                 '  } \n' +
+                ' }\n' +
+                ' UNION\n' +
+
+                // -- Sandre endpoint part
+                ' { SERVICE <{{eauFranceEndpoint}}> {\n' +
+                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
+                '      rdf:type ?type ;\n' +
+                '      apt2:AuteurAppelTaxon ?author ;\n' +
+                '      apt2:NiveauTaxonomique ?rank .\n' +
+                '    FILTER(\n' +
+                '      ( ?scientificName = "{{q}}" )\n' +
+                '       && ( ?type = dwctax:TaxonName || URI(?type) = apt:AppelTaxon ) \n' +
+                '    )\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri apt2:AppelTaxonParent|skos:broader ?parent .\n' +
+                '      #FILTER ( isURI(?parent) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
+                '      #FILTER ( isURI(?exactMatch) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                '      #FILTER ( isURI(?seeAlso) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri dc:created|apt2:DateCreationAppelTaxon ?created ;\n' +
+                '        dc:modified|apt2:DateMajAppelTaxon ?modified .\n' +
+                '    }\n' +
+                '  }\n' +
+                ' }\n' +
                 '} LIMIT {{limit}}',
             filters: [],
-            binding: {}
+            binding: {
+                eauFranceEndpoint: endpointsById.EAU_FRANCE,
+                mnhnEndpoint: endpointsById.MNHN
+            }
         },
         {
             id: 'rdfs',
@@ -240,11 +227,11 @@ function AppTaxonSearch(config) {
             name: 'dwc',
             debug: true,
             q: 'Lophius budegassa',
-            prefixes: ['rdf', 'dwc',  'dwctn', 'this'],
+            prefixes: ['rdf', 'dwc',  'dwctax', 'this'],
             query: defaultQuery,
             filters: ['rdfType', 'dwcScientificName', 'prefixMatch'],
             binding: {
-                rdfType: 'dwctn:TaxonName'
+                rdfType: 'dwctax:TaxonName'
             }
         }
      ];
@@ -258,7 +245,7 @@ function AppTaxonSearch(config) {
     let output,
         buttonSearch,
         inputSearch,
-        selectedExampleIndex = -1;
+        selectedQueryIndex = -1;
 
     // YasGui
     let yasqe, yasr;
@@ -299,7 +286,7 @@ function AppTaxonSearch(config) {
         console.debug("Init taxon search app...");
 
         config = {
-            ...defaultOptions,
+            ...defaultConfig,
             ...config
         };
 
@@ -310,10 +297,18 @@ function AppTaxonSearch(config) {
 
             endpointsById.THIS = defaultEndpoint;
 
-            // Compute default URI
-            defaultPrefixUri = window.location.origin + '/ontology/schema/';
-            examplePrefixes[0].prefix = defaultPrefixUri;
+            // Update the default prefix
+            defaultPrefixUri = window.location.origin + '/ontology/data/TaxonName/';
+            helper.loadDefaultPrefix((prefixDef) => {
+                prefixDefs[0] = {
+                    ...prefixDefs[0],
+                    namespace: defaultPrefixUri,
+                    prefix: prefixDef.prefix + 'data'
+                };
+                prefixDefs.push(prefixDef);
+            });
         }
+
 
         inputSearch = document.getElementById("q");
         inputSearch.addEventListener("keyup", function(event) {
@@ -326,28 +321,60 @@ function AppTaxonSearch(config) {
         buttonSearch = document.getElementById("buttonSearch");
         output = document.getElementById("output");
 
-        // Collect endpoints, from default, endpoint map, and examples queries
+        // Collect endpoints, from default, endpoint map, and queries
         endpoints = Object.keys(endpointsById).map(key => endpointsById[key])
             .reduce((res, ep) => (!ep || res.findIndex(endpoint => endpoint === ep) !== -1) ? res : res.concat(ep),
                 [defaultEndpoint]);
 
-        app.displayExamples("examples");
+        // Add tabs
+        app.drawTabs();
     }
 
-    /* -- Examples -- */
+    /**
+     * Update the config (partially)
+     * @param config
+     */
+    function setConfig(newConfig, options) {
+        options = options || {};
+        const oldConfigStr = JSON.stringify(config);
+        config = {
+            ...config,
+            ...newConfig
+        };
+        const changed = JSON.stringify(config) !== oldConfigStr;
 
-    function displayExamples(elementId) {
+        // Something changed
+        if (changed) {
 
-        elementId = elementId || config.examplesDiv;
-        config.examplesDiv = elementId;
+            // re-run the search (if NOT silent moe)
+            if (options.silent !== true && selectedQueryIndex !== -1) {
+                const query = queries[selectedQueryIndex];
+                if (inputSearch.value) {
+                    doSearch(inputSearch.value, query);
+                }
+
+                // Or update the query
+                else {
+                    doUpdateQuery(query.q, query);
+                }
+            }
+        }
+    }
+
+    /* -- Queries (as tabs) -- */
+
+    function drawTabs(elementId) {
+
+        elementId = elementId || config.tabs;
+        config.tabs = elementId;
 
         // Queries
-        const tabs = examples.map((example, index) => {
+        const tabs = queries.map((example, index) => {
             if (!example.id) return res; // Skip if no name (e.g. default)
             const debugClassList = example.debug ? ['debug', 'd-none'].join(' ') : '';
             return '<li class="nav-item "'+ debugClassList + '">' +
                 '<a href="#" class="nav-link '+ example.id + ' ' + debugClassList +'"' +
-                ' onclick="app.showExample('+index+')">'+example.name+'</a></li>';
+                ' onclick="app.selectQuery('+index+')">'+example.name+'</a></li>';
         }).join('\n');
 
         const innerHTML = tabs && "<ul class=\"nav nav-tabs\">" + tabs + "</ul>" || "";
@@ -357,36 +384,33 @@ function AppTaxonSearch(config) {
 
     }
 
-
-
-    function showExample(index, options) {
+    function selectQuery(index, options) {
         options = options || {};
-        if (selectedExampleIndex === index) return; // Skip if same
+        if (selectedQueryIndex === index) return; // Skip if same
 
-        const example = examples[index];
-        if (example) {
+        const query = queries[index];
+        if (query) {
             // Remember this choice
-            selectedExampleIndex = index;
-            inputSearch.placeholder = example.q;
+            selectedQueryIndex = index;
+            inputSearch.placeholder = query.q;
 
-             // re-run the search
+            // re-run the search (if NOT silent moe)
             if (options.silent !== true) {
                 if (inputSearch.value) {
-                   doSearch(inputSearch.value, example);
+                   doSearch(inputSearch.value, query);
                 }
 
                 // Or update the query
                 else {
-                     doUpdateQuery(example.q, example);
+                     doUpdateQuery(query.q, query);
                 }
             }
 
-            $('#' + config.examplesDiv + ' a').removeClass('active');
-            $('#' + config.examplesDiv + ' a.' + example.id).toggleClass('active');
+            $('#' + config.tabs + ' a').removeClass('active');
+            $('#' + config.tabs + ' a.' + query.id).toggleClass('active');
 
         }
     }
-
 
     function initYase() {
 
@@ -426,7 +450,6 @@ function AppTaxonSearch(config) {
                 prefixes
             });
 
-            yasr.selectPlugin('taxon');
         }
         else {
             yasr.config.prefixes = prefixes;
@@ -451,6 +474,7 @@ function AppTaxonSearch(config) {
         searchText = searchText || inputSearch.value;
         if (!searchText) return; // Skip if empty
 
+        hideResult();
         showLoading();
 
         try {
@@ -467,6 +491,7 @@ function AppTaxonSearch(config) {
         catch(error) {
             console.error(error);
             onError({data: (error && error.message || error)});
+            hideLoading();
         }
     }
 
@@ -474,7 +499,7 @@ function AppTaxonSearch(config) {
     function doUpdateQuery(searchText, options)
     {
 
-
+        options = options || {};
         searchText = searchText || inputSearch.value;
         if (!searchText) return; // Skip if empty
 
@@ -484,9 +509,14 @@ function AppTaxonSearch(config) {
             console.info("Multiple search:", searchTerms);
         }
 
+        // Auto set exact match, if not set yet
+        if (config.exactMatch === undefined) {
+            config.exactMatch = (searchText.indexOf('*') === -1);
+        }
+
         // Auto select example
-        if (selectedExampleIndex === -1) {
-            const autoSelectExampleIndex = examples.map((example, index) => {
+        if (selectedQueryIndex === -1) {
+            const autoSelectExampleIndex = queries.map((example, index) => {
                 const count = searchTerms.reduce((count, searchTerm) =>
                         ((example.canHandleTerm && example.canHandleTerm(searchTerm)) ? count + 1 : count)
                     , 0);
@@ -496,13 +526,16 @@ function AppTaxonSearch(config) {
                 // Take the example that match must of search terms
                 .map(e => e.index)[0];
             console.info("Auto select tab index:", autoSelectExampleIndex);
-            showExample(autoSelectExampleIndex, {silent: true});
+            selectQuery(autoSelectExampleIndex, {silent: true});
         }
 
-        const example = examples[selectedExampleIndex];
+
         options = {
-            ...example,
-            limit: 50,
+            limit: config.limit || 50,
+            exactMatch: config.exactMatch,
+            // Override from the selected query
+            ...queries[selectedQueryIndex],
+            // Override using given options
             ...options
         };
         options.q = undefined;
@@ -512,16 +545,25 @@ function AppTaxonSearch(config) {
 
             let binding = {
                 ...options.binding,
-                limit: options.limit
+                limit: config.limit
             };
 
             let nbLoop = 0;
             let queryString = (options.query || defaultQuery);
 
             while (queryString.indexOf('{{') !== -1 && nbLoop < 10) {
-                // Create where clause
                 queryString = searchTerms.reduce((query, q) => {
+
+                    // Create filter clause
                     const filterClause = (options.filters || [])
+                        .map(key => {
+                            // If exactMatch, replace 'prefixMatch' with 'exactMatch'
+                            if (options.exactMatch) {
+                                if (key === 'prefixMatch') return 'exactMatch';
+                                if (key === 'codePrefixMatch') return 'codeExactMatch';
+                            }
+                            return key
+                        })
                         .map(key => filtersMap[key])
                         .join('\n\t&& ');
 
@@ -529,8 +571,11 @@ function AppTaxonSearch(config) {
                     query = query.replace('#filter', '\n\t|| (' + filterClause + ') #filter')
                         .replace('{{filter}}', '(' + filterClause + ') #filter');
 
+                    // Replace wildcards by regexp, if NOT exact match
+                    binding.q = options.exactMatch ? q : q.replace(/[*]+/g, '.*');
+                    binding.defaultPrefix = prefixDefs[0].prefix;
+
                     // Bind params
-                    binding.q = q;
                     return Object.keys(binding).reduce((query, key) => {
                         return query.replace('{{' + key + '}}', binding[key])
                     }, query);
@@ -546,11 +591,13 @@ function AppTaxonSearch(config) {
             log("QUERY: " + queryString);
 
             // Add prefixes
-            const prefixes = {};
-            (options.prefixes || []).forEach(ns => {
-                const example = examplePrefixes.find(p => p.ns === ns);
-                prefixes[ns] = example && example.prefix || undefined;
-            });
+            const prefixes = (options.prefixes || [])
+                .map(p => p === 'this' ? prefixDefs[0].prefix : p) // Replace 'this' by default prefic
+                .reduce((res, prefix) => {
+                const def = prefixDefs.find(def => def.prefix === prefix);
+                res[prefix] = def && def.namespace || undefined;
+                return res;
+            }, {});
             yasqe.addPrefixes(prefixes);
         }
         catch(error) {
@@ -560,12 +607,18 @@ function AppTaxonSearch(config) {
     }
 
     function showLoading(enable) {
-        if (enable === false) {
-            $('#loading').addClass('d-none');
-        }
-        else {
+        // Show
+        if (enable !== false) {
             $('#loading').removeClass('d-none');
         }
+        // Hide
+        else {
+            $('#loading').addClass('d-none');
+        }
+    }
+
+    function hideLoading() {
+        showLoading(false);
     }
 
     function receivedResponse(yasqe, req, duration) {
@@ -573,30 +626,47 @@ function AppTaxonSearch(config) {
 
         initYasr();
 
+        const yasrPlugin = queries[selectedQueryIndex] && queries[selectedQueryIndex].yasrPlugin;
+        if (yasrPlugin) yasr.selectPlugin(yasrPlugin);
+
         yasr.setResponse(req);
 
+        hideLoading();
         showResult();
-        showLoading(false);
     }
 
     function showResult(enable) {
-        if (enable === false) {
-            $('#' + config.yasr).addClass('d-none');
-            $('#' + config.examplesDiv).addClass('d-none');
-        }
-        else {
+        // Show
+        if (enable !== false) {
             $('#' + config.yasr).removeClass('d-none');
-            $('#' + config.examplesDiv).removeClass('d-none');
+
+            $('#' + config.tabs).removeClass('d-none');
+            $('#' + config.optionsDiv).removeClass('d-none'); // Do once
+
+            $('#' + config.optionsDiv + ' #exactMatch').prop("checked", config.exactMatch !== false);
         }
+        // Hide
+        else {
+            $('#' + config.yasr).addClass('d-none');
+
+            // DO NOT hide tabs, nor options
+            //$('#' + config.tabs).addClass('d-none');
+            //$('#' + config.optionsDiv).addClass('d-none');
+        }
+    }
+
+    function hideResult() {
+        showResult(false);
     }
 
     window.addEventListener("load", init, false);
 
     return {
-        showExample,
+        selectQuery,
         showDebug,
+        setConfig,
         clearLog,
-        displayExamples,
-        doSearch
+        drawTabs,
+        doSearch,
     }
 }

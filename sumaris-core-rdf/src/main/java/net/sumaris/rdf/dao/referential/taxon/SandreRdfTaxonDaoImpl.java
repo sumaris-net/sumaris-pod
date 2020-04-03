@@ -39,7 +39,7 @@ public class SandreRdfTaxonDaoImpl extends BaseRdfTaxonDaoImpl {
     @Value("${rdf.sandre.sparql.limit:10000}")
     private int fetchSize = 10000;
 
-    @Value("${rdf.sandre.dataset.name:http://id.eaufrance.fr/apt}")
+    @Value("${rdf.sandre.dataset.name:http://id.eaufrance.fr/apt/}")
     private String name;
 
     @Override

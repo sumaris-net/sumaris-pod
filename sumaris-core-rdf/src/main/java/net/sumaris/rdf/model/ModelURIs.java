@@ -34,9 +34,15 @@ public class ModelURIs {
 
             // Darwin core
             .put("dwc", DWC.Terms.NS)
+            .put("dwciri","http://rs.tdwg.org/dwc/iri/")
+            .put("dwctax", "http://rs.tdwg.org/ontology/voc/TaxonName#")
 
-            // Sandre
+            // Appellation Taxon (Sandre)
             .put("apt", APT.NS)
+            .put("apt2", APT.NS + "2.1/")
+            // TaxRef (MNHN)
+            .put("taxref", "http://taxref.mnhn.fr/lod/")
+            .put("taxrefprop", "http://taxref.mnhn.fr/lod/property/")
             .build();
 
     public static final Map<String, String> RDF_URL_BY_PREFIX = ImmutableMap.<String, String>builder()

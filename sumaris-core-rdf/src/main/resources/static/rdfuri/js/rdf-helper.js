@@ -4,99 +4,145 @@ function RdfHelper() {
             prefixes: [
                 {
                     name: 'Dublin Core',
-                    ns: 'dc',
-                    prefix: 'http://purl.org/dc/elements/1.1/'
+                    prefix: 'dc',
+                    namespace: 'http://purl.org/dc/elements/1.1/'
                 },
                 {
                     name: 'Friend of a Firiend',
-                    ns: 'foaf',
-                    prefix: 'http://xmlns.com/foaf/0.1/'
+                    prefix: 'foaf',
+                    namespace: 'http://xmlns.com/foaf/0.1/'
                 },
                 {
                     name: 'OWL',
-                    ns: 'owl',
-                    prefix: 'http://www.w3.org/2002/07/owl#'
+                    prefix: 'owl',
+                    namespace: 'http://www.w3.org/2002/07/owl#'
                 },
                 {
                     name: 'RDF',
-                    ns: 'rdf',
-                    prefix: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+                    prefix: 'rdf',
+                    namespace: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
                 },
                 // {
                 //     name: 'RDF Data',
-                //     ns: 'rdfdata',
-                //     prefix: 'http://rdf.data-vocabulary.org/rdf.xml#'
+                //     prefix: 'rdfdata',
+                //     namespace: 'http://rdf.data-vocabulary.org/rdf.xml#'
                 // },
                 // {
                 //     name: 'RDF Data format',
-                //     ns: 'rdfdf',
-                //     prefix: 'http://www.openlinksw.com/virtrdf-data-formats#'
+                //     prefix: 'rdfdf',
+                //     namespace: 'http://www.openlinksw.com/virtrdf-data-formats#'
                 // },
                 // {
                 //     name: 'RDF FG',
-                //     ns: 'rdfg',
-                //     prefix: 'http://www.w3.org/2004/03/trix/rdfg-1/'
+                //     prefix: 'rdfg',
+                //     namespace: 'http://www.w3.org/2004/03/trix/rdfg-1/'
                 // },
                 // {
                 //     name: 'RDF FP',
-                //     ns: 'rdfp',
-                //     prefix: 'https://w3id.org/rdfp/'
+                //     prefix: 'rdfp',
+                //     namespace: 'https://w3id.org/rdfp/'
                 // },
                 {
                     name: 'RDF Schema',
-                    ns: 'rdfs',
-                    prefix: 'http://www.w3.org/2000/01/rdf-schema#'
-                },
-                {
-                    name: 'Appellation Taxon (Sandre)',
-                    ns: 'apt',
-                    prefix: 'http://id.eaufrance.fr/ddd/APT/'
+                    prefix: 'rdfs',
+                    namespace: 'http://www.w3.org/2000/01/rdf-schema#'
                 },
                 {
                     name: 'Darwin core terms (string literal objects)',
-                    ns: 'dwc',
-                    prefix: 'http://rs.tdwg.org/dwc/terms/'
+                    prefix: 'dwc',
+                    namespace: 'http://rs.tdwg.org/dwc/terms/'
                 },
                 {
                     name: 'Darwin core terms (IRI reference objects)',
-                    ns: 'dwciri',
-                    prefix: 'http://rs.tdwg.org/dwc/iri/'
+                    prefix: 'dwciri',
+                    namespace: 'http://rs.tdwg.org/dwc/iri/'
                 },
                 {
                     name: 'Darwin core TaxonName',
-                    ns: 'dwctn',
-                    prefix: 'http://rs.tdwg.org/ontology/voc/TaxonName#'
-                },
-                {
-                    name: 'LOD (TaxRef)',
-                    ns: 'lod',
-                    prefix: 'http://taxref.mnhn.fr/lod/'
+                    prefix: 'dwctax',
+                    namespace: 'http://rs.tdwg.org/ontology/voc/TaxonName#'
                 },
                 {
                     name: 'SKOS thesaurus',
-                    ns: 'skos',
-                    prefix: 'http://www.w3.org/2004/02/skos/core#'
+                    prefix: 'skos',
+                    namespace: 'http://www.w3.org/2004/02/skos/core#'
                 },
                 // Spatial
                 {
                     name: 'Spatial',
-                    ns: 'spatial',
-                    prefix: 'http://www.w3.org/2004/02/skos/core#'
+                    prefix: 'spatial',
+                    namespace: 'http://www.w3.org/2004/02/skos/core#'
                 },
                 {
                     name: 'GeoSparql',
-                    ns: 'geo',
-                    prefix: 'http://www.opengis.net/ont/geosparql#'
+                    prefix: 'geo',
+                    namespace: 'http://www.opengis.net/ont/geosparql#'
                 },
                 {
                     name: 'GeoNames',
-                    ns: 'gn',
-                    prefix: 'http://www.geonames.org/ontology#'
+                    prefix: 'gn',
+                    namespace: 'http://www.geonames.org/ontology#'
+                },
+
+                // Custom (Taxon specific)
+                {
+                    name: 'TaxRef linked data (MNHN)',
+                    prefix: 'taxref',
+                    namespace: 'http://taxref.mnhn.fr/lod/'
+                },
+                {
+                    name: 'TaxRef properties (MNHN)',
+                    prefix: 'taxrefprop',
+                    namespace: 'http://taxref.mnhn.fr/lod/property/'
+                },
+                {
+                    name: 'Eau France (Sandre)',
+                    prefix: 'eaufrance',
+                    namespace: 'http://id.eaufrance.fr/'
+                },
+                {
+                    name: 'Appellation Taxon (Sandre)',
+                    prefix: 'apt',
+                    namespace: 'http://id.eaufrance.fr/ddd/APT/'
+                },
+                {
+                    name: 'Appellation Taxon (Sandre) v2.1',
+                    prefix: 'apt2',
+                    namespace: 'http://id.eaufrance.fr/ddd/APT/2.1/'
+                },
+                {
+                    name: 'Appellation Taxon (Sandre) data ',
+                    prefix: 'aptdata',
+                    namespace: 'http://id.eaufrance.fr/apt/'
                 },
             ]
     };
 
+    function loadNodeInfo(successCallback) {
+        $.ajax({
+            url: "/api/node/info/",
+            cache: true,
+            dataType: 'json',
+            success: (res) => {
+                if (successCallback) successCallback(res);
+            }
+        });
+    }
+
+    function loadDefaultPrefix(callback) {
+        if (!callback) throw new Error("Missing 'callback' argument.");
+        loadNodeInfo(res => {
+            const namespace = window.location.origin + '/ontology/schema/';
+            const prefix  = res && res.nodeLabel && res.nodeLabel.toLowerCase()|| examplePrefixes[0].prefix;
+            callback({
+                namespace,
+                prefix
+            });
+        });
+    }
+
     return {
-        constants
+        constants,
+        loadDefaultPrefix
     };
 }

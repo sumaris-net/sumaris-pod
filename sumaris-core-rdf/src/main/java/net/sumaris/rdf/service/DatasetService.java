@@ -25,6 +25,8 @@ package net.sumaris.rdf.service;
 import com.google.common.collect.Maps;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.crypto.CryptoService;
+import net.sumaris.core.util.Files;
+import net.sumaris.core.util.file.FileContentReplacer;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.NamedModelProducer;
 import net.sumaris.rdf.model.ModelVocabulary;
@@ -33,6 +35,7 @@ import net.sumaris.rdf.service.data.RdfDataExportService;
 import net.sumaris.rdf.service.schema.RdfSchemaService;
 import net.sumaris.server.http.rest.RdfFormat;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.jena.dboe.base.file.Location;
 import org.apache.jena.fuseki.servlets.SPARQLProtocol;
 import org.apache.jena.query.Dataset;
@@ -280,17 +283,23 @@ public class DatasetService {
     }
 
     public Model unionModel(String baseUri, Stream<Model> stream) throws Exception {
-        final String tempFileFormat = RdfFormat.TURTLE.toJenaFormat();
-        File cacheFile = new File(config.getRdfDirectory(), cryptoService.hash(baseUri) + ".ttl");
+
+        // Init the temp directory
+        FileUtils.forceMkdir(config.getTempDirectory());
+
+        final String cacheFileFormat = RdfFormat.TURTLE.toJenaFormat();
+        String baseFilename = cryptoService.hash(baseUri) + ".ttl";
+        File tempFile = new File(config.getTempDirectory(), baseFilename + ".tmp");
+        File cacheFile = new File(config.getRdfDirectory(), baseFilename);
 
         try {
-            if (!cacheFile.exists()) {
+            if (!cacheFile.exists() && !tempFile.exists()) {
                 long now = System.currentTimeMillis();
                 log.info("Downloading {}...", baseUri);
 
                 // Write each model received
-                try (FileOutputStream fos = new FileOutputStream(cacheFile); BufferedOutputStream bos = new BufferedOutputStream(fos)) {
-                    stream.forEach(m -> m.write(bos, tempFileFormat));
+                try (FileOutputStream fos = new FileOutputStream(tempFile); BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+                    stream.forEach(m -> m.write(bos, cacheFileFormat));
                     fos.flush();
                 }
 
@@ -300,14 +309,32 @@ public class DatasetService {
                 log.debug("Already downloaded {}.", baseUri);
             }
         } catch (Exception e) {
-            throw new SumarisTechnicalException(String.format("Error while downloaded {%s}: %s", baseUri, e.getMessage()), e);
+            // Try to continue
+            if (tempFile.length() > 0) {
+                log.error(e.getMessage(), e);
+            }
+            else {
+                tempFile.delete();
+                throw new SumarisTechnicalException(String.format("Error while downloaded {%s}: %s", baseUri, e.getMessage()), e);
+            }
         }
+
+        // Patch downloaded file
+        if (!cacheFile.exists() && tempFile.exists() && tempFile.length() > 0) {
+            // Bad URI in Sandre data (sameAs)
+            FileContentReplacer replacer = new FileContentReplacer("/ ?([0-9]+) ?[>]", "/$1>");
+            replacer.matchAndReplace(tempFile, cacheFile);
+
+            tempFile.delete();
+        }
+
+
 
         // Read model from file
         try {
-            return FileManager.get().loadModel("file:" + cacheFile.getAbsolutePath(), tempFileFormat);
+            return FileManager.get().loadModel("file:" + cacheFile.getAbsolutePath(), cacheFileFormat);
         } catch (Exception e) {
-            throw new SumarisTechnicalException(String.format("Error while loading model {%s} from file {%s}: %s", baseUri, cacheFile.getPath(), e.getMessage()), e);
+            throw new SumarisTechnicalException(String.format("Error while loading model {%s} from file {%s}: %s", baseUri, tempFile.getPath(), e.getMessage()), e);
         }
     }
 

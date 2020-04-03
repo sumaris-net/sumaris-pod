@@ -1,0 +1,30 @@
+
+.yasr .plugin_icon.txtIcon {
+    margin-top: -7px; /* Align to text */
+}
+
+.yasr .icon {
+    height: 15px;
+    width: 15px;
+    display: inline-flex;
+    background-size: contain;
+}
+.yasr small .icon {
+    height: 12px;
+    width: 12px;
+}
+.yasr .icon.ion-calendar {
+    background-image: url(calendar-outline.svg);
+}
+.yasr .gray {
+    color: gray;
+}
+.yasr .icon.ion-clock {
+    background-image: url(time-outline.svg);
+}
+.yasr .icon.ion-pencil {
+    background-image: url(pencil.svg);
+}
+.yasr .icon.ion-arrow-up {
+    background-image: url(arrow-up.svg);
+}

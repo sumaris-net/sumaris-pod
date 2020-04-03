@@ -23,9 +23,11 @@
 package net.sumaris.rdf.config;
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.rdf.model.ModelURIs;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.server.http.rest.RdfFormat;
+import org.semanticweb.owlapi.model.parameters.ConfigurationOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -155,6 +157,10 @@ public class RdfConfiguration  {
 
     public File getRdfDirectory() {
         return config.getApplicationConfig().getOptionAsFile(RdfConfigurationOption.RDF_DIRECTORY.getKey());
+    }
+
+    public File getTempDirectory() {
+        return config.getApplicationConfig().getOptionAsFile(SumarisConfigurationOption.TMP_DIRECTORY.getKey());
     }
 
     public String getModelBaseUri() {

@@ -24,14 +24,6 @@ package net.sumaris.rdf.dao.referential.taxon;
 
 import net.sumaris.core.dao.technical.Page;
 import org.apache.jena.atlas.lib.StrUtils;
-import org.apache.jena.rdf.model.Model;
-
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.function.Function;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * Helper class
@@ -40,16 +32,24 @@ public class RdfTaxonQueries {
     public static final String CONSTRUCT_QUERY = StrUtils.strjoinNL(
             "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>",
             "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
+            "PREFIX dc: <http://purl.org/dc/elements/1.1/>",
             "PREFIX owl: <http://www.w3.org/2002/07/owl#>",
             "PREFIX foaf: <http://xmlns.com/foaf/0.1/>",
             "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>",
             "PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>",
             "PREFIX dwctn: <http://rs.tdwg.org/ontology/voc/TaxonName#>",
             "PREFIX apt: <http://id.eaufrance.fr/ddd/APT/>",
-            "PREFIX taxref: <http://taxref.mnhn.fr/lod/property/>",
+            "PREFIX apt2: <http://id.eaufrance.fr/ddd/APT/2.1/>",
+            "PREFIX taxref: <http://taxref.mnhn.fr/lod/>",
+            "PREFIX taxrefprop: <http://taxref.mnhn.fr/lod/property/>",
             "CONSTRUCT {",
             "    ?sub dwc:scientificName ?label ;",
             "      rdf:type dwctn:TaxonName ;",
+            "      skos:broader ?parent ;" +
+            "      dc:author ?author ;" +
+            "      dc:created ?created ;" +
+            "      dc:modified ?modified ;" +
+            "      taxrefprop:hasRank ?rank ;" +
             "      owl:sameAs ?match ;",
             "      rdfs:seeAlso ?seeAlso .",
             "}",
@@ -58,12 +58,23 @@ public class RdfTaxonQueries {
             "       rdf:type ?type .",
             "  FILTER ( ?type = dwctn:TaxonName || URI(?type) = apt:AppelTaxon )",
             "  OPTIONAL {",
+            "      ?sub taxrefprop:hasAuthority|apt2:AuteurAppelTaxon ?author ;\n" +
+            "         taxrefprop:hasRank|apt2:NiveauTaxonomique ?rank .\n",
+            "    }",
+            "  OPTIONAL {",
             "      ?sub skos:exactMatch|owl:sameAs ?match .",
             "      FILTER ( isURI(?match) )",
             "    }",
             "  OPTIONAL {",
             "      ?sub rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .",
             "      FILTER ( isURI(?seeAlso) )",
+            "    }",
+            "  OPTIONAL {",
+            "      ?sub dc:created|apt2:DateCreationAppelTaxon ?created ;",
+            "          dc:modified|apt2:DateMajAppelTaxon ?modified .",
+            "    }",
+            "  OPTIONAL {",
+            "      ?sub skos:broader|apt2:AppelTaxonParent ?parent .",
             "    }",
             "}"
     );

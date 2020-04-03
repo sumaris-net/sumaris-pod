@@ -12,83 +12,73 @@ function AppYasgui(yasGuiDivId) {
     };
 
     const helper = new RdfHelper();
-    const examplePrefixes = [
+    const prefixDefs = [
         {
             name: 'this',
-            ns: 'this',
-            prefix: undefined
+            prefix: 'this',
+            namespace: undefined
         }].concat(helper.constants.prefixes);
 
     const exampleQueries = [
         // default query
         {
-            name: "default",
-            prefixes: ['rdf', 'dwc', 'this'],
+            name: "Simple",
+            prefixes: ['rdf', 'dwc', 'dwctax', 'this'],
             query: "SELECT * WHERE {\n" +
-                "  ?sub rdf:type this:TaxonName ; \n" +
+                "  ?sub rdf:type ?type ; \n" +
                 "       dwc:scientificName ?label .  \n" +
-                "  filter( ?label=\"Lophius budegassa\" )\n" +
+                "  FILTER( \n" +
+                "    ( ?type=sar:TaxonName || ?type=dwctax:TaxonName ) \n" +
+                "     && regex( ?label, \"^Lophius\" ) \n" +
+                "  )\n" +
                 "} LIMIT 10"
         },
         {
-          name: "Sandre: Taxon by ID",
-          endpoint: endpointsById.EAU_FRANCE,
-          query: "SELECT *\n" +
-              "WHERE {\n" +
-              "  <http://id.eaufrance.fr/apt/18996> ?pred ?obj\n" +
-              "}"
-        },
-        {
-          name: "Sandre: Taxon by name",
-          endpoint: endpointsById.EAU_FRANCE,
-          prefixes: ['dc', 'rdf', 'rdfs', 'owl'],
-          query: "SELECT *\n" +
-              "WHERE {\n" +
-              "  ?tax rdf:type \"http://rs.tdwg.org/dwc/terms/Taxon\" .\n" +
-              "  ?tax rdfs:label ?label .\n" +
-              "  ?tax ?pred ?obj\n" +
-              "  filter(?label=\"Lophius\")\n" +
-              "}\n" +
-              "LIMIT 100"
-        },
-        {
-            name: "Sandre: Taxons by regexp",
+            name: "Search by name (Sandre APT)",
             endpoint: endpointsById.EAU_FRANCE,
-            prefixes: ['dc', 'rdf', 'rdfs', 'owl'],
-            query: "SELECT *\n" +
+            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'apt', 'apt2', 'aptdata', 'taxref'],
+            query: "SELECT ?tax ?label ?exactMatch \n" +
                 "WHERE {\n" +
-                "  ?tax rdf:type \"http://rs.tdwg.org/dwc/terms/Taxon\" .\n" +
-                "  ?tax rdfs:label ?label .\n" +
-                "  ?tax owl:sameAs ?reftax .\n" +
-                "  filter( regex( ?label, \"^lophius.*\", \"i\") )\n" +
+                "  ?tax rdf:type ?type ;\n" +
+                "    rdfs:label ?label ;\n" +
+                "    owl:sameAs ?exactMatch .\n" +
+                "  FILTER( " +
+                "    regex( ?label, \"^lophius.*\", \"i\") \n" +
+                "    && URI(?type) = <http://rs.tdwg.org/dwc/terms/Taxon> \n" +
+                "  )\n" +
                 "}\n" +
                 "LIMIT 100"
         },
         {
-            name: "MNHN: Taxon by name",
-            endpoint: endpointsById.MNHN,
-            prefixes: ['dc', 'dwc', 'dwciri', 'rdf', 'rdfs', 'owl', 'skos'],
-            query: "SELECT\n" +
-                "  *\n" +
+            name: "Search by code (Sandre APT)",
+            endpoint: endpointsById.EAU_FRANCE,
+            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'apt', 'apt2', 'aptdata'],
+            query: "SELECT *\n" +
                 "WHERE {\n" +
-                "  ?tax dwc:scientificName ?label .\n" +
-                "  ?tax rdf:type <http://rs.tdwg.org/ontology/voc/TaxonName#TaxonName> .\n" +
-                "  ?tax ?pred ?obj\n" +
-                "  filter(?label=\"Lophius\")\n" +
-                "} LIMIT 1000"
+                "  <http://id.eaufrance.fr/apt/18996> ?pred ?obj\n" +
+                "}"
         },
         {
-            name: "MNHN: Taxon by regexp",
+            name: "Search by code (TaxRef)",
             endpoint: endpointsById.MNHN,
-            prefixes: ['dc', 'dwc', 'dwciri', 'rdf', 'rdfs', 'owl', 'skos'],
+            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'foaf', 'skos', 'dwc', 'dwciri', 'dwctax', 'taxref'],
+            query: "SELECT *\n" +
+                "WHERE {\n" +
+                "  <http://taxref.mnhn.fr/lod/name/194272> ?pred ?obj .\n" +
+                "} LIMIT 100"
+        },
+        {
+            name: "Search by name (TaxRef)",
+            endpoint: endpointsById.MNHN,
+            prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'foaf', 'skos', 'dwc', 'dwciri', 'dwctax', 'taxref'],
             query: "SELECT DISTINCT\n" +
                 "  *\n" +
                 "WHERE {\n" +
-                "  ?tax dwc:scientificName ?label .\n" +
-                "  ?tax rdf:type <http://rs.tdwg.org/ontology/voc/TaxonName#TaxonName> .\n" +
-                "  ?tax ?pred ?obj\n" +
+                "  ?tax dwc:scientificName ?label ;\n" +
+                "    rdf:typedwctax:TaxonName ;\n" +
+                "    ?pred ?obj .\n" +
                 "  filter( regex( ?label, \"^lophius.*\", \"i\") )\n" +
-                "} LIMIT 1000"
+                "} LIMIT 100"
         }
     ];
 
@@ -100,11 +90,14 @@ function AppYasgui(yasGuiDivId) {
             defaultEndpoint = window.location.origin + '/sparql';
 
             endpointsById.THIS = defaultEndpoint;
-
-            // Compute default URI
-            defaultPrefixUri = window.location.origin + '/ontology/schema/';
-            examplePrefixes[0].prefix = defaultPrefixUri;
         }
+
+        // Update the default prefix
+        helper.loadDefaultPrefix((prefix) => {
+            prefixDefs[0] = {
+                ...prefixDefs[0],
+                ...prefix};
+        });
 
         // Collect endpoints, from default, endpoint map, and examples queries
         endpoints = Object.keys(endpointsById).map(key => endpointsById[key])
@@ -159,9 +152,9 @@ function AppYasgui(yasGuiDivId) {
     function displayPrefixes(elementId) {
 
         // Prefixes
-        const links = examplePrefixes.reduce((res, example, index) => {
-            if (!example.name || !example.ns) return res; // Skip if no name (e.g. default)
-            return res.concat("<a href=\"#\" title=\""+example.name+"\" onclick=\"app.addPrefix("+index+")\">"+example.ns+"</a>");
+        const links = prefixDefs.reduce((res, def, index) => {
+            if (!def.name || !def.prefix || !def.namespace) return res; // Skip if no name (e.g. default)
+            return res.concat("<a href=\"#\" title=\""+def.name+"\" onclick=\"app.addPrefix("+index+")\">"+def.prefix+"</a>");
         }, []);
 
         const innerHTML = links.length &&  ("Prefixes: " + links.join(" | "));
@@ -188,20 +181,23 @@ function AppYasgui(yasGuiDivId) {
 
         tab.setQuery(example.query);
 
-        const prefixes = {};
-        (example.prefixes || []).forEach(ns => {
-            const example = examplePrefixes.find(p => p.ns === ns);
-            prefixes[ns] = example && example.prefix || undefined;
-        });
+        const prefixes = (example.prefixes || [])
+            .map(p => p === 'this' ? prefixDefs[0].prefix : p) // Replace 'this' by default prefic
+            .reduce((res, prefix) => {
+
+            const def = prefixDefs.find(def => def.prefix === prefix);
+            res[prefix] = def && def.namespace || undefined;
+            return res;
+        }, {});
         tab.yasqe.addPrefixes(prefixes);
 
         return tab;
     }
 
     function addPrefix(index) {
-        const example = examplePrefixes[index];
-        if (!example || !example.ns || !example.prefix) return; // Skip
-        console.debug("Adding prefix: ", example);
+        const def = prefixDefs[index];
+        if (!def || !def.prefix || !def.namespace) return; // Skip
+        console.debug("Adding prefix: ", def.prefix);
 
         let tab;
         // Add a new Tab. Returns the new Tab object.
@@ -213,7 +209,7 @@ function AppYasgui(yasGuiDivId) {
         }
 
         const prefix = {};
-        prefix[example.ns] = example.prefix;
+        prefix[def.prefix] = def.namespace;
         tab.yasqe.addPrefixes(prefix);
 
     }

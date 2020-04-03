@@ -39,7 +39,7 @@ public class TaxrefRdfTaxonDaoImpl extends BaseRdfTaxonDaoImpl {
     @Value("${rdf.taxref.sparql.limit:10000}")
     private int fetchSize = 10000;
 
-    @Value("${rdf.taxref.dataset.name:http://taxref.mnhn.fr/lod}")
+    @Value("${rdf.taxref.dataset.name:http://taxref.mnhn.fr/lod/}")
     private String name;
 
     public String getName() {

@@ -68,7 +68,7 @@ public class Files {
 
 	public static void checkExists(File file) throws FileNotFoundException{
 		Preconditions.checkNotNull(file);
-		if (file.exists() == false) {
+		if (!file.exists()) {
 			throw new FileNotFoundException("File not exists: " + file.getAbsolutePath());
 		}
 	}
