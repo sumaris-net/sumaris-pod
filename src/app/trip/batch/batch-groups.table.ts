@@ -138,6 +138,7 @@ export class BatchGroupsTable extends BatchesTable {
 
     const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
     const taxonGroups = (await this.programService.loadTaxonGroups(this.program) || [])
+      // Sort using order configure in the taxon group column
       .sort(propertiesPathComparator(sortAttributes, ['ZZZ', 'ZZZ']));
 
     for (const taxonGroup of taxonGroups) {
