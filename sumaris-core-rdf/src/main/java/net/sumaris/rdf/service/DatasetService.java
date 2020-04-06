@@ -22,10 +22,11 @@
 
 package net.sumaris.rdf.service;
 
+import com.github.jsonldjava.shaded.com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.crypto.CryptoService;
-import net.sumaris.core.util.Files;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.file.FileContentReplacer;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.NamedModelProducer;
@@ -47,14 +48,14 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.sparql.core.DatasetDescription;
-import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.system.Txn;
 import org.apache.jena.tdb2.TDB2Factory;
 import org.apache.jena.util.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -63,12 +64,13 @@ import javax.annotation.Resource;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 
 @Component("datasetService")
+@ConditionalOnBean({RdfConfiguration.class})
 public class DatasetService {
 
     private static final Logger log = LoggerFactory.getLogger(DatasetService.class);
@@ -129,17 +131,21 @@ public class DatasetService {
         namedGraphFactories.put(name, producer);
     }
 
-    public void loadAllNamedModels(Dataset dataset) {
+    public void loadAllNamedModels(Dataset dataset, boolean replaceIfExists) {
+        Collection<String> existingNames = listNames();
         namedGraphFactories.entrySet().forEach(entry -> {
             final String name = entry.getKey();
             Callable<Model> producer = entry.getValue();
 
-            try {
-                Model model = producer.call();
-                loadNamedModel(dataset, name, model);
-            }
-            catch(Exception e) {
-                log.warn("Cannot load {{}}: {}", name, e.getMessage(), e);
+            boolean exists = existingNames.contains(name);
+
+            if (!exists || replaceIfExists) {
+                try {
+                    Model model = producer.call();
+                    loadNamedModel(dataset, name, model, replaceIfExists);
+                } catch (Exception e) {
+                    log.warn("Cannot load {{}}: {}", name, e.getMessage(), e);
+                }
             }
         });
     }
@@ -205,6 +211,16 @@ public class DatasetService {
 
     /* -- protected methods -- */
 
+    protected Collection<String> listNames() {
+        Collection<String> result;
+        try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
+            conn.begin(ReadWrite.READ);
+            result = Lists.newArrayList(dataset.listNames());
+            conn.end();
+        }
+        return result;
+    }
+
 
     protected Dataset createDataset() {
         if (enableTdb2) {
@@ -237,7 +253,7 @@ public class DatasetService {
         try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
             Txn.executeWrite(conn, () -> {
 
-                log.info("Loading {{}} into SparQL dataset...", schemaService.getNamespace());
+                log.info("Loading {{}} into RDF dataset...", schemaService.getNamespace());
                 if (dataset.containsNamedModel(schemaService.getNamespace())) {
                     dataset.replaceNamedModel(schemaService.getNamespace(), this.defaultModel);
                 } else {
@@ -252,7 +268,7 @@ public class DatasetService {
             Txn.executeWrite(conn, () -> {
 
                 String graphName = config.getModelBaseUri() + "data/TaxonName";
-                log.info("Loading {{}} into SparQL dataset...", graphName);
+                log.info("Loading {{}} into RDF dataset...", graphName);
                 Model instances = dataExportService.getIndividuals(RdfDataExportOptions.builder()
                         .maxDepth(1)
                         .className("TaxonName")
@@ -267,7 +283,7 @@ public class DatasetService {
         }
 
         // Load other named models
-        loadAllNamedModels(dataset);
+        loadAllNamedModels(dataset, false);
     }
 
     protected Model getFullSchemaOntology() {
@@ -338,22 +354,23 @@ public class DatasetService {
         }
     }
 
-    public void loadNamedModel(Dataset dataset, String name, Model model) {
+    public void loadNamedModel(Dataset dataset, String name, Model model, boolean replaceIfExists) {
 
         try {
             long now = System.currentTimeMillis();
-            log.info("Loading {{}} into SparQL dataset...", name);
+            log.info("Loading {{}} into RDF dataset...", name);
 
             try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
                 Txn.executeWrite(conn, () -> {
                     if (dataset.containsNamedModel(name)) {
-                        dataset.replaceNamedModel(name, model);
+                        if (replaceIfExists) dataset.replaceNamedModel(name, model);
+                        log.info("Successfully update {{}} in dataset, in {}ms", name, System.currentTimeMillis() - now);
                     } else {
                         dataset.addNamedModel(name, model);
+                        log.info("Successfully store {{}} in dataset, in {}ms", name, System.currentTimeMillis() - now);
                     }
                 });
             }
-            log.info("Successfully store {{}} in dataset, in {}ms", name, System.currentTimeMillis() - now);
 
         } catch (Exception e) {
             log.warn("Cannot load {{}} data", name, e);
