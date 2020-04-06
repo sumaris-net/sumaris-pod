@@ -102,10 +102,10 @@
 
   <!-- end date time -->
   <ng-container matColumnDef="endDateTime">
-    <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+    <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time hidden-xs">
       <ion-label translate>TRIP.OPERATION.LIST.END_DATE_TIME</ion-label>
     </mat-header-cell>
-    <mat-cell class="mat-cell-date-time" *matCellDef="let row">
+    <mat-cell class="mat-cell-date-time hidden-xs" *matCellDef="let row">
       {{row.currentData.endDateTime|dateFormat:{time:true} }}
     </mat-cell>
   </ng-container>
