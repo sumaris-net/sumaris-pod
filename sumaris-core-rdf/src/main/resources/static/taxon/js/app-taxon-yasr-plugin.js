@@ -25,6 +25,35 @@ function inverseArrayValue(array, index1, index2) {
     array[index1] = array[index2];
     array[index2] = temp1;
 }
+function urnToUrl(uri) {
+    if (!uri || !uri.startsWith('urn:')) return uri;
+
+    // WoRMS
+    if (uri.startsWith("urn:lsid:marinespecies.org:taxname:")) {
+        const parts = uri.split(':');
+        return "http://www.marinespecies.org/aphia.php?p=taxdetails&id=" + parts[parts.length - 1];
+    }
+
+    // Resolve Life science ID
+    if (uri.startsWith("urn:lsid:")) {
+        return "http://www.lsid.info/resolver/?lsid=" + uri;
+    }
+
+    return uri;
+}
+
+function urnToRdfUrl(uri) {
+    if (!uri || !uri.startsWith('urn:')) return uri;
+
+    // Resolve Life science ID (e.g. WoRMS urn, etc.)
+    if (uri.startsWith("urn:lsid:")) {
+        return "http://www.lsid.info/resolver/api.php?lsid=" + uri;
+    }
+
+    return uri;
+}
+
+
 
 function simplifyUri(uri, prefixes, truncLength) {
     if (uri && prefixes) {
@@ -35,10 +64,36 @@ function simplifyUri(uri, prefixes, truncLength) {
                 return prefix + ':' + uri.trim().substr(namespace.length);
             }
         }
-        // No prefix found: check length
-        if (truncLength && truncLength > 3 && uri.length > truncLength) {
-            return uri.substr(0, truncLength-3) + '...';
+    }
+
+    // No prefix found
+    return truncText(uri, truncLength);
+}
+
+
+function truncText(text, truncLength) {
+    // No prefix found: check length
+    if (truncLength && truncLength > 3 && text.length > truncLength) {
+        return text.substr(0, truncLength-3) + '...';
+    }
+    return text;
+}
+
+function displayUri(uri, prefixes, textTruncLength) {
+    if (!uri) return '';
+
+    if (uri.startsWith('http')) {
+        return "<a href='" + uri + "'>" + simplifyUri(uri, prefixes, textTruncLength) + "</a>";
+    }
+    if (uri.startsWith('urn:')) {
+        const url = urnToUrl(uri);
+        const rdfUrl = urnToRdfUrl(uri);
+        let html = "<a href='" + url + "'>" + truncText(uri, textTruncLength) + "</a>";
+
+        if (rdfUrl && url !== rdfUrl) {
+            html += "&nbsp;<a href='" + rdfUrl + "'>(rdf)</a>";
         }
+        return html;
     }
     return uri;
 }
@@ -53,6 +108,9 @@ class YasrTaxonPlugin {
 
     // Whether to show a select-button for this plugin
     hideFromSelection = false;
+
+    // Max length, before truncated URI
+    uriMaxLength = undefined;
 
     constructor(yasr) {
         this.yasr = yasr;
@@ -100,6 +158,7 @@ class YasrTaxonPlugin {
     // Draw the resultset. This plugin simply draws the string 'True' or 'False'
     draw() {
         const el = document.createElement("div");
+        el.classList.add('taxon-plugin');
 
         const prefixes  = this.yasr.getPrefixes();
 
@@ -136,8 +195,7 @@ class YasrTaxonPlugin {
                 "<td class='col'>" + taxon.scientificName + "</td>",
 
                 // Source URI
-                "<td>" +
-                "  <a href='" + taxon.uri + "'>" + simplifyUri(taxon.uri, prefixes) + "</a>" +
+                "<td>" + displayUri(taxon.uri, prefixes, this.uriMaxLength) +
                 (taxon.created ? ("<br/><small class='gray' title='Creation date'><i class='icon ion-calendar'></i> "+ taxon.created + "</small>") : "") +
                 (taxon.modified ? ("<br/><small class='gray' title='Last modification date'><i class='icon ion-pencil'></i> "+ taxon.modified + "</small>") : "") +
                 "</td>",
@@ -147,27 +205,24 @@ class YasrTaxonPlugin {
 
                 // Rank
                 "<td class='col'>" +
-                (taxon.rank ? ("  <a href='" + taxon.rank + "'>" + simplifyUri(taxon.rank, prefixes) + "</a>") : "") +
+                simplifyUri(taxon.rank, prefixes, this.uriMaxLength) +
                 "</td>",
 
                 // Parent
                 "<td>" +
-                (taxon.parentUri ? ("<a href='" + taxon.parentUri + "'>" + simplifyUri(taxon.parentUri, prefixes) + "</a>") : "") +
+                displayUri(taxon.parentUri, prefixes, this.uriMaxLength) +
                 "</td>",
 
-                "<td>" +
+                "<td class='exact-match'>" +
                 // Exact match
-                (taxon.exactMatch || [])
-                    .map(uri => {
-                        return uri.startsWith('http') ? ("<a href='" + uri + "'>" + simplifyUri(uri, prefixes, 50) + "</a>") : uri;
-                    }).join("<br/>") +
+                (taxon.exactMatch || []).map(uri => displayUri(uri, prefixes, this.uriMaxLength)).join("<br/>\n") +
 
                 // seeAlso (with a separator)
-                (taxon.exactMatch.length && taxon.seeAlso.length ? "<br/>&nbsp;&nbsp;<small><i>See also:</i></small><br/>" : "") +
-                (taxon.seeAlso || [])
-                    .map(uri => {
-                        return uri.startsWith('http') ? ("<a href='" + uri + "'>" + simplifyUri(uri, prefixes, 50) + "</a>") : uri;
-                    }).join("<br/>") +
+                (taxon.exactMatch.length && taxon.seeAlso.length ?
+                    ("<br/><small><i>See also:</i></small>\n<ul>" +
+                    (taxon.seeAlso || []).map(uri => "<li>" + displayUri(uri, prefixes, this.uriMaxLength)).join("\n") +
+                    "</ul>")
+                : '') +
                 "</td>"
 
             ];

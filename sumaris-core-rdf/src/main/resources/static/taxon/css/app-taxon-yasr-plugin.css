@@ -1,8 +1,8 @@
 
+/* Plugin tab button */
 .yasr .plugin_icon.txtIcon {
     margin-top: -7px; /* Align to text */
 }
-
 .yasr .icon {
     height: 15px;
     width: 15px;
@@ -13,18 +13,32 @@
     height: 12px;
     width: 12px;
 }
-.yasr .icon.ion-calendar {
-    background-image: url(calendar-outline.svg);
-}
-.yasr .gray {
+
+/* Plugin content style */
+
+.yasr .taxon-plugin .gray {
     color: gray;
 }
-.yasr .icon.ion-clock {
+.yasr .taxon-plugin .icon.ion-calendar {
+    background-image: url(calendar-outline.svg);
+}
+.yasr .taxon-plugin .icon.ion-clock {
     background-image: url(time-outline.svg);
 }
-.yasr .icon.ion-pencil {
+.yasr .taxon-plugin .icon.ion-pencil {
     background-image: url(pencil.svg);
 }
-.yasr .icon.ion-arrow-up {
+.yasr .taxon-plugin .icon.ion-arrow-up {
     background-image: url(arrow-up.svg);
+}
+
+.yasr .taxon-plugin .exact-match a {
+}
+.yasr .taxon-plugin .exact-match ul {
+    padding-left: 15px;
+}
+.yasr .taxon-plugin .exact-match ul li {
+    font-size: 12px;
+    line-height: 14px;
+    display: inline-block;
 }

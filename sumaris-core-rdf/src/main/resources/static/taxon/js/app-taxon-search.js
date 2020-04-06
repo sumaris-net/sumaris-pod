@@ -136,7 +136,7 @@ function AppTaxonSearch(config) {
 
         {
             id: 'remote-name',
-            name: 'Search by name (remotely)',
+            name: 'Federated search by name',
             canHandleTerm: (term) => term && term.trim().match(/^[A-Za-z ]+$/),
             yasrPlugin : 'taxon',
             debug: false,
