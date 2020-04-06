@@ -876,6 +876,7 @@
       "TRIP_SALE_ENABLE": "Marée : Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée : Saisir les observateurs ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin : Saisir le numéro d'engin ?",
+      "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce : Auto-remplisage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce : Espèces commerciales ?",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce : Espèces scientiques ?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce : calcul auto nb indiv. échantillonné ?",

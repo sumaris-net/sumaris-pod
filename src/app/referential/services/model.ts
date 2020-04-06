@@ -556,6 +556,12 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "true",
     type: 'boolean'
   },
+  TRIP_BATCH_AUTO_FILL: {
+    key: "sumaris.trip.operation.batch.autoFill",
+    label: "PROGRAM.OPTIONS.TRIP_BATCH_AUTO_FILL",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE: {
     key: "sumaris.trip.operation.batch.individualCount.compute",
     label: "PROGRAM.OPTIONS.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE",
@@ -901,7 +907,7 @@ export class Strategy extends Entity<Strategy> {
   pmfmStrategies: PmfmStrategy[];
 
   gears: any[];
-  taxonGroups: any[];
+  taxonGroups: any[]; // TODO use TaxonGroupStrategyRef ?
   taxonNames: any[];
 
   programId: number;

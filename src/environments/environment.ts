@@ -31,10 +31,6 @@ export const environment: Environment = {
   // },
   defaultPeers: [
     {
-      host: '192.168.0.20',
-      port: 8080
-    },
-    {
       host: 'localhost',
       port: 8080
     },

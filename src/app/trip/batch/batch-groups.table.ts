@@ -4,8 +4,8 @@ import {Batch, PmfmStrategy, QualityFlagIds} from "../services/trip.model";
 import {BatchGroupValidatorService} from "../services/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
-import {isNil, isNotEmptyArray, isNotNil, toFloat, toInt} from "../../shared/shared.module";
-import {MethodIds} from "../../referential/services/model";
+import {isNil, isNotEmptyArray, isNotNil, propertyComparator, toFloat, toInt} from "../../shared/shared.module";
+import {MethodIds, Program} from "../../referential/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {environment} from "../../../environments/environment";
 import {MeasurementFormValues, MeasurementValuesUtils} from "../services/model/measurement.model";
@@ -13,10 +13,12 @@ import {ModalController} from "@ionic/angular";
 import {BatchUtils, BatchWeight} from "../services/model/batch.model";
 import {ColumnItem, TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
-import {isEmptyArray, isNotNilOrNaN, toNumber} from "../../shared/functions";
+import {isEmptyArray, isNotNilOrNaN, propertiesPathComparator, toNumber} from "../../shared/functions";
 import {BatchGroupModal} from "./batch-group.modal";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {withIdentifier} from "codelyzer/util/astQuery";
+import {TaxonGroupRef} from "../../referential/services/model/taxon.model";
+import {firstFalsePromise, firstNotNil} from "../../shared/observables";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
@@ -123,6 +125,26 @@ export class BatchGroupsTable extends BatchesTable {
    */
   trackColumnDef(index: number, column: ColumnDefinition) {
     return column.rankOrder;
+  }
+
+  /**
+   * Allow to fill table (e.g. with taxon groups found in strategies)
+   */
+  async autoFillTable() {
+    // Wait table is ready
+    if (this.loading || !this.program) {
+      await firstFalsePromise(this.$loading);
+    }
+
+    const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
+    const taxonGroups = (await this.programService.loadTaxonGroups(this.program) || [])
+      .sort(propertiesPathComparator(sortAttributes, ['ZZZ', 'ZZZ']));
+
+    for (const taxonGroup of taxonGroups) {
+      const batch = new Batch();
+      batch.taxonGroup = taxonGroup;
+      await this.addBatchToTable(batch);
+    }
   }
 
   constructor(

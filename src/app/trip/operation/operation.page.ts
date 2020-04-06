@@ -298,7 +298,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
         });
     }
 
-    // Configure somes tables from program properties
+    // Configure page, from Program's properties
     this.registerSubscription(
       this.onProgramChanged
         .subscribe(program => {
@@ -312,6 +312,12 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
           }
           this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
           this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
+
+          // Autofill batch group table (e.g. with taxon groups found in strategies)
+          if (this.batchGroupsTable.showTaxonGroupColumn && this.isNewData) {
+            const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
+            if (autoFillBatch) this.batchGroupsTable.autoFillTable();
+          }
         })
     );
   }

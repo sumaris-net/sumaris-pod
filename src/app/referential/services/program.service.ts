@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {BehaviorSubject, defer, Observable, of, Subject} from "rxjs";
-import {filter, map, tap} from "rxjs/operators";
+import {filter, map} from "rxjs/operators";
 import {
   AcquisitionLevelCodes,
   EntityUtils,
@@ -29,7 +29,7 @@ import {
   fetchAllPagesWithProgress
 } from "../../shared/services/data-service.class";
 import {TaxonGroupIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
-import {isNilOrBlank, isNotEmptyArray, suggestFromArray} from "../../shared/functions";
+import {isNilOrBlank, isNotEmptyArray, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
 import {ReferentialRefService} from "./referential-ref.service";
 import {firstNotNilPromise} from "../../shared/observables";
@@ -37,8 +37,6 @@ import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {EntityStorage} from "../../core/services/entities-storage.service";
-import {Trip} from "../../trip/services/model/trip.model";
-import {TripFilter} from "../../trip/services/trip.service";
 
 export declare class ProgramFilter {
   searchText?: string;
@@ -648,6 +646,7 @@ export class ProgramService extends BaseDataService
 
   /**
    * Watch program taxon groups
+   * TODO: add an 'options' argument (with date/time and location), to be able to select the strategy
    */
   watchTaxonGroups(programLabel: string): Observable<TaxonGroupRef[]> {
     const cacheKey = [ProgramCacheKeys.TAXON_GROUPS, programLabel].join('|');
@@ -660,8 +659,13 @@ export class ProgramService extends BaseDataService
             const strategy = program && program.strategies && program.strategies[0];
 
             const res = (strategy && strategy.taxonGroups || [])
-              // FIXME Priority level not always set in DB
-              //.sort(propertyComparator('priorityLevel'))
+
+              // Sort taxonGroupStrategies, on priorityLevel
+               .sort(propertiesPathComparator(
+                 ['priorityLevel', 'taxonGroup.label', 'taxonGroup.name'],
+                 // Use default values, because priorityLevel can be null in the DB
+                 [1, 'ZZZ', 'ZZZ'])
+               )
               .map(v => v.taxonGroup);
             if (this._debug) console.debug(`[program-service] Found ${res.length} taxon groups on program {${program}}`);
             return res;

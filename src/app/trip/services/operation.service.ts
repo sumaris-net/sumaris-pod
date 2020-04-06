@@ -216,6 +216,7 @@ export class OperationService extends BaseDataService
    * @param sortBy
    * @param sortDirection
    * @param dataFilter
+   * @param options
    */
   watchAll(offset: number,
            size: number,
