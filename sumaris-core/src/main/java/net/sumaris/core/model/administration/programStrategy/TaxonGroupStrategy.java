@@ -35,9 +35,6 @@ import java.io.Serializable;
 @Table(name = "taxon_group_strategy")
 public class TaxonGroupStrategy implements Serializable {
 
-    @Column(name = "priority_level")
-    private Integer priorityLevel;
-
     @Id
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Strategy.class)
     @JoinColumn(name = "strategy_fk")
@@ -47,4 +44,16 @@ public class TaxonGroupStrategy implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonGroup.class)
     @JoinColumn(name = "taxon_group_fk")
     private TaxonGroup taxonGroup;
+
+    /**
+     * Niveau de priorité de collecte de données sur le groupe de taxon.
+     * Si non renseigné, il faut alors considérer qu'aucun niveau de priorité n'est utilisé dans la stratégie.
+     *
+     * Attention, il ne s'agit pas d'un rankOrder ! Ici, il peut y avoir plusieurs groupe de taxon avec le même priorityLevel.
+     */
+    @Column(name = "priority_level")
+    private Integer priorityLevel;
+
+
+
 }
