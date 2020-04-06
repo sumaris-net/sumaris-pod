@@ -28,7 +28,9 @@ export class AppComponent {
 
     // Data entry
     {title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
-    {title: 'MENU.TRIPS', path: '/trips', icon: 'pin', profile: 'USER'},
+    {title: 'MENU.TRIPS', path: '/trips', icon: 'pin',
+      ifProperty: 'sumaris.trip.enable',
+      profile: 'USER'},
     {
       title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
       matIcon: 'verified_user',

@@ -348,6 +348,10 @@
       "TITLE": "<small>{{vessel}}<br></small>Marée du {{departureDateTime}}",
       "OTHER_FEATURES": "Caractéristiques :"
     },
+    "OPTIONS": {
+      "ENABLE": "Marée > Activer ?",
+      "NAME": "Marée > Titre (menu, etc.)"
+    },
     "TABLE": {
       "TITLE": "Marées",
       "VESSEL": "Navire",
