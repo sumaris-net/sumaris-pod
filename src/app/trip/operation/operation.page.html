@@ -21,9 +21,9 @@
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="opeForm.error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="error||opeForm.error" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-        <ion-label color="danger" [innerHTML]="opeForm.error|translate"></ion-label>
+        <ion-label color="danger" [innerHTML]="error||opeForm.error|translate"></ion-label>
       </ion-item>
 
       <ion-grid class="ion-no-padding">
