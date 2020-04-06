@@ -56,7 +56,8 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
           platform.is('mobile') ?
             ['physicalGear',
               'targetSpecies',
-              'startDateTime']  :
+              'startDateTime',
+              'endDateTime']  :
           ['physicalGear',
             'targetSpecies',
             'startDateTime',
