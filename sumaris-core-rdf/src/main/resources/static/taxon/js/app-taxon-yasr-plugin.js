@@ -131,7 +131,7 @@ class YasrTaxonPlugin {
                     seeAlso : [],
                     exactMatch : [],
                     parentUri: binding.parent && binding.parent.value
-                }
+                };
                 // Remove modified date, if same as created
                 if (taxonsByUri[uri].modified && taxonsByUri[uri].modified === taxonsByUri[uri].created) {
                     taxonsByUri[uri].modified = undefined;
@@ -205,7 +205,7 @@ class YasrTaxonPlugin {
 
                 // Rank
                 "<td class='col'>" +
-                simplifyUri(taxon.rank, prefixes, this.uriMaxLength) +
+                displayUri(taxon.rank, prefixes, this.uriMaxLength) +
                 "</td>",
 
                 // Parent
