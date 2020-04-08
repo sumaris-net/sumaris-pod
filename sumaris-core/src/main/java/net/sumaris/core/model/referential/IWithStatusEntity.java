@@ -26,13 +26,13 @@ import net.sumaris.core.dao.technical.model.IEntity;
 
 import java.io.Serializable;
 
-public interface IWithValidityStatusEntity<ID extends Serializable, VS extends IEntity<Integer>> extends IEntity<ID> {
+public interface IWithStatusEntity<ID extends Serializable, S extends IEntity<Integer>> extends IEntity<ID> {
 
     interface Fields extends IEntity.Fields {
-        String VALIDITY_STATUS = "validityStatus";
+        String STATUS = "status";
     }
 
-    VS getValidityStatus();
+    S getStatus();
 
-    void setValidityStatus(VS validityStatus);
+    void setStatus(S status);
 }

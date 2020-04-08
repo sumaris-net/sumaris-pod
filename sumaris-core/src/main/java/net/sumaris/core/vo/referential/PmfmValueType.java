@@ -22,13 +22,14 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
-import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 
-import java.util.Objects;
+/**
+ * Same as ParameterValueType, but with INTEGER (when the PMFM has no decimal number)
+ */
+public enum PmfmValueType {
 
-public enum ParameterValueType {
-
+    INTEGER,
     DOUBLE,
     STRING,
     QUALITATIVE_VALUE,
@@ -36,42 +37,38 @@ public enum ParameterValueType {
     DATE
     ;
 
-    public static ParameterValueType fromParameter(Parameter parameter) {
+    public static PmfmValueType fromPmfm(Pmfm source) {
 
-        if (Objects.equals(Boolean.TRUE, parameter.getIsBoolean())) {
-            return BOOLEAN;
-        }
-        else if (Objects.equals(Boolean.TRUE, parameter.getIsQualitative())) {
-            return QUALITATIVE_VALUE;
-        }
-        else if (Objects.equals(Boolean.TRUE, parameter.getIsAlphanumeric())) {
-            return ParameterValueType.STRING;
+        ParameterValueType paramType = ParameterValueType.fromParameter(source.getParameter());
+
+        // If not decimal, use INTEGER
+        if (paramType == ParameterValueType.DOUBLE
+                && source.getMaximumNumberDecimals() != null && source.getMaximumNumberDecimals() <= 0) {
+            return  PmfmValueType.INTEGER;
         }
 
-        else if (Objects.equals(Boolean.TRUE, parameter.getIsDate())) {
-            return ParameterValueType.DATE;
-        }
-        else {
-            return ParameterValueType.DOUBLE;
-        }
+        return fromString(paramType.name());
     }
 
-    public static ParameterValueType fromPmfm(PmfmVO pmfm) {
+
+    public static PmfmValueType fromPmfm(PmfmVO pmfm) {
         return pmfm != null ? fromString(pmfm.getType()) : null;
     }
 
-    public static ParameterValueType fromString(String name) {
+    public static PmfmValueType fromString(String name) {
         switch (name.toUpperCase()) {
             case "BOOLEAN":
-                return ParameterValueType.BOOLEAN;
+                return PmfmValueType.BOOLEAN;
             case "QUALITATIVE_VALUE":
-                return ParameterValueType.QUALITATIVE_VALUE;
+                return PmfmValueType.QUALITATIVE_VALUE;
             case "STRING":
-                return ParameterValueType.STRING;
+                return PmfmValueType.STRING;
             case "DATE":
-                return ParameterValueType.DATE;
+                return PmfmValueType.DATE;
+            case "INTEGER":
+                return PmfmValueType.INTEGER;
             case "DOUBLE":
-                return ParameterValueType.DOUBLE;
+                return PmfmValueType.DOUBLE;
             default:
                 return null;
         }

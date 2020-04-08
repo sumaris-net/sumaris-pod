@@ -22,33 +22,22 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.referential.IWithStatusEntity;
-import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.vo.IValueObject;
+import lombok.Data;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.referential.pmfm.Parameter;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
 
-import java.util.Date;
+import java.util.List;
 
-public interface IReferentialVO extends IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
+@Data
+@FieldNameConstants
+public class ParameterVO extends ReferentialVO {
 
-    interface Fields {
-        String LABEL = "label";
-        String NAME = "name";
+    private String type;
+
+    List<ReferentialVO> qualitativeValues;
+
+    public ParameterVO() {
+        this.setEntityName(Parameter.class.getSimpleName());
     }
-
-    String getLabel();
-
-    void setLabel(String label);
-
-    String getName();
-
-    void setName(String name);
-
-    Integer getStatusId();
-
-    void setStatusId(Integer statusId);
-
-    Date getCreationDate();
-
-    void setCreationDate(Date creationDate);
 }

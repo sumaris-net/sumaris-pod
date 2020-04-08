@@ -1,36 +1,34 @@
-package net.sumaris.core.dao.referential;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import net.sumaris.core.model.referential.pmfm.Unit;
+package net.sumaris.core.dao.referential.pmfm;
+
+import net.sumaris.core.dao.referential.BaseReferentialDaoImpl;
+import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.referential.pmfm.Method;
-import net.sumaris.core.model.referential.pmfm.Parameter;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
-import net.sumaris.core.vo.referential.ParameterValueType;
-import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +42,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository("pmfmDao")
-public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
+public class PmfmDaoImpl extends BaseReferentialDaoImpl<Pmfm, PmfmVO> implements PmfmDao {
 
     /** Logger. */
     private static final Logger log =
@@ -61,6 +59,16 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
     }
 
     @Override
+    protected Class getDomainClass() {
+        return Pmfm.class;
+    }
+
+    @Override
+    protected Pmfm createEntity() {
+        return new Pmfm();
+    }
+
+    @Override
     public PmfmVO getByLabel(final String label) {
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Pmfm> query = builder.createQuery(Pmfm.class);
@@ -73,16 +81,11 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
 
         TypedQuery<Pmfm> q = getEntityManager().createQuery(query)
                 .setParameter(labelParam, label);
-        return toPmfmVO(q.getSingleResult());
+        return toVO(q.getSingleResult());
     }
 
     @Override
-    public PmfmVO get(final int pmfmId) {
-        return toPmfmVO(get(Pmfm.class, pmfmId));
-    }
-
-    @Override
-    public PmfmVO toPmfmVO(Pmfm source) {
+    public PmfmVO toVO(Pmfm source) {
         if (source == null) return null;
 
         PmfmVO target = new PmfmVO();
@@ -93,8 +96,8 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
         Parameter parameter = source.getParameter();
         target.setName(parameter.getName());
 
-        // Parameter type
-        ParameterValueType type = ParameterValueType.fromPmfm(source);
+        // Type
+        PmfmValueType type = PmfmValueType.fromPmfm(source);
         target.setType(type.name().toLowerCase());
 
         // Parameter
@@ -125,7 +128,7 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
         if (unit != null && unit.getId() != null) {
             target.setUnitId(unit.getId());
             if (unit.getId() != unitIdNone) {
-                target.setUnit(unit.getLabel());
+                target.setUnitLabel(unit.getLabel());
             }
         }
 
@@ -159,5 +162,46 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
         }
 
         return target;
+    }
+
+    @Override
+    public PmfmVO save(PmfmVO vo) {
+        PmfmVO savedVO = super.save(vo);
+
+        return get(savedVO.getId());
+    }
+
+    /* -- protected methods -- */
+
+    protected void toEntity(PmfmVO source, Pmfm target, boolean copyIfNull) {
+        super.toEntity(source, target, copyIfNull);
+
+        // Link to other entities
+        Daos.setEntityProperties(entityManager, target,
+                Pmfm.Fields.PARAMETER,  Parameter.class,    source.getParameterId(),
+                Pmfm.Fields.MATRIX,     Matrix.class,       source.getMatrixId(),
+                Pmfm.Fields.FRACTION,   Fraction.class,     source.getFractionId(),
+                Pmfm.Fields.METHOD,     Method.class,       source.getMethodId(),
+                Pmfm.Fields.UNIT,       Unit.class,         source.getUnitId());
+
+        // Remember existing QV
+        Set<QualitativeValue> entities = Beans.getSet(target.getQualitativeValues());
+        Map<Integer, QualitativeValue> entitiesToRemove = Beans.splitByProperty(entities, QualitativeValue.Fields.ID);
+
+        Beans.getStream(source.getQualitativeValues())
+                .map(ReferentialVO::getId)
+                .filter(Objects::nonNull)
+                .forEach(qvId -> {
+                    if (entitiesToRemove.remove(qvId) == null) {
+                        entities.add(load(QualitativeValue.class, qvId));
+                    }
+                });
+
+        // Remove orphan
+        if (!entitiesToRemove.isEmpty()) {
+            entities.removeAll(entitiesToRemove.values());
+        }
+
+        target.setQualitativeValues(entities);
     }
 }

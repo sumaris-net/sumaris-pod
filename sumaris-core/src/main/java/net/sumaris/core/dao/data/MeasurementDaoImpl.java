@@ -27,7 +27,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.referential.PmfmDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.ErrorCodes;
@@ -43,6 +43,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -763,7 +764,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
             throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to find pmfm with id=" + pmfmId);
         }
 
-        ParameterValueType type = ParameterValueType.fromPmfm(pmfm);
+        PmfmValueType type = PmfmValueType.fromPmfm(pmfm);
         if (type == null) {
             throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to find the type of the pmfm with id=" + pmfmId);
         }
@@ -802,10 +803,10 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
         Preconditions.checkNotNull(pmfm, "Unable to find Pmfm with id=" + source.getPmfm().getId());
 
-        ParameterValueType type = ParameterValueType.fromPmfm(pmfm);
+        PmfmValueType type = PmfmValueType.fromPmfm(pmfm);
         switch (type) {
             case BOOLEAN:
-                return (source.getNumericalValue() != null && source.getNumericalValue().doubleValue() == 1d ? Boolean.TRUE : Boolean.FALSE);
+                return (source.getNumericalValue() != null && source.getNumericalValue() == 1d ? Boolean.TRUE : Boolean.FALSE);
             case QUALITATIVE_VALUE:
                 // If get a object structure (e.g. ReferentialVO), try to get the id
                 return ((source.getQualitativeValue() != null && source.getQualitativeValue().getId() != null) ? source.getQualitativeValue().getId() : null);
@@ -813,7 +814,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
             case DATE:
                 return source.getAlphanumericalValue();
             case INTEGER:
-                return ((source.getNumericalValue() != null) ? new Integer(source.getNumericalValue().intValue()) : null);
+                return ((source.getNumericalValue() != null) ? source.getNumericalValue().intValue() : null);
             case DOUBLE:
                 return source.getNumericalValue();
             default:

@@ -20,19 +20,19 @@
  * #L%
  */
 
-package net.sumaris.core.model.referential;
+package net.sumaris.core.service.referential.pmfm;
 
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.vo.referential.ParameterVO;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.Serializable;
+@Transactional
+public interface ParameterService {
 
-public interface IWithValidityStatusEntity<ID extends Serializable, VS extends IEntity<Integer>> extends IEntity<ID> {
+    @Transactional(readOnly = true)
+    ParameterVO getByLabel(String label);
 
-    interface Fields extends IEntity.Fields {
-        String VALIDITY_STATUS = "validityStatus";
-    }
+    @Transactional(readOnly = true)
+    ParameterVO get(int pmfmId);
 
-    VS getValidityStatus();
-
-    void setValidityStatus(VS validityStatus);
+    ParameterVO save(ParameterVO pmfm);
 }

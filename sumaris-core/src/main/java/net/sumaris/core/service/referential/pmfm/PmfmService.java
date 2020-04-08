@@ -20,19 +20,22 @@
  * #L%
  */
 
-package net.sumaris.core.model.referential;
+package net.sumaris.core.service.referential.pmfm;
 
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.vo.referential.PmfmVO;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.Serializable;
+@Transactional
+public interface PmfmService {
 
-public interface IWithValidityStatusEntity<ID extends Serializable, VS extends IEntity<Integer>> extends IEntity<ID> {
+    @Transactional(readOnly = true)
+    PmfmVO getByLabel(String label);
 
-    interface Fields extends IEntity.Fields {
-        String VALIDITY_STATUS = "validityStatus";
-    }
+    @Transactional(readOnly = true)
+    PmfmVO get(int pmfmId);
 
-    VS getValidityStatus();
+    @Transactional(readOnly = true)
+    boolean isWeightPmfm(int pmfmId);
 
-    void setValidityStatus(VS validityStatus);
+    PmfmVO save(PmfmVO pmfm);
 }

@@ -1,0 +1,144 @@
+package net.sumaris.server.http.graphql.referential;
+
+/*-
+ * #%L
+ * SUMARiS:: Server
+ * %%
+ * Copyright (C) 2018 SUMARiS Consortium
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+import com.google.common.base.Preconditions;
+import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLContext;
+import io.leangen.graphql.annotations.GraphQLMutation;
+import io.leangen.graphql.annotations.GraphQLQuery;
+import net.sumaris.core.dao.referential.metier.MetierRepository;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.pmfm.Fraction;
+import net.sumaris.core.model.referential.pmfm.Matrix;
+import net.sumaris.core.model.referential.pmfm.Method;
+import net.sumaris.core.model.referential.pmfm.Unit;
+import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.service.referential.pmfm.ParameterService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.service.referential.taxon.TaxonGroupService;
+import net.sumaris.core.service.referential.taxon.TaxonNameService;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.filter.TaxonNameFilterVO;
+import net.sumaris.core.vo.referential.*;
+import net.sumaris.server.http.security.IsAdmin;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.List;
+
+@Service
+@Transactional
+public class PmfmGraphQLService {
+
+    @Autowired
+    private PmfmService pmfmService;
+
+    @Autowired
+    private ParameterService parameterService;
+
+    @Autowired
+    private ReferentialService referentialService;
+
+    /* -- Pmfm -- */
+
+    @GraphQLQuery(name = "pmfm", description = "Get a PMFM")
+    @Transactional(readOnly = true)
+    public PmfmVO getPmfm(
+            @GraphQLArgument(name = "label") String label,
+            @GraphQLArgument(name = "id") Integer id
+    ) {
+        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label));
+        if (id != null) {
+            return pmfmService.get(id);
+        }
+        return pmfmService.getByLabel(label);
+    }
+
+    @GraphQLMutation(name = "savePmfm", description = "Create or update a pmfm")
+    @IsAdmin
+    public PmfmVO savePmfm(
+            @GraphQLArgument(name = "pmfm") PmfmVO source) {
+        return pmfmService.save(source);
+    }
+
+    @GraphQLQuery(name = "parameter", description = "Get PMFM's paramater")
+    public ParameterVO getPmfmParameter(@GraphQLContext PmfmVO pmfm) {
+        if (pmfm.getParameterId() == null) return null;
+        return getParameter(null, pmfm.getParameterId());
+    }
+
+    @GraphQLQuery(name = "matrix", description = "Get PMFM's matrix")
+    public ReferentialVO getPmfmMatrix(@GraphQLContext PmfmVO pmfm) {
+        if (pmfm.getMatrixId() == null) return null;
+        return referentialService.get(Matrix.class, pmfm.getMatrixId());
+    }
+
+    @GraphQLQuery(name = "fraction", description = "Get PMFM's fraction")
+    public ReferentialVO getPmfmFraction(@GraphQLContext PmfmVO pmfm) {
+        if (pmfm.getFractionId() == null) return null;
+        return referentialService.get(Fraction.class, pmfm.getFractionId());
+    }
+
+    @GraphQLQuery(name = "method", description = "Get PMFM's method")
+    public ReferentialVO getPmfmMethod(@GraphQLContext PmfmVO pmfm) {
+        if (pmfm.getMethodId() == null) return null;
+        return referentialService.get(Method.class, pmfm.getMethodId());
+    }
+
+    @GraphQLQuery(name = "unit", description = "Get PMFM's unit")
+    public ReferentialVO getPmfmUnit(@GraphQLContext PmfmVO pmfm) {
+        if (pmfm.getUnitId() == null) return null;
+        return referentialService.get(Unit.class, pmfm.getUnitId());
+    }
+
+
+    /* -- Parameter -- */
+
+    @GraphQLQuery(name = "parameter", description = "Get a parameter")
+    @Transactional(readOnly = true)
+    public ParameterVO getParameter(
+            @GraphQLArgument(name = "label") String label,
+            @GraphQLArgument(name = "id") Integer id
+    ) {
+        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label));
+        if (id != null) {
+            return parameterService.get(id);
+        }
+        return parameterService.getByLabel(label);
+    }
+
+    @GraphQLMutation(name = "saveParameter", description = "Create or update a parameter")
+    @IsAdmin
+    public ParameterVO saveParameter(
+            @GraphQLArgument(name = "parameter") ParameterVO source) {
+        return parameterService.save(source);
+    }
+
+}

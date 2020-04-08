@@ -31,7 +31,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
 import net.sumaris.core.model.data.BatchSortingMeasurement;
 import net.sumaris.core.model.data.IMeasurementEntity;
-import net.sumaris.core.service.referential.PmfmService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import org.slf4j.Logger;

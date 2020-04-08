@@ -22,6 +22,7 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
@@ -176,7 +177,10 @@ public class RootDataRepositoryImpl<
 
         E savedEntity = save(entity);
 
+        // Update VO
         vo.setId(savedEntity.getId());
+        vo.setCreationDate(savedEntity.getCreationDate());
+        vo.setUpdateDate(newUpdateDate);
 
         return vo;
     }
@@ -197,13 +201,22 @@ public class RootDataRepositoryImpl<
     }
 
     public E toEntity(V vo) {
+        Preconditions.checkNotNull(vo);
         E entity;
         if (vo.getId() != null) {
             entity = getOne(vo.getId());
         } else {
             entity = createEntity();
         }
+
+        // Remember the entity's update date
+        Date entityUpdateDate = entity.getUpdateDate();
+
         toEntity(vo, entity, true);
+
+        // Restore the update date (can be override by Beans.copyProperties())
+        entity.setUpdateDate(entityUpdateDate);
+
         return entity;
     }
 
@@ -213,28 +226,7 @@ public class RootDataRepositoryImpl<
 
         // Observers
         if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
-            Set<PersonVO> sourceObservers = ((IWithObserversEntity) source).getObservers();
-            Set<Person> targetObservers = SetUtils.emptyIfNull(((IWithObserversEntity) target).getObservers());
-            if (copyIfNull || sourceObservers != null) {
-                if (CollectionUtils.isEmpty(sourceObservers)) {
-                    if (CollectionUtils.isNotEmpty(targetObservers)) {
-                        targetObservers.clear();
-                    }
-                } else {
-                    Map<Integer, Person> observersToRemove = Beans.splitById(targetObservers);
-                    sourceObservers.stream()
-                            .map(IEntity::getId)
-                            .forEach(personId -> {
-                                if (observersToRemove.remove(personId) == null) {
-                                    // Add new item
-                                    targetObservers.add(load(Person.class, personId));
-                                }
-                            });
-
-                    // Remove deleted tableNames
-                    targetObservers.removeAll(observersToRemove.values());
-                }
-            }
+            copyObservers((IWithObserversEntity<Integer, PersonVO>)source, (IWithObserversEntity<Integer, Person>)target, copyIfNull);
         }
     }
 

@@ -107,7 +107,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     Pmfm.class,
                     Matrix.class,
                     Fraction.class,
+                    Method.class,
                     QualitativeValue.class,
+                    Unit.class,
                     // Quality
                     QualityFlag.class,
                     // Program/strategy
@@ -149,6 +151,8 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         I18n.n("sumaris.persistence.table.pmfm");
         I18n.n("sumaris.persistence.table.matrix");
         I18n.n("sumaris.persistence.table.fraction");
+        I18n.n("sumaris.persistence.table.method");
+        I18n.n("sumaris.persistence.table.unit");
         I18n.n("sumaris.persistence.table.qualitativeValue");
         I18n.n("sumaris.persistence.table.program");
         I18n.n("sumaris.persistence.table.acquisitionLevel");
@@ -250,6 +254,17 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         return entityClassMap.keySet().stream()
                 .map(this::getTypeByEntityName)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public ReferentialVO get(String entityName, int id) {
+        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        return get(entityClass, id);
+    }
+
+    @Override
+    public ReferentialVO get(Class<? extends IReferentialEntity> entityClass, int id) {
+        return toReferentialVO(super.get(entityClass, id));
     }
 
     @Override
@@ -547,11 +562,19 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
             }
         }
 
-        // Filter on text
+        // Filter on label
+        Predicate labelClause = null;
+        ParameterExpression<String> labelParam = null;
+        if (StringUtils.isNotBlank(filter.getLabel())) {
+            labelParam = builder.parameter(String.class);
+            labelClause = builder.equal(builder.upper(entityRoot.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(labelParam));
+        }
+
+        // Filter on search text
         ParameterExpression<String> searchAsPrefixParam = builder.parameter(String.class);
         ParameterExpression<String> searchAnyMatchParam = builder.parameter(String.class);
         Predicate searchTextClause = null;
-        if (searchText != null) {
+        if (labelClause == null && searchText != null) {
             // Search on the given search attribute, if exists
             if (StringUtils.isNotBlank(searchAttribute) && BeanUtils.getPropertyDescriptor(entityClass, searchAttribute) != null) {
                 searchTextClause = builder.or(
@@ -593,7 +616,10 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         if (levelClause != null) {
             whereClause = levelClause;
         }
-        if (searchTextClause != null) {
+        if (labelClause != null) {
+            whereClause = (whereClause == null) ? labelClause : builder.and(whereClause, labelClause);
+        }
+        else if (searchTextClause != null) {
             whereClause = (whereClause == null) ? searchTextClause : builder.and(whereClause, searchTextClause);
         }
 
@@ -603,9 +629,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
         // Delegate to visitor
         if (queryVisitor != null) {
-            Expression<Boolean> additionnalWhere = queryVisitor.apply(query, entityRoot);
-            if (additionnalWhere != null) {
-                whereClause = (whereClause == null) ? additionnalWhere : builder.and(whereClause, additionnalWhere);
+            Expression<Boolean> additionalWhere = queryVisitor.apply(query, entityRoot);
+            if (additionalWhere != null) {
+                whereClause = (whereClause == null) ? additionalWhere : builder.and(whereClause, additionalWhere);
             }
         }
 
@@ -616,13 +642,16 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         TypedQuery<R> typedQuery = getEntityManager().createQuery(query);
 
         // Bind parameters
-        if (searchTextClause != null) {
+        if (labelClause != null) {
+            typedQuery.setParameter(labelParam, filter.getLabel());
+        }
+        else if (searchTextClause != null) {
             String searchTextAsPrefix = null;
             if (StringUtils.isNotBlank(searchText)) {
                 searchTextAsPrefix = (searchText + "*") // add trailing escape char
-                        .replaceAll("[*]+", "*") // group escape chars
-                        .replaceAll("[%]", "\\%") // protected '%' chars
-                        .replaceAll("[*]", "%"); // replace asterix
+                        .replaceAll("[*]+", "*") // delete redundant wildcards
+                        .replaceAll("[%]", "\\%") // protect '%' char
+                        .replaceAll("[*]", "%"); // replace wildcards
             }
             String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
             typedQuery.setParameter(searchAsPrefixParam, searchTextAsPrefix);

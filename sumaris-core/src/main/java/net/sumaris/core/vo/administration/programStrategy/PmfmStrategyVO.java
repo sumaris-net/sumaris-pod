@@ -54,13 +54,15 @@ public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IVa
     private Integer pmfmId;
     private PmfmVO pmfm;
 
-    // Copy from PMFM or parameter
+    // **** Copy from PMFM or parameter
+    private String unitLabel;
+    private String type;
     private String label;
     private String name;
-    private String unit;
-    private String type;
     private Integer methodId;
     private Integer maximumNumberDecimals;
+    private Integer signifFiguresNumber;
+    // ****
 
     List<ReferentialVO> qualitativeValues;
 }

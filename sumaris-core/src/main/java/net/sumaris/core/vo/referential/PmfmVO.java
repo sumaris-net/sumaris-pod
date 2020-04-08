@@ -32,18 +32,17 @@ import java.util.List;
 @FieldNameConstants
 public class PmfmVO extends ReferentialVO {
 
-    private String unit;
+    private String unitLabel;
     private String type;
 
     private Double minValue;
     private Double maxValue;
     private Integer maximumNumberDecimals;
+    private Integer signifFiguresNumber;
     private Double defaultValue;
 
     private Boolean isEstimated; // from the method
     private Boolean isCalculated; // from the method
-
-    List<ReferentialVO> qualitativeValues;
 
     // Link to other entities
     private Integer parameterId;
@@ -51,6 +50,8 @@ public class PmfmVO extends ReferentialVO {
     private Integer fractionId;
     private Integer methodId;
     private Integer unitId;
+
+    List<ReferentialVO> qualitativeValues;
 
     public PmfmVO() {
         this.setEntityName(Pmfm.class.getSimpleName());

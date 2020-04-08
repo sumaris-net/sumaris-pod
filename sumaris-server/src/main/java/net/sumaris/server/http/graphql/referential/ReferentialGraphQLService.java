@@ -50,8 +50,6 @@ import java.util.List;
 @Transactional
 public class ReferentialGraphQLService {
 
-    private static final Logger log = LoggerFactory.getLogger(ReferentialGraphQLService.class);
-
     @Autowired
     private ReferentialService referentialService;
 
@@ -79,7 +77,7 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "filter") ReferentialFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-            @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
+            @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.LABEL) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         // Special case
@@ -90,7 +88,11 @@ public class ReferentialGraphQLService {
                     SortDirection.valueOf(direction.toUpperCase()));
         }
 
-        return referentialService.findByFilter(entityName, filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+        return referentialService.findByFilter(entityName, filter,
+                offset == null ? 0 : offset,
+                size == null ? 1000 : size,
+                sort == null ? ReferentialVO.Fields.LABEL : sort,
+                direction == null ? SortDirection.ASC : SortDirection.valueOf(direction.toUpperCase()));
     }
 
     @GraphQLQuery(name = "referentialsCount", description = "Get referentials count")
@@ -171,4 +173,5 @@ public class ReferentialGraphQLService {
         // Should never occur !
         return null;
     }
+
 }

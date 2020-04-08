@@ -51,8 +51,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 import java.io.File;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.sql.*;
@@ -1575,5 +1578,57 @@ public class Daos {
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(
                 iterator,
                 Spliterator.ORDERED | Spliterator.IMMUTABLE), false);
+    }
+
+
+    /**
+     * Fill a property, as an entity
+     * @param propertyClass
+     * @param propertyName
+     * @param entityId
+     * @param target
+     * @param <T>
+     */
+    public static <T extends Serializable> void setEntityProperty(EntityManager em,
+                                                                  T target,
+                                                                  String propertyName,
+                                                                  Class<? extends Serializable> propertyClass,
+                                                                  Integer entityId) {
+        if (entityId == null) {
+            Beans.setProperty(target, propertyName, null);
+        } else {
+            Object entity = em.getReference(propertyClass, entityId);
+            Beans.setProperty(target, propertyName, entity);
+        }
+    }
+
+    /**
+     * Fill many properties, by a class and an entity id
+     * @param target
+     * @param copySpec should be an array of triple: [String propertyName, Class propertyClass, Integer entityId]
+     */
+    public static <T extends Serializable> void setEntityProperties(EntityManager em,
+                                                                    T target,
+                                                                    Object... copySpec) {
+        Preconditions.checkNotNull(target);
+        Preconditions.checkNotNull(copySpec);
+        Preconditions.checkArgument(copySpec.length > 0 && copySpec.length % 3 == 0,
+                "Invalid 'copySpec' argument. Expect [propertyName, Class, entityId]");
+
+        int offset = 0;
+        while(offset < copySpec.length -1) {
+            try {
+                String propertyName = (String) copySpec[offset];
+                Class<? extends Serializable> propertyClazz = (Class<? extends Serializable>) copySpec[offset+1];
+                Integer entityId = (Integer) copySpec[offset+2];
+
+                setEntityProperty(em, target, propertyName, propertyClazz, entityId);
+            }
+            catch (Throwable t) {
+                throw new IllegalArgumentException("Error while reading arguments at index: " + offset);
+            }
+            offset += 3;
+
+        }
     }
 }

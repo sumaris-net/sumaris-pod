@@ -42,9 +42,14 @@ import java.util.Optional;
 
 public interface ReferentialDao {
 
+
     interface QueryVisitor<R, T> {
         Expression<Boolean> apply(CriteriaQuery<R> query, Root<T> root);
     }
+
+    ReferentialVO get(String entityName, int id);
+
+    ReferentialVO get(Class<? extends IReferentialEntity> entityClass, int id);
 
     @Cacheable(cacheNames = CacheNames.REFERENTIAL_TYPES)
     List<ReferentialTypeVO> getAllTypes();
