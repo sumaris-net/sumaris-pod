@@ -19,9 +19,11 @@ export declare interface FormFieldDefinition<T = any> {
   values?: (string|FormFieldValue)[];
   type: FormFieldType;
   autocomplete?: MatAutocompleteFieldConfig<T>;
+  disabled?: boolean;
+  required?: boolean;
   extra?: {
     [key: string]: {
-      disable?: boolean;
+      disabled?: boolean;
       required: boolean;
     }
   };

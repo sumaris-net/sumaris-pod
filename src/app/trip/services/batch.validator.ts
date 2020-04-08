@@ -9,7 +9,7 @@ import {MethodIds} from "../../referential/services/model";
 import {Subject, Subscription} from "rxjs";
 
 @Injectable()
-export class BatchValidatorService implements ValidatorService {
+export class BatchValidatorService<T extends Batch = Batch> implements ValidatorService {
 
   constructor(
     protected formBuilder: FormBuilder) {
@@ -19,7 +19,7 @@ export class BatchValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Batch, opts?: {
+  getFormGroup(data?: T, opts?: {
     withWeight?: boolean;
     rankOrderRequired?: boolean;
     labelRequired?: boolean;
@@ -34,7 +34,7 @@ export class BatchValidatorService implements ValidatorService {
     return form;
   }
 
-  protected getFormGroupConfig(data?: Batch,  opts?: {
+  protected getFormGroupConfig(data?: T,  opts?: {
     rankOrderRequired?: boolean;
     labelRequired?: boolean;
   }): { [key: string]: any } {

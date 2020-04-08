@@ -44,7 +44,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   canOpenDetail = false;
   detailsPath = {
     'Program': '/referential/program/:id',
-    'Software': '/referential/software/:id?label=:label'
+    'Software': '/referential/software/:id?label=:label',
+    'Pmfm': '/referential/pmfm/:id?label=:label',
+    'Parameter': '/referential/parameter/:id?label=:label'
   };
 
   constructor(
@@ -192,6 +194,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.entityName = entityName;
     this.$entity.next(entity);
     this.filterForm.get('entityName').setValue(entityName);
+    this.paginator.pageIndex = 0;
     this.setFilter(this.filterForm.value, {emitEvent: false});
 
     // Load levels

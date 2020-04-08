@@ -38,7 +38,6 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   defaultBackHref: string;
   onUpdateView = new EventEmitter<T>();
 
-
   get usageMode(): UsageMode {
     return this._usageMode;
   }
@@ -165,7 +164,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     opts = opts || {};
     opts.updateTabAndRoute = toBoolean(opts.updateTabAndRoute, idChanged && !this.loading);
-    opts.openTabIndex = isNotNil(opts.openTabIndex) ? opts.openTabIndex :
+    opts.openTabIndex = (isNotNil(opts.openTabIndex) || this.hasManyTabs) ? opts.openTabIndex :
       // If new data: open the second tab (if it's not the select index)
       (idChanged && isNil(this.previousDataId) && this.selectedTabIndex === 0 && 1 || undefined);
 

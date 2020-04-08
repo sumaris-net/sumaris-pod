@@ -252,8 +252,8 @@ export function filterNumberInput(event: KeyboardEvent, allowDecimals: boolean, 
     //console.debug('input decimal separator entered :' + event.code);
     // OK
   } else {
-    //input command entered of delete, backspace or one of the 4 direction up, down, left and right
-    if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8 || event.keyCode == 9) {
+    //input command entered of delete, backspace or one of the 4 direction up, down, left and right, or negative sign
+    if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8 || event.keyCode == 9 || event.keyCode == 45) {
       //console.debug('input command entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
       // OK
     }

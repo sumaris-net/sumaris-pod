@@ -4,13 +4,13 @@
           *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
+  <button mat-icon-button *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
     (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+  <button mat-icon-button *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
     (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
@@ -166,7 +166,7 @@
                      class="content-padding-left">
       <mat-label>
         <span>{{col.label|translate}}</span>
-        <small *ngIf="col.unit"><br />({{col.unit}})</small>
+        <small *ngIf="col.unitLabel"><br />({{col.unitLabel}})</small>
       </mat-label>
     </mat-header-cell>
 
@@ -208,18 +208,18 @@
     <mat-cell *matCellDef="let row">
 
       <!-- undo or delete  -->
-      <button mat-icon-button color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+      <button mat-icon-button *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
         (click)="cancelOrDelete($event, row)">
         <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
         <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
       </button>
       <!-- validate -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
+      <button mat-icon-button *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
         (click)="confirmEditCreate($event, row)">
         <mat-icon>check</mat-icon>
       </button>
       <!-- add -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
+      <button mat-icon-button *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
         (click)="confirmAndAddRow($event, row)">
         <mat-icon>add</mat-icon>
       </button>
@@ -235,14 +235,29 @@
       <!-- open individual measures -->
       <!-- TODO visible-xs visible-sm visible-mobile -->
       <button mat-icon-button
-              color="light" *ngIf="!row.editing"
+              *ngIf="!row.editing && !mobile"
+              [color]="row.currentData.observedIndividualCount ? 'primary' : 'disabled'"
               [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
               (click)="onSubBatchesClick($event, row)">
-<!--        <mat-icon [matBadge]="row.currentData.individualCount"-->
-<!--                  matBadgePosition="above after">assessment</mat-icon>-->
-        <mat-icon>assessment</mat-icon>
+        <mat-icon [matBadge]="row.currentData.observedIndividualCount"
+                  [matBadgeHidden]="!row.currentData.observedIndividualCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after"
+        >assessment</mat-icon>
       </button>
-
+      <button mat-icon-button
+              *ngIf="mobile"
+              [disabled]="!row.currentData.observedIndividualCount"
+              color="primary"
+              (click)="onSubBatchesClick($event, row)">
+        <mat-icon [matBadge]="row.currentData.observedIndividualCount"
+                  [matBadgeHidden]="!row.currentData.observedIndividualCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after"
+        >assessment</mat-icon>
+      </button>
 
     </mat-cell>
   </ng-container>
@@ -250,7 +265,7 @@
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 
   <mat-row *matRowDef="let row; columns: displayedColumns;"
-           [class.mat-row-error]="row.validator.invalid || row.validator.controls['qualityFlagId'].value === 4"
+           [class.mat-row-error]="row.validator?.invalid || row.validator.controls['qualityFlagId'].value === 4"
            [class.mat-row-dirty]="row.validator.dirty"
            [class.mat-row-disabled]="!row.editing"
            (click)="clickRow($event, row)">

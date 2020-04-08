@@ -3,11 +3,12 @@
   <!-- integer -->
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
     <input matInput #matInput
+           type="number"
+           autocomplete="off"
            [readonly]="readonly"
-           autocomplete="off" type="number"
            [min]="definition.minValue"
            [max]="definition.maxValue"
-           pattern="[0-9]*"
+           pattern="-?[0-9]*"
            step="1"
            [placeholder]="placeholder"
            (keypress)="filterNumberInput($event, false)"
@@ -35,9 +36,10 @@
 
     <input matInput #matInput
            type="number"
-           [readonly]="readonly"
-           autocomplete="off" [min]="definition.minValue" [max]="definition.maxValue"
            decimal="true"
+           autocomplete="off"
+           [readonly]="readonly"
+           [min]="definition.minValue" [max]="definition.maxValue"
            [placeholder]="placeholder"
            [step]="numberInputStep"
            (keypress)="filterNumberInput($event, true)"
@@ -165,6 +167,7 @@
                           [filter]="definition.autocomplete?.filter"
                           [items]="definition.autocomplete?.items"
                           [displayColumnNames]="definition.autocomplete?.columnNames"
+                          [displayColumnSizes]="definition.autocomplete?.columnSizes"
                           [displayAttributes]="definition.autocomplete?.attributes"
                           [required]="required"
                           [displayWith]="getDisplayValueFn(definition)">

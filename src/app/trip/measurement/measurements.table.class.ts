@@ -253,7 +253,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (!this.loading) this.markForCheck();
   }
 
-
   // Can be override by subclass
   protected async onNewEntity(data: T): Promise<void> {
     if (this.hasRankOrder && isNil(data.rankOrder)) {
@@ -264,6 +263,16 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   protected async getMaxRankOrder(): Promise<number> {
     const rows = await this.dataSource.getRows();
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+  }
+
+  protected getRowEntity(row: TableElement<T>, clone?: boolean): T {
+    if (!row.validator) {
+      const res = (row.currentData as T);
+      return (res && clone === true ? res.clone() : res) as T;
+    }
+    const target = new this.dataType();
+    target.fromObject(row.validator.value);
+    return target;
   }
 
   protected async onRowCreated(row: TableElement<T>): Promise<void> {

@@ -22,9 +22,9 @@
       <!-- Status-->
       <ion-col>
         <mat-form-field>
-          <mat-select [formControl]="form.controls.statusId" [placeholder]="'REFERENTIAL.STATUS'|translate">
+          <mat-select [formControl]="form.controls.statusId" [placeholder]="'REFERENTIAL.STATUS'|translate" required>
             <mat-select-trigger>
-          <span *ngIf="form.controls.statusId.value &gt;=0">
+          <span *ngIf="form.controls.statusId.value &gt;= 0">
             {{ statusById[form.controls.statusId.value]?.label | translate}}</span>
             </mat-select-trigger>
             <mat-option *ngFor="let item of statusList" [value]="item.id">

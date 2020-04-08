@@ -17,7 +17,7 @@ import {
   filterNumberInput,
   isNotNilOrBlank,
   joinPropertiesPath,
-  selectInputContent,
+  selectInputContent, toBoolean,
   toDateISOString
 } from "../../shared/functions";
 import {FormFieldDefinition} from "./field.model";
@@ -68,7 +68,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
 
   @Input() readonly = false;
 
-  @Input() disabled = false;
+  @Input() disabled: boolean;
 
   @Input() formControl: FormControl;
 
@@ -108,6 +108,8 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     this.checkAndResolveFormControl();
 
     this.placeholder = this.placeholder || (this._definition.label && this.translate.instant(this._definition.label));
+    this.required = toBoolean(this.required, toBoolean(this._definition.required, false));
+    this.disabled = toBoolean(this.disabled, toBoolean(this._definition.disabled, false));
 
     this.updateTabIndex();
 
@@ -210,14 +212,20 @@ export class AppFormField implements OnInit, ControlValueAccessor {
   }
 
   protected checkAndResolveFormControl() {
-    if (this.formControl) return;
-    if (this.formGroupDir && this.formControlName) {
+    if (this.formControl) return; // OK, there is a control
+
+    if (this.formGroupDir) {
+      // Try to find using definition.key, as formControlName
+      if (!this.formControlName && this._definition.key) {
+        this.formControlName = this._definition.key;
+      }
       const formControlName = (this.formGroupDir.directives || []).find(d => this.formControlName && d.name === this.formControlName);
       this.formControl = formControlName && formControlName.control;
       if (!this.formControl) {
         this.formControl = this.formGroupDir.form.get(this.formControlName) as FormControl;
       }
     }
+
     if (!this.formControl) {
       throw new Error("Missing attribute 'formControl' or 'formControlName' in <app-form-field> component.");
     }

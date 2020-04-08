@@ -24,6 +24,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   data: T;
   previousDataId: number;
   selectedTabIndex = 0;
+  hasManyTabs = false;
   submitted = false;
   error: string;
   loading = true;
@@ -33,7 +34,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     [key: string]: any
   };
 
-  protected toastController: ToastController
+  protected toastController: ToastController;
 
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
   @ViewChild(ToolbarComponent, { static: true }) appToolbar: ToolbarComponent;
@@ -91,13 +92,17 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     // Copy original queryParams, for reuse in onTabChange()
     this.queryParams = Object.assign({}, queryParams);
 
-    // Parse tab param
-    const tabIndex = queryParams["tab"];
-    this.queryParams.tab = tabIndex && parseInt(tabIndex) || undefined;
-    if (isNotNil(this.queryParams.tab)) {
-      this.selectedTabIndex = this.queryParams.tab;
+    if (this.tabGroup) {
+      // Parse tab param
+      if (this.hasManyTabs) {
+        const tabIndex = queryParams["tab"];
+        this.queryParams.tab = tabIndex && parseInt(tabIndex) || undefined;
+        if (isNotNil(this.queryParams.tab)) {
+          this.selectedTabIndex = this.queryParams.tab;
+        }
+      }
+      this.tabGroup.realignInkBar();
     }
-    if (this.tabGroup) this.tabGroup.realignInkBar();
 
     // Catch back click events
     if (this.appToolbar) {
@@ -117,7 +122,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   abstract async save(event, options?: any): Promise<any>;
 
   registerForm(form: AppForm<any>): AppTabPage<T, F> {
-    if (!form) throw 'Trying to register an invalid form';
+    if (!form) throw new Error('Trying to register an invalid form');
     this._forms = this._forms || [];
     this._forms.push(form);
     return this;

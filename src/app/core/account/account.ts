@@ -181,7 +181,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
 
     // Always disable some additional fields
     this.additionalFields
-      .filter(field => field.extra && field.extra.account && field.extra.account.disable || false)
+      .filter(field => field.extra && field.extra.account && field.extra.account.disabled || false)
       .forEach(field => {
         this.form.controls[field.key].disable();
       });

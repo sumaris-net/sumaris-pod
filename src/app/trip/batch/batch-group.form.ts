@@ -28,8 +28,8 @@ import {BatchForm} from "./batch.form";
 import {filter, switchMap, takeWhile} from "rxjs/operators";
 import {PlatformService} from "../../core/services/platform.service";
 import {firstNotNilPromise} from "../../shared/observables";
-import {toBoolean} from "../../shared/functions";
 import {fadeInAnimation} from "../../shared/shared.module";
+import {BatchGroup} from "../services/model/batch-group.model";
 
 @Component({
   selector: 'app-batch-group-form',
@@ -38,7 +38,7 @@ import {fadeInAnimation} from "../../shared/shared.module";
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInAnimation]
 })
-export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy {
+export class BatchGroupForm extends AppForm<BatchGroup> implements OnInit, OnDestroy {
 
   private _ready = false;
 
@@ -81,11 +81,11 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
 
-  get value(): Batch {
+  get value(): BatchGroup {
     return this.getValue();
   }
 
-  set value(data: Batch) {
+  set value(data: BatchGroup) {
     this.safeSetValue(data);
   }
 
@@ -210,7 +210,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     );
   }
 
-  setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  setValue(data: BatchGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
     if (!this._ready) {
       this.safeSetValue(data, opts);
       return;
@@ -312,7 +312,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
   /* -- protected methods -- */
 
 
-  protected async safeSetValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  protected async safeSetValue(data: BatchGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
 
     if (!this._ready) await this.ready();
 
@@ -342,8 +342,8 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     this._ready = true;
   }
 
-  protected getValue(): Batch {
-    const data = this.batchForm.value;
+  protected getValue(): BatchGroup {
+    const data = BatchGroup.fromBatch(this.batchForm.value);
 
     // If has children form
     if (this.qvPmfm) {

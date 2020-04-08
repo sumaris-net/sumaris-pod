@@ -4,8 +4,8 @@ import {Batch, PmfmStrategy, QualityFlagIds} from "../services/trip.model";
 import {BatchGroupValidatorService} from "../services/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
-import {isNil, isNotEmptyArray, isNotNil, propertyComparator, toFloat, toInt} from "../../shared/shared.module";
-import {MethodIds, Program} from "../../referential/services/model";
+import {isNil, isNotEmptyArray, isNotNil, toFloat, toInt} from "../../shared/shared.module";
+import {MethodIds} from "../../referential/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {environment} from "../../../environments/environment";
 import {MeasurementFormValues, MeasurementValuesUtils} from "../services/model/measurement.model";
@@ -16,9 +16,8 @@ import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, SETTINGS_DISPLAY_COLUMNS} 
 import {isEmptyArray, isNotNilOrNaN, propertiesPathComparator, toNumber} from "../../shared/functions";
 import {BatchGroupModal} from "./batch-group.modal";
 import {FormFieldDefinition} from "../../shared/form/field.model";
-import {withIdentifier} from "codelyzer/util/astQuery";
-import {TaxonGroupRef} from "../../referential/services/model/taxon.model";
-import {firstFalsePromise, firstNotNil} from "../../shared/observables";
+import {firstFalsePromise} from "../../shared/observables";
+import {BatchGroup, BatchGroupUtils} from "../services/model/batch-group.model";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
@@ -40,7 +39,7 @@ declare interface ColumnDefinition extends FormFieldDefinition {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupsTable extends BatchesTable {
+export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   static BASE_DYNAMIC_COLUMNS = [
     // Column on total (weight, nb indiv)
@@ -118,46 +117,17 @@ export class BatchGroupsTable extends BatchesTable {
     if (this.weightMethodForm) this.weightMethodForm.markAsUntouched({onlySelf: true});
   }
 
-  /**
-   * Use in ngFor, for trackBy
-   * @param index
-   * @param columnDef
-   */
-  trackColumnDef(index: number, column: ColumnDefinition) {
-    return column.rankOrder;
-  }
-
-  /**
-   * Allow to fill table (e.g. with taxon groups found in strategies)
-   */
-  async autoFillTable() {
-    // Wait table is ready
-    if (this.loading || !this.program) {
-      await firstFalsePromise(this.$loading);
-    }
-
-    const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
-    const taxonGroups = (await this.programService.loadTaxonGroups(this.program) || [])
-      // Sort using order configure in the taxon group column
-      .sort(propertiesPathComparator(sortAttributes, ['ZZZ', 'ZZZ']));
-
-    for (const taxonGroup of taxonGroups) {
-      const batch = new Batch();
-      batch.taxonGroup = taxonGroup;
-      await this.addBatchToTable(batch);
-    }
-  }
-
   constructor(
     injector: Injector
   ) {
     super(injector,
       injector.get(ValidatorService),
-      new InMemoryTableDataService<Batch, BatchFilter>(Batch, {
+      new InMemoryTableDataService<BatchGroup, BatchFilter>(BatchGroup, {
         onLoad: (data) => this.onLoad(data),
         onSave: (data) => this.onSave(data),
         equals: Batch.equals
-      })
+      }),
+      BatchGroup
     );
     this.modalCtrl = injector.get(ModalController);
     this.inlineEdition = !this.mobile;
@@ -172,7 +142,7 @@ export class BatchGroupsTable extends BatchesTable {
     this.debug = !environment.production;
   }
 
-  onLoad(data: Batch[]): Batch[] {
+  onLoad(data: BatchGroup[]): BatchGroup[] {
     if (isNil(this.qvPmfm) || !this.qvPmfm.qualitativeValues) return data; // Skip (pmfms not loaded)
 
     if (this.debug) console.debug("[batch-group-table] Preparing data to be loaded as table rows...");
@@ -228,7 +198,7 @@ export class BatchGroupsTable extends BatchesTable {
   }
 
 
-  async onSave(data: Batch[]): Promise<Batch[]> {
+  async onSave(data: BatchGroup[]): Promise<BatchGroup[]> {
     if (isNil(this.qvPmfm) || !this.qvPmfm.qualitativeValues) return data; // Skip (pmfms not loaded)
 
     if (this.debug) console.debug("[batch-group-table] Preparing data to be saved...");
@@ -240,9 +210,41 @@ export class BatchGroupsTable extends BatchesTable {
     return data;
   }
 
+
+
+  /**
+   * Allow to fill table (e.g. with taxon groups found in strategies) - #176
+   */
+  async autoFillTable() {
+    // Wait table is ready
+    if (this.loading || !this.program) {
+      await firstFalsePromise(this.$loading);
+    }
+
+    const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
+    const taxonGroups = (await this.programService.loadTaxonGroups(this.program) || [])
+      // Sort using order configure in the taxon group column
+      .sort(propertiesPathComparator(sortAttributes, ['ZZZ', 'ZZZ']));
+
+    for (const taxonGroup of taxonGroups) {
+      const batch = new BatchGroup();
+      batch.taxonGroup = taxonGroup;
+      await this.addBatchToTable(batch);
+    }
+  }
+
+  /**
+   * Use in ngFor, for trackBy
+   * @param index
+   * @param columnDef
+   */
+  trackColumnDef(index: number, column: ColumnDefinition) {
+    return column.rankOrder;
+  }
+
   /* -- protected methods -- */
 
-  protected normalizeEntityToRow(batch: Batch, row: TableElement<Batch>) {
+  protected normalizeEntityToRow(batch: BatchGroup, row: TableElement<BatchGroup>) {
     // When batch has the QV value
     if (this.qvPmfm) {
       const measurementValues = Object.assign({}, row.currentData.measurementValues);
@@ -536,11 +538,11 @@ export class BatchGroupsTable extends BatchesTable {
       .filter(name => !this.excludesColumns.includes(name));
   }
 
-  async openDetailModal(batch?: Batch, opts?: {
+  async openDetailModal(batch?: BatchGroup, opts?: {
     isNew?: boolean;
     hasMeasure?: boolean;
-  }): Promise<Batch | undefined> {
-    batch = batch || (!opts || opts.isNew !== true) && this.editedRow && (this.editedRow.validator ? Batch.fromObject(this.editedRow.currentData) : this.editedRow.currentData) || undefined;
+  }): Promise<BatchGroup | undefined> {
+    batch = batch || (!opts || opts.isNew !== true) && this.editedRow && (this.editedRow.validator ? BatchGroup.fromObject(this.editedRow.currentData) : this.editedRow.currentData) || undefined;
 
     const onSubBatchesClick = async (parent) => {
 
@@ -586,8 +588,14 @@ export class BatchGroupsTable extends BatchesTable {
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
-    return (data && data instanceof Batch) ? data : undefined;
+    if (data && this.debug) console.debug("[batch-group-table] Batch group modal result: ", data);
+    if (!(data instanceof BatchGroup)) return undefined; // Exit if empty
+
+    // Update computed attribute
+    BatchUtils.computeIndividualCount(data);
+    BatchGroupUtils.computeObservedIndividualCount(data);
+
+    return data;
   }
 
   async openSelectColumnsModal() {

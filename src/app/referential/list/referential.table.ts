@@ -3,12 +3,12 @@ import {ValidatorService} from "angular4-material-table";
 import {
   AppTable,
   AppTableDataSource,
-  environment, isNotNil, referentialToString,
+  environment,
+  referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS, StatusIds
 } from "../../core/core.module";
-import {StrategyValidatorService} from "../services/validator/strategy.validator";
-import {Strategy} from "../services/model";
+import {Referential} from "../services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
@@ -17,32 +17,43 @@ import {isEmptyArray} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {DefaultStatusList} from "../../core/services/model";
+import {ReferentialValidatorService} from "../services/referential.validator";
+import {ReferentialFilter} from "../services/referential.service";
 
-export declare interface StrategyFilter {
-}
 
 @Component({
-  selector: 'app-strategy-table',
-  templateUrl: 'strategies.table.html',
-  styleUrls: ['strategies.table.scss'],
+  selector: 'app-referential-table',
+  templateUrl: 'referential.table.html',
+  styleUrls: ['referential.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: StrategyValidatorService},
+    {provide: ValidatorService, useExisting: ReferentialValidatorService},
     {
       provide: InMemoryTableDataService,
-      useFactory: () => new InMemoryTableDataService<Strategy, StrategyFilter>(Strategy, {})
+      useFactory: () => new InMemoryTableDataService<Referential, ReferentialFilter>(Referential, {})
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implements OnInit, OnDestroy {
+export class ReferentialTable extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
 
   statusList = DefaultStatusList;
   statusById: any;
 
+  @Input() set entityName(entityName: string) {
+    this.setFilter({
+      ...this.filter,
+      entityName
+    });
+  }
+
+  get entityName(): string {
+    return this.filter.entityName;
+  }
+
   @Input() canEdit = false;
   @Input() canDelete = false;
 
-  set value(data: Strategy[]) {
+  set value(data: Referential[]) {
     const firstCall = isEmptyArray(this.memoryDataService.value);
     this.memoryDataService.value = data;
     if (firstCall) {
@@ -50,7 +61,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     }
   }
 
-  get value(): Strategy[] {
+  get value(): Referential[] {
     return this.memoryDataService.value;
   }
 
@@ -67,7 +78,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
-    protected memoryDataService: InMemoryTableDataService<Strategy, StrategyFilter>,
+    protected memoryDataService: InMemoryTableDataService<Referential, ReferentialFilter>,
     protected cd: ChangeDetectorRef,
     protected injector: Injector
   ) {
@@ -81,8 +92,14 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
           'status',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Strategy, StrategyFilter>(Strategy, memoryDataService, validatorService),
-      {},
+      new AppTableDataSource<Referential, ReferentialFilter>(Referential, memoryDataService, validatorService, {
+        onRowCreated: (row) => this.onRowCreated(row),
+        prependNewElements: false,
+        suppressErrors: true
+      }),
+      {
+        entityName: 'Program'
+      },
       injector);
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
@@ -107,6 +124,18 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
     if (confirm) {
       this._dirty = true;
+    }
+  }
+
+  protected onRowCreated(row) {
+    const defaultValues = {
+      entityName: this.entityName
+    };
+    if (row.validator) {
+      row.validator.patchValue(defaultValues);
+    }
+    else {
+      Object.assign(row.currentData, defaultValues);
     }
   }
 

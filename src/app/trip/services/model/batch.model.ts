@@ -1,11 +1,17 @@
 import {EntityUtils, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../../core/core.module";
-import {AcquisitionLevelCodes, PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
+import {
+  AcquisitionLevelCodes,
+  PmfmStrategy,
+  QualityFlagIds,
+  ReferentialRef
+} from "../../../referential/referential.module";
 import {DataEntity, DataEntityAsObjectOptions, NOT_MINIFY_OPTIONS} from "./base.model";
 import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {isNilOrBlank, isNotNilOrBlank} from "../../../shared/functions";
+import {isNilOrBlank, isNotNilOrBlank, toNumber} from "../../../shared/functions";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {ITreeItemEntity, ReferentialAsObjectOptions} from "../../../core/services/model";
+import {OperationSaveOptions} from "../operation.service";
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
@@ -211,6 +217,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
   }
 }
 
+
 export class BatchUtils {
 
   static parentToString(parent: Batch, opts?: {
@@ -389,6 +396,74 @@ export class BatchUtils {
     }
   }
 
+  /**
+   * Compute individual count, from individual measures
+   * @param source
+   */
+  static computeIndividualCount(source: Batch) {
+
+    if (!source.label || !source.children) return; // skip
+
+    let sumChildrenIndividualCount: number = null;
+
+    source.children.forEach((b, index) => {
+
+      this.computeIndividualCount(b); // Recursive call
+
+      // Update sum of individual count
+      if (b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
+        sumChildrenIndividualCount = toNumber(sumChildrenIndividualCount, 0) + toNumber(b.individualCount, 1);
+      }
+    });
+
+    // Parent batch is a sampling batch: update individual count
+    if (BatchUtils.isSampleBatch(source)) {
+      source.individualCount = sumChildrenIndividualCount || null;
+    }
+
+    // Parent is NOT a sampling batch
+    else if (isNotNil(sumChildrenIndividualCount) && source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH)) {
+      if (isNotNil(source.individualCount) && source.individualCount < sumChildrenIndividualCount) {
+        console.warn(`[batch-utils] Fix batch {${source.label}} individual count  ${source.individualCount} => ${sumChildrenIndividualCount}`);
+        //source.individualCount = childrenIndividualCount;
+        source.qualityFlagId = QualityFlagIds.BAD;
+      }
+      else if (isNil(source.individualCount) || source.individualCount > sumChildrenIndividualCount) {
+        // Create a sampling batch, to hold the sampling individual count
+        const samplingBatch = new Batch();
+        samplingBatch.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
+        samplingBatch.rankOrder = 1;
+        samplingBatch.individualCount = sumChildrenIndividualCount;
+        samplingBatch.children = source.children;
+        source.children = [samplingBatch];
+      }
+    }
+  }
+
+  static computeRankOrder(source: Batch) {
+
+    if (!source.label || !source.children ) return; // skip
+
+    // Sort by id and rankOrder (new batch at the end)
+    source.children = source.children
+      .sort((b1, b2) => ((b1.id || 0) * 10000 + (b1.rankOrder || 0)) - ((b2.id || 0) * 10000 + (b2.rankOrder || 0)));
+
+    source.children.forEach((b, index) => {
+      b.rankOrder = index + 1;
+
+      // Sampling batch
+      if (b.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX)) {
+        b.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
+      }
+      // Individual measure batch
+      else if (b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
+        b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
+      }
+
+      this.computeRankOrder(b); // Recursive call
+    });
+  }
+
   static logTree(batch: Batch, opts?: {indent?: string; nextIndent?: string}) {
     const indent = opts && opts.indent || '';
     const nextIndent = opts && opts.nextIndent || indent;
@@ -411,5 +486,6 @@ export class BatchUtils {
       });
     }
   }
+
 
 }

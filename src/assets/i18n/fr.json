@@ -494,7 +494,7 @@
         }
       },
       "TABLE": {
-        "BTN_INDIVIDUAL_MEASURE": "Mesures individuelles",
+        "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures individuelles",
         "BTN_BURST_INPUT": "Mode rafale",
         "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
         "LABEL": "Libellé",
@@ -801,6 +801,48 @@
     "GEAR": {
       "LABEL": "Code engin",
       "NAME": "Libellé engin"
+    },
+    "PARAMETER": {
+      "TAB_GENERAL": "Détails",
+      "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
+      "TYPE": "Type de valeur",
+      "NEW": {
+        "TITLE": "Nouveau Paramètre"
+      },
+      "EDIT": {
+        "TITLE": "Paramètre {{label}} - {{name}}"
+      },
+      "TYPE_ENUM": {
+        "DOUBLE": "Numérique",
+        "STRING": "Texte",
+        "DATE": "Date",
+        "DATE_TIME": "Date/Heure",
+        "QUALITATIVE_VALUE": "Liste de valeurs",
+        "BOOLEAN": "Booléen"
+      }
+    },
+    "PMFM": {
+      "TAB_GENERAL": "Détails",
+      "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
+      "TYPE": "Type",
+      "MIN_VALUE": "Valeur min",
+      "MAX_VALUE": "Valeur max",
+      "DEFAULT_VALUE": "Valeur par défaut",
+      "MAXIMUM_NUMBER_DECIMALS": "Nb décimales max",
+      "SIGNIF_FIGURES_NUMBER": "Nb chiffres significatif",
+      "PARAMETER": "Paramètre",
+      "MATRIX": "Support",
+      "FRACTION": "Fraction",
+      "METHOD": "Méthode de collecte",
+      "UNIT": "Unité",
+      "BTN_ADD_PARAMETER": "Nouveau paramètre",
+      "BTN_OPEN_PARAMETER": "Ouvrir le paramètre",
+      "NEW": {
+        "TITLE": "Nouveau PSFM"
+      },
+      "EDIT": {
+        "TITLE": "PSFM {{label}} - {{name}}"
+      }
     },
     "LIST": {
       "TITLE": "Listes",

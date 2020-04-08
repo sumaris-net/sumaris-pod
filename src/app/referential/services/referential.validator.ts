@@ -1,10 +1,10 @@
 import { Injectable } from "@angular/core";
 import { ValidatorService } from "angular4-material-table";
-import { FormGroup, Validators, FormBuilder } from "@angular/forms";
+import {FormGroup, Validators, FormBuilder, AbstractControlOptions} from "@angular/forms";
 import { Referential } from "./model";
 
 @Injectable()
-export class ReferentialValidatorService implements ValidatorService {
+export class ReferentialValidatorService<T extends Referential = Referential> implements ValidatorService {
 
   constructor(protected formBuilder: FormBuilder) {
   }
@@ -13,16 +13,17 @@ export class ReferentialValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Referential, opts?: {
+  getFormGroup(data?: T, opts?: {
     withDescription?: boolean;
     withComments?: boolean;
   }): FormGroup {
     return this.formBuilder.group(
-      this.getFormConfig(data, opts)
+      this.getFormGroupConfig(data, opts),
+      this.getFormGroupOptions(data, opts)
     );
   }
 
-  getFormConfig(data?: Referential, opts?: {
+  getFormGroupConfig(data?: T, opts?: {
     withDescription?: boolean;
     withComments?: boolean;
   }): {[key: string]: any} {
@@ -45,5 +46,9 @@ export class ReferentialValidatorService implements ValidatorService {
     }
 
     return controlsConfig;
+  }
+
+  getFormGroupOptions(data?: T, opts?: any): AbstractControlOptions | any {
+    return {};
   }
 }

@@ -20,10 +20,10 @@ export class AccountValidatorService implements ValidatorService {
   }
 
   getFormGroup(data?: Account): FormGroup {
-    return this.formBuilder.group(this.getFormGroupDefinition(data));
+    return this.formBuilder.group(this.getFormGroupConfig(data));
   }
 
-  public getFormGroupDefinition(data?: Account): any {
+  public getFormGroupConfig(data?: Account): any {
     const formDef = {
       id: [''],
       updateDate: [''],

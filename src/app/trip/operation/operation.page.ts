@@ -23,6 +23,7 @@ import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {BatchUtils} from "../services/model/batch.model";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {filterNotNil, firstNotNil} from "../../shared/observables";
+import {BatchGroup, BatchGroupUtils} from "../services/model/batch-group.model";
 
 @Component({
   selector: 'app-operation-page',
@@ -341,7 +342,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
       data.physicalGear = trip.gears[0];
     }
 
-    this.defaultBackHref = trip ? '/trips/' + trip.id  + '?tab=2': undefined;
+    this.defaultBackHref = trip ? ('/trips/' + trip.id  + '?tab=2') : undefined;
   }
 
   async onEntityLoaded(data: Operation, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -549,7 +550,8 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
     // Set batches table (with root batches)
-    this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
+    this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"))
+      .map(BatchGroup.fromBatch);
 
     // make sure PMFMs are loaded (need the QV pmfm)
     this.batchGroupsTable.$pmfms

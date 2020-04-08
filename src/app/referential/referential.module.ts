@@ -52,6 +52,13 @@ import {VesselRegistrationValidatorService} from "./services/vessel-registration
 import {SoftwareValidatorService} from "./services/software.validator";
 import {SoftwareService} from "./services/software.service";
 import {VesselsPage} from "./vessel/list/vessels.page";
+import {PmfmService} from "./services/pmfm.service";
+import {ParameterService} from "./services/parameter.service";
+import {PmfmValidatorService} from "./services/validator/pmfm.validator";
+import {PmfmPage} from "./pmfm/pmfm.page";
+import {ParameterPage} from "./pmfm/parameter.page";
+import {ParameterValidatorService} from "./services/validator/parameter.validator";
+import {ReferentialTable} from "./list/referential.table";
 
 export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
@@ -80,7 +87,10 @@ export {
     StrategiesTable,
     SoftwarePage,
     VesselFeaturesHistoryComponent,
-    VesselRegistrationHistoryComponent
+    VesselRegistrationHistoryComponent,
+    ParameterPage,
+    PmfmPage,
+    ReferentialTable
   ],
   exports: [
     ReferentialsPage,
@@ -90,7 +100,9 @@ export {
     VesselForm,
     ProgramPage,
     SoftwarePage,
-    VesselsPage
+    VesselsPage,
+    ParameterPage,
+    PmfmPage
   ],
   entryComponents: [
     VesselModal
@@ -107,7 +119,12 @@ export {
     ProgramValidatorService,
     StrategyValidatorService,
     SoftwareService,
-    SoftwareValidatorService
+    SoftwareValidatorService,
+
+    PmfmService,
+    PmfmValidatorService,
+    ParameterService,
+    ParameterValidatorService
   ]
 })
 export class ReferentialModule {

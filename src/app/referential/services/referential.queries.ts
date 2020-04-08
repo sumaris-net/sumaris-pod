@@ -124,7 +124,7 @@ export const ReferentialFragments = {
     name
     minValue
     maxValue
-    unit
+    unitLabel
     defaultValue
     maximumNumberDecimals
     unitId
@@ -133,6 +133,51 @@ export const ReferentialFragments = {
     fractionId
     methodId
     levelId: parameterId
+    __typename
+  }`,
+  fullPmfm: gql`fragment FullPmfmFragment on PmfmVO {
+    id
+    label
+    name
+    statusId
+    updateDate
+    creationDate
+    entityName
+    type
+    minValue
+    maxValue
+    defaultValue
+    maximumNumberDecimals
+    signifFiguresNumber
+    parameter {
+      ...FullParameterFragment
+    }
+    matrix {
+      ...ReferentialFragment
+    }
+    fraction {
+      ...ReferentialFragment
+    }
+    method {
+      ...ReferentialFragment
+    }
+    unit {
+      ...ReferentialFragment
+    }
+    __typename
+  }`,
+  fullParameter: gql`fragment FullParameterFragment on ParameterVO {
+    id
+    label
+    name
+    type
+    statusId
+    creationDate
+    updateDate
+    entityName
+    qualitativeValues {
+      ...FullReferentialFragment
+    }
     __typename
   }`,
 };

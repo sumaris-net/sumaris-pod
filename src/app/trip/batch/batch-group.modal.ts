@@ -21,6 +21,7 @@ import {throttleTime} from "rxjs/operators";
 import {PlatformService} from "../../core/services/platform.service";
 import {environment} from "../../../environments/environment";
 import {Alerts} from "../../shared/alerts";
+import {BatchGroup} from "../services/model/batch-group.model";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -35,7 +36,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
   debug = false;
   loading = false;
   mobile: boolean;
-  data: Batch;
+  data: BatchGroup;
   $title = new BehaviorSubject<string>(undefined);
 
   @Input() acquisitionLevel: string;
@@ -59,7 +60,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
   @Input() hasMeasure: boolean;
 
   @Input()
-  set value(value: Batch) {
+  set value(value: BatchGroup) {
     this.data = value;
   }
 
@@ -106,10 +107,11 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   ngOnInit() {
 
-    this.form.setValue(this.data || new Batch());
+    console.log("OINit data");
+    this.form.setValue(this.data || new BatchGroup());
 
     this.disabled = toBoolean(this.disabled, false);
-    this.hasMeasure = toBoolean(this.hasMeasure, false);
+    this.hasMeasure = toBoolean(this.hasMeasure, this.data.observedIndividualCount > 0);
 
     if (this.disabled) {
       this.form.disable();
@@ -162,7 +164,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     await this.viewCtrl.dismiss();
   }
 
-  async close(event?: UIEvent): Promise<Batch | undefined> {
+  async close(event?: UIEvent): Promise<BatchGroup | undefined> {
     if (this.loading) return; // avoid many call
 
     this.loading = true;

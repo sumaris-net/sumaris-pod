@@ -20,6 +20,8 @@ import {ProgramPage} from "./referential/program/program.page";
 import {BatchGroupPage} from "./trip/batch/batch-group.page";
 import {AuthGuardService} from "./core/services/auth-guard.service";
 import {VesselsPage} from "./referential/vessel/list/vessels.page";
+import {PmfmPage} from "./referential/pmfm/pmfm.page";
+import {ParameterPage} from "./referential/pmfm/parameter.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -123,7 +125,46 @@ const routes: Routes = [
             }
           }
         ]
-      }
+      },
+      {
+        path: 'parameter/:id',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: ParameterPage,
+            data: {
+              profile: 'ADMIN'
+            }
+          }
+        ]
+      },
+      {
+        path: 'pmfm/:id',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: PmfmPage,
+            data: {
+              profile: 'ADMIN'
+            }
+          }
+        ]
+      },
+      /*{
+        path: 'parameter/:id',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: ParameterPage,
+            data: {
+              profile: 'ADMIN'
+            }
+          }
+        ]
+      }*/
     ]
   },
 

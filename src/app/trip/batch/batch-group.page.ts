@@ -14,13 +14,14 @@ import {filter, switchMap} from "rxjs/operators";
 import {TripService} from "../services/trip.service";
 import {BatchUtils} from "../services/model/batch.model";
 import {BatchGroupForm} from "./batch-group.form";
+import {BatchGroup} from "../services/model/batch-group.model";
 
 @Component({
   selector: 'app-batch-group-page',
   templateUrl: './batch-group.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupPage extends AppEditorPage<Batch, any> implements OnInit {
+export class BatchGroupPage extends AppEditorPage<BatchGroup, any> implements OnInit {
 
   programSubject = new BehaviorSubject<string>(undefined);
 
@@ -36,14 +37,15 @@ export class BatchGroupPage extends AppEditorPage<Batch, any> implements OnInit 
     protected modalCtrl: ModalController
   ) {
     super(injector,
-      Batch,
+      BatchGroup,
       {
         load: async (id, {operationId}) => {
           // Load operation
           const operation = await this.operationService.load(operationId, {fetchPolicy: "cache-first"});
 
           // Load batch
-          const batch = operation && operation.catchBatch && (operation.catchBatch.children || []).find(b => b.id === id) || new Batch();
+          const obj = operation && operation.catchBatch && (operation.catchBatch.children || []).find(b => b.id === id) || undefined;
+          const batch = BatchGroup.fromBatch(obj);
 
           // Load trip
           const trip = operation && await this.tripService.load(operation.tripId, {fetchPolicy: "cache-first"});
@@ -55,9 +57,9 @@ export class BatchGroupPage extends AppEditorPage<Batch, any> implements OnInit 
 
           return batch;
         },
-        delete: async (batch) => {},
-        listenChanges: (id) => {return of()},
-        save: async (batch) => {return batch}
+        delete: async (batch) => {}, // TODO
+        listenChanges: (id) => of(), // TODO
+        save: async (batch) => batch // TODO
       });
 
     this.idAttribute = 'batchId';
@@ -109,11 +111,11 @@ export class BatchGroupPage extends AppEditorPage<Batch, any> implements OnInit 
     // nothing to do
   }
 
-  protected setValue(data: Batch) {
+  protected setValue(data: BatchGroup) {
     this.batchGroupForm.value = data;
   }
 
-  protected async computeTitle(data: Batch): Promise<string> {
+  protected async computeTitle(data: BatchGroup): Promise<string> {
     // new data
     if (!data || isNil(data.id)) {
       return await this.translate.get('TRIP.BATCH.NEW.TITLE').toPromise();

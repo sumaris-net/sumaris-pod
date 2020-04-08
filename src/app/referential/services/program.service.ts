@@ -145,7 +145,7 @@ const ProgramFragments = {
       methodId
       label
       name
-      unit
+      unitLabel
       type
       minValue
       maxValue
@@ -177,16 +177,7 @@ const ProgramFragments = {
       defaultValue
       pmfmId
       pmfm {
-        id
-        label
-        name
-        minValue
-        maxValue
-        unit
-        defaultValue
-        maximumNumberDecimals
-        entityName
-        __typename
+        ...PmfmFragment
       }
       gears
       taxonGroupIds
@@ -247,6 +238,7 @@ const LoadQuery: any = gql`
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
+  ${ReferentialFragments.pmfm}
   ${ReferentialFragments.taxonName}
 `;
 
@@ -298,6 +290,7 @@ const SaveQuery: any = gql`
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
+  ${ReferentialFragments.pmfm}
   ${ReferentialFragments.taxonName}
 `;
 

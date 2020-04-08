@@ -116,7 +116,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       positionGroup.patchValue(coords, {emitEvent: false, onlySelf: true});
     }
     // Set also the end date time
-    if (fieldName == 'endPosition') {
+    if (fieldName === 'endPosition') {
       this.form.controls['endDateTime'].setValue(moment(), {emitEvent: false, onlySelf: true});
     }
     this.form.markAsDirty({onlySelf: true});

@@ -90,6 +90,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     this.statusList.forEach((status) => this.statusById[status.id] = status);
 
     this.additionalFields = this.accountService.additionalFields;
+    console.log(this.additionalFields);
 
     // For DEV only --
     //this.debug = !environment.production;

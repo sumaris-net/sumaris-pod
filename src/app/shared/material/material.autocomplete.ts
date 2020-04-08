@@ -58,6 +58,7 @@ export declare interface  MatAutocompleteFieldAddOptions<T = any> {
   items?: Observable<T[]> | T[];
   filter?: any;
   attributes?: string[];
+  columnSizes?: (number|'auto'|undefined)[];
   columnNames?: (string|undefined)[];
   displayWith?: DisplayFn;
   showAllOnFocus?: boolean;
@@ -104,6 +105,7 @@ export class MatAutocompleteConfigHolder {
       items: options.items,
       filter: searchFilter,
       displayWith,
+      columnSizes: options.columnSizes,
       columnNames: options.columnNames,
       showAllOnFocus: options.showAllOnFocus,
       showPanelOnFocus: options.showPanelOnFocus

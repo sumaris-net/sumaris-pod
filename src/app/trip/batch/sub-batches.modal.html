@@ -102,7 +102,7 @@
           <ng-container *ngIf="qvPmfm" [matColumnDef]="qvPmfm.pmfmId.toString()">
             <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="qvPmfm.isDate">
               <ion-label>{{getPmfmColumnHeader(qvPmfm)}}
-                <small *ngIf="qvPmfm.hasUnit"><br />({{qvPmfm.unit}})</small>
+                <small *ngIf="qvPmfm.hasUnit"><br />({{qvPmfm.unitLabel}})</small>
               </ion-label>
             </mat-header-cell>
             <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="qvPmfm.isDate">
@@ -125,7 +125,7 @@
             <ng-container *ngIf="pmfm.pmfmId !== qvPmfm.pmfmId" [matColumnDef]="pmfm.pmfmId.toString()">
               <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm.isDate" >
                 <ion-label>{{getPmfmColumnHeader(pmfm)}}
-                  <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unit}})</small>
+                  <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unitLabel}})</small>
                 </ion-label>
               </mat-header-cell>
               <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">

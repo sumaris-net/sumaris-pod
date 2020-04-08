@@ -53,7 +53,7 @@ export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
+export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = BatchFilter> extends AppMeasurementsTable<T, F>
   implements OnInit, OnDestroy {
 
   protected _initialPmfms: PmfmStrategy[];
@@ -65,11 +65,11 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   weightPmfmsByMethod: { [key: string]: PmfmStrategy };
 
   @Input()
-  set value(data: Batch[]) {
+  set value(data: T[]) {
     this.memoryDataService.value = data;
   }
 
-  get value(): Batch[] {
+  get value(): T[] {
     return this.memoryDataService.value;
   }
 
@@ -115,10 +115,11 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   constructor(
     injector: Injector,
     protected validatorService: ValidatorService,
-    protected memoryDataService: InMemoryTableDataService<Batch, BatchFilter>,
+    protected memoryDataService: InMemoryTableDataService<T, F>,
+    dataType?: new() => T
   ) {
     super(injector,
-      Batch,
+      dataType || ((Batch as any) as (new() => T)),
       memoryDataService,
       validatorService,
       {
@@ -159,16 +160,16 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
 
   setParent(data: Operation | Landing) {
     if (!data) {
-      this.setFilter({});
+      this.setFilter({} as F);
     } else if (data instanceof Operation) {
-      this.setFilter({operationId: data.id});
+      this.setFilter({operationId: data.id} as F);
     } else if (data instanceof Landing) {
-      this.setFilter({landingId: data.id});
+      this.setFilter({landingId: data.id} as F);
     }
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
-    const batch = new Batch();
+    const batch = new this.dataType();
     //await this.onNewEntity(batch);
 
     const res = await this.openDetailModal(batch, {isNew: true});
@@ -178,7 +179,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     return true;
   }
 
-  protected async addBatchToTable(newBatch: Batch): Promise<TableElement<Batch>> {
+  protected async addBatchToTable(newBatch: T): Promise<TableElement<T>> {
     console.debug("[batches-table] Adding new batch", newBatch);
 
     const row = await this.addRowToTable();
@@ -208,7 +209,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     return row;
   }
 
-  protected async openRow(id: number, row: TableElement<Batch>): Promise<boolean> {
+  protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
 
     if (!this.allowRowDetail) return false;
 
@@ -217,7 +218,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
       return true;
     }
 
-    const batch = row.validator ? Batch.fromObject(row.currentData) : row.currentData.clone();
+    const batch = this.getRowEntity(row, true);
 
     // Prepare entity measurement values
     this.prepareEntityToSave(batch);
@@ -243,7 +244,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     return true;
   }
 
-  async openDetailModal(batch?: Batch, opts?: {isNew?: boolean}): Promise<Batch | undefined> {
+  async openDetailModal(batch?: Batch, opts?: {isNew?: boolean}): Promise<T | undefined> {
     const modal = await this.modalCtrl.create({
       component: BatchModal,
       componentProps: {
@@ -268,18 +269,18 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
-    return (data instanceof Batch) ? data : undefined;
+    return (data instanceof Batch) ? data as T : undefined;
   }
 
-  async onSubBatchesClick(event: UIEvent, row: TableElement<Batch>, opts?: {
+  async onSubBatchesClick(event: UIEvent, row: TableElement<T>, opts?: {
     showParent?: boolean;
   }): Promise<Batch[] | undefined> {
     if (event) event.preventDefault();
-    const selectedParent = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
+    const selectedParent = this.getRowEntity(row);
     return await this.openSubBatchesModal(selectedParent, opts);
   }
 
-  async openSubBatchesModal(selectedParent?: Batch, opts?: {
+  async openSubBatchesModal(selectedParent?: T, opts?: {
     showParent?: boolean;
   }): Promise<Batch[] | undefined> {
 
@@ -299,13 +300,14 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     const onModalDismiss = new Subject<any>();
     const availableParents =
       // If mobile, create an observable, linked to table rows
-      this.mobile ? this.dataSource.connect()
-      .pipe(
-        takeUntil(onModalDismiss),
-        map((res) => res.map((row) => row.currentData as Batch))
-      ) :
-      // else, create a copy
-      of((await this.dataSource.getRows()).map((row) => row.currentData as Batch));
+      this.mobile ?
+        this.dataSource.connect()
+        .pipe(
+          takeUntil(onModalDismiss),
+          map((res) => res.map((row) => row.currentData as T))
+        ) :
+      // else (if desktop), create a copy
+      of((await this.dataSource.getRows()).map(row => this.getRowEntity(row)));
 
     const modal = await this.modalCtrl.create({
       component: SubBatchesModal,
@@ -373,7 +375,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
       });
   }
 
-  protected prepareEntityToSave(batch: Batch) {
+  protected prepareEntityToSave(batch: T) {
     // Override by subclasses
   }
 
@@ -409,7 +411,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     return batch.children;
   }
 
-  protected async onNewEntity(data: Batch): Promise<void> {
+  protected async onNewEntity(data: T): Promise<void> {
     console.debug("[sample-table] Initializing new row data...");
 
     await super.onNewEntity(data);

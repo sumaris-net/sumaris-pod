@@ -74,14 +74,12 @@ type BatchVO {
   parent: BatchVO
   parentId: Int
   qualityFlagId: Int
-  quantificationMeasurementValues: Map_Integer_StringScalar
   quantificationMeasurements: [MeasurementVO]
   rankOrder: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
   samplingRatio: Float
   samplingRatioText: String
-  sortingMeasurementValues: Map_Integer_StringScalar
   sortingMeasurements: [MeasurementVO]
   taxonGroup: ReferentialVO
   taxonName: TaxonNameVO
@@ -256,6 +254,7 @@ type LocationAssociationVO {
   parentId: Int
   statusId: Int
   updateDate: Date
+  validityStatusId: Int
 }
 
 type LocationVO {
@@ -312,6 +311,7 @@ type MetierVO {
   statusId: Int
   taxonGroup: TaxonGroupVO
   updateDate: Date
+  validityStatusId: Int
 }
 
 "Mutation root"
@@ -360,7 +360,7 @@ type Mutation {
   saveAccount(account: AccountVOInput): AccountVO
   "Create or update a data aggregation"
   saveAggregation(filter: ExtractionFilterVOInput, type: AggregationTypeVOInput): AggregationTypeVO
-  "Save a software configuration"
+  "Save a configuration"
   saveConfiguration(config: ConfigurationVOInput): ConfigurationVO
   "Create or update a department"
   saveDepartment(department: DepartmentVOInput): DepartmentVO
@@ -376,18 +376,24 @@ type Mutation {
   saveOperation(operation: OperationVOInput): OperationVO
   "Save operations"
   saveOperations(operations: [OperationVOInput]): [OperationVO]
+  "Create or update a parameter"
+  saveParameter(parameter: ParameterVOInput): ParameterVO
   "Create or update many persons"
   savePersons(persons: [PersonVOInput]): [PersonVO]
+  "Create or update a pmfm"
+  savePmfm(pmfm: PmfmVOInput): PmfmVO
   "Save a program (with strategies)"
   saveProgram(program: ProgramVOInput): ProgramVO
   "Create or update a referential"
   saveReferential(referential: ReferentialVOInput): ReferentialVO
   "Create or update many referential"
   saveReferentials(referentials: [ReferentialVOInput]): [ReferentialVO]
+  "Save a software configuration"
+  saveSoftware(software: SoftwareVOInput): SoftwareVO
   "Create or update a trip"
-  saveTrip(trip: TripVOInput): TripVO
+  saveTrip(trip: TripVOInput, withOperation: Boolean = false): TripVO
   "Create or update many trips"
-  saveTrips(trips: [TripVOInput]): [TripVO]
+  saveTrips(trips: [TripVOInput], withOperation: Boolean = false): [TripVO]
   "Create or update a vessel"
   saveVessel(vessel: VesselVOInput): VesselVO
   "Create or update many vessels"
@@ -464,6 +470,24 @@ type OperationVO {
   validationDate: Date
 }
 
+type ParameterVO {
+  comments: String
+  creationDate: Date
+  description: String
+  entityName: String
+  id: Int
+  label: String
+  "Get the level from a referential entity"
+  level: ReferentialVO
+  levelId: Int
+  name: String
+  qualitativeValues: [ReferentialVO]
+  statusId: Int
+  type: String
+  updateDate: Date
+  validityStatusId: Int
+}
+
 type PersonVO {
   avatar: String
   creationDate: Date
@@ -534,6 +558,9 @@ type PmfmVO {
   defaultValue: Float
   description: String
   entityName: String
+  "Get PMFM's fraction"
+  fraction: ReferentialVO
+  fractionId: Int
   id: Int
   isCalculated: Boolean
   isEstimated: Boolean
@@ -541,15 +568,29 @@ type PmfmVO {
   "Get the level from a referential entity"
   level: ReferentialVO
   levelId: Int
+  "Get PMFM's matrix"
+  matrix: ReferentialVO
+  matrixId: Int
   maxValue: Float
   maximumNumberDecimals: Int
+  "Get PMFM's method"
+  method: ReferentialVO
+  methodId: Int
   minValue: Float
   name: String
+  "Get PMFM's paramater"
+  parameter: ParameterVO
+  parameterId: Int
   qualitativeValues: [ReferentialVO]
+  signifFiguresNumber: Int
   statusId: Int
   type: String
-  unit: String
+  "Get PMFM's unit"
+  unit: ReferentialVO
+  unitId: Int
+  unitLabel: String
   updateDate: Date
+  validityStatusId: Int
 }
 
 type ProgramVO {
@@ -584,8 +625,12 @@ type Query {
   authChallenge: AuthDataVO
   "Authenticate using a token"
   authenticate(token: String): Boolean!
+  "Get cache statistics"
+  cacheStatistics: Map_String_Map_String_LongScalar
+  "Clear a single cache or all caches"
+  clearCache(name: String): Boolean!
   "A software configuration"
-  configuration(software: String): ConfigurationVO
+  configuration(id: Int, label: String): ConfigurationVO
   "Get a person"
   department(id: Int!): DepartmentVO
   "Search in departments"
@@ -614,8 +659,14 @@ type Query {
   operation(id: Int!): OperationVO
   "Get trip's operations"
   operations(filter: OperationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "asc"): [OperationVO]
+  "Get a parameter"
+  parameter(id: Int, label: String): ParameterVO
   "Search in persons"
   persons(filter: PersonFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "pubkey", sortDirection: String = "asc"): [PersonVO]
+  "Get total persons count"
+  personsCount(filter: PersonFilterVOInput): Long!
+  "Get a PMFM"
+  pmfm(id: Int, label: String): PmfmVO
   "Get a program"
   program(id: Int, label: String): ProgramVO
   "Search in programs"
@@ -625,9 +676,11 @@ type Query {
   "Get all types of referential"
   referentialTypes: [ReferentialTypeVO]
   "Search in referentials"
-  referentials(entityName: String, filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [ReferentialVO]
+  referentials(entityName: String, filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
   "Get referentials count"
   referentialsCount(entityName: String, filter: ReferentialFilterVOInput): Long
+  "A software config"
+  software(id: Int, label: String): SoftwareVO
   "Search in taxon names"
   taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
   "Get a trip, by id"
@@ -668,6 +721,7 @@ type ReferentialVO {
   name: String
   statusId: Int
   updateDate: Date
+  validityStatusId: Int
 }
 
 type SaleVO {
@@ -710,6 +764,7 @@ type SampleVO {
   landing: LandingVO
   landingId: Int
   matrix: ReferentialVO
+  matrixId: Int
   "Get measurement values (as a key/value map, using pmfmId as key)"
   measurementValues: Map_Integer_StringScalar
   "Get sample measurements"
@@ -729,9 +784,19 @@ type SampleVO {
   size: Float
   sizeUnit: String
   taxonGroup: ReferentialVO
-  taxonName: ReferentialVO
+  taxonName: TaxonNameVO
   updateDate: Date
   validationDate: Date
+}
+
+type SoftwareVO {
+  creationDate: Date
+  id: Int
+  label: String
+  name: String
+  properties: Map_String_StringScalar
+  statusId: Int
+  updateDate: Date
 }
 
 type StrategyVO {
@@ -754,32 +819,32 @@ type StrategyVO {
 type Subscription {
   "Subscribe to an account update"
   updateAccount(
-    #Minimum interval to get changes, in seconds.
+    "Minimum interval to get changes, in seconds."
     interval: Int = 30,
     pubkey: String
   ): AccountVO
   "Subscribe to changes on an landing"
   updateLanding(
     id: Int!,
-    #Minimum interval to get changes, in seconds.
+    "Minimum interval to get changes, in seconds."
     interval: Int = 30
   ): LandingVO
   "Subscribe to changes on an observed location"
   updateObservedLocation(
     id: Int!,
-    #Minimum interval to get changes, in seconds.
+    "Minimum interval to get changes, in seconds."
     interval: Int = 30
   ): ObservedLocationVO
   "Subscribe to changes on an operation"
   updateOperation(
     id: Int!,
-    #Minimum interval to get changes, in seconds.
+    "Minimum interval to get changes, in seconds."
     interval: Int = 30
   ): OperationVO
   "Subscribe to changes on a trip"
   updateTrip(
     id: Int!,
-    #Minimum interval to get changes, in seconds.
+    "Minimum interval to get changes, in seconds."
     interval: Int = 30
   ): TripVO
 }
@@ -805,6 +870,7 @@ type TaxonGroupVO {
   "Get taxon group's taxons"
   taxonNames: [TaxonNameVO]
   updateDate: Date
+  validityStatusId: Int
 }
 
 type TaxonNameStrategyVO {
@@ -829,7 +895,10 @@ type TaxonNameVO {
   name: String
   referenceTaxonId: Int
   statusId: Int
+  "Get taxon groups from a taxon name"
+  taxonGroupIds: [Int]
   updateDate: Date
+  validityStatusId: Int
 }
 
 type TripVO {
@@ -1051,14 +1120,12 @@ input BatchVOInput {
   parent: BatchVOInput
   parentId: Int
   qualityFlagId: Int
-  quantificationMeasurementValues: Map_Integer_StringScalar
   quantificationMeasurements: [MeasurementVOInput]
   rankOrder: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
   samplingRatio: Float
   samplingRatioText: String
-  sortingMeasurementValues: Map_Integer_StringScalar
   sortingMeasurements: [MeasurementVOInput]
   taxonGroup: ReferentialVOInput
   taxonName: TaxonNameVOInput
@@ -1099,6 +1166,7 @@ input DepartmentVOInput {
   siteUrl: String
   statusId: Int
   updateDate: Date
+  validityStatusId: Int
 }
 
 input ExtractionFilterCriterionVOInput {
@@ -1258,6 +1326,7 @@ input LocationAssociationVOInput {
   parentId: Int
   statusId: Int
   updateDate: Date
+  validityStatusId: Int
 }
 
 input LocationVOInput {
@@ -1308,6 +1377,7 @@ input MetierVOInput {
   statusId: Int
   taxonGroup: TaxonGroupVOInput
   updateDate: Date
+  validityStatusId: Int
 }
 
 input ObservedLocationFilterVOInput {
@@ -1370,6 +1440,22 @@ input OperationVOInput {
   tripId: Int
   updateDate: Date
   validationDate: Date
+}
+
+input ParameterVOInput {
+  comments: String
+  creationDate: Date
+  description: String
+  entityName: String
+  id: Int
+  label: String
+  levelId: Int
+  name: String
+  qualitativeValues: [ReferentialVOInput]
+  statusId: Int
+  type: String
+  updateDate: Date
+  validityStatusId: Int
 }
 
 input PersonFilterVOInput {
@@ -1451,20 +1537,27 @@ input PmfmVOInput {
   defaultValue: Float
   description: String
   entityName: String
+  fractionId: Int
   id: Int
   isCalculated: Boolean
   isEstimated: Boolean
   label: String
   levelId: Int
+  matrixId: Int
   maxValue: Float
   maximumNumberDecimals: Int
+  methodId: Int
   minValue: Float
   name: String
+  parameterId: Int
   qualitativeValues: [ReferentialVOInput]
+  signifFiguresNumber: Int
   statusId: Int
   type: String
-  unit: String
+  unitId: Int
+  unitLabel: String
   updateDate: Date
+  validityStatusId: Int
 }
 
 input ProgramFilterVOInput {
@@ -1508,6 +1601,7 @@ input ReferentialVOInput {
   name: String
   statusId: Int
   updateDate: Date
+  validityStatusId: Int
 }
 
 input SaleVOInput {
@@ -1549,6 +1643,7 @@ input SampleVOInput {
   landing: LandingVOInput
   landingId: Int
   matrix: ReferentialVOInput
+  matrixId: Int
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVOInput]
   operation: OperationVOInput
@@ -1566,9 +1661,19 @@ input SampleVOInput {
   size: Float
   sizeUnit: String
   taxonGroup: ReferentialVOInput
-  taxonName: ReferentialVOInput
+  taxonName: TaxonNameVOInput
   updateDate: Date
   validationDate: Date
+}
+
+input SoftwareVOInput {
+  creationDate: Date
+  id: Int
+  label: String
+  name: String
+  properties: Map_String_StringScalar
+  statusId: Int
+  updateDate: Date
 }
 
 input StrategyVOInput {
@@ -1605,15 +1710,16 @@ input TaxonGroupVOInput {
   statusId: Int
   taxonNames: [TaxonNameVOInput]
   updateDate: Date
+  validityStatusId: Int
 }
 
 input TaxonNameFilterVOInput {
+  levelIds: [Int]
   searchAttribute: String
   searchText: String
   statusIds: [Int]
   taxonGroupId: Int
   taxonGroupIds: [Int]
-  taxonomicLevelIds: [Int]
   withSynonyms: Boolean
 }
 
@@ -1638,6 +1744,7 @@ input TaxonNameVOInput {
   referenceTaxonId: Int
   statusId: Int
   updateDate: Date
+  validityStatusId: Int
 }
 
 input TripFilterVOInput {
@@ -1807,6 +1914,9 @@ scalar Map_Integer_StringScalar
 
 "Built-in scalar for map-like structures"
 scalar Map_String_List_ObjectScalar
+
+"Built-in scalar for map-like structures"
+scalar Map_String_Map_String_LongScalar
 
 "Built-in scalar for map-like structures"
 scalar Map_String_StringScalar
