@@ -3,15 +3,16 @@ import { DEFAULT_PLACEHOLDER_CHAR } from '../constants';
 
 const DEFAULT_MAX_DECIMALS = 3;
 
-declare class LatLongFormatOptions {
+export declare class LatLongFormatOptions {
     pattern: 'DDMMSS' | 'DDMM' | 'DD';
     maxDecimals?: number;
     placeholderChar?: string;
 }
+export declare type LatLongFormatFn = (value: number | null, opts?: LatLongFormatOptions) => string;
 
 function formatLatitude(value: number | null, opts?: LatLongFormatOptions): string {
   opts = opts || { pattern: 'DDMM' };
-  if (value === undefined || value === null) return "";
+  if (value === undefined || value === null) return null;
   if (opts.pattern === 'DDMMSS') return formatToDDMMSS(value, false, opts.maxDecimals || DEFAULT_MAX_DECIMALS, opts.placeholderChar);
   if (opts.pattern === 'DDMM') return formatToDDMM(value, false, opts.maxDecimals || DEFAULT_MAX_DECIMALS, opts.placeholderChar);
 
@@ -20,7 +21,7 @@ function formatLatitude(value: number | null, opts?: LatLongFormatOptions): stri
 
 function formatLongitude(value: number | null, opts?: LatLongFormatOptions): string {
     opts = opts || { pattern: 'DDMM' };
-    if (value === undefined || value === null) return "";
+    if (value === undefined || value === null) return null;
 
     if (opts.pattern === 'DDMMSS') return formatToDDMMSS(value, true, opts.maxDecimals || DEFAULT_MAX_DECIMALS, opts.placeholderChar);
     if (opts.pattern === 'DDMM') return formatToDDMM(value, true, opts.maxDecimals || DEFAULT_MAX_DECIMALS, opts.placeholderChar);
@@ -30,16 +31,26 @@ function formatLongitude(value: number | null, opts?: LatLongFormatOptions): str
 
 function formatToDD(value: number, isLongitude: boolean, maxDecimals: number, placeholderChar?: string): string {
   // opts.pattern === DD
-  const negative = value < 0;
+  let negative = value < 0;
   if (negative) value *= -1;
 
-  // Force spacer
+  // Fix longitude when outside [-90, 90]
+  while (isLongitude && value >= 90) {
+    value = (value - 180);
+    negative = value < 0;
+    if (negative) value *= -1;
+  }
+  // Fix latitude when outside [-90, 90]
+  while (!isLongitude && value >= 45) {
+    value = (value - 90);
+    negative = value < 0;
+    if (negative) value *= -1;
+  }
+
+  // Add sign and prefix
   let prefix = negative ? '-' : '+';
   if (placeholderChar) {
     if (value < 10) {
-      prefix += placeholderChar;
-    }
-    if (value < 100 && isLongitude) {
       prefix += placeholderChar;
     }
   }
@@ -47,8 +58,21 @@ function formatToDD(value: number, isLongitude: boolean, maxDecimals: number, pl
 }
 
 function formatToDDMMSS(value: number, isLongitude: boolean, maxDecimals: number, placeholderChar?: string): string {
-  const negative = value < 0;
+  let negative = value < 0;
   if (negative) value *= -1;
+
+  // Fix longitude when outside [-90, 90]
+  while (isLongitude && value >= 90) {
+    value = (value - 180);
+    negative = value < 0;
+    if (negative) value *= -1;
+  }
+  // Fix latitude when outside [-90, 90]
+  while (!isLongitude && value >= 45) {
+    value = (value - 90);
+    negative = value < 0;
+    if (negative) value *= -1;
+  }
 
   let degrees: number | string = Math.trunc(value);
   let minutes: number | string = Math.trunc((value - degrees) * 60);
@@ -65,10 +89,7 @@ function formatToDDMMSS(value: number, isLongitude: boolean, maxDecimals: number
 
   // Force spacer
   if (placeholderChar) {
-    if (value < 10) {
-      degrees = placeholderChar + degrees;
-    }
-    if (value < 100 && isLongitude) {
+    if (degrees < 10) {
       degrees = placeholderChar + degrees;
     }
     if (minutes < 10) {
@@ -95,8 +116,21 @@ function formatToDDMMSS(value: number, isLongitude: boolean, maxDecimals: number
 }
 
 function formatToDDMM(value: number, isLongitude: boolean, maxDecimals: number, placeholderChar?: string): string {
-  const negative = value < 0;
+  let negative = value < 0;
   if (negative) value *= -1;
+
+  // Fix longitude when outside [-90, 90]
+  while (isLongitude && value >= 90) {
+    value = (value - 180);
+    negative = value < 0;
+    if (negative) value *= -1;
+  }
+  // Fix latitude when outside [-90, 90]
+  while (!isLongitude && value >= 45) {
+    value = (value - 90);
+    negative = value < 0;
+    if (negative) value *= -1;
+  }
 
   let degrees: number | string = Math.trunc(value);
   let minutes: number | string = roundFloat((value - degrees) * 60, maxDecimals);
@@ -108,10 +142,7 @@ function formatToDDMM(value: number, isLongitude: boolean, maxDecimals: number, 
 
   // Add placeholderChar
   if (placeholderChar) {
-    if (value < 10) {
-      degrees = placeholderChar + degrees;
-    }
-    if (value < 100 && isLongitude) {
+    if (degrees < 10) {
       degrees = placeholderChar + degrees;
     }
 
@@ -133,8 +164,10 @@ function formatToDDMM(value: number, isLongitude: boolean, maxDecimals: number, 
       }
     }
   }
+  const result = degrees + '° ' + minutes + '\' ' + direction;
+  if (isLongitude) console.log((negative ? value * -1 : value) + " -> " + result);
 
-  return degrees + '° ' + minutes + '\' ' + direction;
+  return result;
 }
 
 // 36°57'9" N  = 36.9525000

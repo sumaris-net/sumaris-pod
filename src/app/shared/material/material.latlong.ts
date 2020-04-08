@@ -23,11 +23,13 @@ import {TranslateService} from "@ngx-translate/core";
 import {SharedValidators} from '../validator/validators';
 import {
   DEFAULT_MAX_DECIMALS,
+  LatLongFormatFn,
   formatLatitude,
   formatLongitude,
   parseLatitudeOrLongitude
 } from '../pipes/latlong-format.pipe';
 import {DEFAULT_PLACEHOLDER_CHAR} from '../constants';
+import {isNotNil, isNotNilOrBlank} from "../functions";
 
 const MASKS = {
   'latitude': {
@@ -38,7 +40,7 @@ const MASKS = {
   'longitude': {
     'DDMMSS': [/\d/, /\d/, '°', ' ', /\d/, /\d/, '\'', ' ', /\d/, /\d/, '"', ' ', /E|W|e|w/],
     'DDMM': [/\d/, /\d/, '°', ' ', /\d/, /\d/, '.', /\d/, /\d/, /\d/, '\'', ' ', /E|W|e|w/],
-    'DD': [/[+-]/, /\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '°']
+    'DD': [/[+-]/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '°']
   }
 };
 
@@ -64,12 +66,14 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
   protected disabling = false;
   protected writing = false;
   protected touchUi = false;
+  protected formatter: LatLongFormatFn;
 
   mobile: boolean;
   textFormControl: FormControl;
   mask: (string | RegExp)[];
   value: number;
   inputPlaceholder: string;
+
 
   @Input() disabled: boolean = false
 
@@ -120,6 +124,7 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
       this.latLongPattern = 'DDMM';
       this.mask = MASKS[this.type][this.latLongPattern];
     }
+    this.formatter = this.type === 'latitude' ? formatLatitude : formatLongitude;
     if (this.maxDecimals) {
       if (this.maxDecimals < 0) {
         console.error("Invalid attribute 'maxDecimals'. Must a positive value.");
@@ -158,15 +163,16 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
   writeValue(obj: any): void {
     if (this.writing) return;
 
-    this.value = (typeof obj == "string") ? parseFloat(obj.replace(/,/g, '.')) : obj;
+    this.value = (typeof obj === "string") ? parseFloat(obj.replace(/,/g, '.')) : obj;
     this.writing = true;
-    const strValue = (this.type === 'latitude' ? formatLatitude : formatLongitude)(
+    const strValue = this.formatter(
       this.value,
       {
         pattern: this.latLongPattern,
         maxDecimals: this.maxDecimals,
         placeholderChar: this.placeholderChar
       });
+    console.log("TODO applying " + strValue + " -> " + this.mask);
     this.textFormControl.patchValue(strValue, {emitEvent: false});
     this.writing = false;
     this.markForCheck();
