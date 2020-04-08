@@ -165,7 +165,6 @@ function formatToDDMM(value: number, isLongitude: boolean, maxDecimals: number, 
     }
   }
   const result = degrees + '° ' + minutes + '\' ' + direction;
-  if (isLongitude) console.log((negative ? value * -1 : value) + " -> " + result);
 
   return result;
 }
