@@ -8,7 +8,7 @@ import {AutofocusDirective} from "./directives/autofocus.directive";
 import {DateFormatPipe} from "./pipes/date-format.pipe";
 import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
 import {DateFromNowPipe} from "./pipes/date-from-now.pipe";
-import {LatLongFormatPipe} from "./pipes/latlong-format.pipe";
+import {LatitudeFormatPipe, LatLongFormatPipe, LongitudeFormatPipe} from "./pipes/latlong-format.pipe";
 import {NumberFormatPipe} from "./pipes/number-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
 import {ToolbarComponent} from "./toolbar/toolbar";
@@ -108,6 +108,8 @@ export {
     DateDiffDurationPipe,
     DateFromNowPipe,
     LatLongFormatPipe,
+    LatitudeFormatPipe,
+    LongitudeFormatPipe,
     HighlightPipe,
     NumberFormatPipe,
     FileSizePipe,
@@ -130,6 +132,8 @@ export {
     DateFromNowPipe,
     DateDiffDurationPipe,
     LatLongFormatPipe,
+    LatitudeFormatPipe,
+    LongitudeFormatPipe,
     HighlightPipe,
     NumberFormatPipe,
     FileSizePipe,
@@ -148,6 +152,8 @@ export {
     DateFromNowPipe,
     DateDiffDurationPipe,
     LatLongFormatPipe,
+    LatitudeFormatPipe,
+    LongitudeFormatPipe,
     HighlightPipe,
     NumberFormatPipe,
     ProgressBarService,

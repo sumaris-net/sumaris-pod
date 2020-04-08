@@ -10,9 +10,15 @@
 
 <mat-form-field [floatLabel]="floatLabel" *ngIf="!readonly" [class.mat-form-field-invalid]="formControl.touched && formControl.invalid">
   <mat-label *ngIf="!mobile && labelPlaceholder">{{labelPlaceholder}}</mat-label>
-  <input matInput type="text" [textMask]="{mask: mask, keepCharPositions: true, maxDecimals: maxDecimals, placeholderChar: placeholderChar}"
-    [formControl]="textFormControl" autocomplete="off" [placeholder]="inputPlaceholder|translate" (blur)="_onBlur($event)"
-    [required]="required" [tabindex]="tabindex">
+  <input matInput
+         type="text"
+         autocomplete="off"
+         [textMask]="{mask: mask, keepCharPositions: true, maxDecimals: maxDecimals, placeholderChar: placeholderChar}"
+         [formControl]="textFormControl"
+         [placeholder]="inputPlaceholder|translate"
+         (blur)="_onBlur($event)"
+         [required]="required"
+         [tabindex]="tabindex">
 
   <div matSuffix>
     <ng-content select="[matLatlongSuffix]"></ng-content>

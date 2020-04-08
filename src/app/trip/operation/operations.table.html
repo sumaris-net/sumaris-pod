@@ -93,9 +93,9 @@
       <ion-label translate>TRIP.OPERATION.LIST.START_POSITION</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>
-        {{ row.currentData.startPosition && row.currentData.startPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
-        {{ row.currentData.startPosition && row.currentData.startPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
+      <ion-text class="ion-text-end">
+        {{ row.currentData.startPosition?.latitude  | latitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}<br/>
+        {{ row.currentData.startPosition?.longitude | longitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
       </ion-text>
     </mat-cell>
   </ng-container>
@@ -116,10 +116,10 @@
       <ion-label translate>TRIP.OPERATION.LIST.END_POSITION</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>
-        {{row.currentData.endPosition && row.currentData.endPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
-        {{row.currentData.endPosition && row.currentData.endPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
-      </ion-label>
+      <ion-text class="ion-text-end">
+        {{row.currentData.endPosition?.latitude  | latitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}<br/>
+        {{row.currentData.endPosition?.longitude | longitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
+      </ion-text>
     </mat-cell>
   </ng-container>
 
@@ -137,9 +137,6 @@
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-      <button mat-icon-button small color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
-        <mat-icon>undo</mat-icon>
-      </button>
     </mat-cell>
   </ng-container>
 
