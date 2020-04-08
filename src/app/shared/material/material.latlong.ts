@@ -29,7 +29,6 @@ import {
   parseLatitudeOrLongitude
 } from '../pipes/latlong-format.pipe';
 import {DEFAULT_PLACEHOLDER_CHAR} from '../constants';
-import {isNotNil, isNotNilOrBlank} from "../functions";
 
 const MASKS = {
   'latitude': {
