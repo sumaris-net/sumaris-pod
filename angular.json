@@ -67,15 +67,9 @@
               }
             ],
             "styles": [
-              {
-                "input": "node_modules/@angular/material/prebuilt-themes/indigo-pink.css"
-              },
-              {
-                "input": "src/global.scss"
-              },
-              {
-                "input":  "node_modules/leaflet/dist/leaflet.css"
-              }
+              "node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
+              "src/global.scss",
+              "node_modules/leaflet/dist/leaflet.css"
             ],
             "scripts": [],
             "es5BrowserSupport": true,
@@ -154,7 +148,6 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "src/tsconfig.spec.json",
             "karmaConfig": "src/karma.conf.js",
-            "styles": [],
             "scripts": [],
             "assets": [
               {
@@ -167,7 +160,18 @@
                 "input": "src/assets",
                 "output": "/assets"
               }
-            ]
+            ],
+            "styles": [
+              "node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
+              "src/global.scss",
+              "node_modules/leaflet/dist/leaflet.css"
+            ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "node_modules/ionicons/dist/scss",
+                "src/theme"
+              ]
+            }
           },
           "configurations": {
             "ci": {
