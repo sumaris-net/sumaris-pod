@@ -156,16 +156,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       this.filterForm.markAsUntouched();
       this.filterForm.markAsPristine();
     });
-
-    // // Only if entityName has been select:  load data
-    // this.filter = this.filterForm.value;
-    // this.entityName = this.filter.entityName;
-    // if (this.entityName) {
-    //   this.setEntityName(this.entityName, {skipLocationChange: true});
-    //   // Load levels, then refresh
-    //   this.loadLevels(this.entityName)
-    //     .then(() => this.onRefresh.emit());
-    // }
   }
 
   async setEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {

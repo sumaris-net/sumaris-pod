@@ -173,16 +173,18 @@
              [matDatepicker]="datePicker1"
              (dateChange)="onDatePickerChange($event)">
 
-      <button mat-button matSuffix mat-icon-button tabindex="-1"
+      <button matSuffix mat-icon-button tabindex="-1"
+              type="button"
+              (click)="openDatePicker($event, datePicker1)"
+              [disabled]="formControl.disabled">
+        <div *ngIf="mobile; then iconDate; else iconDesktop"></div>
+      </button>
+      <button matSuffix mat-icon-button tabindex="-1"
               type="button"
               *ngIf="clearable"
-              (click)="formControl.setValue(null)"
+              (click)="writeValue(null)"
               [hidden]="formControl.disabled || !formControl.value">
         <mat-icon>close</mat-icon>
-      </button>
-
-      <button type="button" matSuffix (click)="openDatePicker($event, datePicker1)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
-        <div *ngIf="mobile; then iconDate; else iconDesktop"></div>
       </button>
 
       <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

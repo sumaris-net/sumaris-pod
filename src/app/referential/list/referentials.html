@@ -57,37 +57,67 @@
 
 
   <!-- search -->
-  <mat-expansion-panel #filterExpansionPanel color="primary">
-    <form class="form-container ion-padding" no-padding-xs [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
+  <mat-expansion-panel #filterExpansionPanel class="ion-no-padding">
+    <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
-      <!-- search text -->
-      <mat-form-field>
-        <input matInput
-               autocomplete="off"
-               [placeholder]=" 'REFERENTIAL.LIST.FILTER.SEARCH_TEXT'|translate" formControlName="searchText">
-      </mat-form-field>
+      <ion-grid>
+        <ion-row>
+          <ion-col>
+            <!-- search text -->
+            <mat-form-field>
+              <input matInput
+                     formControlName="searchText"
+                     autocomplete="off"
+                     [placeholder]=" 'REFERENTIAL.LIST.FILTER.SEARCH_TEXT'|translate">
+              <button mat-icon-button matSuffix tabindex="-1"
+                      type="button"
+                      (click)="filterForm.controls.searchText.setValue(null)"
+                      [hidden]="filterForm.controls.searchText.disabled || !filterForm.controls.searchText.value">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+          </ion-col>
+        </ion-row>
 
-      <!-- level -->
-      <mat-form-field>
-        <mat-select formControlName="levelId" [placeholder]=" 'REFERENTIAL.LEVEL'|translate" >
-          <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
-          <mat-option *ngFor="let level of levels | async" [value]="level.id">{{level.label}} - {{level.name}}</mat-option>
-        </mat-select>
-      </mat-form-field>
+        <ion-row>
+          <ion-col size="12" size-lg="6">
+            <!-- level -->
+            <mat-form-field>
+              <mat-select formControlName="levelId" [placeholder]="'REFERENTIAL.LEVEL'|translate" >
+                <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
+                <mat-option *ngFor="let level of levels | async" [value]="level.id">{{level.label}} - {{level.name}}</mat-option>
+              </mat-select>
 
-      <!-- status -->
-      <mat-form-field>
-        <mat-select formControlName="statusId" [placeholder]=" 'REFERENTIAL.STATUS'|translate" >
-          <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
-          <mat-option *ngFor="let item of statusList" [value]="item.id">
-            <ion-icon [name]="item.icon"></ion-icon>
-            {{ item.label |translate }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+              <button mat-icon-button matSuffix tabindex="-1"
+                      type="button"
+                      (click)="filterForm.controls.levelId.setValue(null) || $event.stopPropagation()"
+                      [hidden]="filterForm.controls.levelId.disabled || !filterForm.controls.levelId.value">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+          </ion-col>
 
+          <ion-col size="12" size-lg="6">
+            <!-- status -->
+            <mat-form-field>
+              <mat-select formControlName="statusId" [placeholder]="'REFERENTIAL.STATUS'|translate" >
+                <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
+                <mat-option *ngFor="let item of statusList" [value]="item.id">
+                  <ion-icon [name]="item.icon"></ion-icon>
+                  {{ item.label |translate }}
+                </mat-option>
+              </mat-select>
 
-
+              <button mat-icon-button matSuffix tabindex="-1"
+                      type="button"
+                      (click)="filterForm.controls.statusId.setValue(null) || $event.stopPropagation()"
+                      [hidden]="filterForm.controls.statusId.disabled || !filterForm.controls.statusId.value">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </form>
 
     <mat-action-row>
