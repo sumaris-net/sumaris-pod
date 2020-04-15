@@ -63,11 +63,12 @@ export const PmfmIds = {
   IS_SAMPLING: 121,
 
   /* ADAP pmfms */
+  SELF_SAMPLING_PROGRAM: 28,
   CONTROLLED_SPECIES: 134,
   SAMPLE_MEASURED_WEIGHT: 140,
   OUT_OF_SIZE: 142,
   OUT_OF_SIZE_PCT: 143,
-  VIVACITY: 144
+  VIVACITY: 144,
 };
 
 export const QualitativeLabels = {

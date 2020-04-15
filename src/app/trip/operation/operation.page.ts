@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {OperationFilter, OperationSaveOptions, OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
 import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
@@ -23,7 +23,7 @@ import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {BatchUtils} from "../services/model/batch.model";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {filterNotNil, firstNotNil} from "../../shared/observables";
-import {BatchGroup, BatchGroupUtils} from "../services/model/batch-group.model";
+import {BatchGroup} from "../services/model/batch-group.model";
 
 @Component({
   selector: 'app-operation-page',
@@ -32,7 +32,7 @@ import {BatchGroup, BatchGroupUtils} from "../services/model/batch-group.model";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationPage extends AppEditorPage<Operation, OperationFilter> implements OnInit, AfterViewInit {
+export class OperationPage extends AppEditorPage<Operation, OperationFilter> implements OnInit, AfterViewInit, OnDestroy {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.OPERATION;
 
@@ -81,6 +81,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   ) {
     super(injector, Operation, dataService);
     this.idAttribute = 'operationId';
+    this.hasManyTabs = true;
 
     // Init mobile (WARN
     this.mobile = this.settings.mobile;
@@ -315,9 +316,9 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
           this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
 
           // Autofill batch group table (e.g. with taxon groups found in strategies)
-          if (this.batchGroupsTable.showTaxonGroupColumn && this.isNewData) {
+          if (this.isNewData) {
             const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
-            if (autoFillBatch) this.batchGroupsTable.autoFillTable();
+            this.setAutoFillSpecies(autoFillBatch);
           }
         })
     );
@@ -642,6 +643,34 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
 
   protected addToPageHistory(page: HistoryPageReference) {
     super.addToPageHistory({ ...page, icon: 'pin'});
+  }
+
+  protected async setAutoFillSpecies(enable: boolean) {
+    if (!this.showBatchTables || !this.batchGroupsTable.showTaxonGroupColumn || !enable) return; // Skip
+
+    if (this.debug) console.debug("[operation] Check if can auto fill species...");
+    const options = {includeTaxonGroups: undefined};
+
+    // Retrieve the trip measurements on SELF_SAMPLING_PROGRAM, if any
+    const qvMeasurement = (this.trip.measurements || []).find(m => m.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
+    if (qvMeasurement && EntityUtils.isNotEmpty(qvMeasurement.qualitativeValue)) {
+
+      // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
+      const pmfms = await this.programService.loadProgramPmfms(this.programSubject.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
+      const pmfm = (pmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
+      const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
+
+      // Transform QV.label has a list of TaxonGroup.label
+      if (qualitativeValue && qualitativeValue.label) {
+        options.includeTaxonGroups = qualitativeValue.label
+          .split(/[^\w]+/) // Split by separator (= not a word)
+          .filter(isNotNilOrBlank)
+          .map(label => label.trim().toUpperCase());
+      }
+    }
+
+    // Ask table to auto fill
+    await this.batchGroupsTable.autoFillTable(options);
   }
 
   protected markForCheck() {

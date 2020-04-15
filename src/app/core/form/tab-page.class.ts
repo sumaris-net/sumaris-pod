@@ -217,10 +217,11 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     event.preventDefault();
 
     setTimeout(async () => {
-      let confirm = !this.dirty;
+      const dirty = this.dirty;
+      let confirm = !dirty;
       let save = false;
 
-      if (!confirm) {
+      if (dirty) {
 
         let alert;
         // Ask user before
@@ -286,8 +287,13 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
       if (confirm) {
         if (save) {
           await this.save(event); // sync save
-        } else if (this.dirty && this.data.id) {
-          this.doReload(); // async reload
+        } else if (dirty) {
+          if (this.isNewData) {
+            this.doUnload(); // async reset
+          }
+          else {
+            this.doReload(); // async reload
+          }
         }
 
         // Execute the action
@@ -336,6 +342,12 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   async doReload() {
     this.loading = true;
     await this.load(this.data && this.data.id);
+  }
+
+  async doUnload() {
+    this.loading = true;
+    this.selectedTabIndex = 0;
+    // TODO: find a way to remove this page from the navigation history
   }
 
   /* -- protected methods -- */
@@ -391,7 +403,9 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     await alert.present();
     await alert.onDidDismiss();
 
-    if (!confirm) return !cancel;
+    if (!confirm) {
+      return !cancel;
+    }
 
     const saved = await this.save(event);
     return saved;

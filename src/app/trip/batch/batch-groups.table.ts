@@ -214,15 +214,20 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   /**
    * Allow to fill table (e.g. with taxon groups found in strategies) - #176
+   * @params opts.includeTaxonGroups : include taxon label
    */
-  async autoFillTable() {
+  async autoFillTable(opts?: {includeTaxonGroups?: string[]; }) {
     // Wait table is ready
     if (this.loading || !this.program) {
       await firstFalsePromise(this.$loading);
     }
+    console.debug("[batch-group-table] Auto fill table, using options:", opts);
 
+    const includedLabels = opts && opts.includeTaxonGroups || null;
     const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
     const taxonGroups = (await this.programService.loadTaxonGroups(this.program) || [])
+      // Filter on expected labels (as prefix)
+      .filter(taxonGroup => !includedLabels || includedLabels.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
       // Sort using order configure in the taxon group column
       .sort(propertiesPathComparator(sortAttributes, ['ZZZ', 'ZZZ']));
 

@@ -54,6 +54,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
       injector.get(TripService));
     this.idAttribute = 'tripId';
     this.defaultBackHref = "/trips";
+    this.hasManyTabs = true;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

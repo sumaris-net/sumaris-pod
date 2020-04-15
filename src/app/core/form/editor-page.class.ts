@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, EventEmitter, Injector, OnInit} from '@angular/core';
+import {ChangeDetectorRef, EventEmitter, Injector, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, ActivatedRouteSnapshot, Router} from "@angular/router";
 import {AlertController, ToastController} from "@ionic/angular";
 
@@ -23,7 +23,7 @@ import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
 import {ServerErrorCodes} from "../services/errors";
 
-export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
+export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit, OnDestroy {
 
   protected idAttribute = 'id';
   protected _enableListenChanges = (environment.listenRemoteChanges === true);
@@ -89,6 +89,10 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     // Load data from the snapshot route
     this.loadFromRoute(this.route.snapshot);
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
   }
 
   protected async loadFromRoute(route: ActivatedRouteSnapshot) {
