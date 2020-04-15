@@ -24,10 +24,9 @@ package net.sumaris.core.service.data;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableTable;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.referential.PmfmService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.OperationVO;

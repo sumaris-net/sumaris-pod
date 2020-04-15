@@ -472,7 +472,8 @@ function AppTaxonSearch(config) {
     function doSearch(searchText, options)
     {
         searchText = searchText || inputSearch.value;
-        if (!searchText) return; // Skip if empty
+        if (!searchText || searchText.trim().length === 0) return; // Skip if empty
+        searchText = searchText.trim();
 
         hideResult();
         showLoading();
