@@ -336,6 +336,9 @@ export function markAsTouched(form: FormGroup, opts?: {onlySelf?: boolean; emitE
       if (control instanceof FormGroup) {
         markAsTouched(control, { ...opts, onlySelf: true}); // recursive call
       }
+      else if (control instanceof FormArray) {
+        (control.controls || []).forEach(c => markAsTouched(c, { ...opts, onlySelf: true})); // recursive call
+      }
       else {
         control.markAsTouched({onlySelf: true});
         control.updateValueAndValidity({emitEvent: false, ...opts, onlySelf: true});
@@ -469,6 +472,20 @@ export class FormArrayHelper<T = Entity<any>> {
 
   at(index: number): AbstractControl {
     return this.arrayControl.at(index) as AbstractControl;
+  }
+
+  disable(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }) {
+    this.arrayControl.controls.forEach(c => c.disable(opts));
+  }
+
+  enable(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }) {
+    this.arrayControl.controls.forEach(c => c.enable(opts));
   }
 
   /* -- internal methods -- */
