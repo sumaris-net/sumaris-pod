@@ -85,6 +85,7 @@
       <!-- tab group for batches -->
       <mat-tab-group #batchTabGroup
                      [hidden]="!showBatchTables"
+                     [class.mat-tab-group-no-header]="mobile"
                      animationDuration="0s"
                      [(selectedIndex)]="selectedBatchTabIndex"
                      (selectedTabChange)="onBatchTabChange($event)">
