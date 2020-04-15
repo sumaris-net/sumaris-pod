@@ -7,11 +7,10 @@ import {
 } from "../../../referential/referential.module";
 import {DataEntity, DataEntityAsObjectOptions, NOT_MINIFY_OPTIONS} from "./base.model";
 import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {isNilOrBlank, isNotNilOrBlank, toNumber} from "../../../shared/functions";
+import {isNilOrBlank, isNotEmptyArray, isNotNilOrBlank, toNumber} from "../../../shared/functions";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 import {ITreeItemEntity, ReferentialAsObjectOptions} from "../../../core/services/model";
-import {OperationSaveOptions} from "../operation.service";
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
@@ -462,6 +461,25 @@ export class BatchUtils {
 
       this.computeRankOrder(b); // Recursive call
     });
+  }
+
+  /**
+   * Sum individual count, onlly on batch with measure
+   * @param batch
+   */
+  static sumObservedIndividualCount(batches: Batch[]): number {
+    return (batches || [])
+      .map(b => isNotEmptyArray(b.children) ?
+        // Recursive call
+        BatchUtils.sumObservedIndividualCount(b.children) :
+        // Or get value from individual batches
+        b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL) ? toNumber(b.individualCount,1) :
+          // Default value, if not an individual batches
+          // Use '0' because we want only observed batches count
+          0)
+      .reduce((sum, individualCount) => {
+        return sum + individualCount;
+      }, 0);
   }
 
   static logTree(batch: Batch, opts?: {indent?: string; nextIndent?: string}) {

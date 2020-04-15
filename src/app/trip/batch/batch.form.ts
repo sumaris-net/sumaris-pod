@@ -22,7 +22,7 @@ import {
   PmfmLabelPatterns,
   PmfmStrategy
 } from "../../referential/services/model";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, Subscription} from "rxjs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
 import {AppFormUtils, FormArrayHelper} from "../../core/core.module";
@@ -38,10 +38,11 @@ import {PlatformService} from "../../core/services/platform.service";
   styleUrls: ['batch.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchForm extends MeasurementValuesForm<Batch>
+export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
   implements OnInit, OnDestroy {
 
   protected $initialized = new BehaviorSubject<boolean>(false);
+  protected _requiredSampleBatch = false;
 
   defaultWeightPmfm: PmfmStrategy;
   weightPmfms: PmfmStrategy[];
@@ -49,6 +50,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   isSampling = false;
   mobile: boolean;
   childrenFormHelper: FormArrayHelper<Batch>;
+  samplingFormValidator: Subscription;
 
 
   @Input() tabindex: number;
@@ -58,6 +60,8 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   @Input() showTaxonGroup = true;
 
   @Input() showTaxonName = true;
+
+  @Input() showWeight = true;
 
   @Input() showTotalIndividualCount = false;
 
@@ -84,6 +88,23 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     if (!this.isSampling) this.setIsSampling(this.isSampling);
   }
 
+  get childrenArray() {
+    return this.form.get('children') as FormArray;
+  }
+
+  @Input()
+  set requiredSampleBatch(required: boolean) {
+    if (this._requiredSampleBatch !== required) {
+      this._requiredSampleBatch = required;
+      // Refresh validator, if need
+      if (this.samplingFormValidator) this.addSamplingFormValidators();
+    }
+  }
+
+  get requiredSampleBatch(): boolean {
+    return this._requiredSampleBatch;
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
@@ -96,7 +117,11 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     protected settings: LocalSettingsService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
-      validatorService.getFormGroup(null, {withWeight: true, rankOrderRequired: false, labelRequired: false}), // Allow to be set by parent component
+      validatorService.getFormGroup(null, {
+        withWeight: true,
+        rankOrderRequired: false, // Allow to be set by parent component
+        labelRequired: false, // Allow to be set by parent component
+      }),
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onUpdateControls: (form) => this.onUpdateControls(form)
@@ -133,14 +158,19 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
   }
 
-  setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean}) {
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    if (this.samplingFormValidator) this.samplingFormValidator.unsubscribe();
+  }
+
+  setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean}) {
 
     if (!this._ready || !this.data) {
       this.safeSetValue(data, opts);
       return;
     }
 
-    // Fill weight
+    // Fill weight, if a weight PMFM exists
     if (this.defaultWeightPmfm) {
       const weightPmfm = (this.weightPmfms || []).find(p => isNotNil(data.measurementValues[p.pmfmId.toString()]));
       data.weight = {
@@ -156,8 +186,12 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         this.form.removeControl(p.pmfmId.toString());
       });
     }
+
+    // No weight PMFM : disable weight form group, if exists (will NOT exists in BatchGroupForm sub classe)
     else {
-      this.form.get('weight').disable({onlySelf: true, emitEvent: false});
+      // Disable weight, if group exist
+      const weightFOrmGroup = this.form.get('weight');
+      if (weightFOrmGroup) weightFOrmGroup.disable({onlySelf: true, emitEvent: false});
     }
 
     // Adapt measurement values to form
@@ -194,8 +228,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         samplingBatch.samplingRatio = samplingBatch.samplingRatio * 100;
       }
 
-      this.registerSubscription(
-        this.validatorService.addSamplingFormValidators(this.form));
+      this.addSamplingFormValidators();
     }
     else {
       this.childrenFormHelper.resize((data.children || []).length);
@@ -207,7 +240,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     });
   }
 
-  protected getValue(): Batch {
+  protected getValue(): T {
     const json = this.form.value;
 
     // Convert weight into measurement
@@ -233,7 +266,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         childJson.measurementValues = childJson.measurementValues || {};
 
         // Convert weight into measurement
-        if (isNotNil(childJson.weight.value)) {
+        if (childJson.weight && isNotNil(childJson.weight.value)) {
           const childWeightPmfm = childJson.weight.estimated && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
           childJson.measurementValues[childWeightPmfm.pmfmId.toString()] = childJson.weight.value;
         }
@@ -277,7 +310,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
     if (!this.loading) this.form.markAsDirty();
 
-    const childrenArray = this.form.get('children') as FormArray;
+    const childrenArray = this.childrenArray;
 
     if (childrenArray) {
       if (enable && childrenArray.disabled) {
@@ -417,6 +450,16 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     );
   }
 
+
+  protected addSamplingFormValidators() {
+    // Unregister to previous validator
+    if (this.samplingFormValidator) this.samplingFormValidator.unsubscribe();
+
+    // Add new a validator
+    this.samplingFormValidator = this.validatorService.addSamplingFormValidators(this.form, {
+      required: this._requiredSampleBatch
+    });
+  }
   protected markForCheck() {
     this.cd.markForCheck();
   }

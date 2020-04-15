@@ -68,7 +68,9 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     });
   }
 
-  addSamplingFormValidators(form: FormGroup): Subscription {
+  addSamplingFormValidators(form: FormGroup, opts?: {
+    required?: boolean;
+  }): Subscription {
 
     // Sampling ratio: should be a percentage
     form.get("samplingRatio").setValidators(
@@ -85,7 +87,7 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
         // Protected against loop
         tap(() => computing = true),
         debounceTime(250),
-        map(() => BatchValidatorService.computeSamplingWeight(form, {emitEvent: false, onlySelf: false}))
+        map(() => BatchValidatorService.computeSamplingWeight(form, { ...opts, emitEvent: false, onlySelf: false}))
       ).subscribe((errors) => {
         computing = false;
         $errors.next(errors);
@@ -106,7 +108,11 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
    * @param form
    * @param opts
    */
-  static computeSamplingWeight(form: FormGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean; }): ValidationErrors | null {
+  static computeSamplingWeight(form: FormGroup, opts?: {
+    required?: boolean;
+    emitEvent?: boolean;
+    onlySelf?: boolean;
+  }): ValidationErrors | null {
     const sampleForm = form.get('children.0');
 
     const batch = form.value;
@@ -116,9 +122,9 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     if (!sampleBatch) return null;
 
     const totalWeight = batch.weight.value;
-    const samplingWeight = sampleBatch.weight.value;
     const samplingRatioPct = sampleBatch.samplingRatio;
-    console.table("[batch-validator]  Start computing: ", totalWeight, samplingRatioPct, samplingWeight);
+    const samplingWeight = sampleBatch.weight.value;
+    console.table("[batch-validator] Start computing: ", totalWeight, samplingRatioPct, samplingWeight);
 
     const totalWeightValueControl = form.get('weight.value');
     const samplingWeightValueControl = sampleForm.get('weight.value');
@@ -135,7 +141,7 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
           samplingWeightValueControl.markAsTouched({onlySelf: true});
           samplingWeightValueControl.setErrors({...samplingWeightValueControl.errors, max: {max: totalWeight} }, opts);
         }
-        return {max: totalWeight} as ValidationErrors;
+        return {max: {max: totalWeight}} as ValidationErrors;
       }
 
       // Update sampling ratio
@@ -198,6 +204,7 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
         samplingRatioControl.enable({...opts, emitEvent: true/*force repaint*/});
       }
     }
+
     // Nothing can be computed: enable all controls
     else {
 
@@ -227,8 +234,16 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
             }
           }, opts);
         }
-        samplingWeightValueControl.setErrors(null, opts);
-        samplingWeightValueControl.enable(opts);
+        if (!opts || opts.required !== true) {
+          samplingWeightValueControl.setErrors(null, opts);
+          samplingWeightValueControl.enable(opts);
+        }
+        else {
+          if (!samplingWeightValueControl.hasError('required')) {
+            samplingWeightValueControl.setErrors({...samplingWeightValueControl.errors, required: true}, opts);
+          }
+          samplingWeightValueControl.enable(opts);
+        }
 
       } else {
         samplingRatioControl.disable({...opts, emitEvent: true/*force repaint*/});

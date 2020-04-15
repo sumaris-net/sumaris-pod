@@ -107,7 +107,6 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   ngOnInit() {
 
-    console.log("OINit data");
     this.form.setValue(this.data || new BatchGroup());
 
     this.disabled = toBoolean(this.disabled, false);
@@ -192,14 +191,13 @@ export class BatchGroupModal implements OnInit, OnDestroy {
   }
 
   async onShowSubBatchesButtonClick(event: UIEvent) {
+    if (!this.showSubBatchesCallback) return; // Skip
 
     // Close
     const batch = await this.close(event);
 
-    // If closed succeed, execute the callback
-    if (batch && this.showSubBatchesCallback) {
-      this.showSubBatchesCallback(batch);
-    }
+    // Only if close() succeed, execute the callback
+    if (batch) this.showSubBatchesCallback(batch);
   }
 
   /* -- protected methods -- */

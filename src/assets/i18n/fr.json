@@ -479,7 +479,7 @@
         "INDIVIDUAL_MEASURE": "Mesures individuelles ?",
         "WITH_MEASURE": "Avec mesure",
         "WITHOUT_MEASURE": "Sans mesure",
-        "IS_SAMPLING": "Si mesure, saisir le poids échantillonné :",
+        "IS_SAMPLING": "Saisir le poids échantillonné (si mesure) :",
         "SAMPLING_WEIGHT": "Poids échant. (kg)",
         "SAMPLING_RATIO": "Taux échant. (%)",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",

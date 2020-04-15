@@ -1,12 +1,5 @@
-import {EntityUtils, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../../core/core.module";
-import {AcquisitionLevelCodes, PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
-import {DataEntity, DataEntityAsObjectOptions, NOT_MINIFY_OPTIONS} from "./base.model";
-import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {isNilOrBlank, isNotNilOrBlank} from "../../../shared/functions";
-import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {ITreeItemEntity, ReferentialAsObjectOptions} from "../../../core/services/model";
-import {Batch} from "./batch.model";
+import {DataEntityAsObjectOptions} from "./base.model";
+import {Batch, BatchUtils} from "./batch.model";
 
 export class BatchGroup extends Batch {
 
@@ -17,17 +10,13 @@ export class BatchGroup extends Batch {
     const target = new BatchGroup();
     Object.assign(target, batch);
     // Compute observed indiv. count
-    target.observedIndividualCount = BatchGroupUtils.getObservedIndividualCount(target);
+    target.observedIndividualCount = BatchUtils.sumObservedIndividualCount(batch.children);
     return target;
   }
 
   static fromObject(source: any, opts?: { withChildren: boolean; }): BatchGroup {
     const target = new BatchGroup();
     target.fromObject(source, opts);
-
-    // Compute observed indiv. count
-    target.observedIndividualCount = BatchGroupUtils.getObservedIndividualCount(target);
-
     return target;
   }
 
@@ -42,8 +31,8 @@ export class BatchGroup extends Batch {
   }
 
   fromObject(source: any, opts?: { withChildren: boolean; }): BatchGroup {
-    super.fromObject(source);
-    this.observedIndividualCount = source.indirectIndividualCount;
+    super.fromObject(source, opts);
+    this.observedIndividualCount = source.observedIndividualCount;
     return this;
   }
 
@@ -64,27 +53,8 @@ export class BatchGroupUtils {
   static computeObservedIndividualCount(batch: BatchGroup) {
 
     // Compute observed indiv. count
-    batch.observedIndividualCount = BatchGroupUtils.getObservedIndividualCount(batch);
+    batch.observedIndividualCount = BatchUtils.sumObservedIndividualCount(batch.children);
   }
 
-  /**
-   * Count only individual count with measure
-   * @param batch
-   */
-  static getObservedIndividualCount(batch: BatchGroup|Batch): number {
 
-    let count: number = undefined;
-
-    if (batch.children && batch.children.length ) {
-      // Reset counter
-      count = 0;
-      batch.children
-        .map(BatchGroupUtils.getObservedIndividualCount) // recursive call
-        .forEach(childCount => {
-          count += (childCount || 0);
-        });
-    }
-
-    return count;
-  }
 }

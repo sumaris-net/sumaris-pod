@@ -18,12 +18,13 @@ import {BatchGroupModal} from "./batch-group.modal";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {firstFalsePromise} from "../../shared/observables";
 import {BatchGroup, BatchGroupUtils} from "../services/model/batch-group.model";
+import {emit} from "cluster";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
 declare interface ColumnDefinition extends FormFieldDefinition {
   computed: boolean;
-  unit?: string;
+  unitLabel?: string;
   rankOrder: number;
   qvIndex: number;
 }
@@ -65,7 +66,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       type: 'integer',
       key: 'SAMPLING_RATIO',
       label: 'TRIP.BATCH.TABLE.SAMPLING_RATIO',
-      unit: '%',
+      unitLabel: '%',
       minValue: 0,
       maxValue: 100,
       maximumNumberDecimals: 2
@@ -252,7 +253,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   protected normalizeEntityToRow(batch: BatchGroup, row: TableElement<BatchGroup>) {
     // When batch has the QV value
     if (this.qvPmfm) {
-      const measurementValues = Object.assign({}, row.currentData.measurementValues);
+      const measurementValues = { ...(row.currentData.measurementValues) }; // Copy existing measurements
 
       if (isNotEmptyArray(batch.children)) {
         // For each group (one by qualitative value)
@@ -314,6 +315,12 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         //samplingIndividualCount = '~' + samplingIndividualCount;
       }
       measurementValues[i++] = samplingIndividualCount;
+    }
+    // No sampling batch: clean values
+    else {
+      measurementValues[i++] = undefined; // Column: sampling ratio
+      measurementValues[i++] = undefined; // Column: sampling weight
+      measurementValues[i++] = undefined; // sampling individual count
     }
     return measurementValues;
   }
@@ -549,22 +556,21 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }): Promise<BatchGroup | undefined> {
     batch = batch || (!opts || opts.isNew !== true) && this.editedRow && (this.editedRow.validator ? BatchGroup.fromObject(this.editedRow.currentData) : this.editedRow.currentData) || undefined;
 
-    const onSubBatchesClick = async (parent) => {
+    const onOpenSubBatchesFromModal = async (parent) => {
 
-      // If row not added yet, wait
+      // If row not added yet
       if (!this.editedRow) {
-        await setTimeout(() => {
-          onSubBatchesClick(parent);
+        // wait 100ms, then retry
+        return setTimeout(() => {
+          return onOpenSubBatchesFromModal(parent); // loop
         }, 100);
       }
 
-      const subBatches = await this.onSubBatchesClick(null, this.editedRow, {
-        showParent: false
+      await this.onSubBatchesClick(null, this.editedRow, {
+        showParent: false // Web come from the parent modal, so the parent field can be hidden
       });
 
-      this.updateRowFromSubbatches(this.editedRow, subBatches);
-
-      await this.openRow(null, this.editedRow); // Reopen the detail modal
+      return await this.openRow(null, this.editedRow); // Reopen the detail modal
     };
 
     const modal = await this.modalCtrl.create({
@@ -582,7 +588,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         // Not need on a root species batch (fill in sub-batches)
         showTotalIndividualCount: false,
         showIndividualCount: false,
-        showSubBatchesCallback: onSubBatchesClick
+        showSubBatchesCallback: onOpenSubBatchesFromModal
       },
       keyboardClose: true,
       cssClass: 'app-batch-group-modal'
@@ -595,10 +601,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[batch-group-table] Batch group modal result: ", data);
     if (!(data instanceof BatchGroup)) return undefined; // Exit if empty
-
-    // Update computed attribute
-    BatchUtils.computeIndividualCount(data);
-    BatchGroupUtils.computeObservedIndividualCount(data);
 
     return data;
   }
@@ -645,29 +647,49 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     this.updateColumns();
   }
 
-  protected updateRowFromSubbatches(row: TableElement<Batch>, subbatches: Batch[]) {
-    if (isEmptyArray(subbatches)) return; // skip
+  async onSubBatchesClick(event: UIEvent, row: TableElement<BatchGroup>, opts?: { showParent?: boolean }): Promise<Batch[] | undefined> {
+    const subBatches = await super.onSubBatchesClick(event, row, opts);
 
+    // Update the batch group, from subbatches (e.g. observed individual count)
+    this.updateGroupFromSubBatches(row, subBatches);
+
+    return subBatches;
+  }
+
+  /**
+   * Update the batch group row (e.g. observed individual count), from subbatches
+   * @param row
+   * @param subbatches
+   */
+  protected updateGroupFromSubBatches(row: TableElement<BatchGroup>, subbatches: Batch[]): Batch|undefined {
     const parent = row.currentData;
+    if (!parent || isNil(subbatches)) return; // skip
+
     const children = subbatches.filter(b => Batch.equals(parent, b.parent));
 
+    if (this.debug) console.debug("[batch-group-table] Computing individual count...");
+
     if (!this.qvPmfm) {
-      console.warn("TODO: implement updating batch (without QV pmfm) by subbatches");
+      console.warn("TODO: check implementation (computing individual count when NO QV pmfm)");
+      parent.observedIndividualCount = BatchUtils.sumObservedIndividualCount(children);
     }
     else {
+      parent.observedIndividualCount = 0;
       this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
-        const offset = (qvIndex * BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length);
-        const samplingIndividualCount = children.filter(c => {
+
+        const qvChildren = children.filter(c => {
           const qvValue = c.measurementValues[this.qvPmfm.pmfmId];
           return qvValue && qvValue.id === qv.id;
-        })
-          .reduce((sum, c) => sum + toNumber(c.individualCount, 1), 0);
-        parent.measurementValues[offset + 4] = samplingIndividualCount;
+        });
+        const samplingIndividualCount = BatchUtils.sumObservedIndividualCount(qvChildren);
+        const qvOffset = (qvIndex * BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length);
+        const hasSampling = !!(parent.measurementValues[qvOffset + 2] || parent.measurementValues[qvOffset + 3]);
+        parent.measurementValues[qvOffset + 4] = hasSampling || samplingIndividualCount ? samplingIndividualCount : undefined;
+        parent.observedIndividualCount += (samplingIndividualCount || 0);
       });
     }
 
     row.currentData = parent;
   }
-
 }
 

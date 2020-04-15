@@ -30,6 +30,8 @@ import {PlatformService} from "../../core/services/platform.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {fadeInAnimation} from "../../shared/shared.module";
 import {BatchGroup} from "../services/model/batch-group.model";
+import {MeasurementsValidatorService} from "../services/measurement.validator";
+import {BatchValidatorService} from "../services/batch.validator";
 
 @Component({
   selector: 'app-batch-group-form',
@@ -38,92 +40,51 @@ import {BatchGroup} from "../services/model/batch-group.model";
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInAnimation]
 })
-export class BatchGroupForm extends AppForm<BatchGroup> implements OnInit, OnDestroy {
-
-  private _ready = false;
-
-  mobile: boolean;
-  loading = true;
+export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   $childrenPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
-  mapPmfmsFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
   hasMeasureControl: AbstractControl;
-
-  @Input() debug = false;
-
-  @Input() tabindex: number;
-
-  @Input() usageMode: UsageMode;
-
-  @Input() showTaxonGroup = true;
-
-  @Input() showTaxonName = true;
-
-  @Input() showTotalIndividualCount = true;
-
-  @Input() showIndividualCount = true;
-
-  @Input() showError = true;
 
   @Input() qvPmfm: PmfmStrategy;
 
-  @Input() acquisitionLevel: string;
 
-  @Input() program: string;
-
-  @Output()
-  valueChanges: EventEmitter<any> = new EventEmitter<any>();
-
-  @ViewChild('batchForm', { static: true }) batchForm: BatchForm;
   @ViewChildren('childForm') childrenForms !: QueryList<BatchForm>;
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
-  get value(): BatchGroup {
-    return this.getValue();
-  }
-
-  set value(data: BatchGroup) {
-    this.safeSetValue(data);
-  }
-
   get invalid(): boolean {
-    return this.batchForm.invalid || this.hasMeasureControl.invalid ||
+    return this.form.invalid || this.hasMeasureControl.invalid ||
       ((this.childrenForms || []).find(child => child.invalid) && true) || false;
   }
 
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (and NOT 'invalid')
-    return this.batchForm.valid && this.hasMeasureControl.valid &&
+    return this.form.valid && this.hasMeasureControl.valid &&
       (!this.childrenForms || !this.childrenForms.find(child => !child.valid)) || false;
   }
 
   get pending(): boolean {
-    return this.batchForm.pending || this.hasMeasureControl.pending ||
+    return this.form.pending || this.hasMeasureControl.pending ||
        (this.childrenForms && this.childrenForms.find(child => child.pending) && true) || false;
   }
 
   get dirty(): boolean {
-    return this.batchForm.dirty || this.hasMeasureControl.dirty ||
+    return this.form.dirty || this.hasMeasureControl.dirty ||
       (this.childrenForms && this.childrenForms.find(child => child.dirty) && true) || false;
   }
 
   markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
-    this.batchForm.markAsTouched(opts);
+    super.markAsTouched(opts);
     (this.childrenForms || []).forEach(child => child.markAsTouched(opts));
     this.hasMeasureControl.markAsTouched(opts);
   }
 
   markAsPristine(opts?: {onlySelf?: boolean; }) {
-    this.batchForm.markAsPristine(opts);
+    super.markAsPristine(opts);
     (this.childrenForms || []).forEach(child => child.markAsPristine(opts));
     this.hasMeasureControl.markAsPristine(opts);
   }
 
   markAsUntouched(opts?: {onlySelf?: boolean; }) {
-    this.batchForm.markAsUntouched(opts);
+    super.markAsUntouched(opts);
     (this.childrenForms || []).forEach(child => child.markAsUntouched(opts));
     this.hasMeasureControl.markAsUntouched(opts);
   }
@@ -131,7 +92,7 @@ export class BatchGroupForm extends AppForm<BatchGroup> implements OnInit, OnDes
   markAsDirty(opts?: {
     onlySelf?: boolean;
   }) {
-    this.batchForm.markAsDirty(opts);
+    super.markAsDirty(opts);
     (this.childrenForms && []).forEach(child => child.markAsDirty(opts));
     this.hasMeasureControl.markAsDirty(opts);
   }
@@ -140,7 +101,7 @@ export class BatchGroupForm extends AppForm<BatchGroup> implements OnInit, OnDes
     onlySelf?: boolean;
     emitEvent?: boolean;
   }) {
-    this.batchForm.disable(opts);
+    super.disable(opts);
     (this.childrenForms || []).forEach(child => child.disable(opts));
     if (this._enable || (opts && opts.emitEvent)) {
       this._enable = false;
@@ -153,7 +114,7 @@ export class BatchGroupForm extends AppForm<BatchGroup> implements OnInit, OnDes
     onlySelf?: boolean;
     emitEvent?: boolean;
   }) {
-    this.batchForm.enable(opts);
+    super.enable(opts);
     (this.childrenForms || []).forEach(child => child.enable(opts));
     if (!this._enable || (opts && opts.emitEvent)) {
       this._enable = true;
@@ -171,6 +132,7 @@ export class BatchGroupForm extends AppForm<BatchGroup> implements OnInit, OnDes
   }
 
   constructor(
+    protected measurementValidatorService: MeasurementsValidatorService,
     protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
@@ -180,54 +142,38 @@ export class BatchGroupForm extends AppForm<BatchGroup> implements OnInit, OnDes
     protected referentialRefService: ReferentialRefService,
     protected settings: LocalSettingsService
   ) {
-    super(dateAdapter, null, settings);
-    this.mobile = platform.mobile;
-    this.mapPmfmsFn = this.createMapPmfmsFn();
+    super(dateAdapter,
+      measurementValidatorService,
+      formBuilder,
+      programService,
+      platform,
+      cd,
+      validatorService,
+      referentialRefService,
+      settings);
 
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
     this.hasMeasureControl = new FormControl(false);
-
-    // for DEV only
-    this.debug = !environment.production;
-  }
-
-  async ngOnInit() {
-
-    this.setForm(this.batchForm.form);
-
-    super.ngOnInit();
-
-    // Listen form changes
-    this.registerSubscription(
-      this.batchForm.form.valueChanges
-        .pipe(takeWhile(() => !this.loading))
-        .subscribe((_) => {
-          if (!this.loading && this.valueChanges.observers.length) {
-            this.valueChanges.emit(this.value);
-          }
-        })
-    );
   }
 
   setValue(data: BatchGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
-    if (!this._ready) {
+    if (!this._ready || !this.data) {
       this.safeSetValue(data, opts);
       return;
     }
 
     if (this.debug) console.debug("[batch-group-form] setValue() with value:", data);
+    const hasExistingMeasure = data.observedIndividualCount > 0;
+    let hasMeasure = hasExistingMeasure || this.hasMeasure;
 
     if (!this.qvPmfm) {
-      this.batchForm.value = data;
+      super.setValue(data);
 
       // Check if measure
-      const enableMeasure = isNotNil(BatchUtils.getSamplingChild(data));
-      this.hasMeasureControl.setValue(enableMeasure);
-
+      hasMeasure = hasMeasure || isNotNil(BatchUtils.getSamplingChild(data));
     }
     else {
-      let hasSamplingBatch = this.hasMeasure;
 
       // Prepare data array, for each qualitative values
       data.children = this.qvPmfm.qualitativeValues.map((qv, index) => {
@@ -242,16 +188,18 @@ export class BatchGroupForm extends AppForm<BatchGroup> implements OnInit, OnDes
         child.rankOrder = index + 1;
 
         // Check there is a sampling batch
-        hasSamplingBatch = hasSamplingBatch || isNotNil(BatchUtils.getSamplingChild(child));
+        hasMeasure = hasMeasure || isNotNil(BatchUtils.getSamplingChild(child));
 
         return child;
       });
 
       // Set value of the species form
-      this.batchForm.value = data;
+      super.setValue(data);
 
       // Then set value of each child form
       this.childrenForms.forEach((childForm, index) => {
+        childForm.requiredSampleBatch = hasExistingMeasure;
+        childForm.setIsSampling(hasMeasure, {emitEvent: false});
         childForm.setValue(data.children[index]);
         if (this.enabled) {
           childForm.enable();
@@ -261,9 +209,18 @@ export class BatchGroupForm extends AppForm<BatchGroup> implements OnInit, OnDes
         }
       });
 
-      // Enable measure, when there is a sampling batch
-      this.hasMeasure = hasSamplingBatch;
+
     }
+
+    // Apply computed value of 'has measure'
+    this.hasMeasure = hasMeasure;
+
+    // If there is already some measure
+    // Not allow to change 'has measure' field
+    if (data.observedIndividualCount > 0) {
+      this.hasMeasureControl.disable();
+    }
+
   }
 
   setHasMeasure(value: boolean) {
@@ -277,57 +234,44 @@ export class BatchGroupForm extends AppForm<BatchGroup> implements OnInit, OnDes
   }
 
   logFormErrors(logPrefix: string) {
-    AppFormUtils.logFormErrors(this.batchForm.form, logPrefix);
+    AppFormUtils.logFormErrors(this.form, logPrefix);
     if (this.childrenForms) this.childrenForms.forEach((childForm, index) => {
         AppFormUtils.logFormErrors(childForm.form, logPrefix, `children#${index}`);
       });
   }
 
-  createMapPmfmsFn() {
-    const self = this;
-    return (pmfms: PmfmStrategy[]) => {
-      self.qvPmfm = self.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
-      if (self.qvPmfm) {
+  protected mapPmfms(pmfms: PmfmStrategy[]) {
+    this.qvPmfm = this.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
+    if (this.qvPmfm) {
 
-        // Create a copy, to keep original pmfm unchanged
-        self.qvPmfm = this.qvPmfm.clone();
+      // Create a copy, to keep original pmfm unchanged
+      this.qvPmfm = this.qvPmfm.clone();
 
-        // Hide for children form, and change it as required
-        self.qvPmfm.hidden = true;
-        self.qvPmfm.isMandatory = true;
+      // Hide for children form, and change it as required
+      this.qvPmfm.hidden = true;
+      this.qvPmfm.isMandatory = true;
 
-        // Replace in the list
-        self.$childrenPmfms.next(pmfms.map(p => p.pmfmId === this.qvPmfm.pmfmId ? this.qvPmfm : p));
+      // Replace in the list
+      this.$childrenPmfms.next(pmfms.map(p => p.pmfmId === this.qvPmfm.pmfmId ? this.qvPmfm : p));
 
-        self.loading = false;
-        // Do not display PMFM in the root batch
-        return [];
-      }
+      // Do not display PMFM in the root batch
+      pmfms = [];
+    }
 
-      self.loading = false;
-      return pmfms;
-    };
+    return super.mapPmfms(pmfms);
   }
 
   /* -- protected methods -- */
 
-
-  protected async safeSetValue(data: BatchGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
-
-    if (!this._ready) await this.ready();
-
-    this.setValue(data, {...opts, emitEvent: true});
-  }
-
-
   // Wait form controls ready
-  protected async ready(): Promise<void> {
+  public async ready(): Promise<void> {
     if (this._ready) return;
 
-    // Wait for species form to be ready
-    await this.batchForm.ready();
+    // Wait root form to be ready
+    await super.ready();
+    this._ready = false;
 
-    // Then wait children forms to be ready
+    // Wait all children forms are ready
     if (this.qvPmfm) {
       await firstNotNilPromise(this.childrenForms.changes
         .pipe(
@@ -343,7 +287,7 @@ export class BatchGroupForm extends AppForm<BatchGroup> implements OnInit, OnDes
   }
 
   protected getValue(): BatchGroup {
-    const data = BatchGroup.fromBatch(this.batchForm.value);
+    const data = super.getValue();
 
     // If has children form
     if (this.qvPmfm) {

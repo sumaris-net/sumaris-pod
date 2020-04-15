@@ -68,6 +68,7 @@ import {FileService} from "./file/file.service";
 import {HAMMER_GESTURE_CONFIG} from "@angular/platform-browser";
 import {AppGestureConfig} from "./gesture/gesture-config";
 import {FileSizePipe} from "./pipes/file-size.pipe";
+import {DragDropModule} from "@angular/cdk/drag-drop";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -98,7 +99,8 @@ export {
     IonicModule,
     TranslateModule.forChild(),
     ColorPickerModule,
-    HotkeysModule
+    HotkeysModule,
+    DragDropModule
   ],
   declarations: [
     AutofocusDirective,

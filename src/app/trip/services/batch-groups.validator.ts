@@ -12,11 +12,16 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
     super(formBuilder);
   }
 
-  getFormGroup(data?: BatchGroup): FormGroup {
-    return super.getFormGroup(data);
+  getFormGroup(data?: BatchGroup, opts?: {
+    withWeight?: boolean;
+    rankOrderRequired?: boolean;
+    labelRequired?: boolean;
+  }): FormGroup {
+    return super.getFormGroup(data, opts);
   }
 
-  protected getFormGroupConfig(data?: BatchGroup,  opts?: {
+  protected getFormGroupConfig(data?: BatchGroup, opts?: {
+    withWeight?: boolean;
     rankOrderRequired?: boolean;
     labelRequired?: boolean;
   }): { [key: string]: any } {

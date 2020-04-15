@@ -185,6 +185,11 @@
         [formControl]="row.validator.controls.measurementValues.controls[col.rankOrder]"
         [compact]="true">
       </app-form-field>
+
+      <!-- TODO: display indivi count for Pocheteau
+      span *ngIf="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3">
+        (?)
+      </span-->
     </mat-cell>
   </ng-container>
 
@@ -224,32 +229,11 @@
         <mat-icon>add</mat-icon>
       </button>
 
-      <!-- open batch modal
-      <button mat-icon-button
-              color="light" *ngIf="!row.editing"
-              [title]="'COMMON.BTN_EDIT'|translate"
-              (click)="$event.preventDefault() || this.openRow(row.currentData.id, row)">
-        <mat-icon>edit</mat-icon>
-      </button>-->
-
       <!-- open individual measures -->
-      <!-- TODO visible-xs visible-sm visible-mobile -->
       <button mat-icon-button
-              *ngIf="!row.editing && !mobile"
-              [color]="row.currentData.observedIndividualCount ? 'primary' : 'disabled'"
-              [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
-              (click)="onSubBatchesClick($event, row)">
-        <mat-icon [matBadge]="row.currentData.observedIndividualCount"
-                  [matBadgeHidden]="!row.currentData.observedIndividualCount"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after"
-        >assessment</mat-icon>
-      </button>
-      <button mat-icon-button
-              *ngIf="mobile"
-              [disabled]="!row.currentData.observedIndividualCount"
+              *ngIf="mobile && row.currentData.observedIndividualCount"
               color="primary"
+              [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
               (click)="onSubBatchesClick($event, row)">
         <mat-icon [matBadge]="row.currentData.observedIndividualCount"
                   [matBadgeHidden]="!row.currentData.observedIndividualCount"

@@ -26,7 +26,6 @@
 <ion-content cdkTrapFocus class="ion-padding">
 
   <app-batch-group-form #form
-                  [debug]="debug"
                   [acquisitionLevel]="acquisitionLevel"
                   [program]="program"
                   [showTaxonGroup]="showTaxonGroup"
@@ -37,12 +36,15 @@
                   (onSubmit)="close($event)">
 
       <!-- open individual modal -->
-      <ion-button afterSpeciesButtons
+      <ion-button afterSpeciesButtons mat-button
                   *ngIf="showSubBatchesCallback && form.hasMeasure"
                   fill="clear" color="tertiary" expand="full"
-                  (click)="onShowSubBatchesButtonClick($event)" >
+                  (click)="onShowSubBatchesButtonClick($event)">
         <mat-icon>assessment</mat-icon>
-        <ion-label translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</ion-label>
+        <ion-label>
+          <span translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</span>
+          <span *ngIf="data.observedIndividualCount">&nbsp;({{data.observedIndividualCount}})</span>
+        </ion-label>
         <ion-icon slot="end" name="arrow-forward"></ion-icon>
       </ion-button>
 
