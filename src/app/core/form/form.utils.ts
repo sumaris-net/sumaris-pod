@@ -332,18 +332,21 @@ export function markAsTouched(form: FormGroup, opts?: {onlySelf?: boolean; emitE
   Object.keys(form.controls)
     .map(key => form.controls[key])
     .filter(control => control.enabled)
-    .forEach(control => {
-      if (control instanceof FormGroup) {
-        markAsTouched(control, { ...opts, onlySelf: true}); // recursive call
-      }
-      else if (control instanceof FormArray) {
-        (control.controls || []).forEach(c => markAsTouched(c, { ...opts, onlySelf: true})); // recursive call
-      }
-      else {
-        control.markAsTouched({onlySelf: true});
-        control.updateValueAndValidity({emitEvent: false, ...opts, onlySelf: true});
-      }
-    });
+    .forEach(control => markControlAsTouched(control));
+}
+
+export function markControlAsTouched(control: AbstractControl, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+  if (!control) return;
+  if (control instanceof FormGroup) {
+    markAsTouched(control, { ...opts, onlySelf: true}); // recursive call
+  }
+  else if (control instanceof FormArray) {
+    (control.controls || []).forEach(c => markControlAsTouched(c, { ...opts, onlySelf: true})); // recursive call
+  }
+  else {
+    control.markAsTouched({onlySelf: true});
+    control.updateValueAndValidity({emitEvent: false, ...opts, onlySelf: true});
+  }
 }
 
 export function updateValueAndValidity(form: FormGroup, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
