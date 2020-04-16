@@ -38,6 +38,8 @@
     <link rel="stylesheet" href="/core/css/bootstrap-grid.min.css" />
 
     <link href="/yasgui/css/yasgui.min.css" rel="stylesheet" type="text/css" />
+    <link href="/taxon/css/icons.css" rel="stylesheet" type="text/css" />
+    <link href="/taxon/css/dropzone.css" rel="stylesheet" type="text/css" />
     <link href="/taxon/css/app-taxon-yasr-plugin.css" rel="stylesheet" type="text/css" />
     <link href="/taxon/css/app-taxon-search.css" rel="stylesheet" type="text/css" />
 </head>
@@ -46,11 +48,11 @@
     <!-- Top menu-->
     <div id="menu"></div>
 
-    <div class="container">
+    <div class="container" id="main" >
 
         <h1 class="d-flex justify-content-center">Taxon search</h1>
 
-        <div class="form-group" style="padding-top: 15px;">
+        <form class="form-group" style="padding-top: 15px;" onsubmit="return app.doSubmit(event)" href="#">
             <div class="form-inline d-flex justify-content-center">
                 <input type="text" name="q" id="q" class="form-control w-75"
                        placeholder="Lophius, Dipturus, ..."
@@ -58,8 +60,13 @@
 
                 &nbsp;
                 <!-- search button -->
-                <button id="buttonSearch" type="button" onclick="app.doSearch()" class="btn btn-primary" tabindex="-1"
-                        >Search</button>
+                <button id="buttonSearch" type="submit"
+                        class="btn btn-primary" tabindex="-1">Search</button>
+                &nbsp;
+                <!-- The fileinput-button span is used to style the file input field as button -->
+                <span class="btn btn-success fileinput-button dz-clickable">
+                    <span>Upload file...</span>
+                </span>
             </div>
 
             <div id="options" class="form-inline justify-content-center d-none" >
@@ -72,8 +79,10 @@
                     <label for="showDebug" style="cursor: pointer;">debug</label>
                 </p>
             </div>
-        </div>
+        </form>
 
+        <div class="table table-striped files d-none" id="previews">
+        </div>
 
         <div id="tabs" style="padding-bottom: 15px;" class="d-none">
             <!-- examples will be inserted here -->
@@ -95,14 +104,59 @@
         <!-- SparQL  result -->
         <div id="yasr" class="d-none">
         </div>
-
-
     </div>
 
-<!--    <script type="text/javascript" src="https://test.sumaris.net/core/js/jquery.slim.min.js"></script>-->
-<!--    <script type="text/javascript" src="https://test.sumaris.net/core/js/popper.min.js"></script>-->
-<!--    <script type="text/javascript" src="https://test.sumaris.net/core/js/bootstrap.min.js"></script>-->
-<!--    <script type="text/javascript" src="https://test.sumaris.net/core/js/app-menu.js"></script>-->
+    <!-- right content-->
+    <div id="details" class="d-none" role="complementary">
+        <div class="backdrop" onclick="app.hideDetails();"></div>
+
+        <!-- loading spinner -->
+        <div class="spinner-border spinner-border-sm" role="status" >
+            <span class="sr-only">Loading...</span>
+        </div>
+
+        <!-- close button -->
+        <button type="button" onclick="app.hideDetails()" class="btn btn-primary btn-close"
+                tabindex="-1">Close</button>
+
+        <iframe name="detailsFrame" frameborder="0"></iframe>
+    </div>
+
+    <!-- Html Templates (e.g. use for file upload) -->
+    <div class="d-none">
+        <div id="template" class="row">
+            <!-- This is used as the file preview template -->
+            <div class="col-1">
+                <i class="icon ion-file"></i>
+            </div>
+            <div class="col-5 col-sm-3 col-lg-4">
+                <p class="name" data-dz-name></p>
+                <strong class="error text-danger" data-dz-errormessage></strong>
+            </div>
+            <div class="col-6 col-sm-3 col-lg-4">
+                <span class="size" data-dz-size></span>
+                <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div class="progress-bar progress-bar-success" style="width:0%;" data-dz-uploadprogress></div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-5 col-lg-3" >
+                <div class="float-right">
+                    <!--                <button class="btn btn-primary upload">-->
+                    <!--                    <span>Upload</span>-->
+                    <!--                </button>-->
+                    <button class="btn btn-primary import ">
+                        <span>Import</span>
+                    </button>
+                    <button data-dz-remove class="btn btn-warning cancel ">
+                        <span>Cancel</span>
+                    </button>
+                    <button data-dz-remove class="btn btn-danger delete ">
+                        <span>Delete</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script type="text/javascript" src="/core/js/jquery.slim.min.js"></script>
     <script type="text/javascript" src="/core/js/popper.min.js"></script>
@@ -112,11 +166,21 @@
     <script type="text/javascript" src="/rdfuri/js/rdf-helper.js"></script>
     <script type="text/javascript" src="/yasgui/js/yasgui.min.js"></script>
     <script type="text/javascript" src="/taxon/js/app-taxon-yasr-plugin.js"></script>
+    <script type="text/javascript" src="/taxon/js/dropzone.js"></script>
     <script type="text/javascript" src="/taxon/js/app-taxon-search.js"></script>
 
     <script language="JavaScript" type="text/javascript">
         const menu = new AppMenu('#menu', {active: '#nav-item-tools'});
-        const app = new AppTaxonSearch({yasqe: 'yasqe', yasr: 'yasr', tabs: 'tabs', optionsDiv: 'options'});
+        const app = new AppTaxonSearch({
+            ids: {
+                yasqe: 'yasqe',
+                yasr: 'yasr',
+                tabs: 'tabs',
+                options: 'options',
+                details: 'details'
+            },
+            onUriClick: 'app.showDetails({{url}})'
+        });
 
     </script>
 </body>

@@ -1,4 +1,5 @@
 
+
 /* Plugin tab button */
 .yasr .plugin_icon.txtIcon {
     margin-top: -7px; /* Align to text */
@@ -18,18 +19,6 @@
 
 .yasr .taxon-plugin .gray {
     color: gray;
-}
-.yasr .taxon-plugin .icon.ion-calendar {
-    background-image: url(calendar-outline.svg);
-}
-.yasr .taxon-plugin .icon.ion-clock {
-    background-image: url(time-outline.svg);
-}
-.yasr .taxon-plugin .icon.ion-pencil {
-    background-image: url(pencil.svg);
-}
-.yasr .taxon-plugin .icon.ion-arrow-up {
-    background-image: url(arrow-up.svg);
 }
 
 .yasr .taxon-plugin .exact-match a {

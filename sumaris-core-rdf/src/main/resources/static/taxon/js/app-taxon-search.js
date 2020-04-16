@@ -2,11 +2,15 @@
 
 function AppTaxonSearch(config) {
     const defaultConfig = {
-        yasqe: 'yasqe',
-        yasr: 'yasr',
-        tabs: 'tabs',
-        optionsDiv: 'options',
-
+        ids: {
+            yasqe: 'yasqe',
+            yasr: 'yasr',
+            tabs: 'tabs',
+            options: 'options',
+            details: 'details'
+        },
+        onUriClick: undefined,
+        onUriClickTarget: undefined,
         exactMatch: undefined,
         limit: 50,
         prefix: 'this'
@@ -17,6 +21,9 @@ function AppTaxonSearch(config) {
         EAU_FRANCE: 'http://id.eaufrance.fr/sparql',
         MNHN: 'http://taxref.mnhn.fr/sparql'
     };
+
+    const NUMERICAL_REGEXP = new RegExp(/^[0-9]+$/);
+    const SCIENTIFIC_NAME_REGEXP = new RegExp(/^[a-zA-Z ]+$/);
 
     const helper = new RdfHelper();
     const prefixDefs = [
@@ -209,30 +216,6 @@ function AppTaxonSearch(config) {
                 eauFranceEndpoint: endpointsById.EAU_FRANCE,
                 mnhnEndpoint: endpointsById.MNHN
             }
-        },
-        {
-            id: 'rdfs',
-            name: 'rdfs',
-            debug: true,
-            q: 'Lophius budegassa',
-            prefixes: ['rdf', 'rdfs', 'this'],
-            query: defaultQuery,
-            filters: ['rdfType', 'rdfsLabel', 'prefixMatch'],
-            binding: {
-                rdfType: 'this:TaxonName'
-            }
-        },
-        {
-            id: 'dwc',
-            name: 'dwc',
-            debug: true,
-            q: 'Lophius budegassa',
-            prefixes: ['rdf', 'dwc',  'dwctax', 'this'],
-            query: defaultQuery,
-            filters: ['rdfType', 'dwcScientificName', 'prefixMatch'],
-            binding: {
-                rdfType: 'dwctax:TaxonName'
-            }
         }
      ];
 
@@ -243,8 +226,8 @@ function AppTaxonSearch(config) {
 
     // Form elements
     let output,
-        buttonSearch,
         inputSearch,
+        details,
         selectedQueryIndex = -1;
 
     // YasGui
@@ -311,14 +294,6 @@ function AppTaxonSearch(config) {
 
 
         inputSearch = document.getElementById("q");
-        inputSearch.addEventListener("keyup", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                doSearch();
-            }
-        });
-
-        buttonSearch = document.getElementById("buttonSearch");
         output = document.getElementById("output");
 
         // Collect endpoints, from default, endpoint map, and queries
@@ -326,8 +301,12 @@ function AppTaxonSearch(config) {
             .reduce((res, ep) => (!ep || res.findIndex(endpoint => endpoint === ep) !== -1) ? res : res.concat(ep),
                 [defaultEndpoint]);
 
+        details = document.getElementById(config.ids.details);
+
+        initDropzone();
+
         // Add tabs
-        app.drawTabs();
+        drawTabs();
     }
 
     /**
@@ -365,12 +344,12 @@ function AppTaxonSearch(config) {
 
     function drawTabs(elementId) {
 
-        elementId = elementId || config.tabs;
-        config.tabs = elementId;
+        elementId = elementId || config.ids.tabs;
+        config.ids.tabs = elementId;
 
         // Queries
         const tabs = queries.map((example, index) => {
-            if (!example.id) return res; // Skip if no name (e.g. default)
+            if (!example.id) return ''; // Skip if no name (e.g. default)
             const debugClassList = example.debug ? ['debug', 'd-none'].join(' ') : '';
             return '<li class="nav-item "'+ debugClassList + '">' +
                 '<a href="#" class="nav-link '+ example.id + ' ' + debugClassList +'"' +
@@ -406,13 +385,14 @@ function AppTaxonSearch(config) {
                 }
             }
 
-            $('#' + config.tabs + ' a').removeClass('active');
-            $('#' + config.tabs + ' a.' + query.id).toggleClass('active');
+            $('#' + config.ids.tabs + ' a').removeClass('active');
+            $('#' + config.ids.tabs + ' a.' + query.id).toggleClass('active');
 
         }
     }
 
-    function initYase() {
+    function initYase(opts) {
+        opts = opts || {};
 
         const requestConfig = {
             endpoint: defaultEndpoint || endpoints.length && endpoints[0] || undefined
@@ -422,16 +402,20 @@ function AppTaxonSearch(config) {
         };
 
         if (!yasqe) {
-            const element = document.getElementById(config.yasqe);
-            if (!element) throw new Error('Cannot find div with id=' + config.yasqe);
+            const element = document.getElementById(config.ids.yasqe);
+            if (!element) throw new Error('Cannot find div with id=' + config.ids.yasqe);
 
             yasqe = new Yasqe(element, {
                 requestConfig
             });
+        }
 
+        if (opts.queryResponse){
+            yasqe.on("queryResponse", opts.queryResponse);
+        }
+        else {
             // Link editor to query
-            yasqe.on("queryResponse", receivedResponse);
-
+            yasqe.on("queryResponse", disaplayResponse);
         }
 
     }
@@ -439,11 +423,14 @@ function AppTaxonSearch(config) {
     function initYasr() {
         const prefixes = yasqe.getPrefixesFromQuery();
         if (!yasr) {
-            const element = document.getElementById(config.yasr);
-            if (!element) throw new Error('Cannot find div with id=' + config.yasr);
+            const element = document.getElementById(config.ids.yasr);
+            if (!element) throw new Error('Cannot find div with id=' + config.ids.yasr);
 
 
             Yasr.registerPlugin("taxon", YasrTaxonPlugin);
+
+            YasrTaxonPlugin.prototype.defaults.onUriClick = config.onUriClick;
+            YasrTaxonPlugin.prototype.defaults.uriClickTarget = config.uriClickTarget;
 
             yasr = new Yasr(element, {
                 pluginOrder: ["taxon", "table", "response"],
@@ -454,6 +441,70 @@ function AppTaxonSearch(config) {
         else {
             yasr.config.prefixes = prefixes;
         }
+
+    }
+
+    function initDropzone() {
+        // Get the template HTML and remove it from the doumenthe template HTML and remove it from the doument
+        const previewNode = document.querySelector("#template");
+        previewNode.id = "";
+        const previewTemplate = previewNode.parentNode.innerHTML;
+        previewNode.parentNode.removeChild(previewNode);
+
+        const myDropzone = new Dropzone('.container', // Make the whole body a dropzone
+            {
+                url: "/api/taxon/search",
+                parallelUploads: 20,
+                previewTemplate: previewTemplate,
+                autoQueue: false, // Make sure the files aren't queued until manually added
+                previewsContainer: "#previews", // Define the container to display the previews
+                clickable: ".fileinput-button" // Define the element that should be used as click trigger to select files.
+            });
+
+        myDropzone.on("addedfile", function(file) {
+            $('#previews').removeClass('d-none');
+
+            let importClick;
+            // If CSV file: parse it
+            if (file.type === "text/csv" || file.type === "text/plain"
+                || file.type === "application/vnd.ms-excel" // on MS Windows
+            ) {
+                importClick = () => parseCsvFile(file);
+            }
+
+            // Upload to server
+            else {
+                importClick = () => myDropzone.enqueueFile(file);
+            }
+
+            file.previewElement.querySelector(".import").onclick = importClick
+        });
+
+
+        myDropzone.on("sending", function(file) {
+            // Disable import button
+            file.previewElement.querySelector(".import").setAttribute("disabled", "disabled");
+        });
+
+        myDropzone.on("success", function(file) {
+            console.log("TODO: success upload ! ", file)
+        });
+
+
+        // Hide the total progress bar when nothing's uploading anymore
+        myDropzone.on("queuecomplete", function(progress) {
+            console.log("TODO: queuecomplete! display a result ?", progress)
+        });
+
+        // Hide the total progress bar when nothing's uploading anymore
+        myDropzone.on("removedfile", function(file) {
+            console.log("TODO: removing file", file)
+        });
+
+
+        // Setup the buttons for all transfers
+        // The "add files" button doesn't need to be setup because the config
+        // `clickable` has already been specified.
 
     }
 
@@ -468,12 +519,22 @@ function AppTaxonSearch(config) {
 
     /* -- Search -- */
 
+    function doSubmit(event) {
+        if (event) {
+            if (event.defaultPrevented) return;
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        doSearch();
+        return false;
+    }
 
     function doSearch(searchText, options)
     {
         searchText = searchText || inputSearch.value;
         if (!searchText || searchText.trim().length === 0) return; // Skip if empty
         searchText = searchText.trim();
+        console.debug("Search: " + searchText)
 
         hideResult();
         showLoading();
@@ -484,9 +545,7 @@ function AppTaxonSearch(config) {
             // Compute the query
             doUpdateQuery(searchText, options);
 
-            setTimeout(() => {
-                yasqe.queryBtn.click();
-            })
+            runQuery();
 
         }
         catch(error) {
@@ -496,6 +555,11 @@ function AppTaxonSearch(config) {
         }
     }
 
+    function runQuery() {
+        setTimeout(() => {
+            yasqe.queryBtn.click();
+        })
+    }
 
     function doUpdateQuery(searchText, options)
     {
@@ -542,7 +606,9 @@ function AppTaxonSearch(config) {
         options.q = undefined;
 
         try {
-            initYase();
+            initYase({
+                queryResponse: options.queryResponse
+            });
 
             let binding = {
                 ...options.binding,
@@ -593,7 +659,7 @@ function AppTaxonSearch(config) {
 
             // Add prefixes
             const prefixes = (options.prefixes || [])
-                .map(p => p === 'this' ? prefixDefs[0].prefix : p) // Replace 'this' by default prefic
+                .map(p => p === 'this' ? prefixDefs[0].prefix : p) // Replace 'this' by default prefix
                 .reduce((res, prefix) => {
                 const def = prefixDefs.find(def => def.prefix === prefix);
                 res[prefix] = def && def.namespace || undefined;
@@ -622,7 +688,7 @@ function AppTaxonSearch(config) {
         showLoading(false);
     }
 
-    function receivedResponse(yasqe, req, duration) {
+    function disaplayResponse(yasqe, req, duration) {
         log('RESPONSE: received in ' + duration + 'ms');
 
         initYasr();
@@ -639,26 +705,151 @@ function AppTaxonSearch(config) {
     function showResult(enable) {
         // Show
         if (enable !== false) {
-            $('#' + config.yasr).removeClass('d-none');
+            $('#' + config.ids.yasr).removeClass('d-none');
 
-            $('#' + config.tabs).removeClass('d-none');
-            $('#' + config.optionsDiv).removeClass('d-none'); // Do once
+            $('#' + config.ids.tabs).removeClass('d-none');
+            $('#' + config.ids.options).removeClass('d-none'); // Do once
 
-            $('#' + config.optionsDiv + ' #exactMatch').prop("checked", config.exactMatch !== false);
+            $('#' + config.ids.options + ' #exactMatch').prop("checked", config.exactMatch !== false);
+
+            hideDetails();
+            hideFilePreviews();
         }
         // Hide
         else {
-            $('#' + config.yasr).addClass('d-none');
+            $('#' + config.ids.yasr).addClass('d-none');
 
             // DO NOT hide tabs, nor options
-            //$('#' + config.tabs).addClass('d-none');
-            //$('#' + config.optionsDiv).addClass('d-none');
+            //$('#' + config.ids.tabs).addClass('d-none');
+            //$('#' + config.ids.options).addClass('d-none');
         }
     }
 
     function hideResult() {
         showResult(false);
     }
+
+    function showDetails(url) {
+
+        const detailsContainer = $('#' + config.ids.details);
+        const iframe = $('#' + config.ids.details + " iframe");
+
+        // Show
+        if (url) {
+            // Hide iframe
+            iframe.addClass('d-none');
+
+            // Show the details loading spinner
+            detailsContainer.addClass('loading').removeClass('d-none');
+
+            // Change the iframe src attribute
+            iframe.attr('src', url);
+            iframe.on('load', function() {
+                console.debug("Iframe loaded !", arguments);
+
+                // Hide loading spinner
+                detailsContainer.removeClass('loading');
+
+                // Show iframe
+                iframe.removeClass('d-none');
+
+            });
+        }
+
+        // Hide
+        else {
+            detailsContainer.addClass('d-none').removeClass('loading');
+
+            // Hide iframe
+            iframe.addClass('d-none');
+
+            // Remove iframe content
+            iframe.attr('src', undefined);
+        }
+    }
+
+    function hideDetails() {
+        showDetails(false);
+    }
+
+    function showFilePreviews(enable) {
+        if (enable !== false) {
+            $('#previews').removeClass('d-none');
+        }
+        else {
+            $('#previews').addClass('d-none');
+        }
+    }
+
+    function hideFilePreviews() {
+        showFilePreviews(false);
+    }
+
+    function parseCsvFile(file, opts) {
+        opts = opts || {};
+
+        opts.importType = opts.importType || 'alphaId';
+        const reader = new FileReader();
+
+        let valueRegexp;
+        switch (opts.importType) {
+            case 'alphaId':
+                valueRegexp = NUMERICAL_REGEXP;
+                break;
+            case 'name':
+                valueRegexp = SCIENTIFIC_NAME_REGEXP;
+                break;
+            default: throw new Error('Invalid import type: ' + opts.importType);
+        }
+        const setProgression = getFileProgressionFn(file);
+
+        reader.onload = function(onLoadEvent) {
+            if (!onLoadEvent.loaded || !reader.result) return;
+
+            let progression = 10;
+            setProgression(progression);
+
+            const values = reader.result.split("\n")
+                .filter(value => value && valueRegexp.test(value))
+                .map(value => value.trim())
+                .filter(value => value.length > 0);
+
+            const step = Math.max(Math.trunc((90 / values.length) * 10) / 10, 0.1);
+
+            const executeSearch = (index) => {
+                if (index < values.length) {
+                    const value = values[index];
+                    doUpdateQuery(value, {
+                        queryResponse : (res) => {
+                            console.log(res);
+                            setTimeout(() => {
+                                progression += step;
+                                setProgression(progression);
+                                executeSearch(index+1);
+                            })
+                        }});
+
+                    runQuery();
+                }
+                else {
+                    setTimeout(() =>setProgression(100));
+                }
+            }
+            executeSearch(0);
+
+        };
+        reader.readAsText(file);
+    }
+
+    function getFileProgressionFn(file) {
+        const progressElement = file.previewElement.querySelector("[data-dz-uploadprogress]");
+        if (!progressElement) throw new Error("Cannot found [data-dz-uploadprogress] in file template !");
+        return (value) => {
+            progressElement.setAttribute('style', 'width: '+ Math.min(100, value) +'%');
+        }
+
+    }
+
 
     window.addEventListener("load", init, false);
 
@@ -668,6 +859,9 @@ function AppTaxonSearch(config) {
         setConfig,
         clearLog,
         drawTabs,
+        doSubmit,
         doSearch,
+        showDetails,
+        hideDetails
     }
 }

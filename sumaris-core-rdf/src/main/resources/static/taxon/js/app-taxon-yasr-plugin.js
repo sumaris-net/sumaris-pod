@@ -20,83 +20,7 @@
  * #L%
  */
 
-function inverseArrayValue(array, index1, index2) {
-    let temp1 = array[index1];
-    array[index1] = array[index2];
-    array[index2] = temp1;
-}
-function urnToUrl(uri) {
-    if (!uri || !uri.startsWith('urn:')) return uri;
 
-    // WoRMS
-    if (uri.startsWith("urn:lsid:marinespecies.org:taxname:")) {
-        const parts = uri.split(':');
-        return "http://www.marinespecies.org/aphia.php?p=taxdetails&id=" + parts[parts.length - 1];
-    }
-
-    // Resolve Life science ID
-    if (uri.startsWith("urn:lsid:")) {
-        return "http://www.lsid.info/resolver/?lsid=" + uri;
-    }
-
-    return uri;
-}
-
-function urnToRdfUrl(uri) {
-    if (!uri || !uri.startsWith('urn:')) return uri;
-
-    // Resolve Life science ID (e.g. WoRMS urn, etc.)
-    if (uri.startsWith("urn:lsid:")) {
-        return "http://www.lsid.info/resolver/api.php?lsid=" + uri;
-    }
-
-    return uri;
-}
-
-
-
-function simplifyUri(uri, prefixes, truncLength) {
-    if (uri && prefixes) {
-        for (let prefix of Object.keys(prefixes)) {
-            const namespace = prefixes[prefix];
-            const index = namespace ? uri.trim().indexOf(namespace) : -1;
-            if (index === 0) {
-                return prefix + ':' + uri.trim().substr(namespace.length);
-            }
-        }
-    }
-
-    // No prefix found
-    return truncText(uri, truncLength);
-}
-
-
-function truncText(text, truncLength) {
-    // No prefix found: check length
-    if (truncLength && truncLength > 3 && text.length > truncLength) {
-        return text.substr(0, truncLength-3) + '...';
-    }
-    return text;
-}
-
-function displayUri(uri, prefixes, textTruncLength) {
-    if (!uri) return '';
-
-    if (uri.startsWith('http')) {
-        return "<a href='" + uri + "'>" + simplifyUri(uri, prefixes, textTruncLength) + "</a>";
-    }
-    if (uri.startsWith('urn:')) {
-        const url = urnToUrl(uri);
-        const rdfUrl = urnToRdfUrl(uri);
-        let html = "<a href='" + url + "'>" + truncText(uri, textTruncLength) + "</a>";
-
-        if (rdfUrl && url !== rdfUrl) {
-            html += "&nbsp;<a href='" + rdfUrl + "'>(rdf)</a>";
-        }
-        return html;
-    }
-    return uri;
-}
 
 class YasrTaxonPlugin {
     // A priority value. If multiple plugin support rendering of a result, this value is used
@@ -111,6 +35,9 @@ class YasrTaxonPlugin {
 
     // Max length, before truncated URI
     uriMaxLength = undefined;
+
+    // Default options
+    //defaults = YasrTaxonPlugin.defaults;
 
     constructor(yasr) {
         this.yasr = yasr;
@@ -160,14 +87,16 @@ class YasrTaxonPlugin {
         const el = document.createElement("div");
         el.classList.add('taxon-plugin');
 
+        const hasResults = this.yasr.results && this.yasr.results.json && true;
+
         const prefixes  = this.yasr.getPrefixes();
 
         // Get taxon list
-        const taxons = this.getTaxonsFromBindings(this.yasr.results.json.results.bindings);
+        const taxons = hasResults && this.getTaxonsFromBindings(this.yasr.results.json.results.bindings);
 
-        const scientificNameFirst = this.yasr.results.json.head.vars.findIndex(v => v === "scientificName") === 0;
-        const hasAuthor = this.yasr.results.json.head.vars.findIndex(v => v === "author") !== -1;
-        const hasRank = this.yasr.results.json.head.vars.findIndex(v => v === "rank") !== -1;
+        const scientificNameFirst = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "scientificName") === 0;
+        const hasAuthor = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "author") !== -1;
+        const hasRank = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "rank") !== -1;
 
         const headerCols = ["  <th scope='col'>#</th>",
             "  <th scope='col'>Scientific name</th>",
@@ -179,13 +108,13 @@ class YasrTaxonPlugin {
         ];
 
         // Inverse
-        if (!scientificNameFirst) inverseArrayValue(headerCols, 1, 2);
+        if (!scientificNameFirst) this.inverseArrayValue(headerCols, 1, 2);
 
         // Mask unused columns
         if (!hasAuthor) headerCols[3] = "";
         if (!hasRank) headerCols[4] = "";
 
-        const rows = taxons.map((taxon, index) => {
+        const rows = (hasResults && taxons || []).map((taxon, index) => {
             let rowCols = [
 
                 // Index
@@ -195,7 +124,7 @@ class YasrTaxonPlugin {
                 "<td class='col'>" + taxon.scientificName + "</td>",
 
                 // Source URI
-                "<td>" + displayUri(taxon.uri, prefixes, this.uriMaxLength) +
+                "<td>" + this.displayUri(taxon.uri, prefixes, this.uriMaxLength) +
                 (taxon.created ? ("<br/><small class='gray' title='Creation date'><i class='icon ion-calendar'></i> "+ taxon.created + "</small>") : "") +
                 (taxon.modified ? ("<br/><small class='gray' title='Last modification date'><i class='icon ion-pencil'></i> "+ taxon.modified + "</small>") : "") +
                 "</td>",
@@ -205,28 +134,28 @@ class YasrTaxonPlugin {
 
                 // Rank
                 "<td class='col'>" +
-                displayUri(taxon.rank, prefixes, this.uriMaxLength) +
+                this.displayUri(taxon.rank, prefixes, this.uriMaxLength) +
                 "</td>",
 
                 // Parent
                 "<td>" +
-                displayUri(taxon.parentUri, prefixes, this.uriMaxLength) +
+                this.displayUri(taxon.parentUri, prefixes, this.uriMaxLength) +
                 "</td>",
 
                 "<td class='exact-match'>" +
                 // Exact match
-                (taxon.exactMatch || []).map(uri => displayUri(uri, prefixes, this.uriMaxLength)).join("<br/>\n") +
+                (taxon.exactMatch || []).map(uri => this.displayUri(uri, prefixes, this.uriMaxLength)).join("<br/>\n") +
 
                 // seeAlso (with a separator)
                 (taxon.exactMatch.length && taxon.seeAlso.length ?
                     ("<br/><small><i>See also:</i></small>\n<ul>" +
-                    (taxon.seeAlso || []).map(uri => "<li>" + displayUri(uri, prefixes, this.uriMaxLength)).join("\n") +
+                    (taxon.seeAlso || []).map(uri => "<li>" + this.displayUri(uri, prefixes, this.uriMaxLength)).join("\n") +
                     "</ul>")
                 : '') +
                 "</td>"
 
             ];
-            if (!scientificNameFirst) inverseArrayValue(rowCols, 1, 2);
+            if (!scientificNameFirst) this.inverseArrayValue(rowCols, 1, 2);
             if (!hasAuthor) rowCols[3] = "";
             if (!hasRank) rowCols[4] = "";
 
@@ -261,5 +190,106 @@ class YasrTaxonPlugin {
         return textIcon;
     }
 
+    /* -- Internal functions -- */
+
+    inverseArrayValue(array, index1, index2) {
+        let temp1 = array[index1];
+        array[index1] = array[index2];
+        array[index2] = temp1;
+    }
+
+    urnToUrl(uri) {
+        if (!uri || !uri.startsWith('urn:')) return uri;
+
+        // WoRMS
+        if (uri.startsWith("urn:lsid:marinespecies.org:taxname:")) {
+            const parts = uri.split(':');
+            return "http://www.marinespecies.org/aphia.php?p=taxdetails&id=" + parts[parts.length - 1];
+        }
+
+        // Resolve Life science ID
+        if (uri.startsWith("urn:lsid:")) {
+            return "http://www.lsid.info/resolver/?lsid=" + uri;
+        }
+
+        return uri;
+    }
+
+    urnToRdfUrl(uri) {
+        if (!uri || !uri.startsWith('urn:')) return uri;
+
+        // Resolve Life science ID (e.g. WoRMS urn, etc.)
+        if (uri.startsWith("urn:lsid:")) {
+            return "http://www.lsid.info/resolver/api.php?lsid=" + uri;
+        }
+
+        return uri;
+    }
+
+    simplifyUri(uri, prefixes, truncLength) {
+        if (uri && prefixes) {
+            for (let prefix of Object.keys(prefixes)) {
+                const namespace = prefixes[prefix];
+                const index = namespace ? uri.trim().indexOf(namespace) : -1;
+                if (index === 0) {
+                    return prefix + ':' + uri.trim().substr(namespace.length);
+                }
+            }
+        }
+
+        // No prefix found
+        return this.truncText(uri, truncLength);
+    }
+
+
+    truncText(text, truncLength) {
+        // No prefix found: check length
+        if (truncLength && truncLength > 3 && text.length > truncLength) {
+            return text.substr(0, truncLength-3) + '...';
+        }
+        return text;
+    }
+
+    displayUri(uri, prefixes, textTruncLength) {
+        if (!uri) return '';
+
+        let getStartTag;
+        if (this.defaults && this.defaults.uriClickTarget) {
+            const target = this.defaults.uriClickTarget;
+            getStartTag = function(url) {
+                return "<a href='" + url + "' target='"+ target +"' >";
+            }
+        }
+        if (this.defaults && this.defaults.onUriClick) {
+            const onUriClick = this.defaults.onUriClick;
+            getStartTag = function(url) {
+                return "<a href='#' onclick='"+ onUriClick.replace('{{url}}', "\"" + url + "\"") +"' >";
+            }
+        }
+        else {
+            getStartTag = function(url) {
+                return "<a href='" + url + "'>";
+            }
+        }
+        if (uri.startsWith('http')) {
+            return getStartTag(uri) + this.simplifyUri(uri, prefixes, textTruncLength) + "</a>";
+        }
+        if (uri.startsWith('urn:')) {
+            const url = this.urnToUrl(uri);
+            const rdfUrl = this.urnToRdfUrl(uri);
+            let html = getStartTag(url) + this.truncText(uri, textTruncLength) + "</a>";
+
+            if (rdfUrl && url !== rdfUrl) {
+                html += "&nbsp;" + getStartTag(rdfUrl) + "(rdf)</a>";
+            }
+            return html;
+        }
+        return uri;
+    }
 
 }
+
+YasrTaxonPlugin.prototype.defaults = {
+    uriClickTarget : undefined,
+    onUriClick : undefined
+};
