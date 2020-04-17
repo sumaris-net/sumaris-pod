@@ -688,6 +688,25 @@
       "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé."
     }
   },
+  "PACKET": {
+    "NUMBER": "Nombre de paquets",
+    "WEIGHT": "Poids total des paquets calculé (kg)",
+    "SAMPLED_WEIGHTS": "Poids des échantillons (kg)",
+    "SAMPLED_WEIGHT": "Paquet #{{rankOrder}}",
+    "SAMPLED_RATIO": "Composition %",
+    "LIST": {
+      "PARENT": "Effort",
+      "NUMBER": "Nombre de paquets",
+      "WEIGHT": "Poids (kg)",
+      "COMPOSITION": "Composition"
+    },
+    "COMPOSITION": {
+      "TITLE": "Composition du paquet",
+      "TAXON_GROUP": "Espèce commerciale (FAO)",
+      "RATIO": "#{{rankOrder}} %",
+      "WEIGHT": "Poids (kg)"
+    }
+  },
   "AUCTION_CONTROL": {
     "TITLE_PREFIX": "<small>{{location}} - Contrôle {{date}}<br/></small>",
     "NEW": {

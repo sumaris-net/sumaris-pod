@@ -1,13 +1,13 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {environment} from "../../core/core.module";
+import {environment, referentialToString} from "../../core/core.module";
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
-import {PhysicalGear, referentialToString} from "../services/trip.model";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PhysicalGearModal} from "./physicalgear.modal";
 import {AcquisitionLevelCodes} from "../services/model/base.model";
+import {PhysicalGear} from "../services/model/trip.model";
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -24,7 +24,7 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
 export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> implements OnInit, OnDestroy {
 
   protected cd: ChangeDetectorRef;
-  protected memoryDataService: InMemoryTableDataService<PhysicalGear, any>;
+  protected memoryDataService: InMemoryTableDataService<PhysicalGear>;
 
   set value(data: PhysicalGear[]) {
     this.memoryDataService.value = data;
@@ -49,7 +49,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)
       });
     this.cd = injector.get(ChangeDetectorRef);
-    this.memoryDataService = (this.dataService as InMemoryTableDataService<PhysicalGear, any>);
+    this.memoryDataService = (this.dataService as InMemoryTableDataService<PhysicalGear>);
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
     this.autoLoad = false;
 

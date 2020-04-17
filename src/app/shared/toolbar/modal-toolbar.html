@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar [color]="color">
+    <ion-buttons slot="start">
+      <ion-button visible-xs visible-sm visible-mobile
+                  (click)="cancel.emit()">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title>
+      {{title|translate}}
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-spinner *ngIf="showSpinner"></ion-spinner>
+
+      <ion-button visible-xs visible-sm visible-mobile
+                  *ngIf="canValidate"
+                  (click)="validate.emit()">
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>

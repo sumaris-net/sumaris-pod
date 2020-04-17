@@ -1,11 +1,17 @@
-import {EntityUtils, fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
+import {
+  EntityUtils,
+  fromDateISOString,
+  isNotNil,
+  ReferentialAsObjectOptions,
+  toDateISOString
+} from "../../../core/core.module";
 import {Moment} from "moment/moment";
 import {
   DataEntity,
   DataEntityAsObjectOptions,
   DataRootEntity,
   DataRootVesselEntity,
-  IWithObserversEntity, IWithProductsEntity,
+  IWithObserversEntity, IWithPacketsEntity, IWithProductsEntity,
   NOT_MINIFY_OPTIONS,
   Person,
   ReferentialRef
@@ -18,19 +24,19 @@ import {
   MeasurementValuesUtils
 } from "./measurement.model";
 import {Sale} from "./sale.model";
+import {MetierRef} from "../../../referential/services/model/taxon.model";
+import {isEmptyArray} from "../../../shared/functions";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
-import {MetierRef} from "../../../referential/services/model/taxon.model";
-import {ReferentialAsObjectOptions} from "../../../core/services/model";
-import {isEmptyArray, isNotEmptyArray} from "../../../shared/functions";
 import {Product} from "./product.model";
-
+import {Packet} from "./packet.model";
 
 /* -- Helper function -- */
 
 const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => {
   return n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
 };
+
 
 /* -- Data -- */
 
@@ -56,6 +62,9 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   metiers: MetierRef[];
   operations?: Operation[];
   operationGroups?: OperationGroup[];
+
+  landingId?: number;
+  observedLocationId?: number;
 
   constructor() {
     super();
@@ -114,6 +123,9 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     if (this.returnDateTime && this.returnDateTime.isSameOrBefore(this.departureDateTime)) {
       this.returnDateTime = undefined;
     }
+
+    this.landingId = source.landingId;
+    this.observedLocationId = source.observedLocationId;
 
     return this;
   }
@@ -198,6 +210,57 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
       );
   }
 }
+
+export class VesselPosition extends DataEntity<VesselPosition> {
+
+  static TYPENAME = 'VesselPositionVO';
+
+  static fromObject(source: any): VesselPosition {
+    const res = new VesselPosition();
+    res.fromObject(source);
+    return res;
+  }
+
+  dateTime: Moment;
+  latitude: number;
+  longitude: number;
+  operationId: number;
+
+  constructor() {
+    super();
+    this.__typename = VesselPosition.TYPENAME;
+  }
+
+  clone(): VesselPosition {
+    const target = new VesselPosition();
+    target.fromObject(this.asObject());
+    return target;
+  }
+
+  asObject(options?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(options);
+    target.dateTime = toDateISOString(this.dateTime);
+    return target;
+  }
+
+  fromObject(source: any): VesselPosition {
+    super.fromObject(source);
+    this.latitude = source.latitude;
+    this.longitude = source.longitude;
+    this.operationId = source.operationId;
+    this.dateTime = fromDateISOString(source.dateTime);
+    return this;
+  }
+
+  equals(other: VesselPosition): boolean {
+    return super.equals(other)
+      || (this.dateTime === other.dateTime
+        && (!this.operationId && !other.operationId || this.operationId === other.operationId));
+  }
+}
+
+
+/* -- Operation -- */
 
 export class Operation extends DataEntity<Operation> {
 
@@ -368,7 +431,10 @@ export class Operation extends DataEntity<Operation> {
   }
 }
 
-export class OperationGroup extends DataEntity<OperationGroup> implements IWithProductsEntity<OperationGroup> {
+
+/* -- Operation Group -- */
+
+export class OperationGroup extends DataEntity<OperationGroup> implements IWithProductsEntity<OperationGroup>, IWithPacketsEntity<OperationGroup> {
 
   static TYPENAME = 'OperationGroupVO';
 
@@ -393,19 +459,19 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
   // all measurements in table
   measurementValues: MeasurementModelValues | MeasurementFormValues;
 
-  catchBatch: Batch;
   products: Product[];
+  packets: Packet[];
 
   constructor() {
     super();
     this.__typename = 'OperationGroupVO';
     this.metier = null;
     this.physicalGear = null;
-    this.catchBatch = null;
     this.measurementValues = {};
     this.measurements = [];
     this.gearMeasurements = [];
     this.products = [];
+    this.packets = [];
   }
 
   clone(): OperationGroup {
@@ -429,28 +495,23 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
     delete target.gearMeasurementValues; // all measurements are stored only measurementValues
 
-    // Batch
-    if (target.catchBatch) {
-      // Serialize batches in tree (will keep only children arrays, and removed parentId and parent)
-      if (!opts || opts.batchAsTree !== false) {
-        target.catchBatch = this.catchBatch && this.catchBatch.asObject(opts) || undefined;
-      }
-      // Serialize as batches array (this will fill parentId, and remove children and parent properties)
-      else {
-        target.batches = Batch.treeAsObjectArray(target.catchBatch, opts);
-        delete target.catchBatch;
-      }
-    }
-
     // Products
-    target.products = this.products && this.products.map(o => o.asObject(opts)) || undefined;
-    // Affect parent link
-    if (isNotEmptyArray(target.products)) {
-      target.products.forEach(product => {
-        product.operationId = target.id;
-        delete product.parent;
-      });
-    }
+    target.products = this.products && this.products.map(product => {
+      const p = product.asObject(opts);
+      // Affect parent link
+      p.operationId = target.id;
+      delete p.parent;
+      return p;
+    }) || undefined;
+
+    // Packets
+    target.packets = this.packets && this.packets.map(packet => {
+      const p = packet.asObject(opts);
+      // Affect parent link
+      p.operationId = target.id;
+      delete p.parent;
+      return p;
+    }) || undefined;
 
     return target;
   }
@@ -473,23 +534,23 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
       MeasurementUtils.toMeasurementValues(this.gearMeasurements),
       this.physicalGear.measurementValues,
       source.measurementValues // important: keep at last assignment
-      );
+    );
     if (Object.keys(this.measurementValues).length === 0) {
       console.warn("Source as no measurement. Should never occur ! ", source);
     }
-
-    // Batches
-    this.catchBatch = source.catchBatch && !source.batches ?
-      // Reuse existing catch batch (useful for local entity)
-      Batch.fromObject(source.catchBatch, {withChildren: true}) :
-      // Convert list to tree (useful when fetching from a pod)
-      Batch.fromObjectArrayAsTree(source.batches);
 
     // Products
     this.products = source.products && source.products.map(Product.fromObject) || [];
     // Affect parent
     this.products.forEach(product => {
       product.parent = this;
+    });
+
+    // Packets
+    this.packets = source.packets && source.packets.map(Packet.fromObject) || [];
+    // Affect parent
+    this.packets.forEach(packet => {
+      packet.parent = this;
     });
 
     return this;
@@ -499,53 +560,5 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
     return super.equals(other)
       && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
       ;
-  }
-}
-
-export class VesselPosition extends DataEntity<VesselPosition> {
-
-  static TYPENAME = 'VesselPositionVO';
-
-  static fromObject(source: any): VesselPosition {
-    const res = new VesselPosition();
-    res.fromObject(source);
-    return res;
-  }
-
-  dateTime: Moment;
-  latitude: number;
-  longitude: number;
-  operationId: number;
-
-  constructor() {
-    super();
-    this.__typename = VesselPosition.TYPENAME;
-  }
-
-  clone(): VesselPosition {
-    const target = new VesselPosition();
-    target.fromObject(this.asObject());
-    return target;
-  }
-
-  asObject(options?: DataEntityAsObjectOptions): any {
-    const target = super.asObject(options);
-    target.dateTime = toDateISOString(this.dateTime);
-    return target;
-  }
-
-  fromObject(source: any): VesselPosition {
-    super.fromObject(source);
-    this.latitude = source.latitude;
-    this.longitude = source.longitude;
-    this.operationId = source.operationId;
-    this.dateTime = fromDateISOString(source.dateTime);
-    return this;
-  }
-
-  equals(other: VesselPosition): boolean {
-    return super.equals(other)
-      || (this.dateTime === other.dateTime
-        && (!this.operationId && !other.operationId || this.operationId === other.operationId));
   }
 }

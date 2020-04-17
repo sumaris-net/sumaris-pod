@@ -71,6 +71,7 @@ import {FileSizePipe} from "./pipes/file-size.pipe";
 import {MatDuration} from "./material/material.duration";
 import {DurationPipe} from "./pipes/duration.pipe";
 import {DurationPickerModule} from "ngx-duration-picker";
+import {ModalToolbarComponent} from "./toolbar/modal-toolbar";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -106,6 +107,7 @@ export {
   declarations: [
     AutofocusDirective,
     ToolbarComponent,
+    ModalToolbarComponent,
     NumpadComponent,
     DateFormatPipe,
     DateDiffDurationPipe,
@@ -130,6 +132,7 @@ export {
     HotkeysModule,
     AutofocusDirective,
     ToolbarComponent,
+    ModalToolbarComponent,
     NumpadComponent,
     DateFormatPipe,
     DateFromNowPipe,

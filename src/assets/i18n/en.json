@@ -687,6 +687,25 @@
       "SUBSCRIBE_ERROR": "Error while subscribe to observed vessel changes."
     }
   },
+  "PACKET": {
+    "NUMBER": "Packet number",
+    "WEIGHT": "Calculated packets total weight (kg)",
+    "SAMPLED_WEIGHTS": "Sampled weights (kg)",
+    "SAMPLED_WEIGHT": "Packet #{{rankOrder}}",
+    "SAMPLED_RATIO": "Composition %",
+    "LIST": {
+      "PARENT": "Effort",
+      "NUMBER": "Packets number",
+      "WEIGHT": "Weight (kg)",
+      "COMPOSITION": "Composition"
+    },
+    "COMPOSITION": {
+      "TITLE": "Packet composition",
+      "TAXON_GROUP": "Commercial species (FAO)",
+      "RATIO": "#{{rankOrder}} %",
+      "WEIGHT": "Weight (kg)"
+    }
+  },
   "AUCTION_CONTROL": {
     "TITLE_PREFIX": "<small>{{location}} - Control {{date}}<br/></small>",
     "NEW": {

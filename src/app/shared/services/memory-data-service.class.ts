@@ -22,6 +22,8 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
 
   protected data: T[];
 
+  // TODO add filter  see sub-batches.modal.ts onLoadData & _hiddenData
+
   hasRankOrder = false;
   debug = false;
   dirty = false;
@@ -117,7 +119,7 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
       const shouldRemoved = dataToRemove.findIndex(entityToRemove => this._equalsFn(entityToRemove, entity)) !== -1;
       return !shouldRemoved;
     });
-    const deleteCount = this.data.length - updatedData.length
+    const deleteCount = this.data.length - updatedData.length;
     if (deleteCount > 0) {
       const updatedTotal = this._dataSubject.getValue().total - deleteCount;
       this.data = updatedData;

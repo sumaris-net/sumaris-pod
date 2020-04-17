@@ -469,7 +469,7 @@
     "LANDED_CATCH": {
       "TAB_PRODUCT": "By species",
       "TAB_BATCH": "By packet",
-      "OPERATION_GROUP_FILTER": "Filter by effort",
+      "OPERATION_GROUP_FILTER": "Filter by effort"
     },
     "PRODUCT": {
       "LIST": {
@@ -685,6 +685,25 @@
       "SAVE_ERROR": "Error while saving observed vessel",
       "SAVE_ALL_ERROR": "Error while saving observed vessels",
       "SUBSCRIBE_ERROR": "Error while subscribe to observed vessel changes."
+    }
+  },
+  "PACKET": {
+    "NUMBER": "Packet number",
+    "WEIGHT": "Calculated packets total weight (kg)",
+    "SAMPLED_WEIGHTS": "Sampled weights (kg)",
+    "SAMPLED_WEIGHT": "Packet #{{rankOrder}}",
+    "SAMPLED_RATIO": "Composition %",
+    "LIST": {
+      "PARENT": "Effort",
+      "NUMBER": "Packets number",
+      "WEIGHT": "Weight (kg)",
+      "COMPOSITION": "Composition"
+    },
+    "COMPOSITION": {
+      "TITLE": "Packet composition",
+      "TAXON_GROUP": "Commercial species (FAO)",
+      "RATIO": "#{{rankOrder}} %",
+      "WEIGHT": "Weight (kg)"
     }
   },
   "AUCTION_CONTROL": {

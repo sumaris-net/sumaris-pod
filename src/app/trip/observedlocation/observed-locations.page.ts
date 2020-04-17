@@ -1,14 +1,15 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {AppTable, environment, isNil, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {
-  LocationLevelIds,
-  ObservedLocation,
-  personsToString,
-  ReferentialRef,
+  AppTable,
+  environment,
+  isNil,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
   referentialToString,
-  vesselSnapshotToString
-} from "../services/trip.model";
+  personsToString,
+  ReferentialRef
+} from "../../core/core.module";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
@@ -20,10 +21,11 @@ import {AppTableDataSource} from "../../core/table/table-datasource.class";
 import {debounceTime, filter, tap} from "rxjs/operators";
 import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
-import {qualityFlagToColor} from "../../referential/services/model";
+import {LocationLevelIds, qualityFlagToColor, vesselSnapshotToString} from "../../referential/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TripFilter} from "../services/trip.service";
 import {PlatformService} from "../../core/services/platform.service";
+import {ObservedLocation} from "../services/model/observed-location.model";
 
 @Component({
   selector: 'app-observed-locations-page',

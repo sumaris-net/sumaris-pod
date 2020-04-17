@@ -1,25 +1,22 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {Moment} from 'moment/moment';
 import {
   EntityUtils,
+  FormArrayHelper,
   isNil,
   isNotNil,
-  Landing,
-  LocationLevelIds,
   Person,
   personToString,
   referentialToString,
-  StatusIds,
-  VesselSnapshot
-} from "../services/trip.model";
-import {Moment} from 'moment/moment';
-import {FormArrayHelper} from '../../core/core.module';
+  StatusIds
+} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {
-  AcquisitionLevelCodes,
+  AcquisitionLevelCodes, LocationLevelIds,
   ProgramService,
   ReferentialRefService,
-  VesselModal
+  VesselModal, VesselSnapshot
 } from '../../referential/referential.module';
 import {LandingValidatorService} from "../services/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
@@ -32,6 +29,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {toBoolean} from "../../shared/functions";
+import {Landing} from "../services/model/landing.model";
 
 @Component({
   selector: 'app-landing-form',
@@ -227,7 +225,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return modal.present();
   }
 
-  public registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions<any>): MatAutocompleteFieldConfig<any> {
+  public registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions): MatAutocompleteFieldConfig {
     return super.registerAutocompleteField(fieldName, options);
   }
 

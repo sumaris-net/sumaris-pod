@@ -1,23 +1,14 @@
 import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
 import {
-  Department,
-  EntityUtils,
-  fillRankOrder,
-  fromDateISOString,
-  isNil, Operation,
-  PhysicalGear,
-  Trip
-} from "./trip.model";
-import {
-  EditorDataService, EditorDataServiceLoadOptions,
+  EditorDataService, EditorDataServiceLoadOptions, fromDateISOString, isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   LoadResult,
   TableDataService, toBoolean
 } from "../../shared/shared.module";
-import {AppFormUtils, environment} from "../../core/core.module";
+import {AppFormUtils, Department, EntityUtils, environment} from "../../core/core.module";
 import {catchError, filter, map, switchMap, tap} from "rxjs/operators";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
@@ -33,7 +24,7 @@ import {
   MINIFY_OPTIONS,
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS,
   SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS,
-  SynchronizationStatus, IWithRecorderDepartmentEntity
+  SynchronizationStatus, IWithRecorderDepartmentEntity, fillRankOrder
 } from "./model/base.model";
 import {NetworkService} from "../../core/services/network.service";
 import {concat, defer, Observable, of, timer} from "rxjs";
@@ -50,6 +41,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TripValidatorService} from "./trip.validator";
 import {FormErrors} from "../../core/form/form.utils";
 import {AcquisitionLevelType} from "../../referential/services/model";
+import {Operation, PhysicalGear, Trip} from "./model/trip.model";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -162,6 +154,8 @@ export const TripFragments = {
     qualificationDate
     qualityFlagId
     comments
+    landingId
+    observedLocationId
     departureLocation {
       ...LocationFragment
     }

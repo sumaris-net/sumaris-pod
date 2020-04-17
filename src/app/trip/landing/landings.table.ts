@@ -9,14 +9,7 @@ import {
   OnInit, Output, ViewChild
 } from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {environment, isNil, StatusIds} from "../../core/core.module";
-import {
-  Landing,
-  ObservedLocation,
-  personsToString,
-  referentialToString,
-  Trip
-} from "../services/trip.model";
+import {environment, isNil, personsToString, referentialToString, StatusIds} from "../../core/core.module";
 import {LandingFilter, LandingService} from "../services/landing.service";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {AcquisitionLevelCodes} from "../../referential/services/model";
@@ -25,6 +18,9 @@ import {Moment} from "moment";
 import {LandingValidatorService} from "../services/landing.validator";
 import {MatPaginator, PageEvent} from "@angular/material";
 import {Alerts, askSaveBeforeLeave} from "../../shared/alerts";
+import {Trip} from "../services/model/trip.model";
+import {ObservedLocation} from "../services/model/observed-location.model";
+import {Landing} from "../services/model/landing.model";
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];

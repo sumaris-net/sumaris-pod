@@ -7,17 +7,21 @@ import {
   OnInit,
   Output
 } from '@angular/core';
-import {Measurement, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
 import {BehaviorSubject} from 'rxjs';
 import {filter, throttleTime} from "rxjs/operators";
 import {AppForm} from '../../core/core.module';
-import {ProgramService} from "../../referential/referential.module";
+import {PmfmStrategy, ProgramService} from "../../referential/referential.module";
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
-import {isNil, isNotNil, delay} from '../../shared/shared.module';
-import {MeasurementType, MeasurementValuesUtils} from "../services/model/measurement.model";
+import {isNil, isNotNil, delay} from '../../shared/functions';
+import {
+  Measurement,
+  MeasurementType,
+  MeasurementUtils,
+  MeasurementValuesUtils
+} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 

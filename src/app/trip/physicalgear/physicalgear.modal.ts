@@ -9,12 +9,12 @@ import {
 } from "@angular/core";
 import {AlertController, ModalController} from "@ionic/angular";
 import {AcquisitionLevelCodes, isNil} from "../../referential/services/model";
-import {PhysicalGear} from "../services/trip.model";
 import {PhysicalGearForm} from "./physicalgear.form";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../../core/services/platform.service";
 import {Alerts} from "../../shared/alerts";
+import {PhysicalGear} from "../services/model/trip.model";
 
 @Component({
   selector: 'app-physical-gear-modal',

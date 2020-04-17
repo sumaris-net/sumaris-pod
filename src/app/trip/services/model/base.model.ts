@@ -31,6 +31,7 @@ import {Moment} from "moment/moment";
 import {IWithProgramEntity} from "../../../referential/services/model";
 import {EntityAsObjectOptions, MINIFY_OPTIONS, NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model";
 import {Product} from "./product.model";
+import {Packet} from "./packet.model";
 
 
 export {
@@ -73,6 +74,9 @@ export interface IWithObserversEntity<T> extends Entity<T> {
 }
 export interface IWithProductsEntity<T> extends Entity<T> {
   products: Product[];
+}
+export interface IWithPacketsEntity<T> extends Entity<T> {
+  packets: Packet[];
 }
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {

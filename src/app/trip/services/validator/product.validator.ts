@@ -1,14 +1,14 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {FormGroup, Validators, FormBuilder} from "@angular/forms";
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {OperationGroup} from "../model/trip.model";
-import {AcquisitionLevelCodes, Program} from "../../../referential/services/model";
+import {Program} from "../../../referential/services/model";
 import {toBoolean} from "../../../shared/functions";
 import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.validator";
 import {MeasurementsValidatorService} from "../measurement.validator";
 import {Product} from "../model/product.model";
+import {OperationGroup} from "../model/trip.model";
 
 export interface ProductValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
@@ -51,21 +51,20 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
 
   getFormGroupConfig(data?: Product, opts?: O): { [key: string]: any } {
 
-    const formConfig = Object.assign(
+    return Object.assign(
       super.getFormGroupConfig(data, opts),
       {
         __typename: [OperationGroup.TYPENAME],
-        parent: [data && data.parent || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        parent: [data && data.parent || null, Validators.required],
         rankOrder: [data && data.rankOrder || null],
         taxonGroup: [data && data.taxonGroup || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        weight: [data && data.weight || null, SharedValidators.double],
+        weight: [data && data.weight || '', SharedValidators.double({maxDecimals: 2})],
         weightMethod: [data && data.weightMethod || null],
-        individualCount: [data && data.individualCount || null, SharedValidators.integer],
+        individualCount: [data && data.individualCount || '', SharedValidators.integer],
+        measurementValues: this.formBuilder.group({})
 
         // comments: [data && data.comments || null, Validators.maxLength(2000)]
       });
-
-    return formConfig;
   }
 
   getFormGroupOptions(data?: Product, opts?: O): { [p: string]: any } {

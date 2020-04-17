@@ -1,37 +1,26 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {EMPTY, Observable} from "rxjs";
-import {
-  Batch,
-  DataEntity,
-  Department,
-  EntityUtils,
-  isNil,
-  isNotNil,
-  Measurement,
-  Operation, QualityFlagIds,
-  Sample,
-  VesselPosition
-} from "./trip.model";
 import {filter, map, throttleTime} from "rxjs/operators";
 import {
   EditorDataService,
-  EditorDataServiceLoadOptions,
-  isNotEmptyArray,
+  EditorDataServiceLoadOptions, isNil,
+  isNotEmptyArray, isNotNil,
   LoadResult,
   TableDataService
 } from "../../shared/shared.module";
-import {BaseDataService, environment} from "../../core/core.module";
+import {BaseDataService, Department, EntityUtils, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {isEmptyArray, isNilOrBlank, toNumber} from "../../shared/functions";
-import {AcquisitionLevelCodes, ReferentialFragments} from "../../referential/referential.module";
+import {AcquisitionLevelCodes, QualityFlagIds, ReferentialFragments} from "../../referential/referential.module";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
 import {
+  DataEntity,
   DataEntityAsObjectOptions,
   MINIFY_OPTIONS,
   SAVE_AS_OBJECT_OPTIONS,
@@ -39,6 +28,10 @@ import {
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "./model/base.model";
 import {EntityStorage} from "../../core/services/entities-storage.service";
+import {Operation, VesselPosition} from "./model/trip.model";
+import {Measurement} from "./model/measurement.model";
+import {Batch} from "./model/batch.model";
+import {Sample} from "./model/sample.model";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -166,7 +159,7 @@ const DeleteOperations: any = gql`
 `;
 
 const UpdateSubscription = gql`
-  subscription updateOperation($id: Int, $interval: Int){
+  subscription updateOperation($id: Int!, $interval: Int){
     updateOperation(id: $id, interval: $interval) {
       ...OperationFragment
     }
@@ -512,7 +505,7 @@ export class OperationService extends BaseDataService
               }, 'operations', savedEntity);
             }
             else if (this._lastVariables.load) {
-              this.graphql.updateToQueryCache(proxy,{
+              this.graphql.updateToQueryCache(proxy, {
                 query: LoadQuery,
                 variables: this._lastVariables.load
               }, 'operation', savedEntity);

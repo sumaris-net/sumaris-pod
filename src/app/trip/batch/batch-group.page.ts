@@ -1,6 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {isNil, isNotNilOrBlank} from '../../shared/shared.module';
-import {Batch} from "../services/trip.model";
+import {isNil, isNotNilOrBlank} from '../../shared/functions';
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {ModalController} from "@ionic/angular";
 import {BehaviorSubject, Observable, of, Subject} from "rxjs";
@@ -12,7 +11,7 @@ import {ProgramService} from "../../referential/services/program.service";
 import {Program, ProgramProperties} from "../../referential/services/model";
 import {filter, switchMap} from "rxjs/operators";
 import {TripService} from "../services/trip.service";
-import {BatchUtils} from "../services/model/batch.model";
+import {Batch, BatchUtils} from "../services/model/batch.model";
 import {BatchGroupForm} from "./batch-group.form";
 
 @Component({
@@ -56,8 +55,8 @@ export class BatchGroupPage extends AppEditorPage<Batch, any> implements OnInit 
           return batch;
         },
         delete: async (batch) => {},
-        listenChanges: (id) => {return of()},
-        save: async (batch) => {return batch}
+        listenChanges: (id) => of(),
+        save: async (batch) => batch
       });
 
     this.idAttribute = 'batchId';

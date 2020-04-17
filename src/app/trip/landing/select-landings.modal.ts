@@ -3,7 +3,7 @@ import {LandingsTable} from "./landings.table";
 import {ModalController} from "@ionic/angular";
 import {LandingFilter} from "../services/landing.service";
 import {AcquisitionLevelCodes, AcquisitionLevelType, isNotNil} from "../../referential/services/model";
-import {Landing} from "../services/trip.model";
+import {Landing} from "../services/model/landing.model";
 
 @Component({
   selector: 'app-select-landings-modal',

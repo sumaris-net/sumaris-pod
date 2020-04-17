@@ -1,10 +1,9 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 import {OperationFilter, OperationSaveOptions, OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
-import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AppEditorPage, AppTableUtils, environment} from '../../core/core.module';
+import {AppEditorPage, AppTableUtils, EntityUtils, environment} from '../../core/core.module';
 import {CatchBatchForm} from '../catch/catch.form';
 import {HistoryPageReference, UsageMode} from '../../core/services/model';
 import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
@@ -20,9 +19,10 @@ import {SubBatchesTable} from "../batch/sub-batches.table";
 import {SubSamplesTable} from "../sample/sub-samples.table";
 import {SamplesTable} from "../sample/samples.table";
 import {BatchGroupsTable} from "../batch/batch-groups.table";
-import {BatchUtils} from "../services/model/batch.model";
+import {Batch, BatchUtils} from "../services/model/batch.model";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {filterNotNil, firstNotNil} from "../../shared/observables";
+import {Operation, Trip} from "../services/model/trip.model";
 
 @Component({
   selector: 'app-operation-page',
@@ -335,7 +335,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
       data.physicalGear = trip.gears[0];
     }
 
-    this.defaultBackHref = trip ? '/trips/' + trip.id  + '?tab=2': undefined;
+    this.defaultBackHref = trip ? '/trips/' + trip.id  + '?tab=2' : undefined;
   }
 
   async onEntityLoaded(data: Operation, options?: EditorDataServiceLoadOptions): Promise<void> {

@@ -1,5 +1,4 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {ProductValidatorService} from "../services/validator/product.validator";
@@ -9,7 +8,6 @@ import {environment} from "../../../environments/environment";
 import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
 import {BehaviorSubject, Observable} from "rxjs";
 import {IWithProductsEntity} from "../services/model/base.model";
-import {MetierRef} from "../../referential/services/model/taxon.model";
 import {IReferentialRef} from "../../core/services/model";
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
@@ -20,19 +18,16 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
   templateUrl: 'products.table.html',
   styleUrls: ['products.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: ProductValidatorService},
     {
       provide: InMemoryTableDataService,
-      useFactory: () => new InMemoryTableDataService<Product, ProductFilter>(Product)
+      useFactory: () => new InMemoryTableDataService<Product, ProductFilter>(Product, {
+        equals: Product.equals
+      })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> implements OnInit, OnDestroy {
-
-  // displayAttributes: {
-  //   [key: string]: string[]
-  // };
 
   @Input() $parentFilter: Observable<any>;
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
@@ -40,7 +35,6 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
   @Input()
   set value(data: Product[]) {
-    // todo get parent id (=operationId) and get it from available list
     this.memoryDataService.value = data;
   }
 
@@ -55,7 +49,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   constructor(
     injector: Injector,
     protected platform: Platform,
-    protected validatorService: ValidatorService,
+    protected validatorService: ProductValidatorService,
     protected memoryDataService: InMemoryTableDataService<Product, ProductFilter>,
     protected cd: ChangeDetectorRef
   ) {
@@ -115,6 +109,8 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     this.cd.markForCheck();
   }
 
+  // TODO prévoir le filtrage des avgPrice
+  // changer les label des pmfm d'avgPrice : AVERAG_PRICE_<packaging_label> et construire une map d'id <qv,pmfm>
   private mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
 
     if (this.platform.is('mobile')) {

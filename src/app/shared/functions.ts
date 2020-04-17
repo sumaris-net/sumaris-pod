@@ -313,3 +313,10 @@ export function setTabIndex(element: ElementRef, tabIndex: number) {
 export function delay(ms: number): Promise<void> {
   return new Promise( resolve => setTimeout(resolve, ms) );
 }
+
+export function round(value: number | undefined | null): number {
+  if (isNotNilOrNaN(value)) {
+    return Math.round((value + Number.EPSILON) * 100) / 100;
+  }
+  return value;
+}

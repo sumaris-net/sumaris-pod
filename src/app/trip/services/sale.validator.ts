@@ -1,10 +1,10 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Sale} from "./trip.model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from "./validator/base.validator";
 import {toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {Sale} from "./model/sale.model";
 
 export interface SaleValidatorOptions extends DataRootEntityValidatorOptions {
   required?: boolean;

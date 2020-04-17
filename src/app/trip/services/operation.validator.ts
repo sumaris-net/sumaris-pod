@@ -1,7 +1,6 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Operation} from "./trip.model";
 import {PositionValidatorService} from "./position.validator";
 import {SharedValidators} from "../../shared/validator/validators";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -9,6 +8,7 @@ import {DataEntityValidatorOptions, DataEntityValidatorService} from "./validato
 import {toBoolean} from "../../shared/functions";
 import {AcquisitionLevelCodes, Program} from "../../referential/services/model";
 import {MeasurementsValidatorService} from "./measurement.validator";
+import {Operation} from "./model/trip.model";
 
 export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;

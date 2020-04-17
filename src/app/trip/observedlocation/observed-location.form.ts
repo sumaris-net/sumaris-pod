@@ -1,21 +1,23 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {Moment} from 'moment/moment';
 import {
-  entityToString,
   EntityUtils,
+  FormArrayHelper,
   isNil,
   isNotNil,
-  LocationLevelIds,
-  ObservedLocation,
   Person,
   personToString,
   referentialToString,
   StatusIds
-} from "../services/trip.model";
-import {Moment} from 'moment/moment';
-import {FormArrayHelper} from '../../core/core.module';
+} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
-import {AcquisitionLevelCodes, ProgramService, ReferentialRefService} from '../../referential/referential.module';
+import {
+  AcquisitionLevelCodes,
+  LocationLevelIds,
+  ProgramService,
+  ReferentialRefService
+} from '../../referential/referential.module';
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
@@ -24,6 +26,7 @@ import {FormArray, FormBuilder} from "@angular/forms";
 import {UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {toBoolean} from "../../shared/functions";
+import {ObservedLocation} from "../services/model/observed-location.model";
 
 @Component({
   selector: 'form-observed-location',

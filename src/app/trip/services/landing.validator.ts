@@ -1,11 +1,11 @@
 import {Injectable} from "@angular/core";
-import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {Landing} from "./trip.model";
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../shared/validator/validators";
 import {DataRootEntityValidatorOptions, DataRootVesselEntityValidatorService} from "./validator/base.validator";
 import {toBoolean, toNumber} from "../../shared/functions";
-import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/services/model";
+import {ProgramProperties} from "../../referential/services/model";
 import {MeasurementsValidatorService} from "./measurement.validator";
+import {Landing} from "./model/landing.model";
 
 export interface LandingValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;

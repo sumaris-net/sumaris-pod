@@ -5,10 +5,10 @@ import {
   AppTableDataSource, environment,
   isNotNil,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS,
+  referentialToString
 } from "../../core/core.module";
 import {OperationValidatorService} from "../services/operation.validator";
-import {Operation, referentialToString, Trip} from "../services/trip.model";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
@@ -16,6 +16,7 @@ import {ReferentialRefService} from "../../referential/referential.module";
 import {OperationFilter, OperationService} from "../services/operation.service";
 import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {Operation, Trip} from "../services/model/trip.model";
 
 
 @Component({

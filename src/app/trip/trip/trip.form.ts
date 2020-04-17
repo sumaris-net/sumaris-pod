@@ -1,20 +1,16 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {TripValidatorService} from "../services/trip.validator";
-import {
-  EntityUtils,
-  isNil,
-  LocationLevelIds,
-  Person,
-  personToString,
-  StatusIds,
-  Trip,
-  VesselSnapshot,
-} from "../services/trip.model";
 import {ModalController} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {AppForm, FormArrayHelper} from '../../core/core.module';
-import {ReferentialRefService, referentialToString, VesselModal} from "../../referential/referential.module";
+import {AppForm, EntityUtils, FormArrayHelper, isNil, Person, personToString, StatusIds} from '../../core/core.module';
+import {
+  LocationLevelIds,
+  ReferentialRefService,
+  referentialToString,
+  VesselModal,
+  VesselSnapshot
+} from "../../referential/referential.module";
 import {UsageMode, UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -25,6 +21,7 @@ import {NetworkService} from "../../core/services/network.service";
 import {Vessel} from "../../referential/services/model";
 import {MetierRef} from "../../referential/services/model/taxon.model";
 import {MetierRefService} from "../../referential/services/metier-ref.service";
+import {Trip} from "../services/model/trip.model";
 
 @Component({
   selector: 'form-trip',

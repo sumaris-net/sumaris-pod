@@ -8,13 +8,11 @@ import {
   OnDestroy,
   OnInit, Output
 } from "@angular/core";
-import {environment, isNotNil} from "../../core/core.module";
-import {Batch, PhysicalGear, PmfmStrategy, referentialToString, Trip} from "../services/trip.model";
+import {environment, referentialToString} from "../../core/core.module";
 import {Platform} from "@ionic/angular";
-import {AcquisitionLevelCodes} from "../../referential/services/model";
+import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
 import {OperationFilter} from "../services/operation.service";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {OperationGroup} from "../services/model/trip.model";
 import {OperationGroupValidatorService} from "../services/validator/operation-group.validator";
 import {MetierRef} from "../../referential/services/model/taxon.model";
 import {BehaviorSubject} from "rxjs";
@@ -22,7 +20,7 @@ import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {MetierRefService} from "../../referential/services/metier-ref.service";
-import {updateValueAndValidity} from "../../core/form/form.utils";
+import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
 export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -129,7 +127,6 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
   // }
 
   referentialToString = referentialToString;
-  measurementValueToString = MeasurementValuesUtils.valueToString;
 
   /* -- protected methods -- */
 

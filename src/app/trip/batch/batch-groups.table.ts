@@ -1,22 +1,20 @@
 import {ChangeDetectionStrategy, Component, Injector} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {Batch, PmfmStrategy, QualityFlagIds} from "../services/trip.model";
 import {BatchGroupValidatorService} from "../services/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
-import {isNil, isNotEmptyArray, isNotNil, toFloat, toInt} from "../../shared/shared.module";
-import {MethodIds} from "../../referential/services/model";
+import {isNil, isNotEmptyArray, isNotNil, toFloat, toInt} from "../../shared/functions";
+import {MethodIds, PmfmStrategy, QualityFlagIds} from "../../referential/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {environment} from "../../../environments/environment";
 import {MeasurementFormValues, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {ModalController} from "@ionic/angular";
-import {BatchUtils, BatchWeight} from "../services/model/batch.model";
+import {Batch, BatchUtils, BatchWeight} from "../services/model/batch.model";
 import {ColumnItem, TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {isEmptyArray, isNotNilOrNaN, toNumber} from "../../shared/functions";
 import {BatchGroupModal} from "./batch-group.modal";
 import {FormFieldDefinition} from "../../shared/form/field.model";
-import {withIdentifier} from "codelyzer/util/astQuery";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
@@ -278,7 +276,7 @@ export class BatchGroupsTable extends BatchesTable {
       measurementValues[i++] = samplingChild.weight && !samplingChild.weight.computed && samplingChild.weight.value;
 
       // Column: sampling individual count
-      let samplingIndividualCount: any = toNumber(samplingChild.individualCount, null);
+      const samplingIndividualCount: any = toNumber(samplingChild.individualCount, null);
       if (samplingChild.qualityFlagId === QualityFlagIds.BAD) {
         //console.log('TODO Invalid sampling individual count !', samplingIndividualCount);
         //samplingIndividualCount = '~' + samplingIndividualCount;

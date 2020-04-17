@@ -12,17 +12,23 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import {entityToString, isNotNil, PmfmStrategy} from "../services/trip.model";
 import {merge, Observable, of} from 'rxjs';
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
-import {EntityUtils, PmfmIds, ReferentialRef, referentialToString} from '../../referential/referential.module';
+import {
+  entityToString,
+  EntityUtils,
+  PmfmIds,
+  PmfmStrategy,
+  ReferentialRef,
+  referentialToString
+} from '../../referential/referential.module';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
 import {FloatLabelType} from "@angular/material";
 
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {focusInput, isNotEmptyArray, sort, suggestFromArray, toBoolean} from "../../shared/functions";
+import {focusInput, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean} from "../../shared/functions";
 import {AppFormUtils} from "../../core/core.module";
 import {InputElement} from "../../shared/material/focusable";
 import {LocalSettingsService} from "../../core/services/local-settings.service";

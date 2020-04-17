@@ -3,7 +3,7 @@ import {Person, ReferentialRef} from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
 import {DataEntityAsObjectOptions, DataRootVesselEntity, IWithProductsEntity} from "./base.model";
 import {Sample} from "./sample.model";
-import {MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
+import {Measurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Product} from "./product.model";
 import {isNotEmptyArray} from "../../../shared/functions";
 
@@ -25,7 +25,7 @@ export class Sale extends DataRootVesselEntity<Sale> implements IWithProductsEnt
   saleType: ReferentialRef;
   observedLocationId: number;
   tripId: number;
-  measurementValues: { [key: string]: any };
+  measurements: Measurement[];
   samples: Sample[];
   rankOrder: number;
   observers: Person[];
@@ -36,7 +36,7 @@ export class Sale extends DataRootVesselEntity<Sale> implements IWithProductsEnt
     this.__typename = Sale.TYPENAME;
     this.saleLocation = new ReferentialRef();
     this.saleType = new ReferentialRef();
-    this.measurementValues = {};
+    this.measurements = [];
     this.samples = [];
     this.observers = [];
     this.products = [];
@@ -64,6 +64,7 @@ export class Sale extends DataRootVesselEntity<Sale> implements IWithProductsEnt
     this.observedLocationId = source.observedLocationId;
     this.samples = source.samples && source.samples.map(Sample.fromObject) || [];
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
+    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
 
     // Products (sale)
     this.products = source.products && source.products.map(Product.fromObject) || [];
@@ -71,14 +72,6 @@ export class Sale extends DataRootVesselEntity<Sale> implements IWithProductsEnt
     this.products.forEach(product => {
       product.parent = this;
     });
-
-    if (source.measurementValues) {
-      this.measurementValues = source.measurementValues;
-    }
-    // Convert measurement to map
-    else if (source.measurements) {
-      this.measurementValues = MeasurementUtils.toMeasurementValues(source.measurements);
-    }
 
     return this;
   }
@@ -91,7 +84,7 @@ export class Sale extends DataRootVesselEntity<Sale> implements IWithProductsEnt
     target.saleType = this.saleType && this.saleType.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
     target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;
     target.observers = this.observers && this.observers.map(o => o.asObject(options)) || undefined;
-    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
+    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
 
     // Products
     target.products = this.products && this.products.map(o => o.asObject(options)) || undefined;

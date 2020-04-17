@@ -1,23 +1,12 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SaleValidatorService} from "../services/sale.validator";
-import {
-  entityToString,
-  EntityUtils,
-  LocationLevelIds,
-  ReferentialRef,
-  referentialToString,
-  Sale, StatusIds,
-  VesselSnapshot,
-  vesselSnapshotToString
-} from "../services/trip.model";
 import {Moment} from 'moment/moment';
-import {AppForm} from '../../core/core.module';
+import {AppForm, referentialToString, StatusIds} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
-import {Observable, of} from 'rxjs';
-import {debounceTime, map, mergeMap, switchMap} from 'rxjs/operators';
-import {ReferentialRefService, VesselService} from '../../referential/referential.module';
+import {LocationLevelIds, ReferentialRefService, VesselService} from '../../referential/referential.module';
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
+import {Sale} from "../services/model/sale.model";
 
 @Component({
   selector: 'form-sale',

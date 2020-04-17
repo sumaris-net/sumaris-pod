@@ -1,0 +1,45 @@
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+
+  <!-- error -->
+  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
+  </ion-item>
+
+  <ng-content></ng-content>
+
+  <mat-tab-group #tabGroup
+                 animationDuration="0s"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="tabChange.emit($event)">
+
+    <!-- SUB-TAB: products -->
+    <mat-tab label="{{'TRIP.LANDED_CATCH.TAB_PRODUCT_SALE'|translate}}">
+      <ng-template mat-tab-label>
+        <ion-label translate>TRIP.LANDED_CATCH.TAB_PRODUCT_SALE</ion-label>
+        <ion-icon slot="end" name="alert" color="danger"
+                  *ngIf="(productsTable.invalid && productsTable.dirty) "></ion-icon>
+      </ng-template>
+
+      <app-products-table #productsTable
+                          [program]="program"
+                          acquisitionLevel="PRODUCT_SALE"
+      >
+      </app-products-table>
+    </mat-tab>
+
+    <mat-tab label="{{'TRIP.LANDED_CATCH.TAB_BATCH_SALE'|translate}}">
+      <ng-template mat-tab-label>
+        <ion-label translate>TRIP.LANDED_CATCH.TAB_BATCH_SALE</ion-label>
+        <!--            <ion-icon slot="end" name="alert" color="danger" *ngIf="(batchesSaleTable.invalid && batchesSaleTable.dirty) "></ion-icon>-->
+      </ng-template>
+
+      <!--          add app-batches-table (sale) here-->
+
+    </mat-tab>
+
+  </mat-tab-group>
+
+
+
+</form>

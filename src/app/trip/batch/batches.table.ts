@@ -12,15 +12,14 @@ import {
 import {of, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
-import {Batch, getPmfmName, Landing, Operation, PmfmStrategy, referentialToString} from "../services/trip.model";
+import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
 import {
-  AcquisitionLevelCodes,
-  PmfmLabelPatterns,
+  AcquisitionLevelCodes, getPmfmName,
+  PmfmLabelPatterns, PmfmStrategy,
   PmfmUtils,
   ReferentialRefService
 } from "../../referential/referential.module";
-import {isNilOrBlank, isNotNil} from "../../shared/shared.module";
+import {isNilOrBlank, isNotNil} from "../../shared/functions";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {UsageMode} from "../../core/services/model";
@@ -29,6 +28,9 @@ import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {BatchModal} from "./batch.modal";
 import {MatDialog} from '@angular/material/dialog';
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
+import {Batch} from "../services/model/batch.model";
+import {Operation} from "../services/model/trip.model";
+import {Landing} from "../services/model/landing.model";
 
 export interface BatchFilter {
   operationId?: number;

@@ -2,8 +2,8 @@ import { Injectable } from "@angular/core";
 import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import { SharedValidators } from "../../shared/validator/validators";
-import {Batch} from "./trip.model";
 import {toNumber} from "../../shared/functions";
+import {Batch} from "./model/batch.model";
 
 @Injectable()
 export class SubBatchValidatorService implements ValidatorService {

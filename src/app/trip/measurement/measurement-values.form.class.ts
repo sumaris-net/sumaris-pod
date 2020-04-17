@@ -1,10 +1,9 @@
 import {ChangeDetectorRef, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {isNil, isNotNil, PmfmStrategy} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {AppForm} from '../../core/core.module';
-import {ProgramService} from "../../referential/referential.module";
+import {AppForm, isNil, isNotNil} from '../../core/core.module';
+import {PmfmStrategy, ProgramService} from "../../referential/referential.module";
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {filter, first, throttleTime} from "rxjs/operators";
@@ -153,7 +152,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.restoreFormStatus({onlySelf: true, emitEvent: opts && opts.emitEvent});
   }
 
-  reset(data?: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any;}) {
+  reset(data?: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
     if (!this.isReady() || !this.data) {
       this.safeSetValue(data, opts); // Loop
       return;
@@ -192,6 +191,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   /**
    * Wait form is ready, before setting the value to form
    * @param data
+   * @param opts
    */
   protected async safeSetValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }) {
     if (this.data === data) return; // skip if same
@@ -244,7 +244,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     try {
       // Load pmfms
-      let pmfms = (await this.programService.loadProgramPmfms(
+      const pmfms = (await this.programService.loadProgramPmfms(
         this._program,
         {
           acquisitionLevel: this._acquisitionLevel,

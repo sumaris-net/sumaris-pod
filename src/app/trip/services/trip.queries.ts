@@ -61,6 +61,19 @@ export const Fragments = {
     }
     entityName
     __typename
+  }`,
+  packetComposition: gql`fragment PacketCompositionFragment on PacketCompositionVO {
+    id
+    rankOrder
+    taxonGroup {
+      id
+      label
+      name
+      entityName
+      __typename
+    }
+    ratios
+    __typename
   }`
 };
 
@@ -115,6 +128,22 @@ export const DataFragments = {
   }
   ${Fragments.referential}
   ${ReferentialFragments.taxonName}`,
+  packet: gql`fragment PacketFragment on PacketVO {
+    id
+    rankOrder
+    comments
+    updateDate
+    qualityFlagId
+    number
+    weight
+    sampledWeights
+    composition {
+      ...PacketCompositionFragment
+    }
+    operationId
+    __typename
+  }
+  ${Fragments.packetComposition}`,
   product: gql`fragment ProductFragment on ProductVO {
     id
     label
@@ -134,12 +163,6 @@ export const DataFragments = {
       ...ReferentialFragment
     }
     measurementValues
-    quantificationMeasurements {
-      ...MeasurementFragment
-    }
-    sortingMeasurements {
-      ...MeasurementFragment
-    }
     qualityFlagId
     operationId
     saleId
@@ -148,7 +171,6 @@ export const DataFragments = {
     __typename
   }
   ${Fragments.referential}
-  ${Fragments.measurement}
   `
 };
 
@@ -194,8 +216,8 @@ export const OperationGroupFragment = {
     gearMeasurements {
       ...MeasurementFragment
     }
-    batches {
-      ...BatchFragment
+    packets {
+      ...PacketFragment
     }
     products {
       ...ProductFragment
@@ -203,7 +225,7 @@ export const OperationGroupFragment = {
   }
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.metier}
-  ${DataFragments.batch}
+  ${DataFragments.packet}
   ${DataFragments.product}
   ${PhysicalGearFragments.physicalGear}
   ${Fragments.measurement}

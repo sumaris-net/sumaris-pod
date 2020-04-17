@@ -1,17 +1,15 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {Batch, isNotNil, PmfmStrategy} from "../services/trip.model";
-import {Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {ProgramService} from "../../referential/referential.module";
-import {FormBuilder} from '@angular/forms'
+import {PmfmStrategy, ProgramService} from "../../referential/referential.module";
+import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {Subject} from 'rxjs';
 import {BatchValidatorService} from '../services/batch.validator';
-import {filter} from "rxjs/operators";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {firstNotNil, firstNotNilPromise} from "../../shared/observables";
+import {firstNotNilPromise} from "../../shared/observables";
+import {Batch} from "../services/model/batch.model";
 
 @Component({
   selector: 'form-catch-batch',

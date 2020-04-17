@@ -1,26 +1,23 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {fadeInOutAnimation, isNil, isNotEmptyArray} from '../../shared/shared.module';
+import {fadeInOutAnimation, isNil} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
-import {EntityUtils, Landing, ObservedLocation, VesselSnapshot} from "../services/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
 import {
-  AcquisitionLevelCodes,
-  AcquisitionLevelType,
+  EntityUtils,
   LandingEditor,
-  ProgramProperties
+  ProgramProperties, VesselSnapshot
 } from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {ModalController} from "@ionic/angular";
-import {SelectLandingsModal} from "../landing/select-landings.modal";
 import {environment} from "../../core/core.module";
 import {HistoryPageReference} from "../../core/services/model";
 import {SelectVesselsModal} from "./vessels/select-vessel.modal";
-import {TableElement} from "angular4-material-table";
-import {PageEvent} from "@angular/material";
+import {ObservedLocation} from "../services/model/observed-location.model";
+import {Landing} from "../services/model/landing.model";
 
 @Component({
   selector: 'app-observed-location-page',

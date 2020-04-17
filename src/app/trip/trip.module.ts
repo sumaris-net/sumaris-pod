@@ -71,11 +71,15 @@ import {SampleModal} from "./sample/sample.modal";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
 import {LandedTripPage} from "./landedtrip/landed-trip.page";
 import {OperationGroupTable} from "./operationgroup/operation-groups.table";
-import {OperationGroupForm} from "./operationgroup/operation-group.form";
-import {OperationGroupPage} from "./operationgroup/operation-group.page";
 import {OperationGroupValidatorService} from "./services/validator/operation-group.validator";
 import {ProductsTable} from "./product/products.table";
 import {ProductValidatorService} from "./services/validator/product.validator";
+import {LandedSaleForm} from "./sale/landed-sale.form";
+import {ProductSaleValidatorService} from "./services/validator/product-sale.validator";
+import {PacketsTable} from "./packet/packets.table";
+import {PacketValidatorService} from "./services/validator/packet.validator";
+import {PacketForm} from "./packet/packet.form";
+import {PacketModal} from "./packet/packet.modal";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -129,9 +133,11 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     SelectVesselsModal,
     LandedTripPage,
     OperationGroupTable,
-    OperationGroupPage,
-    OperationGroupForm,
-    ProductsTable
+    ProductsTable,
+    LandedSaleForm,
+    PacketsTable,
+    PacketForm,
+    PacketModal
   ],
   exports: [
     TripTable,
@@ -177,7 +183,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     BatchGroupPage,
     SubBatchModal,
     SampleModal,
-    SelectVesselsModal
+    SelectVesselsModal,
+    PacketModal
   ],
   providers: [
     TripService,
@@ -202,7 +209,9 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     SubSampleValidatorService,
     {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
     AggregationTypeValidatorService,
-    ProductValidatorService
+    ProductValidatorService,
+    ProductSaleValidatorService,
+    PacketValidatorService
   ]
 })
 export class TripModule {

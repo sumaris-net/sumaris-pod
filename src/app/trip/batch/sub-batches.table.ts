@@ -12,24 +12,23 @@ import {
 } from "@angular/core";
 import {Observable, Subscription} from 'rxjs';
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AppFormUtils, EntityUtils, environment, IReferentialRef} from "../../core/core.module";
-import {Batch, PmfmStrategy, referentialToString} from "../services/trip.model";
+import {AppFormUtils, EntityUtils, environment, IReferentialRef, referentialToString} from "../../core/core.module";
 import {
   AcquisitionLevelCodes,
-  PmfmIds,
+  PmfmIds, PmfmStrategy,
   QualitativeLabels,
   ReferentialRefService
 } from "../../referential/referential.module";
 import {FormGroup, Validators} from "@angular/forms";
-import {isNil, isNilOrBlank, isNotNil, startsWithUpperCase, toBoolean} from "../../shared/shared.module";
+import {isNil, isNilOrBlank, isNotNil, startsWithUpperCase, toBoolean} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
-import {BatchUtils} from "../services/model/batch.model";
+import {Batch, BatchUtils} from "../services/model/batch.model";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SubBatchForm} from "./sub-batch.form";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {selectInputContent} from "../../core/form/form.utils";
+import {selectInputContent} from "../../shared/functions";
 import {SubBatchModal} from "./sub-batch.modal";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
@@ -288,7 +287,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       this.linkDataToParent(batches);
     }
 
-    for (let b of batches) {
+    for (const b of batches) {
       await this.addBatchToTable(b);
     }
   }

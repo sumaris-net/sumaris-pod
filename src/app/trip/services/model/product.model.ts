@@ -1,4 +1,4 @@
-import {isNotNil} from "../../../core/core.module";
+import {EntityUtils, isNotNil} from "../../../core/core.module";
 import {ReferentialRef} from "../../../core/services/model";
 import {DataEntity, DataEntityAsObjectOptions, IWithProductsEntity, NOT_MINIFY_OPTIONS} from "./base.model";
 import {
@@ -48,7 +48,14 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   }
 
   public static equals(p1: Product | any, p2: Product | any): boolean {
-    return p1 && p1.equals(p2);
+    return p1 && p2 && ((isNotNil(p1.id) && p1.id === p2.id)
+      // Or by functional attributes
+      || (p1.rankOrder === p2.rankOrder
+        // same operation
+        && ((!p1.operationId && !p2.operationId) || p1.operationId === p2.operationId)
+        // same taxon group
+        && EntityUtils.equals(p1.taxonGroup, p2.taxonGroup)
+      ));
   }
 
   label: string;
@@ -123,21 +130,14 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.weightMethod = source.weightMethod && ReferentialRef.fromObject(source.weightMethod) || undefined;
     this.saleType = source.saleType && ReferentialRef.fromObject(source.saleType) || undefined;
 
+    this.parent = source.parent;
     this.operationId = source.operationId;
     this.saleId = source.saleId;
     this.landingId = source.landingId;
     this.batchId = source.batchId;
 
     // Get all measurements values
-    if (source.measurementValues) {
-      this.measurementValues = source.measurementValues;
-    }
-
-    // Get also measurement lists (can be filled from pod)
-    if (source.sortingMeasurements || source.quantificationMeasurements) {
-      const measurements = (source.sortingMeasurements || []).concat(source.quantificationMeasurements || []);
-      Object.assign(this.measurementValues, MeasurementUtils.toMeasurementValues(measurements));
-    }
+    this.measurementValues = source.measurementValues;
 
     return this;
   }

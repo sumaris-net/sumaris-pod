@@ -9,15 +9,14 @@ import {
   RESERVED_START_COLUMNS,
   TableDataService
 } from "../../core/core.module";
-import {getPmfmName, PmfmStrategy} from "../services/trip.model";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
-import {ProgramService} from "../../referential/referential.module";
+import {getPmfmName, PmfmStrategy, ProgramService} from "../../referential/referential.module";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from '@ngx-translate/core';
 import {MeasurementsValidatorService} from "../services/trip.validators";
-import {isNotNil} from "../../shared/shared.module";
+import {isNotNil} from "../../shared/functions";
 import {IEntityWithMeasurement, MeasurementValuesUtils, PMFM_ID_REGEXP} from "../services/model/measurement.model";
 import {MeasurementsDataService} from "./measurements.service";
 import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
