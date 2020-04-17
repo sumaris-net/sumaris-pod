@@ -28,7 +28,6 @@ import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.metier.Metier;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -37,7 +36,9 @@ import javax.persistence.criteria.*;
 
 public class ReferentialSpecifications {
 
-    public static Specification<Metier> inLevelIds(String levelProperty, Integer[] gearIds) {
+    public static final String SEARCH_TEXT_PARAMETER = "searchText";
+
+    public static <T extends IReferentialEntity> Specification<T> inLevelIds(String levelProperty, Integer[] gearIds) {
         if (ArrayUtils.isEmpty(gearIds)) return null;
         return (root, query, cb) -> cb.in(
                 root.join(levelProperty, JoinType.INNER).get(Gear.Fields.ID))

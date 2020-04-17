@@ -323,7 +323,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
                 .createQuery(query)
                 .setParameter(programIdParam, programId)
                 .getResultStream()
-                .map(taxonGroupRepository::toTaxonGroupVO)
+                .map(taxonGroupRepository::toVO)
                 .collect(Collectors.toList());
     }
 

@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential.taxon;
  * #L%
  */
 
+import net.sumaris.core.dao.data.IEntityConverter;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -33,7 +34,8 @@ import java.util.Date;
 import java.util.List;
 
 @NoRepositoryBean
-public interface TaxonGroupRepositoryExtend {
+public interface TaxonGroupRepositoryExtend
+    extends IEntityConverter<TaxonGroup, TaxonGroupVO> {
 
     void updateTaxonGroupHierarchies();
 
@@ -42,8 +44,6 @@ public interface TaxonGroupRepositoryExtend {
     void updateTaxonGroup2TaxonHierarchy();
 
     long countTaxonGroupHierarchy();
-
-    TaxonGroupVO toTaxonGroupVO(TaxonGroup taxonGroup);
 
     List<TaxonGroupVO> findTargetSpeciesByFilter(
             ReferentialFilterVO filter,

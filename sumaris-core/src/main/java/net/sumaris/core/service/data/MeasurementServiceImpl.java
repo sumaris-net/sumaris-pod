@@ -97,8 +97,18 @@ public class MeasurementServiceImpl implements MeasurementService {
 	}
 
 	@Override
+	public List<MeasurementVO> getBatchSortingMeasurements(int batchId) {
+		return measurementDao.getBatchSortingMeasurements(batchId);
+	}
+
+	@Override
 	public Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId) {
 		return measurementDao.getBatchQuantificationMeasurementsMap(batchId);
+	}
+
+	@Override
+	public List<MeasurementVO> getBatchQuantificationMeasurements(int batchId) {
+		return measurementDao.getBatchQuantificationMeasurements(batchId);
 	}
 
 	@Override
@@ -119,6 +129,16 @@ public class MeasurementServiceImpl implements MeasurementService {
 	@Override
 	public Map<Integer, String> getObservedLocationMeasurementsMap(int observedLocationId) {
 		return measurementDao.getObservedLocationMeasurementsMap(observedLocationId);
+	}
+
+	@Override
+	public List<MeasurementVO> getSaleMeasurements(int saleId) {
+		return measurementDao.getSaleMeasurements(saleId);
+	}
+
+	@Override
+	public Map<Integer, String> getSaleMeasurementsMap(int saleId) {
+		return measurementDao.getSaleMeasurementsMap(saleId);
 	}
 
 	@Override

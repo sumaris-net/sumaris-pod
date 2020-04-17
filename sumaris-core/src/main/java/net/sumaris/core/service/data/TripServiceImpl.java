@@ -25,9 +25,7 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.SaleDao;
-import net.sumaris.core.dao.data.TripDao;
+import net.sumaris.core.dao.data.*;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.DataEntityCreatedEvent;
 import net.sumaris.core.event.DataEntityUpdatedEvent;
@@ -83,6 +81,12 @@ public class TripServiceImpl implements TripService {
 
     @Autowired
     protected PmfmService pmfmService;
+
+    @Autowired
+    private LandingRepository landingRepository;
+
+    @Autowired
+    private ObservedLocationDao observedLocationDao;
 
     @Override
     public List<TripVO> getAllTrips(int offset, int size) {
@@ -194,7 +198,7 @@ public class TripServiceImpl implements TripService {
         if (withOperationGroup) {
             List<OperationGroupVO> operationGroups = Beans.getList(source.getOperationGroups());
 
-            // todo re affect physical gears from savedTrip.getGears, because new oG can have a physicalGear with null id
+            // Affect physical gears from savedTrip.getGears, because new oG can have a physicalGear with null id
             for (OperationGroupVO operationGroup : operationGroups) {
 
                 if (operationGroup.getPhysicalGear() == null) {
@@ -225,6 +229,54 @@ public class TripServiceImpl implements TripService {
 
             operationGroups = operationGroupService.saveAllByTripId(savedTrip.getId(), operationGroups);
             savedTrip.setOperationGroups(operationGroups);
+        }
+
+        // Landing
+        boolean createLanding = false;
+        if (savedTrip.getLandingId() != null) {
+
+            // update update_date on landing
+            LandingVO landing = landingRepository.get(savedTrip.getLandingId());
+
+            if (landing.getTripId() == null) {
+                landing.setTripId(savedTrip.getId());
+            }
+            landing.setDateTime(savedTrip.getReturnDateTime());
+            landing.setObservers(Beans.getSet(savedTrip.getObservers()));
+
+            landingRepository.save(landing);
+
+
+        } else {
+
+            // a landing have to be created
+            createLanding = true;
+
+        }
+
+        // ObservedLocation
+        if (savedTrip.getObservedLocationId() != null) {
+
+            // update update_date on observed_location
+            ObservedLocationVO observedLocation = observedLocationDao.get(savedTrip.getObservedLocationId());
+            observedLocationDao.save(observedLocation);
+
+            if (createLanding) {
+
+                LandingVO landing = new LandingVO();
+
+                landing.setObservedLocationId(observedLocation.getId());
+                landing.setTripId(savedTrip.getId());
+                landing.setProgram(observedLocation.getProgram());
+                landing.setLocation(observedLocation.getLocation());
+                landing.setVesselSnapshot(savedTrip.getVesselSnapshot());
+                landing.setDateTime(savedTrip.getReturnDateTime());
+                landing.setObservers(Beans.getSet(savedTrip.getObservers()));
+
+                LandingVO savedLanding = landingRepository.save(landing);
+                savedTrip.setLandingId(savedLanding.getId());
+            }
+
         }
 
         // Emit event

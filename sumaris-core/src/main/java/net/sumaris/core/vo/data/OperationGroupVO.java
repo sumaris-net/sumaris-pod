@@ -62,10 +62,9 @@ public class OperationGroupVO implements IUpdateDateEntityBean<Integer, Date> {
     private List<MeasurementVO> gearMeasurements;
     private Map<Integer, String> gearMeasurementValues;
 
-    private BatchVO catchBatch;
-    private List<BatchVO> batches;
-
     private List<ProductVO> products;
+
+    private List<PacketVO> packets;
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

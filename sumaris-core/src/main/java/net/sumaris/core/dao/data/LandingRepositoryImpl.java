@@ -45,45 +45,36 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class LandingRepositoryImpl
-        extends RootDataRepositoryImpl<Landing, Integer, LandingVO, LandingFilterVO>
-        implements LandingRepositoryExtend {
-
-
+    extends RootDataRepositoryImpl<Landing, Integer, LandingVO, LandingFilterVO>
+    implements LandingRepositoryExtend {
 
     private static final Logger log =
-            LoggerFactory.getLogger(LandingRepositoryImpl.class);
+        LoggerFactory.getLogger(LandingRepositoryImpl.class);
+
+    private final LocationDao locationDao;
 
     @Autowired
-    private LocationDao locationDao;
-
-    public LandingRepositoryImpl(EntityManager entityManager) {
+    public LandingRepositoryImpl(EntityManager entityManager, LocationDao locationDao) {
         super(Landing.class, entityManager);
-    }
-
-
-    @Override
-    public LandingVO toVO(Landing source) {
-        return super.toVO(source);
+        this.locationDao = locationDao;
     }
 
     @Override
     public Specification<Landing> toSpecification(LandingFilterVO filter) {
         if (filter == null) return null;
 
-        return Specification.where(and(
-                hasObservedLocationId(filter.getObservedLocationId()),
-                hasTripId(filter.getTripId()),
-                betweenDate(filter.getStartDate(), filter.getEndDate()),
-                hasLocationId(filter.getLocationId()),
-                hasVesselId(filter.getVesselId()))
-        );
+        return Specification.where(hasObservedLocationId(filter.getObservedLocationId()))
+            .and(hasTripId(filter.getTripId()))
+            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+            .and(hasLocationId(filter.getLocationId()))
+            .and(hasVesselId(filter.getVesselId()));
     }
 
     public Class<LandingVO> getVOClass() {
         return LandingVO.class;
     }
 
-    //@Override
+    @Override
     public List<LandingVO> saveAllByObservedLocationId(int observedLocationId, List<LandingVO> sources) {
         // Load parent entity
         ObservedLocation parent = get(ObservedLocation.class, observedLocationId);

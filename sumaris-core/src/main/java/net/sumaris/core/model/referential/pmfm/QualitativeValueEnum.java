@@ -27,6 +27,7 @@ import java.util.Arrays;
 
 public enum QualitativeValueEnum implements Serializable  {
 
+    SORTING_BULK(20, "SORTING_BULK"),
     DRESSING_WHOLE(74, "DRESSING_WHOLE"),
     PRESERVATION_FRESH(76, "PRESERVATION_FRESH"),
     SIZE_CATEGORY_NONE(298, "SIZE_CATEGORY_NONE"),

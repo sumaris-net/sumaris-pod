@@ -68,4 +68,5 @@ public interface ProductService {
 
 	ProductVO unvalidate(ProductVO product);
 
+	void fillMeasurementsMap(ProductVO product);
 }

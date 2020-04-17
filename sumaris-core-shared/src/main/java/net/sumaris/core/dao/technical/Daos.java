@@ -710,6 +710,34 @@ public class Daos {
     }
 
     /**
+     * Round a double value with 2 decimals
+     *
+     * @param value to round or null
+     * @return the rounded number or null
+     */
+    public static Double roundValue(Double value) {
+        return roundValue(value, 2);
+    }
+
+    /**
+     * Round a double value with specific number of decimals
+     *
+     * @param value to round or null
+     * @param nbDecimal number of decimals
+     * @return the rounded number or null
+     */
+    public static Double roundValue(Double value, int nbDecimal) {
+        if (value == null) {
+            return null;
+        }
+        if (nbDecimal == 0) {
+            return (double) Math.round(value);
+        }
+        double pow = Math.pow(10, nbDecimal);
+        return Math.round(value * pow) / pow;
+    }
+
+    /**
      * <p>isSmallerWeight.</p>
      *
      * @param v0 a float.

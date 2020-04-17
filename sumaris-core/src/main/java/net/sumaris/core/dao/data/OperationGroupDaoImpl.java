@@ -72,51 +72,10 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
     @Override
     public List<MetierVO> getMetiersByTripId(int tripId) {
 
-        return getOperationGroupsByTripId(tripId, OperationGroupFilter.UNDEFINED, 0, 1000, Operation.Fields.RANK_ORDER_ON_PERIOD, SortDirection.ASC).stream()
+        return getOperationGroupsByTripId(tripId, OperationGroupFilter.UNDEFINED).stream()
             .map(OperationGroupVO::getMetier)
             .collect(Collectors.toList());
 
-    }
-
-    private List<OperationGroupVO> getOperationGroupsByTripId(int tripId, OperationGroupFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        Preconditions.checkArgument(offset >= 0);
-        Preconditions.checkArgument(size > 0);
-
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Operation> query = builder.createQuery(Operation.class);
-        Root<Operation> root = query.from(Operation.class);
-        Join<Operation, Trip> tripJoin = root.join(Operation.Fields.TRIP, JoinType.INNER);
-
-        ParameterExpression<Integer> tripIdParam = builder.parameter(Integer.class);
-
-        Predicate predicate = null;
-        switch (filter) {
-            case UNDEFINED:
-                predicate = builder.and(
-                    builder.equal(tripJoin.get(Trip.Fields.ID), tripIdParam),
-                    builder.equal(root.get(Operation.Fields.START_DATE_TIME), tripJoin.get(Trip.Fields.DEPARTURE_DATE_TIME)),
-                    builder.equal(root.get(Operation.Fields.END_DATE_TIME), tripJoin.get(Trip.Fields.RETURN_DATE_TIME))
-                );
-                break;
-            case DEFINED:
-                predicate = builder.and(
-                    builder.equal(tripJoin.get(Trip.Fields.ID), tripIdParam),
-                    builder.notEqual(root.get(Operation.Fields.START_DATE_TIME), tripJoin.get(Trip.Fields.DEPARTURE_DATE_TIME))
-                );
-                break;
-            case ALL:
-                predicate = builder.equal(tripJoin.get(Trip.Fields.ID), tripIdParam);
-        }
-        query.select(root).where(predicate);
-
-        // Add sorting
-        addSorting(query, builder, root, sortAttribute, sortDirection);
-
-        TypedQuery<Operation> q = entityManager.createQuery(query)
-            .setParameter(tripIdParam, tripId)
-            .setFirstResult(offset)
-            .setMaxResults(size);
-        return toOperationGroupVOs(q.getResultList());
     }
 
     @Override
@@ -127,7 +86,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
         Trip parent = get(Trip.class, tripId);
 
         // Remember existing entities
-        final List<OperationGroupVO> existingOperationGroups = getOperationGroupsByTripId(tripId, OperationGroupFilter.UNDEFINED, 0, 1000, null, null);
+        final List<OperationGroupVO> existingOperationGroups = getOperationGroupsByTripId(tripId, OperationGroupFilter.UNDEFINED);
         final Map<Integer, OperationGroupVO> groupsByMetierId = Beans.splitByProperty(existingOperationGroups, OperationGroupVO.Fields.METIER + '.' + ReferentialVO.Fields.ID);
 
         // Save each operation group
@@ -206,7 +165,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
     @Override
     public List<OperationGroupVO> getAllByTripId(int tripId) {
 
-        return getOperationGroupsByTripId(tripId, OperationGroupFilter.DEFINED, 0, 1000, Operation.Fields.RANK_ORDER_ON_PERIOD, SortDirection.ASC);
+        return getOperationGroupsByTripId(tripId, OperationGroupFilter.DEFINED);
     }
 
     @Override
@@ -232,6 +191,80 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
 
         // Save with parent entity
         return save(source, parent);
+    }
+
+    @Override
+    public List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> sources) {
+
+        Preconditions.checkNotNull(sources);
+
+        // Load parent entity
+        Trip parent = get(Trip.class, tripId);
+
+        // Remember existing entities
+        final List<OperationGroupVO> existingOperationGroups = getOperationGroupsByTripId(tripId, OperationGroupFilter.DEFINED);
+        final List<Integer> sourcesIdsToRemove = Beans.collectIds(existingOperationGroups);
+
+        // Save each operation group
+        List<OperationGroupVO> result = sources.stream().map(source -> {
+            source.setTripId(tripId);
+            if (source.getId() != null) {
+                sourcesIdsToRemove.remove(source.getId());
+            }
+            return save(source, parent);
+        }).collect(Collectors.toList());
+
+        // Remove unused entities
+        if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
+            sourcesIdsToRemove.forEach(this::delete);
+        }
+
+        return result;
+    }
+
+    private List<OperationGroupVO> getOperationGroupsByTripId(int tripId, OperationGroupFilter filter) {
+        return getOperationGroupsByTripId(tripId, filter, 0, 1000, Operation.Fields.RANK_ORDER_ON_PERIOD, SortDirection.ASC);
+    }
+
+    private List<OperationGroupVO> getOperationGroupsByTripId(int tripId, OperationGroupFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        Preconditions.checkArgument(offset >= 0);
+        Preconditions.checkArgument(size > 0);
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Operation> query = builder.createQuery(Operation.class);
+        Root<Operation> root = query.from(Operation.class);
+        Join<Operation, Trip> tripJoin = root.join(Operation.Fields.TRIP, JoinType.INNER);
+
+        ParameterExpression<Integer> tripIdParam = builder.parameter(Integer.class);
+
+        Predicate predicate = null;
+        switch (filter) {
+            case UNDEFINED:
+                predicate = builder.and(
+                    builder.equal(tripJoin.get(Trip.Fields.ID), tripIdParam),
+                    builder.equal(root.get(Operation.Fields.START_DATE_TIME), tripJoin.get(Trip.Fields.DEPARTURE_DATE_TIME)),
+                    builder.equal(root.get(Operation.Fields.END_DATE_TIME), tripJoin.get(Trip.Fields.RETURN_DATE_TIME))
+                );
+                break;
+            case DEFINED:
+                predicate = builder.and(
+                    builder.equal(tripJoin.get(Trip.Fields.ID), tripIdParam),
+                    builder.notEqual(root.get(Operation.Fields.START_DATE_TIME), tripJoin.get(Trip.Fields.DEPARTURE_DATE_TIME))
+                );
+                break;
+            case ALL:
+                predicate = builder.equal(tripJoin.get(Trip.Fields.ID), tripIdParam);
+        }
+        query.select(root).where(predicate);
+
+        // Add sorting
+        addSorting(query, builder, root, sortAttribute, sortDirection);
+
+        TypedQuery<Operation> q = entityManager.createQuery(query)
+            .setParameter(tripIdParam, tripId)
+            .setFirstResult(offset)
+            .setMaxResults(size);
+        return toOperationGroupVOs(q.getResultList());
     }
 
     private OperationGroupVO save(OperationGroupVO source, Trip parent) {
@@ -324,6 +357,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
                 target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
+                source.setQualityFlagId(config.getDefaultQualityFlagId());
             } else {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
             }
@@ -351,38 +385,11 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
         }
     }
 
-    @Override
-    public List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> sources) {
-
-        Preconditions.checkNotNull(sources);
-
-        // Load parent entity
-        Trip parent = get(Trip.class, tripId);
-
-        // Remember existing entities
-        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getOperations()));
-
-        // Save each operation group
-        List<OperationGroupVO> result = sources.stream().map(source -> {
-            if (source.getId() != null) {
-                sourcesIdsToRemove.remove(source.getId());
-            }
-            return save(source, parent);
-        }).collect(Collectors.toList());
-
-        // Remove unused entities
-        if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
-            sourcesIdsToRemove.forEach(this::delete);
-        }
-
-        return result;
-    }
-
     private List<MetierVO> toMetierVOs(List<Metier> metiers) {
         if (CollectionUtils.isEmpty(metiers))
             return new ArrayList<>();
 
-        return metiers.stream().map(metier -> metierDao.toMetierVO(metier)).filter(Objects::nonNull).collect(Collectors.toList());
+        return metiers.stream().map(metier -> metierDao.toVO(metier)).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     private List<OperationGroupVO> toOperationGroupVOs(List<Operation> operations) {
@@ -415,7 +422,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
 
         // Metier
         if (source.getMetier() != null) {
-            target.setMetier(metierDao.toMetierVO(source.getMetier()));
+            target.setMetier(metierDao.toVO(source.getMetier()));
         }
 
         // Recorder department

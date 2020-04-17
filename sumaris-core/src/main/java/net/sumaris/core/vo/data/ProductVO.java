@@ -9,14 +9,11 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 /**
  * @author peck7 on 28/11/2019.
  *
- * TODO à finir: cf. create-views & create-triggers
- * il manque notamment WEIGHT, COST; et LABEL est non nul ?
  */
 
 @Data
@@ -46,10 +43,14 @@ public class ProductVO implements IDataVO<Integer>, IWithRecorderPersonEntity<In
     // Mapped as measurements
     private Double weight;
     private ReferentialVO weightMethod; // attention c'est une method et pas un qualitative_value
+    private Integer dressingId;
+    private Integer preservationId;
+    private Integer sizeCategoryId;
+    private Double cost;
 
     private Map<Integer, String> measurementValues; // = sorting_measurement_p or quantification_measurement_p
-    private List<MeasurementVO> sortingMeasurements; // = sorting_measurement_p (from a list)
-    private List<MeasurementVO> quantificationMeasurements; // = quantification_measurement_p (from a list)
+//    private List<MeasurementVO> sortingMeasurements; // = sorting_measurement_p (from a list)
+//    private List<MeasurementVO> quantificationMeasurements; // = quantification_measurement_p (from a list)
 
     @EqualsAndHashCode.Exclude
     private OperationVO operation;

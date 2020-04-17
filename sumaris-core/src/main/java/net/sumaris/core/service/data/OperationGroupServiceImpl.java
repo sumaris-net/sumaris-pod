@@ -1,7 +1,6 @@
 package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
@@ -16,7 +15,6 @@ import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.referential.MetierVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +47,12 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
     @Autowired
     protected PmfmService pmfmService;
+
+    @Autowired
+    protected ProductService productService;
+
+    @Autowired
+    protected PacketService packetService;
 
     @Override
     public List<MetierVO> getMetiersByTripId(int tripId) {
@@ -88,98 +92,18 @@ public class OperationGroupServiceImpl implements OperationGroupService {
     }
 
     @Override
-    public OperationGroupVO save(OperationGroupVO source) {
+    public OperationGroupVO save(final OperationGroupVO source) {
 
-        Preconditions.checkNotNull(source);
-        Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
-        Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+        // Check operation group validity
+        checkOperationGroup(source);
 
-        // Default properties
-        if (source.getQualityFlagId() == null) {
-            source.setQualityFlagId(config.getDefaultQualityFlagId());
-        }
+        // Save entity
+        operationGroupDao.save(source);
 
-        OperationGroupVO savedOperationGroup = operationGroupDao.save(source);
+        // Save linked entities
+        saveChildrenEntities(source);
 
-        // Dispatch measurements from measurementValues (which should contains all measurements)
-        {
-            Map<Integer, String> vesselUseMeasurements = Maps.newLinkedHashMap();
-            Map<Integer, String> gearUseMeasurements = Maps.newLinkedHashMap();
-//            Map<Integer, String> gearPhysicalMeasurements = Maps.newLinkedHashMap();
-            source.getMeasurementValues().forEach((pmfmId, value) -> {
-                if (pmfmService.isVesselUsePmfm(pmfmId)) {
-                    vesselUseMeasurements.putIfAbsent(pmfmId, value);
-                } else if (pmfmService.isGearUsePmfm(pmfmId)) {
-                    gearUseMeasurements.putIfAbsent(pmfmId, value);
-//                } else if (pmfmService.isGearPhysicalPmfm(pmfmId)) {
-//                    gearPhysicalMeasurements.putIfAbsent(pmfmId, value);
-                }
-            });
-
-            // Re-affect to correct map
-            source.setMeasurementValues(vesselUseMeasurements);
-            source.setGearMeasurementValues(gearUseMeasurements);
-//            source.getPhysicalGear().setMeasurementValues(gearPhysicalMeasurements);
-//            if (savedOperationGroup.getPhysicalGear() != source.getPhysicalGear()) {
-                // if not same entity
-//                savedOperationGroup.getPhysicalGear().setMeasurementValues(gearPhysicalMeasurements);
-//            }
-        }
-
-        // Save measurements (vessel use measurement)
-        {
-            if (source.getMeasurementValues() != null) {
-                measurementDao.saveOperationVesselUseMeasurementsMap(savedOperationGroup.getId(), source.getMeasurementValues());
-            } else {
-                List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
-                measurements.forEach(m -> fillDefaultProperties(savedOperationGroup, m, VesselUseMeasurement.class));
-                measurements = measurementDao.saveOperationVesselUseMeasurements(savedOperationGroup.getId(), measurements);
-                savedOperationGroup.setMeasurements(measurements);
-            }
-        }
-
-        // Save gear measurements (gear use measurement)
-        {
-            if (source.getGearMeasurementValues() != null) {
-                measurementDao.saveOperationGearUseMeasurementsMap(savedOperationGroup.getId(), source.getGearMeasurementValues());
-            } else {
-                List<MeasurementVO> measurements = Beans.getList(source.getGearMeasurements());
-                measurements.forEach(m -> fillDefaultProperties(savedOperationGroup, m, GearUseMeasurement.class));
-                measurements = measurementDao.saveOperationGearUseMeasurements(savedOperationGroup.getId(), measurements);
-                savedOperationGroup.setGearMeasurements(measurements);
-            }
-        }
-
-        // Save gear measurements (gear physical measurement)
-        {
-//            physicalGearService.save(savedOperationGroup.getTripId(), ImmutableList.of(savedOperationGroup.getPhysicalGear()));
-        }
-
-        // Save batches
-//        {
-//            List<BatchVO> batches = getAllBatches(savedOperationGroup);
-//            batches.forEach(b -> fillDefaultProperties(savedOperationGroup, b));
-//            batches = batchService.saveByOperationId(savedOperationGroup.getId(), batches);
-//
-//            // Transform saved batches into flat list (e.g. to be used as graphQL query response)
-//            batches.forEach(batch -> {
-//                // Set parentId (instead of parent object)
-//                if (batch.getParentId() == null && batch.getParent() != null) {
-//                    batch.setParentId(batch.getParent().getId());
-//                }
-//                // Remove link parent/children
-//                batch.setParent(null);
-//                batch.setChildren(null);
-//            });
-//
-//            savedOperationGroup.setCatchBatch(null);
-//            savedOperationGroup.setBatches(batches);
-//        }
-
-        // TODO save products
-
-        return savedOperationGroup;
-
+        return source;
     }
 
     @Override
@@ -192,13 +116,17 @@ public class OperationGroupServiceImpl implements OperationGroupService {
     }
 
     @Override
-    public List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> operationGroups) {
-        Preconditions.checkNotNull(operationGroups);
+    public List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> sources) {
+        Preconditions.checkNotNull(sources);
+        sources.forEach(this::checkOperationGroup);
 
-        // affect tripId
-        operationGroups.forEach(operationGroup -> operationGroup.setTripId(tripId));
+        // Save entities
+        List<OperationGroupVO> saved = operationGroupDao.saveAllByTripId(tripId, sources);
 
-        return save(operationGroups);
+        // Save children entities
+        saved.forEach(this::saveChildrenEntities);
+
+        return saved;
     }
 
     @Override
@@ -216,29 +144,64 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
     /* protected methods */
 
-    protected List<BatchVO> getAllBatches(OperationGroupVO operation) {
-        BatchVO catchBatch = operation.getCatchBatch();
-        fillDefaultProperties(operation, catchBatch);
-        List<BatchVO> result = Lists.newArrayList();
-        addAllBatchesToList(catchBatch, result);
-        return result;
+    protected void checkOperationGroup(final OperationGroupVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
+        Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
     }
 
-    protected void addAllBatchesToList(final BatchVO batch, final List<BatchVO> result) {
-        if (batch == null) return;
+    protected void saveChildrenEntities(final OperationGroupVO source) {
 
-        // Add the batch itself
-        if (!result.contains(batch)) result.add(batch);
 
-        // Process children
-        if (CollectionUtils.isNotEmpty(batch.getChildren())) {
-            // Recursive call
-            batch.getChildren().forEach(child -> {
-                fillDefaultProperties(batch, child);
-                addAllBatchesToList(child, result);
+        // Dispatch measurements from measurementValues (which should contains all measurements)
+        {
+            Map<Integer, String> vesselUseMeasurements = Maps.newLinkedHashMap();
+            Map<Integer, String> gearUseMeasurements = Maps.newLinkedHashMap();
+            source.getMeasurementValues().forEach((pmfmId, value) -> {
+                if (pmfmService.isVesselUsePmfm(pmfmId)) {
+                    vesselUseMeasurements.putIfAbsent(pmfmId, value);
+                } else if (pmfmService.isGearUsePmfm(pmfmId)) {
+                    gearUseMeasurements.putIfAbsent(pmfmId, value);
+                }
             });
+
+            // Re-affect to correct map
+            source.setMeasurementValues(vesselUseMeasurements);
+            source.setGearMeasurementValues(gearUseMeasurements);
         }
+
+        // Save measurements (vessel use measurement)
+        {
+            if (source.getMeasurementValues() != null) {
+                measurementDao.saveOperationVesselUseMeasurementsMap(source.getId(), source.getMeasurementValues());
+            } else {
+                List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
+                measurements.forEach(m -> fillDefaultProperties(source, m, VesselUseMeasurement.class));
+                measurements = measurementDao.saveOperationVesselUseMeasurements(source.getId(), measurements);
+                source.setMeasurements(measurements);
+            }
+        }
+
+        // Save gear measurements (gear use measurement)
+        {
+            if (source.getGearMeasurementValues() != null) {
+                measurementDao.saveOperationGearUseMeasurementsMap(source.getId(), source.getGearMeasurementValues());
+            } else {
+                List<MeasurementVO> measurements = Beans.getList(source.getGearMeasurements());
+                measurements.forEach(m -> fillDefaultProperties(source, m, GearUseMeasurement.class));
+                measurements = measurementDao.saveOperationGearUseMeasurements(source.getId(), measurements);
+                source.setGearMeasurements(measurements);
+            }
+        }
+
+        // Save products
+        productService.saveByOperationId(source.getId(), source.getProducts());
+
+        // Save packets
+        packetService.saveByOperationId(source.getId(), source.getPackets());
+
     }
+
 
     protected void fillDefaultProperties(OperationGroupVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
         if (measurement == null) return;

@@ -31,6 +31,7 @@ import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.QualityFlagEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
@@ -84,6 +85,9 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
     @Autowired
     private ProgramDao programDao;
+
+    @Autowired
+    private LandingRepository landingRepository;
 
     public TripDaoImpl() {
         super();
@@ -272,7 +276,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
         EntityManager entityManager = getEntityManager();
         Trip entity = null;
-        if (source.getId() != null && source.getId().intValue() >= 0) {
+        if (source.getId() != null && source.getId() >= 0) {
             entity = get(Trip.class, source.getId());
         }
         boolean isNew = (entity == null);
@@ -523,6 +527,15 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
             Set<PersonVO> observers = source.getObservers().stream()
                     .map(personDao::toPersonVO).collect(Collectors.toSet());
             target.setObservers(observers);
+        }
+
+        // Parent ids
+        Landing landing = landingRepository.getByTripId(target.getId());
+        if (landing != null) {
+            target.setLandingId(landing.getId());
+            if (landing.getObservedLocation() != null) {
+                target.setObservedLocationId(landing.getObservedLocation().getId());
+            }
         }
 
         return target;

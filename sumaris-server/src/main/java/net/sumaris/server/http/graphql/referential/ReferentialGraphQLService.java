@@ -107,6 +107,8 @@ public class ReferentialGraphQLService {
         if (filter == null)
             filter = new MetierFilterVO();
 
+//        return metierRepository.findAll(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()), null).getContent();
+
         return metierRepository.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
 
     }
@@ -114,7 +116,7 @@ public class ReferentialGraphQLService {
     @GraphQLQuery(name = "metier", description = "Get a metier by id")
     @Transactional(readOnly = true)
     public MetierVO getMetierById(@GraphQLArgument(name = "id") int id) {
-        return metierRepository.getById(id);
+        return metierRepository.get(id);
     }
 
     @GraphQLQuery(name = "referentialsCount", description = "Get referentials count")

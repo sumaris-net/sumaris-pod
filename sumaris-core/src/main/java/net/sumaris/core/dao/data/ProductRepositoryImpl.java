@@ -1,22 +1,20 @@
 package net.sumaris.core.dao.data;
 
+import com.google.common.collect.Maps;
 import net.sumaris.core.dao.administration.user.PersonDao;
-import net.sumaris.core.dao.referential.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.pmfm.Method;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.ProductVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.filter.ProductFilterVO;
-import net.sumaris.core.vo.referential.PmfmVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
@@ -26,10 +24,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -37,29 +32,41 @@ import java.util.stream.Collectors;
  */
 public class ProductRepositoryImpl
     extends DataRepositoryImpl<Product, Integer, ProductVO, ProductFilterVO>
-    implements ProductRepository {
+    implements ProductRepositoryExtend {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProductRepositoryImpl.class);
 
     private final ReferentialDao referentialDao;
     private final PersonDao personDao;
-    private final TaxonGroupRepository taxonGroupRepository;
     private final LandingRepository landingRepository;
-    private final PmfmDao pmfmDao;
+    private final PmfmService pmfmService;
+    private final MeasurementDao measurementDao;
+
+    private final Integer dressingPmfmId;
+    private final Integer preservationPmfmId;
+    private final Integer sizeCategoryPmfmId;
+    private final Integer totalPricePmfmId;
 
     @Autowired
     public ProductRepositoryImpl(EntityManager entityManager,
                                  ReferentialDao referentialDao,
                                  PersonDao personDao,
-                                 TaxonGroupRepository taxonGroupRepository,
                                  LandingRepository landingRepository,
-                                 PmfmDao pmfmDao) {
+                                 PmfmService pmfmService,
+                                 MeasurementDao measurementDao) {
         super(Product.class, entityManager);
         this.referentialDao = referentialDao;
         this.personDao = personDao;
-        this.taxonGroupRepository = taxonGroupRepository;
         this.landingRepository = landingRepository;
-        this.pmfmDao = pmfmDao;
+        this.pmfmService = pmfmService;
+        this.measurementDao = measurementDao;
+
+        setCheckUpdateDate(false);
+
+        dressingPmfmId = pmfmService.getByLabel(PmfmEnum.DRESSING.getLabel()).getId();
+        preservationPmfmId = pmfmService.getByLabel(PmfmEnum.PRESERVATION.getLabel()).getId();
+        sizeCategoryPmfmId = pmfmService.getByLabel(PmfmEnum.SIZE_CATEGORY.getLabel()).getId();
+        totalPricePmfmId = pmfmService.getByLabel(PmfmEnum.TOTAL_PRICE.getLabel()).getId();
     }
 
     @Override
@@ -71,13 +78,9 @@ public class ProductRepositoryImpl
     public Specification<Product> toSpecification(ProductFilterVO filter) {
         if (filter == null) return null;
 
-        return Specification.where(
-            and(
-                hasLandingId(filter.getLandingId()),
-                hasOperationId(filter.getOperationId()),
-                hasSaleId(filter.getSaleId())
-            )
-        );
+        return Specification.where(hasLandingId(filter.getLandingId()))
+            .and(hasOperationId(filter.getOperationId()))
+            .and(hasSaleId(filter.getSaleId()));
     }
 
     @Override
@@ -99,18 +102,10 @@ public class ProductRepositoryImpl
         if (source.getWeightMethod() != null) {
             target.setWeightMethod(referentialDao.toReferentialVO(source.getWeightMethod()));
         }
-        if (source.getDressing() != null) {
-            addSortingMeasurement(target, PmfmEnum.DRESSING, source.getDressing());
-        }
-        if (source.getPreservation() != null) {
-            addSortingMeasurement(target, PmfmEnum.PRESERVATION, source.getPreservation());
-        }
-        if (source.getSizeCategory() != null) {
-            addSortingMeasurement(target, PmfmEnum.SIZE_CATEGORY, source.getSizeCategory());
-        }
-        if (source.getCost() != null) {
-            addSortingMeasurement(target, PmfmEnum.TOTAL_PRICE, source.getCost());
-        }
+
+        target.setDressingId(Optional.ofNullable(source.getDressing()).map(QualitativeValue::getId).orElse(null));
+        target.setPreservationId(Optional.ofNullable(source.getPreservation()).map(QualitativeValue::getId).orElse(null));
+        target.setSizeCategoryId(Optional.ofNullable(source.getSizeCategory()).map(QualitativeValue::getId).orElse(null));
 
         // Parent link
         if (source.getLanding() != null) {
@@ -162,25 +157,25 @@ public class ProductRepositoryImpl
         }
 
         // Dressing
-        QualitativeValue dressing = extractSortingQualitativeValue(source, PmfmEnum.DRESSING);
+        QualitativeValue dressing = extractSortingQualitativeValue(source, dressingPmfmId);
         if (copyIfNull || dressing != null) {
             target.setDressing(dressing);
         }
 
         // Preservation
-        QualitativeValue preservation = extractSortingQualitativeValue(source, PmfmEnum.PRESERVATION);
+        QualitativeValue preservation = extractSortingQualitativeValue(source, preservationPmfmId);
         if (copyIfNull || preservation != null) {
             target.setPreservation(preservation);
         }
 
         // Size Category
-        QualitativeValue sizeCategory = extractSortingQualitativeValue(source, PmfmEnum.SIZE_CATEGORY);
+        QualitativeValue sizeCategory = extractSortingQualitativeValue(source, sizeCategoryPmfmId);
         if (copyIfNull || sizeCategory != null) {
             target.setSizeCategory(sizeCategory);
         }
 
         // Cost
-        Double cost = extractSortingNumericalValue(source, PmfmEnum.TOTAL_PRICE);
+        Double cost = extractSortingNumericalValue(source, totalPricePmfmId);
         if (copyIfNull || cost != null) {
             target.setCost(cost);
         }
@@ -271,6 +266,29 @@ public class ProductRepositoryImpl
         return saveByParent(parent, products);
     }
 
+    @Override
+    public void fillMeasurementsMap(ProductVO product) {
+
+        if (product.getMeasurementValues() == null)
+            product.setMeasurementValues(new HashMap<>());
+
+        if (product.getDressingId() != null) {
+            product.getMeasurementValues().put(dressingPmfmId, product.getDressingId().toString());
+        }
+        if (product.getPreservationId() != null) {
+            product.getMeasurementValues().put(preservationPmfmId, product.getPreservationId().toString());
+        }
+        if (product.getSizeCategoryId() != null) {
+            product.getMeasurementValues().put(sizeCategoryPmfmId, product.getSizeCategoryId().toString());
+        }
+        if (product.getCost() != null) {
+            product.getMeasurementValues().put(totalPricePmfmId, product.getCost().toString());
+        }
+
+        product.getMeasurementValues().putAll(measurementDao.getProductSortingMeasurementsMap(product.getId()));
+        product.getMeasurementValues().putAll(measurementDao.getProductQuantificationMeasurementsMap(product.getId()));
+    }
+
     protected List<ProductVO> saveByParent(@Nonnull IWithProductsEntity<Integer, Product> parent, @Nonnull List<ProductVO> products) {
 
         // Load existing entities
@@ -281,63 +299,51 @@ public class ProductRepositoryImpl
             existingProductIds.remove(product.getId());
         });
 
+        saveMeasurements(products);
+
         // Delete remaining
         existingProductIds.forEach(this::deleteById);
 
         return products;
     }
 
-    private void addSortingMeasurement(ProductVO target, PmfmEnum pmfmEnum, QualitativeValue qualitativeValue) {
-        MeasurementVO sortingMeasurement = createSortingMeasurement(target, pmfmEnum);
-        sortingMeasurement.setQualitativeValue(referentialDao.toReferentialVO(qualitativeValue));
-    }
+    private void saveMeasurements(List<ProductVO> products) {
 
-    private void addSortingMeasurement(ProductVO target, PmfmEnum pmfmEnum, Number value) {
-        MeasurementVO sortingMeasurement = createSortingMeasurement(target, pmfmEnum);
-        sortingMeasurement.setNumericalValue(value.doubleValue());
-    }
+        products.forEach(product -> {
 
-    private MeasurementVO createSortingMeasurement(ProductVO target, PmfmEnum pmfmEnum) {
-        MeasurementVO sortingMeasurement = new MeasurementVO();
-        sortingMeasurement.setEntityName(ProductSortingMeasurement.class.getSimpleName());
+            if (product.getMeasurementValues() != null) {
 
-        PmfmVO pmfm = pmfmDao.getByLabel(pmfmEnum.getLabel());
-        sortingMeasurement.setPmfmId(pmfm.getId());
-
-        if (target.getSortingMeasurements() == null) {
-            target.setSortingMeasurements(new ArrayList<>());
-        }
-        target.getSortingMeasurements().add(sortingMeasurement);
-
-        // affect fake id
-        sortingMeasurement.setId(-target.getSortingMeasurements().size());
-
-        return sortingMeasurement;
-    }
-
-    private QualitativeValue extractSortingQualitativeValue(ProductVO source, PmfmEnum pmfmEnum) {
-
-        int pmfmId = pmfmDao.getByLabel(pmfmEnum.getLabel()).getId();
-        QualitativeValue result = null;
-
-        if (CollectionUtils.isNotEmpty(source.getSortingMeasurements())) {
-
-            MeasurementVO measurement = source.getSortingMeasurements().stream()
-                .filter(m -> m.getPmfmId() == pmfmId && m.getQualitativeValue() != null)
-                .findFirst()
-                .orElse(null);
-
-            if (measurement != null) {
-                result = load(QualitativeValue.class, measurement.getQualitativeValue().getId());
-                source.getSortingMeasurements().remove(measurement);
+                Map<Integer, String> quantificationMeasurements = Maps.newLinkedHashMap();
+                Map<Integer, String> sortingMeasurements = Maps.newLinkedHashMap();
+                product.getMeasurementValues().forEach((pmfmId, value) -> {
+                    if (pmfmService.isWeightPmfm(pmfmId)) {
+                        quantificationMeasurements.putIfAbsent(pmfmId, value);
+                    }
+                    else {
+                        if (sortingMeasurements.containsKey(pmfmId)) {
+                            LOG.warn(String.format("Duplicate measurement width {pmfmId: %s} on product {id: %s}", pmfmId, product.getId()));
+                        }
+                        else {
+                            sortingMeasurements.putIfAbsent(pmfmId, value);
+                        }
+                    }
+                });
+                measurementDao.saveProductSortingMeasurementsMap(product.getId(), sortingMeasurements);
+                measurementDao.saveProductQuantificationMeasurementsMap(product.getId(), quantificationMeasurements);
             }
-        }
+        });
+
+    }
+
+    private QualitativeValue extractSortingQualitativeValue(ProductVO source, int pmfmId) {
+
+        QualitativeValue result = null;
 
         if (MapUtils.isNotEmpty(source.getMeasurementValues())) {
 
             String value = source.getMeasurementValues().remove(pmfmId);
 
-            if (value != null && result == null) {
+            if (value != null) {
                 result = load(QualitativeValue.class, Integer.parseInt(value));
             }
         }
@@ -345,28 +351,14 @@ public class ProductRepositoryImpl
         return result;
     }
 
-    private Double extractSortingNumericalValue(ProductVO source, PmfmEnum pmfmEnum) {
-        int pmfmId = pmfmDao.getByLabel(pmfmEnum.getLabel()).getId();
+    private Double extractSortingNumericalValue(ProductVO source, int pmfmId) {
         Double result = null;
-
-        if (CollectionUtils.isNotEmpty(source.getSortingMeasurements())) {
-
-            MeasurementVO measurement = source.getSortingMeasurements().stream()
-                .filter(m -> m.getPmfmId() == pmfmId)
-                .findFirst()
-                .orElse(null);
-
-            if (measurement != null) {
-                result = measurement.getNumericalValue();
-                source.getSortingMeasurements().remove(measurement);
-            }
-        }
 
         if (MapUtils.isNotEmpty(source.getMeasurementValues())) {
 
             String value = source.getMeasurementValues().remove(pmfmId);
 
-            if (value != null && result == null) {
+            if (value != null) {
                 result = Double.parseDouble(value);
             }
         }

@@ -28,10 +28,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
@@ -40,7 +40,7 @@ import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroupHierarchy;
-import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -68,12 +68,11 @@ import java.util.stream.Collectors;
 import static net.sumaris.core.dao.referential.taxon.TaxonGroupSpecifications.*;
 
 public class TaxonGroupRepositoryImpl
-        extends SumarisJpaRepositoryImpl<TaxonGroup, Integer>
-        implements TaxonGroupRepositoryExtend {
-
+    extends ReferentialRepositoryImpl<TaxonGroup, TaxonGroupVO, ReferentialFilterVO>
+    implements TaxonGroupRepositoryExtend {
 
     private static final Logger log =
-            LoggerFactory.getLogger(TaxonGroupRepositoryImpl.class);
+        LoggerFactory.getLogger(TaxonGroupRepositoryImpl.class);
 
     @Autowired
     private TaxonNameDao taxonNameDao;
@@ -90,53 +89,41 @@ public class TaxonGroupRepositoryImpl
 
     @Override
     public List<TaxonGroupVO> findTargetSpeciesByFilter(
-                                               ReferentialFilterVO filter,
-                                               int offset,
-                                               int size,
-                                               String sortAttribute,
-                                               SortDirection sortDirection) {
+        ReferentialFilterVO filter,
+        int offset,
+        int size,
+        String sortAttribute,
+        SortDirection sortDirection) {
 
         Preconditions.checkNotNull(filter);
-        Integer[] gearIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} :
-                filter.getLevelIds();
-
-        Specification<TaxonGroup> specification = Specification.where(
-                ReferentialSpecifications.<TaxonGroup>searchText(filter.getSearchAttribute(), "searchText"))
-            .and(hasType(TaxonGroupTypeId.METIER_SPECIES.getId()))
-            .and(inStatusIds(filter.getStatusIds()))
-            .and(inGearIds(gearIds));
 
         String searchText = Daos.getEscapedSearchText(filter.getSearchText());
 
-        TypedQuery<TaxonGroup> query = getQuery(specification, TaxonGroup.class, getPageable(offset, size, sortAttribute, sortDirection));
+        TypedQuery<TaxonGroup> query = getQuery(toSpecification(filter), TaxonGroup.class, getPageable(offset, size, sortAttribute, sortDirection));
 
-        Parameter<String> searchTextParam = query.getParameter("searchText", String.class);
+        Parameter<String> searchTextParam = query.getParameter(ReferentialSpecifications.SEARCH_TEXT_PARAMETER, String.class);
         if (searchTextParam != null) {
             query.setParameter(searchTextParam, searchText);
         }
 
         return query.getResultStream()
-                    .distinct()
-                    .map(this::toTaxonGroupVO)
-                    .collect(Collectors.toList());
+            .distinct()
+            .map(this::toVO)
+            .collect(Collectors.toList());
     }
 
-
     @Override
-    public TaxonGroupVO toTaxonGroupVO(TaxonGroup source) {
-        TaxonGroupVO target = new TaxonGroupVO();
-
-        Beans.copyProperties(source, target);
+    public void toVO(TaxonGroup source, TaxonGroupVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+        super.toVO(source, target, fetchOptions, copyIfNull);
 
         // StatusId
         target.setStatusId(source.getStatus().getId());
 
-        return target;
     }
 
     @Override
     public long countTaxonGroupHierarchy() {
-        return (Long)getEntityManager().createQuery("select count(*) from TaxonGroupHierarchy").getSingleResult();
+        return (Long) getEntityManager().createQuery("select count(*) from TaxonGroupHierarchy").getSingleResult();
     }
 
     @Override
@@ -157,36 +144,35 @@ public class TaxonGroupRepositoryImpl
         CriteriaQuery<TaxonGroupHierarchy> query = em.getCriteriaBuilder().createQuery(TaxonGroupHierarchy.class);
         query.from(TaxonGroupHierarchy.class);
         em.createQuery(query).getResultStream()
-                .forEach(th -> existingLinkToRemove.put(th.getParentTaxonGroup().getId(), th.getChildTaxonGroup().getId()));
+            .forEach(th -> existingLinkToRemove.put(th.getParentTaxonGroup().getId(), th.getChildTaxonGroup().getId()));
 
         final MutableInt insertCounter = new MutableInt();
 
         // Get all taxon group
         findAll(Sort.by(TaxonGroup.Fields.ID))
-                .stream()
-                .forEach(tg -> {
-                    Integer childId = tg.getId();
-                    // Link to himself
-                    if (!existingLinkToRemove.remove(childId, childId)) {
+            .forEach(tg -> {
+                Integer childId = tg.getId();
+                // Link to himself
+                if (!existingLinkToRemove.remove(childId, childId)) {
+                    TaxonGroupHierarchy tgh = new TaxonGroupHierarchy();
+                    tgh.setParentTaxonGroup(load(TaxonGroup.class, childId));
+                    tgh.setChildTaxonGroup(load(TaxonGroup.class, childId));
+                    em.persist(tgh);
+                    insertCounter.increment();
+                }
+
+                TaxonGroup parent = tg.getParentTaxonGroup();
+                while (parent != null) {
+                    if (!existingLinkToRemove.remove(parent.getId(), childId)) {
                         TaxonGroupHierarchy tgh = new TaxonGroupHierarchy();
-                        tgh.setParentTaxonGroup(load(TaxonGroup.class, childId));
+                        tgh.setParentTaxonGroup(load(TaxonGroup.class, parent.getId()));
                         tgh.setChildTaxonGroup(load(TaxonGroup.class, childId));
                         em.persist(tgh);
                         insertCounter.increment();
                     }
-
-                    TaxonGroup parent = tg.getParentTaxonGroup();
-                    while (parent != null) {
-                        if (!existingLinkToRemove.remove(parent.getId(), childId)) {
-                            TaxonGroupHierarchy tgh = new TaxonGroupHierarchy();
-                            tgh.setParentTaxonGroup(load(TaxonGroup.class, parent.getId()));
-                            tgh.setChildTaxonGroup(load(TaxonGroup.class, childId));
-                            em.persist(tgh);
-                            insertCounter.increment();
-                        }
-                        parent = parent.getParentTaxonGroup();
-                    }
-                });
+                    parent = parent.getParentTaxonGroup();
+                }
+            });
 
         em.flush();
         em.clear();
@@ -196,15 +182,15 @@ public class TaxonGroupRepositoryImpl
         if (!existingLinkToRemove.isEmpty()) {
             existingLinkToRemove.entries().forEach(entry -> {
                 int deletedRowCount = em.createQuery("delete from TaxonGroupHierarchy where parentTaxonGroup.id=:parentId and childTaxonGroup.id=:childId")
-                        .setParameter("parentId", entry.getKey())
-                        .setParameter("childId", entry.getValue())
-                        .executeUpdate();
+                    .setParameter("parentId", entry.getKey())
+                    .setParameter("childId", entry.getValue())
+                    .executeUpdate();
                 deleteCounter.add(deletedRowCount);
             });
         }
 
         log.info(String.format("Technical table TAXON_GROUP_HISTORY successfully updated. (inserts: %s, deletes: %s)",
-                insertCounter.getValue(), deleteCounter.getValue()));
+            insertCounter.getValue(), deleteCounter.getValue()));
     }
 
     @Override
@@ -217,7 +203,7 @@ public class TaxonGroupRepositoryImpl
             CriteriaQuery<TaxonGroup2TaxonHierarchy> query = em.getCriteriaBuilder().createQuery(TaxonGroup2TaxonHierarchy.class);
             query.from(TaxonGroup2TaxonHierarchy.class);
             em.createQuery(query).getResultStream()
-                    .forEach(th -> existingLinkToRemove.put(th.getParentTaxonGroup().getId(), th.getChildReferenceTaxon().getId()));
+                .forEach(th -> existingLinkToRemove.put(th.getParentTaxonGroup().getId(), th.getChildReferenceTaxon().getId()));
         }
 
         // Get all taxon group
@@ -226,43 +212,43 @@ public class TaxonGroupRepositoryImpl
             CriteriaQuery<TaxonGroupHistoricalRecord> query = em.getCriteriaBuilder().createQuery(TaxonGroupHistoricalRecord.class);
             query.from(TaxonGroupHistoricalRecord.class);
             em.createQuery(query).getResultStream()
-                    .forEach(history -> {
-                        Integer parentId = history.getTaxonGroup().getId();
-                        Integer childId = history.getReferenceTaxon().getId();
-                        // Direct link
-                        if (!existingLinkToRemove.remove(parentId, childId)) {
-                            TaxonGroup2TaxonHierarchy hierarchy = new TaxonGroup2TaxonHierarchy();
-                            hierarchy.setParentTaxonGroup(history.getTaxonGroup());
-                            hierarchy.setChildReferenceTaxon(history.getReferenceTaxon());
-                            hierarchy.setStartDate(history.getStartDate());
-                            hierarchy.setEndDate(history.getEndDate());
-                            hierarchy.setIsInherited(false);
-                            em.persist(hierarchy);
-                            insertCounter.increment();
-                        }
+                .forEach(history -> {
+                    Integer parentId = history.getTaxonGroup().getId();
+                    Integer childId = history.getReferenceTaxon().getId();
+                    // Direct link
+                    if (!existingLinkToRemove.remove(parentId, childId)) {
+                        TaxonGroup2TaxonHierarchy hierarchy = new TaxonGroup2TaxonHierarchy();
+                        hierarchy.setParentTaxonGroup(history.getTaxonGroup());
+                        hierarchy.setChildReferenceTaxon(history.getReferenceTaxon());
+                        hierarchy.setStartDate(history.getStartDate());
+                        hierarchy.setEndDate(history.getEndDate());
+                        hierarchy.setIsInherited(false);
+                        em.persist(hierarchy);
+                        insertCounter.increment();
+                    }
 
-                        TaxonNameVO parent = taxonNameDao.getTaxonNameReferent(childId);
-                        List<TaxonName> children = taxonNameDao.getAllTaxonNameByParentIds(ImmutableList.of(parent.getId()));
-                        while (CollectionUtils.isNotEmpty(children)) {
-                            children.forEach(child -> {
-                                Integer inheritedChildId = child.getReferenceTaxon().getId();
-                                if (!existingLinkToRemove.remove(parentId, inheritedChildId)) {
-                                    TaxonGroup2TaxonHierarchy hierarchy = new TaxonGroup2TaxonHierarchy();
-                                    hierarchy.setParentTaxonGroup(history.getTaxonGroup());
-                                    hierarchy.setChildReferenceTaxon(child.getReferenceTaxon());
-                                    hierarchy.setStartDate(history.getStartDate());
-                                    hierarchy.setEndDate(history.getEndDate());
-                                    hierarchy.setIsInherited(true); // Mark has inherited
-                                    em.persist(hierarchy);
-                                    insertCounter.increment();
-                                }
-                            });
-                            children = taxonNameDao.getAllTaxonNameByParentIds(
-                                    children.stream()
-                                            .map(TaxonName::getId)
-                                            .collect(Collectors.toList()));
-                        }
-                    });
+                    TaxonNameVO parent = taxonNameDao.getTaxonNameReferent(childId);
+                    List<TaxonName> children = taxonNameDao.getAllTaxonNameByParentIds(ImmutableList.of(parent.getId()));
+                    while (CollectionUtils.isNotEmpty(children)) {
+                        children.forEach(child -> {
+                            Integer inheritedChildId = child.getReferenceTaxon().getId();
+                            if (!existingLinkToRemove.remove(parentId, inheritedChildId)) {
+                                TaxonGroup2TaxonHierarchy hierarchy = new TaxonGroup2TaxonHierarchy();
+                                hierarchy.setParentTaxonGroup(history.getTaxonGroup());
+                                hierarchy.setChildReferenceTaxon(child.getReferenceTaxon());
+                                hierarchy.setStartDate(history.getStartDate());
+                                hierarchy.setEndDate(history.getEndDate());
+                                hierarchy.setIsInherited(true); // Mark has inherited
+                                em.persist(hierarchy);
+                                insertCounter.increment();
+                            }
+                        });
+                        children = taxonNameDao.getAllTaxonNameByParentIds(
+                            children.stream()
+                                .map(TaxonName::getId)
+                                .collect(Collectors.toList()));
+                    }
+                });
         }
 
         em.flush();
@@ -273,15 +259,15 @@ public class TaxonGroupRepositoryImpl
         if (!existingLinkToRemove.isEmpty()) {
             existingLinkToRemove.entries().forEach(entry -> {
                 int nbRow = em.createQuery("delete from TaxonGroup2TaxonHierarchy where parentTaxonGroup.id=:parentId and childReferenceTaxon.id=:childId")
-                        .setParameter("parentId", entry.getKey())
-                        .setParameter("childId", entry.getValue())
-                        .executeUpdate();
+                    .setParameter("parentId", entry.getKey())
+                    .setParameter("childId", entry.getValue())
+                    .executeUpdate();
                 deleteCounter.add(nbRow);
             });
         }
 
         log.info(String.format("Technical table TAXON_GROUP2TAXON_HISTORY successfully updated. (inserts: %s, deletes: %s)",
-                insertCounter.getValue(), deleteCounter.getValue()));
+            insertCounter.getValue(), deleteCounter.getValue()));
     }
 
     @Override
@@ -289,15 +275,15 @@ public class TaxonGroupRepositoryImpl
         Preconditions.checkNotNull(startDate);
 
         List<ReferentialVO> result = getEntityManager()
-                .createNamedQuery("RoundWeightConversion.dressingByTaxonGroupId", QualitativeValue.class)
-                .setParameter("taxonGroupId", taxonGroupId)
-                .setParameter("startDate", startDate, TemporalType.DATE)
-                // If no end date, use start date
-                .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
-                .setParameter("locationId", locationId)
-                .getResultStream()
-                .map(p -> referentialDao.toReferentialVO(p))
-                .collect(Collectors.toList());
+            .createNamedQuery("RoundWeightConversion.dressingByTaxonGroupId", QualitativeValue.class)
+            .setParameter("taxonGroupId", taxonGroupId)
+            .setParameter("startDate", startDate, TemporalType.DATE)
+            // If no end date, use start date
+            .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
+            .setParameter("locationId", locationId)
+            .getResultStream()
+            .map(p -> referentialDao.toReferentialVO(p))
+            .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(result)) {
             return result;
@@ -317,15 +303,15 @@ public class TaxonGroupRepositoryImpl
         Preconditions.checkNotNull(startDate);
 
         List<ReferentialVO> result = getEntityManager()
-                .createNamedQuery("RoundWeightConversion.preservingByTaxonGroupId", QualitativeValue.class)
-                .setParameter("taxonGroupId", taxonGroupId)
-                .setParameter("startDate", startDate, TemporalType.DATE)
-                // If no end date, use start date
-                .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
-                .setParameter("locationId", locationId)
-                .getResultStream()
-                .map(p -> referentialDao.toReferentialVO(p))
-                .collect(Collectors.toList());
+            .createNamedQuery("RoundWeightConversion.preservingByTaxonGroupId", QualitativeValue.class)
+            .setParameter("taxonGroupId", taxonGroupId)
+            .setParameter("startDate", startDate, TemporalType.DATE)
+            // If no end date, use start date
+            .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
+            .setParameter("locationId", locationId)
+            .getResultStream()
+            .map(p -> referentialDao.toReferentialVO(p))
+            .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(result)) {
             return result;
@@ -344,11 +330,30 @@ public class TaxonGroupRepositoryImpl
         Preconditions.checkNotNull(startDate);
 
         return getEntityManager()
-                .createNamedQuery("TaxonGroup2TaxonHierarchy.taxonGroupIdByReferenceTaxonId", Integer.class)
-                .setParameter("referenceTaxonId", referenceTaxonId)
-                .setParameter("startDate", startDate, TemporalType.DATE)
-                // If no end date, use start date
-                .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
-                .getResultList();
+            .createNamedQuery("TaxonGroup2TaxonHierarchy.taxonGroupIdByReferenceTaxonId", Integer.class)
+            .setParameter("referenceTaxonId", referenceTaxonId)
+            .setParameter("startDate", startDate, TemporalType.DATE)
+            // If no end date, use start date
+            .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
+            .getResultList();
+    }
+
+    @Override
+    public Class<TaxonGroupVO> getVOClass() {
+        return TaxonGroupVO.class;
+    }
+
+    @Override
+    public Specification<TaxonGroup> toSpecification(ReferentialFilterVO filter) {
+
+        Integer[] gearIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} :
+            filter.getLevelIds();
+
+        return Specification.where(
+            ReferentialSpecifications.<TaxonGroup>searchText(filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER))
+            .and(hasType(TaxonGroupTypeId.METIER_SPECIES.getId()))
+            .and(inStatusIds(filter.getStatusIds()))
+            .and(inGearIds(gearIds));
+
     }
 }

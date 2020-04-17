@@ -69,43 +69,17 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductVO> saveByLandingId(int landingId, List<ProductVO> products) {
-
-        // Copy well-known measurements to product attributes
-//        copyMeasurements(products);
-
-        // Save entities
-        List<ProductVO> result = productRepository.saveByLandingId(landingId, products);
-
-        // Save measurements
-        saveMeasurements(result);
-
-        return result;
+        return productRepository.saveByLandingId(landingId, products);
     }
 
     @Override
     public List<ProductVO> saveByOperationId(int operationId, List<ProductVO> products) {
-
-        // Save entities
-        List<ProductVO> result = productRepository.saveByOperationId(operationId, products);
-
-        // Save measurements
-        saveMeasurements(result);
-
-        return result;
-
+        return productRepository.saveByOperationId(operationId, products);
     }
 
     @Override
     public List<ProductVO> saveBySaleId(int saleId, List<ProductVO> products) {
-
-        // Save entities
-        List<ProductVO> result = productRepository.saveBySaleId(saleId, products);
-
-        // Save measurements
-        saveMeasurements(result);
-
-        return result;
-
+        return productRepository.saveBySaleId(saleId, products);
     }
 
     @Override
@@ -150,6 +124,10 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.unvalidate(product);
     }
 
+    @Override
+    public void fillMeasurementsMap(ProductVO product) {
+        productRepository.fillMeasurementsMap(product);
+    }
 
     private void copyMeasurements(List<ProductVO> products) {
 
@@ -180,13 +158,5 @@ public class ProductServiceImpl implements ProductService {
         }
 
     }
-
-
-    private void saveMeasurements(List<ProductVO> result) {
-
-
-
-    }
-
 
 }

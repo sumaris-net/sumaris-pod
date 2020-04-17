@@ -88,6 +88,9 @@ public class TripVO implements IRootDataVO<Integer>,
     private List<MeasurementVO> measurements; // vessel_use_measurement
     private Map<Integer, String> measurementValues; // vessel_use_measurement
 
+    // Parent
+    private Integer landingId;
+    private Integer observedLocationId;
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

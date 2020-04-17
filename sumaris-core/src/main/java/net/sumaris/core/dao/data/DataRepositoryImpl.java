@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 30/03/2020.
  */
+@NoRepositoryBean
 public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V extends IDataVO<ID>, F extends Serializable>
     extends SumarisJpaRepositoryImpl<E, ID>
     implements DataRepository<E, ID, V, F> {
@@ -47,6 +49,8 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
      */
     private static final Logger log =
         LoggerFactory.getLogger(DataRepositoryImpl.class);
+
+    private boolean checkUpdateDate = true;
 
     @Autowired
     private PersonDao personDao;
@@ -135,8 +139,10 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
     public V save(V vo) {
         E entity = toEntity(vo);
 
-        // Check update date
-        Daos.checkUpdateDateForUpdate(vo, entity);
+        if (checkUpdateDate) {
+            // Check update date
+            Daos.checkUpdateDateForUpdate(vo, entity);
+        }
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -175,7 +181,6 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         return entity;
     }
 
-    //@Override
     public void toEntity(V source, E target, boolean copyIfNull) {
 
         // Data properties
@@ -208,19 +213,16 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         }
     }
 
-    //@Override
     public V toVO(E source) {
         return toVO(source, null);
     }
 
-    //@Override
     public V toVO(E source, DataFetchOptions fetchOptions) {
         V target = createVO();
         toVO(source, target, fetchOptions, true);
         return target;
     }
 
-    //@Override
     public void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
 
@@ -251,7 +253,6 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         }
     }
 
-    //@Override
     public V createVO() {
         try {
             return getVOClass().newInstance();
@@ -260,7 +261,6 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         }
     }
 
-    //@Override
     public Class<V> getVOClass() {
         throw new NotImplementedException("Not implemented yet. Should be override by subclass");
     }
@@ -284,4 +284,11 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         DataDaos.copyObservers(getEntityManager(), source, target, copyIfNull);
     }
 
+    protected boolean isCheckUpdateDate() {
+        return checkUpdateDate;
+    }
+
+    protected void setCheckUpdateDate(boolean checkUpdateDate) {
+        this.checkUpdateDate = checkUpdateDate;
+    }
 }

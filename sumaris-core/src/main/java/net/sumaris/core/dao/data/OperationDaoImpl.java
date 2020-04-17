@@ -232,7 +232,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
         // Métier
         if (source.getMetier() != null) {
-            target.setMetier(metierDao.toMetierVO(source.getMetier()));
+            target.setMetier(metierDao.toVO(source.getMetier()));
         }
 
         // Recorder department

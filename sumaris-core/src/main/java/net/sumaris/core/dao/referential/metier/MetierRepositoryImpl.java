@@ -24,10 +24,10 @@ package net.sumaris.core.dao.referential.metier;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
@@ -36,6 +36,7 @@ import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
@@ -45,7 +46,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.Parameter;
 import javax.persistence.TypedQuery;
@@ -57,11 +57,10 @@ import java.util.stream.Collectors;
 import static net.sumaris.core.dao.referential.metier.MetierSpecifications.*;
 
 public class MetierRepositoryImpl
-    extends SumarisJpaRepositoryImpl<Metier, Integer>
+    extends ReferentialRepositoryImpl<Metier, MetierVO, ReferentialFilterVO>
     implements MetierRepositoryExtend {
 
     private static final Logger log = LoggerFactory.getLogger(MetierRepositoryImpl.class);
-    public static final String SEARCH_TEXT_PARAMETER = "searchText";
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -91,7 +90,6 @@ public class MetierRepositoryImpl
         }
 
         // Prepare query parameters
-        Integer[] levelIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} : filter.getLevelIds();
         String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
         String searchText = Daos.getEscapedSearchText(filter.getSearchText());
 
@@ -105,9 +103,7 @@ public class MetierRepositoryImpl
             searchTextSpecification = searchText(filter.getSearchAttribute(), SEARCH_TEXT_PARAMETER);
         }
 
-        Specification<Metier> specification = Specification.where(searchTextSpecification)
-            .and(inStatusIds(filter.getStatusIds()))
-            .and(inGearIds(levelIds));
+        Specification<Metier> specification = toSpecification(filter).and(searchTextSpecification);
 
         Pageable page = getPageable(offset, size, sortAttribute, sortDirection);
         TypedQuery<Metier> query = getQuery(specification, Metier.class, page);
@@ -123,7 +119,7 @@ public class MetierRepositoryImpl
             .getResultStream()
             .distinct()
             .map(source -> {
-                MetierVO target = this.toMetierVO(source);
+                MetierVO target = this.toVO(source);
 
                 // Copy join search to label/name
                 if (searchJoinProperty != null) {
@@ -156,8 +152,7 @@ public class MetierRepositoryImpl
 
         String searchText = Daos.getEscapedSearchText(filter.getSearchText());
         Specification<Metier> searchTextSpecification = searchText(filter.getSearchAttribute(), SEARCH_TEXT_PARAMETER);
-        Specification<Metier> specification = Specification.where(searchTextSpecification)
-            .and(inStatusIds(filter.getStatusIds()));
+        Specification<Metier> specification = toSpecification(filter).and(searchTextSpecification);
 
         criteriaQuery.where(cb.and(
             cb.equal(operations.get(Operation.Fields.METIER), metiers.get(Metier.Fields.ID)),
@@ -186,24 +181,18 @@ public class MetierRepositoryImpl
         }
         query.setParameter(tripIdParameter, filter.getTripId());
 
-        List<MetierVO> result = query
+        return query
             .setFirstResult(offset)
             .setMaxResults(size)
             .getResultStream()
             .distinct()
-            .map(this::toMetierVO)
+            .map(this::toVO)
             .collect(Collectors.toList());
-
-        return result;
     }
 
     @Override
-    public MetierVO toMetierVO(@Nullable Metier source) {
-        if (source == null) return null;
-
-        MetierVO target = new MetierVO();
-
-        Beans.copyProperties(source, target);
+    public void toVO(Metier source, MetierVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+        super.toVO(source, target, fetchOptions, copyIfNull);
 
         // StatusId
         target.setStatusId(source.getStatus().getId());
@@ -216,15 +205,23 @@ public class MetierRepositoryImpl
 
         // Taxon group
         if (source.getTaxonGroup() != null) {
-            target.setTaxonGroup(taxonGroupRepository.toTaxonGroupVO(source.getTaxonGroup()));
+            target.setTaxonGroup(taxonGroupRepository.toVO(source.getTaxonGroup()));
         }
 
-        return target;
     }
 
     @Override
-    public MetierVO getById(int id) {
-        return toMetierVO(getOne(id));
+    public Class<MetierVO> getVOClass() {
+        return MetierVO.class;
     }
 
+    @Override
+    public Specification<Metier> toSpecification(ReferentialFilterVO filter) {
+
+        Integer[] levelIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} : filter.getLevelIds();
+
+        return Specification
+            .where(inGearIds(levelIds))
+            .and(inStatusIds(filter.getStatusIds()));
+    }
 }

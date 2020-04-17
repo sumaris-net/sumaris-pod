@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.referential.taxon;
+package net.sumaris.core.service.data;
 
 /*-
  * #%L
@@ -22,15 +22,20 @@ package net.sumaris.core.dao.referential.taxon;
  * #L%
  */
 
-import net.sumaris.core.dao.referential.ReferentialRepository;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
+import net.sumaris.core.vo.data.PacketVO;
+import org.springframework.transaction.annotation.Transactional;
 
-public interface TaxonGroupRepository
-    extends ReferentialRepository<TaxonGroup, TaxonGroupVO, ReferentialFilterVO>,
-    TaxonGroupRepositoryExtend {
+import java.util.List;
 
-    TaxonGroup getOneByLabelAndTaxonGroupTypeId(String label, Integer taxonGroupTypeId);
+/**
+ * @author Ludovic Pecquot
+ */
+@Transactional
+public interface PacketService {
+
+    @Transactional(readOnly = true)
+    List<PacketVO> getAllByOperationId(int operationId);
+
+    List<PacketVO> saveByOperationId(int operationId, List<PacketVO> sources);
 
 }
