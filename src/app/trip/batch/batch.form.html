@@ -67,7 +67,7 @@
     </ion-row>
 
     <!-- Weight -->
-    <ion-row *ngIf="defaultWeightPmfm">
+    <ion-row *ngIf="defaultWeightPmfm && showWeight">
       <ion-col class="ion-no-padding">
         <mat-form-field-measurement #matInput
                                     [class.computed]="form.controls.weight.controls.computed.value"
@@ -131,7 +131,7 @@
         <ion-col class="ion-no-padding">
             <!-- checkbox, when compact -->
             <mat-checkbox [checked]="isSampling"
-                          [disabled]="disabled || requiredSampleBatch"
+                          [disabled]="disabled || requiredSampleWeight"
                           labelPosition="after"
                           [tabindex]="tabindex+31"
                           (change)="setIsSampling($event.checked)">
@@ -176,7 +176,7 @@
                                       [formControl]="samplingBatchForm.controls.weight.controls.value"
                                       [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"
                                       [compact]="compact"
-                                      [required]="requiredSampleBatch"
+                                      [required]="requiredSampleWeight"
                                       [tabindex]="tabindex+33"
                                       [listenStatusChanges]="true">
           </mat-form-field-measurement>

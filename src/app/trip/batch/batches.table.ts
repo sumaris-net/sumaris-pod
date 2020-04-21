@@ -97,6 +97,7 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     return this.getShowColumn('taxonName');
   }
 
+
   get dirty(): boolean {
     return this._dirty || this.memoryDataService.dirty;
   }

@@ -558,6 +558,12 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "true",
     type: 'boolean'
   },
+  TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT: {
+    key: "sumaris.trip.operation.batch.taxonGroups.noWeight",
+    label: "PROGRAM.OPTIONS.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT",
+    defaultValue: "",
+    type: 'string'
+  },
   TRIP_BATCH_AUTO_FILL: {
     key: "sumaris.trip.operation.batch.autoFill",
     label: "PROGRAM.OPTIONS.TRIP_BATCH_AUTO_FILL",

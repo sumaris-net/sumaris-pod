@@ -41,30 +41,30 @@
         <!-- Has individual measures ? -->
         <mat-form-field floatLabel="always">
           <input matInput type="text" hidden
-                 [formControl]="hasMeasureControl"
+                 [formControl]="hasIndividualMeasureControl"
                  [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_MEASURE'|translate"
                  required>
           <ion-grid class="ion-no-padding" @fadeInAnimation *ngIf="!loading">
             <ion-row class="ion-no-padding">
               <ion-col>
                 <ion-button class="mat-form-field-button"
-                            [disabled]="hasMeasureControl.disabled"
+                            [disabled]="hasIndividualMeasureControl.disabled"
                             [tabindex]="tabindex && tabindex + 9 || -1"
-                            (click)="setHasMeasure(false)"
-                            (keyup.enter)="setHasMeasure(false)"
+                            (click)="hasIndividualMeasureControl.setValue(false)"
+                            (keyup.enter)="hasIndividualMeasureControl.setValue(false)"
                             fill="solid" expand="full"
-                            [color]="hasMeasure === undefined ? 'danger': (!hasMeasure ? 'accent' : 'light')">
+                            [color]="hasIndividualMeasure === undefined ? 'danger': (!hasIndividualMeasure ? 'accent' : 'light')">
                   <ion-label translate>TRIP.BATCH.EDIT.WITHOUT_MEASURE</ion-label>
                 </ion-button>
               </ion-col>
               <ion-col>
                 <ion-button class="mat-form-field-button"
-                            [disabled]="hasMeasureControl.disabled"
+                            [disabled]="hasIndividualMeasureControl.disabled"
                             [tabindex]="tabindex && tabindex + 8 || -1"
-                            (click)="setHasMeasure(true)"
-                            (keyup.enter)="setHasMeasure(true)"
+                            (click)="hasIndividualMeasureControl.setValue(true)"
+                            (keyup.enter)="hasIndividualMeasureControl.setValue(true)"
                             fill="solid" expand="full"
-                            [color]="hasMeasure === undefined ? 'danger': (hasMeasure ? 'accent' : 'light')">
+                            [color]="hasIndividualMeasure === undefined ? 'danger': (hasIndividualMeasure ? 'accent' : 'light')">
                   <ion-label translate>TRIP.BATCH.EDIT.WITH_MEASURE</ion-label>
                 </ion-button>
               </ion-col>
@@ -101,9 +101,11 @@
                             [pmfms]="$childrenPmfms | async"
                             [showTaxonGroup]="false"
                             [showTaxonName]="false"
-                            [showSampleBatch]="true"
+                            [showSampleBatch]="showChildrenSampleBatch"
+                            [showWeight]="showChildrenWeight"
                             [showTotalIndividualCount]="showTotalIndividualCount"
                             [showIndividualCount]="showIndividualCount"
+                            [requiredSampleWeight]
             ></app-batch-form>
           </ion-card-content>
         </ion-card>

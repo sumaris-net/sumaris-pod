@@ -10,7 +10,7 @@ import {
 } from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppFormUtils, isNil} from "../../core/core.module";
+import {AppFormUtils, EntityUtils, isNil} from "../../core/core.module";
 import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
@@ -51,13 +51,17 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() showTaxonName = true;
 
-  @Input() showIndividualCount = false;
+  @Input() showChildrenWeight = true;
+
+  @Input() showChildrenSampleBatch = true;
+
+  @Input() showIndividualCount = true;
 
   @Input() showTotalIndividualCount = false;
 
-  @Input() qvPmfm: PmfmStrategy;
+  @Input() taxonGroupsNoWeight: string[];
 
-  @Input() hasMeasure: boolean;
+  @Input() qvPmfm: PmfmStrategy;
 
   @Input()
   set value(value: BatchGroup) {
@@ -107,10 +111,11 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   ngOnInit() {
 
-    this.form.setValue(this.data || new BatchGroup());
+    const data = this.data || new BatchGroup();
+
+    this.form.setValue(data);
 
     this.disabled = toBoolean(this.disabled, false);
-    this.hasMeasure = toBoolean(this.hasMeasure, this.data.observedIndividualCount > 0);
 
     if (this.disabled) {
       this.form.disable();
@@ -119,19 +124,25 @@ export class BatchGroupModal implements OnInit, OnDestroy {
       this.form.enable();
     }
 
-    // Compute the title
-    this.computeTitle();
+    // Update title each time value changes
+    this.computeTitle(data);
 
-    if (!this.isNew) {
-      // Update title each time value changes
-      this._subscription.add(
-        this.form.valueChanges
-          .pipe(
-            throttleTime(500)
-          )
-          .subscribe(batch => this.computeTitle(batch))
-      );
-    }
+    this.computeShowTotalIndividualCount(data);
+
+    // Listen form changes
+    this._subscription.add(
+      this.form.valueChanges
+        .pipe(
+          throttleTime(500)
+        )
+        .subscribe((batch) => {
+
+          // Update title each time value changes
+          this.computeTitle(batch);
+
+          this.computeShowTotalIndividualCount(batch);
+        })
+    );
 
     // Wait that form are ready (because of safeSetValue()) then mark as pristine
     setTimeout(() => {
@@ -210,6 +221,21 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     else {
       const label = BatchUtils.parentToString(data);
       this.$title.next(await this.translate.get('TRIP.BATCH.EDIT.TITLE', {label}).toPromise());
+    }
+  }
+
+  protected async computeShowTotalIndividualCount(data?: Batch) {
+    data = data || this.data;
+    // Generally, individual count are not need, on a root species batch, because filled in sub-batches,
+    // but some species (e.g. RJB) can have no weight.
+    const showTotalIndividualCount = data && EntityUtils.isNotEmpty(data.taxonGroup) &&
+      (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
+
+    if (showTotalIndividualCount !== this.showTotalIndividualCount) {
+      this.showChildrenSampleBatch = !showTotalIndividualCount;
+      this.showChildrenWeight = !showTotalIndividualCount;
+      this.showTotalIndividualCount = showTotalIndividualCount;
+      this.markForCheck();
     }
   }
 

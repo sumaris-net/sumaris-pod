@@ -30,14 +30,15 @@
                   [program]="program"
                   [showTaxonGroup]="showTaxonGroup"
                   [showTaxonName]="showTaxonName"
+                  [showChildrenWeight]="showChildrenWeight"
+                  [showChildrenSampleBatch]="showChildrenSampleBatch"
                   [showTotalIndividualCount]="showTotalIndividualCount"
                   [showIndividualCount]="showIndividualCount"
-                  [hasMeasure]="hasMeasure"
                   (onSubmit)="close($event)">
 
       <!-- open individual modal -->
       <ion-button afterSpeciesButtons mat-button
-                  *ngIf="showSubBatchesCallback && form.hasMeasure"
+                  *ngIf="showSubBatchesCallback && form.hasIndividualMeasure"
                   fill="clear" color="tertiary" expand="full"
                   (click)="onShowSubBatchesButtonClick($event)">
         <mat-icon>assessment</mat-icon>

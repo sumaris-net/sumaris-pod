@@ -307,6 +307,13 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
           if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
           this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
           this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+
+          // Some specific taxon groups have no weight collected
+          const taxonGroupsNoWeight = program.getProperty(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
+          this.batchGroupsTable.taxonGroupsNoWeight = taxonGroupsNoWeight && taxonGroupsNoWeight.split(',')
+            .map(label => label.trim().toUpperCase())
+            .filter(isNotNilOrBlank) || undefined;
+
           // Force taxon name in sub batches, if not filled in root batch
           if (this.subBatchesTable) {
             this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn;

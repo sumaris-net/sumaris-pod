@@ -69,7 +69,7 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
   }
 
   addSamplingFormValidators(form: FormGroup, opts?: {
-    required?: boolean;
+    requiredSampleWeight?: boolean;
   }): Subscription {
 
     // Sampling ratio: should be a percentage
@@ -109,7 +109,7 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
    * @param opts
    */
   static computeSamplingWeight(form: FormGroup, opts?: {
-    required?: boolean;
+    requiredSampleWeight?: boolean;
     emitEvent?: boolean;
     onlySelf?: boolean;
   }): ValidationErrors | null {
@@ -234,16 +234,19 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
             }
           }, opts);
         }
-        if (!opts || opts.required !== true) {
-          samplingWeightValueControl.setErrors(null, opts);
-          samplingWeightValueControl.enable(opts);
-        }
-        else {
+
+        // If sampling weight is required
+        if (opts && opts.requiredSampleWeight === true) {
           if (!samplingWeightValueControl.hasError('required')) {
             samplingWeightValueControl.setErrors({...samplingWeightValueControl.errors, required: true}, opts);
           }
-          samplingWeightValueControl.enable(opts);
         }
+
+        // If sampling weight is NOT required
+        else {
+          samplingWeightValueControl.setErrors(null, opts);
+        }
+        samplingWeightValueControl.enable(opts);
 
       } else {
         samplingRatioControl.disable({...opts, emitEvent: true/*force repaint*/});

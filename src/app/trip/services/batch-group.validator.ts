@@ -3,6 +3,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {Batch} from "./model/batch.model";
 import {BatchValidatorService} from "./batch.validator";
 import {BatchGroup} from "./model/batch-group.model";
+import {SharedValidators} from "../../shared/validator/validators";
 
 @Injectable()
 export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup> {
@@ -27,7 +28,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
   }): { [key: string]: any } {
     const config = super.getFormGroupConfig(data, opts);
 
-    config.observedIndividualCount = [data && data.observedIndividualCount];
+    config.observedIndividualCount = [data && data.observedIndividualCount, SharedValidators.integer];
 
     return config;
   }

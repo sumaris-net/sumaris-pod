@@ -1,6 +1,6 @@
-import {ChangeDetectionStrategy, Component, Injector} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Injector, Input} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {Batch, PmfmStrategy, QualityFlagIds} from "../services/trip.model";
+import {Batch, EntityUtils, PmfmStrategy, QualityFlagIds} from "../services/trip.model";
 import {BatchGroupValidatorService} from "../services/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
@@ -92,6 +92,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   weightMethodForm: FormGroup;
   estimatedWeightPmfm: PmfmStrategy;
   dynamicColumns: ColumnDefinition[];
+
+  @Input() taxonGroupsNoWeight: string[];
 
   disable() {
     super.disable();
@@ -552,7 +554,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   async openDetailModal(batch?: BatchGroup, opts?: {
     isNew?: boolean;
-    hasMeasure?: boolean;
   }): Promise<BatchGroup | undefined> {
     batch = batch || (!opts || opts.isNew !== true) && this.editedRow && (this.editedRow.validator ? BatchGroup.fromObject(this.editedRow.currentData) : this.editedRow.currentData) || undefined;
 
@@ -573,6 +574,11 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       return await this.openRow(null, this.editedRow); // Reopen the detail modal
     };
 
+    // Generally, individual count are not need, on a root species batch, because filled in sub-batches,
+    // but some species (e.g. RJB) can have no weight.
+    const showTotalIndividualCount = batch && EntityUtils.isNotEmpty(batch.taxonGroup) &&
+      (this.taxonGroupsNoWeight || []).includes(batch.taxonGroup.label);
+
     const modal = await this.modalCtrl.create({
       component: BatchGroupModal,
       componentProps: {
@@ -582,11 +588,12 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         isNew: opts && opts.isNew === true,
         disabled: this.disabled,
         qvPmfm: this.qvPmfm,
-        hasMeasure: opts && opts.hasMeasure === true,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
-        // Not need on a root species batch (fill in sub-batches)
-        showTotalIndividualCount: false,
+        showChildrenSampleBatch: !showTotalIndividualCount,
+        showChildrenWeight: !showTotalIndividualCount,
+        showTotalIndividualCount,
+        taxonGroupsNoWeight: this.taxonGroupsNoWeight,
         showIndividualCount: false,
         showSubBatchesCallback: onOpenSubBatchesFromModal
       },
