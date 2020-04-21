@@ -39,7 +39,7 @@ export class BatchGroup extends Batch {
   asObject(opts?: DataEntityAsObjectOptions & { withChildren?: boolean }): any {
     const target = super.asObject(opts);
     if (opts && opts.minify === true) {
-      delete target.indirectIndividualCount;
+      delete target.observedIndividualCount;
     }
     return target;
   }

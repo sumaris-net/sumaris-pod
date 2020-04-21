@@ -34,8 +34,6 @@
       </ion-col>
     </ion-row>
 
-    <ion-spinner class="ion-float-center" *ngIf="loading"></ion-spinner>
-
     <ion-row>
       <ion-col>
         <!-- Has individual measures ? -->
@@ -79,7 +77,10 @@
       </ion-col>
     </ion-row>
 
+    <ion-spinner class="ion-float-center" *ngIf="loading"></ion-spinner>
+
   </ion-grid>
+
 
   <ion-grid *ngIf="qvPmfm" @fadeInAnimation>
 
@@ -105,7 +106,7 @@
                             [showWeight]="showChildrenWeight"
                             [showTotalIndividualCount]="showTotalIndividualCount"
                             [showIndividualCount]="showIndividualCount"
-                            [requiredSampleWeight]
+                            [requiredSampleWeight]="hasIndividualMeasure && showChildrenWeight"
             ></app-batch-form>
           </ion-card-content>
         </ion-card>

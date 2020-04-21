@@ -178,18 +178,27 @@
               [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
               [class.mat-cell-computed]="col.computed"
               class="content-padding-left">
+      <!-- Warn if not sampling weight nor sampling ratio, BUT individual count -->
+      <div *ngIf="mobile && col.rankOrder % 5 === 3 && row.validator.controls.measurementValues.controls[col.rankOrder].value === null && row.validator.controls.measurementValues.controls[col.rankOrder-1].value == null && row.validator.controls.measurementValues.controls[col.rankOrder+1].value > 0"
+           style="padding-left: 8px;">
+        <ion-icon matSuffix color="danger" name="warning"></ion-icon>
+      </div>
       <app-form-field
         floatLabel="never"
         [definition]="col"
         [readonly]="!row.editing || col.computed"
         [formControl]="row.validator.controls.measurementValues.controls[col.rankOrder]"
         [compact]="true">
+
       </app-form-field>
 
-      <!-- TODO: display indivi count for Pocheteau
-      span *ngIf="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3">
-        (?)
-      </span-->
+      <!-- Special case, when only total individual count are filled -->
+      <div
+        class="mat-form-field"
+        *ngIf="mobile && col.rankOrder % 5 === 0 && row.validator.controls.measurementValues.controls[col.rankOrder].value === null && row.validator.controls.measurementValues.controls[col.rankOrder+1].value !== null">
+        {{row.validator.controls.measurementValues.controls[col.rankOrder+1].value}} {{'TRIP.BATCH.TABLE.INDIVIDUAL_UNIT'|translate}}
+      </div>
+
     </mat-cell>
   </ng-container>
 
@@ -249,8 +258,8 @@
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 
   <mat-row *matRowDef="let row; columns: displayedColumns;"
-           [class.mat-row-error]="row.validator?.invalid || row.validator.controls['qualityFlagId'].value === 4"
-           [class.mat-row-dirty]="row.validator.dirty"
+           [class.mat-row-error]="row.validator?.invalid || row.validator?.controls['qualityFlagId'].value === 4"
+           [class.mat-row-dirty]="row.validator?.dirty"
            [class.mat-row-disabled]="!row.editing"
            (click)="clickRow($event, row)">
   </mat-row>

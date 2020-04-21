@@ -574,11 +574,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       return await this.openRow(null, this.editedRow); // Reopen the detail modal
     };
 
-    // Generally, individual count are not need, on a root species batch, because filled in sub-batches,
-    // but some species (e.g. RJB) can have no weight.
-    const showTotalIndividualCount = batch && EntityUtils.isNotEmpty(batch.taxonGroup) &&
-      (this.taxonGroupsNoWeight || []).includes(batch.taxonGroup.label);
-
     const modal = await this.modalCtrl.create({
       component: BatchGroupModal,
       componentProps: {
@@ -590,9 +585,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
-        showChildrenSampleBatch: !showTotalIndividualCount,
-        showChildrenWeight: !showTotalIndividualCount,
-        showTotalIndividualCount,
+        showChildrenSampleBatch: true,
+        showChildrenWeight: true,
+        showTotalIndividualCount: false,
         taxonGroupsNoWeight: this.taxonGroupsNoWeight,
         showIndividualCount: false,
         showSubBatchesCallback: onOpenSubBatchesFromModal
@@ -696,7 +691,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       });
     }
 
-    row.currentData = parent;
+    //row.currentData = parent;
+    row.validator.patchValue(parent);
+    row.validator.setErrors({required: true});
   }
 }
 

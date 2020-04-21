@@ -26,9 +26,7 @@
     <mat-error *ngIf="formControl.hasError('integer')">
       {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
 
-    <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
-    </div>
+    <ng-content select="[matSuffix]"></ng-content>
   </mat-form-field>
 
   <!-- double -->
@@ -55,9 +53,7 @@
     <mat-error *ngIf="formControl.hasError('maxDecimals')">
       {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS')| translate:{max:
       definition.maximumNumberDecimals} }}</mat-error>
-    <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
-    </div>
+    <ng-content select="[matSuffix]"></ng-content>
   </mat-form-field>
 
   <!-- boolean -->

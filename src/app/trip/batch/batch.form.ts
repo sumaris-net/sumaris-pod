@@ -483,17 +483,15 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
     );
   }
 
+  // Unregister to previous validator
   protected addSamplingFormValidators() {
-
-    // Unregister to previous validator
+    // Has sample batch ?
     if (this.samplingFormValidator) {
       this.samplingFormValidator.unsubscribe();
       this.samplingFormValidator = undefined;
+
     }
-
-    // Has sample batch ?
     if (this.showSampleBatch && this.showWeight) {
-
       this.samplingFormValidator = this.validatorService.addSamplingFormValidators(this.form, {
         requiredSampleWeight: this.requiredSampleWeight
       });

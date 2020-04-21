@@ -186,11 +186,17 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     await AppFormUtils.waitWhilePending(this);
 
     if (this.invalid) {
-      this.form.error = "COMMON.FORM.HAS_ERROR";
-      if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
-      this.form.markAsTouched({emitEvent: true});
-      this.loading = false;
-      return;
+
+      // DO not allow to close, if no taxon group nor a taxon name has been set
+      if (EntityUtils.isEmpty(this.form.form.get('taxonGroup').value) && EntityUtils.isEmpty(this.form.form.get('taxonName').value)) {
+        this.form.error = "COMMON.FORM.HAS_ERROR";
+        if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
+        this.form.markAsTouched({emitEvent: true});
+
+        this.loading = false;
+        return;
+      }
+
     }
 
     // Save table content
