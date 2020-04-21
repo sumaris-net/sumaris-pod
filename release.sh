@@ -84,9 +84,7 @@ echo "Java: $JAVA_VERSION"
 if [[ -d "${NVM_DIR}" ]]; then
     . ${NVM_DIR}/nvm.sh
     nvm use ${NODEJS_VERSION}
-    if [[ $? -ne 0 ]]; then
-        exit 1
-    fi
+    [[ $? -ne 0 ]] && exit 1
 else
     echo "nvm (Node version manager) not found (directory ${NVM_DIR} not found). Please install, and retry"
     exit 1
@@ -96,9 +94,7 @@ echo "----------------------------------"
 echo "- Compiling sources..."
 echo "----------------------------------"
 npm run build.prod
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 echo "----------------------------------"
 echo "- Creating web artifact..."
@@ -129,9 +125,7 @@ cp ${DIRNAME}/www/assets/i18n/*.json ${DIRNAME}/src/assets/i18n/
 PROJECT_DIR=${DIRNAME}
 cd ${DIRNAME}/scripts || exit 1
 ./release-android.sh
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 echo "----------------------------------"
 echo "- Executing git push, with tag: v$2"
@@ -149,9 +143,7 @@ git add package.json config.xml src/assets/manifest.json install.sh
 git commit -m "v$2"
 git tag -f -a "v$2" -m "${description}"
 git push origin "v$2"
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 # Pause (if propagation is need between hosted git server and github)
 sleep 10s
@@ -161,9 +153,7 @@ echo "* Uploading artifacts to Github..."
 echo "**********************************"
 
 ./github.sh $1 ''"$description"''
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 #echo "----------------------------------"
 #echo "- Building desktop artifacts..."

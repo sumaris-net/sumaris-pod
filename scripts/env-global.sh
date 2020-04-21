@@ -14,7 +14,7 @@ echo "Preparing project environment.."
 NODEJS_VERSION=10
 
 #ANDROID_NDK_VERSION=r19c
-ANDROID_SDK_VERSION=r29.0.0
+ANDROID_SDK_VERSION=r29.0.2
 ANDROID_SDK_TOOLS_VERSION=4333796
 ANDROID_SDK_ROOT=/usr/lib/android-sdk
 ANDROID_SDK_TOOLS_ROOT=${ANDROID_SDK_ROOT}/build-tools
@@ -28,9 +28,7 @@ CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https\://services.gradle.org/distributio
 if [[ -f "${PROJECT_DIR}/.local/env.sh" ]]; then
   echo "Loading environment variables from: '.local/env.sh'"
   source ${PROJECT_DIR}/.local/env.sh
-  if [[ $? -ne 0 ]]; then
-    exit 1
-  fi
+  [[ $? -ne 0 ]] && exit 1
 else
   echo "No file '${PROJECT_DIR}/.local/env.sh' found. Will use defaults"
 fi
@@ -40,6 +38,19 @@ if [[ "_" == "_${JAVA_HOME}" ]]; then
   JAVA_CMD=`which java`
   if [[ "_" == "_${JAVA_CMD}" ]]; then
     echo "No Java installed. Please install java, or set env variable JAVA_HOME "
+    exit 1
+  fi
+
+  # Check the Java version
+  JAVA_VERSION=`java -version 2>&1 | egrep "(java|openjdk) version" | awk '{print $3}' | tr -d \"`
+  if [[ $? -ne 0 ]]; then
+    echo "No Java JRE 1.8 found in machine. This is required for Android artifacts."
+    exit 1
+  fi
+  JAVA_MAJOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[1]}'`
+  JAVA_MINOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[2]}'`
+  if [[ ${JAVA_MAJOR_VERSION} -ne 1 ]] || [[ ${JAVA_MINOR_VERSION} -ne 8 ]]; then
+    echo "Require a Java JRE in version 1.8, but found ${JAVA_VERSION}. You can override your default JAVA_HOME in '.local/env.sh'."
     exit 1
   fi
 fi
@@ -54,11 +65,17 @@ if [[ ! -d "${ANDROID_SDK_ROOT}" ]]; then
   exit 1
 fi
 
+# Add Java, Android SDK tools to path
+PATH=${ANDROID_SDK_TOOLS_ROOT}/bin:${GRADLE_HOME}/bin:${JAVA_HOME}/bin$:$PATH
+
 # Export useful variables
-export PROJECT_DIR \
+export PATH \
+  PROJECT_DIR \
   JAVA_HOME \
   ANDROID_SDK_ROOT \
+  ANDROID_SDK_TOOLS_ROOT \
   CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL
+
 
 # Node JS
 export NVM_DIR="$HOME/.nvm"
@@ -73,9 +90,7 @@ if [[ -d "${NVM_DIR}" ]]; then
     # Or install it
     if [[ $? -ne 0 ]]; then
         nvm install ${NODEJS_VERSION}
-        if [[ $? -ne 0 ]]; then
-            exit 1;
-        fi
+        [[ $? -ne 0 ]] && exit 1;
     fi
 else
     echo "nvm (Node version manager) not found (directory ${NVM_DIR} not found). Please install, and retry"
@@ -89,18 +104,14 @@ CORDOVA_PATH=`which cordova`
 if [[ "_" == "_${YARNC_PATH}" || "_" == "_${IONIC_PATH}" || "_" == "_${CORDOVA_PATH}" ]]; then
   echo "Installing global dependencies..."
   npm install -g yarn cordova ionic native-run
-  if [[ $? -ne 0 ]]; then
-      exit 1
-  fi
+  [[ $? -ne 0 ]] && exit 1
 fi
 
 NATIVE_RUN_PATH=`which native-run`
 if [[ "_" == "_${NATIVE_RUN_PATH}" ]]; then
   echo "Installing global dependencies..."
   npm install -g native-run
-  if [[ $? -ne 0 ]]; then
-      exit 1
-  fi
+  [[ $? -ne 0 ]] && exit 1
 fi
 
 # Install project dependencies

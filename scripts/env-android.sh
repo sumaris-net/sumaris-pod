@@ -9,9 +9,7 @@ fi;
 
 # Preparing environment
 . ${PROJECT_DIR}/scripts/env-global.sh
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 if [[ "_" == "_${CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL}" ]]; then
   echo "Missing Gradle distribution URL - please export env variable 'CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL'"
@@ -27,22 +25,19 @@ echo " - project dir: ${PROJECT_DIR}"
 
 cd ${PROJECT_DIR}
 
+
 # Prepare Android platform
 if [[ ! -d "${PROJECT_DIR}/platforms/android" ]]; then
   echo "Adding Cordova Android platform..."
   ionic cordova prepare android --color --verbose
-  if [[ $? -ne 0 ]]; then
-    exit 1
-  fi
+  [[ $? -ne 0 ]] && exit 1
 fi
 
 # Copy local files
 if [[ -d "${PROJECT_DIR}/.local/android" ]]; then
   echo "Copying files from directory '${PROJECT_DIR}/.local/android' into '${PROJECT_DIR}/platforms/android'..."
   cp -rf ${PROJECT_DIR}/.local/android/* ${PROJECT_DIR}/platforms/android
-  if [[ $? -ne 0 ]]; then
-    exit 1
-  fi
+  [[ $? -ne 0 ]] && exit 1
 else
   echo "No directory '${PROJECT_DIR}/.local/android' found. Please create it, with a file 'release-signing.properties' for release signing"
 fi
