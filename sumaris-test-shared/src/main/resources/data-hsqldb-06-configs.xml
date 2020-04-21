@@ -18,7 +18,7 @@
     <SOFTWARE_PROPERTY ID="14" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:55"/>
     <SOFTWARE_PROPERTY ID="15" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="16" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.android.install.url" NAME="./download/android/sumaris-app-latest.apk"/>
-    <SOFTWARE_PROPERTY ID="17" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="17" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="true"/>
 
 
 
