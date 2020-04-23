@@ -4985,6 +4985,11 @@ graphql@^0.13.2:
   dependencies:
     iterall "^1.2.1"
 
+hammer-timejs@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/hammer-timejs/-/hammer-timejs-1.1.0.tgz#fc07ec1e4012228fe51b6a51218ec12661a32a42"
+  integrity sha1-/AfsHkASIo/lG2pRIY7BJmGjKkI=
+
 hammerjs@^2.0.8:
   version "2.0.8"
   resolved "https://registry.yarnpkg.com/hammerjs/-/hammerjs-2.0.8.tgz#04ef77862cff2bb79d30f7692095930222bf60f1"

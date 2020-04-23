@@ -13,6 +13,7 @@ import {AppFormUtils} from "./form.utils";
 import {ToastOptions} from "@ionic/core";
 import {Toasts} from "../../shared/toasts";
 
+
 export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
 
   private _forms: AppForm<any>[];
@@ -24,7 +25,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   data: T;
   previousDataId: number;
   selectedTabIndex = 0;
-  hasManyTabs = false;
+  tabCount = 1;
   submitted = false;
   error: string;
   loading = true;
@@ -33,6 +34,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     subtab?: number;
     [key: string]: any
   };
+
 
   protected toastController: ToastController;
 
@@ -94,7 +96,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
     if (this.tabGroup) {
       // Parse tab param
-      if (this.hasManyTabs) {
+      if (this.tabCount > 1) {
         const tabIndex = queryParams["tab"];
         this.queryParams.tab = tabIndex && parseInt(tabIndex) || undefined;
         if (isNotNil(this.queryParams.tab)) {

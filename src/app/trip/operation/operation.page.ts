@@ -81,7 +81,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   ) {
     super(injector, Operation, dataService);
     this.idAttribute = 'operationId';
-    this.hasManyTabs = true;
+    this.tabCount = 2;
 
     // Init mobile (WARN
     this.mobile = this.settings.mobile;

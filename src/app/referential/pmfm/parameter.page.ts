@@ -56,7 +56,7 @@ export class ParameterPage extends AppEditorPage<Parameter> implements OnInit {
     // default values
     this.defaultBackHref = "/referential/list?entity=Parameter";
     this.canEdit = this.accountService.isAdmin();
-    this.hasManyTabs = false;
+    this.tabCount = 1;
 
     this.debug = !environment.production;
 
