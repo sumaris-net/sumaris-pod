@@ -170,45 +170,13 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
-    const batch = new this.dataType();
-    //await this.onNewEntity(batch);
-
-    const res = await this.openDetailModal(batch, {isNew: true});
-    if (res) {
-      await this.addBatchToTable(res);
+    const data = await this.openDetailModal(new this.dataType(), {isNew: true});
+    if (data) {
+      await this.addEntityToTable(data);
     }
     return true;
   }
 
-  protected async addBatchToTable(newBatch: T): Promise<TableElement<T>> {
-    console.debug("[batches-table] Adding new batch", newBatch);
-
-    const row = await this.addRowToTable();
-    if (!row) throw new Error("Could not add row t table");
-
-    // Adapt measurement values to row
-    this.normalizeEntityToRow(newBatch, row);
-
-    // Override rankOrder (keep computed value)
-    newBatch.rankOrder = row.currentData.rankOrder;
-    await this.onNewEntity(newBatch);
-
-    // Affect new row
-    if (row.validator) {
-      row.validator.patchValue(newBatch);
-      row.validator.markAsDirty();
-    } else {
-      row.currentData = newBatch;
-    }
-
-    this.confirmEditCreate(null, row);
-    this.markAsDirty();
-
-    // restore the edited row, to be able to use it in modal callback (see BatchGroupTable)
-    this.editedRow = row;
-
-    return row;
-  }
 
   protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
 
@@ -219,25 +187,14 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
       return true;
     }
 
-    const batch = this.getRowEntity(row, true);
+    const data = this.getRowEntity(row, true);
 
     // Prepare entity measurement values
-    this.prepareEntityToSave(batch);
+    this.prepareEntityToSave(data);
 
-    const updatedBatch = await this.openDetailModal(batch);
-    if (updatedBatch) {
-      // Adapt measurement values to row
-      this.normalizeEntityToRow(updatedBatch, row);
-
-      // Update the row
-      row.currentData = updatedBatch;
-
-      this.markAsDirty();
-      this.markForCheck();
-      this.confirmEditCreate(null, row);
-
-      // restore the edited row, to be able to use it in modal callback (see BatchGroupTable)
-      this.editedRow = row;
+    const updatedData = await this.openDetailModal(data);
+    if (updatedData) {
+      await this.updateEntityToTable(updatedData, row);
     }
     else {
       this.editedRow = null;
@@ -293,7 +250,7 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     const onNewParentClick = showParent ? async () => {
       const newBatch = await this.openDetailModal();
       if (!newBatch) return undefined;
-      await this.addBatchToTable(newBatch);
+      await this.addEntityToTable(newBatch);
       return newBatch;
     } : undefined;
 

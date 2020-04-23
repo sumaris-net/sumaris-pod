@@ -33,6 +33,7 @@ import {
 } from "./services/data-service.class";
 import {
   changeCaseToUnderscore,
+  delay,
   filterNumberInput,
   fromDateISOString,
   isNil,
@@ -40,7 +41,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  delay,
   joinPropertiesPath,
   nullIfUndefined,
   propertyComparator,
@@ -52,7 +52,12 @@ import {
   toFloat,
   toInt
 } from "./functions";
-import {fadeInAnimation, fadeInOutAnimation, slideInOutAnimation, slideUpDownAnimation} from "./material/material.animations";
+import {
+  fadeInAnimation,
+  fadeInOutAnimation,
+  slideInOutAnimation,
+  slideUpDownAnimation
+} from "./material/material.animations";
 import {InputElement} from "./material/focusable";
 import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';

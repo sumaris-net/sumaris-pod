@@ -75,6 +75,7 @@
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
     "NO_RESULT": "Aucun résultat",
+    "MISSING": "Manquant",
 
     "DISPLAYED_COLUMNS": "Paramétrage des colonnes",
     "DISPLAYED_COLUMNS_DOTS": "Paramétrage des colonnes...",

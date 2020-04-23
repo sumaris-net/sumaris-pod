@@ -237,7 +237,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     for (const taxonGroup of taxonGroups) {
       const batch = new BatchGroup();
       batch.taxonGroup = taxonGroup;
-      await this.addBatchToTable(batch);
+      await this.addEntityToTable(batch);
     }
   }
 
@@ -691,9 +691,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       });
     }
 
-    //row.currentData = parent;
-    row.validator.patchValue(parent);
-    row.validator.setErrors({required: true});
+    row.validator.patchValue(parent, {emitEvent: false});
   }
 }
 
