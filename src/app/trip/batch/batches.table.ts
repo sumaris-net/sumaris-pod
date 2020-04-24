@@ -275,6 +275,7 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
         usageMode: this.usageMode,
         selectedParent: selectedParent,
         qvPmfm: this.qvPmfm,
+        disabled: this.disabled,
         showParent,
         // Scientific species is required, if not set in root batches
         showTaxonNameColumn: !this.showTaxonNameColumn,
