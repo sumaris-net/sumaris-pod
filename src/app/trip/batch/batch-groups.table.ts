@@ -232,7 +232,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       // Filter on expected labels (as prefix)
       .filter(taxonGroup => !includedLabels || includedLabels.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
       // Sort using order configure in the taxon group column
-      .sort(propertiesPathComparator(sortAttributes, ['ZZZ', 'ZZZ']));
+      .sort(propertiesPathComparator(sortAttributes));
 
     for (const taxonGroup of taxonGroups) {
       const batch = new BatchGroup();
