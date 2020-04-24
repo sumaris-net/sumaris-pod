@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter,
+  EventEmitter, forwardRef, Inject, InjectionToken,
   Injector,
   Input,
   OnDestroy,
@@ -12,7 +12,7 @@ import {
 import {of, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
+import {Entity, environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
 import {Batch, getPmfmName, Landing, Operation, PmfmStrategy, referentialToString} from "../services/trip.model";
 import {
   AcquisitionLevelCodes,
@@ -29,6 +29,8 @@ import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {BatchModal} from "./batch.modal";
 import {MatDialog} from '@angular/material/dialog';
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
+import {ControlValueAccessor} from "@angular/forms";
+import {APP_LOCAL_SETTINGS_OPTIONS} from "../../core/services/local-settings.service";
 
 export interface BatchFilter {
   operationId?: number;
@@ -37,6 +39,8 @@ export interface BatchFilter {
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
+
+export declare const DATA_TYPE_ACCESSOR: InjectionToken<new() => Batch>;
 
 @Component({
   selector: 'app-batches-table',
@@ -49,6 +53,10 @@ export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
       useFactory: () => new InMemoryTableDataService<Batch, BatchFilter>(Batch, {
         equals: Batch.equals
       })
+    },
+    {
+      provide: DATA_TYPE_ACCESSOR,
+      useValue: Batch
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -117,7 +125,7 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     injector: Injector,
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryTableDataService<T, F>,
-    @Optional() dataType?: new() => T
+    @Optional() @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T
   ) {
     super(injector,
       dataType || ((Batch as any) as (new() => T)),
