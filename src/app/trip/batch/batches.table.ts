@@ -40,7 +40,7 @@ export interface BatchFilter {
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
-export declare const DATA_TYPE_ACCESSOR: InjectionToken<new() => Batch>;
+export const DATA_TYPE_ACCESSOR = new InjectionToken<new() => Batch>('BatchesTableDataType');
 
 @Component({
   selector: 'app-batches-table',
