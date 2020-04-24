@@ -6,7 +6,7 @@ import {
   Injector,
   Input,
   OnDestroy,
-  OnInit,
+  OnInit, Optional,
   Output
 } from "@angular/core";
 import {of, Subject} from 'rxjs';
@@ -117,7 +117,7 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     injector: Injector,
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryTableDataService<T, F>,
-    dataType?: new() => T
+    @Optional() dataType?: new() => T
   ) {
     super(injector,
       dataType || ((Batch as any) as (new() => T)),
