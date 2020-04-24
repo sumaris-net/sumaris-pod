@@ -1,8 +1,8 @@
 #!/bin/bash
 # Get to the root project
 if [[ "_" == "_${PROJECT_DIR}" ]]; then
-  cd ..
-  PROJECT_DIR=`pwd`
+  SCRIPT_DIR=$(dirname $0)
+  PROJECT_DIR=$(cd "${SCRIPT_DIR}/.." && pwd)
   export PROJECT_DIR
 fi;
 
@@ -75,30 +75,6 @@ rel|pre)
     echo "No task given"
     ;;
 esac
-
-# Check the Java version
-JAVA_VERSION=`java -version 2>&1 | egrep "(java|openjdk) version" | awk '{print $3}' | tr -d \"`
-if [[ $? -ne 0 ]]; then
-  echo "No Java JRE 1.8 found in machine. This is required for Android artifacts."
-  exit 1
-fi
-JAVA_MAJOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[1]}'`
-JAVA_MINOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[2]}'`
-if [[ ${JAVA_MAJOR_VERSION} -ne 1 ]] || [[ ${JAVA_MINOR_VERSION} -ne 8 ]]; then
-  echo "Require a Java JRE in version 1.8, but found ${JAVA_VERSION}. You can override your default JAVA_HOME in 'env.sh'."
-  exit 1
-fi
-echo "Java: $JAVA_VERSION"
-
-# Force nodejs version
-if [[ -d "${NVM_DIR}" ]]; then
-    . ${NVM_DIR}/nvm.sh
-    nvm use ${NODEJS_VERSION}
-    [[ $? -ne 0 ]] && exit 1
-else
-    echo "nvm (Node version manager) not found (directory ${NVM_DIR} not found). Please install, and retry"
-    exit 1
-fi
 
 echo "----------------------------------"
 echo "- Compiling sources..."
