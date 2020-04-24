@@ -173,7 +173,7 @@
 
 
   <!-- Page history -->
-  <ion-grid *ngIf="!loading && pageHistory.length; else bottomBanner"
+  <ion-grid *ngIf="!loading && isLogin && pageHistory.length; else bottomBanner"
             class="history-container ion-align-self-center">
     <ion-row>
       <ion-col size="12" size-xl="" *ngFor="let page of pageHistory; trackBy: getPagePath"
