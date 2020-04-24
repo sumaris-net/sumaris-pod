@@ -10,7 +10,7 @@ import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService} from '../../core/services/account.service';
 import {Location} from '@angular/common';
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {sort, DefaultStatusList} from "../../core/services/model";
@@ -272,6 +272,12 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     }
 
     return super.openRow(id, row);
+  }
+
+  clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
+    if (event) event.stopPropagation(); // Avoid to enter input the field
+    formControl.setValue(null);
+    return false;
   }
 
   protected async openNewRowDetail(): Promise<boolean> {

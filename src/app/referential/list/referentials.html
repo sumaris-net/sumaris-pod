@@ -71,7 +71,7 @@
                      [placeholder]=" 'REFERENTIAL.LIST.FILTER.SEARCH_TEXT'|translate">
               <button mat-icon-button matSuffix tabindex="-1"
                       type="button"
-                      (click)="filterForm.controls.searchText.setValue(null)"
+                      (click)="clearControlValue($event, filterForm.controls.searchText)"
                       [hidden]="filterForm.controls.searchText.disabled || !filterForm.controls.searchText.value">
                 <mat-icon>close</mat-icon>
               </button>
@@ -90,7 +90,7 @@
 
               <button mat-icon-button matSuffix tabindex="-1"
                       type="button"
-                      (click)="filterForm.controls.levelId.setValue(null) || $event.stopPropagation()"
+                      (click)="clearControlValue($event, filterForm.controls.levelId)"
                       [hidden]="filterForm.controls.levelId.disabled || !filterForm.controls.levelId.value">
                 <mat-icon>close</mat-icon>
               </button>
@@ -110,7 +110,7 @@
 
               <button mat-icon-button matSuffix tabindex="-1"
                       type="button"
-                      (click)="filterForm.controls.statusId.setValue(null) || $event.stopPropagation()"
+                      (click)="clearControlValue($event, filterForm.controls.statusId)"
                       [hidden]="filterForm.controls.statusId.disabled || !filterForm.controls.statusId.value">
                 <mat-icon>close</mat-icon>
               </button>
