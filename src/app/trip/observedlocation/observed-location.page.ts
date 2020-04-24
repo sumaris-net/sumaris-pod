@@ -105,19 +105,17 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
     }
   }
 
-  protected async computeTitle(data: ObservedLocation): Promise<string> {
+  protected computeTitle(data: ObservedLocation): Promise<string> {
     // new data
     if (this.isNewData) {
-      return await this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
+      return this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
     }
 
     // Existing data
-    const title = await this.translate.get('OBSERVED_LOCATION.EDIT.TITLE', {
+    return this.translate.get('OBSERVED_LOCATION.EDIT.TITLE', {
       location: data.location && (data.location.name || data.location.label),
       dateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime) as string
     }).toPromise();
-
-    return title;
   }
 
   protected getFirstInvalidTabIndex(): number {
