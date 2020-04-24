@@ -1,7 +1,17 @@
 #!/bin/bash
+# Get to the root project
+if [[ "_" == "_${PROJECT_DIR}" ]]; then
+  cd ..
+  PROJECT_DIR=`pwd`
+  export PROJECT_DIR
+fi;
 
-NODEJS_VERSION=10
-PROJECT_NAME=sumaris-app
+# Preparing Android environment
+. ${PROJECT_DIR}/scripts/env-android.sh
+[[ $? -ne 0 ]] && exit 1
+
+cd ${PROJECT_DIR}
+
 
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
@@ -11,7 +21,7 @@ then
   exit 1
 fi
 
-DIRNAME=`pwd`
+PROJECT_DIR=`pwd`
 
 ### Get current version (package.json)
 current=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
@@ -99,12 +109,12 @@ npm run build.prod
 echo "----------------------------------"
 echo "- Creating web artifact..."
 echo "----------------------------------"
-mkdir -p "${DIRNAME}/dist"
-ZIP_FILE=${DIRNAME}/dist/${PROJECT_NAME}.zip
+mkdir -p "${PROJECT_DIR}/dist"
+ZIP_FILE=${PROJECT_DIR}/dist/${PROJECT_NAME}.zip
 if [[ -f "$ZIP_FILE" ]]; then
   rm $ZIP_FILE
 fi
-cd $DIRNAME/www
+cd $PROJECT_DIR/www
 zip -q -r $ZIP_FILE .
 if [[ $? -ne 0 ]]; then
   echo "Connot create the archive for the web artifact"
@@ -116,14 +126,14 @@ echo "- Compiling sources for Android platform..."
 echo "----------------------------------"
 
 # Removing previous APK..."
-rm ${DIRNAME}/platforms/android/app/build/outputs/apk/release/*.apk
+rm ${PROJECT_DIR}/platforms/android/app/build/outputs/apk/release/*.apk
 
 # Copy generated i18n files, to make sure Android release will use it
-cp ${DIRNAME}/www/assets/i18n/*.json ${DIRNAME}/src/assets/i18n/
+cp ${PROJECT_DIR}/www/assets/i18n/*.json ${PROJECT_DIR}/src/assets/i18n/
 
 # Launch the build script
-PROJECT_DIR=${DIRNAME}
-cd ${DIRNAME}/scripts || exit 1
+PROJECT_DIR=${PROJECT_DIR}
+cd ${PROJECT_DIR}/scripts || exit 1
 ./release-android.sh
 [[ $? -ne 0 ]] && exit 1
 
@@ -137,7 +147,7 @@ if [[ "_$description" == "_" ]]; then
 fi
 
 # Commit
-cd $DIRNAME
+cd $PROJECT_DIR
 git reset HEAD
 git add package.json config.xml src/assets/manifest.json install.sh
 git commit -m "v$2"
@@ -163,7 +173,7 @@ echo "**********************************"
 #git submodule sync
 #git submodule update --remote --merge
 
-#if [[ -d "$DIRNAME/platforms/desktop" ]]; then
+#if [[ -d "$PROJECT_DIR/platforms/desktop" ]]; then
 #  cd platforms/desktop
 
 #  # Build desktop assets
@@ -176,7 +186,7 @@ echo "**********************************"
 #fi;
 
 # back to nodejs version 6
-#cd $DIRNAME
+#cd $PROJECT_DIR
 #nvm use 10
 
 echo "**********************************"

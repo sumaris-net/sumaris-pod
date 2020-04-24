@@ -26,6 +26,8 @@ ANDROID_OUTPUT_APK_DEBUG=${ANDROID_OUTPUT_APK}/debug
 ANDROID_OUTPUT_APK_RELEASE=${ANDROID_OUTPUT_APK}/release
 ANDROID_OUTPUT_APK_PREFIX=app
 
+PROJECT_NAME=sumaris-app
+
 # /!\ WARN can be define in your <project>/.local/env.sh file
 #JAVA_HOME=
 
