@@ -17,7 +17,6 @@ import {NetworkService} from "../../core/services/network.service";
 import {TripsPageSettingsEnum} from "./trips.table";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model";
-import {TripValidatorService} from "../services/trip.validator";
 
 @Component({
   selector: 'app-trip-page',
@@ -46,7 +45,6 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
   constructor(
     injector: Injector,
     protected entities: EntityStorage,
-    protected tripValidatorService: TripValidatorService,
     public network: NetworkService // Used for DEV (to debug OFFLINE mode)
   ) {
     super(injector,

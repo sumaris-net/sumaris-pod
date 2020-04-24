@@ -369,7 +369,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   }
 
 
-  addTableRow(event: UIEvent) {
+  onNewFabButtonClick(event: UIEvent) {
     if (this.showBatchTables) {
       switch (this.selectedBatchTabIndex) {
         case 0:

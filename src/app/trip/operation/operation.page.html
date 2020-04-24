@@ -6,10 +6,12 @@
   <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
-<ion-content>
+<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
 
   <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
-                 animationDuration="0s" >
+                 (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)"
+                 [dynamicHeight]="mobile ? enableSwipe : false"
+                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'">
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
@@ -86,9 +88,9 @@
       <mat-tab-group #batchTabGroup
                      [hidden]="!showBatchTables"
                      [class.mat-tab-group-no-header]="mobile"
-                     animationDuration="0s"
                      [(selectedIndex)]="selectedBatchTabIndex"
-                     (selectedTabChange)="onBatchTabChange($event)">
+                     (selectedTabChange)="onBatchTabChange($event)"
+                     animationDuration="0s">
 
         <!-- TAB: species list -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
@@ -134,8 +136,8 @@
                                  [tabindex]="200">
           </app-sub-batches-table>
 
-          <!-- final space-->
-          <p visible-xs visible-sm visible-mobile>&nbsp;</p>
+          <!-- final space
+          <p visible-xs visible-sm visible-mobile>&nbsp;</p>-->
         </mat-tab>
 
         <!-- TAB: Individual releases
@@ -241,7 +243,7 @@
          *ngIf="enabled && selectedTabIndex === 1" @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
 
-  <ion-fab-button color="tertiary" (click)="addTableRow($event)">
+  <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
     <ion-icon name="add" ></ion-icon>
   </ion-fab-button>
 

@@ -35,8 +35,10 @@
   </button>
 </mat-menu>
 
-<ion-content>
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
+                 [animationDuration]="tabGroupAnimationDuration"
+                 dynamicHeight>
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
@@ -161,6 +163,7 @@
 <ion-fab slot="fixed" vertical="bottom" horizontal="end"
          *ngIf="physicalGearsTable.enabled && selectedTabIndex==1" @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
+
   <ion-fab-button color="tertiary" (click)="physicalGearsTable.addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
