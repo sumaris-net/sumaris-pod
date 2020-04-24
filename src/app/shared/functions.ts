@@ -198,13 +198,13 @@ export function propertyComparator<T = any, K extends keyof T = any>(key: K, def
 }
 
 export function propertiesPathComparator<T = any>(keys: string[], defaultValues?: any[]): (a: T, b: T) => number {
-  if (!keys || !keys.length || (defaultValues && keys.length !== defaultValues.length)) {
-    throw new Error('Invalid arguments');
+  if (!keys || !keys.length || (defaultValues && keys.length > defaultValues.length)) {
+    throw new Error("Invalid arguments: missing 'keys' or array 'defaultValues' has a bad length");
   }
   return (a: T, b: T) => {
     return keys.map((key, index) => {
-      const valueA = getPropertyByPath(a, key, defaultValues[index]);
-      const valueB = getPropertyByPath(b, key, defaultValues[index]);
+      const valueA = getPropertyByPath(a, key, defaultValues && defaultValues[index]);
+      const valueB = getPropertyByPath(b, key, defaultValues && defaultValues[index]);
       return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
     })
       // Stop if not equals, otherwise continue with the next key

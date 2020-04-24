@@ -13,6 +13,7 @@ import {AppFormUtils} from "./form.utils";
 import {ToastOptions} from "@ionic/core";
 import {Toasts} from "../../shared/toasts";
 
+export declare type HammerSwipeAction = 'swipeleft' | 'swiperight';
 
 export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
 
@@ -26,6 +27,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   previousDataId: number;
   selectedTabIndex = 0;
   tabCount = 1;
+  enableSwipe = true;
   submitted = false;
   error: string;
   loading = true;
@@ -34,7 +36,49 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     subtab?: number;
     [key: string]: any
   };
+  tabGroupAnimationDuration = '200ms';
 
+  /**
+   * Action triggered when user swipes
+   */
+  onSwipeTab(event: { type: HammerSwipeAction; pointerType: 'touch' | any } & UIEvent ) {
+    // Skip, if not a valid swipe event
+    if (!this.enableSwipe || !event
+      || event.defaultPrevented
+      || event.pointerType !== 'touch'
+    ) {
+      return false;
+    }
+
+    if (this.debug) console.debug("[tab-page] Detected " + event.type, event);
+
+    let selectTabIndex = this.selectedTabIndex;
+    switch (event.type) {
+      // Open next tab
+      case "swipeleft":
+        const isLast = selectTabIndex === (this.tabCount - 1);
+        selectTabIndex = isLast ? 0 : selectTabIndex + 1;
+        break;
+
+      // Open previous tab
+      case "swiperight":
+        const isFirst = selectTabIndex === 0;
+        selectTabIndex = isFirst ? this.tabCount : selectTabIndex - 1;
+        break;
+
+      // Other case
+      default:
+        console.error("[tab-page] Unknown swipe action: " + event.type);
+        return false;
+    }
+
+    setTimeout(() => {
+      this.selectedTabIndex = selectTabIndex;
+      this.markForCheck();
+    });
+
+    return true;
+  }
 
   protected toastController: ToastController;
 

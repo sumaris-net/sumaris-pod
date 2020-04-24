@@ -168,9 +168,10 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     opts = opts || {};
     opts.updateTabAndRoute = toBoolean(opts.updateTabAndRoute, idChanged && !this.loading);
-    opts.openTabIndex = (isNotNil(opts.openTabIndex) || this.tabCount > 1) ? opts.openTabIndex :
+    opts.openTabIndex = this.tabCount > 1 ?
+      ((isNotNil(opts.openTabIndex) && opts.openTabIndex < this.tabCount) ? opts.openTabIndex :
       // If new data: open the second tab (if it's not the select index)
-      (idChanged && isNil(this.previousDataId) && this.selectedTabIndex === 0 && 1 || undefined);
+      (idChanged && isNil(this.previousDataId) && this.selectedTabIndex < this.tabCount - 1 ? this.selectedTabIndex + 1 : undefined)) : undefined;
 
     this.data = data;
     this.previousDataId = data.id;
@@ -200,7 +201,11 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     }
     else {
       this.disable(opts);
+
+      // Allow to sort table
+      this.tables.forEach(t => t.enableSort());
     }
+
   }
 
   /**

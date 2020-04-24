@@ -1,10 +1,12 @@
-import {NgModule} from "@angular/core";
+import {NgModule, Type} from "@angular/core";
 import {
-  MatAutocompleteModule, MatBadgeModule,
+  MatAutocompleteModule,
+  MatBadgeModule,
   MatButtonModule,
   MatButtonToggleModule,
   MatCardModule,
   MatCheckboxModule,
+  MatCommonModule,
   MatDialogModule,
   MatExpansionModule,
   MatFormFieldModule,
@@ -16,13 +18,14 @@ import {
   MatProgressBarModule,
   MatProgressSpinnerModule,
   MatRadioModule,
+  MatRippleModule,
   MatSelectModule,
+  MatSlideToggleModule,
   MatSortModule,
   MatStepperModule,
   MatTableModule,
   MatTabsModule,
-  MatToolbarModule,
-  MatSlideToggleModule, MatRippleModule, MatCommonModule
+  MatToolbarModule
 } from "@angular/material";
 import {CdkTableModule} from "@angular/cdk/table";
 import {MatDatepickerModule} from '@angular/material/datepicker';
@@ -37,7 +40,7 @@ import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 
 export { fadeInAnimation, slideInOutAnimation, InputElement };
 
-const modules: any[] = [
+const modules: Array<Type<any> | any[]> = [
   MatCommonModule,
   MatTableModule,
   MatSortModule,
