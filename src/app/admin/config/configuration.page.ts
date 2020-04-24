@@ -35,7 +35,7 @@ export class ConfigurationPage extends SoftwarePage<Configuration> {
   constructor(
     protected injector: Injector,
     protected validatorService: SoftwareValidatorService,
-    protected network: NetworkService
+    public network: NetworkService
   ) {
     super(injector,
       validatorService);
