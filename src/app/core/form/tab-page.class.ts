@@ -41,10 +41,10 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   /**
    * Action triggered when user swipes
    */
-  onSwipeTab(event: { type: HammerSwipeAction; pointerType: 'touch' | any } & UIEvent ) {
+  onSwipeTab(event: { type: HammerSwipeAction; pointerType: 'touch' | any, srcEvent: UIEvent } & UIEvent ) {
     // Skip, if not a valid swipe event
     if (!this.enableSwipe || !event
-      || event.defaultPrevented
+      || event.defaultPrevented || (event.srcEvent && event.srcEvent.defaultPrevented)
       || event.pointerType !== 'touch'
     ) {
       return false;

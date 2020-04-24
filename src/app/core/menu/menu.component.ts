@@ -13,7 +13,8 @@ import {TranslateService} from "@ngx-translate/core";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {BehaviorSubject, merge, Subscription} from "rxjs";
 import {ConfigService} from "../services/config.service";
-import {filter, mergeMap, tap, throttleTime} from "rxjs/operators";
+import {mergeMap, tap, throttleTime} from "rxjs/operators";
+import {HammerSwipeAction} from "../form/tab-page.class";
 
 export interface MenuItem {
   title: string;
@@ -168,6 +169,11 @@ export class MenuComponent implements OnInit {
           cssClass: 'ion-color-primary',
           handler: () => {
             this.accountService.logout();
+
+            setTimeout(() => {
+              // Back to home
+              return this.router.navigateByUrl('/');
+            }, 100);
           }
         }
       ]
@@ -203,6 +209,15 @@ export class MenuComponent implements OnInit {
       default:
         throw new Error('Unknown action: ' + action);
     }
+  }
+
+  onSwipeRight(event: { type: HammerSwipeAction; pointerType: 'touch' | any } & UIEvent) {
+    // Skip, if not a valid swipe event
+    if (!event || event.pointerType !== 'touch') {
+      return false;
+    }
+    // TODO: check when to call: => depending on X/Y position ?
+    // event.preventDefault()
   }
 
   /* -- protected methods -- */
