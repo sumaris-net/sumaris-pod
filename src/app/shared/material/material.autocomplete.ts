@@ -52,17 +52,8 @@ export declare interface  MatAutocompleteFieldConfig<T = any> {
   showPanelOnFocus?: boolean;
 }
 
-export declare interface  MatAutocompleteFieldAddOptions<T = any> {
+export declare interface  MatAutocompleteFieldAddOptions<T = any> extends MatAutocompleteFieldConfig {
   service?: SuggestionDataService<T>;
-  suggestFn?: (value: any, options?: any) => Promise<any[]>;
-  items?: Observable<T[]> | T[];
-  filter?: any;
-  attributes?: string[];
-  columnSizes?: (number|'auto'|undefined)[];
-  columnNames?: (string|undefined)[];
-  displayWith?: DisplayFn;
-  showAllOnFocus?: boolean;
-  showPanelOnFocus?: boolean;
 }
 
 export class MatAutocompleteConfigHolder {

@@ -1,4 +1,4 @@
-import {MatAutocompleteFieldConfig} from "../material/material.autocomplete";
+import {MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../material/material.autocomplete";
 
 
 export declare type FormFieldType = 'integer' | 'double' | 'boolean' | 'string' | 'enum' | 'color' | 'peer' | 'entity';
@@ -18,7 +18,7 @@ export declare interface FormFieldDefinition<T = any> {
   isTransient?: boolean; // Useful only for remote configuration
   values?: (string|FormFieldValue)[];
   type: FormFieldType;
-  autocomplete?: MatAutocompleteFieldConfig<T>;
+  autocomplete?: MatAutocompleteFieldAddOptions<T>;
   disabled?: boolean;
   required?: boolean;
   extra?: {
