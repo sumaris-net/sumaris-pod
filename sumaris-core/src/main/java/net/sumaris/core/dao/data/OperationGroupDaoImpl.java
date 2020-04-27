@@ -344,10 +344,14 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
             target.setTrip(parent);
         }
 
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
+        // Recorder department (copy from parent if missing)
+        if (copyIfNull || source.getRecorderDepartment() != null || parent.getRecorderDepartment() != null) {
             if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
+                if (parent.getRecorderDepartment() != null) {
+                    target.setRecorderDepartment(parent.getRecorderDepartment());
+                } else {
+                    target.setRecorderDepartment(null); // should not happened
+                }
             } else {
                 target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
             }
