@@ -28,7 +28,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.ImageAttachment;
-import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
@@ -84,12 +84,12 @@ public class DepartmentDaoImpl extends HibernateDaoSupport implements Department
                                 // status Id
                                 builder.or(
                                     builder.isFalse(hasStatusIdsParam),
-                                    builder.in(statusJoin.get(IReferentialEntity.Fields.ID)).value(statusIdsParam)
+                                    builder.in(statusJoin.get(IReferentialWithStatusEntity.Fields.ID)).value(statusIdsParam)
                                 ),
                                 // with logo
                                 builder.or(
                                         builder.isNull(withLogoParam),
-                                        builder.isNotNull(logoJoin.get(IReferentialEntity.Fields.ID))
+                                        builder.isNotNull(logoJoin.get(IReferentialWithStatusEntity.Fields.ID))
                                 )
                         ));
 

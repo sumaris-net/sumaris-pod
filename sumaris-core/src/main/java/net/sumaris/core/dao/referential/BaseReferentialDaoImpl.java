@@ -23,46 +23,20 @@ package net.sumaris.core.dao.referential;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
-import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.*;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.IDataVO;
-import net.sumaris.core.vo.data.IRootDataVO;
-import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
-import net.sumaris.core.vo.referential.ParameterVO;
-import net.sumaris.core.vo.referential.PmfmVO;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.collections4.SetUtils;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 public abstract class BaseReferentialDaoImpl<
-        E extends IReferentialEntity,
+        E extends IReferentialWithStatusEntity,
         V extends IReferentialVO
        > extends HibernateDaoSupport {
 

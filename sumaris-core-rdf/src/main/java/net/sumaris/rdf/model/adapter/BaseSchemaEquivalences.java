@@ -28,7 +28,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationArea;
@@ -40,9 +40,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.*;
-import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.GEO;
-import org.eclipse.rdf4j.model.vocabulary.GEOF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -123,7 +121,7 @@ public class BaseSchemaEquivalences extends AbstractSchemaEquivalences {
                         .addProperty(equivalentProperty, DCTerms.modified);
 
                 // Referential entity
-                if (IReferentialEntity.class.isAssignableFrom(clazz)) {
+                if (IReferentialWithStatusEntity.class.isAssignableFrom(clazz)) {
 
                     // Creation date
                     model.getResource(classUri + "#" + IItemReferentialEntity.Fields.CREATION_DATE)

@@ -28,6 +28,7 @@ import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -53,6 +54,7 @@ import net.sumaris.core.model.referential.transcribing.TranscribingItem;
 import net.sumaris.core.model.technical.configuration.Software;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
+import net.sumaris.core.model.technical.versionning.SystemVersion;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
@@ -86,6 +88,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
     private static Map<String, Class<? extends IReferentialEntity>> entityClassMap = Maps.uniqueIndex(
             ImmutableList.of(
+                    Status.class,
                     Department.class,
                     Location.class,
                     LocationLevel.class,
@@ -129,7 +132,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     // Software
                     Software.class,
                     // Program
-                    ProgramPrivilege.class
+                    ProgramPrivilege.class,
+                    // Technical
+                    SystemVersion.class
             ), Class::getSimpleName);
 
     private Map<String, PropertyDescriptor> levelPropertyNameMap = initLevelPropertyNameMap();
@@ -163,6 +168,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         I18n.n("sumaris.persistence.table.grouping");
         I18n.n("sumaris.persistence.table.extractionProduct");
         I18n.n("sumaris.persistence.table.extractionProductTable");
+        I18n.n("sumaris.persistence.table.systemVersion");
     }
 
     protected static Map<String, PropertyDescriptor> initLevelPropertyNameMap() {
@@ -452,7 +458,13 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         Beans.copyProperties(source, target);
 
         // Status
-        target.setStatusId(source.getStatus().getId());
+        if (source instanceof IWithStatusEntity) {
+            target.setStatusId(((IWithStatusEntity<?, ?>)source).getStatus().getId());
+        }
+        else {
+            // No status in the entity = ENABLE
+            target.setStatusId(StatusEnum.ENABLE.getId());
+        }
 
         // Level
         PropertyDescriptor levelDescriptor = levelPropertyNameMap.get(entityName);
@@ -608,8 +620,8 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         // Filter on status
         ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
         Predicate statusIdsClause = null;
-        if (ArrayUtils.isNotEmpty(statusIds)) {
-            statusIdsClause = builder.in(entityRoot.get(IItemReferentialEntity.Fields.STATUS).get(IItemReferentialEntity.Fields.ID)).value(statusIdsParam);
+        if (ArrayUtils.isNotEmpty(statusIds) && IWithStatusEntity.class.isAssignableFrom(entityClass)) {
+            statusIdsClause = builder.in(entityRoot.get(IWithStatusEntity.Fields.STATUS).get(IEntity.Fields.ID)).value(statusIdsParam);
         }
 
         // Compute where clause
@@ -710,12 +722,13 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         Beans.copyProperties(source, target);
 
         // Status
-        if (copyIfNull || source.getStatusId() != null) {
+        if ((copyIfNull || source.getStatusId() != null) && target instanceof IWithStatusEntity) {
+            IWithStatusEntity<Integer, Status> targetWithStatus = (IWithStatusEntity)target;
             if (source.getStatusId() == null) {
-                target.setStatus(null);
+                targetWithStatus.setStatus(null);
             }
             else {
-                target.setStatus(load(Status.class, source.getStatusId()));
+                targetWithStatus.setStatus(load(Status.class, source.getStatusId()));
             }
         }
 

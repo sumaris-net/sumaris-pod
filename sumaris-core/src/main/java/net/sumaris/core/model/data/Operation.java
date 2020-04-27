@@ -119,11 +119,13 @@ public class Operation implements IDataEntity<Integer>,
     private Boolean hasCatch;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    // /!\ metier is nullable !
     @JoinColumn(name = "metier_fk")
-    private Metier metier; // <-- /!\ metier is nullable !
+    private Metier metier;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "physical_gear_fk", nullable = false)
+    // /!\ physicalGear is nullable (need by ObsDeb)
+    @JoinColumn(name = "physical_gear_fk")
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private PhysicalGear physicalGear;
 

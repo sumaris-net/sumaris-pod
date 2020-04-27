@@ -25,7 +25,7 @@ package net.sumaris.core.model.referential.conversion;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
@@ -82,7 +82,7 @@ import java.util.Date;
                 "         OR coalesce(c.endDate, :startDate) < :startDate\n" +
                 "        )")
 })
-public class RoundWeightConversion implements IReferentialEntity {
+public class RoundWeightConversion implements IReferentialWithStatusEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ROUND_WEIGHT_CONVERSION_SEQ")

@@ -26,7 +26,7 @@ import com.google.common.collect.Sets;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
@@ -39,7 +39,7 @@ import java.util.Set;
 @Entity
 @Table(name = "pmfm")
 @Cacheable
-public class Pmfm implements IReferentialEntity {
+public class Pmfm implements IReferentialWithStatusEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")

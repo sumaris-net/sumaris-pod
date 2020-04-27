@@ -25,10 +25,10 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.0.3.xml">
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.1.1.xml">
 
   <!-- add LANDING.RANK_ORDER_ON_VESSEL -->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-1">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-1">
     <preConditions onFail="MARK_RAN">
       <not>
         <columnExists tableName="LANDING" columnName="RANK_ORDER_ON_VESSEL"/>
@@ -40,7 +40,7 @@
   </changeSet>
 
   <!-- add FISHING_AREA table -->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-3">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-3">
     <preConditions onFail="MARK_RAN">
       <not>
         <tableExists tableName="FISHING_AREA"/>
@@ -58,7 +58,7 @@
   </changeSet>
 
   <!-- Add missing PRODUCT columns -->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-10-1">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-1">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="product" columnName="subgroup_count"/></not>
     </preConditions>
@@ -66,7 +66,7 @@
       <column name="subgroup_count" type="double"/>
     </addColumn>
   </changeSet>
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-10-2">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-2">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="product" columnName="weight"/></not>
     </preConditions>
@@ -74,7 +74,7 @@
       <column name="weight" type="double"/>
     </addColumn>
   </changeSet>
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-10-3">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-3">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="product" columnName="cost"/></not>
     </preConditions>
@@ -82,7 +82,7 @@
       <column name="cost" type="double"/>
     </addColumn>
   </changeSet>
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-10-4">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-4">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="product" columnName="weight_method_fk"/></not>
     </preConditions>
@@ -92,7 +92,7 @@
       </column>
     </addColumn>
   </changeSet>
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-10-5">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-5">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="product" columnName="dressing_fk"/></not>
     </preConditions>
@@ -102,7 +102,7 @@
       </column>
     </addColumn>
   </changeSet>
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-10-6">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-6">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="product" columnName="preservation_fk"/></not>
     </preConditions>
@@ -112,7 +112,7 @@
       </column>
     </addColumn>
   </changeSet>
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-10-8">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-8">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="product" columnName="size_category_fk"/></not>
     </preConditions>
@@ -124,19 +124,19 @@
   </changeSet>
 
   <!-- Remove PRODUCT columns -->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-11-1">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-11-1">
     <preConditions onFail="MARK_RAN">
       <columnExists tableName="product" columnName="program_fk"/>
     </preConditions>
     <dropColumn tableName="product" columnName="program_fk"/>
   </changeSet>
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-11-2">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-11-2">
     <preConditions onFail="MARK_RAN">
       <columnExists tableName="product" columnName="creation_date"/>
     </preConditions>
     <dropColumn tableName="product" columnName="creation_date"/>
   </changeSet>
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-11-3">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-11-3">
     <preConditions onFail="MARK_RAN">
       <columnExists tableName="product" columnName="matrix_fk"/>
     </preConditions>
@@ -144,7 +144,7 @@
   </changeSet>
 
   <!-- add missing columns on some measurements tables -->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-12-1">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-12-1">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="quantification_measurement_b" columnName="subgroup_number"/></not>
     </preConditions>
@@ -152,7 +152,7 @@
       <column name="subgroup_number" type="integer"/>
     </addColumn>
   </changeSet>
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-12-2">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-12-2">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="quantification_measurement_p" columnName="subgroup_number"/></not>
     </preConditions>
@@ -160,7 +160,7 @@
       <column name="subgroup_number" type="integer"/>
     </addColumn>
   </changeSet>
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897706-12-3">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-12-3">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="sample_measurement" columnName="individual_number"/></not>
     </preConditions>
@@ -169,48 +169,17 @@
     </addColumn>
   </changeSet>
 
-    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897706-1">
-        <preConditions onFail="MARK_RAN">
-            <not><tableExists tableName="virtual_component"/></not>
-        </preConditions>
-        <createTable tableName="virtual_component">
-            <column name="taxon_name_fk" type="INT">
-                <constraints primaryKey="true" primaryKeyName="virtual_component_pk"/>
-            </column>
-            <column name="reference_taxon_fk" type="INT">
-                <constraints primaryKey="true" primaryKeyName="virtual_component_pk"/>
-            </column>
-        </createTable>
-    </changeSet>
-
-    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897706-2" failOnError="false">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <foreignKeyConstraintExists foreignKeyTableName="virtual_component" foreignKeyName="FKf8njcpml7f6gvfgti9sa7xxe"/>
-            </not>
-        </preConditions>
-        <addForeignKeyConstraint baseColumnNames="taxon_name_fk" baseTableName="virtual_component" constraintName="FKf8njcpml7f6gvfgti9sa7xxe" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_name"/>
-    </changeSet>
-
-    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897706-3" failOnError="false">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <foreignKeyConstraintExists foreignKeyTableName="virtual_component" foreignKeyName="FKaiap5thmcoyoc9aieusa91dbv"/>
-            </not>
-        </preConditions>
-        <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="virtual_component" constraintName="FKaiap5thmcoyoc9aieusa91dbv" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon"/>
-    </changeSet>
 
   <!-- update SYSTEM_VERSION -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897706-200" runOnChange="true">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897716-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
-      <where>LABEL='1.0.3'</where>
+      <where>LABEL='1.1.1'</where>
     </delete>
     <insert tableName="SYSTEM_VERSION">
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
-      <column name="LABEL">1.0.3</column>
+      <column name="LABEL">1.1.1</column>
       <column name="DESCRIPTION">
-          - Add tables VIRTUAL_COMPONENT, FISHING_AREA;
+          - Add tables FISHING_AREA;
           - add LANDING.RANK_ORDER_ON_VESSEL
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>

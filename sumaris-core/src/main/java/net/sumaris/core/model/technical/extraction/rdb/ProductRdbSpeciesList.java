@@ -26,7 +26,6 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
-import net.sumaris.core.model.referential.IReferentialEntity;
 
 import javax.persistence.*;
 import java.io.Serializable;

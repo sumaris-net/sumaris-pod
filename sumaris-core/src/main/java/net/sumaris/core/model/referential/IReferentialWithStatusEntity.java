@@ -22,23 +22,14 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+public interface IReferentialWithStatusEntity extends IReferentialEntity, IWithStatusEntity<Integer, Status> {
 
-import java.io.Serializable;
-import java.util.Date;
-
-public interface IReferentialEntity
-        extends Serializable,
-                IUpdateDateEntityBean<Integer, Date> {
-
-    int SEQUENCE_ALLOCATION_SIZE = 1;
-
-    interface Fields extends IUpdateDateEntityBean.Fields {
-        String CREATION_DATE = "creationDate";
+    interface Fields extends IReferentialEntity.Fields {
+        String STATUS = "status";
     }
 
-    Date getCreationDate();
+    Status getStatus();
 
-    void setCreationDate(Date creationDate);
+    void setStatus(Status status);
 
 }

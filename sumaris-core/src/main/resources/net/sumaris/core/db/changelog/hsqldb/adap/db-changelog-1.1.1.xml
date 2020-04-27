@@ -3,7 +3,7 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
-    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.0.3.xml">
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.1.1.xml">
 
     <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
     <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
@@ -19,7 +19,7 @@
     </preConditions>
 
     <!-- Add program property sumaris.trip.metiers.enable -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897706-400" runOnChange="true">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897716-400" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
@@ -31,7 +31,7 @@
             <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
             <column name="LABEL">sumaris.trip.metiers.enable</column>
             <column name="NAME">false</column>
-            <column name="PROGRAM_FK" valueComputed="SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
             <column name="STATUS_FK" valueNumeric="1"/>
             <column name="CREATION_DATE" valueComputed="sysdate"/>
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>

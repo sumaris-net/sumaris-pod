@@ -32,7 +32,7 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
@@ -97,7 +97,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
         ParameterExpression<Integer> operationIdParam = builder.parameter(Integer.class);
 
         query.select(root)
-            .where(builder.equal(root.get(Operation.Fields.TRIP).get(IReferentialEntity.Fields.ID), operationIdParam));
+            .where(builder.equal(root.get(Operation.Fields.TRIP).get(IReferentialWithStatusEntity.Fields.ID), operationIdParam));
 
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
