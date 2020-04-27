@@ -68,7 +68,9 @@ public class PhysicalGearRepositoryImpl
         if (filter == null) return null;
 
         return Specification.where(hasVesselId(filter.getVesselId()))
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()));
+                .and(hasTripId(filter.getTripId()))
+                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+                .and(programLabel(filter.getProgramLabel()));
     }
 
     public Class<PhysicalGearVO> getVOClass() {

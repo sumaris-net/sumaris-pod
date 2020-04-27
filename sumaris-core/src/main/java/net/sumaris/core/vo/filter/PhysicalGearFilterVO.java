@@ -31,6 +31,8 @@ import java.util.Date;
 @FieldNameConstants
 public class PhysicalGearFilterVO implements IVesselFilter {
 
+    private Integer tripId;
+
     private Integer vesselId;
 
     private Date startDate;

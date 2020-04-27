@@ -23,8 +23,10 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -42,6 +44,13 @@ public interface PhysicalGearRepositoryExtend
         if (tripId == null) return null;
         return (root, query, cb) -> cb.equal(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.ID), tripId);
     }
+
+    default Specification<PhysicalGear> programLabel(String programLabel) {
+        if (StringUtils.isBlank(programLabel)) return null;
+        return (root, query, cb) -> cb.equal(root.get(PhysicalGear.Fields.TRIP)
+                .get(Trip.Fields.PROGRAM).get(Program.Fields.LABEL), programLabel.trim());
+    }
+
 
     default Specification<PhysicalGear> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
