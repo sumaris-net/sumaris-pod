@@ -22,17 +22,15 @@
 
 package net.sumaris.core.service.referential.pmfm;
 
-import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.pmfm.PmfmDao;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.function.Function;
 
 @Service("pmfmService")
 public class PmfmServiceImpl implements PmfmService {
@@ -43,10 +41,13 @@ public class PmfmServiceImpl implements PmfmService {
     protected PmfmDao pmfmDao;
 
     @Override
+    public Optional<PmfmVO> findByLabel(final String label) {
+        return pmfmDao.findByLabel(label);
+    }
+
+    @Override
     public PmfmVO getByLabel(final String label) {
-        Preconditions.checkNotNull(label);
-        Preconditions.checkArgument(label.trim().length() > 0);
-        return pmfmDao.getByLabel(label.trim());
+        return pmfmDao.getByLabel(label);
     }
 
     @Override
@@ -61,58 +62,39 @@ public class PmfmServiceImpl implements PmfmService {
 
     @Override
     public boolean isWeightPmfm(int pmfmId) {
-        return hasLabelSuffix(pmfmId, "WEIGHT");
+        return pmfmDao.hasLabelSuffix(pmfmId, "WEIGHT");
     }
 
     @Override
     public boolean isSortingPmfm(int pmfmId) {
-        return hasLabelSuffix(pmfmId, "SORTING");
+        return pmfmDao.hasLabelSuffix(pmfmId, "SORTING");
     }
 
     @Override
     public boolean isQuantificationPmfm(int pmfmId) {
-        return hasLabelSuffix(pmfmId, "QUANTIFICATION");
+        return pmfmDao.hasLabelSuffix(pmfmId, "QUANTIFICATION");
     }
 
     @Override
     public boolean isCalculatedPmfm(int pmfmId) {
-        return hasLabelPrefix(pmfmId, "CALCULATED");
+        return pmfmDao.hasLabelPrefix(pmfmId, "CALCULATED");
     }
 
     @Override
     public boolean isVesselUsePmfm(int pmfmId) {
-        return hasLabelPrefix(pmfmId, "VESSEL_USE");
+        return pmfmDao.hasLabelPrefix(pmfmId, "VESSEL_USE");
     }
 
     @Override
     public boolean isGearUsePmfm(int pmfmId) {
-        return hasLabelPrefix(pmfmId, "GEAR_USE");
+        return pmfmDao.hasLabelPrefix(pmfmId, "GEAR_USE");
     }
 
     @Override
     public boolean isGearPhysicalPmfm(int pmfmId) {
-        return hasLabelPrefix(pmfmId, "GEAR_PHYSICAL");
+        return pmfmDao.hasLabelPrefix(pmfmId, "GEAR_PHYSICAL");
     }
 
-    private boolean hasLabelPrefix(int pmfmId, String... labelPrefixes) {
-        return Optional.ofNullable(get(pmfmId))
-            .map(PmfmVO::getLabel)
-            .map(startsWith(labelPrefixes))
-            .orElse(false);
-    }
 
-    private boolean hasLabelSuffix(int pmfmId, String... labelSuffixes) {
-        return Optional.ofNullable(get(pmfmId))
-            .map(PmfmVO::getLabel)
-            .map(endsWith(labelSuffixes))
-            .orElse(false);
-    }
 
-    private Function<String, Boolean> startsWith(String... prefixes) {
-        return string -> Arrays.stream(prefixes).anyMatch(string::startsWith);
-    }
-
-    private Function<String, Boolean> endsWith(String... suffixes) {
-        return string -> Arrays.stream(suffixes).anyMatch(string::endsWith);
-    }
 }

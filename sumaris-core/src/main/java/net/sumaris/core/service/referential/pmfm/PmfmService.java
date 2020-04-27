@@ -25,8 +25,13 @@ package net.sumaris.core.service.referential.pmfm;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Transactional
 public interface PmfmService {
+
+    @Transactional(readOnly = true)
+    Optional<PmfmVO> findByLabel(final String label);
 
     @Transactional(readOnly = true)
     PmfmVO getByLabel(String label);

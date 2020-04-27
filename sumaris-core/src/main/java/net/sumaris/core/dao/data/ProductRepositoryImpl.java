@@ -3,6 +3,7 @@ package net.sumaris.core.dao.data;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.pmfm.Method;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,34 +41,38 @@ public class ProductRepositoryImpl
     private final ReferentialDao referentialDao;
     private final PersonDao personDao;
     private final LandingRepository landingRepository;
-    private final PmfmService pmfmService;
+    private final PmfmDao pmfmDao;
     private final MeasurementDao measurementDao;
 
-    private final Integer dressingPmfmId;
-    private final Integer preservationPmfmId;
-    private final Integer sizeCategoryPmfmId;
-    private final Integer totalPricePmfmId;
+    private Integer dressingPmfmId;
+    private Integer preservationPmfmId;
+    private Integer sizeCategoryPmfmId;
+    private Integer totalPricePmfmId;
 
     @Autowired
     public ProductRepositoryImpl(EntityManager entityManager,
                                  ReferentialDao referentialDao,
                                  PersonDao personDao,
+                                 PmfmDao pmfmDao,
                                  LandingRepository landingRepository,
-                                 PmfmService pmfmService,
                                  MeasurementDao measurementDao) {
         super(Product.class, entityManager);
         this.referentialDao = referentialDao;
         this.personDao = personDao;
         this.landingRepository = landingRepository;
-        this.pmfmService = pmfmService;
+        this.pmfmDao = pmfmDao;
         this.measurementDao = measurementDao;
 
         setCheckUpdateDate(false);
 
-        dressingPmfmId = pmfmService.getByLabel(PmfmEnum.DRESSING.getLabel()).getId();
-        preservationPmfmId = pmfmService.getByLabel(PmfmEnum.PRESERVATION.getLabel()).getId();
-        sizeCategoryPmfmId = pmfmService.getByLabel(PmfmEnum.SIZE_CATEGORY.getLabel()).getId();
-        totalPricePmfmId = pmfmService.getByLabel(PmfmEnum.TOTAL_PRICE.getLabel()).getId();
+    }
+
+    @PostConstruct
+    protected void init() {
+        dressingPmfmId = pmfmDao.getByLabel(PmfmEnum.DRESSING.getLabel()).getId();
+        preservationPmfmId = pmfmDao.getByLabel(PmfmEnum.PRESERVATION.getLabel()).getId();
+        sizeCategoryPmfmId = pmfmDao.getByLabel(PmfmEnum.SIZE_CATEGORY.getLabel()).getId();
+        totalPricePmfmId = pmfmDao.getByLabel(PmfmEnum.TOTAL_PRICE.getLabel()).getId();
     }
 
     @Override
@@ -316,7 +322,7 @@ public class ProductRepositoryImpl
                 Map<Integer, String> quantificationMeasurements = Maps.newLinkedHashMap();
                 Map<Integer, String> sortingMeasurements = Maps.newLinkedHashMap();
                 product.getMeasurementValues().forEach((pmfmId, value) -> {
-                    if (pmfmService.isWeightPmfm(pmfmId)) {
+                    if (isWeightPmfm(pmfmId)) {
                         quantificationMeasurements.putIfAbsent(pmfmId, value);
                     }
                     else {
@@ -364,5 +370,9 @@ public class ProductRepositoryImpl
         }
 
         return result;
+    }
+
+    private boolean isWeightPmfm(int pmfmId) {
+        return pmfmDao.hasLabelSuffix(pmfmId, "WEIGHT");
     }
 }

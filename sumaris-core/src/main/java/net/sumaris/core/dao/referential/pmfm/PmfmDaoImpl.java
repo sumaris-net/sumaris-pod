@@ -22,22 +22,31 @@
 
 package net.sumaris.core.dao.referential.pmfm;
 
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.BaseReferentialDaoImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.referential.*;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.PmfmValueType;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Root;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,7 +78,20 @@ public class PmfmDaoImpl extends BaseReferentialDaoImpl<Pmfm, PmfmVO> implements
     }
 
     @Override
+    public Optional<PmfmVO> findByLabel(final String label) {
+        try {
+            return Optional.of(getByLabel(label));
+        }
+        catch (DataNotFoundException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public PmfmVO getByLabel(final String label) {
+        Preconditions.checkNotNull(label);
+        Preconditions.checkArgument(label.trim().length() > 0);
+
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Pmfm> query = builder.createQuery(Pmfm.class);
         Root<Pmfm> root = query.from(Pmfm.class);
@@ -80,8 +102,13 @@ public class PmfmDaoImpl extends BaseReferentialDaoImpl<Pmfm, PmfmVO> implements
                 .where(builder.equal(root.get(Pmfm.Fields.LABEL), labelParam));
 
         TypedQuery<Pmfm> q = getEntityManager().createQuery(query)
-                .setParameter(labelParam, label);
-        return toVO(q.getSingleResult());
+                .setParameter(labelParam, label.trim());
+        try {
+            return toVO(q.getSingleResult());
+        }
+        catch (NoResultException | EmptyResultDataAccessException e) {
+            throw new DataNotFoundException(String.format("Pmfm with label '%s' not found.", label));
+        }
     }
 
     @Override
@@ -169,6 +196,22 @@ public class PmfmDaoImpl extends BaseReferentialDaoImpl<Pmfm, PmfmVO> implements
         PmfmVO savedVO = super.save(vo);
 
         return get(savedVO.getId());
+    }
+
+    @Override
+    public boolean hasLabelPrefix(int pmfmId, String... labelPrefixes) {
+        return Optional.ofNullable(getOne(pmfmId))
+                .map(Pmfm::getLabel)
+                .map(StringUtils.startsWithFunction(labelPrefixes))
+                .orElse(false);
+    }
+
+    @Override
+    public boolean hasLabelSuffix(int pmfmId, String... labelSuffixes) {
+        return Optional.ofNullable(getOne(pmfmId))
+                .map(Pmfm::getLabel)
+                .map(StringUtils.endsWithFunction(labelSuffixes))
+                .orElse(false);
     }
 
     /* -- protected methods -- */

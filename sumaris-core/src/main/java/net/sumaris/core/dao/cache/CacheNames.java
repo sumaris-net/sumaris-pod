@@ -35,6 +35,8 @@ public interface CacheNames {
     String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabelCache";
 
     String PMFM_BY_ID = "net.sumaris.core.dao.referential.pmfmByIdCache";
+    String PMFM_HAS_SUFFIX = "net.sumaris.core.dao.referential.pmfmHasSuffix";
+    String PMFM_HAS_PREFIX = "net.sumaris.core.dao.referential.pmfmHasPrefix";
     String PMFM_BY_STRATEGY_ID = "net.sumaris.core.dao.administration.programStrategy.pmfmByStrategyIdCache";
 
     String TAXON_NAME_BY_TAXON_REFERENCE_ID = "net.sumaris.core.dao.referential.taxonNameByReferenceId";

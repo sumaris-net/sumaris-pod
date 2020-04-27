@@ -121,6 +121,16 @@ public class CacheConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean pmfmHasPrefix() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PMFM_HAS_PREFIX, 600);
+    }
+
+    @Bean
+    public EhCacheFactoryBean pmfmHasSuffix() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PMFM_HAS_SUFFIX, 600);
+    }
+
+    @Bean
     public EhCacheFactoryBean taxonNameByTaxonReferenceId() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.TAXON_NAME_BY_TAXON_REFERENCE_ID, 600);
     }

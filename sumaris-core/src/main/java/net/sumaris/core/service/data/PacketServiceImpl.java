@@ -13,6 +13,7 @@ import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
@@ -45,7 +46,7 @@ public class PacketServiceImpl implements PacketService {
     private BatchDao batchDao;
 
     @Autowired
-    private PmfmDao pmfmDao;
+    private PmfmService pmfmService;
 
     @Autowired
     private MeasurementDao measurementDao;
@@ -55,10 +56,12 @@ public class PacketServiceImpl implements PacketService {
 
     @PostConstruct
     protected void init() {
-        this.calculatedWeightPmfmId = pmfmDao.getByLabel(PmfmEnum.BATCH_CALCULATED_WEIGHT.getLabel()).getId();
-        this.measuredWeightPmfmId = pmfmDao.getByLabel(PmfmEnum.BATCH_MEASURED_WEIGHT.getLabel()).getId();
-        this.estimatedRatioPmfmId = pmfmDao.getByLabel(PmfmEnum.BATCH_ESTIMATED_RATIO.getLabel()).getId();
-        this.sortingPmfmId = pmfmDao.getByLabel(PmfmEnum.BATCH_SORTING.getLabel()).getId();
+        // TODO: allow to start service, even some PMFM are missing
+        // (e.g. use findByLabel())
+        this.calculatedWeightPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_CALCULATED_WEIGHT.getLabel()).getId();
+        this.measuredWeightPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_MEASURED_WEIGHT.getLabel()).getId();
+        this.estimatedRatioPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_ESTIMATED_RATIO.getLabel()).getId();
+        this.sortingPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_SORTING.getLabel()).getId();
     }
 
     @Override
