@@ -35,6 +35,7 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -64,7 +65,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
     private MetierRepository metierDao;
 
     @Autowired
-    private PhysicalGearDao physicalGearDao;
+    private PhysicalGearRepository physicalGearRepository;
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -417,7 +418,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
         // Physical gear
         if (source.getPhysicalGear() != null) {
             target.setPhysicalGearId(source.getPhysicalGear().getId());
-            target.setPhysicalGear(physicalGearDao.toPhysicalGearVO(source.getPhysicalGear(), false/*no details*/));
+            target.setPhysicalGear(physicalGearRepository.toVO(source.getPhysicalGear(), DataFetchOptions.builder().withRecorderDepartment(false).build()));
         }
 
         // Metier

@@ -1,4 +1,4 @@
-package net.sumaris.core.service.data;
+package net.sumaris.core.vo.filter;
 
 /*-
  * #%L
@@ -22,29 +22,21 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
-import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.PhysicalGearVO;
-import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.Date;
 
-import java.util.List;
+@Data
+@FieldNameConstants
+public class PhysicalGearFilterVO implements IVesselFilter {
 
-/**
- * @author BLA
- * 
- *    Service in charge of physical gear
- * 
- */
-@Transactional
-public interface PhysicalGearService {
+    private Integer vesselId;
 
-	@Transactional(readOnly = true)
-	List<PhysicalGearVO> findAll(PhysicalGearFilterVO filter, Page page, DataFetchOptions options);
+    private Date startDate;
 
-	@Transactional(readOnly = true)
-	List<PhysicalGearVO> getAllByTripId(int tripId);
+    private Date endDate;
 
-	List<PhysicalGearVO> save(int tripId, List<PhysicalGearVO> sources);
+    private String programLabel;
+
 }

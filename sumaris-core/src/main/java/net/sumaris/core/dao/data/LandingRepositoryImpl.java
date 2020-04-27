@@ -60,6 +60,11 @@ public class LandingRepositoryImpl
     }
 
     @Override
+    public List<LandingVO> findAllByTripIds(List<Integer> tripIds) {
+        return findAllVO(hasTripIds(tripIds));
+    }
+
+    @Override
     public Specification<Landing> toSpecification(LandingFilterVO filter) {
         if (filter == null) return null;
 

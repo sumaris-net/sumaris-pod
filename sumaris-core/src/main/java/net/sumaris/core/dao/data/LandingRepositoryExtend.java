@@ -25,8 +25,10 @@ package net.sumaris.core.dao.data;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.vo.data.LandingVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -43,6 +45,11 @@ public interface LandingRepositoryExtend
         return (root, query, cb) -> cb.equal(root.get(Landing.Fields.TRIP).get(IEntity.Fields.ID), tripId);
     }
 
+    default Specification<Landing> hasTripIds(Collection<Integer> tripIds) {
+        if (CollectionUtils.isEmpty(tripIds)) return null;
+        return (root, query, cb) -> cb.in(root.get(Landing.Fields.TRIP).get(IEntity.Fields.ID)).value(tripIds);
+    }
+
     default Specification<Landing> hasLocationId(Integer locationId) {
         if (locationId == null) return null;
         return (root, query, cb) -> cb.equal(root.get(Landing.Fields.LOCATION).get(IEntity.Fields.ID), locationId);
@@ -56,19 +63,26 @@ public interface LandingRepositoryExtend
     default Specification<Landing> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
+            // Start + end date
             if (startDate != null && endDate != null) {
                 return cb.and(
                     cb.greaterThanOrEqualTo(root.get(Landing.Fields.DATE_TIME), startDate),
                     cb.lessThanOrEqualTo(root.get(Landing.Fields.DATE_TIME), endDate)
                 );
-            } else if (startDate == null && endDate != null) {
-                return cb.lessThanOrEqualTo(root.get(Landing.Fields.DATE_TIME), endDate);
-            } else {
+            }
+            // Start date
+            else if (startDate != null) {
                 return cb.greaterThanOrEqualTo(root.get(Landing.Fields.DATE_TIME), startDate);
+            }
+            // End date
+            else {
+                return cb.lessThanOrEqualTo(root.get(Landing.Fields.DATE_TIME), endDate);
             }
         };
     }
 
     // Not tested
     List<LandingVO> saveAllByObservedLocationId(int observedLocationId, List<LandingVO> sources);
+
+    List<LandingVO> findAllByTripIds(List<Integer> tripIds);
 }

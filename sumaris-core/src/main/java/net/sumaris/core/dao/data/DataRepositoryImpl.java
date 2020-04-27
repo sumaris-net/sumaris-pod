@@ -89,6 +89,12 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
     }
 
     @Override
+    public List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, DataFetchOptions fetchOptions) {
+        return findAll(filter, getPageable(page), fetchOptions)
+                .stream().collect(Collectors.toList());
+    }
+
+    @Override
     public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
         return findAll(PageRequest.of(offset / size, size, Sort.Direction.fromString(sortDirection.toString()), sortAttribute))
             .map(e -> this.toVO(e, fetchOptions));
@@ -101,22 +107,22 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
     }
 
     @Override
-    public List<V> findAllAsVO(@Nullable Specification<E> spec) {
+    public List<V> findAllVO(@Nullable Specification<E> spec) {
         return super.findAll(spec).stream().map(this::toVO).collect(Collectors.toList());
     }
 
     @Override
-    public Page<V> findAllAsVO(@Nullable Specification<E> spec, Pageable pageable) {
+    public Page<V> findAllVO(@Nullable Specification<E> spec, Pageable pageable) {
         return super.findAll(spec, pageable).map(this::toVO);
     }
 
     @Override
-    public Page<V> findAllAsVO(@Nullable Specification<E> spec, Pageable pageable, DataFetchOptions fetchOptions) {
+    public Page<V> findAllVO(@Nullable Specification<E> spec, Pageable pageable, DataFetchOptions fetchOptions) {
         return super.findAll(spec, pageable).map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
-    public List<V> findAllAsVO(@Nullable Specification<E> spec, DataFetchOptions fetchOptions) {
+    public List<V> findAllVO(@Nullable Specification<E> spec, DataFetchOptions fetchOptions) {
         return super.findAll(spec).stream()
             .map(e -> this.toVO(e, fetchOptions))
             .collect(Collectors.toList());

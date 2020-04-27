@@ -22,20 +22,25 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.data.PhysicalGear;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.PhysicalGearVO;
+import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 
 import java.util.List;
 
 public interface PhysicalGearDao {
 
-    List<PhysicalGearVO> getPhysicalGearByTripId(int operationId);
+    List<PhysicalGearVO> findAll(PhysicalGearFilterVO filter, Page page, DataFetchOptions fetchOptions);
+
+    List<PhysicalGearVO> getAllByTripId(int operationId);
 
     PhysicalGearVO save(PhysicalGearVO source);
 
     List<PhysicalGearVO> save(int tripId, List<PhysicalGearVO> sources);
 
-    PhysicalGearVO toPhysicalGearVO(PhysicalGear source, boolean withDetails);
+    PhysicalGearVO toVO(PhysicalGear source, boolean withDetails);
 
-    PhysicalGearVO toPhysicalGearVO(PhysicalGear source);
+    PhysicalGearVO toVO(PhysicalGear source);
 }

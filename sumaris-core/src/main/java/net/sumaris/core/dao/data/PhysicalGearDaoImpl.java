@@ -23,19 +23,21 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.PhysicalGearMeasurement;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
+import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -46,10 +48,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
@@ -69,9 +68,16 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
     @Autowired
     private MeasurementDao measurementDao;
 
+    @Autowired
+    private PhysicalGearRepository physicalGearRepository;
 
     @Override
-    public List<PhysicalGearVO> getPhysicalGearByTripId(int tripId) {
+    public List<PhysicalGearVO> findAll(PhysicalGearFilterVO filter, Page page, DataFetchOptions fetchOptions) {
+        return physicalGearRepository.findAll(filter, page, fetchOptions);
+    }
+
+    @Override
+    public List<PhysicalGearVO> getAllByTripId(int tripId) {
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<PhysicalGear> query = builder.createQuery(PhysicalGear.class);
         Root<PhysicalGear> root = query.from(PhysicalGear.class);
@@ -83,7 +89,7 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
 
         TypedQuery<PhysicalGear> q = getEntityManager().createQuery(query)
                 .setParameter(tripIdParam, tripId);
-        return toPhysicalGearVOs(q.getResultList());
+        return toVOs(q.getResultList());
     }
 
     @Override
@@ -164,7 +170,7 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
         }
 
         // VO -> Entity
-        physicalGearVOToEntity(source, entity, true );
+        physicalGearRepository.toEntity(source, entity, true );
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -191,7 +197,7 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
     }
 
     @Override
-    public PhysicalGearVO toPhysicalGearVO(PhysicalGear source, boolean withDetails) {
+    public PhysicalGearVO toVO(PhysicalGear source, boolean withDetails) {
         if (source == null) return null;
 
         PhysicalGearVO target = new PhysicalGearVO();
@@ -217,8 +223,8 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
     }
 
     @Override
-    public PhysicalGearVO toPhysicalGearVO(PhysicalGear source) {
-        return toPhysicalGearVO(source, true);
+    public PhysicalGearVO toVO(PhysicalGear source) {
+        return physicalGearRepository.toVO(source, DataFetchOptions.builder().withRecorderDepartment(true).build());
     }
 
     /* -- protected methods -- */
@@ -233,34 +239,16 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
         getEntityManager().remove(entity);
     }
 
-    protected void physicalGearVOToEntity(PhysicalGearVO source, PhysicalGear target, boolean copyIfNull) {
 
-        // Copy properties
-        copyRootDataProperties(source, target, copyIfNull);
-
-        // Gear
-        target.setGear(load(Gear.class, source.getGear().getId()));
-
-        // Trip
-        Integer tripId = source.getTripId() != null ? source.getTripId() : (source.getTrip() != null ? source.getTrip().getId() : null);
-        if (copyIfNull || (tripId != null)) {
-            if (tripId == null) {
-                target.setTrip(null);
-            }
-            else {
-                target.setTrip(load(Trip.class, tripId));
-            }
-        }
-    }
-
-    protected  List<PhysicalGearVO> toPhysicalGearVOs(List<PhysicalGear> source) {
+    protected  List<PhysicalGearVO> toVOs(List<PhysicalGear> source) {
+        DataFetchOptions options = DataFetchOptions.builder().withRecorderDepartment(false).build();
         return source.stream()
-                .map(this::toPhysicalGearVO)
+                .map(entity -> physicalGearRepository.toVO(entity, options))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    void fillDefaultProperties(PhysicalGearVO parent, MeasurementVO measurement) {
+    protected void fillDefaultProperties(PhysicalGearVO parent, MeasurementVO measurement) {
         if (measurement == null) return;
 
         // Copy recorder department from the parent

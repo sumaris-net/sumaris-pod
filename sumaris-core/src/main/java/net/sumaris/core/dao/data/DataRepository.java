@@ -47,11 +47,15 @@ public interface DataRepository<
         >
         extends SumarisJpaRepository<E, ID> {
 
+
+    // From a filter
     List<V> findAll(@Nullable F filter);
 
     Page<V> findAll(@Nullable F filter, Pageable pageable);
 
     List<V> findAll(@Nullable F filter, @Nullable DataFetchOptions fetchOptions);
+
+    List<V> findAll(@Nullable F filter, net.sumaris.core.dao.technical.Page page, @Nullable DataFetchOptions fetchOptions);
 
     Page<V> findAll(@Nullable F filter, Pageable pageable, @Nullable DataFetchOptions fetchOptions);
 
@@ -60,10 +64,11 @@ public interface DataRepository<
     Page<V> findAll(F filter, int offset, int size, String sortAttribute,
                     SortDirection sortDirection, DataFetchOptions fetchOptions);
 
-    List<V> findAllAsVO(@Nullable Specification<E> spec);
-    Page<V> findAllAsVO(@Nullable Specification<E> spec, Pageable pageable);
-    List<V> findAllAsVO(@Nullable Specification<E> spec, DataFetchOptions fetchOptions);
-    Page<V> findAllAsVO(@Nullable Specification<E> spec, Pageable pageable, DataFetchOptions fetchOption);
+    // From a specification
+    List<V> findAllVO(@Nullable Specification<E> spec);
+    Page<V> findAllVO(@Nullable Specification<E> spec, Pageable pageable);
+    List<V> findAllVO(@Nullable Specification<E> spec, DataFetchOptions fetchOptions);
+    Page<V> findAllVO(@Nullable Specification<E> spec, Pageable pageable, DataFetchOptions fetchOption);
 
     long count(F filter);
 

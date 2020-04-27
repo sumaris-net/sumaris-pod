@@ -24,6 +24,7 @@ package net.sumaris.core.dao.technical.jpa;
 
 import com.querydsl.jpa.impl.JPAQuery;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -174,5 +175,9 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
                     sortAttribute);
         }
         return PageRequest.of(offset / size, size);
+    }
+
+    protected Pageable getPageable(Page page) {
+        return getPageable((int)page.getOffset(), page.getSize(), page.getSortAttribute(), page.getSortDirection());
     }
 }

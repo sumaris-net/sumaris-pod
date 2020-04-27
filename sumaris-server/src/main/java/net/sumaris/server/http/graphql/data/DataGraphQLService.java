@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.*;
@@ -205,7 +206,7 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "trips", description = "Search in trips")
     @Transactional(readOnly = true)
-    @IsUser
+    //@IsUser
     public List<TripVO> findTripsByFilter(@GraphQLArgument(name = "filter") TripFilterVO filter,
                                           @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                           @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
@@ -363,9 +364,35 @@ public class DataGraphQLService {
 
     /* -- Gears -- */
 
+
+    @GraphQLQuery(name = "physicalGears", description = "Get physical gears")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<PhysicalGearVO> findPhysicalGears(@GraphQLArgument(name = "filter") PhysicalGearFilterVO filter,
+                                               @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                               @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                               @GraphQLArgument(name = "sortBy", defaultValue = PhysicalGearVO.Fields.RANK_ORDER) String sort,
+                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                               @GraphQLEnvironment() Set<String> fields) {
+        Preconditions.checkNotNull(filter, "Missing filter");
+        Preconditions.checkNotNull(filter.getVesselId(), "Missing filter.vesselId");
+        Page page = Page.builder().offset(offset)
+                .size(size)
+                .sortAttribute(sort)
+                .sortDirection(direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null)
+                .build();
+        return physicalGearService.findAll(filter, page, getFetchOptions(fields));
+    }
+
     @GraphQLQuery(name = "gears", description = "Get operation's gears")
     public List<PhysicalGearVO> getGearsByTrip(@GraphQLContext TripVO trip) {
-        return physicalGearService.getPhysicalGearByTripId(trip.getId());
+        return physicalGearService.getAllByTripId(trip.getId());
+    }
+
+    @GraphQLQuery(name = "trip", description = "Get physical gear's trip")
+    public TripVO getGearsByTrip(@GraphQLContext PhysicalGearVO physicalGear) {
+        if (physicalGear.getTripId() == null) return null;
+        return tripService.get(physicalGear.getTripId());
     }
 
     /* -- Metier -- */
@@ -1050,6 +1077,10 @@ public class DataGraphQLService {
 
         // Add vessel if need
         fillVesselSnapshot(trip, fields);
+
+        if (fields.contains(TripVO.Fields.LANDING_ID) || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
+            tripService.fillTripLandingLinks(trip);
+        }
     }
 
     protected void fillTrips(List<TripVO> trips, Set<String> fields) {
@@ -1058,6 +1089,12 @@ public class DataGraphQLService {
 
         // Add vessel if need
         fillVesselSnapshot(trips, fields);
+
+        // Fill link to parent landing or observed location
+        // (e.g. need by ObsDeb)
+        if (fields.contains(TripVO.Fields.LANDING_ID) || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
+            tripService.fillTripsLandingLinks(trips);
+        }
     }
 
     protected void fillObservedLocationFields(ObservedLocationVO observedLocation, Set<String> fields) {

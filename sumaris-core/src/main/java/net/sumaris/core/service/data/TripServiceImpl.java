@@ -25,11 +25,13 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.data.*;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.DataEntityCreatedEvent;
 import net.sumaris.core.event.DataEntityUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
@@ -38,13 +40,16 @@ import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
+import org.antlr.v4.runtime.misc.MultiMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -116,6 +121,41 @@ public class TripServiceImpl implements TripService {
     @Override
     public TripVO get(int tripId) {
         return tripDao.get(tripId);
+    }
+
+    @Override
+    public void fillTripLandingLinks(TripVO target) {
+        Preconditions.checkNotNull(target);
+        Preconditions.checkNotNull(target.getId());
+        Landing landing = landingRepository.getByTripId(target.getId());
+        if (landing != null) {
+            target.setLandingId(landing.getId());
+            if (landing.getObservedLocation() != null) {
+                target.setObservedLocationId(landing.getObservedLocation().getId());
+            }
+        }
+    }
+
+    @Override
+    public void fillTripsLandingLinks(List<TripVO> targets) {
+
+        List<Integer> tripsIds = targets.stream()
+                .map(TripVO::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        List<LandingVO> landings = landingRepository.findAllByTripIds(tripsIds);
+        final Multimap<Integer, LandingVO> landingsByTripId = Beans.splitByNotUniqueProperty(landings, LandingVO.Fields.TRIP_ID);
+        targets.forEach(target -> {
+            Collection<LandingVO> tripLandings = landingsByTripId.get(target.getId());
+            LandingVO tripLanding = CollectionUtils.size(tripLandings) == 1 ? tripLandings.iterator().next() : null;
+            if (tripLanding != null) {
+                target.setLandingId(tripLanding.getId());
+                if (tripLanding.getObservedLocation() != null) {
+                    target.setObservedLocationId(tripLanding.getObservedLocation().getId());
+                }
+            }
+        });
     }
 
     @Override
