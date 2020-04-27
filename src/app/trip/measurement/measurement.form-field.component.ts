@@ -114,7 +114,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
         type = "latitude";
       } else if (this.pmfm.label === "LONGITUDE") {
         type = "longitude";
-      } else if (this.pmfm.unit === 'h dec.') { // TODO get from program properties
+      } else if (this.pmfm.unitLabel === 'h dec.') { // TODO get from program properties
         type = "duration";
       }
       else {
@@ -181,7 +181,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
   }
 
   displayTime(): boolean {
-    return this.pmfm && this.pmfm.unit === 'Date & Time'; // TODO get it from program properties
+    return this.pmfm && this.pmfm.unitLabel === 'Date & Time'; // TODO get it from program properties
   }
 
   selectInputContent = AppFormUtils.selectInputContent;
