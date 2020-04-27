@@ -23,7 +23,7 @@ package net.sumaris.core.extraction.vo.trip;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.Pageable;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.filter.TripFilterVO;
 
 /**
@@ -36,5 +36,5 @@ public class ExtractionTripFilterVO extends TripFilterVO {
 
     private String sheetName;
 
-    private Pageable pageable;
+    private Page page;
 }

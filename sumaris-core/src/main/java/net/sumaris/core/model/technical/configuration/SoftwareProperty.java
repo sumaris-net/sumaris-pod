@@ -63,4 +63,11 @@ public class SoftwareProperty implements IItemReferentialEntity  {
     @JoinColumn(name = "software_fk", nullable = false)
     private Software software;
 
+    @Override
+    public String toString() {
+        return "SoftwareProperty{" +
+                "id=" + id +
+                ", label='" + label + "'" +
+                "}";
+    }
 }

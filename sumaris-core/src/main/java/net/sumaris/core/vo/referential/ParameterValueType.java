@@ -29,7 +29,6 @@ import java.util.Objects;
 
 public enum ParameterValueType {
 
-    INTEGER,
     DOUBLE,
     STRING,
     QUALITATIVE_VALUE,
@@ -37,11 +36,8 @@ public enum ParameterValueType {
     DATE
     ;
 
-    public static ParameterValueType fromPmfm(Pmfm source) {
+    public static ParameterValueType fromParameter(Parameter parameter) {
 
-        Parameter parameter = source.getParameter();
-
-        // Parameter Type
         if (Objects.equals(Boolean.TRUE, parameter.getIsBoolean())) {
             return BOOLEAN;
         }
@@ -54,11 +50,8 @@ public enum ParameterValueType {
         else if (Objects.equals(Boolean.TRUE, parameter.getIsDate())) {
             return ParameterValueType.DATE;
         }
-        else if (source.getMaximumNumberDecimals() == null || source.getMaximumNumberDecimals() > 0) {
-            return  ParameterValueType.DOUBLE;
-        }
         else {
-            return ParameterValueType.INTEGER;
+            return ParameterValueType.DOUBLE;
         }
     }
 
@@ -76,8 +69,6 @@ public enum ParameterValueType {
                 return ParameterValueType.STRING;
             case "DATE":
                 return ParameterValueType.DATE;
-            case "INTEGER":
-                return ParameterValueType.INTEGER;
             case "DOUBLE":
                 return ParameterValueType.DOUBLE;
             default:

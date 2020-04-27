@@ -28,6 +28,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -51,6 +52,16 @@ public class ReferentialServiceImpl implements ReferentialService {
 	@Override
 	public List<ReferentialTypeVO> getAllTypes() {
 		return referentialDao.getAllTypes();
+	}
+
+	@Override
+	public ReferentialVO get(String entityName, int id) {
+		return referentialDao.get(entityName, id);
+	}
+
+	@Override
+	public ReferentialVO get(Class<? extends IReferentialEntity> entityClass, int id) {
+		return referentialDao.get(entityClass.getSimpleName(), id);
 	}
 
 	@Override

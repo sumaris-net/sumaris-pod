@@ -262,7 +262,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
                 target.setTrip(null);
             }
             else {
-                target.setTrip(get(Trip.class, tripId));
+                target.setTrip(get(Trip.class, tripId)); // Use a GET, because trip will be used later, for physicalGears
             }
         }
 

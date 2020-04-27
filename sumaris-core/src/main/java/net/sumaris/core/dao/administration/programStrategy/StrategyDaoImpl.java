@@ -40,6 +40,7 @@ import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ParameterValueType;
+import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -290,13 +291,13 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
         Parameter parameter = pmfm.getParameter();
         target.setName(parameter.getName());
 
-        // Parameter Type
-        ParameterValueType type = ParameterValueType.fromPmfm(pmfm);
+        // Value Type
+        PmfmValueType type = PmfmValueType.fromPmfm(pmfm);
         target.setType(type.name().toLowerCase());
 
         // Unit symbol
         if (pmfm.getUnit() != null && pmfm.getUnit().getId().intValue() != unitIdNone) {
-            target.setUnit(pmfm.getUnit().getLabel());
+            target.setUnitLabel(pmfm.getUnit().getLabel());
         }
 
         // Acquisition Level

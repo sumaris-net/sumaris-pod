@@ -9,7 +9,7 @@ import net.sumaris.core.model.referential.pmfm.Method;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.service.referential.PmfmService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ProductVO;

@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.referential.PmfmDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;

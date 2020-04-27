@@ -1,0 +1,10 @@
+@prefix sar:   <http://localhost:8080/ontology/schema/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix dc:    <http://purl.org/dc/elements/1.1/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<http://localhost:8080/ontology/data/TaxonName/1014>
+    a   sar:TaxonName ;
+    <http://localhost:8080/ontology/schema/TaxonName#name>
+        "Lophius budegassa" .
+

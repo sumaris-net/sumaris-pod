@@ -28,6 +28,10 @@ import java.io.Serializable;
 
 public interface IWithValidityStatusEntity<ID extends Serializable, VS extends IEntity<Integer>> extends IEntity<ID> {
 
+    interface Fields extends IEntity.Fields {
+        String VALIDITY_STATUS = "validityStatus";
+    }
+
     VS getValidityStatus();
 
     void setValidityStatus(VS validityStatus);

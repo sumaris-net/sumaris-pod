@@ -2,8 +2,10 @@
     
     <SOFTWARE ID="1" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="SUMARiS" NAME="European shared database for management of skate stocks." />
     <SOFTWARE ID="2" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="ADAP" NAME="Application d’assistance à l’auto-échantillonnage en mer et aux contrôles en criées." />
+    <SOFTWARE ID="3" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="SAR" NAME="Service d'Administration des Référentiels Marins" />
 
-    <!-- SUMARiS properties-->
+    <!-- ****** SUMARiS properties ****** -->
+
     <SOFTWARE_PROPERTY ID="2"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLocale" NAME="en"/>
     <SOFTWARE_PROPERTY ID="3"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLatLongFormat" NAME="DDMM"/>
     <SOFTWARE_PROPERTY ID="5"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:50"/>
@@ -16,8 +18,12 @@
     <SOFTWARE_PROPERTY ID="14" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:55"/>
     <SOFTWARE_PROPERTY ID="15" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="16" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.android.install.url" NAME="./download/android/sumaris-app-latest.apk"/>
+    <SOFTWARE_PROPERTY ID="17" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="true"/>
 
-    <!-- ADAP properties-->
+
+
+    <!-- ****** ADAP properties ****** -->
+
     <SOFTWARE_PROPERTY ID="22" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:18"/>
     <SOFTWARE_PROPERTY ID="23" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:53"/>
     <SOFTWARE_PROPERTY ID="24" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:8"/>
@@ -26,11 +32,25 @@
     <SOFTWARE_PROPERTY ID="27" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLocale" NAME="fr"/>
     <SOFTWARE_PROPERTY ID="28" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLatLongFormat" NAME="DDMM"/>
 
-    <SOFTWARE_PROPERTY ID="29" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.color.primary" NAME="#004178"/>
+    <!--<SOFTWARE_PROPERTY ID="29" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.color.primary" NAME="#004178"/>
     <SOFTWARE_PROPERTY ID="30" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.color.secondary" NAME="#C3CD07"/>
-    <SOFTWARE_PROPERTY ID="31" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.color.tertiary" NAME="#009EAC"/>
+    <SOFTWARE_PROPERTY ID="31" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.color.tertiary" NAME="#009EAC"/>-->
     <SOFTWARE_PROPERTY ID="32" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:54"/>
     <SOFTWARE_PROPERTY ID="33" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="34" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.AUCTION_CONTROL"/>
+    <SOFTWARE_PROPERTY ID="35" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="true"/>
+
+
+
+    <!-- ****** SIMM properties ****** -->
+    <SOFTWARE_PROPERTY ID="50" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:20"/>
+    <SOFTWARE_PROPERTY ID="51" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:20"/>
+    <SOFTWARE_PROPERTY ID="52" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:10,department:3"/>
+    <SOFTWARE_PROPERTY ID="54" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:20"/>
+    <SOFTWARE_PROPERTY ID="55" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLocale" NAME="fr"/>
+    <SOFTWARE_PROPERTY ID="56" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="false"/>
+    <SOFTWARE_PROPERTY ID="57" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="false"/>
+    <!-- TODO : change this -->
+    <SOFTWARE_PROPERTY ID="58" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="image:40,image:41,image:42,image:43,image:44,image:45,image:46,image:47,image:48,image:49"/>
 
 </dataset>

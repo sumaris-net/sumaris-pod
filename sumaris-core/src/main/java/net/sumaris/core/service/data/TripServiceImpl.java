@@ -32,7 +32,7 @@ import net.sumaris.core.event.DataEntityUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
-import net.sumaris.core.service.referential.PmfmService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.data.*;

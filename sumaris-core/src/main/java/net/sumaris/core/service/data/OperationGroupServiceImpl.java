@@ -9,7 +9,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.GearUseMeasurement;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.VesselUseMeasurement;
-import net.sumaris.core.service.referential.PmfmService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;

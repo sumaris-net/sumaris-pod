@@ -1,5 +1,6 @@
 package net.sumaris.core.dao.data;
 
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.technical.Daos;
@@ -31,6 +32,7 @@ import org.springframework.lang.Nullable;
 import javax.persistence.EntityManager;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -150,7 +152,9 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
         E savedEntity = save(entity);
 
+        // Update VO
         vo.setId(savedEntity.getId());
+        vo.setUpdateDate(newUpdateDate);
 
         return vo;
     }
@@ -171,13 +175,22 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
     }
 
     public E toEntity(V vo) {
+        Preconditions.checkNotNull(vo);
         E entity;
         if (vo.getId() != null) {
             entity = getOne(vo.getId());
         } else {
             entity = createEntity();
         }
+
+        // Remember the entity's update date
+        Date entityUpdateDate = entity.getUpdateDate();
+
         toEntity(vo, entity, true);
+
+        // Restore the update date (can be override by Beans.copyProperties())
+        entity.setUpdateDate(entityUpdateDate);
+
         return entity;
     }
 
@@ -188,28 +201,7 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
         // Observers
         if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
-            Set<PersonVO> sourceObservers = ((IWithObserversEntity) source).getObservers();
-            Set<Person> targetObservers = SetUtils.emptyIfNull(((IWithObserversEntity) target).getObservers());
-            if (copyIfNull || sourceObservers != null) {
-                if (CollectionUtils.isEmpty(sourceObservers)) {
-                    if (CollectionUtils.isNotEmpty(targetObservers)) {
-                        targetObservers.clear();
-                    }
-                } else {
-                    Map<Integer, Person> observersToRemove = Beans.splitById(targetObservers);
-                    sourceObservers.stream()
-                        .map(IEntity::getId)
-                        .forEach(personId -> {
-                            if (observersToRemove.remove(personId) == null) {
-                                // Add new item
-                                targetObservers.add(load(Person.class, personId));
-                            }
-                        });
-
-                    // Remove deleted tableNames
-                    targetObservers.removeAll(observersToRemove.values());
-                }
-            }
+            copyObservers((IWithObserversEntity<Integer, PersonVO>)source, (IWithObserversEntity<Integer, Person>)target, copyIfNull);
         }
     }
 

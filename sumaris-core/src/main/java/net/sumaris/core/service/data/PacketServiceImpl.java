@@ -3,7 +3,7 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.BatchDao;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.referential.PmfmDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;

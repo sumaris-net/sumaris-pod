@@ -47,6 +47,8 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
     public static String ISO_TIMESTAMP_REGEXP = "\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d:[0-5]\\d\\.\\d+([+-][0-2]\\d:[0-5]\\d|Z)";
     public static Pattern ISO_TIMESTAMP_PATTERN = Pattern.compile("^" + ISO_TIMESTAMP_REGEXP + "$");
 
+    public static String ISO_TIMESTAMP_SPEC = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+
     /**
      * Remove a amount of month to a date
      *

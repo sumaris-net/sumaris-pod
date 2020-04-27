@@ -2,7 +2,7 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.ProductRepository;
-import net.sumaris.core.service.referential.PmfmService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.data.ProductVO;
 import net.sumaris.core.vo.filter.ProductFilterVO;
 import org.springframework.beans.factory.annotation.Autowired;
