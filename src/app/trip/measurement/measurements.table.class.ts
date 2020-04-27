@@ -252,7 +252,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (!this.loading) this.markForCheck();
   }
 
-
   // Can be override by subclass
   protected async onNewEntity(data: T): Promise<void> {
     if (this.hasRankOrder && isNil(data.rankOrder)) {
@@ -263,6 +262,16 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   protected async getMaxRankOrder(): Promise<number> {
     const rows = await this.dataSource.getRows();
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+  }
+
+  protected getRowEntity(row: TableElement<T>, clone?: boolean): T {
+    if (!row.validator) {
+      const res = (row.currentData as T);
+      return (res && clone === true ? res.clone() : res) as T;
+    }
+    const target = new this.dataType();
+    target.fromObject(row.validator.value);
+    return target;
   }
 
   protected async onRowCreated(row: TableElement<T>): Promise<void> {
@@ -277,6 +286,81 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     row.currentData = data; // if validator enable, this will call a setter function
 
     this.markForCheck();
+  }
+
+  /**
+   * Insert an entity into the table. This can be usefull when entity is created by a modal (e.g. BatchGroupTable).
+   *
+   * If hasRankOrder=true, then rankOrder is computed only once.
+   * Will call method normalizeEntityToRow().
+   * The new row will be the edited row.
+   *
+   * @param data the entity to insert.
+   */
+  protected async addEntityToTable(data: T): Promise<TableElement<T>> {
+    if (!data) throw new Error("Missing data to add");
+    if (this.debug) console.debug("[measurement-table] Adding new entity", data);
+
+    const row = await this.addRowToTable();
+    if (!row) throw new Error("Could not add row to table");
+
+    // Adapt measurement values to row
+    this.normalizeEntityToRow(data, row);
+
+    // Override rankOrder (keep computed value)
+    if (this.hasRankOrder) {
+      data.rankOrder = row.currentData.rankOrder;
+    }
+    await this.onNewEntity(data);
+
+    // Affect new row
+    if (row.validator) {
+      row.validator.patchValue(data);
+      row.validator.markAsDirty();
+    } else {
+      row.currentData = data;
+    }
+
+    this.confirmEditCreate(null, row);
+    this.markAsDirty();
+
+    // restore the edited row, to be able to use it in modal callback (see BatchGroupTable)
+    this.editedRow = row;
+
+    return row;
+  }
+
+  /**
+   * Update an row, using the given entity. Useful when entity is updated using a modal (e.g. BatchGroupModal)
+   *
+   * The updated row will be the edited row.
+   * Will call method normalizeEntityToRow()
+   *
+   * @param data the input entity
+   * @param row the row to update
+   */
+  protected async updateEntityToTable(data: T, row: TableElement<T>): Promise<TableElement<T>> {
+    if (!data || !row) throw new Error("Missing data, or table row to update");
+    if (this.debug) console.debug("[measurement-table] Updating entity to an existing row", data);
+
+    // Adapt measurement values to row
+    this.normalizeEntityToRow(data, row);
+
+    // Affect new row
+    if (row.validator) {
+      row.validator.patchValue(data);
+      row.validator.markAsDirty();
+    } else {
+      row.currentData = data;
+    }
+
+    this.confirmEditCreate(null, row);
+    this.markAsDirty();
+
+    // restore the edited row, to be able to use it in modal callback (see BatchGroupTable)
+    this.editedRow = row;
+
+    return row;
   }
 
   protected getI18nColumnName(columnName: string): string {

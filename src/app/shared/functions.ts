@@ -55,6 +55,9 @@ export function toFloat(obj: string | null | undefined, defaultValue?: number): 
 export function toInt(obj: string | null | undefined, defaultValue?: number): number | null {
   return (obj !== undefined && obj !== null) ? parseInt(obj, 0) : defaultValue;
 }
+export function toNotNil<T = any>(obj: T, defaultValue?: T): any | null {
+  return (obj !== undefined && obj !== null) ? obj : defaultValue;
+}
 export function toDateISOString(value: any): string | undefined {
   if (!value) return undefined;
 
@@ -204,11 +207,26 @@ export function propertyPathComparator<T = any>(path: string): (a: T, b: T) => n
   };
 }
 
-export function propertyComparator<T = any, K extends keyof T = any>(key: K): (a: T, b: T) => number {
+export function propertyComparator<T = any, K extends keyof T = any>(key: K, defaultValue?: any): (a: T, b: T) => number {
   return (a: T, b: T) => {
-    const valueA = a[key];
-    const valueB = b[key];
+    const valueA = a[key] !== undefined ? a[key] : defaultValue;
+    const valueB = b[key] ? b[key] : defaultValue;
     return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
+  };
+}
+
+export function propertiesPathComparator<T = any>(keys: string[], defaultValues?: any[]): (a: T, b: T) => number {
+  if (!keys || !keys.length || (defaultValues && keys.length > defaultValues.length)) {
+    throw new Error("Invalid arguments: missing 'keys' or array 'defaultValues' has a bad length");
+  }
+  return (a: T, b: T) => {
+    return keys.map((key, index) => {
+      const valueA = getPropertyByPath(a, key, defaultValues && defaultValues[index]);
+      const valueB = getPropertyByPath(b, key, defaultValues && defaultValues[index]);
+      return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
+    })
+      // Stop if not equals, otherwise continue with the next key
+      .find(res => res !== 0) || 0;
   };
 }
 
@@ -252,8 +270,8 @@ export function filterNumberInput(event: KeyboardEvent, allowDecimals: boolean, 
     //console.debug('input decimal separator entered :' + event.code);
     // OK
   } else {
-    //input command entered of delete, backspace or one of the 4 direction up, down, left and right
-    if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8 || event.keyCode == 9) {
+    //input command entered of delete, backspace or one of the 4 direction up, down, left and right, or negative sign
+    if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8 || event.keyCode == 9 || event.keyCode == 45) {
       //console.debug('input command entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
       // OK
     }
@@ -265,12 +283,13 @@ export function filterNumberInput(event: KeyboardEvent, allowDecimals: boolean, 
   }
 }
 
-export function getPropertyByPath(obj: any, path: string): any {
+export function getPropertyByPath(obj: any, path: string, defaultValue?: any): any {
   if (isNil(obj)) return undefined;
   if (isNilOrBlank(path)) return obj;
   const i = path.indexOf('.');
   if (i === -1) {
-    return obj[path];
+    const res = obj[path];
+    return (isNotNil(res) || isNil(defaultValue)) ? res : defaultValue;
   }
   const key = path.substring(0, i);
   if (isNil(obj[key])) return undefined;

@@ -11,7 +11,7 @@ export class PersonValidatorService implements ValidatorService {
 
   constructor(
     protected formBuilder: FormBuilder,
-    protected accountValitatorService: AccountValidatorService
+    protected accountValidatorService: AccountValidatorService
   ) {
   }
 
@@ -22,15 +22,13 @@ export class PersonValidatorService implements ValidatorService {
   getFormGroup(data?: Person): FormGroup {
 
     // Use account validator as base form group definition
-    const formDef = this.accountValitatorService.getFormGroupDefinition(data && Account.fromObject(data.asObject));
-
-    // BUT add more flexibility (set pubkey as optional)
+    // BUT add more flexibility (e.g. 'pubkey' become optional)
     // This is need to be able to store person that are not using SUMARiS tools (e.g. onboard obsevers)
-    formDef.pubkey = [data && data.pubkey || null, SharedValidators.pubkey];
+    const formConfig = this.accountValidatorService.getFormGroupConfig(data && Account.fromObject(data.asObject));
+    formConfig.pubkey = [data && data.pubkey || null, SharedValidators.pubkey];
+    formConfig.avatar = [''];
 
-    formDef.avatar = [''];
-
-    return this.formBuilder.group(formDef);
+    return this.formBuilder.group(formConfig);
   }
 
 

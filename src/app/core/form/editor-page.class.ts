@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, EventEmitter, Injector, OnInit} from '@angular/core';
+import {ChangeDetectorRef, EventEmitter, Injector, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, ActivatedRouteSnapshot, Router} from "@angular/router";
 import {AlertController, ToastController} from "@ionic/angular";
 
@@ -23,7 +23,7 @@ import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
 import {ServerErrorCodes} from "../services/errors";
 
-export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
+export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit, OnDestroy {
 
   protected idAttribute = 'id';
   protected _enableListenChanges = (environment.listenRemoteChanges === true);
@@ -37,7 +37,6 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   hasRemoteListener = false;
   defaultBackHref: string;
   onUpdateView = new EventEmitter<T>();
-
 
   get usageMode(): UsageMode {
     return this._usageMode;
@@ -90,6 +89,10 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     // Load data from the snapshot route
     this.loadFromRoute(this.route.snapshot);
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
   }
 
   protected async loadFromRoute(route: ActivatedRouteSnapshot) {
@@ -165,9 +168,10 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     opts = opts || {};
     opts.updateTabAndRoute = toBoolean(opts.updateTabAndRoute, idChanged && !this.loading);
-    opts.openTabIndex = isNotNil(opts.openTabIndex) ? opts.openTabIndex :
+    opts.openTabIndex = this.tabCount > 1 ?
+      ((isNotNil(opts.openTabIndex) && opts.openTabIndex < this.tabCount) ? opts.openTabIndex :
       // If new data: open the second tab (if it's not the select index)
-      (idChanged && isNil(this.previousDataId) && this.selectedTabIndex === 0 && 1 || undefined);
+      (idChanged && isNil(this.previousDataId) && this.selectedTabIndex < this.tabCount - 1 ? this.selectedTabIndex + 1 : undefined)) : undefined;
 
     this.data = data;
     this.previousDataId = data.id;
@@ -197,7 +201,11 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     }
     else {
       this.disable(opts);
+
+      // Allow to sort table
+      this.tables.forEach(t => t.enableSort());
     }
+
   }
 
   /**

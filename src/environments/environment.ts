@@ -31,15 +31,15 @@ export const environment: Environment = {
   // },
   defaultPeers: [
     {
-      host: '192.168.0.20',
-      port: 8080
-    },
-    {
       host: 'localhost',
       port: 8080
     },
     {
       host: '192.168.0.24',
+      port: 8080
+    },
+    {
+      host: '192.168.0.29',
       port: 8080
     },
     {

@@ -131,8 +131,12 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     this.usageMode = this.usageMode || this.settings.usageMode;
 
     // Combo: programs
+    const programAttributes = this.settings.getFieldDisplayAttributes('program');
     this.registerAutocompleteField('program', {
       service: this.referentialRefService,
+      attributes: programAttributes,
+      // Increase default column size, for 'label'
+      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined),
       filter: {
         entityName: 'Program'
       }

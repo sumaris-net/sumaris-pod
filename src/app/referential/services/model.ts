@@ -24,6 +24,7 @@ import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/fie
 import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 import {isNilOrBlank} from "../../shared/functions";
 import {PredefinedColors} from "@ionic/core";
+import {PmfmType} from "./model/pmfm.model";
 
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 export const LocationLevelIds = {
@@ -62,6 +63,7 @@ export const PmfmIds = {
   IS_SAMPLING: 121,
 
   /* ADAP pmfms */
+  SELF_SAMPLING_PROGRAM: 28,
   CONTROLLED_SPECIES: 134,
   SAMPLE_MEASURED_WEIGHT: 140,
   OUT_OF_SIZE: 142,
@@ -132,8 +134,8 @@ export function getPmfmName(pmfm: PmfmStrategy, opts?: {
 }): string {
   const matches = PMFM_NAME_REGEXP.exec(pmfm.name);
   const name = matches && matches[1] || pmfm.name;
-  if (opts && opts.withUnit && pmfm.unit && (pmfm.type === 'integer' || pmfm.type === 'double')) {
-    return `${name} (${pmfm.unit})`;
+  if (opts && opts.withUnit && pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')) {
+    return `${name} (${pmfm.unitLabel})`;
   }
   return name;
 }
@@ -562,6 +564,18 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "true",
     type: 'boolean'
   },
+  TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT: {
+    key: "sumaris.trip.operation.batch.taxonGroups.noWeight",
+    label: "PROGRAM.OPTIONS.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT",
+    defaultValue: "",
+    type: 'string'
+  },
+  TRIP_BATCH_AUTO_FILL: {
+    key: "sumaris.trip.operation.batch.autoFill",
+    label: "PROGRAM.OPTIONS.TRIP_BATCH_AUTO_FILL",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE: {
     key: "sumaris.trip.operation.batch.individualCount.compute",
     label: "PROGRAM.OPTIONS.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE",
@@ -782,8 +796,6 @@ export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   PRODUCT_SALE: 'PRODUCT_SALE'
 };
 
-export declare type PmfmType = 'integer' | 'double' | 'string' | 'qualitative_value' | 'date' | 'boolean' ;
-
 export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   static fromObject(source: any): PmfmStrategy {
@@ -797,7 +809,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   methodId: number;
   label: string;
   name: string;
-  unit: string;
+  unitLabel: string;
   type: string | PmfmType;
   minValue: number;
   maxValue: number;
@@ -844,7 +856,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     this.methodId = source.methodId;
     this.label = source.label;
     this.name = source.name;
-    this.unit = source.unit;
+    this.unitLabel = source.unitLabel;
     this.type = source.type;
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;
@@ -888,7 +900,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   }
 
   get hasUnit(): boolean {
-    return isNotNil(this.unit) && this.isNumeric;
+    return isNotNil(this.unitLabel) && this.isNumeric;
   }
 
   get isWeight(): boolean {
@@ -916,7 +928,7 @@ export class Strategy extends Entity<Strategy> {
   pmfmStrategies: PmfmStrategy[];
 
   gears: any[];
-  taxonGroups: any[];
+  taxonGroups: any[]; // TODO use TaxonGroupStrategyRef ?
   taxonNames: any[];
 
   programId: number;

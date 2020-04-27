@@ -30,7 +30,7 @@ import {
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {Operation, VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
-import {Batch} from "./model/batch.model";
+import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
 
 export const OperationFragments = {
@@ -209,6 +209,7 @@ export class OperationService extends BaseDataService
    * @param sortBy
    * @param sortDirection
    * @param dataFilter
+   * @param options
    */
   watchAll(offset: number,
            size: number,
@@ -657,66 +658,15 @@ export class OperationService extends BaseDataService
     //if (this._debug) BatchUtils.logTree(entity.catchBatch);
   }
 
-  protected fillBatchTreeDefaults(source: Batch,
-                                  options?: Partial<OperationSaveOptions>) {
+  protected fillBatchTreeDefaults(catchBatch: Batch, options?: Partial<OperationSaveOptions>) {
 
-    if (!source.label || !source.children ) return; // skip
-    if (!options || (options.computeBatchRankOrder !== true && options.computeBatchIndividualCount !== true)) return; // skip (nothing to do)
+    if (!options) return;
 
-    let sumChildrenIndividualCount: number = null;
+    // Compute rankOrder (and label)
+    if (options.computeBatchRankOrder) BatchUtils.computeRankOrder(catchBatch);
 
-    // Sort by id and rankOrder (new batch at the end)
-    if (options.computeBatchRankOrder === true && source.children) {
-      source.children = source.children
-        .sort((b1, b2) => ((b1.id || 0) * 10000 + (b1.rankOrder || 0)) - ((b2.id || 0) * 10000 + (b2.rankOrder || 0)));
-    }
-
-    source.children.forEach((b, index) => {
-      b.rankOrder = options.computeBatchRankOrder ? index + 1 : b.rankOrder;
-
-      // Sampling batch
-      if (b.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX)) {
-        b.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
-      }
-      // Individual measure batch
-      else if (b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
-        b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
-      }
-
-      this.fillBatchTreeDefaults(b, options); // Recursive call
-
-      // Update sum of individual count
-      if (options.computeBatchIndividualCount && b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
-        sumChildrenIndividualCount = toNumber(sumChildrenIndividualCount, 0) + toNumber(b.individualCount, 1);
-      }
-    });
-
-    if (options.computeBatchIndividualCount) {
-
-      // Parent batch is a sampling batch: update individual count
-      if (source.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX)) {
-        source.individualCount = sumChildrenIndividualCount || null;
-      }
-
-      // Parent is NOT a sampling batch
-      else if (isNotNil(sumChildrenIndividualCount) && source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH)){
-        if (isNotNil(source.individualCount) && source.individualCount < sumChildrenIndividualCount) {
-          console.warn(`[operation-service] Fix batch {${source.label}} individual count  ${source.individualCount} => ${sumChildrenIndividualCount}`);
-          //source.individualCount = childrenIndividualCount;
-          source.qualityFlagId = QualityFlagIds.BAD;
-        }
-        else if (isNil(source.individualCount) || source.individualCount > sumChildrenIndividualCount) {
-          // Create a sampling batch, to hold the sampling individual count
-          const samplingBatch = new Batch();
-          samplingBatch.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
-          samplingBatch.rankOrder = 1;
-          samplingBatch.individualCount = sumChildrenIndividualCount;
-          samplingBatch.children = source.children;
-          source.children = [samplingBatch];
-        }
-      }
-    }
-
+    // Compute individual count
+    if (options.computeBatchIndividualCount) BatchUtils.computeIndividualCount(catchBatch);
   }
 
   protected copyIdAndUpdateDate(source: Operation | undefined | any, target: Operation) {

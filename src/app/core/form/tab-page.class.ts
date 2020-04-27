@@ -13,6 +13,8 @@ import {AppFormUtils} from "./form.utils";
 import {ToastOptions} from "@ionic/core";
 import {Toasts} from "../../shared/toasts";
 
+export declare type HammerSwipeAction = 'swipeleft' | 'swiperight';
+
 export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
 
   private _forms: AppForm<any>[];
@@ -24,6 +26,8 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   data: T;
   previousDataId: number;
   selectedTabIndex = 0;
+  tabCount = 1;
+  enableSwipe = true;
   submitted = false;
   error: string;
   loading = true;
@@ -32,8 +36,51 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     subtab?: number;
     [key: string]: any
   };
+  tabGroupAnimationDuration = '200ms';
 
-  protected toastController: ToastController
+  /**
+   * Action triggered when user swipes
+   */
+  onSwipeTab(event: { type: HammerSwipeAction; pointerType: 'touch' | any, srcEvent: UIEvent } & UIEvent ) {
+    // Skip, if not a valid swipe event
+    if (!this.enableSwipe || !event
+      || event.defaultPrevented || (event.srcEvent && event.srcEvent.defaultPrevented)
+      || event.pointerType !== 'touch'
+    ) {
+      return false;
+    }
+
+    if (this.debug) console.debug("[tab-page] Detected " + event.type, event);
+
+    let selectTabIndex = this.selectedTabIndex;
+    switch (event.type) {
+      // Open next tab
+      case "swipeleft":
+        const isLast = selectTabIndex === (this.tabCount - 1);
+        selectTabIndex = isLast ? 0 : selectTabIndex + 1;
+        break;
+
+      // Open previous tab
+      case "swiperight":
+        const isFirst = selectTabIndex === 0;
+        selectTabIndex = isFirst ? this.tabCount : selectTabIndex - 1;
+        break;
+
+      // Other case
+      default:
+        console.error("[tab-page] Unknown swipe action: " + event.type);
+        return false;
+    }
+
+    setTimeout(() => {
+      this.selectedTabIndex = selectTabIndex;
+      this.markForCheck();
+    });
+
+    return true;
+  }
+
+  protected toastController: ToastController;
 
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
   @ViewChild(ToolbarComponent, { static: true }) appToolbar: ToolbarComponent;
@@ -91,13 +138,17 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     // Copy original queryParams, for reuse in onTabChange()
     this.queryParams = Object.assign({}, queryParams);
 
-    // Parse tab param
-    const tabIndex = queryParams["tab"];
-    this.queryParams.tab = tabIndex && parseInt(tabIndex) || undefined;
-    if (isNotNil(this.queryParams.tab)) {
-      this.selectedTabIndex = this.queryParams.tab;
+    if (this.tabGroup) {
+      // Parse tab param
+      if (this.tabCount > 1) {
+        const tabIndex = queryParams["tab"];
+        this.queryParams.tab = tabIndex && parseInt(tabIndex) || undefined;
+        if (isNotNil(this.queryParams.tab)) {
+          this.selectedTabIndex = this.queryParams.tab;
+        }
+      }
+      this.tabGroup.realignInkBar();
     }
-    if (this.tabGroup) this.tabGroup.realignInkBar();
 
     // Catch back click events
     if (this.appToolbar) {
@@ -117,7 +168,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   abstract async save(event, options?: any): Promise<any>;
 
   registerForm(form: AppForm<any>): AppTabPage<T, F> {
-    if (!form) throw 'Trying to register an invalid form';
+    if (!form) throw new Error('Trying to register an invalid form');
     this._forms = this._forms || [];
     this._forms.push(form);
     return this;
@@ -212,10 +263,11 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     event.preventDefault();
 
     setTimeout(async () => {
-      let confirm = !this.dirty;
+      const dirty = this.dirty;
+      let confirm = !dirty;
       let save = false;
 
-      if (!confirm) {
+      if (dirty) {
 
         let alert;
         // Ask user before
@@ -281,8 +333,13 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
       if (confirm) {
         if (save) {
           await this.save(event); // sync save
-        } else if (this.dirty && this.data.id) {
-          this.doReload(); // async reload
+        } else if (dirty) {
+          if (this.isNewData) {
+            this.doUnload(); // async reset
+          }
+          else {
+            this.doReload(); // async reload
+          }
         }
 
         // Execute the action
@@ -331,6 +388,12 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   async doReload() {
     this.loading = true;
     await this.load(this.data && this.data.id);
+  }
+
+  async doUnload() {
+    this.loading = true;
+    this.selectedTabIndex = 0;
+    // TODO: find a way to remove this page from the navigation history
   }
 
   /* -- protected methods -- */
@@ -386,7 +449,9 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     await alert.present();
     await alert.onDidDismiss();
 
-    if (!confirm) return !cancel;
+    if (!confirm) {
+      return !cancel;
+    }
 
     const saved = await this.save(event);
     return saved;

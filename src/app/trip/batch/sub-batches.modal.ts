@@ -55,18 +55,29 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   @Input()
   showParent: boolean;
 
+  @Input() set disabled(value: boolean) {
+    if (value) {
+      this.disable();
+      this.showForm = false;
+    }
+    else {
+      this.enable();
+      this.showForm = true;
+    }
+  }
+
   @ViewChild('form', { static: true }) form: SubBatchForm;
 
   get dirty(): boolean {
-    return this._dirty || this.form.dirty;
+    return this._dirty || (this.form && this.form.dirty);
   }
 
   get valid(): boolean {
-    return this.form.valid;
+    return this.form && this.form.valid;
   }
 
   get invalid(): boolean {
-    return this.form.invalid;
+    return this.form && this.form.invalid;
   }
 
   set selectedParent(parent: Batch) {
@@ -103,7 +114,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     this.showIndividualCount = !this.isOnFieldMode; // Hide individual count on mobile device
     this.showParent = toBoolean(this.showParent, true);
 
-    await this.form.ready();
+    this.showForm = this.showForm && (this.form && !this.disabled);
+
+    if (this.form) await this.form.ready();
 
     const data = (this.availableSubBatchesFn && (await this.availableSubBatchesFn()) || [])
       .sort(EntityUtils.sortComparator('rankOrder', 'desc'));
@@ -111,28 +124,32 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     // Compute the first rankOrder to save
     this._initialMaxRankOrder = data.length && data[0].rankOrder || 0;
 
-    let defaultBatch: Batch;
-    if (this._selectedParent) {
-      defaultBatch = new Batch();
-      defaultBatch.parent = this._selectedParent;
+
+
+    if (this.form) {
+      // Reset the form, using default value
+      let defaultBatch: Batch;
+      if (this._selectedParent) {
+        defaultBatch = new Batch();
+        defaultBatch.parent = this._selectedParent;
+      }
+      await this.resetForm(defaultBatch);
+
+      // Update table content when changing parent
+      this.registerSubscription(
+        this.form.form.get('parent').valueChanges
+          // Init table with existing values
+          //.pipe(startWith(() => this._defaultValue && this._defaultValue.parent))
+          .subscribe(parent => this.onParentChange(parent))
+      );
     }
-
-    // Reset the form, using default value
-    await this.resetForm(defaultBatch);
-
-    // Update table content when changing parent
-    this.registerSubscription(
-      this.form.form.get('parent').valueChanges
-        // Init table with existing values
-        //.pipe(startWith(() => this._defaultValue && this._defaultValue.parent))
-        .subscribe(parent => this.onParentChange(parent))
-    );
 
     // Apply data to table
     this.setValue(data);
 
     // Compute the title
     await this.computeTitle();
+
   }
 
   async cancel(event?: UIEvent) {
@@ -159,7 +176,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     if (this.loading) return; // avoid many call
 
     if (this.debug) console.debug("[sub-batch-modal] Closing modal...");
-    if (this.debug && this.form.dirty && this.form.invalid) {
+    if (this.debug && this.form && this.form.dirty && this.form.invalid) {
       AppFormUtils.logFormErrors(this.form.form, "[sub-batch-modal] ");
       // Continue
     }

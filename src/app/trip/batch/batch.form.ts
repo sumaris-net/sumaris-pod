@@ -22,7 +22,7 @@ import {
   PmfmLabelPatterns,
   PmfmStrategy
 } from "../../referential/services/model";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, Subscription} from "rxjs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
 import {AppFormUtils, FormArrayHelper} from "../../core/core.module";
@@ -38,10 +38,12 @@ import {PlatformService} from "../../core/services/platform.service";
   styleUrls: ['batch.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchForm extends MeasurementValuesForm<Batch>
+export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
   implements OnInit, OnDestroy {
 
   protected $initialized = new BehaviorSubject<boolean>(false);
+  protected _requiredSampleWeight = false;
+  protected _showWeight = true;
 
   defaultWeightPmfm: PmfmStrategy;
   weightPmfms: PmfmStrategy[];
@@ -49,6 +51,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   isSampling = false;
   mobile: boolean;
   childrenFormHelper: FormArrayHelper<Batch>;
+  samplingFormValidator: Subscription;
 
 
   @Input() tabindex: number;
@@ -58,6 +61,17 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   @Input() showTaxonGroup = true;
 
   @Input() showTaxonName = true;
+
+  @Input() set showWeight(value: boolean) {
+    if (this._showWeight !== value) {
+      this._showWeight = value;
+      this.onUpdateControls();
+    }
+  }
+
+  get showWeight(): boolean {
+    return this._showWeight;
+  }
 
   @Input() showTotalIndividualCount = false;
 
@@ -82,6 +96,23 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
     // Refresh sampling child form
     if (!this.isSampling) this.setIsSampling(this.isSampling);
+    if (!this._showWeight) this.disableWeightFormGroup();
+  }
+
+  get childrenArray() {
+    return this.form.get('children') as FormArray;
+  }
+
+  @Input()
+  set requiredSampleWeight(required: boolean) {
+    if (this._requiredSampleWeight !== required) {
+      this._requiredSampleWeight = required;
+      this.onUpdateControls();
+    }
+  }
+
+  get requiredSampleWeight(): boolean {
+    return this._requiredSampleWeight;
   }
 
   constructor(
@@ -96,7 +127,11 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     protected settings: LocalSettingsService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
-      validatorService.getFormGroup(null, {withWeight: true, rankOrderRequired: false, labelRequired: false}), // Allow to be set by parent component
+      validatorService.getFormGroup(null, {
+        withWeight: true,
+        rankOrderRequired: false, // Allow to be set by parent component
+        labelRequired: false, // Allow to be set by parent component
+      }),
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onUpdateControls: (form) => this.onUpdateControls(form)
@@ -133,15 +168,20 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
   }
 
-  setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean}) {
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    if (this.samplingFormValidator) this.samplingFormValidator.unsubscribe();
+  }
 
-    if (!this._ready || !this.data) {
+  setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean}) {
+
+    if (!this.isReady() || !this.data) {
       this.safeSetValue(data, opts);
       return;
     }
 
-    // Fill weight
-    if (this.defaultWeightPmfm) {
+    // Fill weight, if a weight PMFM exists
+    if (this.defaultWeightPmfm && this.showWeight) {
       const weightPmfm = (this.weightPmfms || []).find(p => isNotNil(data.measurementValues[p.pmfmId.toString()]));
       data.weight = {
         methodId: weightPmfm && weightPmfm.methodId,
@@ -156,8 +196,11 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         this.form.removeControl(p.pmfmId.toString());
       });
     }
+
+    // No weight PMFM : disable weight form group, if exists (will NOT exists in BatchGroupForm sub classe)
     else {
-      this.form.get('weight').disable({onlySelf: true, emitEvent: false});
+      // Disable weight, if group exist
+      this.disableWeightFormGroup();
     }
 
     // Adapt measurement values to form
@@ -173,7 +216,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       const samplingFormGroup = this.childrenFormHelper.at(0) as FormGroup;
 
       const samplingBatch = BatchUtils.getOrCreateSamplingChild(data);
-      this.setIsSampling(BatchUtils.isSampleNotEmpty(samplingBatch));
+      this.setIsSampling(this.isSampling || BatchUtils.isSampleNotEmpty(samplingBatch));
 
       // Read child weight (use the first one)
       if (this.defaultWeightPmfm) {
@@ -194,11 +237,10 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         samplingBatch.samplingRatio = samplingBatch.samplingRatio * 100;
       }
 
-      this.registerSubscription(
-        this.validatorService.addSamplingFormValidators(this.form));
     }
     else {
       this.childrenFormHelper.resize((data.children || []).length);
+      this.childrenFormHelper.disable();
     }
 
     super.setValue(data, {
@@ -207,8 +249,9 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     });
   }
 
-  protected getValue(): Batch {
+  protected getValue(): T {
     const json = this.form.value;
+    const data = this.data;
 
     // Convert weight into measurement
     const totalWeight = this.defaultWeightPmfm && json.weight && json.weight.value;
@@ -219,12 +262,15 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     json.weight = undefined;
 
     // Convert measurements
-    json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, this.$allPmfms.getValue()));
+    json.measurementValues = {
+      ...data.measurementValues,
+      ...MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, this.$allPmfms.getValue())
+    };
 
     if (this.showSampleBatch) {
 
       if (this.isSampling) {
-        const child = BatchUtils.getOrCreateSamplingChild(this.data);
+        const child = BatchUtils.getOrCreateSamplingChild(data);
         const childJson = json.children && json.children[0] || {};
 
         childJson.rankOrder = 1;
@@ -233,7 +279,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         childJson.measurementValues = childJson.measurementValues || {};
 
         // Convert weight into measurement
-        if (isNotNil(childJson.weight.value)) {
+        if (childJson.weight && isNotNil(childJson.weight.value)) {
           const childWeightPmfm = childJson.weight.estimated && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
           childJson.measurementValues[childWeightPmfm.pmfmId.toString()] = childJson.weight.value;
         }
@@ -256,36 +302,39 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         json.children = [childJson];
       }
       else {
+        // No sampling batch
         json.children = [];
       }
 
       // Update data
-      this.data.fromObject(json, {withChildren: true});
+      data.fromObject(json, {withChildren: true});
     }
     else {
-     // Keep existing children
-      this.data.fromObject(json);
+      // Keep existing children
+      data.fromObject(json);
     }
 
-    if (this.debug) console.debug(this.data.label + " getValue() with data:", this.data);
+    if (this.debug) console.debug(data.label + " getValue() with data:", data);
 
-    return this.data;
+    return data;
   }
 
   setIsSampling(enable: boolean, opts?: {emitEvent?: boolean}) {
-    this.isSampling = enable;
+    if (this.isSampling !== enable) {
+      this.isSampling = enable;
 
-    if (!this.loading) this.form.markAsDirty();
+      if (!this.loading) this.form.markAsDirty();
 
-    const childrenArray = this.form.get('children') as FormArray;
+      const childrenArray = this.childrenArray;
 
-    if (childrenArray) {
-      if (enable && childrenArray.disabled) {
-        childrenArray.enable({emitEvent: toBoolean(opts && opts.emitEvent, false)});
-        this.markForCheck();
-      } else if (!enable && childrenArray.enabled) {
-        childrenArray.disable({emitEvent: toBoolean(opts && opts.emitEvent, false)});
-        this.markForCheck();
+      if (childrenArray) {
+        if (enable && childrenArray.disabled) {
+          childrenArray.enable({emitEvent: toBoolean(opts && opts.emitEvent, false)});
+          this.markForCheck();
+        } else if (!enable && childrenArray.enabled) {
+          childrenArray.disable({emitEvent: toBoolean(opts && opts.emitEvent, false)});
+          this.markForCheck();
+        }
       }
     }
   }
@@ -354,7 +403,8 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     return pmfms.filter(p => !PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label) && !p.hidden);
   }
 
-  protected async onUpdateControls(form: FormGroup): Promise<void> {
+  protected async onUpdateControls(form?: FormGroup): Promise<void> {
+    form = form || this.form;
 
     // Wait end of ngInit()
     await this.onInitialized();
@@ -385,21 +435,37 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       if (this.data) {
         const samplingChildBatch = BatchUtils.getOrCreateSamplingChild(this.data);
 
-        this.setIsSampling(BatchUtils.isSampleNotEmpty(samplingChildBatch));
+        this.setIsSampling(this.isSampling || BatchUtils.isSampleNotEmpty(samplingChildBatch));
 
       } else {
         // No data: disable sampling
         this.setIsSampling(false);
       }
-
-      // TODO: add async validators:
-      //  e.g. sampling weight < total weight
     }
 
     // Remove existing sample, if exists but showSample=false
     else if (hasSamplingForm) {
       childrenFormHelper.resize(0);
     }
+
+    this.addSamplingFormValidators();
+
+    if (this.showWeight) {
+      this.enableWeightFormGroup({emitEvent: false});
+    }
+    else {
+      this.disableWeightFormGroup({emitEvent: false});
+    }
+  }
+
+  protected enableWeightFormGroup(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    const weightFormGroup = this.form.get('weight');
+    if (weightFormGroup) weightFormGroup.enable(opts);
+  }
+
+  protected disableWeightFormGroup(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    const weightFormGroup = this.form.get('weight');
+    if (weightFormGroup) weightFormGroup.disable(opts);
   }
 
   referentialToString = referentialToString;
@@ -415,6 +481,21 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       (value) => isNil(value),
       {allowEmptyArray: true}
     );
+  }
+
+  // Unregister to previous validator
+  protected addSamplingFormValidators() {
+    // Has sample batch ?
+    if (this.samplingFormValidator) {
+      this.samplingFormValidator.unsubscribe();
+      this.samplingFormValidator = undefined;
+
+    }
+    if (this.showSampleBatch && this.showWeight) {
+      this.samplingFormValidator = this.validatorService.addSamplingFormValidators(this.form, {
+        requiredSampleWeight: this.requiredSampleWeight
+      });
+    }
   }
 
   protected markForCheck() {

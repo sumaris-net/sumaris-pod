@@ -4,13 +4,13 @@
           *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
+  <button mat-icon-button *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
     (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+  <button mat-icon-button *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
     (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
@@ -126,13 +126,23 @@
     </mat-header-cell>
 
     <mat-cell *matCellDef="let row">
-      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
+
+      <!-- desktop -->
+      <mat-autocomplete-field *ngIf="!mobile; else mobileCellDef"
+                              floatLabel="never" class="min-width-medium"
                               [appAutofocus]="row.id == -1 && row.editing"
                               [formControl]="row.validator.controls.taxonGroup"
                               [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
                               [required]="showTaxonGroupColumn"
                               [config]="autocompleteFields.taxonGroup">
       </mat-autocomplete-field>
+
+      <!-- mobile -->
+      <ng-template #mobileCellDef>
+        <ion-label>
+          {{ referentialToString(row.currentData.taxonGroup, autocompleteFields.taxonGroup.attributes) }}
+        </ion-label>
+      </ng-template>
     </mat-cell>
   </ng-container>
 
@@ -143,13 +153,22 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row" >
 
-      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
+      <!-- desktop -->
+      <mat-autocomplete-field *ngIf="!mobile; else mobileCellDef"
+                              floatLabel="never" class="min-width-medium"
                               [appAutofocus]="!showTaxonGroupColumn && row.id == -1 && row.editing"
                               [formControl]="row.validator.controls.taxonName"
                               [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
                               [required]="showTaxonNameColumn"
                               [config]="autocompleteFields.taxonName">
       </mat-autocomplete-field>
+
+      <!-- mobile -->
+      <ng-template #mobileCellDef>
+        <ion-label>
+          {{ referentialToString(row.currentData.taxonName, autocompleteFields.taxonName.attributes) }}
+        </ion-label>
+      </ng-template>
     </mat-cell>
 
   </ng-container>
@@ -166,11 +185,11 @@
                      class="content-padding-left">
       <mat-label>
         <span>{{col.label|translate}}</span>
-        <small *ngIf="col.unit"><br />({{col.unit}})</small>
+        <small *ngIf="col.unitLabel"><br />({{col.unitLabel}})</small>
       </mat-label>
     </mat-header-cell>
 
-    <mat-cell *matCellDef="let row"
+    <mat-cell *matCellDef="let row; let roo"
               [class.total]="col.rankOrder % 5 < 2"
               [class.odd]="isQvOdd(col)"
               [class.even]="isQvEven(col)"
@@ -178,13 +197,39 @@
               [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
               [class.mat-cell-computed]="col.computed"
               class="content-padding-left">
-      <app-form-field
+
+      <app-form-field *ngIf="!mobile; else mobileCellDef"
         floatLabel="never"
         [definition]="col"
         [readonly]="!row.editing || col.computed"
         [formControl]="row.validator.controls.measurementValues.controls[col.rankOrder]"
         [compact]="true">
       </app-form-field>
+
+      <ng-template #mobileCellDef>
+        <div class="mat-form-field ion-text-center" *ngIf="row.validator.controls.measurementValues.value; let measurementValues">
+          <!-- Disable value, if any -->
+          <ion-label *ngIf="measurementValues[col.rankOrder] !== null; else missingValue">
+            {{measurementValues[col.rankOrder] | numberFormat}}
+          </ion-label>
+
+          <ng-template #missingValue>
+            <!-- Warn if not sampling weight nor sampling ratio, BUT individual count -->
+            <ion-label *ngIf="col.rankOrder % 5 === 3 && measurementValues[col.rankOrder-1] == null && measurementValues[col.rankOrder+1] !== null"
+                       color="danger">
+              <ion-icon matSuffix color="danger" name="warning"></ion-icon>
+              <ion-text translate>COMMON.MISSING</ion-text>
+            </ion-label>
+
+            <!-- If only individual count filled, display it -->
+            <ion-label
+              *ngIf="col.rankOrder % 5 === 0 && measurementValues[col.rankOrder] === null && measurementValues[col.rankOrder+1] !== null">
+              {{ measurementValues[col.rankOrder+1] | numberFormat }} {{'TRIP.BATCH.TABLE.INDIVIDUAL_UNIT'|translate}}
+            </ion-label>
+          </ng-template>
+        </div>
+      </ng-template>
+
     </mat-cell>
   </ng-container>
 
@@ -205,44 +250,47 @@
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">
+    <mat-cell *matCellDef="let row" >
 
-      <!-- undo or delete  -->
-      <button mat-icon-button color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-        (click)="cancelOrDelete($event, row)">
-        <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-        <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-      </button>
-      <!-- validate -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
-        (click)="confirmEditCreate($event, row)">
-        <mat-icon>check</mat-icon>
-      </button>
-      <!-- add -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
-        (click)="confirmAndAddRow($event, row)">
-        <mat-icon>add</mat-icon>
-      </button>
+      <!-- desktop -->
+      <ng-container *ngIf="!mobile; else mobileCellDef">
 
-      <!-- open batch modal
-      <button mat-icon-button
-              color="light" *ngIf="!row.editing"
-              [title]="'COMMON.BTN_EDIT'|translate"
-              (click)="$event.preventDefault() || this.openRow(row.currentData.id, row)">
-        <mat-icon>edit</mat-icon>
-      </button>-->
+        <!-- undo or delete  -->
+        <button mat-icon-button *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+          (click)="cancelOrDelete($event, row)">
+          <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
+          <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+        </button>
+        <!-- validate -->
+        <button mat-icon-button *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
+          (click)="confirmEditCreate($event, row)">
+          <mat-icon>check</mat-icon>
+        </button>
+        <!-- add -->
+        <button mat-icon-button *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
+          (click)="confirmAndAddRow($event, row)">
+          <mat-icon>add</mat-icon>
+        </button>
 
-      <!-- open individual measures -->
-      <!-- TODO visible-xs visible-sm visible-mobile -->
-      <button mat-icon-button
-              color="light" *ngIf="!row.editing"
-              [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
-              (click)="onSubBatchesClick($event, row)">
-<!--        <mat-icon [matBadge]="row.currentData.individualCount"-->
-<!--                  matBadgePosition="above after">assessment</mat-icon>-->
-        <mat-icon>assessment</mat-icon>
-      </button>
+      </ng-container>
 
+      <!-- mobile -->
+      <ng-template #mobileCellDef>
+
+        <!-- open individual measures -->
+        <button mat-icon-button
+                *ngIf="mobile && row.currentData.observedIndividualCount"
+                color="primary"
+                [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
+                (click)="onSubBatchesClick($event, row)">
+          <mat-icon [matBadge]="row.currentData.observedIndividualCount"
+                    [matBadgeHidden]="!row.currentData.observedIndividualCount"
+                    matBadgeColor="accent"
+                    matBadgeSize="small"
+                    matBadgePosition="above after"
+          >assessment</mat-icon>
+        </button>
+      </ng-template>
 
     </mat-cell>
   </ng-container>
@@ -250,8 +298,8 @@
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 
   <mat-row *matRowDef="let row; columns: displayedColumns;"
-           [class.mat-row-error]="row.validator.invalid || row.validator.controls['qualityFlagId'].value === 4"
-           [class.mat-row-dirty]="row.validator.dirty"
+           [class.mat-row-error]="row.validator?.invalid || row.validator?.controls['qualityFlagId'].value === 4"
+           [class.mat-row-dirty]="row.validator?.dirty"
            [class.mat-row-disabled]="!row.editing"
            (click)="clickRow($event, row)">
   </mat-row>

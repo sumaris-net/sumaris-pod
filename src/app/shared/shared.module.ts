@@ -8,7 +8,7 @@ import {AutofocusDirective} from "./directives/autofocus.directive";
 import {DateFormatPipe} from "./pipes/date-format.pipe";
 import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
 import {DateFromNowPipe} from "./pipes/date-from-now.pipe";
-import {LatLongFormatPipe} from "./pipes/latlong-format.pipe";
+import {LatitudeFormatPipe, LatLongFormatPipe, LongitudeFormatPipe} from "./pipes/latlong-format.pipe";
 import {NumberFormatPipe} from "./pipes/number-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
 import {ToolbarComponent} from "./toolbar/toolbar";
@@ -33,6 +33,7 @@ import {
 } from "./services/data-service.class";
 import {
   changeCaseToUnderscore,
+  delay,
   filterNumberInput,
   fromDateISOString,
   isNil,
@@ -40,7 +41,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  delay,
   joinPropertiesPath,
   nullIfUndefined,
   propertyComparator,
@@ -52,7 +52,12 @@ import {
   toFloat,
   toInt
 } from "./functions";
-import {fadeInAnimation, fadeInOutAnimation, slideInOutAnimation, slideUpDownAnimation} from "./material/material.animations";
+import {
+  fadeInAnimation,
+  fadeInOutAnimation,
+  slideInOutAnimation,
+  slideUpDownAnimation
+} from "./material/material.animations";
 import {InputElement} from "./material/focusable";
 import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
@@ -70,8 +75,8 @@ import {AppGestureConfig} from "./gesture/gesture-config";
 import {FileSizePipe} from "./pipes/file-size.pipe";
 import {MatDuration} from "./material/material.duration";
 import {DurationPipe} from "./pipes/duration.pipe";
-import {DurationPickerModule} from "ngx-duration-picker";
 import {ModalToolbarComponent} from "./toolbar/modal-toolbar";
+import {DragDropModule} from "@angular/cdk/drag-drop";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -102,7 +107,8 @@ export {
     IonicModule,
     TranslateModule.forChild(),
     ColorPickerModule,
-    HotkeysModule
+    HotkeysModule,
+    DragDropModule
   ],
   declarations: [
     AutofocusDirective,
@@ -114,6 +120,8 @@ export {
     DurationPipe,
     DateFromNowPipe,
     LatLongFormatPipe,
+    LatitudeFormatPipe,
+    LongitudeFormatPipe,
     HighlightPipe,
     NumberFormatPipe,
     FileSizePipe,
@@ -139,6 +147,8 @@ export {
     DateDiffDurationPipe,
     DurationPipe,
     LatLongFormatPipe,
+    LatitudeFormatPipe,
+    LongitudeFormatPipe,
     HighlightPipe,
     NumberFormatPipe,
     FileSizePipe,
@@ -158,6 +168,8 @@ export {
     DateFromNowPipe,
     DateDiffDurationPipe,
     LatLongFormatPipe,
+    LatitudeFormatPipe,
+    LongitudeFormatPipe,
     HighlightPipe,
     NumberFormatPipe,
     ProgressBarService,

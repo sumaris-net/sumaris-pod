@@ -1,4 +1,4 @@
-  <form class="form-container" [formGroup]="form">
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
@@ -6,44 +6,63 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <!-- Species batch  -->
-  <app-batch-form #batchForm [acquisitionLevel]="acquisitionLevel"
-                  [tabindex]="tabindex"
-                  [program]="program"
-                  [mapPmfmFn]="mapPmfmsFn"
-                  [showSampleBatch]="false"
-                  [showTaxonGroup]="showTaxonGroup"
-                  [showTaxonName]="showTaxonName"
-                  [showTotalIndividualCount]="false"
-                  [showIndividualCount]="false">
+
+  <ion-grid>
+    <ion-row>
+
+      <!-- Taxon group -->
+      <ion-col size="12" size-md="6"
+               [hidden]="!showTaxonGroup">
+        <mat-autocomplete-field formControlName="taxonGroup"
+                                [appAutofocus]="enabled && !mobile && showTaxonGroup"
+                                [placeholder]="'TRIP.BATCH.EDIT.TAXON_GROUP'|translate"
+                                [tabindex]="tabindex"
+                                [required]="showTaxonGroup"
+                                [config]="autocompleteFields.taxonGroup">
+        </mat-autocomplete-field>
+      </ion-col>
+
+      <!-- Taxon name (scientific species) -->
+      <ion-col size="12" size-md="6" *ngIf="showTaxonName">
+        <mat-autocomplete-field formControlName="taxonName"
+                                [appAutofocus]="enabled && !mobile && !showTaxonGroup && showTaxonName"
+                                [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
+                                [tabindex]="tabindex+1"
+                                [required]="showTaxonName"
+                                [config]="autocompleteFields.taxonName">
+        </mat-autocomplete-field>
+      </ion-col>
+    </ion-row>
 
     <ion-row>
       <ion-col>
         <!-- Has individual measures ? -->
         <mat-form-field floatLabel="always">
           <input matInput type="text" hidden
-                 [formControl]="hasMeasureControl"
+                 [formControl]="hasIndividualMeasureControl"
                  [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_MEASURE'|translate"
                  required>
           <ion-grid class="ion-no-padding" @fadeInAnimation *ngIf="!loading">
             <ion-row class="ion-no-padding">
               <ion-col>
                 <ion-button class="mat-form-field-button"
+                            [disabled]="hasIndividualMeasureControl.disabled"
                             [tabindex]="tabindex && tabindex + 9 || -1"
-                            (click)="setHasMeasure(false)"
-                            (keyup.enter)="setHasMeasure(false)"
+                            (click)="hasIndividualMeasureControl.setValue(false)"
+                            (keyup.enter)="hasIndividualMeasureControl.setValue(false)"
                             fill="solid" expand="full"
-                            [color]="hasMeasure === undefined ? 'danger': (!hasMeasure ? 'accent' : 'light')">
+                            [color]="hasIndividualMeasure === undefined ? 'danger': (!hasIndividualMeasure ? 'accent' : 'light')">
                   <ion-label translate>TRIP.BATCH.EDIT.WITHOUT_MEASURE</ion-label>
                 </ion-button>
               </ion-col>
               <ion-col>
                 <ion-button class="mat-form-field-button"
+                            [disabled]="hasIndividualMeasureControl.disabled"
                             [tabindex]="tabindex && tabindex + 8 || -1"
-                            (click)="setHasMeasure(true)"
-                            (keyup.enter)="setHasMeasure(true)"
+                            (click)="hasIndividualMeasureControl.setValue(true)"
+                            (keyup.enter)="hasIndividualMeasureControl.setValue(true)"
                             fill="solid" expand="full"
-                            [color]="hasMeasure === undefined ? 'danger': (hasMeasure ? 'accent' : 'light')">
+                            [color]="hasIndividualMeasure === undefined ? 'danger': (hasIndividualMeasure ? 'accent' : 'light')">
                   <ion-label translate>TRIP.BATCH.EDIT.WITH_MEASURE</ion-label>
                 </ion-button>
               </ion-col>
@@ -57,12 +76,13 @@
         </ion-buttons>
       </ion-col>
     </ion-row>
-  </app-batch-form>
 
+    <ion-spinner class="ion-float-center" *ngIf="loading"></ion-spinner>
+
+  </ion-grid>
 
 
   <ion-grid *ngIf="qvPmfm" @fadeInAnimation>
-
 
     <!-- QV children -->
     <ion-row>
@@ -77,18 +97,20 @@
 
           <ion-card-content>
             <app-batch-form #childForm
-                            [tabindex]="batchForm.tabindex + 10 + 10*i"
+                            [tabindex]="tabindex + 10 + 10*i"
                             [acquisitionLevel]="acquisitionLevel"
                             [pmfms]="$childrenPmfms | async"
                             [showTaxonGroup]="false"
                             [showTaxonName]="false"
-                            [showSampleBatch]="true"
+                            [showSampleBatch]="showChildrenSampleBatch"
+                            [showWeight]="showChildrenWeight"
                             [showTotalIndividualCount]="showTotalIndividualCount"
                             [showIndividualCount]="showIndividualCount"
+                            [requiredSampleWeight]="hasIndividualMeasure && showChildrenWeight"
             ></app-batch-form>
           </ion-card-content>
         </ion-card>
       </ion-col>
     </ion-row>
   </ion-grid>
-  </form>
+</form>

@@ -3,10 +3,13 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  Inject,
+  InjectionToken,
   Injector,
   Input,
   OnDestroy,
   OnInit,
+  Optional,
   Output
 } from "@angular/core";
 import {of, Subject} from 'rxjs';
@@ -14,8 +17,10 @@ import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
 import {
-  AcquisitionLevelCodes, getPmfmName,
-  PmfmLabelPatterns, PmfmStrategy,
+  AcquisitionLevelCodes,
+  getPmfmName,
+  PmfmLabelPatterns,
+  PmfmStrategy,
   PmfmUtils,
   ReferentialRefService
 } from "../../referential/referential.module";
@@ -40,6 +45,8 @@ export interface BatchFilter {
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
+export const DATA_TYPE_ACCESSOR = new InjectionToken<new() => Batch>('BatchesTableDataType');
+
 @Component({
   selector: 'app-batches-table',
   templateUrl: 'batches.table.html',
@@ -51,11 +58,15 @@ export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
       useFactory: () => new InMemoryTableDataService<Batch, BatchFilter>(Batch, {
         equals: Batch.equals
       })
+    },
+    {
+      provide: DATA_TYPE_ACCESSOR,
+      useValue: Batch
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
+export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = BatchFilter> extends AppMeasurementsTable<T, F>
   implements OnInit, OnDestroy {
 
   protected _initialPmfms: PmfmStrategy[];
@@ -67,11 +78,11 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   weightPmfmsByMethod: { [key: string]: PmfmStrategy };
 
   @Input()
-  set value(data: Batch[]) {
+  set value(data: T[]) {
     this.memoryDataService.value = data;
   }
 
-  get value(): Batch[] {
+  get value(): T[] {
     return this.memoryDataService.value;
   }
 
@@ -117,10 +128,11 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   constructor(
     injector: Injector,
     protected validatorService: ValidatorService,
-    protected memoryDataService: InMemoryTableDataService<Batch, BatchFilter>,
+    protected memoryDataService: InMemoryTableDataService<T, F>,
+    @Optional() @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T
   ) {
     super(injector,
-      Batch,
+      dataType || ((Batch as any) as (new() => T)),
       memoryDataService,
       validatorService,
       {
@@ -161,56 +173,24 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
 
   setParent(data: Operation | Landing) {
     if (!data) {
-      this.setFilter({});
+      this.setFilter({} as F);
     } else if (data instanceof Operation) {
-      this.setFilter({operationId: data.id});
+      this.setFilter({operationId: data.id} as F);
     } else if (data instanceof Landing) {
-      this.setFilter({landingId: data.id});
+      this.setFilter({landingId: data.id} as F);
     }
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
-    const batch = new Batch();
-    //await this.onNewEntity(batch);
-
-    const res = await this.openDetailModal(batch, {isNew: true});
-    if (res) {
-      await this.addBatchToTable(res);
+    const data = await this.openDetailModal(new this.dataType(), {isNew: true});
+    if (data) {
+      await this.addEntityToTable(data);
     }
     return true;
   }
 
-  protected async addBatchToTable(newBatch: Batch): Promise<TableElement<Batch>> {
-    console.debug("[batches-table] Adding new batch", newBatch);
 
-    const row = await this.addRowToTable();
-    if (!row) throw new Error("Could not add row t table");
-
-    // Adapt measurement values to row
-    this.normalizeEntityToRow(newBatch, row);
-
-    // Override rankOrder (keep computed value)
-    newBatch.rankOrder = row.currentData.rankOrder;
-    await this.onNewEntity(newBatch);
-
-    // Affect new row
-    if (row.validator) {
-      row.validator.patchValue(newBatch);
-      row.validator.markAsDirty();
-    } else {
-      row.currentData = newBatch;
-    }
-
-    this.confirmEditCreate(null, row);
-    this.markAsDirty();
-
-    // restore the edited row, to be able to use it in modal callback (see BatchGroupTable)
-    this.editedRow = row;
-
-    return row;
-  }
-
-  protected async openRow(id: number, row: TableElement<Batch>): Promise<boolean> {
+  protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
 
     if (!this.allowRowDetail) return false;
 
@@ -219,25 +199,14 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
       return true;
     }
 
-    const batch = row.validator ? Batch.fromObject(row.currentData) : row.currentData.clone();
+    const data = this.getRowEntity(row, true);
 
     // Prepare entity measurement values
-    this.prepareEntityToSave(batch);
+    this.prepareEntityToSave(data);
 
-    const updatedBatch = await this.openDetailModal(batch);
-    if (updatedBatch) {
-      // Adapt measurement values to row
-      this.normalizeEntityToRow(updatedBatch, row);
-
-      // Update the row
-      row.currentData = updatedBatch;
-
-      this.markAsDirty();
-      this.markForCheck();
-      this.confirmEditCreate(null, row);
-
-      // restore the edited row, to be able to use it in modal callback (see BatchGroupTable)
-      this.editedRow = row;
+    const updatedData = await this.openDetailModal(data);
+    if (updatedData) {
+      await this.updateEntityToTable(updatedData, row);
     }
     else {
       this.editedRow = null;
@@ -245,7 +214,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     return true;
   }
 
-  async openDetailModal(batch?: Batch, opts?: {isNew?: boolean}): Promise<Batch | undefined> {
+  async openDetailModal(batch?: Batch, opts?: {isNew?: boolean}): Promise<T | undefined> {
     const modal = await this.modalCtrl.create({
       component: BatchModal,
       componentProps: {
@@ -270,18 +239,18 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
-    return (data instanceof Batch) ? data : undefined;
+    return (data instanceof Batch) ? data as T : undefined;
   }
 
-  async onSubBatchesClick(event: UIEvent, row: TableElement<Batch>, opts?: {
+  async onSubBatchesClick(event: UIEvent, row: TableElement<T>, opts?: {
     showParent?: boolean;
   }): Promise<Batch[] | undefined> {
     if (event) event.preventDefault();
-    const selectedParent = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
+    const selectedParent = this.getRowEntity(row);
     return await this.openSubBatchesModal(selectedParent, opts);
   }
 
-  async openSubBatchesModal(selectedParent?: Batch, opts?: {
+  async openSubBatchesModal(selectedParent?: T, opts?: {
     showParent?: boolean;
   }): Promise<Batch[] | undefined> {
 
@@ -293,7 +262,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     const onNewParentClick = showParent ? async () => {
       const newBatch = await this.openDetailModal();
       if (!newBatch) return undefined;
-      await this.addBatchToTable(newBatch);
+      await this.addEntityToTable(newBatch);
       return newBatch;
     } : undefined;
 
@@ -301,13 +270,14 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     const onModalDismiss = new Subject<any>();
     const availableParents =
       // If mobile, create an observable, linked to table rows
-      this.mobile ? this.dataSource.connect()
-      .pipe(
-        takeUntil(onModalDismiss),
-        map((res) => res.map((row) => row.currentData as Batch))
-      ) :
-      // else, create a copy
-      of((await this.dataSource.getRows()).map((row) => row.currentData as Batch));
+      this.mobile ?
+        this.dataSource.connect()
+        .pipe(
+          takeUntil(onModalDismiss),
+          map((res) => res.map((row) => row.currentData as T))
+        ) :
+      // else (if desktop), create a copy
+      of((await this.dataSource.getRows()).map(row => this.getRowEntity(row)));
 
     const modal = await this.modalCtrl.create({
       component: SubBatchesModal,
@@ -317,6 +287,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
         usageMode: this.usageMode,
         selectedParent: selectedParent,
         qvPmfm: this.qvPmfm,
+        disabled: this.disabled,
         showParent,
         // Scientific species is required, if not set in root batches
         showTaxonNameColumn: !this.showTaxonNameColumn,
@@ -375,7 +346,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
       });
   }
 
-  protected prepareEntityToSave(batch: Batch) {
+  protected prepareEntityToSave(batch: T) {
     // Override by subclasses
   }
 
@@ -411,7 +382,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     return batch.children;
   }
 
-  protected async onNewEntity(data: Batch): Promise<void> {
+  protected async onNewEntity(data: T): Promise<void> {
     console.debug("[sample-table] Initializing new row data...");
 
     await super.onNewEntity(data);

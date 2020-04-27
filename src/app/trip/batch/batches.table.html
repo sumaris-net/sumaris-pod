@@ -98,7 +98,7 @@
     <mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm.isDate">
       <ion-label>
         <span>{{getPmfmColumnHeader(pmfm)}}</span>
-        <small *ngIf="pmfm.hasUnit"><br/>({{pmfm.unit}})</small>
+        <small *ngIf="pmfm.hasUnit"><br/>({{pmfm.unitLabel}})</small>
       </ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">

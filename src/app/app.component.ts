@@ -28,7 +28,9 @@ export class AppComponent {
 
     // Data entry
     {title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
-    {title: 'MENU.TRIPS', path: '/trips', icon: 'pin', profile: 'USER'},
+    {title: 'MENU.TRIPS', path: '/trips', icon: 'pin',
+      ifProperty: 'sumaris.trip.enable',
+      profile: 'USER'},
     {
       title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
       matIcon: 'verified_user',
@@ -175,7 +177,7 @@ export class AppComponent {
     console.debug("[app] Add additional account fields...");
 
     const attributes = this.settings.getFieldDisplayAttributes('department');
-    const departmentDefinition = {
+    const departmentDefinition = <FormFieldDefinition>{
       key: 'department',
       label: 'USER.DEPARTMENT.TITLE',
       type: 'entity',
@@ -183,7 +185,8 @@ export class AppComponent {
         service: this.referentialRefService,
         filter: {entityName: 'Department'},
         displayWith: (value) => value && joinPropertiesPath(value, attributes),
-        attributes: attributes
+        attributes: attributes,
+        columnSizes: attributes.map(attr => attr === 'label' ? '3' : undefined)
       },
       extra: {
         registration: {
@@ -194,7 +197,7 @@ export class AppComponent {
           disable: true
         }
       }
-    } as FormFieldDefinition;
+    };
 
     // Add account field: department
     this.accountService.registerAdditionalField(departmentDefinition);

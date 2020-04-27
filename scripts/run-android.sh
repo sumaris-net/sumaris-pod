@@ -1,22 +1,27 @@
 #!/bin/bash
+
 # Get to the root project
 if [[ "_" == "_${PROJECT_DIR}" ]]; then
-  cd ..
-  PROJECT_DIR=`pwd`
+  SCRIPT_DIR=$(dirname $0)
+  PROJECT_DIR=$(cd ${SCRIPT_DIR}/.. && pwd)
   export PROJECT_DIR
 fi;
 
 # Preparing Android environment
 . ${PROJECT_DIR}/scripts/env-android.sh
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 cd ${PROJECT_DIR}
 
 # Run the build
-echo "Running Android application..."
-ionic cordova run android --warning-mode=none --color --device
+echo "Building Android application..."
+ionic cordova build android --warning-mode=none --color $*
+[[ $? -ne 0 ]] && exit 1
 
-#ng run app:ionic-cordova-build --platform=android --aot
-#native-run android --app platforms/android/app/build/outputs/apk/debug/app-debug.apk --device
+echo "Running Android application..."
+if [[ "$1" == "--release" ]]; then
+  native-run android --app ${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release.apk
+else
+  native-run android --app ${ANDROID_OUTPUT_APK_DEBUG}/${ANDROID_OUTPUT_APK_PREFIX}-debug.apk
+fi
+

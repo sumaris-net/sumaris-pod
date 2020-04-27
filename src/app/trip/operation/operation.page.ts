@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {OperationFilter, OperationSaveOptions, OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
 import {TripService} from '../services/trip.service';
@@ -23,6 +23,7 @@ import {Batch, BatchUtils} from "../services/model/batch.model";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {filterNotNil, firstNotNil} from "../../shared/observables";
 import {Operation, Trip} from "../services/model/trip.model";
+import {BatchGroup} from "../services/model/batch-group.model";
 
 @Component({
   selector: 'app-operation-page',
@@ -31,7 +32,7 @@ import {Operation, Trip} from "../services/model/trip.model";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationPage extends AppEditorPage<Operation, OperationFilter> implements OnInit, AfterViewInit {
+export class OperationPage extends AppEditorPage<Operation, OperationFilter> implements OnInit, AfterViewInit, OnDestroy {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.OPERATION;
 
@@ -80,6 +81,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   ) {
     super(injector, Operation, dataService);
     this.idAttribute = 'operationId';
+    this.tabCount = 2;
 
     // Init mobile (WARN
     this.mobile = this.settings.mobile;
@@ -298,13 +300,20 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
         });
     }
 
-    // Configure somes tables from program properties
+    // Configure page, from Program's properties
     this.registerSubscription(
       this.onProgramChanged
         .subscribe(program => {
           if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
           this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
           this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+
+          // Some specific taxon groups have no weight collected
+          const taxonGroupsNoWeight = program.getProperty(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
+          this.batchGroupsTable.taxonGroupsNoWeight = taxonGroupsNoWeight && taxonGroupsNoWeight.split(',')
+            .map(label => label.trim().toUpperCase())
+            .filter(isNotNilOrBlank) || undefined;
+
           // Force taxon name in sub batches, if not filled in root batch
           if (this.subBatchesTable) {
             this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn;
@@ -312,6 +321,12 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
           }
           this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
           this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
+
+          // Autofill batch group table (e.g. with taxon groups found in strategies)
+          if (this.isNewData) {
+            const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
+            this.setAutoFillSpecies(autoFillBatch);
+          }
         })
     );
   }
@@ -354,7 +369,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   }
 
 
-  addTableRow(event: UIEvent) {
+  onNewFabButtonClick(event: UIEvent) {
     if (this.showBatchTables) {
       switch (this.selectedBatchTabIndex) {
         case 0:
@@ -543,7 +558,8 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
     // Set batches table (with root batches)
-    this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
+    this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"))
+      .map(BatchGroup.fromBatch);
 
     // make sure PMFMs are loaded (need the QV pmfm)
     this.batchGroupsTable.$pmfms
@@ -634,6 +650,34 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
 
   protected addToPageHistory(page: HistoryPageReference) {
     super.addToPageHistory({ ...page, icon: 'pin'});
+  }
+
+  protected async setAutoFillSpecies(enable: boolean) {
+    if (!this.showBatchTables || !this.batchGroupsTable.showTaxonGroupColumn || !enable) return; // Skip
+
+    if (this.debug) console.debug("[operation] Check if can auto fill species...");
+    const options = {includeTaxonGroups: undefined};
+
+    // Retrieve the trip measurements on SELF_SAMPLING_PROGRAM, if any
+    const qvMeasurement = (this.trip.measurements || []).find(m => m.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
+    if (qvMeasurement && EntityUtils.isNotEmpty(qvMeasurement.qualitativeValue)) {
+
+      // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
+      const pmfms = await this.programService.loadProgramPmfms(this.programSubject.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
+      const pmfm = (pmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
+      const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
+
+      // Transform QV.label has a list of TaxonGroup.label
+      if (qualitativeValue && qualitativeValue.label) {
+        options.includeTaxonGroups = qualitativeValue.label
+          .split(/[^\w]+/) // Split by separator (= not a word)
+          .filter(isNotNilOrBlank)
+          .map(label => label.trim().toUpperCase());
+      }
+    }
+
+    // Ask table to auto fill
+    await this.batchGroupsTable.autoFillTable(options);
   }
 
   protected markForCheck() {

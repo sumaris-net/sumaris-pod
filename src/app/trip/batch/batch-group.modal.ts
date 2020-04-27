@@ -10,7 +10,7 @@ import {
 } from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppFormUtils, isNil} from "../../core/core.module";
+import {AppFormUtils, EntityUtils, isNil} from "../../core/core.module";
 import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
@@ -21,6 +21,7 @@ import {throttleTime} from "rxjs/operators";
 import {PlatformService} from "../../core/services/platform.service";
 import {environment} from "../../../environments/environment";
 import {Alerts} from "../../shared/alerts";
+import {BatchGroup} from "../services/model/batch-group.model";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -35,7 +36,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
   debug = false;
   loading = false;
   mobile: boolean;
-  data: Batch;
+  data: BatchGroup;
   $title = new BehaviorSubject<string>(undefined);
 
   @Input() acquisitionLevel: string;
@@ -50,16 +51,20 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() showTaxonName = true;
 
-  @Input() showIndividualCount = false;
+  @Input() showChildrenWeight = true;
+
+  @Input() showChildrenSampleBatch = true;
+
+  @Input() showIndividualCount = true;
 
   @Input() showTotalIndividualCount = false;
 
+  @Input() taxonGroupsNoWeight: string[];
+
   @Input() qvPmfm: PmfmStrategy;
 
-  @Input() hasMeasure: boolean;
-
   @Input()
-  set value(value: Batch) {
+  set value(value: BatchGroup) {
     this.data = value;
   }
 
@@ -106,10 +111,11 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   ngOnInit() {
 
-    this.form.setValue(this.data || new Batch());
+    const data = this.data || new BatchGroup();
+
+    this.form.setValue(data);
 
     this.disabled = toBoolean(this.disabled, false);
-    this.hasMeasure = toBoolean(this.hasMeasure, false);
 
     if (this.disabled) {
       this.form.disable();
@@ -118,19 +124,25 @@ export class BatchGroupModal implements OnInit, OnDestroy {
       this.form.enable();
     }
 
-    // Compute the title
-    this.computeTitle();
+    // Update title each time value changes
+    this.computeTitle(data);
 
-    if (!this.isNew) {
-      // Update title each time value changes
-      this._subscription.add(
-        this.form.valueChanges
-          .pipe(
-            throttleTime(500)
-          )
-          .subscribe(batch => this.computeTitle(batch))
-      );
-    }
+    this.computeShowTotalIndividualCount(data);
+
+    // Listen form changes
+    this._subscription.add(
+      this.form.valueChanges
+        .pipe(
+          throttleTime(500)
+        )
+        .subscribe((batch) => {
+
+          // Update title each time value changes
+          this.computeTitle(batch);
+
+          this.computeShowTotalIndividualCount(batch);
+        })
+    );
 
     // Wait that form are ready (because of safeSetValue()) then mark as pristine
     setTimeout(() => {
@@ -162,7 +174,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     await this.viewCtrl.dismiss();
   }
 
-  async close(event?: UIEvent): Promise<Batch | undefined> {
+  async close(event?: UIEvent): Promise<BatchGroup | undefined> {
     if (this.loading) return; // avoid many call
 
     this.loading = true;
@@ -174,11 +186,17 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     await AppFormUtils.waitWhilePending(this);
 
     if (this.invalid) {
-      this.form.error = "COMMON.FORM.HAS_ERROR";
-      if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
-      this.form.markAsTouched({emitEvent: true});
-      this.loading = false;
-      return;
+
+      // DO not allow to close, if no taxon group nor a taxon name has been set
+      if (EntityUtils.isEmpty(this.form.form.get('taxonGroup').value) && EntityUtils.isEmpty(this.form.form.get('taxonName').value)) {
+        this.form.error = "COMMON.FORM.HAS_ERROR";
+        if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
+        this.form.markAsTouched({emitEvent: true});
+
+        this.loading = false;
+        return;
+      }
+
     }
 
     // Save table content
@@ -190,14 +208,13 @@ export class BatchGroupModal implements OnInit, OnDestroy {
   }
 
   async onShowSubBatchesButtonClick(event: UIEvent) {
+    if (!this.showSubBatchesCallback) return; // Skip
 
     // Close
     const batch = await this.close(event);
 
-    // If closed succeed, execute the callback
-    if (batch && this.showSubBatchesCallback) {
-      this.showSubBatchesCallback(batch);
-    }
+    // Only if close() succeed, execute the callback
+    if (batch) this.showSubBatchesCallback(batch);
   }
 
   /* -- protected methods -- */
@@ -210,6 +227,21 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     else {
       const label = BatchUtils.parentToString(data);
       this.$title.next(await this.translate.get('TRIP.BATCH.EDIT.TITLE', {label}).toPromise());
+    }
+  }
+
+  protected async computeShowTotalIndividualCount(data?: Batch) {
+    data = data || this.data;
+    // Generally, individual count are not need, on a root species batch, because filled in sub-batches,
+    // but some species (e.g. RJB) can have no weight.
+    const showTotalIndividualCount = data && EntityUtils.isNotEmpty(data.taxonGroup) &&
+      (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
+
+    if (showTotalIndividualCount !== this.showTotalIndividualCount) {
+      this.showChildrenSampleBatch = !showTotalIndividualCount;
+      this.showChildrenWeight = !showTotalIndividualCount;
+      this.showTotalIndividualCount = showTotalIndividualCount;
+      this.markForCheck();
     }
   }
 

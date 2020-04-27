@@ -644,6 +644,8 @@ mat-table {
   }
 }
 
+
+
 // Other material component
 
 .toolbar-spacer {
@@ -689,6 +691,11 @@ mat-button-toggle.mat-button-toggle-checked,
 mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
   background-color: var(--ion-color-light);
   color: white;
+}
+
+// --- mat-tag-group component
+mat-tab-group.mat-tab-group-no-header .mat-tab-header {
+    display: none !important;
 }
 
 // --------------------------------------------------

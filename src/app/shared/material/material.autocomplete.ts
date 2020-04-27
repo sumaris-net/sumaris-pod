@@ -40,11 +40,11 @@ export const DEFAULT_VALUE_ACCESSOR: any = {
 
 export declare type DisplayFn = (obj: any) => string;
 
-export declare interface  MatAutocompleteFieldConfig<T = any> {
+export declare interface MatAutocompleteFieldConfig<T = any> {
+  attributes: string[];
   suggestFn?: (value: any, options?: any) => Promise<any[]>;
   filter?: any;
   items?: Observable<T[]> | T[];
-  attributes: string[];
   columnSizes?: (number|'auto'|undefined)[];
   columnNames?: (string|undefined)[];
   displayWith?: DisplayFn;
@@ -52,16 +52,8 @@ export declare interface  MatAutocompleteFieldConfig<T = any> {
   showPanelOnFocus?: boolean;
 }
 
-export declare interface  MatAutocompleteFieldAddOptions<T = any> {
+export declare interface MatAutocompleteFieldAddOptions<T = any> extends Partial<MatAutocompleteFieldConfig<T>> {
   service?: SuggestionDataService<T>;
-  suggestFn?: (value: any, options?: any) => Promise<any[]>;
-  items?: Observable<T[]> | T[];
-  filter?: any;
-  attributes?: string[];
-  columnNames?: (string|undefined)[];
-  displayWith?: DisplayFn;
-  showAllOnFocus?: boolean;
-  showPanelOnFocus?: boolean;
 }
 
 export class MatAutocompleteConfigHolder {
@@ -86,7 +78,7 @@ export class MatAutocompleteConfigHolder {
     if (!fieldName) {
       throw new Error("Unable to add config, with name: " + (fieldName || 'undefined'));
     }
-    options = options || {};
+    options = options || <MatAutocompleteFieldAddOptions>{};
     const suggestFn: SuggestFn<T> = options.suggestFn
         || (options.service && ((v, o) => options.service.suggest(v, o)))
         || undefined;
@@ -104,6 +96,7 @@ export class MatAutocompleteConfigHolder {
       items: options.items,
       filter: searchFilter,
       displayWith,
+      columnSizes: options.columnSizes,
       columnNames: options.columnNames,
       showAllOnFocus: options.showAllOnFocus,
       showPanelOnFocus: options.showPanelOnFocus

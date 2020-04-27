@@ -2,13 +2,13 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {EntityUtils, isNotNil, Referential, StatusIds} from "./model";
+import {EntityUtils, isNil, isNotNil, Referential, StatusIds} from "./model";
 import {LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy, MutationUpdaterFn} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {environment} from "../../../environments/environment";
@@ -33,7 +33,11 @@ export interface ReferentialType {
   id: string;
   level?: string;
 }
-
+const CountQuery: any = gql`
+  query ReferentialsCount($entityName: String, $filter: ReferentialFilterVOInput){
+    referentialsCount(entityName: $entityName, filter: $filter)
+  }
+`;
 const LoadAllWithCountQuery: any = gql`
   query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -98,6 +102,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     // For DEV only
     this._debug = !environment.production;
   }
+
 
   watchAll(offset: number,
            size: number,
@@ -276,6 +281,48 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     return entities;
   }
 
+  async existsByLabel(label: string,
+                      filter?: ReferentialFilter & {
+                        excludeId?: number;
+                      },
+                      opts?: {
+                        fetchPolicy: FetchPolicy
+                      }): Promise<boolean> {
+    if (!filter || !filter.entityName || !label) {
+      console.error("[referential-service] Missing 'filter.entityName' or 'label'");
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+    }
+
+    const variables: any = {
+      entityName: filter.entityName,
+      offset: 0,
+      size: 2,
+      sortBy: 'id',
+      sortDirection: 'asc',
+      filter: {
+        label,
+        levelIds: filter && (isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds),
+        statusIds: filter && (isNotNil(filter.statusId) ? [filter.statusId] : filter.statusIds)
+      }
+    };
+
+    const res = await this.graphql.query<{ referentials: any }>({
+      query: LoadAllQuery,
+      variables,
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" },
+      fetchPolicy: opts && opts.fetchPolicy || 'network-only'
+    });
+
+    let matches = (res && res.referentials || []);
+
+    // Remove excluded id
+    if (filter && isNotNil(filter.excludeId)) {
+      matches = matches.filter(item => item.id !== filter.excludeId);
+    }
+
+    return matches.length > 0;
+  }
+
   /**
    * Save a referential entity
    * @param entity
@@ -326,7 +373,9 @@ export class ReferentialService extends BaseDataService implements TableDataServ
   /**
    * Delete referential entities
    */
-  async deleteAll(entities: Referential[], options?: any): Promise<any> {
+  async deleteAll(entities: Referential[], options?: Partial<{
+    update: MutationUpdaterFn<any>;
+  }> | any): Promise<any> {
 
     // Filter saved entities
     entities = entities && entities
@@ -361,6 +410,10 @@ export class ReferentialService extends BaseDataService implements TableDataServ
             query: LoadAllQuery,
             variables: this._lastVariables.loadAll
           }, 'referentials', ids);
+        }
+
+        if (options && options.update) {
+          options.update(proxy);
         }
 
         if (this._debug) console.debug(`[referential-service] ${entityName} deleted in ${new Date().getTime() - now.getTime()}ms`);
@@ -412,7 +465,6 @@ export class ReferentialService extends BaseDataService implements TableDataServ
   }
 
   /* -- protected methods -- */
-
 
   protected fillDefaultProperties(entity: Referential) {
     entity.statusId = isNotNil(entity.statusId) ? entity.statusId : StatusIds.ENABLE;

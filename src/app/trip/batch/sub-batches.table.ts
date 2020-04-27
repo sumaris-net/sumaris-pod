@@ -325,6 +325,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   }
 
   public async resetForm(previousBatch?: Batch, opts?: {focusFirstEmpty?: boolean, emitEvent?: boolean}) {
+    if (!this.form) throw new Error('Form not exists');
     await this.onReady();
 
     this.form.availableParents = this._availableSortedParents;
@@ -400,18 +401,18 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
   markAsPristine(opts?: {onlySelf?: boolean}) {
     super.markAsPristine();
-    this.form.markAsPristine(opts);
+    if (this.form) this.form.markAsPristine(opts);
   }
 
   markAsUntouched() {
     super.markAsUntouched();
-    this.form.markAsUntouched();
+    if (this.form) this.form.markAsUntouched();
   }
 
   enable() {
     super.enable();
 
-    if (this.showForm && this.form.disabled) {
+    if (this.showForm && this.form && this.form.disabled) {
       this.form.enable();
     }
   }
@@ -419,7 +420,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   disable() {
     super.disable();
 
-    if (this.showForm && this.form.enabled) {
+    if (this.showForm && this.form && this.form.enabled) {
       this.form.disable();
     }
   }
@@ -635,7 +636,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     await this.onReady();
 
-    this.form.availableParents = this._availableSortedParents;
+    if (this.form) this.form.availableParents = this._availableSortedParents;
 
     // Link batches to parent, and delete orphan
     if (toBoolean(opts.linkDataToParent, true)) {

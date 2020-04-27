@@ -55,9 +55,9 @@
     "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
     "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",
     "DD_PLACEHOLDER": "+DD.DDD°",
-    "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\" E|W",
-    "DDDMM_PLACEHOLDER": "DDD° MM.MMM' E|W",
-    "DDD_PLACEHOLDER": "+DDD.DDD°",
+    "DDDMMSS_PLACEHOLDER": "DD° MM' SS\" E|W",
+    "DDDMM_PLACEHOLDER": "DD° MM.MMM' E|W",
+    "DDD_PLACEHOLDER": "+DD.DDD°",
 
     "METADATA": "Métadonnées :",
 
@@ -77,6 +77,7 @@
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
     "NO_RESULT": "Aucun résultat",
+    "MISSING": "Manquant",
 
     "DISPLAYED_COLUMNS": "Paramétrage des colonnes",
     "DISPLAYED_COLUMNS_DOTS": "Paramétrage des colonnes...",
@@ -357,6 +358,10 @@
       "TITLE": "<small>{{vessel}}<br></small>Marée du {{departureDateTime}}",
       "OTHER_FEATURES": "Caractéristiques :"
     },
+    "OPTIONS": {
+      "ENABLE": "Marée > Activer ?",
+      "NAME": "Marée > Titre (menu, etc.)"
+    },
     "TABLE": {
       "TITLE": "Marées",
       "VESSEL": "Navire",
@@ -497,7 +502,7 @@
         "INDIVIDUAL_MEASURE": "Mesures individuelles ?",
         "WITH_MEASURE": "Avec mesure",
         "WITHOUT_MEASURE": "Sans mesure",
-        "IS_SAMPLING": "Si mesure, saisir le poids échantillonné :",
+        "IS_SAMPLING": "Saisir le poids échantillonné (si mesure) :",
         "SAMPLING_WEIGHT": "Poids échant. (kg)",
         "SAMPLING_RATIO": "Taux échant. (%)",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
@@ -512,7 +517,7 @@
         }
       },
       "TABLE": {
-        "BTN_INDIVIDUAL_MEASURE": "Mesures individuelles",
+        "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures individuelles",
         "BTN_BURST_INPUT": "Mode rafale",
         "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
         "LABEL": "Libellé",
@@ -528,6 +533,7 @@
         "SAMPLING_WEIGHT": "Poids échant.",
         "PARENT": "Lot espèce",
         "INDIVIDUAL_COUNT": "Nombre individus",
+        "INDIVIDUAL_UNIT": "indiv.",
         "WEIGHT": "Poids (kg)",
         "COMMENTS": "Commentaires",
         "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?",
@@ -841,6 +847,48 @@
       "LABEL": "Code engin",
       "NAME": "Libellé engin"
     },
+    "PARAMETER": {
+      "TAB_GENERAL": "Détails",
+      "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
+      "TYPE": "Type de valeur",
+      "NEW": {
+        "TITLE": "Nouveau Paramètre"
+      },
+      "EDIT": {
+        "TITLE": "Paramètre {{label}} - {{name}}"
+      },
+      "TYPE_ENUM": {
+        "DOUBLE": "Numérique",
+        "STRING": "Texte",
+        "DATE": "Date",
+        "DATE_TIME": "Date/Heure",
+        "QUALITATIVE_VALUE": "Liste de valeurs",
+        "BOOLEAN": "Booléen"
+      }
+    },
+    "PMFM": {
+      "TAB_GENERAL": "Détails",
+      "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
+      "TYPE": "Type",
+      "MIN_VALUE": "Valeur min",
+      "MAX_VALUE": "Valeur max",
+      "DEFAULT_VALUE": "Valeur par défaut",
+      "MAXIMUM_NUMBER_DECIMALS": "Nb décimales max",
+      "SIGNIF_FIGURES_NUMBER": "Nb chiffres significatif",
+      "PARAMETER": "Paramètre",
+      "MATRIX": "Support",
+      "FRACTION": "Fraction",
+      "METHOD": "Méthode de collecte",
+      "UNIT": "Unité",
+      "BTN_ADD_PARAMETER": "Nouveau paramètre",
+      "BTN_OPEN_PARAMETER": "Ouvrir le paramètre",
+      "NEW": {
+        "TITLE": "Nouveau PSFM"
+      },
+      "EDIT": {
+        "TITLE": "PSFM {{label}} - {{name}}"
+      }
+    },
     "LIST": {
       "TITLE": "Listes",
       "FILTER": {
@@ -913,7 +961,9 @@
       "TRIP_OBSERVERS_ENABLE": "Marée : Saisir les observateurs ?",
       "TRIP_METIERS_ENABLE": "Marée : Saisir les métiers ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin : Saisir le numéro d'engin ?",
+      "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce : Auto-remplisage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce : Espèces commerciales ?",
+      "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce : Espèces commerciales sans poids:",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce : Espèces scientiques ?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce : calcul auto nb indiv. échantillonné ?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : réordonné à la sauvegarde ?",

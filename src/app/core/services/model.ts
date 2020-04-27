@@ -2,7 +2,7 @@ import {Moment} from "moment/moment";
 import {
   fromDateISOString,
   isNil,
-  isNilOrBlank, isNotEmptyArray,
+  isNilOrBlank,
   isNotNil,
   joinPropertiesPath,
   propertyComparator,
@@ -11,7 +11,6 @@ import {
 } from "../../shared/shared.module";
 import {isEmptyArray, noTrailingSlash} from "../../shared/functions";
 import {FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
-import {Batch} from "../../trip/services/model/batch.model";
 
 export {
   joinPropertiesPath,
@@ -469,9 +468,10 @@ export declare interface ITreeItemEntity<T extends Entity<T>> {
 /* -- Referential -- */
 
 
-export class Referential extends Entity<Referential> {
+export class Referential<T = Referential<any>> extends Entity<T> implements IReferentialRef {
 
   static fromObject(source: any): Referential {
+    if (!source || source instanceof Referential) return source;
     const res = new Referential();
     res.fromObject(source);
     return res;
@@ -505,11 +505,11 @@ export class Referential extends Entity<Referential> {
     this.entityName = data && data.entityName;
   }
 
-  clone(): Referential {
-    return this.copy(new Referential());
+  clone(): Referential<T> {
+    return this.copy(new Referential<T>());
   }
 
-  copy(target: Referential): Referential {
+  copy(target: Referential<T>): Referential<T> {
     target.fromObject(this);
     return target;
   }
@@ -528,7 +528,7 @@ export class Referential extends Entity<Referential> {
     return target;
   }
 
-  fromObject(source: any): Entity<Referential> {
+  fromObject(source: any): Entity<T> {
     super.fromObject(source);
     this.label = source.label;
     this.name = source.name;
@@ -543,7 +543,7 @@ export class Referential extends Entity<Referential> {
     return this;
   }
 
-  equals(other: Referential): boolean {
+  equals(other: Referential<T>): boolean {
     return super.equals(other) && this.entityName === other.entityName;
   }
 }

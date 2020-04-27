@@ -2,7 +2,7 @@ import "./vendor";
 
 import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
-import {NgModule} from "@angular/core";
+import {CUSTOM_ELEMENTS_SCHEMA, NgModule} from "@angular/core";
 import {IonicModule} from "@ionic/angular";
 import {DateAdapter, MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material";
 import {DATE_ISO_PATTERN} from "./core/constants";
@@ -57,7 +57,6 @@ import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
       driverOrder: ['indexeddb', 'sqlite', 'websql']
     })
   ],
-  bootstrap: [AppComponent],
   providers: [
     StatusBar,
     SplashScreen,
@@ -98,7 +97,9 @@ import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
 
     // Config options (Core + trip)
     { provide: APP_CONFIG_OPTIONS, useValue: {...ConfigOptions, ...TripConfigOptions}}
-  ]
+  ],
+  bootstrap: [AppComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule {
 }

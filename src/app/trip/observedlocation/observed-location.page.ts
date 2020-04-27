@@ -4,11 +4,7 @@ import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
-import {
-  EntityUtils,
-  LandingEditor,
-  ProgramProperties, VesselSnapshot
-} from "../../referential/services/model";
+import {EntityUtils, LandingEditor, ProgramProperties, VesselSnapshot} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
@@ -124,19 +120,17 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
     return json;
   }
 
-  protected async computeTitle(data: ObservedLocation): Promise<string> {
+  protected computeTitle(data: ObservedLocation): Promise<string> {
     // new data
     if (this.isNewData) {
-      return await this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
+      return this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
     }
 
     // Existing data
-    const title = await this.translate.get('OBSERVED_LOCATION.EDIT.TITLE', {
+    return this.translate.get('OBSERVED_LOCATION.EDIT.TITLE', {
       location: data.location && (data.location.name || data.location.label),
       dateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime) as string
     }).toPromise();
-
-    return title;
   }
 
   protected getFirstInvalidTabIndex(): number {

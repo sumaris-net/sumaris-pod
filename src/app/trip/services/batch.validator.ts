@@ -9,7 +9,7 @@ import {MethodIds} from "../../referential/services/model";
 import {Subject, Subscription} from "rxjs";
 
 @Injectable()
-export class BatchValidatorService implements ValidatorService {
+export class BatchValidatorService<T extends Batch = Batch> implements ValidatorService {
 
   constructor(
     protected formBuilder: FormBuilder) {
@@ -19,7 +19,7 @@ export class BatchValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Batch, opts?: {
+  getFormGroup(data?: T, opts?: {
     withWeight?: boolean;
     rankOrderRequired?: boolean;
     labelRequired?: boolean;
@@ -34,7 +34,7 @@ export class BatchValidatorService implements ValidatorService {
     return form;
   }
 
-  protected getFormGroupConfig(data?: Batch,  opts?: {
+  protected getFormGroupConfig(data?: T,  opts?: {
     rankOrderRequired?: boolean;
     labelRequired?: boolean;
   }): { [key: string]: any } {
@@ -68,7 +68,9 @@ export class BatchValidatorService implements ValidatorService {
     });
   }
 
-  addSamplingFormValidators(form: FormGroup): Subscription {
+  addSamplingFormValidators(form: FormGroup, opts?: {
+    requiredSampleWeight?: boolean;
+  }): Subscription {
 
     // Sampling ratio: should be a percentage
     form.get("samplingRatio").setValidators(
@@ -85,7 +87,7 @@ export class BatchValidatorService implements ValidatorService {
         // Protected against loop
         tap(() => computing = true),
         debounceTime(250),
-        map(() => BatchValidatorService.computeSamplingWeight(form, {emitEvent: false, onlySelf: false}))
+        map(() => BatchValidatorService.computeSamplingWeight(form, { ...opts, emitEvent: false, onlySelf: false}))
       ).subscribe((errors) => {
         computing = false;
         $errors.next(errors);
@@ -106,7 +108,11 @@ export class BatchValidatorService implements ValidatorService {
    * @param form
    * @param opts
    */
-  static computeSamplingWeight(form: FormGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean; }): ValidationErrors | null {
+  static computeSamplingWeight(form: FormGroup, opts?: {
+    requiredSampleWeight?: boolean;
+    emitEvent?: boolean;
+    onlySelf?: boolean;
+  }): ValidationErrors | null {
     const sampleForm = form.get('children.0');
 
     const batch = form.value;
@@ -116,9 +122,9 @@ export class BatchValidatorService implements ValidatorService {
     if (!sampleBatch) return null;
 
     const totalWeight = batch.weight.value;
-    const samplingWeight = sampleBatch.weight.value;
     const samplingRatioPct = sampleBatch.samplingRatio;
-    console.table("[batch-validator]  Start computing: ", totalWeight, samplingRatioPct, samplingWeight);
+    const samplingWeight = sampleBatch.weight.value;
+    console.table("[batch-validator] Start computing: ", totalWeight, samplingRatioPct, samplingWeight);
 
     const totalWeightValueControl = form.get('weight.value');
     const samplingWeightValueControl = sampleForm.get('weight.value');
@@ -135,7 +141,7 @@ export class BatchValidatorService implements ValidatorService {
           samplingWeightValueControl.markAsTouched({onlySelf: true});
           samplingWeightValueControl.setErrors({...samplingWeightValueControl.errors, max: {max: totalWeight} }, opts);
         }
-        return {max: totalWeight} as ValidationErrors;
+        return {max: {max: totalWeight}} as ValidationErrors;
       }
 
       // Update sampling ratio
@@ -198,6 +204,7 @@ export class BatchValidatorService implements ValidatorService {
         samplingRatioControl.enable({...opts, emitEvent: true/*force repaint*/});
       }
     }
+
     // Nothing can be computed: enable all controls
     else {
 
@@ -227,7 +234,18 @@ export class BatchValidatorService implements ValidatorService {
             }
           }, opts);
         }
-        samplingWeightValueControl.setErrors(null, opts);
+
+        // If sampling weight is required
+        if (opts && opts.requiredSampleWeight === true) {
+          if (!samplingWeightValueControl.hasError('required')) {
+            samplingWeightValueControl.setErrors({...samplingWeightValueControl.errors, required: true}, opts);
+          }
+        }
+
+        // If sampling weight is NOT required
+        else {
+          samplingWeightValueControl.setErrors(null, opts);
+        }
         samplingWeightValueControl.enable(opts);
 
       } else {

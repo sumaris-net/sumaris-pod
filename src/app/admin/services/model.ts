@@ -1,3 +1,3 @@
-import { Person } from '../../core/services/model'
+import { Person } from '../../core/services/model';
 
-export { Person }
+export { Person };

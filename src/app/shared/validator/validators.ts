@@ -74,14 +74,14 @@ export class SharedValidators {
     return null;
   }
 
-  static double(opts?: {maxDecimals?: number}): ValidatorFn {
+  static double(opts?: {maxDecimals?: number; }): ValidatorFn {
     let regexpStr;
     if (opts && isNotNil(opts.maxDecimals)) {
       if (opts.maxDecimals < 0) throw new Error(`Invalid maxDecimals value: ${opts.maxDecimals}`);
-      regexpStr = opts.maxDecimals > 1 ? `^[0-9]+([.,][0-9]{1,${opts.maxDecimals}})?$` : "^[0-9]+([.,][0-9])?$";
+      regexpStr = opts.maxDecimals > 1 ? `^[-]?[0-9]+([.,][0-9]{1,${opts.maxDecimals}})?$` : "^[-]?[0-9]+([.,][0-9])?$";
     }
     else {
-      regexpStr = "^[0-9]+([.,][0-9]*)?$";
+      regexpStr = "^[-]?[0-9]+([.,][0-9]*)?$";
     }
 
     const regexp = new RegExp(regexpStr);

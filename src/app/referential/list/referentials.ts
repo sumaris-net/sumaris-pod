@@ -10,7 +10,7 @@ import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService} from '../../core/services/account.service';
 import {Location} from '@angular/common';
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {sort, DefaultStatusList} from "../../core/services/model";
@@ -44,7 +44,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   canOpenDetail = false;
   detailsPath = {
     'Program': '/referential/program/:id',
-    'Software': '/referential/software/:id?label=:label'
+    'Software': '/referential/software/:id?label=:label',
+    'Pmfm': '/referential/pmfm/:id?label=:label',
+    'Parameter': '/referential/parameter/:id?label=:label'
   };
 
   constructor(
@@ -154,16 +156,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       this.filterForm.markAsUntouched();
       this.filterForm.markAsPristine();
     });
-
-    // // Only if entityName has been select:  load data
-    // this.filter = this.filterForm.value;
-    // this.entityName = this.filter.entityName;
-    // if (this.entityName) {
-    //   this.setEntityName(this.entityName, {skipLocationChange: true});
-    //   // Load levels, then refresh
-    //   this.loadLevels(this.entityName)
-    //     .then(() => this.onRefresh.emit());
-    // }
   }
 
   async setEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
@@ -192,6 +184,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.entityName = entityName;
     this.$entity.next(entity);
     this.filterForm.get('entityName').setValue(entityName);
+    this.paginator.pageIndex = 0;
     this.setFilter(this.filterForm.value, {emitEvent: false});
 
     // Load levels
@@ -279,6 +272,12 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     }
 
     return super.openRow(id, row);
+  }
+
+  clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
+    if (event) event.stopPropagation(); // Avoid to enter input the field
+    formControl.setValue(null);
+    return false;
   }
 
   protected async openNewRowDetail(): Promise<boolean> {

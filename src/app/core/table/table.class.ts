@@ -177,6 +177,14 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     }
   }
 
+  enableSort() {
+    if (this.sort) this.sort.disabled = false;
+  }
+
+  disableSort() {
+    if (this.sort) this.sort.disabled = true;
+  }
+
   protected constructor(
     protected route: ActivatedRoute,
     protected router: Router,

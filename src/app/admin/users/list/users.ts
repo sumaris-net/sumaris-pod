@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit}
 import {
   AppTable,
   AppTableDataSource,
-  environment
+  environment, isNotNil
 } from "../../../core/core.module";
 import {Person, PRIORITIZED_USER_PROFILES, referentialToString, DefaultStatusList} from "../../../core/services/model";
 import {PersonFilter, PersonService} from "../../services/person.service";
@@ -90,6 +90,15 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     this.statusList.forEach((status) => this.statusById[status.id] = status);
 
     this.additionalFields = this.accountService.additionalFields;
+
+    (this.additionalFields || [])
+      .filter(field => isNotNil(field.autocomplete))
+      .forEach(field => {
+        field.autocomplete = this.registerAutocompleteField(field.key, {
+          ...field.autocomplete
+        });
+
+      });
 
     // For DEV only --
     //this.debug = !environment.production;

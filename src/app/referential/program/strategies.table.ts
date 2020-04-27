@@ -55,7 +55,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
   }
 
   get dirty(): boolean {
-    return this._dirty && this.memoryDataService.dirty;
+    return this._dirty || this.memoryDataService.dirty;
   }
 
   constructor(

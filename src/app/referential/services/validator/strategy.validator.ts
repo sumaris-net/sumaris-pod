@@ -18,14 +18,14 @@ export class StrategyValidatorService implements ValidatorService {
 
   getFormGroup(data?: Strategy): FormGroup {
     return this.formBuilder.group({
-      id: [''],
-      updateDate: [''],
-      creationDate: [''],
-      statusId: ['', Validators.required],
-      label: ['', Validators.required],
-      name: ['', Validators.required],
-      description: ['', Validators.maxLength(255)],
-      comments: ['', Validators.maxLength(2000)]
+      id: [data && data.id || null],
+      updateDate: [data && data.updateDate || null],
+      creationDate: [data && data.creationDate || null],
+      statusId: [data && data.statusId || null, Validators.required],
+      label: [data && data.label || null, Validators.required],
+      name: [data && data.name || null, Validators.required],
+      description: [data && data.description || null, Validators.maxLength(255)],
+      comments: [data && data.comments || null, Validators.maxLength(2000)]
     });
   }
 }

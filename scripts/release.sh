@@ -1,7 +1,17 @@
 #!/bin/bash
+# Get to the root project
+if [[ "_" == "_${PROJECT_DIR}" ]]; then
+  SCRIPT_DIR=$(dirname $0)
+  PROJECT_DIR=$(cd "${SCRIPT_DIR}/.." && pwd)
+  export PROJECT_DIR
+fi;
 
-NODEJS_VERSION=10
-PROJECT_NAME=sumaris-app
+# Preparing Android environment
+. ${PROJECT_DIR}/scripts/env-android.sh
+[[ $? -ne 0 ]] && exit 1
+
+cd ${PROJECT_DIR}
+
 
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
@@ -11,7 +21,7 @@ then
   exit 1
 fi
 
-DIRNAME=`pwd`
+PROJECT_DIR=`pwd`
 
 ### Get current version (package.json)
 current=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
@@ -66,49 +76,21 @@ rel|pre)
     ;;
 esac
 
-# Check the Java version
-JAVA_VERSION=`java -version 2>&1 | egrep "(java|openjdk) version" | awk '{print $3}' | tr -d \"`
-if [[ $? -ne 0 ]]; then
-  echo "No Java JRE 1.8 found in machine. This is required for Android artifacts."
-  exit 1
-fi
-JAVA_MAJOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[1]}'`
-JAVA_MINOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[2]}'`
-if [[ ${JAVA_MAJOR_VERSION} -ne 1 ]] || [[ ${JAVA_MINOR_VERSION} -ne 8 ]]; then
-  echo "Require a Java JRE in version 1.8, but found ${JAVA_VERSION}. You can override your default JAVA_HOME in 'env.sh'."
-  exit 1
-fi
-echo "Java: $JAVA_VERSION"
-
-# Force nodejs version
-if [[ -d "${NVM_DIR}" ]]; then
-    . ${NVM_DIR}/nvm.sh
-    nvm use ${NODEJS_VERSION}
-    if [[ $? -ne 0 ]]; then
-        exit 1
-    fi
-else
-    echo "nvm (Node version manager) not found (directory ${NVM_DIR} not found). Please install, and retry"
-    exit 1
-fi
-
 echo "----------------------------------"
 echo "- Compiling sources..."
 echo "----------------------------------"
 npm run build.prod
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 echo "----------------------------------"
 echo "- Creating web artifact..."
 echo "----------------------------------"
-mkdir -p "${DIRNAME}/dist"
-ZIP_FILE=${DIRNAME}/dist/${PROJECT_NAME}.zip
+mkdir -p "${PROJECT_DIR}/dist"
+ZIP_FILE=${PROJECT_DIR}/dist/${PROJECT_NAME}.zip
 if [[ -f "$ZIP_FILE" ]]; then
   rm $ZIP_FILE
 fi
-cd $DIRNAME/www
+cd $PROJECT_DIR/www
 zip -q -r $ZIP_FILE .
 if [[ $? -ne 0 ]]; then
   echo "Connot create the archive for the web artifact"
@@ -120,18 +102,16 @@ echo "- Compiling sources for Android platform..."
 echo "----------------------------------"
 
 # Removing previous APK..."
-rm ${DIRNAME}/platforms/android/app/build/outputs/apk/release/*.apk
+rm ${PROJECT_DIR}/platforms/android/app/build/outputs/apk/release/*.apk
 
 # Copy generated i18n files, to make sure Android release will use it
-cp ${DIRNAME}/www/assets/i18n/*.json ${DIRNAME}/src/assets/i18n/
+cp ${PROJECT_DIR}/www/assets/i18n/*.json ${PROJECT_DIR}/src/assets/i18n/
 
 # Launch the build script
-PROJECT_DIR=${DIRNAME}
-cd ${DIRNAME}/scripts || exit 1
+PROJECT_DIR=${PROJECT_DIR}
+cd ${PROJECT_DIR}/scripts || exit 1
 ./release-android.sh
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 echo "----------------------------------"
 echo "- Executing git push, with tag: v$2"
@@ -143,15 +123,13 @@ if [[ "_$description" == "_" ]]; then
 fi
 
 # Commit
-cd $DIRNAME
+cd $PROJECT_DIR
 git reset HEAD
 git add package.json config.xml src/assets/manifest.json install.sh
 git commit -m "v$2"
 git tag -f -a "v$2" -m "${description}"
 git push origin "v$2"
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 # Pause (if propagation is need between hosted git server and github)
 sleep 10s
@@ -161,9 +139,7 @@ echo "* Uploading artifacts to Github..."
 echo "**********************************"
 
 ./github.sh $1 ''"$description"''
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 #echo "----------------------------------"
 #echo "- Building desktop artifacts..."
@@ -173,7 +149,7 @@ fi
 #git submodule sync
 #git submodule update --remote --merge
 
-#if [[ -d "$DIRNAME/platforms/desktop" ]]; then
+#if [[ -d "$PROJECT_DIR/platforms/desktop" ]]; then
 #  cd platforms/desktop
 
 #  # Build desktop assets
@@ -186,7 +162,7 @@ fi
 #fi;
 
 # back to nodejs version 6
-#cd $DIRNAME
+#cd $PROJECT_DIR
 #nvm use 10
 
 echo "**********************************"
