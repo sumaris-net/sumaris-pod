@@ -5,6 +5,7 @@ import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.data.PacketCompositionVO;
 import net.sumaris.core.vo.data.PacketVO;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
@@ -25,6 +26,11 @@ public class PacketServiceWriteTest extends AbstractServiceTest {
     @Autowired
     private PacketService packetService;
 
+    /**
+     * Test only for SFA Oracle database
+     * TODO write a test with test data
+     */
+    @Ignore
     @Test
     public void getAllByOperationId() {
 
