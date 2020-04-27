@@ -1,27 +1,42 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {environment, referentialToString} from "../../core/core.module";
+import {environment, referentialToString, TableDataService} from "../../core/core.module";
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PhysicalGearModal} from "./physicalgear.modal";
 import {AcquisitionLevelCodes} from "../services/model/base.model";
-import {PhysicalGear} from "../services/model/trip.model";
+import {PhysicalGear, Trip} from "../services/model/trip.model";
+import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearFilter} from "../services/physicalgear.service";
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
+
 
 @Component({
   selector: 'app-physicalgears-table',
   templateUrl: 'physicalgears.table.html',
   styleUrls: ['physicalgears.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: PhysicalGearValidatorService}
+    {provide: ValidatorService, useExisting: PhysicalGearValidatorService},
+    {
+      provide: PHYSICAL_GEAR_DATA_SERVICE,
+      useFactory: () => new InMemoryTableDataService<PhysicalGear, PhysicalGearFilter>(PhysicalGear)
+    }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> implements OnInit, OnDestroy {
+export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
 
   protected cd: ChangeDetectorRef;
   protected memoryDataService: InMemoryTableDataService<PhysicalGear>;
@@ -34,12 +49,17 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
     return this.memoryDataService.value;
   }
 
+  @Input() canEdit = true;
+  @Input() canDelete = true;
+  @Input() parent: Trip;
+
   constructor(
-    injector: Injector
+    injector: Injector,
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE) dataService?: TableDataService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
       PhysicalGear,
-      new InMemoryTableDataService<PhysicalGear, any>(PhysicalGear),
+      dataService,
       null, // No validator = no inline edition
       {
         prependNewElements: false,
@@ -51,7 +71,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
     this.cd = injector.get(ChangeDetectorRef);
     this.memoryDataService = (this.dataService as InMemoryTableDataService<PhysicalGear>);
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
-    this.autoLoad = false;
+    this.autoLoad = false; // waiting parent to be loaded
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
@@ -62,6 +82,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
 
   ngOnInit() {
     super.ngOnInit();
+
+    this._enable = this.canEdit;
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
@@ -98,7 +120,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: gear.clone(), // Do a copy, because edition can be cancelled
-        isNew: isNew
+        isNew: isNew,
+        parent: this.parent
       },
       keyboardClose: true
     });

@@ -29,7 +29,7 @@ import {PmfmType} from "./model/pmfm.model";
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 6, // TODO SFA=6
+  PORT: 2, // TODO SFA=6  | SUMARiS=2
   AUCTION: 3
 };
 

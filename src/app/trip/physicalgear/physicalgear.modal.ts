@@ -14,7 +14,11 @@ import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../../core/services/platform.service";
 import {Alerts} from "../../shared/alerts";
-import {PhysicalGear} from "../services/model/trip.model";
+import {PhysicalGear, Trip} from "../services/model/trip.model";
+import {AppTabPage, TableSelectColumnsComponent} from "../../core/core.module";
+import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
+import {SelectPhysicalGearModal} from "./select-physicalgear.modal";
+import {PhysicalGearFilter} from "../services/physicalgear.service";
 
 @Component({
   selector: 'app-physical-gear-modal',
@@ -26,6 +30,8 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
   loading = false;
   originalData: PhysicalGear;
   $title = new BehaviorSubject<string>(undefined);
+  selectModalFilter: PhysicalGearFilter;
+
 
   @Input() acquisitionLevel: string;
 
@@ -40,6 +46,9 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
   }
 
   @Input() mobile: boolean;
+
+  @Input() parent: Trip;
+
 
   @ViewChild('form', {static: true}) form: PhysicalGearForm;
 
@@ -63,6 +72,14 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
     this.form.value = this.originalData || new PhysicalGear();
 
+    if (this.parent && this.parent instanceof Trip) {
+      this.selectModalFilter =  {
+        vesselId: this.parent.vesselSnapshot && this.parent.vesselSnapshot.id,
+        endDate: this.parent.departureDateTime || this.parent.returnDateTime
+        // TODO: startDate = endDate - 6 month ?
+      };
+    }
+
     // Compute the title
     this.computeTitle();
 
@@ -70,9 +87,31 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     // Focus on the first field, is not in mobile
-    if (this.isNew && !this.mobile) {
-      setTimeout(() => this.form.focusFirstInput(), 400);
-    }
+     if (this.isNew && !this.mobile) {
+       setTimeout(() => this.form.focusFirstInput(), 400);
+     }
+  }
+
+  async onCopyClick(event) {
+
+    const modal = await this.viewCtrl.create({
+      component: SelectPhysicalGearModal,
+      componentProps: {
+        filter: this.selectModalFilter,
+        program: this.program,
+        acquisitionLevel: this.acquisitionLevel
+      }
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+
+    console.log(res);
+
+    if (!res || !res.data) return; // CANCELLED
   }
 
 

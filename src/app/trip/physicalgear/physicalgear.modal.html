@@ -24,7 +24,18 @@
 
 <ion-content class="ion-padding" >
 
-  <!-- error -->
+  <!-- copy existing button -->
+  <ion-button mat-button
+              *ngIf="isNew"
+              fill="clear" color="tertiary" expand="full"
+              (click)="onCopyClick($event)">
+    <mat-icon>copy</mat-icon>
+    <ion-label>
+      <span translate>TRIP.PHYSICAL_GEAR.SEARCH_EXISTING_BTN</span>
+    </ion-label>
+    <ion-icon slot="end" name="arrow-forward"></ion-icon>
+  </ion-button>
+
   <ion-item *ngIf="form.error" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="form.error|translate"></ion-label>
@@ -34,6 +45,7 @@
                           [program]="program"
                           [acquisitionLevel]="acquisitionLevel"
   ></app-physical-gear-form>
+
 
 </ion-content>
 

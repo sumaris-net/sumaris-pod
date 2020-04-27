@@ -586,6 +586,7 @@ type PhysicalGearVO {
   rankOrder: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
+  "Get physical gear's trip"
   trip: TripVO
   tripId: Int
   updateDate: Date
@@ -611,9 +612,10 @@ type PmfmStrategyVO {
   qualitativeValues: [ReferentialVO]
   rankOrder: Int
   referenceTaxonIds: [Int]
+  signifFiguresNumber: Int
   taxonGroupIds: [Int]
   type: String
-  unit: String
+  unitLabel: String
   updateDate: Date
 }
 
@@ -689,7 +691,6 @@ type ProductVO {
   subgroupCount: Float
   taxonGroup: ReferentialVO
   updateDate: Date
-  validityStatusId: Int
   validationDate: Date
   weight: Float
   weightMethod: ReferentialVO
@@ -773,6 +774,8 @@ type Query {
   persons(filter: PersonFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "pubkey", sortDirection: String = "asc"): [PersonVO]
   "Get total persons count"
   personsCount(filter: PersonFilterVOInput): Long!
+  "Get physical gears"
+  physicalGears(filter: PhysicalGearFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "rankOrder", sortDirection: String = "asc"): [PhysicalGearVO]
   "Get a PMFM"
   pmfm(id: Int, label: String): PmfmVO
   "Get a program"
@@ -1669,6 +1672,14 @@ input PersonVOInput {
   updateDate: Date
 }
 
+input PhysicalGearFilterVOInput {
+  endDate: Date
+  programLabel: String
+  startDate: Date
+  tripId: Int
+  vesselId: Int
+}
+
 input PhysicalGearVOInput {
   comments: String
   controlDate: Date
@@ -1708,9 +1719,10 @@ input PmfmStrategyVOInput {
   qualitativeValues: [ReferentialVOInput]
   rankOrder: Int
   referenceTaxonIds: [Int]
+  signifFiguresNumber: Int
   taxonGroupIds: [Int]
   type: String
-  unit: String
+  unitLabel: String
   updateDate: Date
 }
 

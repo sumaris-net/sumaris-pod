@@ -157,6 +157,10 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
   measurements: Measurement[];
   measurementValues: { [key: string]: string };
 
+  // Parent (used when lookup gears)
+  trip: Trip;
+  tripId: number;
+
   constructor() {
     super();
     this.__typename = PhysicalGear.TYPENAME;
@@ -164,6 +168,8 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
     this.rankOrder = null;
     this.measurements = null;
     this.measurementValues = {};
+    this.trip = null;
+    this.tripId = null;
   }
 
   clone(): PhysicalGear {
@@ -197,6 +203,17 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
     this.rankOrder = source.rankOrder;
     this.gear = source.gear && ReferentialRef.fromObject(source.gear);
     this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
+
+    // Parent trip
+    if (source.trip) {
+      this.trip = source.trip && Trip.fromObject(source.trip);
+      this.tripId = this.trip && this.trip.id;
+    }
+    else {
+      this.trip = null;
+      this.tripId = null;
+    }
+
     return this;
   }
 

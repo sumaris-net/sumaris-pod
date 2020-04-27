@@ -129,7 +129,7 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     injector: Injector,
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryTableDataService<T, F>,
-    @Optional() @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T
+    @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T
   ) {
     super(injector,
       dataType || ((Batch as any) as (new() => T)),

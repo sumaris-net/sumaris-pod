@@ -405,6 +405,7 @@
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
       "RANK_ORDER": "#",
+      "SEARCH_EXISTING_BTN": "Chercher parmi les engins existants",
       "NEW": {
         "TITLE": "Nouvel engin"
       },
@@ -418,6 +419,12 @@
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",
         "GEAR": "Engin",
         "COMMENTS": "Commentaires"
+      },
+      "SELECT_MODAL": {
+        "TITLE": "Engins existants"
+      },
+      "ERROR": {
+        "LOAD_PHYSICAL_GEARS_ERROR": "Erreur de chargement des engins."
       }
     },
     "OPERATION": {

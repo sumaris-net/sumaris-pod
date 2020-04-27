@@ -90,10 +90,21 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.measurementsDataService.pmfms = pmfms;
   }
 
+  @Input() set dataService(value: TableDataService<T, F>) {
+    this.measurementsDataService.delegate = value;
+    if (!this.loading) {
+      this.onRefresh.emit("new dataService");
+    }
+  }
+
+  get dataService(): TableDataService<T, F> {
+    return this.measurementsDataService.delegate;
+  }
+
   protected constructor(
     protected injector: Injector,
     protected dataType: new() => T,
-    protected dataService: TableDataService<T, F>,
+    dataService?: TableDataService<T, F>,
     protected validatorService?: ValidatorService,
     protected options?: AppMeasurementsTableOptions<T>
   ) {

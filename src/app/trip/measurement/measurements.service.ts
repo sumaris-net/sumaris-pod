@@ -17,6 +17,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
   private _program: string;
   private _acquisitionLevel: string;
   private _onRefreshPmfms = new EventEmitter<any>();
+  private _delegate: TableDataService<T, F>;
 
   protected programService: ProgramService;
 
@@ -54,14 +55,23 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
     this.setPmfms(pmfms);
   }
 
+  @Input() set delegate(value: TableDataService<T, F>) {
+    this._delegate = value;
+  }
+
+  get delegate(): TableDataService<T, F> {
+    return this._delegate;
+  }
+
   constructor(
     injector: Injector,
     protected dataType: new() => T,
-    protected delegate: TableDataService<T, F>,
+    delegate?: TableDataService<T, F>,
     protected options?: {
       mapPmfms: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
     }) {
 
+    this._delegate = delegate;
     this.programService = injector.get(ProgramService);
 
     // Detect rankOrder on the entity class
