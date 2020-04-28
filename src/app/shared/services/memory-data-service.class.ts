@@ -2,15 +2,23 @@ import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {Entity, isNotNil, LoadResult, TableDataService} from "../../core/core.module";
 import {EntityUtils} from "../../core/services/model";
 import {filter, mergeMap} from "rxjs/operators";
+import {isNotEmptyArray} from "../functions";
 
-export interface InMemoryTableDataServiceOptions<T> {
+export interface InMemoryTableDataServiceOptions<T, F> {
   onSort?: (data: T[], sortBy?: string, sortDirection?: string) => T[];
   onLoad?: (data: T[]) => T[] | Promise<T[]>;
   onSave?: (data: T[]) => T[] | Promise<T[]>;
   equals?: (d1: T, d2: T) => boolean;
+  onFilter?: (data: T[], filter: F) => T[] | Promise<T[]>;
 }
 
-export class InMemoryTableDataService<T extends Entity<T>, F = any> implements TableDataService<T, F> {
+export class DataFilter<T extends Entity<T>> {
+  test(data: T): boolean {
+    return true;
+  }
+}
+
+export class InMemoryTableDataService<T extends Entity<T>, F extends DataFilter<T> | any = DataFilter<T>> implements TableDataService<T, F> {
 
   private _onDataChange = new Subject();
   private _dataSubject = new BehaviorSubject<LoadResult<T>>(undefined);
@@ -19,10 +27,12 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
   private readonly _onLoad: (data: T[]) => T[] | Promise<T[]>;
   private readonly _onSaveFn: (data: T[]) => T[] | Promise<T[]>;
   private readonly _equalsFn: (d1: T, d2: T) => boolean;
+  private readonly _filterFn: (data: T[], filter: F) => T[] | Promise<T[]>;
 
   protected data: T[];
+  private _hiddenData: T[];
 
-  // TODO add filter  see sub-batches.modal.ts onLoadData & _hiddenData
+  // TODO add test  see sub-batches.modal.ts onLoadData & _hiddenData
 
   hasRankOrder = false;
   debug = false;
@@ -30,6 +40,7 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
 
   set value(data: T[]) {
     if (this.data !== data) {
+      this._hiddenData = [];
       this.data = data;
       if (this._dataSubject.observers.length) {
         this._dataSubject.next({data: data || [], total: data && data.length || 0});
@@ -44,13 +55,14 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
 
   constructor(
     protected dataType: new() => T,
-    protected options?: InMemoryTableDataServiceOptions<T>
+    protected options?: InMemoryTableDataServiceOptions<T, F>
   ) {
 
     this._sortFn = options && options.onSort || this.sort;
     this._onLoad = options && options.onLoad || null;
     this._onSaveFn = options && options.onSave || null;
     this._equalsFn = options && options.equals || this.equals;
+    this._filterFn = options && options.onFilter || this.filter;
 
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
@@ -90,6 +102,12 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
             data = ((promiseOrData instanceof Promise)) ? await promiseOrData : promiseOrData;
           }
 
+          // Apply filter
+          {
+            const promiseOrData = this._filterFn(data, filterData);
+            data = ((promiseOrData instanceof Promise)) ? await promiseOrData : promiseOrData;
+          }
+
           return {
             data,
             total: res && res.total || data.length
@@ -100,6 +118,10 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
 
   async saveAll(data: T[], options?: any): Promise<T[]> {
     if (!this.data) throw new Error("[memory-service] Could not save, because value not set");
+
+    // Restore hidden data
+    if (isNotEmptyArray(this._hiddenData))
+      data = data.concat(this._hiddenData);
 
     if (this._onSaveFn) {
       const res = this._onSaveFn(data);
@@ -138,6 +160,27 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
 
     // Execute the sort
     return EntityUtils.sort(data, sortBy, sortDirection);
+  }
+
+  filter(data: T[], _filter: F): T[] {
+
+    // if filter is DataFilter instance, use its test function
+    if (_filter && _filter.test !== undefined) {
+      this._hiddenData = [];
+      const filteredData = [];
+
+      data.forEach(value => {
+        if (_filter.test(value))
+          filteredData.push(value);
+        else
+          this._hiddenData.push(value);
+      });
+
+      return filteredData;
+    }
+
+    // default, no filter
+    return data;
   }
 
   connect(): Observable<LoadResult<T>> {

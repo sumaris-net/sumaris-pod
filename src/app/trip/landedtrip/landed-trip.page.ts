@@ -180,6 +180,8 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       // Fill default values
       if (observedLocation) {
 
+        data.observedLocationId = observedLocation.id;
+
         // program
         data.program = observedLocation.program;
         this.programSubject.next(data.program.label);

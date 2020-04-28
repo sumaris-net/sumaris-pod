@@ -489,7 +489,8 @@
         "PARENT": "Effort",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "WEIGHT": "Poids (kg)",
-        "INDIVIDUAL_COUNT": "Nombre individus"
+        "INDIVIDUAL_COUNT": "Nombre individus",
+        "INDIVIDUAL_SAMPLING": "Echantillonage"
       }
     },
     "BATCH": {

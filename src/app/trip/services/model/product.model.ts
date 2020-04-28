@@ -10,31 +10,32 @@ import {
 } from "./measurement.model";
 import {isNotNilOrBlank} from "../../../shared/functions";
 import {ReferentialAsObjectOptions} from "../../../core/services/model";
+import {DataFilter} from "../../../shared/services/memory-data-service.class";
 
 export declare interface ProductWeight extends IMeasurementValue {
   unit?: 'kg';
 }
 
-export class ProductFilter {
+export class ProductFilter implements DataFilter<Product> {
 
   static searchFilter<P extends Product>(f: ProductFilter): (T) => boolean {
     return (p: P) => {
-      // Operation
-      if (isNotNil(f.operationId) && isNotNil(p.operationId) && f.operationId !== p.operationId) {
-        return false;
-      }
-
-      // Sale
-      if (isNotNil(f.saleId) && isNotNil(p.saleId) && f.saleId !== p.saleId) {
-        return false;
-      }
-
-      return true;
+      return f.test(p);
     };
   }
 
-  operationId?: number;
-  saleId?: number;
+  parent?: IWithProductsEntity<any>;
+
+  constructor(parent?: IWithProductsEntity<any>) {
+    this.parent = parent || null;
+  }
+
+  test(data: Product): boolean {
+    if (isNotNil(this.parent)) {
+      return this.parent.equals(data.parent);
+    }
+    return true;
+  }
 }
 
 export class Product extends DataEntity<Product> implements IEntityWithMeasurement<Product> {
@@ -108,7 +109,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   asObject(opts?: DataEntityAsObjectOptions): any {
     const target = super.asObject(opts);
 
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true} as ReferentialAsObjectOptions) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true} as ReferentialAsObjectOptions) || undefined;
     target.weightMethod = this.weightMethod && this.weightMethod.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true}) || undefined;
     target.saleType = this.saleType && this.saleType.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
 
