@@ -27,8 +27,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -42,7 +42,6 @@ import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -1018,6 +1017,24 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
                 ((BatchSortingMeasurement) target).setBatch(null);
             } else {
                 ((BatchSortingMeasurement) target).setBatch(load(Batch.class, parentId));
+            }
+        }
+
+        // Product quantification measurement
+        else if (target instanceof ProductQuantificationMeasurement) {
+            if (parentId == null) {
+                ((ProductQuantificationMeasurement) target).setProduct(null);
+            } else {
+                ((ProductQuantificationMeasurement) target).setProduct(load(Product.class, parentId));
+            }
+        }
+
+        // Product sorting measurement
+        else if (target instanceof ProductSortingMeasurement) {
+            if (parentId == null) {
+                ((ProductSortingMeasurement) target).setProduct(null);
+            } else {
+                ((ProductSortingMeasurement) target).setProduct(load(Product.class, parentId));
             }
         }
 
