@@ -1,7 +1,7 @@
 import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
-import {fromDateISOString, isNil, isNotNil, isNotNilOrBlank, toDateISOString} from "../functions";
+import {fromDateISOString, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, toDateISOString} from "../functions";
 import {Moment} from "moment";
 import {DateFormatPipe} from "../shared.module";
 import {DateAdapter} from "@angular/material";
@@ -194,6 +194,14 @@ export class SharedValidators {
         const error = { required: true};
         control.setErrors(error);
         return error;
+      }
+      if (control.hasError('required')) {
+        // delete required error
+        delete control.errors.required;
+        if (isEmptyArray(Object.keys(control.errors))) {
+          // if 'required' was the last error, reset control errors
+          control.setErrors(null);
+        }
       }
       return null;
     };

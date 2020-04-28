@@ -182,6 +182,13 @@
         <mat-icon>add</mat-icon>
       </button>
 
+      <!-- sampling -->
+      <button mat-icon-button color="light" *ngIf="row.validator.controls.individualCount.value > 0 && row.id !== -1"
+              [title]="'TRIP.PRODUCT.LIST.INDIVIDUAL_SAMPLING'|translate"
+              (click)="$event.preventDefault() || openSampling($event, row)">
+        <mat-icon>center_focus_strong</mat-icon>
+      </button>
+
     </mat-cell>
   </ng-container>
 

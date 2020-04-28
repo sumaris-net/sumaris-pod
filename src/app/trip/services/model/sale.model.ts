@@ -1,5 +1,5 @@
 import {fromDateISOString, NOT_MINIFY_OPTIONS, toDateISOString} from "../../../core/core.module";
-import {Person, ReferentialRef} from "../../../referential/referential.module";
+import {Person, ReferentialRef} from "../../../core/services/model";
 import {Moment} from "moment/moment";
 import {DataEntityAsObjectOptions, DataRootVesselEntity, IWithProductsEntity} from "./base.model";
 import {Sample} from "./sample.model";

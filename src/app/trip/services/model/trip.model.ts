@@ -575,7 +575,8 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
 
   equals(other: OperationGroup): boolean {
     return super.equals(other)
-      && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
-      ;
+      || (
+        this.metier.equals(other.metier) && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
+      );
   }
 }

@@ -3,13 +3,31 @@ import {
   DataEntityAsObjectOptions,
   EntityUtils,
   isNil,
-  isNotNil,
+  isNotNil, IWithPacketsEntity, IWithProductsEntity,
   NOT_MINIFY_OPTIONS,
   ReferentialRef, referentialToString
 } from "./base.model";
 import {ReferentialAsObjectOptions} from "../../../core/services/model";
 import {OperationGroup} from "./trip.model";
 import {getResponseURL} from "@angular/http/src/http_utils";
+import {DataFilter} from "../../../shared/services/memory-data-service.class";
+import {Product} from "./product.model";
+
+export class PacketFilter implements DataFilter<Packet> {
+
+  parent?: IWithPacketsEntity<any>;
+
+  constructor(parent?: IWithPacketsEntity<any>) {
+    this.parent = parent || null;
+  }
+
+  test(data: Packet): boolean {
+    if (isNotNil(this.parent)) {
+      return this.parent.equals(data.parent);
+    }
+    return true;
+  }
+}
 
 export class Packet extends DataEntity<Packet> {
 
@@ -35,7 +53,7 @@ export class Packet extends DataEntity<Packet> {
   sampledRatio5: number;
   sampledRatio6: number;
 
-  parent: OperationGroup;
+  parent: IWithPacketsEntity<any>;
   parentId: number;
 
   constructor() {

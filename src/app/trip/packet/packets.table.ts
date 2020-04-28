@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {Packet, PacketUtils} from "../services/model/packet.model";
+import {Packet, PacketFilter, PacketUtils} from "../services/model/packet.model";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {PacketValidatorService} from "../services/validator/packet.validator";
 import {ModalController, Platform} from "@ionic/angular";
@@ -13,6 +13,7 @@ import {AppTableDataSource} from "../../core/core.module";
 import {BehaviorSubject, Observable} from "rxjs";
 import {IWithProductsEntity} from "../services/model/base.model";
 import {PacketModal} from "./packet.modal";
+import {ProductFilter} from "../services/model/product.model";
 
 @Component({
   selector: 'app-packets-table',
@@ -21,12 +22,12 @@ import {PacketModal} from "./packet.modal";
   providers: [
     {
       provide: InMemoryTableDataService,
-      useFactory: () => new InMemoryTableDataService<Packet>(Packet)
+      useFactory: () => new InMemoryTableDataService<Packet, PacketFilter>(Packet)
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PacketsTable extends AppTable<Packet> implements OnInit {
+export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnInit {
 
   @Input() $parentFilter: Observable<any>;
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
@@ -65,7 +66,7 @@ export class PacketsTable extends AppTable<Packet> implements OnInit {
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected validatorService: PacketValidatorService,
-    protected memoryDataService: InMemoryTableDataService<Packet>,
+    protected memoryDataService: InMemoryTableDataService<Packet, PacketFilter>,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, platform, location, modalCtrl, settings,
@@ -78,7 +79,7 @@ export class PacketsTable extends AppTable<Packet> implements OnInit {
           'composition'
         ])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Packet, any>(Packet, memoryDataService, validatorService, {
+      new AppTableDataSource<Packet, PacketFilter>(Packet, memoryDataService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production
       }),
@@ -103,6 +104,11 @@ export class PacketsTable extends AppTable<Packet> implements OnInit {
       items: this.$parents,
       attributes: this.parentAttributes
     });
+
+    this.registerSubscription(this.$parentFilter.subscribe(parentFilter => {
+      // console.debug('parent test change', parentFilter);
+      this.setFilter(new PacketFilter(parentFilter));
+    }));
 
   }
 
