@@ -5,6 +5,7 @@ import {
   Component,
   Input,
   OnInit,
+  Output,
   ViewChild
 } from "@angular/core";
 import {AlertController, ModalController} from "@ionic/angular";
@@ -14,11 +15,9 @@ import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../../core/services/platform.service";
 import {Alerts} from "../../shared/alerts";
-import {PhysicalGear, Trip} from "../services/model/trip.model";
-import {AppTabPage, TableSelectColumnsComponent} from "../../core/core.module";
-import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {SelectPhysicalGearModal} from "./select-physicalgear.modal";
-import {PhysicalGearFilter} from "../services/physicalgear.service";
+import {PhysicalGear} from "../services/model/trip.model";
+import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
+import {firstFalsePromise} from "../../shared/observables";
 
 @Component({
   selector: 'app-physical-gear-modal',
@@ -30,8 +29,6 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
   loading = false;
   originalData: PhysicalGear;
   $title = new BehaviorSubject<string>(undefined);
-  selectModalFilter: PhysicalGearFilter;
-
 
   @Input() acquisitionLevel: string;
 
@@ -47,8 +44,9 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
   @Input() mobile: boolean;
 
-  @Input() parent: Trip;
+  @Input() onInit: (instance: PhysicalGearModal) => void;
 
+  @Output() onCopyPreviousGearClick = createPromiseEventEmitter();
 
   @ViewChild('form', {static: true}) form: PhysicalGearForm;
 
@@ -72,17 +70,12 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
     this.form.value = this.originalData || new PhysicalGear();
 
-    if (this.parent && this.parent instanceof Trip) {
-      this.selectModalFilter =  {
-        vesselId: this.parent.vesselSnapshot && this.parent.vesselSnapshot.id,
-        endDate: this.parent.departureDateTime || this.parent.returnDateTime
-        // TODO: startDate = endDate - 6 month ?
-      };
-    }
-
     // Compute the title
     this.computeTitle();
 
+    if (this.onInit) {
+      this.onInit(this);
+    }
   }
 
   ngAfterViewInit(): void {
@@ -92,26 +85,36 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
      }
   }
 
-  async onCopyClick(event) {
+  async copyPreviousGear(event?: UIEvent) {
 
-    const modal = await this.viewCtrl.create({
-      component: SelectPhysicalGearModal,
-      componentProps: {
-        filter: this.selectModalFilter,
-        program: this.program,
-        acquisitionLevel: this.acquisitionLevel
-      }
-    });
+    if (this.onCopyPreviousGearClick.observers.length === 0) return; // Skip
 
-    // Open the modal
-    await modal.present();
+    // Emit event, then wait for a result
+    try {
+      const selectedGear = await emitPromiseEvent(this.onCopyPreviousGearClick, 'copyPreviousGear');
 
-    // On dismiss
-    const res = await modal.onDidDismiss();
+      // No result (user cancelled): skip
+      if (!selectedGear) return;
 
-    console.log(res);
+      // Clone, then clean
+      const gearCopy = selectedGear.clone();
+      gearCopy.id = undefined;
+      gearCopy.trip = undefined;
+      gearCopy.tripId = undefined;
+      gearCopy.rankOrder = this.originalData.rankOrder;
+      gearCopy.program = this.program;
 
-    if (!res || !res.data) return; // CANCELLED
+      // Apply to form
+      console.debug('[physical-gear-modal] Paste selected gear:', gearCopy);
+      this.form.unload();
+      this.form.reset(gearCopy);
+      this.form.markAsDirty();
+    }
+    catch(err) {
+      if (err === 'CANCELLED') return; // Skip
+      console.error(err);
+      this.form.error = err && err.message || err;
+    }
   }
 
 

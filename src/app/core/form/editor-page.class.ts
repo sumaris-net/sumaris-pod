@@ -46,7 +46,6 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     if (this._usageMode !== value) {
       this._usageMode = value;
       // TODO: Force refresh of the form
-      // this.form. ..
       this.markForCheck();
     }
   }
@@ -387,6 +386,11 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
 
   /* -- protected methods -- */
+
+  async unload(): Promise<void> {
+    this.form.reset();
+    this.registerFormsAndTables()
+  }
 
   protected async onNewEntity(data: T, options?: EditorDataServiceLoadOptions): Promise<void> {
     // can be overwrite by subclasses

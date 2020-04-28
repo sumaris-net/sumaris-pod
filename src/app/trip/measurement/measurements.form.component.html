@@ -10,26 +10,27 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
   </ion-item>
 
-<!--  <ion-spinner *ngIf="loading"></ion-spinner>-->
-
-  <!-- loading -->
-  <ng-container *ngIf="$loadingControls|async">
-    <mat-form-field class="mat-form-field-disabled">
-      <input matInput type="text" disabled="true"
-             [placeholder]="'TRIP.MEASUREMENT.FEATURE_PLACEHOLDER'|translate:{rankOrder: 1}">
-    </mat-form-field>
-    <mat-form-field class="mat-form-field-disabled">
-      <input matInput type="text" disabled="true"
-             [placeholder]="'TRIP.MEASUREMENT.FEATURE_PLACEHOLDER'|translate:{rankOrder: 2}">
-    </mat-form-field>
-  </ng-container>
-
   <!-- pmfms -->
-  <mat-form-field-measurement *ngFor="let pmfm of $pmfms | async; index as i;"
-                              [pmfm]="pmfm"
-                              [formControlName]="pmfm.pmfmId.toString()"
-                              [compact]="compact"
-                              [tabindex]="(tabindex || 0) + i*2"
-                              [floatLabel]="floatLabel">
-  </mat-form-field-measurement>
+  <ng-container *ngIf="($pmfms | async); else measurementsSkeleton; let pmfms;">
+    <mat-form-field-measurement *ngFor="let pmfm of pmfms; index as i;"
+                                [pmfm]="pmfm"
+                                [formControlName]="pmfm.pmfmId.toString()"
+                                [compact]="compact"
+                                [tabindex]="(tabindex || 0) + i*2"
+                                [floatLabel]="floatLabel">
+    </mat-form-field-measurement>
+  </ng-container>
 </form>
+
+
+<ng-template #measurementsSkeleton>
+  <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
+  <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
+</ng-template>
+
+<ng-template #propertySkeleton>
+  <mat-form-field>
+    <input matInput hidden>
+    <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+  </mat-form-field>
+</ng-template>

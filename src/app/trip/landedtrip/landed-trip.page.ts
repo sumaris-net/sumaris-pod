@@ -346,7 +346,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     if (!this.data) return;
 
     // Copy the trip
-    await (this.dataService as TripService).downloadToLocal(this.data.id, {isLandedTrip: true, withOperationGroup: true});
+    await (this.dataService as TripService).copyToOffline(this.data.id, {isLandedTrip: true, withOperationGroup: true});
 
   }
 

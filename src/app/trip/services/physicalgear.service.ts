@@ -15,7 +15,7 @@ import {TripFilter} from "./trip.service";
 import {ErrorCodes} from "./trip.errors";
 import gql from "graphql-tag";
 import {PhysicalGearFragments} from "./trip.queries";
-import {Batch} from "./model/batch.model";
+import {ReferentialFragments} from "../../referential/services/referential.queries";
 
 
 export class PhysicalGearFilter {
@@ -38,6 +38,8 @@ const LoadAllQuery: any = gql`
     }
   }
   ${PhysicalGearFragments.physicalGear}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightDepartment}
 `;
 
 
@@ -84,7 +86,7 @@ export class PhysicalGearService extends BaseDataService
     const variables: any = {
       offset: offset || 0,
       size: size || 1000,
-      sortBy: (sortBy !== 'id' && sortBy) || 'dateTime',
+      sortBy: (sortBy !== 'id' && sortBy) || 'rankOrder',
       sortDirection: sortDirection || 'desc',
       filter: dataFilter
     };

@@ -207,12 +207,12 @@
     matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
-      <mat-header-cell *matHeaderCellDef [class.hidden]="!canEdit">
+      <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.hidden]="!canEdit">
+      <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
         </mat-checkbox>
       </mat-cell>
@@ -220,10 +220,10 @@
 
     <!-- Id Column -->
     <ng-container matColumnDef="id">
-      <mat-header-cell *matHeaderCellDef mat-sort-header [class.hidden]="!isAdmin">
+      <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
         <span *ngIf="!loading; else loadingSpinner">#</span>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
+      <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
     </ng-container>
 
     <!-- Quality Column -->

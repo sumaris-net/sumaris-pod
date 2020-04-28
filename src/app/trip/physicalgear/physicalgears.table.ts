@@ -6,7 +6,8 @@ import {
   Injector,
   Input,
   OnDestroy,
-  OnInit
+  OnInit,
+  Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {environment, referentialToString, TableDataService} from "../../core/core.module";
@@ -16,8 +17,9 @@ import {InMemoryTableDataService} from "../../shared/services/memory-data-servic
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PhysicalGearModal} from "./physicalgear.modal";
 import {AcquisitionLevelCodes} from "../services/model/base.model";
-import {PhysicalGear, Trip} from "../services/model/trip.model";
+import {PhysicalGear} from "../services/model/trip.model";
 import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearFilter} from "../services/physicalgear.service";
+import {createPromiseEventEmitter} from "../../shared/events";
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -51,7 +53,9 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
   @Input() canEdit = true;
   @Input() canDelete = true;
-  @Input() parent: Trip;
+  @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
+
+  @Output() onSelectPreviousGear = createPromiseEventEmitter();
 
   constructor(
     injector: Injector,
@@ -87,20 +91,33 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onNewRow.observers.length) {
+      this.onNewRow.emit();
+      return true;
+    }
 
     const newGear = await this.openDetailModal();
     if (newGear) {
-      await this.addGearToTable(newGear);
+      await this.addEntityToTable(newGear);
     }
     return true;
   }
 
   protected async openRow(id: number, row: TableElement<PhysicalGear>): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onOpenRow.observers.length) {
+      this.onOpenRow.emit({id, row});
+      return true;
+    }
+
     const gear = row.validator ? PhysicalGear.fromObject(row.currentData) : row.currentData;
 
     const updatedGear = await this.openDetailModal(gear);
     if (updatedGear) {
-      await this.addGearToTable(updatedGear, row);
+      await this.updateEntityToTable(updatedGear, row);
     }
     return true;
   }
@@ -121,50 +138,22 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         disabled: this.disabled,
         value: gear.clone(), // Do a copy, because edition can be cancelled
         isNew: isNew,
-        parent: this.parent
+        onInit: (inst: PhysicalGearModal) => {
+          // Subscribe to click on copy button, then redirect the event
+          inst.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event));
+        }
       },
       keyboardClose: true
     });
 
     // Open the modal
-    modal.present();
+    await modal.present();
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[physical-gear-table] Modal result: ", data);
 
     return (data instanceof PhysicalGear) ? data : undefined;
-  }
-
-  protected async addGearToTable(gear: PhysicalGear, row?: TableElement<PhysicalGear>): Promise<TableElement<PhysicalGear>> {
-    if (this.debug) console.debug("[physical-gear-table] Adding new gear", gear);
-
-    // Create a new row, if need
-    if (!row) {
-      row = await this.addRowToTable();
-      if (!row) throw new Error("Could not add row t table");
-
-      // Use the generated rankOrder
-      gear.rankOrder = row.currentData.rankOrder;
-
-    }
-
-    // Adapt measurement values to row
-    this.normalizeEntityToRow(gear, row);
-
-    // Affect new row
-    if (row.validator) {
-      row.validator.patchValue(gear);
-      row.validator.markAsDirty();
-    }
-    else {
-      row.currentData = gear;
-    }
-
-    this.confirmEditCreate(null, row);
-    this.markAsDirty();
-
-    return row;
   }
 
   referentialToString = referentialToString;

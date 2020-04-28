@@ -39,14 +39,11 @@
 
   <!-- loading -->
   <ng-container *ngIf="$loadingControls|async">
-    <mat-form-field class="mat-form-field-disabled">
-      <input matInput type="text" disabled="true"
-        [placeholder]="'TRIP.MEASUREMENT.FEATURE_PLACEHOLDER'|translate:{rankOrder: 1}">
-    </mat-form-field>
-    <mat-form-field class="mat-form-field-disabled">
-      <input matInput type="text" disabled="true"
-             [placeholder]="'TRIP.MEASUREMENT.FEATURE_PLACEHOLDER'|translate:{rankOrder: 2}">
-    </mat-form-field>
+    <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
   </ng-container>
 
   <!-- Measurements -->
@@ -73,3 +70,10 @@
   </mat-form-field>
 
 </form>
+
+<ng-template #propertySkeleton>
+  <mat-form-field>
+    <input matInput hidden>
+    <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+  </mat-form-field>
+</ng-template>

@@ -25,7 +25,7 @@
     </ion-label>
   </button>
   <button mat-menu-item *ngIf="debug && !isNewData && data?.id > 0"
-          (click)="devDownloadToLocal()">
+          (click)="copyToOffline()">
     <ion-label>Save locally (#developer)
     </ion-label>
   </button>
@@ -71,7 +71,8 @@
               </form-sale>
 
               <!-- Other features (Measurements) -->
-              <ion-grid class="ion-no-padding ion-padding-top">
+              <ion-grid class="ion-no-padding ion-padding-top"
+                        [class.cdk-visually-hidden]="(measurementsForm.$pmfms|async)?.length === 0">
                 <ion-row>
                   <ion-col size="12" size-md="2" size-lg="3">
                     <ion-label class="ion-float-end" translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
@@ -121,7 +122,8 @@
 
         <app-physicalgears-table #physicalGearsTable
                               [debug]="debug"
-                              [program]="programSubject|async">
+                              [program]="programSubject|async"
+                              (onSelectPreviousGear)="openSelectPreviousGearsModal($event)">
         </app-physicalgears-table>
 
       </div>

@@ -82,7 +82,7 @@
         </ion-item>
 
         <app-samples-table #samplesTable
-                           [class.hidden]="!samplesTable.defaultTaxonGroup"
+                           [class.cdk-visually-hidden]="!samplesTable.defaultTaxonGroup"
                            [program]="programSubject|async"
                            [showLabelColumn]="true"
                            [showDateTimeColumn]="false"

@@ -186,6 +186,19 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this._ready = true;
   }
 
+  /**
+   * Reset all data to original value. Useful sometimes, to re init the component (e.g. physical gear form).
+   * Note: Keep @Input() attributes unchanged
+   */
+  public unload() {
+    this.data = null;
+    this.loadingPmfms = true;
+    this.loadingValue = false;
+    this._ready = false;
+    this.$loadingControls.next(true);
+    this.$pmfms.next(undefined);
+  }
+
   /* -- protected methods -- */
 
   /**
@@ -390,4 +403,5 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
 }

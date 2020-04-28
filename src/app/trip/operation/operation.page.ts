@@ -24,6 +24,7 @@ import {isNotNilOrBlank} from "../../shared/functions";
 import {filterNotNil, firstNotNil} from "../../shared/observables";
 import {Operation, Trip} from "../services/model/trip.model";
 import {BatchGroup} from "../services/model/batch-group.model";
+import {SelectPhysicalGearModal} from "../physicalgear/select-physicalgear.modal";
 
 @Component({
   selector: 'app-operation-page',
@@ -427,7 +428,6 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
 
     this.subBatchesTable.markAsDirty();
   }
-
 
   protected getBatchChildrenByLevel(batch: Batch, acquisitionLevel: string): Batch[] {
     return (batch.children || []).reduce((res, child) => {

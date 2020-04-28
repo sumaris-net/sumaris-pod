@@ -10,7 +10,7 @@
       {{$title | async}}
     </ion-title>
 
-    <ion-buttons slot="end">
+    <ion-buttons slot="start">
       <ion-spinner *ngIf="loading"></ion-spinner>
 
       <ion-button class="back-button" (click)="save($event)"
@@ -19,22 +19,21 @@
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
+
+    <ion-buttons slot="secondary">
+      <!-- copy existing button -->
+      <ion-button *ngIf="isNew"
+                  (click)="copyPreviousGear($event)">
+        <ion-icon slot="start" name="search"></ion-icon>
+        <ion-label>
+          <span translate>COMMON.BTN_SEARCH</span>
+        </ion-label>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding" >
-
-  <!-- copy existing button -->
-  <ion-button mat-button
-              *ngIf="isNew"
-              fill="clear" color="tertiary" expand="full"
-              (click)="onCopyClick($event)">
-    <mat-icon>copy</mat-icon>
-    <ion-label>
-      <span translate>TRIP.PHYSICAL_GEAR.SEARCH_EXISTING_BTN</span>
-    </ion-label>
-    <ion-icon slot="end" name="arrow-forward"></ion-icon>
-  </ion-button>
 
   <ion-item *ngIf="form.error" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
@@ -43,8 +42,8 @@
 
   <app-physical-gear-form #form
                           [program]="program"
-                          [acquisitionLevel]="acquisitionLevel"
-  ></app-physical-gear-form>
+                          [acquisitionLevel]="acquisitionLevel">
+  </app-physical-gear-form>
 
 
 </ion-content>

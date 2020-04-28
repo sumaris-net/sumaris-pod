@@ -176,20 +176,20 @@ export const DataFragments = {
 
 export const PhysicalGearFragments = {
   physicalGear: gql`fragment PhysicalGearFragment on PhysicalGearVO {
-  id
-  rankOrder
-  updateDate
-  creationDate
-  comments
-  gear {
-    ...ReferentialFragment
-  }
-  recorderDepartment {
-    ...LightDepartmentFragment
-  }
-  measurementValues
-}
-`};
+    id
+    rankOrder
+    updateDate
+    creationDate
+    comments
+    gear {
+      ...ReferentialFragment
+    }
+    recorderDepartment {
+      ...LightDepartmentFragment
+    }
+    measurementValues
+  }`
+};
 
 
 export const OperationGroupFragment = {

@@ -92,7 +92,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       showAllOnFocus: false
     });
 
-    this.form.controls['gear'].valueChanges
+    this.form.get('gear').valueChanges
       .pipe(
         filter(value => EntityUtils.isNotEmpty(value) && !this.loading)
       )
@@ -102,7 +102,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       });
   }
 
-  setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
     if (data && EntityUtils.isNotEmpty(data.gear)) {
       this.gear = data.gear.label;
     }
@@ -115,11 +115,13 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   /* -- protected methods -- */
 
-  protected async safeSetValue(data: PhysicalGear): Promise<void> {
+  protected async safeSetValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }): Promise<void> {
+
     if (data && EntityUtils.isNotEmpty(data.gear)) {
       this.gear = data.gear.label;
     }
-    await super.safeSetValue(data);
+
+    await super.safeSetValue(data, opts);
   }
 
   referentialToString = referentialToString;

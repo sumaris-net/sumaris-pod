@@ -42,6 +42,8 @@ import {TripValidatorService} from "./trip.validator";
 import {FormErrors} from "../../core/form/form.utils";
 import {AcquisitionLevelType} from "../../referential/services/model";
 import {Operation, PhysicalGear, Trip} from "./model/trip.model";
+import {Batch} from "./model/batch.model";
+import {Sample} from "./model/sample.model";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -1145,9 +1147,9 @@ export class TripService extends RootDataService<Trip, TripFilter>
     return this.$importationProgress;
   }
 
-  async downloadToLocal(id: number, options?: TripServiceLoadOption): Promise<Trip> {
+  async copyToOffline(id: number, options?: TripServiceLoadOption): Promise<Trip> {
 
-    console.debug("[trip-service] Download trip locally...");
+    console.debug("[trip-service] Copy trip locally...");
 
     const entity = await this.load(id, {...options, fetchPolicy: "network-only"});
 
@@ -1162,27 +1164,38 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
 
     // Save the trip
-    const savedTrip = await this.entities.save(json, {entityName: Trip.TYPENAME});
+    const offlineTrip = await this.entities.save(json, {entityName: Trip.TYPENAME});
 
-    // Copy the operations
+    // Process operations
     if (options && options.withOperation) {
+
+      // Load operations
       const res = await this.operationService.watchAll(0, 1000, null, null, {
         tripId: id
       }, {
         fetchPolicy: "network-only"
       }).toPromise();
 
-      if (res && res.data) {
-        const savedOperations = await Promise.all(res.data.map(op => {
-          delete op.id;
-          op.tripId = savedTrip.id;
-          delete op.physicalGear.id; // keep rankorder
-          (op.measurements || []).forEach(m => m.id = undefined);
-          (op.positions || []).forEach(p => p.id = undefined);
+      // Save operations locally
+      await Promise.all((res && res.data || []).map(op => {
+        op.id = undefined;
+        op.tripId = offlineTrip.id;
+        op.physicalGear.id = undefined;
+        (op.measurements || []).forEach(m => m.id = undefined);
+        (op.positions || []).forEach(p => p.id = undefined);
+        const cleanTreeIdsFn = (a: (Batch|Sample)[] ) => {
+          if (!a || isEmptyArray(a)) return;
+          a.forEach(v => {
+            if (!v) return; // Skip if empty
+            v.id = undefined;
+            cleanTreeIdsFn(v.children); // Loop
+          });
+        };
+        cleanTreeIdsFn([op.catchBatch]);
+        cleanTreeIdsFn(op.samples);
 
-          return this.operationService.save(op);
-        }));
-      }
+        return this.operationService.save(op);
+      }));
     }
 
     return entity;

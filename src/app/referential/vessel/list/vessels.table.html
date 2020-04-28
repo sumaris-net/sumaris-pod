@@ -116,12 +116,12 @@
   matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
-    <mat-header-cell *matHeaderCellDef [class.hidden]="!canEdit">
+    <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
       <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
         [indeterminate]="selection.hasValue() && !isAllSelected()">
       </mat-checkbox>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.hidden]="!canEdit">
+    <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
       <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
       </mat-checkbox>
     </mat-cell>
@@ -237,10 +237,10 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [class.hidden]="inlineEdition">
+    <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="inlineEdition">
       <span></span>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.hidden]="inlineEdition">
+    <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="inlineEdition">
       <button mat-icon-button color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
         <mat-icon>undo</mat-icon>
       </button>

@@ -72,6 +72,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     return this._showMetiers;
   }
 
+  get vesselSnapshot(): VesselSnapshot {
+    return this.form.get('vesselSnapshot').value as VesselSnapshot;
+  }
+
 
   get value(): any {
     const json = this.form.value;
