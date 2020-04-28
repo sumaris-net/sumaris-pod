@@ -341,7 +341,7 @@ export function markAsTouched(form: FormGroup, opts?: {onlySelf?: boolean; emitE
   Object.keys(form.controls)
     .map(key => form.controls[key])
     .filter(control => control.enabled)
-    .forEach(control => markControlAsTouched(control));
+    .forEach(control => markControlAsTouched(control, opts));
 }
 
 export function markControlAsTouched(control: AbstractControl, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
