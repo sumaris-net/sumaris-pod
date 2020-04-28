@@ -40,13 +40,11 @@ import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
-import org.antlr.v4.runtime.misc.MultiMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -312,6 +310,7 @@ public class TripServiceImpl implements TripService {
                 landing.setVesselSnapshot(savedTrip.getVesselSnapshot());
                 landing.setDateTime(savedTrip.getReturnDateTime());
                 landing.setObservers(Beans.getSet(savedTrip.getObservers()));
+                landing.setRecorderDepartment(observedLocation.getRecorderDepartment());
 
                 LandingVO savedLanding = landingRepository.save(landing);
                 savedTrip.setLandingId(savedLanding.getId());

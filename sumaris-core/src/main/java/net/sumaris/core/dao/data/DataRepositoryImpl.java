@@ -6,7 +6,6 @@ import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.util.Beans;
@@ -14,9 +13,9 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
+import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +33,6 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -187,6 +185,11 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
             entity = getOne(vo.getId());
         } else {
             entity = createEntity();
+            if (entity instanceof IRootDataEntity && vo instanceof IRootDataVO) {
+                Date creationDate = getDatabaseCurrentTimestamp();
+                ((IRootDataEntity) entity).setCreationDate(creationDate);
+                ((IRootDataVO) vo).setCreationDate(creationDate);
+            }
         }
 
         // Remember the entity's update date
