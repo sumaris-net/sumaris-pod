@@ -23,9 +23,6 @@ package net.sumaris.core.service.data;
  */
 
 
-import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.PhysicalGearDao;
 import net.sumaris.core.dao.data.PhysicalGearRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.data.DataFetchOptions;
@@ -45,20 +42,11 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 	private static final Logger log = LoggerFactory.getLogger(PhysicalGearServiceImpl.class);
 
 	@Autowired
-	protected SumarisConfiguration config;
-
-	@Autowired
-	protected PhysicalGearDao physicalGearDao;
-
-	@Autowired
 	protected PhysicalGearRepository physicalGearRepository;
-
-	@Autowired
-	protected MeasurementDao measurementDao;
 
 	@Override
 	public List<PhysicalGearVO> findAll(PhysicalGearFilterVO filter, Page page, DataFetchOptions options) {
-		return physicalGearDao.findAll(filter, page, options);
+		return physicalGearRepository.findAll(filter, page, options);
 	}
 
 	@Override
@@ -68,7 +56,7 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 
 	@Override
 	public List<PhysicalGearVO> save(int tripId, List<PhysicalGearVO> sources) {
-		return physicalGearDao.save(tripId, sources);
+		return physicalGearRepository.saveAllByTripId(tripId, sources);
 	}
 
 

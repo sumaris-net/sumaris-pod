@@ -6,7 +6,7 @@ import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.util.Beans;
@@ -16,7 +16,6 @@ import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,9 +31,7 @@ import org.springframework.lang.Nullable;
 import javax.persistence.EntityManager;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,6 +51,8 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
     private boolean checkUpdateDate = true;
 
+    private String[] copyExcludeProperties = new String[]{IUpdateDateEntityBean.Fields.UPDATE_DATE};
+
     @Autowired
     private PersonDao personDao;
 
@@ -62,6 +61,7 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
     public DataRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         super(domainClass, entityManager);
+
     }
 
     @Override
@@ -159,8 +159,7 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         E savedEntity = save(entity);
 
         // Update VO
-        vo.setId(savedEntity.getId());
-        vo.setUpdateDate(newUpdateDate);
+        onAfterSaveEntity(vo, savedEntity, newUpdateDate, entity.getId() == null);
 
         return vo;
     }
@@ -189,26 +188,13 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
             entity = createEntity();
         }
 
-        // Remember the entity's update date
-        Date entityUpdateDate = entity.getUpdateDate();
-
         toEntity(vo, entity, true);
-
-        // Restore the update date (can be override by Beans.copyProperties())
-        entity.setUpdateDate(entityUpdateDate);
 
         return entity;
     }
 
     public void toEntity(V source, E target, boolean copyIfNull) {
-
-        // Data properties
-        DataDaos.copyDataProperties(getEntityManager(), source, target, copyIfNull);
-
-        // Observers
-        if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
-            copyObservers((IWithObserversEntity<Integer, PersonVO>)source, (IWithObserversEntity<Integer, Person>)target, copyIfNull);
-        }
+        DataDaos.copyDataProperties(getEntityManager(), source, target, copyIfNull, getCopyExcludeProperties());
     }
 
     public V toVO(E source) {
@@ -224,6 +210,7 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
     public void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
 
+        // Quality flag
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // Vessel
@@ -270,17 +257,12 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
     /* -- protected methods -- */
 
-    protected void copyVessel(IWithVesselSnapshotEntity<Integer, VesselSnapshotVO> source,
-                              IWithVesselEntity<Integer, Vessel> target,
-                              boolean copyIfNull) {
-        DataDaos.copyVessel(getEntityManager(), source, target, copyIfNull);
+    protected void onAfterSaveEntity(V vo, E savedEntity, Timestamp newUpdateDate, boolean isNew) {
+        vo.setId(savedEntity.getId());
+        vo.setUpdateDate(newUpdateDate);
     }
 
-    protected void copyObservers(IWithObserversEntity<Integer, PersonVO> source,
-                                 IWithObserversEntity<Integer, Person> target,
-                                 boolean copyIfNull) {
-        DataDaos.copyObservers(getEntityManager(), source, target, copyIfNull);
-    }
+
 
     protected boolean isCheckUpdateDate() {
         return checkUpdateDate;
@@ -288,5 +270,13 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
     protected void setCheckUpdateDate(boolean checkUpdateDate) {
         this.checkUpdateDate = checkUpdateDate;
+    }
+
+    protected String[] getCopyExcludeProperties() {
+        return this.copyExcludeProperties;
+    }
+
+    protected void setCopyExcludeProperties(String... excludedProperties) {
+        this.copyExcludeProperties = excludedProperties;
     }
 }

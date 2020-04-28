@@ -22,7 +22,6 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.model.data.IRootDataEntity;
@@ -36,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.EntityManager;
-import java.util.Date;
+import java.sql.Timestamp;
 
 public class RootDataRepositoryImpl<
     E extends IRootDataEntity<ID>,
@@ -62,19 +61,23 @@ public class RootDataRepositoryImpl<
     public RootDataRepositoryImpl(Class<E> domainClass,
                                   EntityManager entityManager) {
         super(domainClass, entityManager);
+        setCopyExcludeProperties(
+                IRootDataEntity.Fields.UPDATE_DATE,
+                IRootDataEntity.Fields.CREATION_DATE);
+    }
+
+    @Override
+    public <S extends E> S save(S entity) {
+        // When new entity: set the creation date
+        if (entity.getId() == null || entity.getCreationDate() == null) {
+            entity.setCreationDate(entity.getUpdateDate());
+        }
+        return super.save(entity);
     }
 
     @Override
     public void toEntity(V source, E target, boolean copyIfNull) {
-
-        DataDaos.copyRootDataProperties(getEntityManager(), source, target, copyIfNull);
-
-        super.toEntity(source, target, copyIfNull);
-
-        if (target.getId() == null) {
-            target.setCreationDate(new Date());
-        }
-
+        DataDaos.copyRootDataProperties(getEntityManager(), source, target, copyIfNull, getCopyExcludeProperties());
     }
 
     @Override
@@ -96,4 +99,14 @@ public class RootDataRepositoryImpl<
 
     }
 
+    /* -- protected method -- */
+
+    @Override
+    protected void onAfterSaveEntity(V vo, E savedEntity, Timestamp newUpdateDate, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, newUpdateDate, isNew);
+
+        if (isNew) {
+            vo.setCreationDate(savedEntity.getCreationDate());
+        }
+    }
 }

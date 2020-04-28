@@ -61,28 +61,41 @@ public class DataDaos extends Daos {
     public static <T extends Serializable> void copyRootDataProperties(EntityManager entityManager,
                                                                        IRootDataVO<T> source,
                                                                        IRootDataEntity<T> target,
-                                                                       boolean copyIfNull) {
-        copyDataProperties(entityManager, source, target, copyIfNull);
+                                                                       boolean copyIfNull,
+                                                                       String... excludeProperty) {
+        copyDataProperties(entityManager, source, target, copyIfNull, excludeProperty);
 
         // Recorder person
         copyRecorderPerson(entityManager, source, target, copyIfNull);
 
         // Program
         copyProgram(entityManager, source, target, copyIfNull);
+
+        // Vessel (optional on a root - e.g. ObservedLocation)
+        if (source instanceof IWithVesselSnapshotEntity && target instanceof IWithVesselEntity) {
+            copyVessel(entityManager, (IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>)source, (IWithVesselEntity<Integer, Vessel>)target, copyIfNull);
+        }
+
+        // Observers (optional on a root)
+        if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
+            copyObservers(entityManager, (IWithObserversEntity<Integer, PersonVO>)source, (IWithObserversEntity<Integer, Person>)target, copyIfNull);
+        }
     }
 
     public static <T extends Serializable> void copyDataProperties(EntityManager entityManager,
                                                                    IDataVO<T> source,
                                                                    IDataEntity<T> target,
-                                                                   boolean copyIfNull) {
+                                                                   boolean copyIfNull,
+                                                                   String... excludeProperty) {
 
-        Beans.copyProperties(source, target);
+        Beans.copyProperties(source, target, excludeProperty);
 
         // Recorder department
         copyRecorderDepartment(entityManager, source, target, copyIfNull);
 
         // Quality flag
         copyQualityFlag(entityManager, source, target, copyIfNull);
+
     }
 
     public static <T extends Serializable> void copyRecorderDepartment(EntityManager entityManager,

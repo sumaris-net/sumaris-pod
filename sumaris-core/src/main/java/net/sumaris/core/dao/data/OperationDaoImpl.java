@@ -113,7 +113,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
                 .setParameter(operationIdParam, tripId)
                 .setFirstResult(offset)
                 .setMaxResults(size);
-        return toOperationVOs(q.getResultList());
+        return toVOs(q.getResultList());
     }
 
     @Override
@@ -177,7 +177,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
         }
 
         // VO -> Entity
-        operationVOToEntity(source, entity, true);
+        toEntity(source, entity, true);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -245,14 +245,14 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
     /* -- protected methods -- */
 
-    protected List<OperationVO> toOperationVOs(List<Operation> source) {
+    protected List<OperationVO> toVOs(List<Operation> source) {
         return source.stream()
                 .map(this::toVO)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    protected void operationVOToEntity(OperationVO source, Operation target, boolean copyIfNull) {
+    protected void toEntity(OperationVO source, Operation target, boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
 

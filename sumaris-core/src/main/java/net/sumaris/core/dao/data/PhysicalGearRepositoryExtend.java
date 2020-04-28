@@ -31,6 +31,7 @@ import net.sumaris.core.vo.data.PhysicalGearVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Date;
+import java.util.List;
 
 public interface PhysicalGearRepositoryExtend
     extends IEntityConverter<PhysicalGear, PhysicalGearVO> {
@@ -74,4 +75,6 @@ public interface PhysicalGearRepositoryExtend
             }
         };
     }
+
+    List<PhysicalGearVO> saveAllByTripId(final int tripId, final List<PhysicalGearVO> sources);
 }

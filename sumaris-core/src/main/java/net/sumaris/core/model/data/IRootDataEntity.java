@@ -22,6 +22,7 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Person;
 
@@ -31,6 +32,13 @@ import java.util.Date;
 public interface IRootDataEntity<ID extends Serializable>
         extends IDataEntity<ID>,
         IWithRecorderPersonEntity<ID, Person> {
+
+    interface Fields extends IDataEntity.Fields {
+        String PROGRAM = "program";
+        String CREATION_DATE = "creationDate";
+        String COMMENTS = "comments";
+        String VALIDATION_DATE = "validationDate";
+    }
 
     Program getProgram();
 

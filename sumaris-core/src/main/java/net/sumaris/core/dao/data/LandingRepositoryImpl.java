@@ -127,13 +127,7 @@ public class LandingRepositoryImpl
     @Override
     public void toEntity(LandingVO source, Landing target, boolean copyIfNull) {
 
-        DataDaos.copyRootDataProperties(getEntityManager(), source, target, copyIfNull);
-
-        // Vessel
-        copyVessel(source, target, copyIfNull);
-
-        // Observers
-        copyObservers(source, target, copyIfNull);
+        super.toEntity(source, target, copyIfNull);
 
         // Landing location
         if (copyIfNull || source.getLocation() != null) {
