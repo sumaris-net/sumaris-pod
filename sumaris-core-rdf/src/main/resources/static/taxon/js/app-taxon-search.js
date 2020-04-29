@@ -1071,11 +1071,14 @@ function AppTaxonSearch(config) {
         console.debug("[taxon-search] All {0} imported in {1} ms".format(valueType, duration), res);
 
         if (res) {
-            displayResponse(this.yasqe, res, duration);
+            file.response = res;
+            file.duration = duration;
         }
         else {
             hideResult();
         }
+
+        displayFileResponse(file);
 
         displayFileResult(file, {
             totalCount: values.length,
@@ -1110,28 +1113,57 @@ function AppTaxonSearch(config) {
         const el = file.previewElement.querySelector(".result");
         if (!el) return;
 
-        let htmlResult = '';
-        htmlResult += totalCount + ' row';
-        if (totalCount > 1) htmlResult += 's';
-        htmlResult += ' (';
+        {
+            const totalEl = document.createElement("a");
+            totalEl.setAttribute('href', '#');
+            totalEl.innerText = totalCount + ' row' + (totalCount > 1 ? 's' : '');
+            totalEl.onclick = () => displayFileResponse(file);
+            el.appendChild(totalEl);
+        }
+
+        {
+            const span = el.appendChild(document.createElement("span"));
+            span.innerText = ' (';
+            el.appendChild(span);
+        }
 
         if (ignoreCount > 0) {
-            htmlResult += ignoreCount + ' ignored';
+            const ignoreEl = el.appendChild(document.createElement("span"));
+            ignoreEl.innerText = ignoreCount + ' ignored';
+            el.appendChild(ignoreEl);
         }
 
         if (matchCount > 0) {
-            if (ignoreCount > 0)  htmlResult += ', ';
-            htmlResult += '<span class="text-success">' + matchCount + ' found</span>';
+            if (ignoreCount > 0) {
+                const span = el.appendChild(document.createElement("span"));
+                span.innerText = ', ';
+                el.appendChild(span);
+            }
+            const matchEl = document.createElement("a");
+            matchEl.setAttribute('href', '#');
+            matchEl.innerText = matchCount + ' found';
+            matchEl.onclick = () => displayFileResponse(file, {valid: true});
+            el.appendChild(matchEl);
         }
 
         if (missingCount > 0) {
-            if (ignoreCount > 0 || matchCount > 0)  htmlResult += ', ';
-            htmlResult += '<span class="text-danger">' + missingCount + ' not found</span>';
+            if (ignoreCount > 0 || matchCount > 0) {
+                const span = el.appendChild(document.createElement("span"));
+                span.innerText = ', ';
+                el.appendChild(span);
+            }
+            const missingEl = document.createElement("a");
+            missingEl.setAttribute('href', '#');
+            missingEl.innerText = missingCount + ' not found';
+            missingEl.onclick = () => displayFileResponse(file, {valid: false});
+            el.appendChild(missingEl);
         }
 
-        htmlResult += ')';
-
-        el.innerHTML = htmlResult;
+        {
+            const span = el.appendChild(document.createElement("span"));
+            span.innerHTML = ')';
+            el.appendChild(span);
+        }
     }
 
     function hideFileResult(file) {
@@ -1139,6 +1171,31 @@ function AppTaxonSearch(config) {
         const el = file.previewElement.querySelector(".result");
         if (!el) return;
         el.innerHTML = '';
+    }
+
+    function displayFileResponse(file, opts) {
+        if (!file || !file.response) return; // Skip
+
+        // Filter response
+        let res;
+        if (opts && opts.valid === true) {
+            res = {
+                ...file.response
+            };
+            res.body.results.bindings =  res.body.results.bindings.slice().filter(binding => !!binding.sourceUri);
+        }
+        else if (opts && opts.valid === false) {
+            res = {
+                ...file.response
+            };
+            res.body.results.bindings =  res.body.results.bindings.slice().filter(binding => !binding.sourceUri);
+        }
+        else {
+            res = { ...file.response };
+            res.body.results.bindings = res.body.results.bindings.slice();
+        }
+
+        displayResponse(this.yasqe, res, file.duration);
     }
 
     function getFileProgressionFn(file) {
