@@ -46,22 +46,40 @@ class YasrTaxonPlugin {
     getTaxonsFromBindings(bindings) {
         const taxonsByUri = {};
         bindings.forEach(binding => {
-            const uri = binding.sourceUri.value;
-            if (!taxonsByUri[uri]) {
-                taxonsByUri[uri] = {
-                    uri,
-                    scientificName: binding.scientificName.value,
-                    author: binding.author && binding.author.value,
-                    rank: binding.rank && binding.rank.value,
-                    created: binding.created && binding.created.value,
-                    modified: binding.modified && binding.modified.value,
-                    seeAlso : [],
-                    exactMatch : [],
-                    parentUri: binding.parent && binding.parent.value
-                };
-                // Remove modified date, if same as created
-                if (taxonsByUri[uri].modified && taxonsByUri[uri].modified === taxonsByUri[uri].created) {
-                    taxonsByUri[uri].modified = undefined;
+            let uri = binding.sourceUri && binding.sourceUri.value;
+            // If no match found (can occur n file import)
+            if (!uri) {
+                const lookupVars = Object.keys(binding);
+                const lookupVar = lookupVars.length === 1 ? lookupVars[0] : lookupVars[lookupVars.length -1];
+                const lookupValue = binding[lookupVar].value;
+                uri = lookupValue;
+                if (!taxonsByUri[uri]) {
+                    taxonsByUri[uri] = {
+                        uri: lookupVar === 'code' ? lookupValue : undefined,
+                        scientificName: lookupVar === 'name' ? lookupValue : undefined,
+                        missing: true,
+                        exactMatch: lookupVar === 'aphiaid' ? ['urn:lsid:marinespecies.org:taxname:' + lookupValue] : [],
+                        seeAlso: []
+                    };
+                }
+            }
+            else {
+                if (!taxonsByUri[uri]) {
+                    taxonsByUri[uri] = {
+                        uri,
+                        scientificName: binding.scientificName.value,
+                        author: binding.author && binding.author.value,
+                        rank: binding.rank && binding.rank.value,
+                        created: binding.created && binding.created.value,
+                        modified: binding.modified && binding.modified.value,
+                        exactMatch : [],
+                        seeAlso : [],
+                        parentUri: binding.parent && binding.parent.value
+                    };
+                    // Remove modified date, if same as created
+                    if (taxonsByUri[uri].modified && taxonsByUri[uri].modified === taxonsByUri[uri].created) {
+                        taxonsByUri[uri].modified = undefined;
+                    }
                 }
             }
             if (binding.exactMatch && binding.exactMatch.value
@@ -122,10 +140,13 @@ class YasrTaxonPlugin {
                 "<th scope=\"row\">" + (index + 1) + "</th>",
 
                 // Scientific name
-                "<td class='col'>" + taxon.scientificName + "</td>",
+                "<td class='col'>" + (taxon.scientificName || '') + "</td>",
 
                 // Source URI
-                "<td>" + this.displayUri(taxon.uri, prefixes, this.uriMaxLength) +
+                "<td>" +
+                ((taxon.missing) ?
+                    '<span style="color: red;"><i class="icon ion-close"></i>' + (taxon.uri|| '') + ' <i>(missing)</i></span>' :
+                    this.displayUri(taxon.uri, prefixes, this.uriMaxLength)) +
                 (taxon.created ? ("<br/><small class='gray' title='Creation date'><i class='icon ion-calendar'></i> "+ taxon.created + "</small>") : "") +
                 (taxon.modified ? ("<br/><small class='gray' title='Last modification date'><i class='icon ion-pencil'></i> "+ taxon.modified + "</small>") : "") +
                 "</td>",

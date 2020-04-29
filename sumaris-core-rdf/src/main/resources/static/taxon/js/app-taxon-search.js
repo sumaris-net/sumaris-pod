@@ -70,7 +70,7 @@ function AppTaxonSearch(config) {
                 '  ?sourceUri dwc:scientificName ?scientificName ;\n' +
                 '       rdf:type ?type .\n' +
                 '  FILTER (\n' +
-                '     {{filter}}\n' +
+                '     ({{filter}})\n' +
                 '     && (?type = dwctax:TaxonName || ?type = {{defaultPrefix}}:TaxonName) \n' +
                 '  ) .\n' +
                 '  OPTIONAL {\n' +
@@ -299,7 +299,7 @@ function AppTaxonSearch(config) {
             canHandleTerm: (term) => term && term.trim().match(/^[0-9]{6,8}$/),
             yasrPlugin : 'taxon',
             debug: false,
-            q: 'Lophius budegassa',
+            q: '126554',
             prefixes: ['dc', 'rdf',  'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
                 'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'eaufrance'],
             query: 'SELECT DISTINCT \n' +
@@ -750,9 +750,17 @@ function AppTaxonSearch(config) {
         searchText = searchText || inputSearch.value;
         if (!searchText) return; // Skip if empty
 
-        let searchTerms = [searchText];
-        if (searchText.indexOf('"') !== -1 || searchText.indexOf(',') !== -1) {
-            searchTerms = searchText.split(/[",]+/).map(s => s.trim()).filter(s => s.length > 0);
+        let searchTerms;
+        if (typeof searchText === "string") {
+            searchTerms = searchText.split(/[",;+\t]+/).map(s => s.trim()).filter(s => s.length > 0);
+        }
+        else if (typeof searchText === "array") {
+            searchTerms = searchText.map(s => s.trim()).filter(s => s.length > 0);
+        }
+        else {
+            throw new Error("Invalid argument: " + searchText);
+        }
+        if (searchTerms.length > 1) {
             console.info("Multiple search:", searchTerms);
         }
 
@@ -818,8 +826,8 @@ function AppTaxonSearch(config) {
                         .join('\n\t&& ');
 
                     // Compute the query
-                    query = query.replace('#filter', '\n\t|| (' + filterClause + ') #filter')
-                        .replace('{{filter}}', '(' + filterClause + ') #filter');
+                    query = query.replace('#filter', '\n\t|| (' + filterClause + ') #filter\n\t')
+                        .replace('{{filter}}', '(' + filterClause + ') #filter\n\t');
 
                     // Replace wildcards by regexp, if NOT exact match
                     binding.q = opts.exactMatch ? q : q.replace(/[*]+/g, '.*');
@@ -871,7 +879,7 @@ function AppTaxonSearch(config) {
         showLoading(false);
     }
 
-    function displayResponse(yasqe, req, duration) {
+    function displayResponse(yasqe, response, duration) {
         log('RESPONSE: received in ' + duration + 'ms');
 
         initYasr();
@@ -879,7 +887,7 @@ function AppTaxonSearch(config) {
         const yasrPlugin = queries[selectedQueryIndex] && queries[selectedQueryIndex].yasrPlugin;
         if (yasrPlugin) yasr.selectPlugin(yasrPlugin);
 
-        yasr.setResponse(req);
+        yasr.setResponse(response);
 
         hideLoading();
         showResult();
@@ -972,22 +980,23 @@ function AppTaxonSearch(config) {
         if (opts.queryIndex < 0) return; // Skip
 
         const query = queries[opts.queryIndex];
-        let valueFilterFn = query.canHandleTerm;
-        if (!valueFilterFn) {
-            const queryIdParts = (query.id||'code').split('-');
-            const valueType = queryIdParts[queryIdParts.length - 1].toLowerCase();
-            let valueRegexp;
+        const queryIdParts = query.id && query.id.split('-');
+        const valueType = queryIdParts && queryIdParts[queryIdParts.length - 1].toLowerCase() || 'code';
+
+        let lineFilter = query.canHandleTerm;
+        if (!lineFilter) {
+            let lineFilterRegexp;
             switch (valueType) {
                 case 'name':
-                    valueRegexp = SCIENTIFIC_NAME_REGEXP;
+                    lineFilterRegexp = SCIENTIFIC_NAME_REGEXP;
                     break;
                 case 'code':
                 case 'aphiaid':
-                    valueRegexp = NUMERICAL_CODE_REGEXP;
+                    lineFilterRegexp = NUMERICAL_CODE_REGEXP;
                     break;
                 default: throw new Error('Invalid value type: ' + opts.valueType);
             }
-            valueFilterFn = (v) => valueRegexp.test(v);
+            lineFilter = (v) => lineFilterRegexp.test(v);
         }
 
         const now = Date.now();
@@ -998,38 +1007,56 @@ function AppTaxonSearch(config) {
         let progression = 0;
         setProgression(progression);
 
-        const values = await readLines(file, valueFilterFn);
+        const values = await readFileAsLines(file);
+
+        const validValues = values.filter(lineFilter);
 
         // Update progression
         progression += 10;
         setProgression(progression);
 
-        console.info("[taxon-search] Found {0} valid {1}s".format(values.length, opts.valueType))
+        console.info("[taxon-search] Found {0} valid {1}s".format(validValues.length, opts.valueType))
         if (!values.length) {
             setProgression(100);
             return; // Nothing to search
         }
 
         // Compute progression steps
-        const progressionStep = Math.max(Math.trunc((90 / values.length) * 10) / 10, 0.1);
+        const progressionStep = Math.max(Math.trunc((90 / validValues.length) * 10) / 10, 0.1);
 
         // Chain search on each value
-        let concatRes;
-        for (value of values) {
+        let res,
+            lookupVar;
+        for (value of validValues) {
 
             // Search on value
-            const res = await searchAsPromise(value, opts);
+            const curRes = await searchAsPromise(value, opts);
 
-            // Init the final result, using the first response
-            if (!concatRes) {
-                concatRes = {...res}; // Copy
+            const hasResult = curRes.body && curRes.body.results && curRes.body.results.bindings && curRes.body.results.bindings.length > 0;
+
+            const bindings = hasResult ? curRes.body.results.bindings : [{}/*empty binding*/];
+
+            // If first response, init the result
+            if (!res) {
+                // Copy the first result, to init final response
+                res = {...curRes};
+
+                // Reset bindings (will be add later)
+                res.body.results.bindings = [];
+
+                // Compute and add a new var, to store the lookup value
+                lookupVar = valueType;
+                while (res.body.head.vars.findIndex(v => v === lookupVar) !== -1) {
+                    lookupVar = '_' + lookupVar;
+                }
+                res.body.head.vars.push(lookupVar);
             }
 
-            // Concat bindings
-            else {
-                //concatRes = res;
-                concatRes.body.results.bindings = concatRes.body.results.bindings.concat(res.body.results.bindings);
-            }
+            // Add the lookup value to each bindings
+            bindings.forEach(b => b[lookupVar] = {value, type: 'literal'});
+
+            // Append final bindings
+            res.body.results.bindings = res.body.results.bindings.concat(bindings);
 
             // Update progression
             progression += progressionStep;
@@ -1039,11 +1066,18 @@ function AppTaxonSearch(config) {
         // All search has been executed
         setProgression(100);
         const duration = Date.now() - now;
-        console.debug("[taxon-search] All {0} imported in {1} ms".format(opts.valueType, duration));
-        displayResponse(this.yasqe, concatRes, duration);
+        console.debug("[taxon-search] All {0} imported in {1} ms".format(valueType, duration), res);
+
+        if (res) {
+            displayResponse(this.yasqe, res, duration);
+        }
+        else {
+            hideResult();
+        }
     }
 
-    function readLines(file, valueFilterFn) {
+    function readFileAsLines(file, opts) {
+        opts = opts || {};
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = function(onLoadEvent) {
@@ -1054,7 +1088,7 @@ function AppTaxonSearch(config) {
 
                 const values = reader.result.split("\n")
                     .map(value => value && value.trim())
-                    .filter(value => value && value.length > 0 && (!valueFilterFn || valueFilterFn(value)));
+                    .filter(value => value && value.length > 0 && (!opts.filter || opts.filter(value)));
 
                 resolve(values);
             }

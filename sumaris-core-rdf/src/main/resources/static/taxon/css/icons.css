@@ -54,3 +54,6 @@
 .ion-file {
     background-image: url(file.svg);
 }
+.ion-close {
+    background-image: url(close.svg);
+}
