@@ -75,7 +75,7 @@ function AppYasgui(yasGuiDivId) {
                 "  *\n" +
                 "WHERE {\n" +
                 "  ?tax dwc:scientificName ?label ;\n" +
-                "    rdf:typedwctax:TaxonName ;\n" +
+                "    rdf:type dwctax:TaxonName ;\n" +
                 "    ?pred ?obj .\n" +
                 "  filter( regex( ?label, \"^lophius.*\", \"i\") )\n" +
                 "} LIMIT 100"

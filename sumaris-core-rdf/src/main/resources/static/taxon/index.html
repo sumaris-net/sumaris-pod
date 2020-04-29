@@ -141,12 +141,26 @@
             </div>
             <div class="col-12 col-sm-5 col-lg-3" >
                 <div class="float-right">
-                    <!--                <button class="btn btn-primary upload">-->
-                    <!--                    <span>Upload</span>-->
-                    <!--                </button>-->
-                    <button class="btn btn-primary import ">
-                        <span>Import</span>
-                    </button>
+                    <div class="dropdown" style="display: inline;">
+                        <button class="btn btn-primary dropdown-toggle" data-target="#" id="importMenu" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
+                            <span>Import</span>
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="importMenu">
+                            <li class="dropdown-header">Local search</li>
+                            <li><a href="#" class="import-local-name">By name</a></li>
+                            <li><a href="#" class="import-local-code">By code</a></li>
+                            <li class="dropdown-header">Federated search</li>
+                            <li><a href="#" class="import-remote-name">By name</a></li>
+                            <li><a href="#" class="import-remote-code">By code</a></li>
+                            <li><a href="#" class="import-remote-aphiaid">By AphiaID</a></li>
+                        </ul>
+                    </div>
+
+<!--                    <button class="btn btn-primary import ">-->
+<!--                        <span>Import</span>-->
+<!--                    </button>-->
+
                     <button data-dz-remove class="btn btn-warning cancel ">
                         <span>Cancel</span>
                     </button>

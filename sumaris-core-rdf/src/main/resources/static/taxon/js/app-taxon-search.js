@@ -22,7 +22,7 @@ function AppTaxonSearch(config) {
         MNHN: 'http://taxref.mnhn.fr/sparql'
     };
 
-    const NUMERICAL_REGEXP = new RegExp(/^[0-9]+$/);
+    const NUMERICAL_CODE_REGEXP = new RegExp(/^[0-9]+$/);
     const SCIENTIFIC_NAME_REGEXP = new RegExp(/^[a-zA-Z ]+$/);
 
     const helper = new RdfHelper();
@@ -161,7 +161,7 @@ function AppTaxonSearch(config) {
                 '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
                 '      rdf:type dwctax:TaxonName ;\n' +
                 '      taxrefprop:hasAuthority ?author ;\n' +
-                '      taxrefprop:hasRank ?rank \n' +
+                '      taxrefprop:hasRank ?rank .\n' +
                 '    FILTER(\n' +
                 '       ( ?scientificName = "{{q}}" )\n' + // TODO: regexp not supported
                 '    )\n' +
@@ -210,6 +210,158 @@ function AppTaxonSearch(config) {
                 '    }\n' +
                 '  }\n' +
                 ' }\n' +
+                '} LIMIT {{limit}}',
+            filters: [],
+            binding: {
+                eauFranceEndpoint: endpointsById.EAU_FRANCE,
+                mnhnEndpoint: endpointsById.MNHN
+            }
+        },
+
+        {
+            id: 'remote-code',
+            name: 'Federated search by code',
+            canHandleTerm: (term) => term && term.trim().match(/^[0-9]+$/),
+            yasrPlugin : 'taxon',
+            debug: false,
+            q: '52492, 68604',
+            prefixes: ['dc', 'rdf',  'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
+                'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'eaufrance'],
+            query: 'SELECT DISTINCT \n' +
+                '  ?sourceUri ?scientificName ?author ?rank ?parent \n' +
+                '  ?created ?modified \n' +
+                '  ?exactMatch ?seeAlso \n' +
+                'WHERE {\n' +
+
+                // -- MNHN endpoint part
+                ' { SERVICE <{{mnhnEndpoint}}> {\n' +
+                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
+                '      rdf:type dwctax:TaxonName ;\n' +
+                '      taxrefprop:hasAuthority ?author ;\n' +
+                '      taxrefprop:hasRank ?rank .\n' +
+                '    FILTER (\n' +
+                '       ?sourceUri = <http://taxref.mnhn.fr/lod/name/{{q}}>\n' +
+                '    )\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri skos:broader ?parent .\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
+                '    }\n' +
+                // FIXME: not working
+                //'    OPTIONAL {\n' +
+                //'      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                //'    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri dc:create ?created ;\n' +
+                '        dc:modified ?modified .\n' +
+                '    }\n' +
+                '  } \n' +
+                ' }\n' +
+                ' UNION\n' +
+
+                // -- Sandre endpoint part
+                ' { SERVICE <{{eauFranceEndpoint}}> {\n' +
+                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
+                '      rdf:type ?type ;\n' +
+                '      apt2:AuteurAppelTaxon ?author ;\n' +
+                '      apt2:NiveauTaxonomique ?rank ;\n' +
+                '      apt2:CdAppelTaxon "{{q}}" . \n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri apt2:AppelTaxonParent|skos:broader ?parent .\n' +
+                '      #FILTER ( isURI(?parent) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
+                '      #FILTER ( isURI(?exactMatch) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                '      #FILTER ( isURI(?seeAlso) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri dc:created|apt2:DateCreationAppelTaxon ?created ;\n' +
+                '        dc:modified|apt2:DateMajAppelTaxon ?modified .\n' +
+                '    }\n' +
+                '  }\n' +
+                ' }\n' +
+                '} LIMIT {{limit}}',
+            filters: [],
+            binding: {
+                eauFranceEndpoint: endpointsById.EAU_FRANCE,
+                mnhnEndpoint: endpointsById.MNHN
+            }
+        },
+
+        {
+            id: 'remote-aphiaid',
+            name: 'Federated search by AphiaID',
+            canHandleTerm: (term) => term && term.trim().match(/^[0-9]{6,8}$/),
+            yasrPlugin : 'taxon',
+            debug: false,
+            q: 'Lophius budegassa',
+            prefixes: ['dc', 'rdf',  'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
+                'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'eaufrance'],
+            query: 'SELECT DISTINCT \n' +
+                '  ?sourceUri ?scientificName ?author ?rank ?parent \n' +
+                '  ?created ?modified \n' +
+                '  ?exactMatch ?seeAlso \n' +
+                'WHERE {\n' +
+
+                // -- MNHN endpoint part
+                ' { SERVICE <{{mnhnEndpoint}}> {\n' +
+                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
+                '      rdf:type dwctax:TaxonName ;\n' +
+                '      taxrefprop:hasAuthority ?author ;\n' +
+                '      taxrefprop:hasRank ?rank ;\n' +
+                '      skos:exactMatch|owl:sameAs ?exactMatch ;\n' +
+                '      skos:exactMatch <urn:lsid:marinespecies.org:taxname:{{q}}> .\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri skos:broader ?parent .\n' +
+                '    }\n' +
+                // FIXME: failed if enable
+                //'    OPTIONAL {\n' +
+                //'      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                //'    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri dc:create ?created ;\n' +
+                '        dc:modified ?modified .\n' +
+                '    }\n' +
+                '  } \n' +
+                ' }\n' +
+
+                /* FIXME : Sandre has no AphiaID property
+                ' UNION\n' +
+
+                // -- Sandre endpoint part
+                ' { SERVICE <{{eauFranceEndpoint}}> {\n' +
+                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
+                '      rdf:type ?type ;\n' +
+                '      apt2:AuteurAppelTaxon ?author ;\n' +
+                '      apt2:NiveauTaxonomique ?rank ;\n' +
+                '      skos:exactMatch|owl:sameAs ?exactMatch .\n' +
+                '    FILTER(\n' +
+                '      URI(?exactMatch) = <urn:lsid:marinespecies.org:taxname:{{q}}>\n' +
+                '    )\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri apt2:AppelTaxonParent|skos:broader ?parent .\n' +
+                '      #FILTER ( isURI(?parent) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
+                '      #FILTER ( isURI(?exactMatch) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                '      #FILTER ( isURI(?seeAlso) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri dc:created|apt2:DateCreationAppelTaxon ?created ;\n' +
+                '        dc:modified|apt2:DateMajAppelTaxon ?modified .\n' +
+                '    }\n' +
+                '  }\n' +
+                ' }\n' +*/
+
                 '} LIMIT {{limit}}',
             filters: [],
             binding: {
@@ -468,15 +620,21 @@ function AppTaxonSearch(config) {
             if (file.type === "text/csv" || file.type === "text/plain"
                 || file.type === "application/vnd.ms-excel" // on MS Windows
             ) {
-                importClick = () => importFile(file);
+                queries.forEach((query, index) => {
+                    const button = file.previewElement.querySelector(".import-" + query.id);
+                    if (button) {
+                        button.onclick = () => importFile(file, {queryIndex: index});
+                    }
+                })
             }
 
             // Upload to server
             else {
-                importClick = () => myDropzone.enqueueFile(file);
+                // TODO: test this !
+                file.previewElement.querySelector(".import").onclick = () => myDropzone.enqueueFile(file)
             }
 
-            file.previewElement.querySelector(".import").onclick = importClick
+
         });
 
 
@@ -528,7 +686,7 @@ function AppTaxonSearch(config) {
         return false;
     }
 
-    function doSearch(searchText, options)
+    function doSearch(searchText, opts)
     {
         searchText = searchText || inputSearch.value;
         if (!searchText || searchText.trim().length === 0) return; // Skip if empty
@@ -536,13 +694,15 @@ function AppTaxonSearch(config) {
         console.debug("Search: " + searchText)
 
         hideResult();
+        hideFilePreviews();
+
         showLoading();
 
         try {
             log("SEARCH: " + searchText, "text-muted");
 
             // Compute the query
-            doUpdateQuery(searchText, options);
+            doUpdateQuery(searchText, opts);
 
             runQuery();
 
@@ -560,11 +720,11 @@ function AppTaxonSearch(config) {
         })
     }
 
-    function searchAsPromise(searchText, options) {
+    function searchAsPromise(searchText, opts) {
 
         return new Promise((resolve, reject) => {
             doUpdateQuery(searchText, {
-                ...options,
+                ...opts,
                 queryResponse: (yasqe, res, duration) => {
                     if (res.type !== 'application/sparql-results+json') {
                         reject("Response content type '{}' not implemented yet".format(res.type));
@@ -580,10 +740,13 @@ function AppTaxonSearch(config) {
         });
     }
 
-    function doUpdateQuery(searchText, options)
+    function doUpdateQuery(searchText, opts)
     {
 
-        options = options || {};
+        opts = opts || {};
+
+        opts.queryIndex = opts.queryIndex >= 0 ? opts.queryIndex : selectedQueryIndex;
+
         searchText = searchText || inputSearch.value;
         if (!searchText) return; // Skip if empty
 
@@ -599,8 +762,8 @@ function AppTaxonSearch(config) {
         }
 
         // Auto select example
-        if (selectedQueryIndex === -1) {
-            const autoSelectExampleIndex = queries.map((example, index) => {
+        if (opts.queryIndex === -1) {
+            opts.queryIndex = queries.map((example, index) => {
                 const count = searchTerms.reduce((count, searchTerm) =>
                         ((example.canHandleTerm && example.canHandleTerm(searchTerm)) ? count + 1 : count)
                     , 0);
@@ -609,42 +772,43 @@ function AppTaxonSearch(config) {
                 .sort((e1, e2) => e1.count === e2.count ? 0 : (e1.count > e2.count ? -1 : 1))
                 // Take the example that match must of search terms
                 .map(e => e.index)[0];
-            console.info("Auto select tab index:", autoSelectExampleIndex);
-            selectQuery(autoSelectExampleIndex, {silent: true});
+            console.info("Auto select tab index:", opts.queryIndex);
+        }
+        if (opts.queryIndex !== selectedQueryIndex) {
+            selectQuery(opts.queryIndex, {silent: true});
         }
 
-
-        options = {
+        opts = {
             limit: config.limit || 50,
             exactMatch: config.exactMatch,
             // Override from the selected query
-            ...queries[selectedQueryIndex],
+            ...queries[opts.queryIndex],
             // Override using given options
-            ...options
+            ...opts
         };
-        options.q = undefined;
+        opts.q = undefined;
 
         try {
             initYase({
-                queryResponse: options.queryResponse
+                queryResponse: opts.queryResponse
             });
 
             let binding = {
-                ...options.binding,
+                ...opts.binding,
                 limit: config.limit
             };
 
             let nbLoop = 0;
-            let queryString = (options.query || defaultQuery);
+            let queryString = (opts.query || defaultQuery);
 
             while (queryString.indexOf('{{') !== -1 && nbLoop < 10) {
                 queryString = searchTerms.reduce((query, q) => {
 
                     // Create filter clause
-                    const filterClause = (options.filters || [])
+                    const filterClause = (opts.filters || [])
                         .map(key => {
                             // If exactMatch, replace 'prefixMatch' with 'exactMatch'
-                            if (options.exactMatch) {
+                            if (opts.exactMatch) {
                                 if (key === 'prefixMatch') return 'exactMatch';
                                 if (key === 'codePrefixMatch') return 'codeExactMatch';
                             }
@@ -658,7 +822,7 @@ function AppTaxonSearch(config) {
                         .replace('{{filter}}', '(' + filterClause + ') #filter');
 
                     // Replace wildcards by regexp, if NOT exact match
-                    binding.q = options.exactMatch ? q : q.replace(/[*]+/g, '.*');
+                    binding.q = opts.exactMatch ? q : q.replace(/[*]+/g, '.*');
                     binding.defaultPrefix = prefixDefs[0].prefix;
 
                     // Bind params
@@ -677,7 +841,7 @@ function AppTaxonSearch(config) {
             log("QUERY: " + queryString);
 
             // Add prefixes
-            const prefixes = (options.prefixes || [])
+            const prefixes = (opts.prefixes || [])
                 .map(p => p === 'this' ? prefixDefs[0].prefix : p) // Replace 'this' by default prefix
                 .reduce((res, prefix) => {
                 const def = prefixDefs.find(def => def.prefix === prefix);
@@ -732,7 +896,6 @@ function AppTaxonSearch(config) {
             $('#' + config.ids.options + ' #exactMatch').prop("checked", config.exactMatch !== false);
 
             hideDetails();
-            hideFilePreviews();
         }
         // Hide
         else {
@@ -806,35 +969,42 @@ function AppTaxonSearch(config) {
 
     async function importFile(file, opts) {
         opts = opts || {};
+        if (opts.queryIndex < 0) return; // Skip
 
-        opts.importType = opts.importType || 'alphaId';
-
-        let valueRegexp;
-        switch (opts.importType) {
-            case 'alphaId':
-                valueRegexp = NUMERICAL_REGEXP;
-                break;
-            case 'name':
-                valueRegexp = SCIENTIFIC_NAME_REGEXP;
-                break;
-            default: throw new Error('Invalid import type: ' + opts.importType);
+        const query = queries[opts.queryIndex];
+        let valueFilterFn = query.canHandleTerm;
+        if (!valueFilterFn) {
+            const queryIdParts = (query.id||'code').split('-');
+            const valueType = queryIdParts[queryIdParts.length - 1].toLowerCase();
+            let valueRegexp;
+            switch (valueType) {
+                case 'name':
+                    valueRegexp = SCIENTIFIC_NAME_REGEXP;
+                    break;
+                case 'code':
+                case 'aphiaid':
+                    valueRegexp = NUMERICAL_CODE_REGEXP;
+                    break;
+                default: throw new Error('Invalid value type: ' + opts.valueType);
+            }
+            valueFilterFn = (v) => valueRegexp.test(v);
         }
 
         const now = Date.now();
-        console.info("[taxon-search] Importing file...");
+        console.info("[taxon-search] Importing file '{0}'...".format(file.name));
 
         const setProgression = getFileProgressionFn(file);
 
         let progression = 0;
         setProgression(progression);
 
-        const values = await readLines(file, valueRegexp);
+        const values = await readLines(file, valueFilterFn);
 
         // Update progression
         progression += 10;
         setProgression(progression);
 
-        console.info("[taxon-search] Found {0} {1} values".format(values.length, opts.importType))
+        console.info("[taxon-search] Found {0} valid {1}s".format(values.length, opts.valueType))
         if (!values.length) {
             setProgression(100);
             return; // Nothing to search
@@ -848,7 +1018,7 @@ function AppTaxonSearch(config) {
         for (value of values) {
 
             // Search on value
-            const res = await searchAsPromise(value);
+            const res = await searchAsPromise(value, opts);
 
             // Init the final result, using the first response
             if (!concatRes) {
@@ -869,11 +1039,11 @@ function AppTaxonSearch(config) {
         // All search has been executed
         setProgression(100);
         const duration = Date.now() - now;
-        console.debug("[taxon-search] All {0} imported in {1} ms".format(opts.importType, duration));
+        console.debug("[taxon-search] All {0} imported in {1} ms".format(opts.valueType, duration));
         displayResponse(this.yasqe, concatRes, duration);
     }
 
-    function readLines(file, valueRegexp) {
+    function readLines(file, valueFilterFn) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = function(onLoadEvent) {
@@ -883,9 +1053,8 @@ function AppTaxonSearch(config) {
                 }
 
                 const values = reader.result.split("\n")
-                    .filter(value => value && valueRegexp.test(value))
-                    .map(value => value.trim())
-                    .filter(value => value.length > 0);
+                    .map(value => value && value.trim())
+                    .filter(value => value && value.length > 0 && (!valueFilterFn || valueFilterFn(value)));
 
                 resolve(values);
             }

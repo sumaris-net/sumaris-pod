@@ -94,6 +94,7 @@ class YasrTaxonPlugin {
         // Get taxon list
         const taxons = hasResults && this.getTaxonsFromBindings(this.yasr.results.json.results.bindings);
 
+
         const scientificNameFirst = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "scientificName") === 0;
         const hasAuthor = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "author") !== -1;
         const hasRank = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "rank") !== -1;
@@ -104,7 +105,7 @@ class YasrTaxonPlugin {
             "  <th scope='col'>Author</th>",
             "  <th scope='col'>Rank</th>",
             "  <th scope='col'>Parent</th>",
-            "  <th scope='col'>Exact match / seeAlso</th>"
+            "  <th scope='col'>Exact match / see also</th>"
         ];
 
         // Inverse
@@ -114,7 +115,7 @@ class YasrTaxonPlugin {
         if (!hasAuthor) headerCols[3] = "";
         if (!hasRank) headerCols[4] = "";
 
-        const rows = (hasResults && taxons || []).map((taxon, index) => {
+        let rows = (hasResults && taxons || []).map((taxon, index) => {
             let rowCols = [
 
                 // Index
@@ -162,6 +163,12 @@ class YasrTaxonPlugin {
             return "<tr>" + rowCols.join('\n') + "</tr>";
         });
 
+        if (!rows.length) {
+            rows = [" <tr><td colspan='" + headerCols.length + "'>" +
+                "No data available" +
+                " </td></tr>"];
+        }
+
         el.innerHTML = "<table class='table table-striped'>" +
             "<thead>" +
             " <tr>" +
@@ -170,6 +177,9 @@ class YasrTaxonPlugin {
             "</thead>" +
             rows.join('\n') +
             "</table>";
+
+
+
         this.yasr.resultsEl.appendChild(el);
     }
 
@@ -188,6 +198,18 @@ class YasrTaxonPlugin {
         textIcon.classList.add("plugin_icon", "txtIcon");
         textIcon.innerText = "✓";
         return textIcon;
+    }
+
+    download() {
+        const hasResults = this.yasr.results && this.yasr.results.json && this.yasr.results.json.results.bindings.length && true;
+        if (!hasResults) return undefined;
+
+        return {
+            getData: () => this.yasr.results.asCsv(),
+            contentType:"text/csv",
+            title:"Download result",
+            filename:"taxonSearch.csv"
+        };
     }
 
     /* -- Internal functions -- */
