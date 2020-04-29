@@ -53,8 +53,8 @@
 }
 #details.loading {
     background-color: lightgray;
-    left: calc(100vw - 45px);
-    width : 45px;
+    left: calc(100vw - 55px);
+    width : 55px;
     opacity: 0.7;
     align-content: center;
     right: 0;

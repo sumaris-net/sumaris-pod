@@ -231,7 +231,7 @@ function AppTaxonSearch(config) {
         selectedQueryIndex = -1;
 
     // YasGui
-    let yasqe, yasr;
+    let yasqe, yasr, onYasqeQueryResponse;
 
     /* -- Log and message -- */
 
@@ -408,16 +408,15 @@ function AppTaxonSearch(config) {
             yasqe = new Yasqe(element, {
                 requestConfig
             });
+
+            // Listen query response
+            yasqe.on("queryResponse", (yasqe, res, duration) => {
+                if (onYasqeQueryResponse) return onYasqeQueryResponse(yasqe, res, duration)
+            });
         }
 
-        if (opts.queryResponse){
-            yasqe.on("queryResponse", opts.queryResponse);
-        }
-        else {
-            // Link editor to query
-            yasqe.on("queryResponse", disaplayResponse);
-        }
-
+        // Apply the correct query response function
+        onYasqeQueryResponse = opts.queryResponse || displayResponse;
     }
 
     function initYasr() {
@@ -469,7 +468,7 @@ function AppTaxonSearch(config) {
             if (file.type === "text/csv" || file.type === "text/plain"
                 || file.type === "application/vnd.ms-excel" // on MS Windows
             ) {
-                importClick = () => parseCsvFile(file);
+                importClick = () => importFile(file);
             }
 
             // Upload to server
@@ -559,6 +558,26 @@ function AppTaxonSearch(config) {
         setTimeout(() => {
             yasqe.queryBtn.click();
         })
+    }
+
+    function searchAsPromise(searchText, options) {
+
+        return new Promise((resolve, reject) => {
+            doUpdateQuery(searchText, {
+                ...options,
+                queryResponse: (yasqe, res, duration) => {
+                    if (res.type !== 'application/sparql-results+json') {
+                        reject("Response content type '{}' not implemented yet".format(res.type));
+                    }
+
+                    console.debug("[taxon-search] Search on '{0}' give results:".format(searchText), res.body);
+                    resolve(res);
+                }
+            })
+            setTimeout(() => {
+                yasqe.queryBtn.click();
+            })
+        });
     }
 
     function doUpdateQuery(searchText, options)
@@ -688,7 +707,7 @@ function AppTaxonSearch(config) {
         showLoading(false);
     }
 
-    function disaplayResponse(yasqe, req, duration) {
+    function displayResponse(yasqe, req, duration) {
         log('RESPONSE: received in ' + duration + 'ms');
 
         initYasr();
@@ -785,11 +804,10 @@ function AppTaxonSearch(config) {
         showFilePreviews(false);
     }
 
-    function parseCsvFile(file, opts) {
+    async function importFile(file, opts) {
         opts = opts || {};
 
         opts.importType = opts.importType || 'alphaId';
-        const reader = new FileReader();
 
         let valueRegexp;
         switch (opts.importType) {
@@ -801,44 +819,78 @@ function AppTaxonSearch(config) {
                 break;
             default: throw new Error('Invalid import type: ' + opts.importType);
         }
+
+        const now = Date.now();
+        console.info("[taxon-search] Importing file...");
+
         const setProgression = getFileProgressionFn(file);
 
-        reader.onload = function(onLoadEvent) {
-            if (!onLoadEvent.loaded || !reader.result) return;
+        let progression = 0;
+        setProgression(progression);
 
-            let progression = 10;
-            setProgression(progression);
+        const values = await readLines(file, valueRegexp);
 
-            const values = reader.result.split("\n")
-                .filter(value => value && valueRegexp.test(value))
-                .map(value => value.trim())
-                .filter(value => value.length > 0);
+        // Update progression
+        progression += 10;
+        setProgression(progression);
 
-            const step = Math.max(Math.trunc((90 / values.length) * 10) / 10, 0.1);
+        console.info("[taxon-search] Found {0} {1} values".format(values.length, opts.importType))
+        if (!values.length) {
+            setProgression(100);
+            return; // Nothing to search
+        }
 
-            const executeSearch = (index) => {
-                if (index < values.length) {
-                    const value = values[index];
-                    doUpdateQuery(value, {
-                        queryResponse : (res) => {
-                            console.log(res);
-                            setTimeout(() => {
-                                progression += step;
-                                setProgression(progression);
-                                executeSearch(index+1);
-                            })
-                        }});
+        // Compute progression steps
+        const progressionStep = Math.max(Math.trunc((90 / values.length) * 10) / 10, 0.1);
 
-                    runQuery();
-                }
-                else {
-                    setTimeout(() =>setProgression(100));
-                }
+        // Chain search on each value
+        let concatRes;
+        for (value of values) {
+
+            // Search on value
+            const res = await searchAsPromise(value);
+
+            // Init the final result, using the first response
+            if (!concatRes) {
+                concatRes = {...res}; // Copy
             }
-            executeSearch(0);
 
-        };
-        reader.readAsText(file);
+            // Concat bindings
+            else {
+                //concatRes = res;
+                concatRes.body.results.bindings = concatRes.body.results.bindings.concat(res.body.results.bindings);
+            }
+
+            // Update progression
+            progression += progressionStep;
+            setProgression(progression);
+        }
+
+        // All search has been executed
+        setProgression(100);
+        const duration = Date.now() - now;
+        console.debug("[taxon-search] All {0} imported in {1} ms".format(opts.importType, duration));
+        displayResponse(this.yasqe, concatRes, duration);
+    }
+
+    function readLines(file, valueRegexp) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = function(onLoadEvent) {
+                if (!onLoadEvent.loaded || !reader.result) {
+                    reject('Unable to parse file !');
+                    return;
+                }
+
+                const values = reader.result.split("\n")
+                    .filter(value => value && valueRegexp.test(value))
+                    .map(value => value.trim())
+                    .filter(value => value.length > 0);
+
+                resolve(values);
+            }
+            reader.readAsText(file);
+        })
     }
 
     function getFileProgressionFn(file) {
