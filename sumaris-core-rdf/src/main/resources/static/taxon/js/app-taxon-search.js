@@ -633,10 +633,7 @@ function AppTaxonSearch(config) {
                 // TODO: test this !
                 file.previewElement.querySelector(".import").onclick = () => myDropzone.enqueueFile(file)
             }
-
-
         });
-
 
         myDropzone.on("sending", function(file) {
             // Disable import button
@@ -644,24 +641,20 @@ function AppTaxonSearch(config) {
         });
 
         myDropzone.on("success", function(file) {
-            console.log("TODO: success upload ! ", file)
+            console.log("[taxon-search] TODO: success upload ! ", file)
         });
 
 
         // Hide the total progress bar when nothing's uploading anymore
         myDropzone.on("queuecomplete", function(progress) {
-            console.log("TODO: queuecomplete! display a result ?", progress)
+            console.log("[taxon-search] TODO queuecomplete!", progress)
         });
 
         // Hide the total progress bar when nothing's uploading anymore
         myDropzone.on("removedfile", function(file) {
-            console.log("TODO: removing file", file)
+            console.debug("[taxon-search] Removing file '{0}'".format(file.name));
+            file.status = 'cancelled';
         });
-
-
-        // Setup the buttons for all transfers
-        // The "add files" button doesn't need to be setup because the config
-        // `clickable` has already been specified.
 
     }
 
@@ -1006,6 +999,7 @@ function AppTaxonSearch(config) {
 
         let progression = 0;
         setProgression(progression);
+        hideFileResult(file);
 
         const values = await readFileAsLines(file);
 
@@ -1026,13 +1020,21 @@ function AppTaxonSearch(config) {
 
         // Chain search on each value
         let res,
-            lookupVar;
+            lookupVar,
+            matchCount = 0;
         for (value of validValues) {
+
+            // Check if cancelled
+            if (file.status === 'cancelled') {
+                hideResult();
+                return; // Stop
+            }
 
             // Search on value
             const curRes = await searchAsPromise(value, opts);
 
             const hasResult = curRes.body && curRes.body.results && curRes.body.results.bindings && curRes.body.results.bindings.length > 0;
+            matchCount += hasResult ? 1 : 0;
 
             const bindings = hasResult ? curRes.body.results.bindings : [{}/*empty binding*/];
 
@@ -1074,6 +1076,13 @@ function AppTaxonSearch(config) {
         else {
             hideResult();
         }
+
+        displayFileResult(file, {
+            totalCount: values.length,
+            matchCount: matchCount,
+            ignoreCount : values.length - validValues.length,
+            missingCount: (validValues.length - matchCount)
+        });
     }
 
     function readFileAsLines(file, opts) {
@@ -1094,6 +1103,42 @@ function AppTaxonSearch(config) {
             }
             reader.readAsText(file);
         })
+    }
+
+    function displayFileResult(file, {totalCount, matchCount, ignoreCount, missingCount}) {
+        if (!file || !file.previewElement) return;
+        const el = file.previewElement.querySelector(".result");
+        if (!el) return;
+
+        let htmlResult = '';
+        htmlResult += totalCount + ' row';
+        if (totalCount > 1) htmlResult += 's';
+        htmlResult += ' (';
+
+        if (ignoreCount > 0) {
+            htmlResult += ignoreCount + ' ignored';
+        }
+
+        if (matchCount > 0) {
+            if (ignoreCount > 0)  htmlResult += ', ';
+            htmlResult += '<span class="text-success">' + matchCount + ' found</span>';
+        }
+
+        if (missingCount > 0) {
+            if (ignoreCount > 0 || matchCount > 0)  htmlResult += ', ';
+            htmlResult += '<span class="text-danger">' + missingCount + ' not found</span>';
+        }
+
+        htmlResult += ')';
+
+        el.innerHTML = htmlResult;
+    }
+
+    function hideFileResult(file) {
+        if (!file || !file.previewElement) return;
+        const el = file.previewElement.querySelector(".result");
+        if (!el) return;
+        el.innerHTML = '';
     }
 
     function getFileProgressionFn(file) {
