@@ -55,7 +55,7 @@ public interface LandingService {
 	Long countByFilter(LandingFilterVO filter);
 
 	@Transactional(readOnly = true)
-	LandingVO get(int id);
+	LandingVO get(Integer id);
 
 	LandingVO save(LandingVO data);
 

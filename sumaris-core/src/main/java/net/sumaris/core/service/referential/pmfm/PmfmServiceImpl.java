@@ -22,42 +22,79 @@
 
 package net.sumaris.core.service.referential.pmfm;
 
-import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.pmfm.PmfmDao;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service("pmfmService")
 public class PmfmServiceImpl implements PmfmService {
 
-	private static final Logger log = LoggerFactory.getLogger(PmfmServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(PmfmServiceImpl.class);
 
-	@Autowired
-	protected PmfmDao pmfmDao;
+    @Autowired
+    protected PmfmDao pmfmDao;
 
-	@Override
-	public PmfmVO getByLabel(final String label) {
-		Preconditions.checkNotNull(label);
-		Preconditions.checkArgument(label.trim().length() > 0);
-		return pmfmDao.getByLabel(label.trim());
-	}
+    @Override
+    public Optional<PmfmVO> findByLabel(final String label) {
+        return pmfmDao.findByLabel(label);
+    }
 
-	@Override
-	public PmfmVO get(int pmfmId) {
-		return pmfmDao.get(pmfmId);
-	}
+    @Override
+    public PmfmVO getByLabel(final String label) {
+        return pmfmDao.getByLabel(label);
+    }
 
-	@Override
-	public boolean isWeightPmfm(int pmfmId) {
-		PmfmVO pmfm = pmfmDao.get(pmfmId);
-		return pmfm.getLabel() != null && pmfm.getLabel().endsWith("WEIGHT");
-	}
+    @Override
+    public PmfmVO get(int pmfmId) {
+        return pmfmDao.get(pmfmId);
+    }
 
 	@Override
 	public PmfmVO save(PmfmVO pmfm) {
 		return pmfmDao.save(pmfm);
 	}
+
+    @Override
+    public boolean isWeightPmfm(int pmfmId) {
+        return pmfmDao.hasLabelSuffix(pmfmId, "WEIGHT");
+    }
+
+    @Override
+    public boolean isSortingPmfm(int pmfmId) {
+        return pmfmDao.hasLabelSuffix(pmfmId, "SORTING");
+    }
+
+    @Override
+    public boolean isQuantificationPmfm(int pmfmId) {
+        return pmfmDao.hasLabelSuffix(pmfmId, "QUANTIFICATION");
+    }
+
+    @Override
+    public boolean isCalculatedPmfm(int pmfmId) {
+        return pmfmDao.hasLabelPrefix(pmfmId, "CALCULATED");
+    }
+
+    @Override
+    public boolean isVesselUsePmfm(int pmfmId) {
+        return pmfmDao.hasLabelPrefix(pmfmId, "VESSEL_USE");
+    }
+
+    @Override
+    public boolean isGearUsePmfm(int pmfmId) {
+        return pmfmDao.hasLabelPrefix(pmfmId, "GEAR_USE");
+    }
+
+    @Override
+    public boolean isGearPhysicalPmfm(int pmfmId) {
+        return pmfmDao.hasLabelPrefix(pmfmId, "GEAR_PHYSICAL");
+    }
+
+
+
 }

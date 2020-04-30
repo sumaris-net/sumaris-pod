@@ -29,23 +29,16 @@ import java.util.Date;
 
 public interface IReferentialEntity
         extends Serializable,
-                IUpdateDateEntityBean<Integer, Date>,
-                IWithStatusEntity<Integer, Status> {
+                IUpdateDateEntityBean<Integer, Date> {
 
     int SEQUENCE_ALLOCATION_SIZE = 1;
 
-
     interface Fields extends IUpdateDateEntityBean.Fields {
-        String STATUS = "status";
         String CREATION_DATE = "creationDate";
     }
 
     Date getCreationDate();
 
     void setCreationDate(Date creationDate);
-
-    Status getStatus();
-
-    void setStatus(Status status);
 
 }

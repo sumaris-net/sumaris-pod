@@ -233,7 +233,7 @@ public abstract class DatabaseResource implements TestRule {
                 Properties p = new Properties();
                 p.load(resourceAsStream);
                 String jdbcUrl = p.getProperty(SumarisConfigurationOption.JDBC_URL.getKey());
-                boolean serverMode = jdbcUrl != null && jdbcUrl.startsWith("jdbc:hsqldb:hsql://");
+                boolean serverMode = jdbcUrl != null && !Daos.isFileDatabase(jdbcUrl);
 
                 // If running on server mode
                 if (serverMode) {

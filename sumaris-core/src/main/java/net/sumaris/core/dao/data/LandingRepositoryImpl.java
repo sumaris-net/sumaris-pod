@@ -23,7 +23,6 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.dao.referential.location.LocationDao;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.Trip;
@@ -34,56 +33,53 @@ import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class LandingRepositoryImpl
-        extends RootDataRepositoryImpl<Landing, Integer, LandingVO, LandingFilterVO>
-        implements LandingRepositoryExtend {
-
-
+    extends RootDataRepositoryImpl<Landing, Integer, LandingVO, LandingFilterVO>
+    implements LandingRepositoryExtend {
 
     private static final Logger log =
-            LoggerFactory.getLogger(LandingRepositoryImpl.class);
+        LoggerFactory.getLogger(LandingRepositoryImpl.class);
+
+    private final LocationDao locationDao;
 
     @Autowired
-    private LocationDao locationDao;
-
-    public LandingRepositoryImpl(EntityManager entityManager) {
+    public LandingRepositoryImpl(EntityManager entityManager, LocationDao locationDao) {
         super(Landing.class, entityManager);
+        this.locationDao = locationDao;
     }
 
-
     @Override
-    public LandingVO toVO(Landing source) {
-        return super.toVO(source);
+    public List<LandingVO> findAllByTripIds(List<Integer> tripIds) {
+        return findAllVO(hasTripIds(tripIds));
     }
 
     @Override
     public Specification<Landing> toSpecification(LandingFilterVO filter) {
         if (filter == null) return null;
 
-        return Specification.where(and(
-                hasObservedLocationId(filter.getObservedLocationId()),
-                hasTripId(filter.getTripId()),
-                betweenDate(filter.getStartDate(), filter.getEndDate()),
-                hasLocationId(filter.getLocationId()))
-        );
+        return Specification.where(hasObservedLocationId(filter.getObservedLocationId()))
+            .and(hasTripId(filter.getTripId()))
+            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+            .and(hasLocationId(filter.getLocationId()))
+            .and(hasVesselId(filter.getVesselId()));
     }
 
     public Class<LandingVO> getVOClass() {
         return LandingVO.class;
     }
 
-    //@Override
+    @Override
     public List<LandingVO> saveAllByObservedLocationId(int observedLocationId, List<LandingVO> sources) {
         // Load parent entity
         ObservedLocation parent = get(ObservedLocation.class, observedLocationId);
@@ -131,13 +127,7 @@ public class LandingRepositoryImpl
     @Override
     public void toEntity(LandingVO source, Landing target, boolean copyIfNull) {
 
-        DataDaos.copyRootDataProperties(getEntityManager(), source, target, copyIfNull);
-
-        // Vessel
-        copyVessel(source, target, copyIfNull);
-
-        // Observers
-        copyObservers(source, target, copyIfNull);
+        super.toEntity(source, target, copyIfNull);
 
         // Landing location
         if (copyIfNull || source.getLocation() != null) {
@@ -168,7 +158,35 @@ public class LandingRepositoryImpl
             }
         }
 
+        // RankOrderOnVessel
+        if (source.getRankOrderOnVessel() == null) {
+            // must compute next rank order
+            target.setRankOrderOnVessel(getNextRankOrderOnVessel(target));
+        }
 
+    }
+
+    private Integer getNextRankOrderOnVessel(Landing landing) {
+
+        // Default value
+        int result = 1;
+
+        // Find landings
+        LandingFilterVO filter = LandingFilterVO.builder()
+            .observedLocationId(landing.getObservedLocation().getId())
+            .vesselId(landing.getVessel().getId())
+            .build();
+        Optional<Integer> currentRankOrder = findAll(filter).stream()
+            // exclude itself
+            .filter(landingVO -> !landingVO.getId().equals(landing.getId()))
+            .map(LandingVO::getRankOrderOnVessel)
+            .filter(Objects::nonNull)
+            // get max rankOrderOnVessel
+            .max(Integer::compareTo);
+        if (currentRankOrder.isPresent()) {
+            result = Math.max(result, currentRankOrder.get());
+        }
+        return result;
     }
 
 }

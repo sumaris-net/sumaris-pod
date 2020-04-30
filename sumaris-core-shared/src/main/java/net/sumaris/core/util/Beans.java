@@ -151,6 +151,16 @@ public class Beans {
         }
     }
 
+    public static <T> T safeGet(List<T> list, int index) {
+        if (list == null)
+            return null;
+        try {
+            return list.get(index);
+        } catch (IndexOutOfBoundsException ignored) {
+            return null;
+        }
+    }
+
     /**
      * <p>splitByProperty.</p>
      *

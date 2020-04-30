@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.vo.filter;
 
 /*-
  * #%L
@@ -22,20 +22,18 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.model.data.PhysicalGear;
-import net.sumaris.core.vo.data.PhysicalGearVO;
+import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
-import java.util.List;
+import java.util.Date;
 
-public interface PhysicalGearDao {
+@Data
+@FieldNameConstants
+public class MetierFilterVO extends ReferentialFilterVO {
 
-    List<PhysicalGearVO> getPhysicalGearByTripId(int operationId);
+    // options used for predocumentation
+    private Date date;
+    private Integer vesselId;
+    private Integer tripId; // optional
 
-    PhysicalGearVO save(PhysicalGearVO source);
-
-    List<PhysicalGearVO> save(int tripId, List<PhysicalGearVO> sources);
-
-    PhysicalGearVO toPhysicalGearVO(PhysicalGear source, boolean withDetails);
-
-    PhysicalGearVO toPhysicalGearVO(PhysicalGear source);
 }

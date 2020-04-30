@@ -46,37 +46,41 @@ class YasrTaxonPlugin {
     getTaxonsFromBindings(bindings) {
         const taxonsByUri = {};
         bindings.forEach(binding => {
-            const uri = binding.sourceUri.value;
-            if (!taxonsByUri[uri]) {
-                taxonsByUri[uri] = {
-                    uri,
-                    scientificName: binding.scientificName.value,
-                    author: binding.author && binding.author.value,
-                    rank: binding.rank && binding.rank.value,
-                    created: binding.created && binding.created.value,
-                    modified: binding.modified && binding.modified.value,
-                    seeAlso : [],
-                    exactMatch : [],
-                    parentUri: binding.parent && binding.parent.value
-                };
-                // Remove modified date, if same as created
-                if (taxonsByUri[uri].modified && taxonsByUri[uri].modified === taxonsByUri[uri].created) {
-                    taxonsByUri[uri].modified = undefined;
+            const missing = binding.lookup && binding.lookup.found === false;
+            const uniqueKey = (binding.sourceUri && binding.sourceUri.value) || (missing && binding.lookup.value);
+            if (uniqueKey) {
+                if (!taxonsByUri[uniqueKey]) {
+                    taxonsByUri[uniqueKey] = {
+                        uri: binding.sourceUri && binding.sourceUri.value,
+                        scientificName: binding.scientificName && binding.scientificName.value,
+                        author: binding.author && binding.author.value,
+                        rank: binding.rank && binding.rank.value,
+                        created: binding.created && binding.created.value,
+                        modified: binding.modified && binding.modified.value,
+                        exactMatch : [],
+                        seeAlso : [],
+                        parentUri: binding.parent && binding.parent.value,
+                        missing
+                    };
+                    // Remove modified date, if same as created
+                    if (taxonsByUri[uniqueKey].modified && taxonsByUri[uniqueKey].modified === taxonsByUri[uniqueKey].created) {
+                        taxonsByUri[uniqueKey].modified = undefined;
+                    }
                 }
-            }
-            if (binding.exactMatch && binding.exactMatch.value
-                // Exclude if already present
-                && !taxonsByUri[uri].exactMatch.includes(binding.exactMatch.value)
-                // Exclude is same as source
-                && binding.exactMatch.value.trim() !== uri) {
-                taxonsByUri[uri].exactMatch.push(binding.exactMatch.value.trim())
-            }
-            if (binding.seeAlso && binding.seeAlso.value
-                // Exclude if already present
-                && !taxonsByUri[uri].seeAlso.includes(binding.seeAlso.value)
-                // Exclude is same as source
-                && binding.seeAlso.value.trim() !== uri) {
-                taxonsByUri[uri].seeAlso.push(binding.seeAlso.value.trim())
+                if (binding.exactMatch && binding.exactMatch.value
+                    // Exclude if already present
+                    && !taxonsByUri[uniqueKey].exactMatch.includes(binding.exactMatch.value)
+                    // Exclude is same as source
+                    && binding.exactMatch.value.trim() !== uniqueKey) {
+                    taxonsByUri[uniqueKey].exactMatch.push(binding.exactMatch.value.trim())
+                }
+                if (binding.seeAlso && binding.seeAlso.value
+                    // Exclude if already present
+                    && !taxonsByUri[uniqueKey].seeAlso.includes(binding.seeAlso.value)
+                    // Exclude is same as source
+                    && binding.seeAlso.value.trim() !== uniqueKey) {
+                    taxonsByUri[uniqueKey].seeAlso.push(binding.seeAlso.value.trim())
+                }
             }
         });
         return Object.keys(taxonsByUri).map(key => taxonsByUri[key]).sort((t1, t2) => t1.scientificName === t2.scientificName ? 0 : (t1.scientificName > t2.scientificName ? 1 : -1));
@@ -94,6 +98,7 @@ class YasrTaxonPlugin {
         // Get taxon list
         const taxons = hasResults && this.getTaxonsFromBindings(this.yasr.results.json.results.bindings);
 
+
         const scientificNameFirst = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "scientificName") === 0;
         const hasAuthor = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "author") !== -1;
         const hasRank = hasResults && this.yasr.results.json.head.vars.findIndex(v => v === "rank") !== -1;
@@ -104,7 +109,7 @@ class YasrTaxonPlugin {
             "  <th scope='col'>Author</th>",
             "  <th scope='col'>Rank</th>",
             "  <th scope='col'>Parent</th>",
-            "  <th scope='col'>Exact match / seeAlso</th>"
+            "  <th scope='col'>Exact match / see also</th>"
         ];
 
         // Inverse
@@ -114,17 +119,20 @@ class YasrTaxonPlugin {
         if (!hasAuthor) headerCols[3] = "";
         if (!hasRank) headerCols[4] = "";
 
-        const rows = (hasResults && taxons || []).map((taxon, index) => {
+        let rows = (hasResults && taxons || []).map((taxon, index) => {
             let rowCols = [
 
                 // Index
                 "<th scope=\"row\">" + (index + 1) + "</th>",
 
                 // Scientific name
-                "<td class='col'>" + taxon.scientificName + "</td>",
+                "<td class='col'>" + (taxon.scientificName || '') + "</td>",
 
                 // Source URI
-                "<td>" + this.displayUri(taxon.uri, prefixes, this.uriMaxLength) +
+                "<td>" +
+                ((taxon.missing) ?
+                    '<span style="color: red;"><i class="icon ion-close"></i>' + (taxon.uri|| '') + ' <i>(missing)</i></span>' :
+                    this.displayUri(taxon.uri, prefixes, this.uriMaxLength)) +
                 (taxon.created ? ("<br/><small class='gray' title='Creation date'><i class='icon ion-calendar'></i> "+ taxon.created + "</small>") : "") +
                 (taxon.modified ? ("<br/><small class='gray' title='Last modification date'><i class='icon ion-pencil'></i> "+ taxon.modified + "</small>") : "") +
                 "</td>",
@@ -162,6 +170,12 @@ class YasrTaxonPlugin {
             return "<tr>" + rowCols.join('\n') + "</tr>";
         });
 
+        if (!rows.length) {
+            rows = [" <tr><td colspan='" + headerCols.length + "'>" +
+                "No data available" +
+                " </td></tr>"];
+        }
+
         el.innerHTML = "<table class='table table-striped'>" +
             "<thead>" +
             " <tr>" +
@@ -170,6 +184,9 @@ class YasrTaxonPlugin {
             "</thead>" +
             rows.join('\n') +
             "</table>";
+
+
+
         this.yasr.resultsEl.appendChild(el);
     }
 
@@ -188,6 +205,18 @@ class YasrTaxonPlugin {
         textIcon.classList.add("plugin_icon", "txtIcon");
         textIcon.innerText = "✓";
         return textIcon;
+    }
+
+    download() {
+        const hasResults = this.yasr.results && this.yasr.results.json && this.yasr.results.json.results.bindings.length && true;
+        if (!hasResults) return undefined;
+
+        return {
+            getData: () => this.yasr.results.asCsv(),
+            contentType:"text/csv",
+            title:"Download result",
+            filename:"taxonSearch.csv"
+        };
     }
 
     /* -- Internal functions -- */

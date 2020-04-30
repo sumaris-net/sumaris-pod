@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.1.1.xml">
+
+  <!-- add LANDING.RANK_ORDER_ON_VESSEL -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-1">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="LANDING" columnName="RANK_ORDER_ON_VESSEL"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="LANDING">
+      <column name="RANK_ORDER_ON_VESSEL" type="INTEGER"/>
+    </addColumn>
+  </changeSet>
+
+  <!-- add FISHING_AREA table -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-3">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="FISHING_AREA"/>
+      </not>
+    </preConditions>
+    <createTable tableName="FISHING_AREA">
+      <column name="ID" type="INT">
+        <constraints primaryKey="true" primaryKeyName="fishing_area_pk"/>
+      </column>
+      <column name="LOCATION_FK" type="INT">
+        <constraints foreignKeyName="FISHING_AREA_LOCATION_FKC" referencedTableName="LOCATION" referencedColumnNames="ID"/>
+      </column>
+<!--      TODO create fishing_area_measurement and corresponding pmfm_strategy for depth_gradient, nearby_specific_area and distance_to_coast_gradient-->
+    </createTable>
+  </changeSet>
+
+  <!-- Add missing PRODUCT columns -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-1">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="product" columnName="subgroup_count"/></not>
+    </preConditions>
+    <addColumn tableName="product">
+      <column name="subgroup_count" type="double"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-2">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="product" columnName="weight"/></not>
+    </preConditions>
+    <addColumn tableName="product">
+      <column name="weight" type="double"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-3">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="product" columnName="cost"/></not>
+    </preConditions>
+    <addColumn tableName="product">
+      <column name="cost" type="double"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-4">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="product" columnName="weight_method_fk"/></not>
+    </preConditions>
+    <addColumn tableName="product">
+      <column name="weight_method_fk" type="integer">
+        <constraints foreignKeyName="product_weight_method_fkc" referencedTableName="method" referencedColumnNames="id"/>
+      </column>
+    </addColumn>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-5">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="product" columnName="dressing_fk"/></not>
+    </preConditions>
+    <addColumn tableName="product">
+      <column name="dressing_fk" type="integer">
+        <constraints foreignKeyName="product_dressing_fkc" referencedTableName="qualitative_value" referencedColumnNames="id"/>
+      </column>
+    </addColumn>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-6">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="product" columnName="preservation_fk"/></not>
+    </preConditions>
+    <addColumn tableName="product">
+      <column name="preservation_fk" type="integer">
+        <constraints foreignKeyName="product_preservation_fkc" referencedTableName="qualitative_value" referencedColumnNames="id"/>
+      </column>
+    </addColumn>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-8">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="product" columnName="size_category_fk"/></not>
+    </preConditions>
+    <addColumn tableName="product">
+      <column name="size_category_fk" type="integer">
+        <constraints foreignKeyName="product_size_category_fkc" referencedTableName="qualitative_value" referencedColumnNames="id"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <!-- Remove PRODUCT columns -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-11-1">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="product" columnName="program_fk"/>
+    </preConditions>
+    <dropColumn tableName="product" columnName="program_fk"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-11-2">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="product" columnName="creation_date"/>
+    </preConditions>
+    <dropColumn tableName="product" columnName="creation_date"/>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-11-3">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="product" columnName="matrix_fk"/>
+    </preConditions>
+    <dropColumn tableName="product" columnName="matrix_fk"/>
+  </changeSet>
+
+  <!-- add missing columns on some measurements tables -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-12-1">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="quantification_measurement_b" columnName="subgroup_number"/></not>
+    </preConditions>
+    <addColumn tableName="quantification_measurement_b">
+      <column name="subgroup_number" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-12-2">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="quantification_measurement_p" columnName="subgroup_number"/></not>
+    </preConditions>
+    <addColumn tableName="quantification_measurement_p">
+      <column name="subgroup_number" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-12-3">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="sample_measurement" columnName="individual_number"/></not>
+    </preConditions>
+    <addColumn tableName="sample_measurement">
+      <column name="individual_number" type="integer"/>
+    </addColumn>
+  </changeSet>
+
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897716-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='1.1.1'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">1.1.1</column>
+      <column name="DESCRIPTION">
+          - Add tables FISHING_AREA;
+          - add LANDING.RANK_ORDER_ON_VESSEL
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

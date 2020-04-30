@@ -47,7 +47,6 @@ public enum ParameterValueType {
         else if (Objects.equals(Boolean.TRUE, parameter.getIsAlphanumeric())) {
             return ParameterValueType.STRING;
         }
-
         else if (Objects.equals(Boolean.TRUE, parameter.getIsDate())) {
             return ParameterValueType.DATE;
         }

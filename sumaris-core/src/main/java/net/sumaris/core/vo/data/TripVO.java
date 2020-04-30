@@ -31,6 +31,7 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.referential.MetierVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -75,12 +76,21 @@ public class TripVO implements IRootDataVO<Integer>,
     private SaleVO sale; // shortcut when only one sale
 
     @EqualsAndHashCode.Exclude
+    private List<MetierVO> metiers;
+
+    @EqualsAndHashCode.Exclude
     private List<OperationVO> operations;
+
+    @EqualsAndHashCode.Exclude
+    private List<OperationGroupVO> operationGroups;
 
     @EqualsAndHashCode.Exclude
     private List<MeasurementVO> measurements; // vessel_use_measurement
     private Map<Integer, String> measurementValues; // vessel_use_measurement
 
+    // Parent
+    private Integer landingId;
+    private Integer observedLocationId;
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

@@ -29,7 +29,11 @@ import java.util.List;
 
 public interface BatchDao {
 
+    String DEFAULT_ROOT_BATCH_LABEL = "CATCH_BATCH";
+
     List<BatchVO> getAllByOperationId(int operationId);
+
+    BatchVO getRootByOperationId(int operationId, boolean withChildren);
 
     BatchVO get(int id);
 
@@ -45,6 +49,8 @@ public interface BatchDao {
     BatchVO toBatchVO(Batch source);
 
     List<BatchVO> toFlatList(BatchVO source);
+
+    BatchVO toTree(List<BatchVO> sources);
 
     void delete(int id);
 }

@@ -41,6 +41,11 @@ public interface MeasurementDao {
             List<T> target,
             IDataEntity<?> parent);
 
+    <T extends IMeasurementEntity> List<T> getMeasurementEntitiesByParentId(Class<T> entityClass,
+                                                                     String parentPropertyName,
+                                                                     int parentId,
+                                                                     String sortByPropertyName);
+
     // Trip
     List<MeasurementVO> getTripVesselUseMeasurements(int tripId);
     Map<Integer, String> getTripVesselUseMeasurementsMap(int tripId);
@@ -70,8 +75,10 @@ public interface MeasurementDao {
     Map<Integer, String> saveObservedLocationMeasurementsMap(final int observedLocationId, Map<Integer, String> sources);
 
     // Sale
+    List<MeasurementVO> getSaleMeasurements(int saleId);
+    Map<Integer, String> getSaleMeasurementsMap(int saleId);
     List<MeasurementVO> saveSaleMeasurements(int saleId, List<MeasurementVO> sources);
-    Map<Integer, String> saveSaleMeasurementsMap(final int saleId, Map<Integer, String> sources);
+    Map<Integer, String> saveSaleMeasurementsMap(int saleId, Map<Integer, String> sources);
 
     // Landing
     List<MeasurementVO> saveLandingMeasurements(int landingId, List<MeasurementVO> sources);
@@ -86,12 +93,22 @@ public interface MeasurementDao {
     Map<Integer, String> saveSampleMeasurementsMap(final int sampleId, Map<Integer, String> sources);
 
     // Batch
+    List<MeasurementVO> getBatchSortingMeasurements(int batchId);
+    List<MeasurementVO> getBatchQuantificationMeasurements(int batchId);
     Map<Integer, String> getBatchSortingMeasurementsMap(int batchId);
     Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId);
-    List<MeasurementVO> saveBatchSortingMeasurements(int sampleId, List<MeasurementVO> sources);
-    List<MeasurementVO> saveBatchQuantificationMeasurements(int sampleId, List<MeasurementVO> sources);
+    List<MeasurementVO> saveBatchSortingMeasurements(int batchId, List<MeasurementVO> sources);
+    List<MeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<MeasurementVO> sources);
     Map<Integer, String> saveBatchSortingMeasurementsMap(final int batchId, Map<Integer, String> sources);
     Map<Integer, String> saveBatchQuantificationMeasurementsMap(final int batchId, Map<Integer, String> sources);
+
+    // Product
+    Map<Integer, String> getProductSortingMeasurementsMap(int productId);
+    Map<Integer, String> getProductQuantificationMeasurementsMap(int productId);
+    List<MeasurementVO> saveProductSortingMeasurements(int productId, List<MeasurementVO> sources);
+    List<MeasurementVO> saveProductQuantificationMeasurements(int productId, List<MeasurementVO> sources);
+    Map<Integer, String> saveProductSortingMeasurementsMap(final int productId, Map<Integer, String> sources);
+    Map<Integer, String> saveProductQuantificationMeasurementsMap(final int productId, Map<Integer, String> sources);
 
     // Vessel
     List<MeasurementVO> getVesselFeaturesMeasurements(int vesselFeaturesId);

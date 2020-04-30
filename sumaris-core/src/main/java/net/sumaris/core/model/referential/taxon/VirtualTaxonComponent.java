@@ -24,16 +24,9 @@ package net.sumaris.core.model.referential.taxon;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.administration.programStrategy.AppliedStrategy;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
-import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
-import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * Définit les ReferenceTaxon constituants un TaxonName virtuel

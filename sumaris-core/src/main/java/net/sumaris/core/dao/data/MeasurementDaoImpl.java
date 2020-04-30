@@ -27,8 +27,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -39,15 +39,14 @@ import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,7 +137,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getTripVesselUseMeasurementsMap(int tripId) {
         return getMeasurementsMapByParentId(VesselUseMeasurement.class,
                 VesselUseMeasurement.Fields.TRIP,
@@ -166,7 +164,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<MeasurementVO> getOperationVesselUseMeasurements(int operationId) {
         return getMeasurementsByParentId(VesselUseMeasurement.class,
                 VesselUseMeasurement.Fields.OPERATION,
@@ -176,7 +173,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getOperationVesselUseMeasurementsMap(int operationId) {
         return getMeasurementsMapByParentId(VesselUseMeasurement.class,
                 VesselUseMeasurement.Fields.OPERATION,
@@ -195,7 +191,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<MeasurementVO> getOperationGearUseMeasurements(int operationId) {
         return getMeasurementsByParentId(GearUseMeasurement.class,
                 GearUseMeasurement.Fields.OPERATION,
@@ -205,7 +200,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<MeasurementVO> getSampleMeasurements(int sampleId) {
         return getMeasurementsByParentId(SampleMeasurement.class,
                 SampleMeasurement.Fields.SAMPLE,
@@ -224,7 +218,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getSampleMeasurementsMap(int sampleId) {
         return getMeasurementsMapByParentId(SampleMeasurement.class,
                 SampleMeasurement.Fields.SAMPLE,
@@ -234,7 +227,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getBatchSortingMeasurementsMap(int batchId) {
         return getMeasurementsMapByParentId(BatchSortingMeasurement.class,
                 BatchSortingMeasurement.Fields.BATCH,
@@ -244,7 +236,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId) {
         return getMeasurementsMapByParentId(BatchQuantificationMeasurement.class,
                 BatchQuantificationMeasurement.Fields.BATCH,
@@ -254,7 +245,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getObservedLocationMeasurementsMap(int observedLocationId) {
         return getMeasurementsMapByParentId(ObservedLocationMeasurement.class,
                 ObservedLocationMeasurement.Fields.OBSERVED_LOCATION,
@@ -265,7 +255,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Integer, String> getLandingMeasurementsMap(int landingId) {
         return getMeasurementsMapByParentId(LandingMeasurement.class,
                 LandingMeasurement.Fields.LANDING,
@@ -275,7 +264,6 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<MeasurementVO> getLandingMeasurements(int landingId) {
         return getMeasurementsByParentId(LandingMeasurement.class,
                 LandingMeasurement.Fields.LANDING,
@@ -283,6 +271,26 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
                 LandingMeasurement.Fields.ID
         );
     }
+
+    @Override
+    public List<MeasurementVO> getSaleMeasurements(int saleId) {
+        return getMeasurementsByParentId(SaleMeasurement.class,
+            SaleMeasurement.Fields.SALE,
+            saleId,
+            SaleMeasurement.Fields.ID
+        );
+    }
+
+    @Override
+    public Map<Integer, String> getSaleMeasurementsMap(int saleId) {
+        return getMeasurementsMapByParentId(SaleMeasurement.class,
+            SaleMeasurement.Fields.SALE,
+            saleId,
+            SaleMeasurement.Fields.ID
+        );
+    }
+
+
 
     @Override
     public <T extends IMeasurementEntity>  MeasurementVO toMeasurementVO(T source) {
@@ -413,6 +421,24 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
+    public List<MeasurementVO> getBatchSortingMeasurements(int batchId) {
+        return getMeasurementsByParentId(BatchSortingMeasurement.class,
+            BatchSortingMeasurement.Fields.BATCH,
+            batchId,
+            BatchSortingMeasurement.Fields.RANK_ORDER
+            );
+    }
+
+    @Override
+    public List<MeasurementVO> getBatchQuantificationMeasurements(int batchId) {
+        return getMeasurementsByParentId(BatchQuantificationMeasurement.class,
+            BatchQuantificationMeasurement.Fields.BATCH,
+            batchId,
+            BatchQuantificationMeasurement.Fields.ID
+        );
+    }
+
+    @Override
     public List<MeasurementVO> saveBatchSortingMeasurements(int batchId, List<MeasurementVO> sources) {
         Batch parent = get(Batch.class, batchId);
         return saveMeasurements(BatchSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
@@ -421,7 +447,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     @Override
     public List<MeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<MeasurementVO> sources) {
         Batch parent = get(Batch.class, batchId);
-        return saveMeasurements(BatchQuantificationMeasurement.class, sources, parent.getSortingMeasurements(), parent);
+        return saveMeasurements(BatchQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
     }
 
     @Override
@@ -435,6 +461,52 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     public Map<Integer, String> saveBatchQuantificationMeasurementsMap(int batchId, Map<Integer, String> sources) {
         Batch parent = get(Batch.class, batchId);
         return saveMeasurementsMap(BatchQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> getProductSortingMeasurementsMap(int productId) {
+        return getMeasurementsMapByParentId(ProductSortingMeasurement.class,
+            ProductSortingMeasurement.Fields.PRODUCT,
+            productId,
+            ProductSortingMeasurement.Fields.RANK_ORDER
+        );
+    }
+
+    @Override
+    public Map<Integer, String> getProductQuantificationMeasurementsMap(int productId) {
+        return getMeasurementsMapByParentId(ProductQuantificationMeasurement.class,
+            ProductQuantificationMeasurement.Fields.PRODUCT,
+            productId,
+            ProductQuantificationMeasurement.Fields.ID
+        );
+    }
+
+    @Override
+    public List<MeasurementVO> saveProductSortingMeasurements(int productId, List<MeasurementVO> sources) {
+        Product parent = get(Product.class, productId);
+        Preconditions.checkNotNull(parent, "Could not found product with id=" + productId);
+        return saveMeasurements(ProductSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
+    }
+
+    @Override
+    public List<MeasurementVO> saveProductQuantificationMeasurements(int productId, List<MeasurementVO> sources) {
+        Product parent = get(Product.class, productId);
+        Preconditions.checkNotNull(parent, "Could not found product with id=" + productId);
+        return saveMeasurements(ProductQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveProductSortingMeasurementsMap(int productId, Map<Integer, String> sources) {
+        Product parent = get(Product.class, productId);
+        Preconditions.checkNotNull(parent, "Could not found product with id=" + productId);
+        return saveMeasurementsMap(ProductSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveProductQuantificationMeasurementsMap(int productId, Map<Integer, String> sources) {
+        Product parent = get(Product.class, productId);
+        Preconditions.checkNotNull(parent, "Could not found product with id=" + productId);
+        return saveMeasurementsMap(ProductQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
     }
 
     @Override
@@ -510,6 +582,13 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
                     rankOrder++;
                 }
 
+                // Is reference ?
+                if (entity instanceof IQuantifiedMeasurementEntity) {
+                    ((IQuantifiedMeasurementEntity) entity).setIsReferenceQuantification(rankOrder == 1);
+                    ((IQuantifiedMeasurementEntity) entity).setSubgroupNumber(rankOrder == 1 ? null : rankOrder - 1);
+                    rankOrder++;
+                }
+
                 // Set parent
                 setParent(entity, parent.getClass(), parent.getId(), false);
 
@@ -532,12 +611,17 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
             }
         }
 
-        // Remove unused tableNames
-        if (MapUtils.isNotEmpty(sourceToRemove)) {
+        // Remove unused measurements
+        if (!config.isPreserveHistoricalMeasurements() && MapUtils.isNotEmpty(sourceToRemove)) {
             sourceToRemove.values().forEach(em::remove);
         }
 
         return result;
+    }
+
+    @Override
+    public <T extends IMeasurementEntity> List<T> getMeasurementEntitiesByParentId(Class<T> entityClass, String parentPropertyName, int parentId, String sortByPropertyName) {
+        return getMeasurementsByParentIdQuery(entityClass, parentPropertyName, parentId, sortByPropertyName).getResultList();
     }
 
     /* -- protected methods -- */
@@ -551,7 +635,8 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return classname;
     }
 
-    protected <T extends IDataEntity> Class<T> getEntityClass(T source) {
+    @SuppressWarnings("unchecked")
+    protected <T extends IDataEntity<?>> Class<T> getEntityClass(T source) {
         String classname = source.getClass().getName();
         int index = classname.indexOf("$HibernateProxy");
         if (index > 0) {
@@ -574,11 +659,10 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
         final EntityManager session = getEntityManager();
 
-        // TODO add option to preserve existing measurements
-
         // Remember existing measurements, to be able to remove unused measurements
         // note: Need Beans.getList() to avoid NullPointerException if target=null
-        final Map<Integer, T> sourceToRemove = Beans.splitByProperty(Beans.getList(target), IMeasurementEntity.Fields.PMFM + "." + IMeasurementEntity.Fields.ID);
+        final Map<Integer, T> sourceToRemove = Beans.splitByProperty(Beans.getList(target),
+            StringUtils.doting(IMeasurementEntity.Fields.PMFM, IMeasurementEntity.Fields.ID));
 
         int rankOrder = 1;
         for (Map.Entry<Integer, String> source: sources.entrySet()) {
@@ -610,8 +694,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
                 }
 
                 // Is reference ?
-                if (entity instanceof BatchQuantificationMeasurement) {
-                    ((BatchQuantificationMeasurement) entity).setIsReferenceQuantification(rankOrder == 1);
+                if (entity instanceof IQuantifiedMeasurementEntity) {
+                    ((IQuantifiedMeasurementEntity) entity).setIsReferenceQuantification(rankOrder == 1);
+                    ((IQuantifiedMeasurementEntity) entity).setSubgroupNumber(rankOrder++);
                 }
 
                 // Fill default properties
@@ -932,6 +1017,24 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
                 ((BatchSortingMeasurement) target).setBatch(null);
             } else {
                 ((BatchSortingMeasurement) target).setBatch(load(Batch.class, parentId));
+            }
+        }
+
+        // Product quantification measurement
+        else if (target instanceof ProductQuantificationMeasurement) {
+            if (parentId == null) {
+                ((ProductQuantificationMeasurement) target).setProduct(null);
+            } else {
+                ((ProductQuantificationMeasurement) target).setProduct(load(Product.class, parentId));
+            }
+        }
+
+        // Product sorting measurement
+        else if (target instanceof ProductSortingMeasurement) {
+            if (parentId == null) {
+                ((ProductSortingMeasurement) target).setProduct(null);
+            } else {
+                ((ProductSortingMeasurement) target).setProduct(load(Product.class, parentId));
             }
         }
 

@@ -23,7 +23,10 @@ package net.sumaris.core.service.data;
  */
 
 
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.PhysicalGearVO;
+import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -38,7 +41,10 @@ import java.util.List;
 public interface PhysicalGearService {
 
 	@Transactional(readOnly = true)
-	List<PhysicalGearVO> getPhysicalGearByTripId(int tripId);
+	List<PhysicalGearVO> findAll(PhysicalGearFilterVO filter, Page page, DataFetchOptions options);
+
+	@Transactional(readOnly = true)
+	List<PhysicalGearVO> getAllByTripId(int tripId);
 
 	List<PhysicalGearVO> save(int tripId, List<PhysicalGearVO> sources);
 }

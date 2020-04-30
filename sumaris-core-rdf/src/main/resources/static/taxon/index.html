@@ -50,6 +50,20 @@
 
     <div class="container" id="main" >
 
+        <!-- Toast -->
+        <div id="create-missing-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true"
+             style="position: absolute; top: 40px; right: 40px; z-index: 9999;">
+            <div class="toast-header">
+                <strong class="mr-auto">Information</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="toast-body">
+                Your request has been sent.
+            </div>
+        </div>
+
         <h1 class="d-flex justify-content-center">Taxon search</h1>
 
         <form class="form-group" style="padding-top: 15px;" onsubmit="return app.doSubmit(event)" href="#">
@@ -60,7 +74,7 @@
 
                 &nbsp;
                 <!-- search button -->
-                <button id="buttonSearch" type="submit"
+                <button id="buttonSearch" type="button" onclick="app.doSubmit(event)"
                         class="btn btn-primary" tabindex="-1">Search</button>
                 &nbsp;
                 <!-- The fileinput-button span is used to style the file input field as button -->
@@ -138,14 +152,27 @@
                 <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                     <div class="progress-bar progress-bar-success" style="width:0%;" data-dz-uploadprogress></div>
                 </div>
+                <span class="result"></span>
             </div>
             <div class="col-12 col-sm-5 col-lg-3" >
                 <div class="float-right">
-                    <!--                <button class="btn btn-primary upload">-->
-                    <!--                    <span>Upload</span>-->
-                    <!--                </button>-->
-                    <button class="btn btn-primary import ">
-                        <span>Import</span>
+                    <div class="dropdown import-dropdown" style="display: inline;">
+                        <button class="btn btn-primary dropdown-toggle" data-target="#" id="importMenu" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
+                            <span>Search</span>
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="importMenu">
+                            <li class="dropdown-header">Local search</li>
+                            <li><a href="#" class="import-local-name">By name</a></li>
+                            <li><a href="#" class="import-local-code">By code</a></li>
+                            <li class="dropdown-header">Federated search</li>
+                            <li><a href="#" class="import-remote-name">By name</a></li>
+                            <li><a href="#" class="import-remote-code">By code</a></li>
+                            <li><a href="#" class="import-remote-aphiaid">By AphiaID</a></li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-danger create-missing d-none">
+                        <span>Create missing</span>
                     </button>
                     <button data-dz-remove class="btn btn-warning cancel ">
                         <span>Cancel</span>
@@ -158,9 +185,12 @@
         </div>
     </div>
 
+
+
     <script type="text/javascript" src="/core/js/jquery.slim.min.js"></script>
     <script type="text/javascript" src="/core/js/popper.min.js"></script>
     <script type="text/javascript" src="/core/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/core/js/app-utils.js"></script>
     <script type="text/javascript" src="/core/js/app-menu.js"></script>
 
     <script type="text/javascript" src="/rdfuri/js/rdf-helper.js"></script>

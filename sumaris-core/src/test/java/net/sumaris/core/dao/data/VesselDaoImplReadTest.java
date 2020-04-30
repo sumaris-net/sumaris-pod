@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselVO;
 import org.junit.Assert;
@@ -61,7 +62,9 @@ public class VesselDaoImplReadTest extends AbstractDaoTest {
     @Test
     public void findByFilter() {
 
-        List<VesselVO> result = dao.findByFilter(null, 0, 10, VesselVO.Fields.FEATURES + "." + VesselFeaturesVO.Fields.EXTERIOR_MARKING, SortDirection.ASC);
+        List<VesselVO> result = dao.findByFilter(null, 0, 10,
+            StringUtils.doting(VesselVO.Fields.FEATURES, VesselFeaturesVO.Fields.EXTERIOR_MARKING),
+            SortDirection.ASC);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(2, result.size());

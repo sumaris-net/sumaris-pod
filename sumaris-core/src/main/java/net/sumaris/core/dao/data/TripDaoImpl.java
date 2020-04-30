@@ -28,9 +28,11 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.QualityFlagEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
@@ -85,8 +87,16 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
     @Autowired
     private ProgramDao programDao;
 
+    @Autowired
+    private LandingRepository landingRepository;
+
     public TripDaoImpl() {
         super();
+    }
+
+    @Override
+    public List<TripVO> findAll(TripFilterVO filter, Page page, DataFetchOptions fetchOptions) {
+        return findAll(filter, (int)page.getOffset(), page.getSize(), page.getSortAttribute(), page.getSortDirection(), fetchOptions);
     }
 
     @Override
@@ -118,7 +128,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
             session.enableFetchProfile(Trip.FETCH_PROFILE_OBSERVERS);
         session.enableFetchProfile(Trip.FETCH_PROFILE_LOCATION);
 
-        return toTripVOs(entityManager.createQuery(query)
+        return toVOs(entityManager.createQuery(query)
                 .setFirstResult(offset)
                 .setMaxResults(size)
                 .getResultList(), fieldOptions);
@@ -198,7 +208,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
                 .setParameter(vesselIdParam, filter.getVesselId())
                 .setFirstResult(offset)
                 .setMaxResults(size);
-        return toTripVOs(q.getResultList(), fieldOptions);
+        return toVOs(q.getResultList(), fieldOptions);
     }
 
     @Override
@@ -272,7 +282,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
         EntityManager entityManager = getEntityManager();
         Trip entity = null;
-        if (source.getId() != null && source.getId().intValue() >= 0) {
+        if (source.getId() != null && source.getId() >= 0) {
             entity = get(Trip.class, source.getId());
         }
         boolean isNew = (entity == null);
@@ -326,7 +336,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
     @Override
     public TripVO toVO(Trip source) {
-        return toTripVO(source, null);
+        return toVO(source, null);
     }
 
     @Override
@@ -478,14 +488,14 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
     /* -- protected methods -- */
 
-    protected List<TripVO> toTripVOs(List<Trip> source, DataFetchOptions fieldOptions) {
+    protected List<TripVO> toVOs(List<Trip> source, DataFetchOptions fieldOptions) {
         return source.stream()
-                .map(item -> this.toTripVO(item, fieldOptions))
+                .map(item -> this.toVO(item, fieldOptions))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    protected TripVO toTripVO(Trip source, DataFetchOptions fieldOptions) {
+    protected TripVO toVO(Trip source, DataFetchOptions fetchOptions) {
         if (source == null) return null;
 
         TripVO target = new TripVO();
@@ -507,19 +517,19 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         target.setReturnLocation(locationDao.toLocationVO(source.getReturnLocation()));
 
         // Recorder department
-        if ((fieldOptions == null || fieldOptions.isWithRecorderDepartment()) && source.getRecorderDepartment() != null) {
+        if ((fetchOptions == null || fetchOptions.isWithRecorderDepartment()) && source.getRecorderDepartment() != null) {
             DepartmentVO recorderDepartment = departmentDao.toDepartmentVO(source.getRecorderDepartment());
             target.setRecorderDepartment(recorderDepartment);
         }
 
         // Recorder person
-        if ((fieldOptions == null || fieldOptions.isWithRecorderPerson()) && source.getRecorderPerson() != null) {
+        if ((fetchOptions == null || fetchOptions.isWithRecorderPerson()) && source.getRecorderPerson() != null) {
             PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
             target.setRecorderPerson(recorderPerson);
         }
 
         // Observers
-        if ((fieldOptions == null || fieldOptions.isWithObservers()) && CollectionUtils.isNotEmpty(source.getObservers())) {
+        if ((fetchOptions == null || fetchOptions.isWithObservers()) && CollectionUtils.isNotEmpty(source.getObservers())) {
             Set<PersonVO> observers = source.getObservers().stream()
                     .map(personDao::toPersonVO).collect(Collectors.toSet());
             target.setObservers(observers);

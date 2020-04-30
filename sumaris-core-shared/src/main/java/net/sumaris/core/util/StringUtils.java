@@ -27,6 +27,8 @@ import org.hibernate.boot.model.naming.Identifier;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -68,6 +70,14 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         return value.replaceAll(regex, replacement).toLowerCase();
     }
 
+    public static String doting(String... strings) {
+        return join(strings, '.');
+    }
+
+    public static String slashing(String... strings) {
+        return join(strings, '/');
+    }
+
     /**
      * Method to encode a string value using `UTF-8` encoding scheme
      */
@@ -77,5 +87,13 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         } catch (UnsupportedEncodingException ex) {
             throw new RuntimeException(ex.getCause());
         }
+    }
+
+    public static Function<String, Boolean> startsWithFunction(String... prefixes) {
+        return string -> Arrays.stream(prefixes).anyMatch(string::startsWith);
+    }
+
+    public static Function<String, Boolean> endsWithFunction(String... suffixes) {
+        return string -> Arrays.stream(suffixes).anyMatch(string::endsWith);
     }
 }

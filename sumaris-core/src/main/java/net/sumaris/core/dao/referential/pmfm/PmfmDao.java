@@ -29,7 +29,11 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 
+import java.util.Optional;
+
 public interface PmfmDao {
+
+    Optional<PmfmVO> findByLabel(String label);
 
     PmfmVO getByLabel(String label);
 
@@ -40,8 +44,16 @@ public interface PmfmDao {
 
     @Caching(
             evict = {
-                    @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#source.id", condition = "#source != null && #source.id != null")
+                    @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#source.id", condition = "#source != null && #source.id != null"),
+                    @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true),
+                    @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true)
             }
     )
     PmfmVO save(PmfmVO source);
+
+    @Cacheable(cacheNames = CacheNames.PMFM_HAS_PREFIX)
+    boolean hasLabelPrefix(int pmfmId, String... labelPrefixes);
+
+    @Cacheable(cacheNames = CacheNames.PMFM_HAS_SUFFIX)
+    boolean hasLabelSuffix(int pmfmId, String... labelSuffixes);
 }

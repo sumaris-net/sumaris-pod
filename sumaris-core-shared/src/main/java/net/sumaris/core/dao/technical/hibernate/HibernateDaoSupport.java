@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,7 +121,11 @@ public abstract class HibernateDaoSupport {
 
 
     protected Session getSession() {
-        return entityManager.unwrap(Session.class);
+        return (Session) entityManager.getDelegate();
+    }
+
+    protected SessionFactoryImplementor getSessionFactory() {
+        return (SessionFactoryImplementor) getSession().getSessionFactory();
     }
 
     /**
@@ -347,10 +352,8 @@ public abstract class HibernateDaoSupport {
      */
     protected Timestamp getDatabaseCurrentTimestamp() {
         try {
-            final Dialect dialect = Dialect.getDialect(SumarisConfiguration.getInstance().getConnectionProperties());
-            final String sql = dialect.getCurrentTimestampSelectString();
-            Object r = Daos.sqlUniqueTimestamp(dataSource, sql);
-            return Daos.toTimestampFromJdbcResult(r);
+            final Dialect dialect = getSessionFactory().getJdbcServices().getDialect();
+            return Daos.getDatabaseCurrentTimestamp(dataSource, dialect);
         }catch(DataAccessResourceFailureException | SQLException e) {
             throw new SumarisTechnicalException(e);
         }

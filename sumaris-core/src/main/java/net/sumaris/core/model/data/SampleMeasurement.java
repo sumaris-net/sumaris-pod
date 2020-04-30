@@ -88,6 +88,9 @@ public class SampleMeasurement implements ISortedMeasurementEntity {
     @Column(name = "rank_order")
     private Integer rankOrder;
 
+    @Column(name = "individual_number")
+    private Integer individualNumber;
+
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Pmfm.class)
     @JoinColumn(name = "pmfm_fk", nullable = false)
     private Pmfm pmfm;

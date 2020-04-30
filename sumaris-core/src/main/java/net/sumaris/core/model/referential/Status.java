@@ -34,11 +34,11 @@ import java.util.Date;
 @Entity
 @Table(name = "status")
 @Cacheable
-public class Status implements IUpdateDateEntityBean<Integer, Date> {
+public class Status implements IReferentialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "STATUS_SEQ")
-    @SequenceGenerator(name = "STATUS_SEQ", sequenceName="STATUS_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    @SequenceGenerator(name = "STATUS_SEQ", sequenceName="STATUS_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(nullable = false)

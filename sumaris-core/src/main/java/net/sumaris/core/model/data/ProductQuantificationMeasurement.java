@@ -36,7 +36,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name="quantification_measurement_p")
-public class ProductQuantificationMeasurement implements IMeasurementEntity {
+public class ProductQuantificationMeasurement implements IQuantifiedMeasurementEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "QUANTIF_MEASUREMENT_P_SEQ")
@@ -87,6 +87,9 @@ public class ProductQuantificationMeasurement implements IMeasurementEntity {
 
     @Column(name = "rank_order")
     private Integer rankOrder;
+
+    @Column(name = "subgroup_number")
+    private Integer subgroupNumber;
 
     @Column(name = "is_reference_quantification", nullable = false)
     private Boolean isReferenceQuantification;

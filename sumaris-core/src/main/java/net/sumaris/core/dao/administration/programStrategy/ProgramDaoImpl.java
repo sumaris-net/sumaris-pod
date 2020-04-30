@@ -31,6 +31,7 @@ import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
 import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.*;
@@ -154,14 +155,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
             }
         }
 
-        String searchText = StringUtils.trimToNull(filter.getSearchText());
-        String searchTextAnyMatch = null;
-        if (StringUtils.isNotBlank(searchText)) {
-            searchTextAnyMatch = ("*" + searchText + "*"); // add trailing escape char
-            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]+", "*"); // group escape chars
-            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[%]", "\\%"); // protected '%' chars
-            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]", "%"); // replace asterix
-        }
+        String searchTextAnyMatch = Daos.getEscapedSearchText(filter.getSearchText(), true);
 
         List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds()) ?
                 null : filter.getStatusIds();
@@ -329,7 +323,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
                 .createQuery(query)
                 .setParameter(programIdParam, programId)
                 .getResultStream()
-                .map(taxonGroupRepository::toTaxonGroupVO)
+                .map(taxonGroupRepository::toVO)
                 .collect(Collectors.toList());
     }
 

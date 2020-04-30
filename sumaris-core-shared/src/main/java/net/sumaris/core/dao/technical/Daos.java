@@ -715,6 +715,34 @@ public class Daos {
     }
 
     /**
+     * Round a double value with 2 decimals
+     *
+     * @param value to round or null
+     * @return the rounded number or null
+     */
+    public static Double roundValue(Double value) {
+        return roundValue(value, 2);
+    }
+
+    /**
+     * Round a double value with specific number of decimals
+     *
+     * @param value to round or null
+     * @param nbDecimal number of decimals
+     * @return the rounded number or null
+     */
+    public static Double roundValue(Double value, int nbDecimal) {
+        if (value == null) {
+            return null;
+        }
+        if (nbDecimal == 0) {
+            return (double) Math.round(value);
+        }
+        double pow = Math.pow(10, nbDecimal);
+        return Math.round(value * pow) / pow;
+    }
+
+    /**
      * <p>isSmallerWeight.</p>
      *
      * @param v0 a float.
@@ -966,10 +994,14 @@ public class Daos {
     public static Object sqlUniqueTimestamp(DataSource dataSource, String sql) throws DataAccessResourceFailureException {
         Connection connection = DataSourceUtils.getConnection(dataSource);
         try {
-            return sqlUnique(connection, sql, true);
+            return sqlUniqueTimestamp(connection, sql);
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }
+    }
+
+    public static Object sqlUniqueTimestamp(Connection connection, String sql) throws DataAccessResourceFailureException {
+        return sqlUnique(connection, sql, true);
     }
 
     /**
@@ -1458,7 +1490,13 @@ public class Daos {
      */
     public static Timestamp getDatabaseCurrentTimestamp(Connection connection, Dialect dialect) throws SQLException {
         final String sql = dialect.getCurrentTimestampSelectString();
-        Object result = Daos.sqlUniqueTyped(connection, sql);
+        Object result = Daos.sqlUniqueTimestamp(connection, sql);
+        return toTimestampFromJdbcResult(result);
+    }
+
+    public static Timestamp getDatabaseCurrentTimestamp(DataSource dataSource, Dialect dialect) throws SQLException {
+        final String sql = dialect.getCurrentTimestampSelectString();
+        Object result = Daos.sqlUniqueTimestamp(dataSource, sql);
         return toTimestampFromJdbcResult(result);
     }
 
@@ -1552,6 +1590,19 @@ public class Daos {
 
         return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
     }
+
+    public static String getEscapedSearchText(String searchText) {
+        return getEscapedSearchText(searchText, false);
+    }
+
+    public static String getEscapedSearchText(String searchText, boolean searchAny) {
+        searchText = StringUtils.trimToNull(searchText);
+        return StringUtils.isBlank(searchText) ? null : (searchAny ? "*" : "" + searchText + "*") // add leading wildcard (if searchAny specified) and trailing wildcard
+            .replaceAll("[*]+", "*") // group escape chars
+            .replaceAll("[%]", "\\%") // protected '%' chars
+            .replaceAll("[*]", "%"); // replace asterisk mark
+    }
+
 
     public static <T> Stream<T> streamByPageIteration(final Function<Page, T> processPageFn,
                                                       final Function<T, Boolean> hasNextFn,

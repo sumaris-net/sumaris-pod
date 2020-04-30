@@ -10,12 +10,12 @@ package net.sumaris.core.dao.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -53,6 +53,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
@@ -68,8 +69,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
     /**
      * Logger.
      */
-    protected static final Logger logger =
-            LoggerFactory.getLogger(BatchDaoImpl.class);
+    protected static final Logger logger = LoggerFactory.getLogger(BatchDaoImpl.class);
     private static final boolean trace = logger.isTraceEnabled();
 
     private boolean enableSaveUsingHash;
@@ -93,15 +93,44 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         query.select(root);
 
-        ParameterExpression<Integer> tripIdParam = cb.parameter(Integer.class);
+        ParameterExpression<Integer> operationIdParam = cb.parameter(Integer.class);
 
-        query.where(cb.equal(root.get(Batch.Fields.OPERATION).get(Batch.Fields.ID), tripIdParam));
+        query.where(cb.equal(root.get(Batch.Fields.OPERATION).get(Batch.Fields.ID), operationIdParam));
 
         // Sort by rank order
         query.orderBy(cb.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
 
         return toBatchVOs(getEntityManager().createQuery(query)
-                .setParameter(tripIdParam, operationId).getResultStream(), false);
+            .setParameter(operationIdParam, operationId).getResultStream(), false);
+    }
+
+    @Override
+    public BatchVO getRootByOperationId(int operationId, boolean withChildren) {
+
+        if (withChildren) {
+            // Return all batches as tree form
+            return toTree(getAllByOperationId(operationId));
+        }
+
+        // create a query returning only root batch
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Batch> query = cb.createQuery(Batch.class);
+        Root<Batch> root = query.from(Batch.class);
+
+        query.select(root);
+
+        ParameterExpression<Integer> operationIdParam = cb.parameter(Integer.class);
+
+        query.where(
+            cb.equal(root.get(Batch.Fields.OPERATION).get(Batch.Fields.ID), operationIdParam),
+            cb.isNull(root.get(Batch.Fields.PARENT))
+        );
+
+        try {
+            return toBatchVO(getEntityManager().createQuery(query).setParameter(operationIdParam, operationId).getSingleResult(), false);
+        } catch (NoResultException e){
+            return null;
+        }
     }
 
     @Override
@@ -203,6 +232,28 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         return result;
     }
 
+    @Override
+    public BatchVO toTree(List<BatchVO> sources) {
+        if (CollectionUtils.isEmpty(sources)) {
+            return null;
+        }
+
+        // Assume there is only 1 catch batch
+        if (sources.stream().filter(batch -> batch.getParentId() == null).count() > 1) {
+            logger.warn("Multiple catch batches in this source list, will return the first one.");
+        }
+
+        BatchVO catchBatch = sources.stream().filter(batch -> batch.getParentId() == null).findFirst().orElse(null);
+        if (catchBatch == null) {
+            return null;
+        }
+
+        catchBatch.setChildren(findChildren(catchBatch.getId(), sources));
+
+        return catchBatch;
+    }
+
+
     /* -- protected methods -- */
 
     protected boolean saveAllByParent(IWithBatchesEntity<Integer, Batch> parent, List<BatchVO> sources) {
@@ -256,9 +307,9 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
             }
             return !skip;
         })
-                // Count updates
-                .filter(Boolean::booleanValue)
-                .count() > 0;
+            // Count updates
+            .filter(Boolean::booleanValue)
+            .count() > 0;
 
         // Remove not processed batches
         if (MapUtils.isNotEmpty(sourcesIdsToProcess)) {
@@ -397,12 +448,11 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
     protected List<BatchVO> toBatchVOs(Stream<Batch> source, boolean allFields) {
         return source.map(s -> this.toBatchVO(s, allFields))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 
     /**
-     *
      * @param source
      * @param target
      * @param copyIfNull
@@ -420,15 +470,14 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
             // Check if parent changed.
             Batch previousParent = target.getParent();
             if (previousParent != null && !Objects.equals(parentId, previousParent.getId())
-                    && CollectionUtils.isNotEmpty(previousParent.getChildren())) {
+                && CollectionUtils.isNotEmpty(previousParent.getChildren())) {
                 // Remove in the parent children list (to avoid a DELETE CASCADE if the parent is delete later)
                 previousParent.getChildren().remove(target);
             }
 
             if (parentId == null) {
                 target.setParent(null);
-            }
-            else {
+            } else {
                 Batch parent = load(Batch.class, parentId);
                 target.setParent(parent);
 
@@ -461,8 +510,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         if (copyIfNull || (opeId != null)) {
             if (opeId == null) {
                 target.setOperation(null);
-            }
-            else {
+            } else {
                 target.setOperation(load(Operation.class, opeId));
             }
         }
@@ -471,8 +519,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         if (copyIfNull || source.getTaxonGroup() != null) {
             if (source.getTaxonGroup() == null || source.getTaxonGroup().getId() == null) {
                 target.setTaxonGroup(null);
-            }
-            else {
+            } else {
                 target.setTaxonGroup(load(TaxonGroup.class, source.getTaxonGroup().getId()));
             }
         }
@@ -481,18 +528,15 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         if (copyIfNull || source.getTaxonName() != null) {
             if (source.getTaxonName() == null || source.getTaxonName().getId() == null) {
                 target.setReferenceTaxon(null);
-            }
-            else {
+            } else {
                 if (source.getTaxonName().getReferenceTaxonId() != null) {
                     target.setReferenceTaxon(load(ReferenceTaxon.class, source.getTaxonName().getReferenceTaxonId()));
-                }
-                else {
+                } else {
                     // Get the taxon name, then set reference taxon
                     TaxonName taxonname = get(TaxonName.class, source.getTaxonName().getId());
                     if (taxonname != null) {
                         target.setReferenceTaxon(taxonname.getReferenceTaxon());
-                    }
-                    else {
+                    } else {
                         throw new DataIntegrityViolationException(String.format("Invalid batch: unknown taxon name {id:%s}", source.getTaxonName().getId()));
                     }
                 }
@@ -503,8 +547,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         if (copyIfNull || source.getRecorderDepartment() != null) {
             if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
                 target.setRecorderDepartment(null);
-            }
-            else {
+            } else {
                 target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
             }
         }
@@ -513,8 +556,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
                 target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-            }
-            else {
+            } else {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
             }
         }
@@ -544,4 +586,14 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         }
         return source.getChildren().stream().flatMap(c -> Stream.concat(Stream.of(c), getAllChildren(c)));
     }
+
+    protected List<BatchVO> findChildren(int parentId, List<BatchVO> sources) {
+        if (CollectionUtils.isEmpty(sources))
+            return null;
+
+        List<BatchVO> children = sources.stream().filter(batch -> Objects.equals(batch.getParentId(), parentId)).collect(Collectors.toList());
+        children.forEach(batch -> batch.setChildren(findChildren(batch.getId(), sources)));
+        return children;
+    }
+
 }

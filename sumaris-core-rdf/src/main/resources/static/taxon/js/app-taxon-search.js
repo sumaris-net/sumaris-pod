@@ -22,7 +22,7 @@ function AppTaxonSearch(config) {
         MNHN: 'http://taxref.mnhn.fr/sparql'
     };
 
-    const NUMERICAL_REGEXP = new RegExp(/^[0-9]+$/);
+    const NUMERICAL_CODE_REGEXP = new RegExp(/^[0-9]+$/);
     const SCIENTIFIC_NAME_REGEXP = new RegExp(/^[a-zA-Z ]+$/);
 
     const helper = new RdfHelper();
@@ -70,7 +70,7 @@ function AppTaxonSearch(config) {
                 '  ?sourceUri dwc:scientificName ?scientificName ;\n' +
                 '       rdf:type ?type .\n' +
                 '  FILTER (\n' +
-                '     {{filter}}\n' +
+                '     ({{filter}})\n' +
                 '     && (?type = dwctax:TaxonName || ?type = {{defaultPrefix}}:TaxonName) \n' +
                 '  ) .\n' +
                 '  OPTIONAL {\n' +
@@ -161,7 +161,7 @@ function AppTaxonSearch(config) {
                 '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
                 '      rdf:type dwctax:TaxonName ;\n' +
                 '      taxrefprop:hasAuthority ?author ;\n' +
-                '      taxrefprop:hasRank ?rank \n' +
+                '      taxrefprop:hasRank ?rank .\n' +
                 '    FILTER(\n' +
                 '       ( ?scientificName = "{{q}}" )\n' + // TODO: regexp not supported
                 '    )\n' +
@@ -216,6 +216,158 @@ function AppTaxonSearch(config) {
                 eauFranceEndpoint: endpointsById.EAU_FRANCE,
                 mnhnEndpoint: endpointsById.MNHN
             }
+        },
+
+        {
+            id: 'remote-code',
+            name: 'Federated search by code',
+            canHandleTerm: (term) => term && term.trim().match(/^[0-9]+$/),
+            yasrPlugin : 'taxon',
+            debug: false,
+            q: '52492, 68604',
+            prefixes: ['dc', 'rdf',  'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
+                'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'eaufrance'],
+            query: 'SELECT DISTINCT \n' +
+                '  ?sourceUri ?scientificName ?author ?rank ?parent \n' +
+                '  ?created ?modified \n' +
+                '  ?exactMatch ?seeAlso \n' +
+                'WHERE {\n' +
+
+                // -- MNHN endpoint part
+                ' { SERVICE <{{mnhnEndpoint}}> {\n' +
+                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
+                '      rdf:type dwctax:TaxonName ;\n' +
+                '      taxrefprop:hasAuthority ?author ;\n' +
+                '      taxrefprop:hasRank ?rank .\n' +
+                '    FILTER (\n' +
+                '       ?sourceUri = <http://taxref.mnhn.fr/lod/name/{{q}}>\n' +
+                '    )\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri skos:broader ?parent .\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
+                '    }\n' +
+                // FIXME: not working
+                //'    OPTIONAL {\n' +
+                //'      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                //'    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri dc:create ?created ;\n' +
+                '        dc:modified ?modified .\n' +
+                '    }\n' +
+                '  } \n' +
+                ' }\n' +
+                ' UNION\n' +
+
+                // -- Sandre endpoint part
+                ' { SERVICE <{{eauFranceEndpoint}}> {\n' +
+                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
+                '      rdf:type ?type ;\n' +
+                '      apt2:AuteurAppelTaxon ?author ;\n' +
+                '      apt2:NiveauTaxonomique ?rank ;\n' +
+                '      apt2:CdAppelTaxon "{{q}}" . \n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri apt2:AppelTaxonParent|skos:broader ?parent .\n' +
+                '      #FILTER ( isURI(?parent) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
+                '      #FILTER ( isURI(?exactMatch) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                '      #FILTER ( isURI(?seeAlso) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri dc:created|apt2:DateCreationAppelTaxon ?created ;\n' +
+                '        dc:modified|apt2:DateMajAppelTaxon ?modified .\n' +
+                '    }\n' +
+                '  }\n' +
+                ' }\n' +
+                '} LIMIT {{limit}}',
+            filters: [],
+            binding: {
+                eauFranceEndpoint: endpointsById.EAU_FRANCE,
+                mnhnEndpoint: endpointsById.MNHN
+            }
+        },
+
+        {
+            id: 'remote-aphiaid',
+            name: 'Federated search by AphiaID',
+            canHandleTerm: (term) => term && term.trim().match(/^[0-9]{6,8}$/),
+            yasrPlugin : 'taxon',
+            debug: false,
+            q: '126554',
+            prefixes: ['dc', 'rdf',  'rdfs', 'owl', 'skos', 'foaf', 'dwc', 'dwctax',
+                'taxref', 'taxrefprop', 'apt', 'apt2', 'aptdata', 'eaufrance'],
+            query: 'SELECT DISTINCT \n' +
+                '  ?sourceUri ?scientificName ?author ?rank ?parent \n' +
+                '  ?created ?modified \n' +
+                '  ?exactMatch ?seeAlso \n' +
+                'WHERE {\n' +
+
+                // -- MNHN endpoint part
+                ' { SERVICE <{{mnhnEndpoint}}> {\n' +
+                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
+                '      rdf:type dwctax:TaxonName ;\n' +
+                '      taxrefprop:hasAuthority ?author ;\n' +
+                '      taxrefprop:hasRank ?rank ;\n' +
+                '      skos:exactMatch|owl:sameAs ?exactMatch ;\n' +
+                '      skos:exactMatch <urn:lsid:marinespecies.org:taxname:{{q}}> .\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri skos:broader ?parent .\n' +
+                '    }\n' +
+                // FIXME: failed if enable
+                //'    OPTIONAL {\n' +
+                //'      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                //'    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri dc:create ?created ;\n' +
+                '        dc:modified ?modified .\n' +
+                '    }\n' +
+                '  } \n' +
+                ' }\n' +
+
+                /* FIXME : Sandre has no AphiaID property
+                ' UNION\n' +
+
+                // -- Sandre endpoint part
+                ' { SERVICE <{{eauFranceEndpoint}}> {\n' +
+                '    ?sourceUri dwc:scientificName ?scientificName ;\n' +
+                '      rdf:type ?type ;\n' +
+                '      apt2:AuteurAppelTaxon ?author ;\n' +
+                '      apt2:NiveauTaxonomique ?rank ;\n' +
+                '      skos:exactMatch|owl:sameAs ?exactMatch .\n' +
+                '    FILTER(\n' +
+                '      URI(?exactMatch) = <urn:lsid:marinespecies.org:taxname:{{q}}>\n' +
+                '    )\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri apt2:AppelTaxonParent|skos:broader ?parent .\n' +
+                '      #FILTER ( isURI(?parent) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri skos:exactMatch|owl:sameAs ?exactMatch .\n' +
+                '      #FILTER ( isURI(?exactMatch) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .\n' +
+                '      #FILTER ( isURI(?seeAlso) )\n' +
+                '    }\n' +
+                '    OPTIONAL {\n' +
+                '      ?sourceUri dc:created|apt2:DateCreationAppelTaxon ?created ;\n' +
+                '        dc:modified|apt2:DateMajAppelTaxon ?modified .\n' +
+                '    }\n' +
+                '  }\n' +
+                ' }\n' +*/
+
+                '} LIMIT {{limit}}',
+            filters: [],
+            binding: {
+                eauFranceEndpoint: endpointsById.EAU_FRANCE,
+                mnhnEndpoint: endpointsById.MNHN
+            }
         }
      ];
 
@@ -231,7 +383,7 @@ function AppTaxonSearch(config) {
         selectedQueryIndex = -1;
 
     // YasGui
-    let yasqe, yasr;
+    let yasqe, yasr, onYasqeQueryResponse;
 
     /* -- Log and message -- */
 
@@ -408,16 +560,15 @@ function AppTaxonSearch(config) {
             yasqe = new Yasqe(element, {
                 requestConfig
             });
+
+            // Listen query response
+            yasqe.on("queryResponse", (yasqe, res, duration) => {
+                if (onYasqeQueryResponse) return onYasqeQueryResponse(yasqe, res, duration)
+            });
         }
 
-        if (opts.queryResponse){
-            yasqe.on("queryResponse", opts.queryResponse);
-        }
-        else {
-            // Link editor to query
-            yasqe.on("queryResponse", disaplayResponse);
-        }
-
+        // Apply the correct query response function
+        onYasqeQueryResponse = opts.queryResponse || displayResponse;
     }
 
     function initYasr() {
@@ -469,17 +620,20 @@ function AppTaxonSearch(config) {
             if (file.type === "text/csv" || file.type === "text/plain"
                 || file.type === "application/vnd.ms-excel" // on MS Windows
             ) {
-                importClick = () => parseCsvFile(file);
+                queries.forEach((query, index) => {
+                    const button = file.previewElement.querySelector(".import-" + query.id);
+                    if (button) {
+                        button.onclick = () => importFile(file, {queryIndex: index});
+                    }
+                })
             }
 
             // Upload to server
             else {
-                importClick = () => myDropzone.enqueueFile(file);
+                // TODO: test this !
+                file.previewElement.querySelector(".import").onclick = () => myDropzone.enqueueFile(file)
             }
-
-            file.previewElement.querySelector(".import").onclick = importClick
         });
-
 
         myDropzone.on("sending", function(file) {
             // Disable import button
@@ -487,24 +641,20 @@ function AppTaxonSearch(config) {
         });
 
         myDropzone.on("success", function(file) {
-            console.log("TODO: success upload ! ", file)
+            console.log("[taxon-search] TODO: success upload ! ", file)
         });
 
 
         // Hide the total progress bar when nothing's uploading anymore
         myDropzone.on("queuecomplete", function(progress) {
-            console.log("TODO: queuecomplete! display a result ?", progress)
+            console.log("[taxon-search] TODO queuecomplete!", progress)
         });
 
         // Hide the total progress bar when nothing's uploading anymore
         myDropzone.on("removedfile", function(file) {
-            console.log("TODO: removing file", file)
+            console.debug("[taxon-search] Removing file '{0}'".format(file.name));
+            file.status = 'cancelled';
         });
-
-
-        // Setup the buttons for all transfers
-        // The "add files" button doesn't need to be setup because the config
-        // `clickable` has already been specified.
 
     }
 
@@ -529,7 +679,7 @@ function AppTaxonSearch(config) {
         return false;
     }
 
-    function doSearch(searchText, options)
+    function doSearch(searchText, opts)
     {
         searchText = searchText || inputSearch.value;
         if (!searchText || searchText.trim().length === 0) return; // Skip if empty
@@ -537,13 +687,15 @@ function AppTaxonSearch(config) {
         console.debug("Search: " + searchText)
 
         hideResult();
+        hideFilePreviews();
+
         showLoading();
 
         try {
             log("SEARCH: " + searchText, "text-muted");
 
             // Compute the query
-            doUpdateQuery(searchText, options);
+            doUpdateQuery(searchText, opts);
 
             runQuery();
 
@@ -561,16 +713,47 @@ function AppTaxonSearch(config) {
         })
     }
 
-    function doUpdateQuery(searchText, options)
+    function searchAsPromise(searchText, opts) {
+
+        return new Promise((resolve, reject) => {
+            doUpdateQuery(searchText, {
+                ...opts,
+                queryResponse: (yasqe, res, duration) => {
+                    if (res.type !== 'application/sparql-results+json') {
+                        reject("Response content type '{}' not implemented yet".format(res.type));
+                    }
+
+                    console.debug("[taxon-search] Search on '{0}' give {1} results:".format(searchText, res.body && res.body.results && res.body.results.bindings.length || 0));
+                    resolve(res);
+                }
+            })
+            setTimeout(() => {
+                yasqe.queryBtn.click();
+            })
+        });
+    }
+
+    function doUpdateQuery(searchText, opts)
     {
 
-        options = options || {};
+        opts = opts || {};
+
+        opts.queryIndex = opts.queryIndex >= 0 ? opts.queryIndex : selectedQueryIndex;
+
         searchText = searchText || inputSearch.value;
         if (!searchText) return; // Skip if empty
 
-        let searchTerms = [searchText];
-        if (searchText.indexOf('"') !== -1 || searchText.indexOf(',') !== -1) {
-            searchTerms = searchText.split(/[",]+/).map(s => s.trim()).filter(s => s.length > 0);
+        let searchTerms;
+        if (typeof searchText === "string") {
+            searchTerms = searchText.split(/[",;+\t]+/).map(s => s.trim()).filter(s => s.length > 0);
+        }
+        else if (typeof searchText === "array") {
+            searchTerms = searchText.map(s => s.trim()).filter(s => s.length > 0);
+        }
+        else {
+            throw new Error("Invalid argument: " + searchText);
+        }
+        if (searchTerms.length > 1) {
             console.info("Multiple search:", searchTerms);
         }
 
@@ -580,8 +763,8 @@ function AppTaxonSearch(config) {
         }
 
         // Auto select example
-        if (selectedQueryIndex === -1) {
-            const autoSelectExampleIndex = queries.map((example, index) => {
+        if (opts.queryIndex === -1) {
+            opts.queryIndex = queries.map((example, index) => {
                 const count = searchTerms.reduce((count, searchTerm) =>
                         ((example.canHandleTerm && example.canHandleTerm(searchTerm)) ? count + 1 : count)
                     , 0);
@@ -590,42 +773,43 @@ function AppTaxonSearch(config) {
                 .sort((e1, e2) => e1.count === e2.count ? 0 : (e1.count > e2.count ? -1 : 1))
                 // Take the example that match must of search terms
                 .map(e => e.index)[0];
-            console.info("Auto select tab index:", autoSelectExampleIndex);
-            selectQuery(autoSelectExampleIndex, {silent: true});
+            console.info("Auto select tab index:", opts.queryIndex);
+        }
+        if (opts.queryIndex !== selectedQueryIndex) {
+            selectQuery(opts.queryIndex, {silent: true});
         }
 
-
-        options = {
+        opts = {
             limit: config.limit || 50,
             exactMatch: config.exactMatch,
             // Override from the selected query
-            ...queries[selectedQueryIndex],
+            ...queries[opts.queryIndex],
             // Override using given options
-            ...options
+            ...opts
         };
-        options.q = undefined;
+        opts.q = undefined;
 
         try {
             initYase({
-                queryResponse: options.queryResponse
+                queryResponse: opts.queryResponse
             });
 
             let binding = {
-                ...options.binding,
+                ...opts.binding,
                 limit: config.limit
             };
 
             let nbLoop = 0;
-            let queryString = (options.query || defaultQuery);
+            let queryString = (opts.query || defaultQuery);
 
             while (queryString.indexOf('{{') !== -1 && nbLoop < 10) {
                 queryString = searchTerms.reduce((query, q) => {
 
                     // Create filter clause
-                    const filterClause = (options.filters || [])
+                    const filterClause = (opts.filters || [])
                         .map(key => {
                             // If exactMatch, replace 'prefixMatch' with 'exactMatch'
-                            if (options.exactMatch) {
+                            if (opts.exactMatch) {
                                 if (key === 'prefixMatch') return 'exactMatch';
                                 if (key === 'codePrefixMatch') return 'codeExactMatch';
                             }
@@ -635,11 +819,11 @@ function AppTaxonSearch(config) {
                         .join('\n\t&& ');
 
                     // Compute the query
-                    query = query.replace('#filter', '\n\t|| (' + filterClause + ') #filter')
-                        .replace('{{filter}}', '(' + filterClause + ') #filter');
+                    query = query.replace('#filter', '\n\t|| (' + filterClause + ') #filter\n\t')
+                        .replace('{{filter}}', '(' + filterClause + ') #filter\n\t');
 
                     // Replace wildcards by regexp, if NOT exact match
-                    binding.q = options.exactMatch ? q : q.replace(/[*]+/g, '.*');
+                    binding.q = opts.exactMatch ? q : q.replace(/[*]+/g, '.*');
                     binding.defaultPrefix = prefixDefs[0].prefix;
 
                     // Bind params
@@ -658,7 +842,7 @@ function AppTaxonSearch(config) {
             log("QUERY: " + queryString);
 
             // Add prefixes
-            const prefixes = (options.prefixes || [])
+            const prefixes = (opts.prefixes || [])
                 .map(p => p === 'this' ? prefixDefs[0].prefix : p) // Replace 'this' by default prefix
                 .reduce((res, prefix) => {
                 const def = prefixDefs.find(def => def.prefix === prefix);
@@ -688,7 +872,7 @@ function AppTaxonSearch(config) {
         showLoading(false);
     }
 
-    function disaplayResponse(yasqe, req, duration) {
+    function displayResponse(yasqe, response, duration) {
         log('RESPONSE: received in ' + duration + 'ms');
 
         initYasr();
@@ -696,7 +880,7 @@ function AppTaxonSearch(config) {
         const yasrPlugin = queries[selectedQueryIndex] && queries[selectedQueryIndex].yasrPlugin;
         if (yasrPlugin) yasr.selectPlugin(yasrPlugin);
 
-        yasr.setResponse(req);
+        yasr.setResponse(response);
 
         hideLoading();
         showResult();
@@ -713,7 +897,6 @@ function AppTaxonSearch(config) {
             $('#' + config.ids.options + ' #exactMatch').prop("checked", config.exactMatch !== false);
 
             hideDetails();
-            hideFilePreviews();
         }
         // Hide
         else {
@@ -785,60 +968,296 @@ function AppTaxonSearch(config) {
         showFilePreviews(false);
     }
 
-    function parseCsvFile(file, opts) {
+    async function importFile(file, opts) {
         opts = opts || {};
+        if (opts.queryIndex < 0) return; // Skip
 
-        opts.importType = opts.importType || 'alphaId';
-        const reader = new FileReader();
+        const query = queries[opts.queryIndex];
+        const queryIdParts = query.id && query.id.split('-');
+        const valueType = queryIdParts && queryIdParts[queryIdParts.length - 1].toLowerCase() || 'code';
 
-        let valueRegexp;
-        switch (opts.importType) {
-            case 'alphaId':
-                valueRegexp = NUMERICAL_REGEXP;
-                break;
-            case 'name':
-                valueRegexp = SCIENTIFIC_NAME_REGEXP;
-                break;
-            default: throw new Error('Invalid import type: ' + opts.importType);
+        let lineFilter = query.canHandleTerm;
+        if (!lineFilter) {
+            let lineFilterRegexp;
+            switch (valueType) {
+                case 'name':
+                    lineFilterRegexp = SCIENTIFIC_NAME_REGEXP;
+                    break;
+                case 'code':
+                case 'aphiaid':
+                    lineFilterRegexp = NUMERICAL_CODE_REGEXP;
+                    break;
+                default: throw new Error('Invalid value type: ' + opts.valueType);
+            }
+            lineFilter = (v) => lineFilterRegexp.test(v);
         }
+
+        const now = Date.now();
+        console.info("[taxon-search] Importing file '{0}'...".format(file.name));
+
         const setProgression = getFileProgressionFn(file);
 
-        reader.onload = function(onLoadEvent) {
-            if (!onLoadEvent.loaded || !reader.result) return;
+        let progression = 0;
+        setProgression(progression);
+        hideFileResult(file);
 
-            let progression = 10;
+        const values = await readFileAsLines(file);
+
+        const validValues = values.filter(lineFilter);
+
+        // Update progression
+        progression += 10;
+        setProgression(progression);
+
+        console.info("[taxon-search] Found {0} valid {1}s".format(validValues.length, opts.valueType))
+        if (!values.length) {
+            setProgression(100);
+            return; // Nothing to search
+        }
+
+        // Compute progression steps
+        const progressionStep = Math.max(Math.trunc((90 / validValues.length) * 10) / 10, 0.1);
+
+        // Chain search on each value
+        let res,
+            lookupVar = 'lookup',
+            counter = 0,
+            matchCount = 0;
+        for (value of validValues) {
+
+            // Check if cancelled
+            if (file.status === 'cancelled') {
+                hideResult();
+                return; // Stop
+            }
+
+            // Search on value
+            const curRes = await searchAsPromise(value, opts);
+
+            const hasResult = curRes.body && curRes.body.results && curRes.body.results.bindings && curRes.body.results.bindings.length > 0;
+
+            // If first response, init the result
+            if (!res) {
+                // Copy the first result, to init final response
+                res = {...curRes,
+                    body: {
+                        head: {
+                            // Add lookup var
+                            vars: [lookupVar].concat(curRes.body.head.vars)
+                        },
+                        results: {
+                            // Reset bindings (will be add later)
+                            bindings: []
+                        }
+                    }
+                };
+            }
+
+            let bindings;
+            if (hasResult) {
+                bindings = curRes.body.results.bindings;
+
+                // Add the lookup value to each bindings
+                bindings.forEach(binding => {
+                    binding[lookupVar] = {value, type: 'literal', found: true};
+                });
+            }
+            else {
+                // Create a fake binding, for the missing value
+                const binding = {};
+                binding[lookupVar] = {value, type: 'literal', found: false};
+                switch(valueType.toLowerCase()) {
+                    case 'code':
+                        binding.sourceUri = {value, type: 'literal'};
+                        break;
+                    case 'name':
+                        binding.scientificName = {value, type: 'literal'};
+                        break;
+                    case 'aphiaid':
+                        binding.exactMatch = {value: 'urn:lsid:marinespecies.org:taxname:' + value, type: 'uri'};
+                        break;
+                    default:
+                        console.warn('Unknown value type: ' + valueType);
+                }
+
+                bindings = [binding];
+            }
+
+            // Append final bindings
+            res.body.results.bindings = res.body.results.bindings.concat(bindings);
+
+            // Update counter
+            matchCount += hasResult ? 1 : 0;
+
+            // Update progression
+            progression += progressionStep;
             setProgression(progression);
 
-            const values = reader.result.split("\n")
-                .filter(value => value && valueRegexp.test(value))
-                .map(value => value.trim())
-                .filter(value => value.length > 0);
+            // Display result, every 5 value
+            if (progression < 100 && counter % 5 === 0) {
+                displayResponse(this.yasgui, res, 0);
+            }
+        }
 
-            const step = Math.max(Math.trunc((90 / values.length) * 10) / 10, 0.1);
+        // All search has been executed
+        setProgression(100);
+        const duration = Date.now() - now;
+        console.debug("[taxon-search] All {0} imported in {1} ms".format(valueType, duration));
 
-            const executeSearch = (index) => {
-                if (index < values.length) {
-                    const value = values[index];
-                    doUpdateQuery(value, {
-                        queryResponse : (res) => {
-                            console.log(res);
-                            setTimeout(() => {
-                                progression += step;
-                                setProgression(progression);
-                                executeSearch(index+1);
-                            })
-                        }});
+        if (res) {
+            file.response = res;
+            file.duration = duration;
 
-                    runQuery();
+            displayFileResponse(file);
+        }
+        else {
+            hideResult();
+        }
+
+        displayFileExecutionResult(file, {
+            totalCount: values.length,
+            matchCount: matchCount,
+            ignoreCount : values.length - validValues.length,
+            missingCount: (validValues.length - matchCount)
+        });
+    }
+
+    function readFileAsLines(file, opts) {
+        opts = opts || {};
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = function(onLoadEvent) {
+                if (!onLoadEvent.loaded || !reader.result) {
+                    reject('Unable to parse file !');
+                    return;
                 }
-                else {
-                    setTimeout(() =>setProgression(100));
+
+                const values = reader.result.split("\n")
+                    .map(value => value && value.trim())
+                    .filter(value => value && value.length > 0 && (!opts.filter || opts.filter(value)));
+
+                resolve(values);
+            }
+            reader.readAsText(file);
+        })
+    }
+
+    function displayFileExecutionResult(file, {totalCount, matchCount, ignoreCount, missingCount}) {
+        if (!file || !file.previewElement) return;
+        const resultElement = file.previewElement.querySelector(".result");
+        if (resultElement) {
+            // Total element
+            {
+                const totalEl = document.createElement("a");
+                totalEl.setAttribute('href', '#');
+                totalEl.innerText = totalCount + ' row' + (totalCount > 1 ? 's' : '');
+                totalEl.onclick = () => displayFileResponse(file);
+                resultElement.appendChild(totalEl);
+            }
+
+            {
+                const span = resultElement.appendChild(document.createElement("span"));
+                span.innerText = ' (';
+                resultElement.appendChild(span);
+            }
+
+            // Ignore count
+            if (ignoreCount > 0) {
+                const ignoreEl = resultElement.appendChild(document.createElement("span"));
+                ignoreEl.innerText = ignoreCount + ' ignored';
+                resultElement.appendChild(ignoreEl);
+            }
+
+            // Match count
+            if (matchCount > 0) {
+                if (ignoreCount > 0) {
+                    const span = resultElement.appendChild(document.createElement("span"));
+                    span.innerText = ', ';
+                    resultElement.appendChild(span);
+                }
+                const matchEl = document.createElement("a");
+                matchEl.setAttribute('href', '#');
+                matchEl.innerText = matchCount + ' found';
+                matchEl.onclick = () => displayFileResponse(file, {valid: true});
+                resultElement.appendChild(matchEl);
+            }
+
+            // Not found count
+            if (missingCount > 0) {
+                if (ignoreCount > 0 || matchCount > 0) {
+                    const span = resultElement.appendChild(document.createElement("span"));
+                    span.innerText = ', ';
+                    resultElement.appendChild(span);
+                }
+                const missingEl = document.createElement("a");
+                missingEl.setAttribute('href', '#');
+                missingEl.innerText = missingCount + ' not found';
+                missingEl.onclick = () => displayFileResponse(file, {valid: false});
+                resultElement.appendChild(missingEl);
+            }
+
+            {
+                const span = resultElement.appendChild(document.createElement("span"));
+                span.innerHTML = ')';
+                resultElement.appendChild(span);
+            }
+        }
+
+        // Update buttons
+        if (missingCount > 0) {
+            const createMissingButton = file.previewElement.querySelector(".btn.create-missing");
+            if (createMissingButton) {
+                $('#create-missing-toast').toast({autohide: true, delay: 2500});
+                createMissingButton.classList.remove('d-none');
+                createMissingButton.onclick = () => {
+                    console.debug('[taxon-search] Asking creation of missing references...');
+                    $('#create-missing-toast').toast('show');
                 }
             }
-            executeSearch(0);
+        }
 
-        };
-        reader.readAsText(file);
+        // Hide the import button
+        //const importButton = file.previewElement.querySelector(".import-dropdown");
+        //if (importButton) {
+        //    importButton.classList.add('d-none')
+        //}
+    }
+
+    function hideFileResult(file) {
+        if (!file || !file.previewElement) return;
+        const el = file.previewElement.querySelector(".result");
+        if (!el) return;
+        el.innerHTML = '';
+    }
+
+    function displayFileResponse(file, opts) {
+        if (!file || !file.response) return; // Skip
+
+        // Create a filter function, from options
+        let filterFn;
+        if (opts && opts.valid === true) {
+            filterFn = (b) => !!b.sourceUri;
+        }
+        else if (opts && opts.valid === false) {
+            filterFn = (b) => !b.sourceUri;
+        }
+
+        if (filterFn) {
+            const response = {
+                ...file.response,
+                body: {
+                    head: file.response.body.head,
+                    results: {
+                        bindings: file.response.body.results.bindings.filter(b => !filterFn || filterFn(b))
+                    }
+                }
+            };
+            displayResponse(this.yasqe, response, file.duration);
+        }
+        else {
+            displayResponse(this.yasqe, file.response, file.duration);
+        }
+
     }
 
     function getFileProgressionFn(file) {

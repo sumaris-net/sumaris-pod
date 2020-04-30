@@ -25,7 +25,7 @@ package net.sumaris.core.model.administration.user;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.ImageAttachment;
-import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.UserProfile;
 import org.hibernate.annotations.Cascade;
@@ -57,7 +57,7 @@ import java.util.Set;
                 "        AND (:lastName is null OR upper(t.lastName) = upper(:lastName))"
         )
 })
-public class Person implements IReferentialEntity {
+public class Person implements IReferentialWithStatusEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PERSON_SEQ")

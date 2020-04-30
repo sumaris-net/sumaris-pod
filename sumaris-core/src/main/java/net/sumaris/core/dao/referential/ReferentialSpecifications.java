@@ -25,10 +25,9 @@ package net.sumaris.core.dao.referential;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.technical.jpa.SpecificationWithParameters;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.metier.Metier;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -37,17 +36,19 @@ import javax.persistence.criteria.*;
 
 public class ReferentialSpecifications {
 
-    public static Specification<Metier> inLevelIds(String levelProperty, Integer[] gearIds) {
+    public static final String SEARCH_TEXT_PARAMETER = "searchText";
+
+    public static <T extends IReferentialWithStatusEntity> Specification<T> inLevelIds(String levelProperty, Integer[] gearIds) {
         if (ArrayUtils.isEmpty(gearIds)) return null;
         return (root, query, cb) -> cb.in(
                 root.join(levelProperty, JoinType.INNER).get(Gear.Fields.ID))
                 .value(ImmutableList.copyOf(gearIds));
     }
 
-    public static <T extends IReferentialEntity> Specification<T> inStatusIds(Integer[] statusIds) {
+    public static <T extends IReferentialWithStatusEntity> Specification<T> inStatusIds(Integer[] statusIds) {
         if (ArrayUtils.isEmpty(statusIds)) return null;
         return (root, query, cb) -> cb.in(
-                root.get(IReferentialEntity.Fields.STATUS).get(Status.Fields.ID))
+                root.get(IReferentialWithStatusEntity.Fields.STATUS).get(Status.Fields.ID))
                 .value(ImmutableList.copyOf(statusIds));
     }
 

@@ -25,8 +25,13 @@ package net.sumaris.core.service.referential.pmfm;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Transactional
 public interface PmfmService {
+
+    @Transactional(readOnly = true)
+    Optional<PmfmVO> findByLabel(final String label);
 
     @Transactional(readOnly = true)
     PmfmVO getByLabel(String label);
@@ -34,8 +39,27 @@ public interface PmfmService {
     @Transactional(readOnly = true)
     PmfmVO get(int pmfmId);
 
+    PmfmVO save(PmfmVO pmfm);
+
     @Transactional(readOnly = true)
     boolean isWeightPmfm(int pmfmId);
 
-    PmfmVO save(PmfmVO pmfm);
+    @Transactional(readOnly = true)
+    boolean isSortingPmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
+    boolean isQuantificationPmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
+    boolean isCalculatedPmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
+    boolean isVesselUsePmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
+    boolean isGearUsePmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
+    boolean isGearPhysicalPmfm(int pmfmId);
+
 }
