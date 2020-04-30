@@ -9,7 +9,7 @@ import {PacketValidatorService} from "../services/validator/packet.validator";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
-import {isNotNilOrNaN, round} from "../../shared/functions";
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNilOrNaN, round} from "../../shared/functions";
 
 @Component({
   selector: 'app-packet-form',
@@ -49,17 +49,26 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
 
-  // get dirty(): boolean {
-  //   return (this.form && this.form.dirty) || this.compositionTable.dirty;
-  // }
-
-  // @ViewChild('compositionTable', {static: true}) compositionTable: PacketCompositionTable;
-
   get value(): any {
     const json = this.form.value;
 
-    // Add composition
-    // json.composition = (this.compositionTable.value || []).map(c => c.asObject());
+
+
+    // Update rankOrder on composition
+    if (json.composition && isNotEmptyArray(json.composition)) {
+      for (let i = 0; i < json.composition.length; i++) {
+        // Set rankOrder
+        json.composition[i].rankOrder = i + 1;
+
+        // Fix ratio if empty
+        for (const index of this.indexes) {
+          if (isNotNilOrNaN(json['sampledWeight' + index]) && isNil(json.composition[i]['ratio' + index])) {
+            json.composition[i]['ratio' + index] = 0;
+          }
+        }
+      }
+    }
+
 
     return json;
   }
@@ -87,17 +96,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
     });
-
-
-    // this.registerSubscription(this.form.controls.number.valueChanges.subscribe(() => {
-    //   this.computeTotalWeight();
-    //   this.computeTaxonGroupWeight();
-    // }));
-    //
-    // this.registerSubscription(this.form.controls.composition.valueChanges.subscribe(() => {
-    //   this.computeSampledRatios();
-    //   this.computeTaxonGroupWeight();
-    // }));
 
   }
 
@@ -196,7 +194,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
           sampledWeights.push(weight);
       }
       const sum = sampledWeights.reduce((a, b) => a + b, 0);
-      const avg = (sum / sampledWeights.length) || 0;
+      const avg = round((sum / sampledWeights.length) || 0);
       const number = this.form.controls.number.value || 0;
       this.form.controls.weight.setValue(round(avg * number));
     } finally {

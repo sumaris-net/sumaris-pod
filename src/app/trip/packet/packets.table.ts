@@ -9,7 +9,7 @@ import {environment} from "../../../environments/environment";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppTableDataSource} from "../../core/core.module";
+import {AppTableDataSource, isNil} from "../../core/core.module";
 import {BehaviorSubject, Observable} from "rxjs";
 import {IWithProductsEntity} from "../services/model/base.model";
 import {PacketModal} from "./packet.modal";
@@ -81,7 +81,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<Packet, PacketFilter>(Packet, memoryDataService, validatorService, {
         prependNewElements: false,
-        suppressErrors: environment.production
+        suppressErrors: environment.production,
+        onRowCreated: (row) => this.onRowCreated(row)
       }),
       null,
       injector
@@ -110,6 +111,28 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       this.setFilter(new PacketFilter(parentFilter));
     }));
 
+  }
+
+  trackByFn(index: number, row: TableElement<Packet>): number {
+    return row.currentData.rankOrder;
+  }
+
+  private async onRowCreated(row: TableElement<Packet>) {
+    const data = row.currentData; // if validator enable, this will call a getter function
+
+    if (isNil(data.rankOrder)) {
+      data.rankOrder = (await this.getMaxRankOrder()) + 1;
+    }
+
+    // Set row data
+    row.currentData = data; // if validator enable, this will call a setter function
+
+    this.markForCheck();
+  }
+
+  protected async getMaxRankOrder(): Promise<number> {
+    const rows = await this.dataSource.getRows();
+    return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
 
@@ -145,4 +168,5 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   getComposition(row: TableElement<Packet>): string {
     return PacketUtils.getComposition(row.currentData);
   }
+
 }

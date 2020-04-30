@@ -68,7 +68,7 @@
       <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                               [appAutofocus]="row.id == -1 && row.editing"
                               [formControl]="row.validator.controls.parent"
-                              [placeholder]="'TRIP.OPERATION.LIST.PARENT'|translate"
+                              [placeholder]="'TRIP.PRODUCT.LIST.PARENT'|translate"
                               [required]="true" [readonly]="!row.editing"
                               [config]="autocompleteFields.parent">
       </mat-autocomplete-field>
@@ -86,7 +86,7 @@
       <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                               [appAutofocus]="row.id == -1 && row.editing"
                               [formControl]="row.validator.controls.taxonGroup"
-                              [placeholder]="'TRIP.OPERATION.LIST.TAXON_GROUP'|translate"
+                              [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP'|translate"
                               [required]="true" [readonly]="!row.editing"
                               [config]="autocompleteFields.taxonGroup">
       </mat-autocomplete-field>

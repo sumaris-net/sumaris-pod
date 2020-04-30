@@ -1,12 +1,16 @@
 import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
 import {
-  EditorDataService, EditorDataServiceLoadOptions, fromDateISOString, isNil,
+  EditorDataService,
+  EditorDataServiceLoadOptions,
+  fromDateISOString,
+  isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  TableDataService, toBoolean
+  TableDataService,
+  toBoolean
 } from "../../shared/shared.module";
 import {AppFormUtils, Department, EntityUtils, environment} from "../../core/core.module";
 import {catchError, filter, map, switchMap, tap} from "rxjs/operators";
@@ -21,10 +25,13 @@ import {RootDataService} from "./root-data-service.class";
 import {
   DataEntityAsObjectOptions,
   DataRootEntityUtils,
+  fillRankOrder,
+  IWithRecorderDepartmentEntity,
   MINIFY_OPTIONS,
+  SAVE_AS_OBJECT_OPTIONS,
+  SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS,
-  SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS,
-  SynchronizationStatus, IWithRecorderDepartmentEntity, fillRankOrder
+  SynchronizationStatus
 } from "./model/base.model";
 import {NetworkService} from "../../core/services/network.service";
 import {concat, defer, Observable, of, timer} from "rxjs";
@@ -1229,7 +1236,13 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     super.fillDefaultProperties(entity);
 
-    this.fillRecorderDepartment(entity.operationGroups, entity.recorderDepartment);
+    if (entity.operationGroups) {
+      this.fillRecorderDepartment(entity.operationGroups, entity.recorderDepartment);
+      entity.operationGroups.forEach(operationGroup => {
+        this.fillRecorderDepartment(operationGroup.products, entity.recorderDepartment);
+        this.fillRecorderDepartment(operationGroup.packets, entity.recorderDepartment);
+      });
+    }
     // todo maybe others tables ?
 
     // Physical gears: compute rankOrder
@@ -1300,6 +1313,13 @@ export class TripService extends RootDataService<Trip, TripFilter>
           });
         }
       });
+
+      // Update gears in operation groups
+      if (target.operationGroups) {
+        target.operationGroups.forEach(operationGroup => {
+          operationGroup.physicalGear = source.gears.find(json => operationGroup.physicalGear.equals(json));
+        });
+      }
     }
 
     // Update measurements

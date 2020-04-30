@@ -176,7 +176,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     this.previousDataId = data.id;
     this.setValue(data);
 
-    this.updateTitle(data);
+    this.updateTitle(data); // FIXME updateTitle should be executed AFTER updateTabAndRoute because of path change !!! #185
 
     this.markAsPristine();
     this.markAsUntouched();

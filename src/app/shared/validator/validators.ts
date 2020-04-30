@@ -183,6 +183,7 @@ export class SharedValidators {
         control.setErrors(error);
         return error;
       }
+      SharedValidators.clearError(control, 'required');
       return null;
     };
   }
@@ -195,14 +196,7 @@ export class SharedValidators {
         control.setErrors(error);
         return error;
       }
-      if (control.hasError('required')) {
-        // delete required error
-        delete control.errors.required;
-        if (isEmptyArray(Object.keys(control.errors))) {
-          // if 'required' was the last error, reset control errors
-          control.setErrors(null);
-        }
-      }
+      SharedValidators.clearError(control, 'required');
       return null;
     };
   }

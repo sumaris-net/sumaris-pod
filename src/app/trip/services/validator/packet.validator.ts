@@ -6,6 +6,8 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
 import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.validator";
 import {Packet, PacketComposition} from "../model/packet.model";
 import {fragmentOnNonCompositeErrorMessage} from "graphql/validation/rules/FragmentsOnCompositeTypes";
+import {PacketCompositionValidatorService} from "./packet-composition.validator";
+import {toNumber} from "../../../shared/functions";
 
 export interface PacketValidatorOptions extends DataEntityValidatorOptions {
   withComposition?: boolean;
@@ -17,13 +19,10 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
 
   constructor(
     formBuilder: FormBuilder,
-    settings: LocalSettingsService
+    settings: LocalSettingsService,
+    // protected packetCompositionValidatorService: PacketCompositionValidatorService todo comment l'injecter proprement ?
   ) {
     super(formBuilder, settings);
-  }
-
-  getRowValidator(): FormGroup {
-    return this.getFormGroup();
   }
 
   getFormGroupConfig(data?: Packet, opts?: O): { [key: string]: any } {
@@ -36,12 +35,12 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
         rankOrder: [data && data.rankOrder || null],
         number: [data && data.number || null, Validators.compose([Validators.required, SharedValidators.integer])],
         weight: [data && data.weight || null, Validators.compose([Validators.required, SharedValidators.double({maxDecimals: 2})])],
-        sampledWeight1: [data && data.sampledWeight1, SharedValidators.double({maxDecimals: 2})],
-        sampledWeight2: [data && data.sampledWeight2, SharedValidators.double({maxDecimals: 2})],
-        sampledWeight3: [data && data.sampledWeight3, SharedValidators.double({maxDecimals: 2})],
-        sampledWeight4: [data && data.sampledWeight4, SharedValidators.double({maxDecimals: 2})],
-        sampledWeight5: [data && data.sampledWeight5, SharedValidators.double({maxDecimals: 2})],
-        sampledWeight6: [data && data.sampledWeight6, SharedValidators.double({maxDecimals: 2})]
+        sampledWeight1: [data && data.sampledWeight1, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
+        sampledWeight2: [data && data.sampledWeight2, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
+        sampledWeight3: [data && data.sampledWeight3, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
+        sampledWeight4: [data && data.sampledWeight4, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
+        sampledWeight5: [data && data.sampledWeight5, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
+        sampledWeight6: [data && data.sampledWeight6, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])]
       });
 
     if (opts.withComposition) {
@@ -67,8 +66,16 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
     );
   }
 
-  getCompositionControl(composition: PacketComposition) {
+  getCompositionControl(composition: PacketComposition): FormGroup {
+    // return this.packetCompositionValidatorService.getFormGroup(composition);
+    // fixme je construit un FormGroup directement mais ce serait plus propre avec l'instruction ci-dessus
     return this.formBuilder.group({
+      id: [toNumber(composition && composition.id, null)],
+      updateDate: [composition && composition.updateDate || null],
+      controlDate: [composition && composition.controlDate || null],
+      qualificationDate: [composition && composition.qualificationDate || null],
+      qualificationComments: [composition && composition.qualificationComments || null],
+      recorderDepartment: [composition && composition.recorderDepartment || null, SharedValidators.entity],
       __typename: [PacketComposition.TYPENAME],
       rankOrder: [composition && composition.rankOrder || null],
       taxonGroup: [composition && composition.taxonGroup || null, Validators.compose([Validators.required, SharedValidators.entity])],
@@ -80,5 +87,7 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
       ratio5: [composition && composition.ratio5, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
       ratio6: [composition && composition.ratio6, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])]
     });
+
+
   }
 }

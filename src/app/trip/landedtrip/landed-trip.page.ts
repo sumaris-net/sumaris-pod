@@ -455,7 +455,34 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     // return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
   }
 
+  /**
+   * Update route with correct url
+   * workaround for #185
+   *
+   * @param data
+   * @param queryParams
+   */
+  protected async updateRoute(data: Trip, queryParams: any): Promise<boolean> {
+    const url = `${this.defaultBackHref}/trip/${data.id}`;
+    const title = await this.computeTitle(data);
+
+    this.addToPageHistory({
+      title,
+      path: url
+    });
+
+    return await this.router.navigateByUrl(url, {
+      replaceUrl: true,
+      queryParams: this.queryParams
+    });
+  }
+
   protected addToPageHistory(page: HistoryPageReference) {
+
+    // workaround for #185
+    if (page.path.includes('/new'))
+      return;
+
     super.addToPageHistory({...page, icon: 'boat'});
   }
 
