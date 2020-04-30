@@ -680,6 +680,14 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     await this.batchGroupsTable.autoFillTable(options);
   }
 
+  protected async updateRoute(data: Operation, queryParams: any): Promise<boolean> {
+    return await this.router.navigate([`/trips/${this.trip.id}/operations/${data.id}`], {
+      replaceUrl: true,
+      queryParams: queryParams,
+      queryParamsHandling: "preserve"
+    });
+  }
+
   protected markForCheck() {
     this.cd.markForCheck();
   }

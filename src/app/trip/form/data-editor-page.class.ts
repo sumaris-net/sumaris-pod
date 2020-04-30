@@ -111,7 +111,11 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends E
   }
 
   protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
-    return await this.router.navigateByUrl(`${this.defaultBackHref}/${data.id}`, {
+    let parentUrl = this.defaultBackHref;
+    if (parentUrl && parentUrl.indexOf('?') !== -1) {
+      parentUrl = parentUrl.substr(0, parentUrl.indexOf('?'));
+    }
+    return await this.router.navigateByUrl(`${parentUrl}/${data.id}`, {
       replaceUrl: true,
       queryParams: this.queryParams
     });
