@@ -49,13 +49,13 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   protected _enable = true;
   protected _dirty = false;
   protected allowRowDetail = true;
-  protected pageSize: number;
   protected _onDestroy = new Subject();
   protected _autocompleteHelper: MatAutocompleteConfigHolder;
   protected translate: TranslateService;
   protected alertCtrl: AlertController;
   protected toastController: ToastController;
 
+  pageSize: number;
   excludesColumns = new Array<String>();
   displayedColumns: string[];
   resultsLength: number;
