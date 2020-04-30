@@ -3,7 +3,6 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.BatchDao;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -77,15 +76,7 @@ public class PacketServiceImpl implements PacketService {
     @Override
     public List<PacketVO> saveByOperationId(int operationId, List<PacketVO> sources) {
 
-        Preconditions.checkNotNull(sources);
-        sources.forEach(source -> {
-            Preconditions.checkNotNull(source.getNumber());
-            Preconditions.checkArgument(source.getNumber() > 0);
-            Preconditions.checkNotNull(source.getRankOrder());
-            Preconditions.checkNotNull(source.getWeight());
-            Preconditions.checkArgument(CollectionUtils.isNotEmpty(source.getSampledWeights()));
-            Preconditions.checkArgument(CollectionUtils.isNotEmpty(source.getComposition()));
-        });
+        checkPackets(sources);
 
         // Batches list to save
         List<BatchVO> batches = new ArrayList<>();
@@ -153,6 +144,23 @@ public class PacketServiceImpl implements PacketService {
         return toPackets(batchDao.toTree(savedBatches));
         // Or load completely
 //        return getAllByOperationId(operationId);
+    }
+
+    private void checkPackets(List<PacketVO> sources) {
+        Preconditions.checkNotNull(sources);
+        sources.forEach(this::checkPacket);
+    }
+
+    private void checkPacket(PacketVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getNumber());
+        Preconditions.checkArgument(source.getNumber() > 0);
+        Preconditions.checkNotNull(source.getRankOrder());
+        Preconditions.checkNotNull(source.getWeight());
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(source.getSampledWeights()));
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(source.getComposition()));
+        Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
+        Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
     }
 
     private List<BatchVO> toBatchVOs(List<PacketVO> sources, BatchVO rootBatch) {
@@ -426,7 +434,7 @@ public class PacketServiceImpl implements PacketService {
 
         // number
         Double averageWeight = referenceWeight / target.getSampledWeights().size();
-        target.setNumber((int) (target.getWeight() / averageWeight));
+        target.setNumber(Daos.roundValue(target.getWeight() / averageWeight).intValue());
 
         // composition
         target.setComposition(source.getChildren().stream()

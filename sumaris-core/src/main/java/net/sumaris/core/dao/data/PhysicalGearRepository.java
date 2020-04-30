@@ -22,15 +22,12 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.PhysicalGear;
-import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
-import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 
 public interface PhysicalGearRepository extends
-    DataRepository<PhysicalGear, Integer, PhysicalGearVO, PhysicalGearFilterVO>,
+    RootDataRepository<PhysicalGear, Integer, PhysicalGearVO, PhysicalGearFilterVO>,
     PhysicalGearRepositoryExtend {
 
 }

@@ -29,7 +29,7 @@ import java.util.Date;
 
 @Data
 @FieldNameConstants
-public class PhysicalGearFilterVO implements IVesselFilter {
+public class PhysicalGearFilterVO implements IRootDataFilter, IVesselFilter {
 
     private Integer tripId;
 
@@ -40,5 +40,9 @@ public class PhysicalGearFilterVO implements IVesselFilter {
     private Date endDate;
 
     private String programLabel;
+
+    private Integer recorderDepartmentId;
+
+    private Integer locationId;
 
 }
