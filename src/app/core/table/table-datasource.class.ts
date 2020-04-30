@@ -23,7 +23,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   protected _creating = false;
   protected _saving = false;
   protected _useValidator = false;
-  protected _onWatchAll = new Subject();
+  protected _stopWatchAll = new Subject();
 
   public loadingSubject = new BehaviorSubject(false);
 
@@ -68,14 +68,14 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
            sortDirection?: string,
            filter?: F): Observable<LoadResult<T>> {
 
-    this._onWatchAll.next(); // stop previous watch observable
+    this._stopWatchAll.next(); // stop previous watch observable
 
     this.loadingSubject.next(true);
     return this._dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
       //.catch(err => this.handleError(err, 'Unable to load rows'))
       .pipe(
         // Stop this pipe, on the next call of watchAll()
-        takeUntil(this._onWatchAll),
+        takeUntil(this._stopWatchAll),
         catchError(err => this.handleError(err, 'ERROR.LOAD_DATA_ERROR')),
         map(res => {
           if (this._saving) {
@@ -167,6 +167,11 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   // Overwrite default signature
   createNew(): void {
     this.asyncCreateNew();
+  }
+
+  disconnect() {
+    super.disconnect();
+    this._stopWatchAll.next();
   }
 
   confirmCreate(row: TableElement<T>) {

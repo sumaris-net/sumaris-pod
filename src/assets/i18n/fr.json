@@ -45,6 +45,7 @@
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
+    "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
@@ -66,6 +67,7 @@
     "HOUR": "Heure",
     "MINUTE": "Minute",
     "TIME_PLACEHOLDER": "hh:mm",
+    "DURATION_PLACEHOLDER": "hhh:mm",
     "DURATION_DOTS": "Durée :",
 
     "YES": "Oui",
@@ -336,11 +338,18 @@
     "RETURN_LOCATION": "Port de retour",
     "OBSERVER_PLACEHOLDER": "Observateur #",
     "OBSERVERS": "Observateurs :",
+    "METIER_PLACEHOLDER": "Métier #",
+    "METIERS": "Métiers:",
+    "METIERS_FILTER": "Filtrer les métiers",
     "COMMENTS": "Commentaires",
     "QUALITY": "État de saisie",
     "TAB_GENERAL": "Détails",
     "TAB_PHYSICAL_GEAR": "Engins",
     "TAB_OPERATIONS": "Opérations",
+    "TAB_OPERATION_GROUPS": "Effort",
+    "TAB_CATCHES": "Captures débarquées",
+    "TAB_SALES": "Ventes",
+    "TAB_EXPENSES": "Dépenses",
     "NEW": {
       "TITLE": "Nouvelle marée",
       "ACCESS_OPERATIONS_HELP": "Veuillez <b>sauvegarder la marée</b>, afin de pouvoir accéder à la saisie des opérations"
@@ -396,6 +405,7 @@
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
       "RANK_ORDER": "#",
+      "SEARCH_EXISTING_BTN": "Chercher parmi les engins existants",
       "NEW": {
         "TITLE": "Nouvel engin"
       },
@@ -409,6 +419,12 @@
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",
         "GEAR": "Engin",
         "COMMENTS": "Commentaires"
+      },
+      "SELECT_MODAL": {
+        "TITLE": "Engins existants"
+      },
+      "ERROR": {
+        "LOAD_PHYSICAL_GEARS_ERROR": "Erreur de chargement des engins."
       }
     },
     "OPERATION": {
@@ -461,6 +477,20 @@
         "ON_DECK": "Arrivée sur pont :",
         "SORTING": "Debut/fin de tri :",
         "TOTAL_CATCH": "Capture totale :"
+      }
+    },
+    "LANDED_CATCH": {
+      "TAB_PRODUCT": "Captures par espèce",
+      "TAB_BATCH": "Captures en paquet",
+      "OPERATION_GROUP_FILTER": "Filtrer par effort"
+    },
+    "PRODUCT": {
+      "LIST": {
+        "PARENT": "Effort",
+        "TAXON_GROUP": "Espèce commerciale (FAO)",
+        "WEIGHT": "Poids (kg)",
+        "INDIVIDUAL_COUNT": "Nombre individus",
+        "INDIVIDUAL_SAMPLING": "Echantillonage"
       }
     },
     "BATCH": {
@@ -654,6 +684,8 @@
     },
     "TABLE": {
       "VESSEL": "Navire",
+      "VESSEL_TYPE": "Type",
+      "VESSEL_BASE_PORT_LOCATION": "Port d'attache",
       "DATE_TIME": "Date/heure",
       "LOCATION": "Lieu de débarquement",
       "OBSERVERS": "Observateurs",
@@ -668,6 +700,25 @@
       "SAVE_ERROR": "Erreur de sauvegarde du navire observé",
       "SAVE_ALL_ERROR": "Erreur de sauvegarde des navires observés",
       "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé."
+    }
+  },
+  "PACKET": {
+    "NUMBER": "Nombre de paquets",
+    "WEIGHT": "Poids total des paquets calculé (kg)",
+    "SAMPLED_WEIGHTS": "Poids des échantillons (kg)",
+    "SAMPLED_WEIGHT": "Paquet #{{rankOrder}}",
+    "SAMPLED_RATIO": "Composition %",
+    "LIST": {
+      "PARENT": "Effort",
+      "NUMBER": "Nombre de paquets",
+      "WEIGHT": "Poids (kg)",
+      "COMPOSITION": "Composition"
+    },
+    "COMPOSITION": {
+      "TITLE": "Composition du paquet",
+      "TAXON_GROUP": "Espèce commerciale (FAO)",
+      "RATIO": "#{{rankOrder}} %",
+      "WEIGHT": "Poids (kg)"
     }
   },
   "AUCTION_CONTROL": {
@@ -914,11 +965,9 @@
       "TITLE": "Programme {{label}} - {{name}}"
     },
     "OPTIONS": {
-      "TRIP_EDITOR": "Marée : Editeur",
-      "TRIP_EDITOR_OBSERVED_TRIP": "Marée observée",
-      "TRIP_EDITOR_TRIP_FROM_LANDING": "Marée au débarquement",
       "TRIP_SALE_ENABLE": "Marée : Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée : Saisir les observateurs ?",
+      "TRIP_METIERS_ENABLE": "Marée : Saisir les métiers ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin : Saisir le numéro d'engin ?",
       "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce : Auto-remplisage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce : Espèces commerciales ?",
@@ -937,7 +986,10 @@
       "LOCATION_LEVEL_AUCTION": "Criées",
       "LANDING_EDITOR": "Observation sur site > Débarquement: éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
-      "LANDING_EDITOR_CONTROL": "Contrôle"
+      "LANDING_EDITOR_CONTROL": "Contrôle",
+      "LANDING_EDITOR_TRIP": "Marée",
+      "LANDING_DATE_TIME_ENABLE": "Observation sur site > Débarquement : Date ?",
+      "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?"
     },
     "STRATEGY": {
 

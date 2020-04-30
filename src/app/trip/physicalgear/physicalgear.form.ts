@@ -1,10 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
-import {isNotNil, PhysicalGear} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Subject} from 'rxjs';
-import {distinctUntilChanged, filter, mergeMap, tap} from 'rxjs/operators';
+import {distinctUntilChanged, filter} from 'rxjs/operators';
 import {
   AcquisitionLevelCodes,
   EntityUtils,
@@ -16,11 +15,12 @@ import {
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormBuilder} from "@angular/forms";
-import {selectInputContent} from "../../core/form/form.utils";
-import {suggestFromArray} from "../../shared/functions";
+import {selectInputContent} from "../../shared/functions";
+import {isNotNil, suggestFromArray} from "../../shared/functions";
 import {InputElement} from "../../shared/material/focusable";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {PhysicalGear} from "../services/model/trip.model";
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -38,6 +38,8 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   @Input() showComment = true;
 
   @Input() tabindex: number;
+
+  @Input() canEditRankOrder = false;
 
   @Input()
   set program(value: string) {
@@ -92,7 +94,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       showAllOnFocus: false
     });
 
-    this.form.controls['gear'].valueChanges
+    this.form.get('gear').valueChanges
       .pipe(
         filter(value => EntityUtils.isNotEmpty(value) && !this.loading)
       )
@@ -102,7 +104,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       });
   }
 
-  setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
     if (data && EntityUtils.isNotEmpty(data.gear)) {
       this.gear = data.gear.label;
     }
@@ -115,11 +117,13 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   /* -- protected methods -- */
 
-  protected async safeSetValue(data: PhysicalGear): Promise<void> {
+  protected async safeSetValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }): Promise<void> {
+
     if (data && EntityUtils.isNotEmpty(data.gear)) {
       this.gear = data.gear.label;
     }
-    await super.safeSetValue(data);
+
+    await super.safeSetValue(data, opts);
   }
 
   referentialToString = referentialToString;

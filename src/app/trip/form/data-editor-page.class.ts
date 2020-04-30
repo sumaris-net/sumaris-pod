@@ -2,8 +2,7 @@ import {Injector, OnInit} from '@angular/core';
 
 import {EntityUtils, ReferentialRef} from '../../core/core.module';
 import {BehaviorSubject, Subject} from 'rxjs';
-import {isNil, isNotNil} from '../../shared/shared.module';
-import {DataRootEntity} from "../services/trip.model";
+import {isNil, isNotNil} from '../../shared/functions';
 import {distinctUntilChanged, filter, switchMap} from "rxjs/operators";
 import {Program} from "../../referential/services/model";
 import {ProgramService} from "../../referential/services/program.service";
@@ -11,6 +10,7 @@ import {isNotNilOrBlank} from "../../shared/functions";
 import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {AppEditorPage} from "../../core/form/editor-page.class";
 import {HistoryPageReference} from "../../core/services/model";
+import {DataRootEntity} from "../services/model/base.model";
 
 
 export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends EditorDataService<T>>
@@ -103,7 +103,7 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends E
 
   /**
    * Override default function, to add the entity program as subtitle)
-   * @param data
+   * @param page
    */
   protected addToPageHistory(page: HistoryPageReference) {
     page.subtitle = page.subtitle || this.data.program.label;
@@ -111,7 +111,11 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends E
   }
 
   protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
-    return await this.router.navigateByUrl(`${this.defaultBackHref}/${data.id}`, {
+    let parentUrl = this.defaultBackHref;
+    if (parentUrl && parentUrl.indexOf('?') !== -1) {
+      parentUrl = parentUrl.substr(0, parentUrl.indexOf('?'));
+    }
+    return await this.router.navigateByUrl(`${parentUrl}/${data.id}`, {
       replaceUrl: true,
       queryParams: this.queryParams
     });

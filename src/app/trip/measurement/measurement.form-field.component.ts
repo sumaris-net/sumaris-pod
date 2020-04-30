@@ -11,14 +11,14 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import {getPmfmName, isNil, PmfmStrategy} from "../services/trip.model";
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {FloatLabelType} from "@angular/material";
 import {MeasurementsValidatorService} from '../services/measurement.validator';
-import {AppFormUtils} from "../../core/core.module";
+import {AppFormUtils, isNil} from "../../core/core.module";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {filterNumberInput, focusInput, setTabIndex, toBoolean} from "../../shared/functions";
 import {asInputElement, InputElement} from "../../shared/material/focusable";
+import {getPmfmName, PmfmStrategy} from "../../referential/services/model";
 
 const noop = () => {
 };
@@ -114,6 +114,8 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
         type = "latitude";
       } else if (this.pmfm.label === "LONGITUDE") {
         type = "longitude";
+      } else if (this.pmfm.unitLabel === 'h dec.') { // TODO get from program properties
+        type = "duration";
       }
       else {
         this.numberInputStep = this.computeNumberInputStep(this.pmfm);
@@ -178,6 +180,10 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
     focusInput(this.matInput);
   }
 
+  displayTime(): boolean {
+    return this.pmfm && this.pmfm.unitLabel === 'Date & Time'; // TODO get it from program properties
+  }
+
   selectInputContent = AppFormUtils.selectInputContent;
 
   /* -- protected method -- */
@@ -201,7 +207,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
   protected updateTabIndex() {
     if (isNil(this.tabindex) || this.tabindex === -1) return;
     setTimeout(() => {
-      if(!this.matInput) return;
+      if (!this.matInput) return;
       setTabIndex(this.matInput, this.tabindex);
       this.cd.markForCheck();
     });

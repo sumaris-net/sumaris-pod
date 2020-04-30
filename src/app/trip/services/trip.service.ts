@@ -1,30 +1,36 @@
 import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
-import {EntityUtils, fillRankOrder, fromDateISOString, isNil, Operation, PhysicalGear, Trip} from "./trip.model";
 import {
   EditorDataService,
+  EditorDataServiceLoadOptions,
+  fromDateISOString,
+  isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  TableDataService, toBoolean
+  TableDataService,
+  toBoolean
 } from "../../shared/shared.module";
-import {AppFormUtils, environment} from "../../core/core.module";
+import {AppFormUtils, Department, EntityUtils, environment} from "../../core/core.module";
 import {catchError, filter, map, switchMap, tap} from "rxjs/operators";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
-import {Fragments} from "./trip.queries";
-import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
+import {Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
+import {WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {RootDataService} from "./root-data-service.class";
 import {
   DataEntityAsObjectOptions,
   DataRootEntityUtils,
+  fillRankOrder,
+  IWithRecorderDepartmentEntity,
   MINIFY_OPTIONS,
+  SAVE_AS_OBJECT_OPTIONS,
+  SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS,
-  SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SynchronizationStatus
 } from "./model/base.model";
 import {NetworkService} from "../../core/services/network.service";
@@ -41,29 +47,12 @@ import {concatPromises} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TripValidatorService} from "./trip.validator";
 import {FormErrors} from "../../core/form/form.utils";
-import {ValidatorService} from "angular4-material-table";
-import {LandingValidatorService} from "./landing.validator";
-import {DataRootEntityValidatorService} from "./validator/base.validator";
-import {AcquisitionLevelType, ProgramProperties} from "../../referential/services/model";
-
-const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
-    id
-    rankOrder
-    updateDate
-    creationDate
-    comments
-    gear {
-      ...ReferentialFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    measurementValues
-  }
-`;
+import {AcquisitionLevelType} from "../../referential/services/model";
+import {Operation, PhysicalGear, Trip} from "./model/trip.model";
+import {Batch} from "./model/batch.model";
+import {Sample} from "./model/sample.model";
 
 export const TripFragments = {
-  physicalGear: physicalGearFragment,
   lightTrip: gql`fragment LightTripFragment on TripVO {
     id
     program {
@@ -128,17 +117,7 @@ export const TripFragments = {
       ...LightVesselSnapshotFragment
     }
     sale {
-      id
-      startDateTime
-      creationDate
-      updateDate
-      comments
-      saleType {
-        ...ReferentialFragment
-      }
-      saleLocation {
-        ...LocationFragment
-      }
+      ...LightSaleFragment
     }
     gears {
       ...PhysicalGearFragment
@@ -155,6 +134,9 @@ export const TripFragments = {
     observers {
       ...LightPersonFragment
     }
+    metiers {
+      ...LightMetierFragment
+    }
   }
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
@@ -162,7 +144,70 @@ export const TripFragments = {
   ${Fragments.referential}
   ${Fragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${physicalGearFragment}
+  ${PhysicalGearFragments.physicalGear}
+  ${Fragments.lightMetier},
+  ${SaleFragments.lightSale}
+  `,
+  landedTrip: gql`fragment LandedTripFragment on TripVO {
+    id
+    program {
+      id
+      label
+    }
+    departureDateTime
+    returnDateTime
+    creationDate
+    updateDate
+    controlDate
+    validationDate
+    qualificationDate
+    qualityFlagId
+    comments
+    landingId
+    observedLocationId
+    departureLocation {
+      ...LocationFragment
+    }
+    returnLocation {
+      ...LocationFragment
+    }
+    vesselSnapshot {
+      ...LightVesselSnapshotFragment
+    }
+    gears {
+      ...PhysicalGearFragment
+    }
+    measurements {
+      ...MeasurementFragment
+    }
+    recorderDepartment {
+      ...LightDepartmentFragment
+    }
+    recorderPerson {
+      ...LightPersonFragment
+    }
+    observers {
+      ...LightPersonFragment
+    }
+    metiers {
+      ...LightMetierFragment
+    }
+    operationGroups {
+      ...OperationGroupFragment
+    }
+    sale {
+      ...SaleFragment
+    }
+  }
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
+  ${Fragments.measurement}
+  ${Fragments.referential}
+  ${Fragments.location}
+  ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${Fragments.lightMetier}
+  ${OperationGroupFragment.operationGroup}
+  ${SaleFragments.sale}
   `
 };
 
@@ -170,11 +215,11 @@ export const TRIP_FEATURE = 'trip';
 
 export class TripFilter {
 
-  static isEmpty(filter: TripFilter|any): boolean {
-    return !filter || (isNilOrBlank(filter.programLabel) && isNilOrBlank(filter.vesselId) && isNilOrBlank(filter.locationId)
-      && !filter.startDate && !filter.endDate
-      && isNil(filter.recorderDepartmentId))
-      // && !filter.synchronizationStatus -- not included, because separated button
+  static isEmpty(tripFilter: TripFilter|any): boolean {
+    return !tripFilter || (isNilOrBlank(tripFilter.programLabel) && isNilOrBlank(tripFilter.vesselId) && isNilOrBlank(tripFilter.locationId)
+      && !tripFilter.startDate && !tripFilter.endDate
+      && isNil(tripFilter.recorderDepartmentId))
+      // && !tripFilter.synchronizationStatus -- not included, because separated button
       ;
   }
 
@@ -236,6 +281,18 @@ export class TripFilter {
   acquisitionLevel?: AcquisitionLevelType;
 }
 
+export interface TripServiceLoadOption extends EditorDataServiceLoadOptions {
+  isLandedTrip?: boolean;
+  withOperation?: boolean;
+  withOperationGroup?: boolean;
+}
+
+export interface TripServiceSaveOption {
+  isLandedTrip: boolean;
+  withOperation?: boolean;
+  withOperationGroup?: boolean;
+}
+
 const LoadAllQuery: any = gql`
   query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TripFilterVOInput){
     trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -246,7 +303,7 @@ const LoadAllQuery: any = gql`
   ${TripFragments.lightTrip}
 `;
 // Load a trip
-const LoadQuery: any = gql`
+const LoadTripQuery: any = gql`
   query Trip($id: Int!) {
     trip(id: $id) {
       ...TripFragment
@@ -254,13 +311,41 @@ const LoadQuery: any = gql`
   }
   ${TripFragments.trip}
 `;
-const SaveAllQuery: any = gql`
+// Load a landed trip
+const LoadLandedTripQuery: any = gql`
+  query Trip($id: Int!) {
+    trip(id: $id) {
+      ...LandedTripFragment
+    }
+  }
+  ${TripFragments.landedTrip}
+`;
+// Save all trips
+const SaveAllTripQuery: any = gql`
   mutation saveTrips($trips:[TripVOInput], $withOperation: Boolean!){
     saveTrips(trips: $trips, withOperation: $withOperation){
       ...TripFragment
     }
   }
   ${TripFragments.trip}
+`;
+// Save a trip
+const SaveTripQuery: any = gql`
+  mutation saveTrip($trip:TripVOInput, $withOperation: Boolean!){
+    saveTrip(trip: $trip, withOperation: $withOperation){
+      ...TripFragment
+    }
+  }
+  ${TripFragments.trip}
+`;
+// Save a landed trip
+const SaveLandedTripQuery: any = gql`
+  mutation saveTrip($trip:TripVOInput, $withOperationGroup: Boolean!){
+    saveLandedTrip(trip: $trip, withOperationGroup: $withOperationGroup){
+      ...LandedTripFragment
+    }
+  }
+  ${TripFragments.landedTrip}
 `;
 const ControlMutation: any = gql`
   mutation ControlTrip($trip:TripVOInput){
@@ -313,7 +398,7 @@ const UpdateSubscription = gql`
 export class TripService extends RootDataService<Trip, TripFilter>
   implements
     TableDataService<Trip, TripFilter>,
-    EditorDataService<Trip, TripFilter>,
+    EditorDataService<Trip, TripFilter, TripServiceLoadOption>,
     DataQualityService<Trip> {
 
   protected $importationProgress: Observable<number>;
@@ -346,6 +431,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
    * @param sortBy
    * @param sortDirection
    * @param dataFilter
+   * @param options
    */
   watchAll(offset: number,
            size: number,
@@ -411,8 +497,11 @@ export class TripService extends RootDataService<Trip, TripFilter>
       );
   }
 
-  async load(id: number, options?: {fetchPolicy: FetchPolicy}): Promise<Trip | null> {
+  async load(id: number, options?: TripServiceLoadOption): Promise<Trip | null> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
+
+    // use landedTrip option if itself or withOperationGroups is present in service options
+    const isLandedTrip = options && (options.isLandedTrip || options.withOperationGroup);
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[trip-service] Loading trip #${id}...`);
@@ -427,9 +516,11 @@ export class TripService extends RootDataService<Trip, TripFilter>
       }
 
       else {
+        const query = isLandedTrip === true ? LoadLandedTripQuery : LoadTripQuery;
+
         // Load remotely
         const res = await this.graphql.query<{ trip: Trip }>({
-          query: LoadQuery,
+          query,
           variables: {
             id: id
           },
@@ -502,9 +593,10 @@ export class TripService extends RootDataService<Trip, TripFilter>
     if (this._debug) console.debug("[trip-service] Saving trips...", json);
 
     await this.graphql.mutate<{ saveTrips: Trip[] }>({
-      mutation: SaveAllQuery,
+      mutation: SaveAllTripQuery,
       variables: {
-        trips: json
+        trips: json,
+        withOperation: false
       },
       error: { code: ErrorCodes.SAVE_TRIPS_ERROR, message: "TRIP.ERROR.SAVE_TRIPS_ERROR" },
       update: (proxy, {data}) => {
@@ -526,11 +618,14 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
   /**
    * Save a trip
-   * @param data
+   * @param entity
+   * @param options
    */
-  async save(entity: Trip, opts?: {withOperation?: boolean;}): Promise<Trip> {
+  async save(entity: Trip, options?: TripServiceSaveOption): Promise<Trip> {
 
-    const withOperation = toBoolean(opts && opts.withOperation, false);
+    const isLandedTrip = toBoolean(options && options.isLandedTrip, false);
+    const withOperation = toBoolean(options && options.withOperation, false);
+    const withOperationGroup = toBoolean(options && options.withOperationGroup, false);
 
     const now = Date.now();
     if (this._debug) console.debug("[trip-service] Saving a trip...", entity);
@@ -556,11 +651,11 @@ export class TripService extends RootDataService<Trip, TripFilter>
       // Reset synchro status
       entity.synchronizationStatus = 'DIRTY';
 
-      const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
-      if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', json);
+      const jsonLocal = this.asObject(entity, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false});
+      if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', jsonLocal);
 
       // Save response locally
-      await this.entities.save(json);
+      await this.entities.save(jsonLocal);
 
       return entity;
     }
@@ -574,23 +669,24 @@ export class TripService extends RootDataService<Trip, TripFilter>
       context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
       if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
 
-      return { saveTrips: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)] };
+      return { saveTrip: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)], saveLandedTrip: undefined };
     };
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug("[trip-service] Using minify object, to send:", json);
 
-    await this.graphql.mutate<{ saveTrips: any }>({
-       mutation: SaveAllQuery,
-       variables: {
-         trips: [json],
-         withOperation
-       },
+    const mutation = (isLandedTrip) ? SaveLandedTripQuery : SaveTripQuery;
+    const variables = {trip: json};
+    Object.assign(variables, isLandedTrip ? {withOperationGroup: withOperationGroup} : {withOperation: withOperation});
+
+    await this.graphql.mutate<{ saveTrip: any, saveLandedTrip: any }>({
+       mutation,
+       variables,
        offlineResponse,
        error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" },
        update: async (proxy, {data}) => {
-         const savedEntity = data && data.saveTrips && data.saveTrips[0];
+         const savedEntity = data && (data.saveTrip || data.saveLandedTrip);
 
          // Local entity: save it
          if (savedEntity.id < 0) {
@@ -610,11 +706,11 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
              try {
                // Remove linked operations
-               if (opts && opts.withOperation) {
+               if (options && options.withOperation) {
                  await this.operationService.deleteLocallyByTripId(entity.id);
                }
              }
-             catch(err) {
+             catch (err) {
                console.error(`[trip-service] Failed to locally delete operations of trip {${entity.id}}`, err);
              }
            }
@@ -626,14 +722,15 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
            // Add to cache
            if (isNew && this._lastVariables.loadAll) {
-             this.graphql.addToQueryCache(proxy,{
+             this.graphql.addToQueryCache(proxy, {
                query: LoadAllQuery,
                variables: this._lastVariables.loadAll
              }, 'trips', savedEntity);
            }
            else if (this._lastVariables.load) {
-             this.graphql.updateToQueryCache(proxy,{
-               query: LoadQuery,
+             const query = (isLandedTrip) ? LoadLandedTripQuery : LoadTripQuery;
+             this.graphql.updateToQueryCache(proxy, {
+               query,
                variables: this._lastVariables.load
              }, 'trip', savedEntity);
            }
@@ -650,10 +747,11 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     if (!entity || entity.id >= 0) return; // skip
 
+    // todo attention pour l'instant synchronize ne gère que les marées standards
     return await this.synchronize(entity);
   }
 
-  async synchronize(entity: Trip): Promise<Trip> {
+  async synchronize(entity: Trip, opts?: any): Promise<Trip> {
     const localId = entity && entity.id;
     if (isNil(localId) || localId >= 0) {
       throw new Error("Entity must be a local entity");
@@ -671,7 +769,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     entity.id = undefined;
 
     try {
-      entity = await this.save(entity, {withOperation: true});
+      entity = await this.save(entity, {isLandedTrip: false, withOperation: true}); // todo comment synchroniser un landedTrip ?
       if (entity.id < 0) {
         throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
       }
@@ -698,6 +796,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
   /**
    * Control the validity of an trip
    * @param entity
+   * @param opts
    */
   async control(entity: Trip, opts?: any): Promise<FormErrors> {
 
@@ -753,11 +852,11 @@ export class TripService extends RootDataService<Trip, TripFilter>
       // Update sync status
       entity.synchronizationStatus = 'READY_TO_SYNC';
 
-      const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
-      if (this._debug) console.debug('[trip-service] [offline] Terminate trip locally...', json);
+      const jsonLocal = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+      if (this._debug) console.debug('[trip-service] [offline] Terminate trip locally...', jsonLocal);
 
       // Save response locally
-      await this.entities.save(json);
+      await this.entities.save(jsonLocal);
 
       return entity;
     }
@@ -1055,13 +1154,11 @@ export class TripService extends RootDataService<Trip, TripFilter>
     return this.$importationProgress;
   }
 
-  async downloadToLocal(id: number, opts?: {
-    withOperations?: boolean
-  }): Promise<Trip> {
+  async copyToOffline(id: number, options?: TripServiceLoadOption): Promise<Trip> {
 
-    console.debug("[trip-service] Download trip locally...");
+    console.debug("[trip-service] Copy trip locally...");
 
-    const entity = await this.load(id, {fetchPolicy: "network-only"});
+    const entity = await this.load(id, {...options, fetchPolicy: "network-only"});
 
     // Remove ids
     delete entity.id;
@@ -1074,27 +1171,38 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const json = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
 
     // Save the trip
-    const savedTrip = await this.entities.save(json, {entityName: Trip.TYPENAME});
+    const offlineTrip = await this.entities.save(json, {entityName: Trip.TYPENAME});
 
-    // Copy the operations
-    if (opts && opts.withOperations) {
-      const res = await this.operationService.watchAll(0,1000, null, null, {
+    // Process operations
+    if (options && options.withOperation) {
+
+      // Load operations
+      const res = await this.operationService.watchAll(0, 1000, null, null, {
         tripId: id
       }, {
         fetchPolicy: "network-only"
       }).toPromise();
 
-      if (res && res.data) {
-        const savedOperations = await Promise.all(res.data.map(op => {
-          delete op.id;
-          op.tripId = savedTrip.id;
-          delete op.physicalGear.id; // keep rankorder
-          (op.measurements || []).forEach(m => m.id = undefined);
-          (op.positions || []).forEach(p => p.id = undefined);
+      // Save operations locally
+      await Promise.all((res && res.data || []).map(op => {
+        op.id = undefined;
+        op.tripId = offlineTrip.id;
+        op.physicalGear.id = undefined;
+        (op.measurements || []).forEach(m => m.id = undefined);
+        (op.positions || []).forEach(p => p.id = undefined);
+        const cleanTreeIdsFn = (a: (Batch|Sample)[] ) => {
+          if (!a || isEmptyArray(a)) return;
+          a.forEach(v => {
+            if (!v) return; // Skip if empty
+            v.id = undefined;
+            cleanTreeIdsFn(v.children); // Loop
+          });
+        };
+        cleanTreeIdsFn([op.catchBatch]);
+        cleanTreeIdsFn(op.samples);
 
-          return this.operationService.save(op);
-        }));
-      }
+        return this.operationService.save(op);
+      }));
     }
 
     return entity;
@@ -1103,7 +1211,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
   /* -- protected methods -- */
 
 
-  protected asObject(entity: Trip, opts?: DataEntityAsObjectOptions): any {
+  protected asObject(entity: Trip, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
     const copy: any = entity.asObject(opts);
 
@@ -1128,11 +1236,38 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     super.fillDefaultProperties(entity);
 
+    if (entity.operationGroups) {
+      this.fillRecorderDepartment(entity.operationGroups, entity.recorderDepartment);
+      entity.operationGroups.forEach(operationGroup => {
+        this.fillRecorderDepartment(operationGroup.products, entity.recorderDepartment);
+        this.fillRecorderDepartment(operationGroup.packets, entity.recorderDepartment);
+      });
+    }
+    // todo maybe others tables ?
+
     // Physical gears: compute rankOrder
     fillRankOrder(entity.gears);
 
     // Measurement: compute rankOrder
     fillRankOrder(entity.measurements);
+  }
+
+  fillRecorderDepartment(entities: IWithRecorderDepartmentEntity<any> | IWithRecorderDepartmentEntity<any>[], department?: Department) {
+
+    if (isNil(entities)) return;
+    if (!Array.isArray(entities)) {
+      entities = [entities];
+    }
+    department = department || this.accountService.department;
+
+    entities.forEach(entity => {
+      if (!entity.recorderDepartment || !entity.recorderDepartment.id) {
+        // Recorder department
+        if (department) {
+          entity.recorderDepartment = department;
+        }
+      }
+    });
   }
 
   protected async fillOfflineDefaultProperties(entity: Trip) {
@@ -1178,6 +1313,13 @@ export class TripService extends RootDataService<Trip, TripFilter>
           });
         }
       });
+
+      // Update gears in operation groups
+      if (target.operationGroups) {
+        target.operationGroups.forEach(operationGroup => {
+          operationGroup.physicalGear = source.gears.find(json => operationGroup.physicalGear.equals(json));
+        });
+      }
     }
 
     // Update measurements

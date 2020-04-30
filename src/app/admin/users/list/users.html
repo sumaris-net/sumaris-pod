@@ -12,7 +12,7 @@
             *ngIf="canEdit && !selection.hasValue()"
             [title]="'COMMON.BTN_ADD'|translate"
             (click)="addRow()"
-            [class.hidden]="!inlineEdition">
+            [class.cdk-visually-hidden]="!inlineEdition">
       <mat-icon>add</mat-icon>
     </button>
     <button mat-icon-button color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
@@ -23,7 +23,7 @@
       <mat-icon>filter_list</mat-icon>
     </button>
     <button mat-icon-button color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()"
-      [class.hidden]="!inlineEdition">
+      [class.cdk-visually-hidden]="!inlineEdition">
       <mat-icon>delete</mat-icon>
     </button>
 
@@ -77,12 +77,12 @@
     matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
-      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef [class.hidden]="!inlineEdition">
+      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef [class.cdk-visually-hidden]="!inlineEdition">
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
-      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row" [class.hidden]="!inlineEdition">
+      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row" [class.cdk-visually-hidden]="!inlineEdition">
         <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
         </mat-checkbox>
       </mat-cell>

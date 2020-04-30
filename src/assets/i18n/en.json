@@ -45,6 +45,7 @@
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
+    "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
@@ -66,6 +67,7 @@
     "HOUR": "Hour",
     "MINUTE": "Minute",
     "TIME_PLACEHOLDER": "hh:mm",
+    "DURATION_PLACEHOLDER": "hhh:mm",
     "DURATION_DOTS": "Duration:",
 
     "YES": "yes",
@@ -335,11 +337,17 @@
     "RETURN_LOCATION": "Return port",
     "OBSERVER_PLACEHOLDER": "Observer #",
     "OBSERVERS": "Observers:",
+    "METIER_PLACEHOLDER": "Metier #",
+    "METIERS": "Metiers:",
     "COMMENTS": "Comments",
     "QUALITY": "Form status",
     "TAB_GENERAL": "Details",
     "TAB_PHYSICAL_GEAR": "Gears",
     "TAB_OPERATIONS": "Operations",
+    "TAB_OPERATION_GROUPS": "Effort",
+    "TAB_CATCHES": "Landed catches",
+    "TAB_SALES": "Sales",
+    "TAB_EXPENSES": "Expenses",
     "NEW": {
       "TITLE": "New trip",
       "ACCESS_OPERATIONS_HELP": "Please <b>save trip</b> first, so you can access operations table"
@@ -456,6 +464,20 @@
         "ON_DECK": "On deck:",
         "SORTING": "Start/end sorting:",
         "TOTAL_CATCH": "Total catch:"
+      }
+    },
+    "LANDED_CATCH": {
+      "TAB_PRODUCT": "By species",
+      "TAB_BATCH": "By packet",
+      "OPERATION_GROUP_FILTER": "Filter by effort"
+    },
+    "PRODUCT": {
+      "LIST": {
+        "PARENT": "Effort",
+        "TAXON_GROUP": "Commercial species (FAO)",
+        "WEIGHT": "Weight (kg)",
+        "INDIVIDUAL_COUNT": "Individual count",
+        "INDIVIDUAL_SAMPLING": "Sampling"
       }
     },
     "BATCH": {
@@ -648,6 +670,8 @@
     },
     "TABLE": {
       "VESSEL": "Vessel",
+      "VESSEL_TYPE": "Type",
+      "VESSEL_BASE_PORT_LOCATION": "Base port",
       "DATE_TIME": "Date/Time",
       "LOCATION": "Landing site",
       "OBSERVERS": "Observers",
@@ -662,6 +686,25 @@
       "SAVE_ERROR": "Error while saving observed vessel",
       "SAVE_ALL_ERROR": "Error while saving observed vessels",
       "SUBSCRIBE_ERROR": "Error while subscribe to observed vessel changes."
+    }
+  },
+  "PACKET": {
+    "NUMBER": "Packet number",
+    "WEIGHT": "Calculated packets total weight (kg)",
+    "SAMPLED_WEIGHTS": "Sampled weights (kg)",
+    "SAMPLED_WEIGHT": "Packet #{{rankOrder}}",
+    "SAMPLED_RATIO": "Composition %",
+    "LIST": {
+      "PARENT": "Effort",
+      "NUMBER": "Packets number",
+      "WEIGHT": "Weight (kg)",
+      "COMPOSITION": "Composition"
+    },
+    "COMPOSITION": {
+      "TITLE": "Packet composition",
+      "TAXON_GROUP": "Commercial species (FAO)",
+      "RATIO": "#{{rankOrder}} %",
+      "WEIGHT": "Weight (kg)"
     }
   },
   "AUCTION_CONTROL": {
@@ -866,11 +909,9 @@
       "TITLE": "Program {{label}} - {{name}}"
     },
     "OPTIONS": {
-      "TRIP_EDITOR": "Trip: Editor",
-      "TRIP_EDITOR_OBSERVED_TRIP": "Observed trip",
-      "TRIP_EDITOR_TRIP_FROM_LANDING": "Trip from landing",
       "TRIP_SALE_ENABLE": "Trip: Enter the sale?",
       "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",
+      "TRIP_METIERS_ENABLE": "Trip: Enter metiers?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Catch > Species batch: Commercial species?",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Catch > Species batch: Scientific species?",
@@ -887,7 +928,10 @@
       "LOCATION_LEVEL_AUCTION": "Auctions",
       "LANDING_EDITOR": "Observation > Landing: editor",
       "LANDING_EDITOR_LANDING": "Landing",
-      "LANDING_EDITOR_CONTROL": "Control"
+      "LANDING_EDITOR_CONTROL": "Control",
+      "LANDING_EDITOR_TRIP": "Fishing trip",
+      "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Date?",
+      "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?"
     },
     "STRATEGY": {
 

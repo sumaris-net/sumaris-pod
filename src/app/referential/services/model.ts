@@ -29,7 +29,7 @@ import {PmfmType} from "./model/pmfm.model";
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 2, // TODO SFA=6
+  PORT: 2, // TODO SFA=6  | SUMARiS=2
   AUCTION: 3
 };
 
@@ -540,6 +540,12 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "true",
     type: 'boolean'
   },
+  TRIP_METIERS_ENABLE: {
+    key: "sumaris.trip.metiers.enable",
+    label: "PROGRAM.OPTIONS.TRIP_METIERS_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE: {
     key: "sumaris.trip.gear.rankOrder.enable",
     label: "PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE",
@@ -612,21 +618,6 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "true",
     type: 'boolean'
   },
-  TRIP_EDITOR: {
-    key: 'sumaris.trip.editor',
-    label: 'PROGRAM.OPTIONS.TRIP_EDITOR',
-    type: 'enum',
-    values: [
-      {
-        key: 'observed',
-        value: 'PROGRAM.OPTIONS.TRIP_EDITOR_OBSERVED_TRIP'
-      },
-      {
-        key: 'landing',
-        value: 'PROGRAM.OPTIONS.TRIP_EDITOR_TRIP_FROM_LANDING'
-      }],
-    defaultValue: 'observed'
-  },
 
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: {
@@ -665,13 +656,30 @@ export const ProgramProperties: FormFieldDefinitionMap = {
       {
         key: 'control',
         value: 'PROGRAM.OPTIONS.LANDING_EDITOR_CONTROL'
-      }],
+      },
+      {
+        key: 'trip',
+        value: 'PROGRAM.OPTIONS.LANDING_EDITOR_TRIP'
+      }
+      ],
     defaultValue: 'landing'
+  },
+  LANDING_DATE_TIME_ENABLE: {
+    key: 'sumaris.landing.dateTime.enable',
+    label: "PROGRAM.OPTIONS.LANDING_DATE_TIME_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  LANDING_OBSERVERS_ENABLE: {
+    key: "sumaris.landing.observers.enable",
+    label: "PROGRAM.OPTIONS.LANDING_OBSERVERS_ENABLE",
+    defaultValue: "true",
+    type: 'boolean'
   }
 
 };
 
-export type LandingEditor = 'landing' | 'control';
+export type LandingEditor = 'landing' | 'control' | 'trip';
 
 export class Program extends Entity<Program> {
 
@@ -755,6 +763,11 @@ export class Program extends Entity<Program> {
     return value && value.split(',').map(parseInt) || undefined;
   }
 
+  getPropertyAsStrings(definition: FormFieldDefinition): string[] {
+    const value = this.getProperty(definition);
+    return value && value.split(',') || undefined;
+  }
+
   getProperty<T = string>(definition: FormFieldDefinition): T {
     return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : (definition.defaultValue || undefined);
   }
@@ -762,7 +775,7 @@ export class Program extends Entity<Program> {
 
 export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CATCH_BATCH'
   | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
-  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' ;
+  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' ;
 
 export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   TRIP: 'TRIP',
@@ -778,7 +791,9 @@ export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   LANDING: 'LANDING',
   SALE: 'SALE',
   OBSERVED_LOCATION: 'OBSERVED_LOCATION',
-  OBSERVED_VESSEL: 'OBSERVED_VESSEL'
+  OBSERVED_VESSEL: 'OBSERVED_VESSEL',
+  PRODUCT: 'PRODUCT',
+  PRODUCT_SALE: 'PRODUCT_SALE'
 };
 
 export class PmfmStrategy extends Entity<PmfmStrategy> {

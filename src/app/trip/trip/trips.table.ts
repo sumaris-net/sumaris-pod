@@ -5,19 +5,23 @@ import {
   AppTableDataSource,
   environment,
   isNil, isNotNil,
-  personsToString,
+  personsToString, ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   StatusIds
 } from "../../core/core.module";
 import {TripValidatorService} from "../services/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
-import {LocationLevelIds, ReferentialRef, Trip} from "../services/trip.model";
 import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {qualityFlagToColor, ReferentialRefService, referentialToString} from "../../referential/referential.module";
+import {
+  LocationLevelIds,
+  qualityFlagToColor,
+  ReferentialRefService,
+  referentialToString
+} from "../../referential/referential.module";
 import {catchError, debounceTime, distinctUntilChanged, filter, map, tap, throttleTime} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 import {SharedValidators} from "../../shared/validator/validators";
@@ -30,6 +34,7 @@ import {BehaviorSubject} from "rxjs";
 import {SynchronizationStatus} from "../services/model/base.model";
 import {concatPromises} from "../../shared/observables";
 import {isEmptyArray} from "../../shared/functions";
+import {Trip} from "../services/model/trip.model";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",

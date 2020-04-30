@@ -6,13 +6,15 @@ import {MatDialog} from '@angular/material';
 import {HotkeysDialogComponent} from './dialog/hotkeys-dialog.component';
 import {isNotNilOrBlank} from "../functions";
 import {environment} from "../../../environments/environment";
+import {ModalController} from "@ionic/angular";
 
-type Options = {
+interface Options {
   element: any;
+  elementName: string;
   description: string | undefined;
   keys: string;
   preventDefault: boolean;
-};
+}
 
 @Injectable({
   providedIn: 'root'
@@ -29,10 +31,11 @@ export class Hotkeys {
 
   constructor(private eventManager: EventManager,
               private dialog: MatDialog,
-              @Inject(DOCUMENT) private document: Document) {
+              @Inject(DOCUMENT) private document: Document,
+              private modalController: ModalController) {
     if (this._debug) console.debug("[hotkeys] Starting hotkeys service... Press Shift+? to get help modal.");
 
-    this.addShortcut({ keys: 'shift.?' })
+    this.addShortcut({keys: 'shift.?'})
       .subscribe(() => this.openHelpModal());
 
     // For DEV only
@@ -41,20 +44,24 @@ export class Hotkeys {
 
   addShortcut(options: Partial<Options>): Observable<UIEvent> {
 
-    const merged = { ...this._defaults, ...options };
+    const merged = {...this._defaults, ...options};
     const event = `keydown.${merged.keys}`;
-
 
     if (isNotNilOrBlank(merged.description)) {
       if (this._debug) console.debug(`[hotkeys] Add shortcut {${options.keys}}: ${merged.description}`);
       this._hotkeys.set(merged.keys, merged.description);
-    }
-    else {
+    } else {
       if (this._debug) console.debug(`[hotkeys] Add shortcut {${options.keys}}`);
     }
 
     return new Observable(observer => {
-      const handler = (e: UIEvent) => {
+      const handler = async (e: UIEvent) => {
+
+        // Get top component from ModalController
+        const top = await this.modalController.getTop();
+        // If modal present, check its component name against hotkey element name (fix #181)
+        if (top && top.component['name'] !== merged.elementName) return;
+
         if (e instanceof KeyboardEvent && e.repeat) return; // skip when repeated
         if (merged.preventDefault) e.preventDefault();
         if (this._debug) console.debug(`[hotkeys] Shortcut {${options.keys}} detected...`);

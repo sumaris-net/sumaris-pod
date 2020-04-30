@@ -20,6 +20,7 @@ import {ProgramPage} from "./referential/program/program.page";
 import {BatchGroupPage} from "./trip/batch/batch-group.page";
 import {AuthGuardService} from "./core/services/auth-guard.service";
 import {VesselsPage} from "./referential/vessel/list/vessels.page";
+import {LandedTripPage} from "./trip/landedtrip/landed-trip.page";
 import {PmfmPage} from "./referential/pmfm/pmfm.page";
 import {ParameterPage} from "./referential/pmfm/parameter.page";
 
@@ -294,6 +295,21 @@ const routes: Routes = [
                 path: '',
                 pathMatch: 'full',
                 component: AuctionControlPage,
+                runGuardsAndResolvers: 'pathParamsChange'
+              }
+            ]
+          },
+          {
+            path: 'trip/:tripId',
+            runGuardsAndResolvers: 'pathParamsChange',
+            data: {
+              pathIdParam: 'tripId'
+            },
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                component: LandedTripPage,
                 runGuardsAndResolvers: 'pathParamsChange'
               }
             ]

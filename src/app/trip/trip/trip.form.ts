@@ -1,28 +1,27 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {TripValidatorService} from "../services/trip.validator";
-import {
-  EntityUtils,
-  isNil,
-  LocationLevelIds,
-  Person,
-  personToString,
-  StatusIds,
-  Trip,
-  VesselSnapshot,
-} from "../services/trip.model";
 import {ModalController} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {AppForm, FormArrayHelper} from '../../core/core.module';
-import {ReferentialRefService, referentialToString, VesselModal} from "../../referential/referential.module";
+import {AppForm, EntityUtils, FormArrayHelper, isNil, Person, personToString, StatusIds} from '../../core/core.module';
+import {
+  LocationLevelIds,
+  ReferentialRefService,
+  referentialToString,
+  VesselModal,
+  VesselSnapshot
+} from "../../referential/referential.module";
 import {UsageMode, UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {FormArray, FormBuilder} from "@angular/forms";
+import {AbstractControl, FormArray, FormBuilder} from "@angular/forms";
 import {PersonService} from "../../admin/services/person.service";
 import {toBoolean} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
 import {Vessel} from "../../referential/services/model";
+import {MetierRef} from "../../referential/services/model/taxon.model";
+import {MetierRefService} from "../../referential/services/metier-ref.service";
+import {Trip} from "../services/model/trip.model";
 
 @Component({
   selector: 'form-trip',
@@ -33,16 +32,20 @@ import {Vessel} from "../../referential/services/model";
 export class TripForm extends AppForm<Trip> implements OnInit {
 
   private _showObservers: boolean;
+  private _showMetiers: boolean;
 
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
+  metiersHelper: FormArrayHelper<MetierRef>;
+  metierFocusIndex = -1;
+  metiersFiltered = false;
   mobile: boolean;
 
   @Input() showComment = true;
+  @Input() showAddVessel = true;
   @Input() showError = true;
   @Input() usageMode: UsageMode;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
-
 
 
   @Input() set showObservers(value: boolean) {
@@ -56,6 +59,23 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   get showObservers(): boolean {
     return this._showObservers;
   }
+
+  @Input() set showMetiers(value: boolean) {
+    if (this._showMetiers !== value) {
+      this._showMetiers = value;
+      this.initMetiersHelper();
+      this.markForCheck();
+    }
+  }
+
+  get showMetiers(): boolean {
+    return this._showMetiers;
+  }
+
+  get vesselSnapshot(): VesselSnapshot {
+    return this.form.get('vesselSnapshot').value as VesselSnapshot;
+  }
+
 
   get value(): any {
     const json = this.form.value;
@@ -83,12 +103,17 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     return this.form.controls.observers as FormArray;
   }
 
+  get metiersForm(): FormArray {
+    return this.form.controls.metiers as FormArray;
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: FormBuilder,
     protected validatorService: TripValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
+    protected metierRefService: MetierRefService,
     protected personService: PersonService,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
@@ -105,6 +130,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
     // Default values
     this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
+    this.showMetiers = toBoolean(this.showMetiers, true); // Will init the metiers helper
+
     this.usageMode = this.usageMode || this.settings.usageMode;
 
     // Combo: programs
@@ -151,6 +178,25 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       displayWith: personToString
     });
 
+    // Combo: metiers
+    this.metiersFiltered = false;
+    this.registerAutocompleteField('metier', {
+      service: this.metierRefService,
+      filter: this.metierFilter()
+    });
+
+  }
+
+  protected metierFilter(): any {
+    const defaultFilter = {statusId: StatusIds.ENABLE};
+    return this.metiersFiltered
+      ? {
+        ...defaultFilter,
+        date: this.form.controls['returnDateTime'].value,
+        vesselId: this.form.controls['vesselSnapshot'].value.id,
+        tripId: this.form.controls['id'].value
+      }
+      : defaultFilter;
   }
 
   setValue(value: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
@@ -163,9 +209,17 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Resize observers array
     if (this._showObservers) {
       this.observersHelper.resize(Math.max(1, value.observers.length));
-    }
-    else {
+    } else {
       this.observersHelper.removeAllEmpty();
+    }
+
+    // Make sure to have (at least) one metier
+    value.metiers = value.metiers && value.metiers.length ? value.metiers : [null];
+    // Resize metiers array
+    if (this._showMetiers) {
+      this.metiersHelper.resize(Math.max(1, value.metiers.length));
+    } else {
+      this.metiersHelper.removeAllEmpty();
     }
 
     // Send value for form
@@ -192,9 +246,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       console.debug("[trip-form] New vessel added : updating form...", vesselSnapshot);
       this.form.controls['vesselSnapshot'].setValue(vesselSnapshot);
       this.markForCheck();
-    }
-
-    else {
+    } else {
       console.debug("[trip-form] No vessel added (user cancelled)");
     }
   }
@@ -203,6 +255,13 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     this.observersHelper.add();
     if (!this.mobile) {
       this.observerFocusIndex = this.observersHelper.size() - 1;
+    }
+  }
+
+  addMetier() {
+    this.metiersHelper.add();
+    if (!this.mobile) {
+      this.metierFocusIndex = this.metiersHelper.size() - 1;
     }
   }
 
@@ -238,9 +297,34 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       if (this.observersHelper.size() === 0) {
         this.observersHelper.resize(1);
       }
-    }
-    else if (this.observersHelper.size() > 0) {
+    } else if (this.observersHelper.size() > 0) {
       this.observersHelper.resize(0);
+    }
+  }
+
+  protected initMetiersHelper() {
+    if (isNil(this._showMetiers)) return; // skip if not loading yet
+
+    this.metiersHelper = new FormArrayHelper<MetierRef>(
+      this.formBuilder,
+      this.form,
+      'metiers',
+      (metier) => this.validatorService.getMetierControl(metier),
+      EntityUtils.equals,
+      EntityUtils.isEmpty,
+      {
+        allowEmptyArray: !this._showMetiers
+      }
+    );
+
+    if (this._showMetiers) {
+      // Create at least one metier
+      if (this.metiersHelper.size() === 0) {
+        this.metiersHelper.resize(1);
+
+      }
+    } else if (this.metiersHelper.size() > 0) {
+      this.metiersHelper.resize(0);
     }
   }
 

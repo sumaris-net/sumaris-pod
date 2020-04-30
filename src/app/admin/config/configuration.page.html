@@ -191,7 +191,7 @@
 
       <!-- Type = options menu -->
       <mat-menu #optionsMenu="matMenu" xPosition="after">
-        <button mat-menu-item *ngIf="network.online" (click)="clearCache()">
+        <button mat-menu-item *ngIf="network.online" (click)="clearCache($event)">
           <ion-label translate>CONFIGURATION.BTN_CLEAR_CACHE</ion-label>
         </button>
       </mat-menu>
@@ -268,7 +268,7 @@
                     <ion-label>{{stat.diskSize | fileSize}}</ion-label>
                   </ion-col>
                   <ion-col size="1">
-                    <button [title]="'COMMON.BTN_CLEAR'|translate" mat-icon-button (click)="clearCache(stat.name)">
+                    <button [title]="'COMMON.BTN_CLEAR'|translate" mat-icon-button (click)="clearCache($event, stat.name)">
                       <mat-icon>
                         <ion-icon name="trash"></ion-icon>
                       </mat-icon>

@@ -56,6 +56,20 @@
     </div>
   </mat-form-field>
 
+  <!-- duration -->
+  <mat-duration *ngSwitchCase="'duration'" #matInput
+                [formControl]="formControl"
+                [placeholder]="placeholder"
+                [floatLabel]="floatLabel"
+                [required]="required"
+                [readonly]="readonly"
+                [compact]="compact"
+                [tabindex]="tabindex">
+    <div matSuffix>
+      <ng-content select="[matSuffix]"></ng-content>
+    </div>
+  </mat-duration>
+
   <!-- boolean -->
   <mat-boolean-field *ngSwitchCase="'boolean'" #matInput
                      [formControl]="formControl"
@@ -76,7 +90,7 @@
                  [floatLabel]="floatLabel"
                  [required]="required"
                  [readonly]="readonly"
-                 [displayTime]="pmfm.unitLabel==='Date & Time'"
+                 [displayTime]="displayTime()"
                  [compact]="compact"
                  [tabindex]="tabindex">
     <div matSuffix>

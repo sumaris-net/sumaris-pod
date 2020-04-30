@@ -1,37 +1,26 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {EMPTY, Observable} from "rxjs";
-import {
-  Batch,
-  DataEntity,
-  Department,
-  EntityUtils,
-  isNil,
-  isNotNil,
-  Measurement,
-  Operation, QualityFlagIds,
-  Sample,
-  VesselPosition
-} from "./trip.model";
 import {filter, map, throttleTime} from "rxjs/operators";
 import {
   EditorDataService,
-  EditorDataServiceLoadOptions,
-  isNotEmptyArray,
+  EditorDataServiceLoadOptions, isNil,
+  isNotEmptyArray, isNotNil,
   LoadResult,
   TableDataService
 } from "../../shared/shared.module";
-import {BaseDataService, environment} from "../../core/core.module";
+import {BaseDataService, Department, EntityUtils, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {isEmptyArray, isNilOrBlank, toNumber} from "../../shared/functions";
-import {AcquisitionLevelCodes, ReferentialFragments} from "../../referential/referential.module";
+import {AcquisitionLevelCodes, QualityFlagIds, ReferentialFragments} from "../../referential/referential.module";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
 import {
+  DataEntity,
   DataEntityAsObjectOptions,
   MINIFY_OPTIONS,
   SAVE_AS_OBJECT_OPTIONS,
@@ -39,7 +28,10 @@ import {
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "./model/base.model";
 import {EntityStorage} from "../../core/services/entities-storage.service";
-import {BatchUtils} from "./model/batch.model";
+import {Operation, VesselPosition} from "./model/trip.model";
+import {Measurement} from "./model/measurement.model";
+import {Batch, BatchUtils} from "./model/batch.model";
+import {Sample} from "./model/sample.model";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -167,7 +159,7 @@ const DeleteOperations: any = gql`
 `;
 
 const UpdateSubscription = gql`
-  subscription updateOperation($id: Int, $interval: Int){
+  subscription updateOperation($id: Int!, $interval: Int){
     updateOperation(id: $id, interval: $interval) {
       ...OperationFragment
     }
@@ -353,7 +345,7 @@ export class OperationService extends BaseDataService
   public listenChanges(id: number): Observable<Operation> {
     if (isNil(id)) throw new Error("Missing argument 'id' ");
 
-    if (this._debug) console.debug(`[operation-service] [WS] Listening changes for trip {${id}}...`);
+    if (this._debug) console.debug(`[operation-service] [WS] Listening changes for operation {${id}}...`);
 
     return this.graphql.subscribe<{ updateOperation: Operation }, { id: number, interval: number }>({
       query: UpdateSubscription,
@@ -446,11 +438,11 @@ export class OperationService extends BaseDataService
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
 
-      const json = entity.asObject({...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false});
-      if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', json);
+      const jsonLocal = this.asObject(entity, {...SAVE_LOCALLY_AS_OBJECT_OPTIONS, batchAsTree: false});
+      if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', jsonLocal);
 
       // Save response locally
-      await this.entities.save(json);
+      await this.entities.save(jsonLocal);
 
       return entity;
     }
@@ -514,7 +506,7 @@ export class OperationService extends BaseDataService
               }, 'operations', savedEntity);
             }
             else if (this._lastVariables.load) {
-              this.graphql.updateToQueryCache(proxy,{
+              this.graphql.updateToQueryCache(proxy, {
                 query: LoadQuery,
                 variables: this._lastVariables.load
               }, 'operation', savedEntity);
@@ -536,7 +528,7 @@ export class OperationService extends BaseDataService
       .map(t => t.id)
       .filter(id => id < 0);
     if (isNotEmptyArray(localIds)) {
-      if (this._debug) console.debug("[trip-service] Deleting trips locally... ids:", localIds);
+      if (this._debug) console.debug("[operation-service] Deleting trips locally... ids:", localIds);
       await this.entities.deleteMany<Operation>(localIds, 'OperationVO');
     }
 
@@ -569,7 +561,7 @@ export class OperationService extends BaseDataService
 
   /**
    * Save many operations
-   * @param entities
+   * @param tripId
    */
   async deleteLocallyByTripId(tripId: number): Promise<any> {
     if (tripId >= 0) throw new Error('Invalid tripId: must be a local trip (id<0)!');

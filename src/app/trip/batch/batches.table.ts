@@ -2,25 +2,29 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter, forwardRef, Inject, InjectionToken,
+  EventEmitter,
+  Inject,
+  InjectionToken,
   Injector,
   Input,
   OnDestroy,
-  OnInit, Optional,
+  OnInit,
+  Optional,
   Output
 } from "@angular/core";
 import {of, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {Entity, environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
-import {Batch, getPmfmName, Landing, Operation, PmfmStrategy, referentialToString} from "../services/trip.model";
+import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
 import {
   AcquisitionLevelCodes,
+  getPmfmName,
   PmfmLabelPatterns,
+  PmfmStrategy,
   PmfmUtils,
   ReferentialRefService
 } from "../../referential/referential.module";
-import {isNilOrBlank, isNotNil} from "../../shared/shared.module";
+import {isNilOrBlank, isNotNil} from "../../shared/functions";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {UsageMode} from "../../core/services/model";
@@ -29,8 +33,9 @@ import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {BatchModal} from "./batch.modal";
 import {MatDialog} from '@angular/material/dialog';
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
-import {ControlValueAccessor} from "@angular/forms";
-import {APP_LOCAL_SETTINGS_OPTIONS} from "../../core/services/local-settings.service";
+import {Batch} from "../services/model/batch.model";
+import {Operation} from "../services/model/trip.model";
+import {Landing} from "../services/model/landing.model";
 
 export interface BatchFilter {
   operationId?: number;
@@ -105,7 +110,6 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     return this.getShowColumn('taxonName');
   }
 
-
   get dirty(): boolean {
     return this._dirty || this.memoryDataService.dirty;
   }
@@ -125,7 +129,7 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     injector: Injector,
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryTableDataService<T, F>,
-    @Optional() @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T
+    @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T
   ) {
     super(injector,
       dataType || ((Batch as any) as (new() => T)),

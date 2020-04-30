@@ -103,7 +103,7 @@ export abstract class DataRootEntityValidatorService<T extends DataRootEntity<T>
 
   getObserversFormArray(data?: IWithObserversEntity<T>) {
     return this.formBuilder.array(
-      (data && data.observers || []).map(observer => this.getObserverControl(observer)),
+      (data && data.observers || [null]).map(observer => this.getObserverControl(observer)),
       SharedValidators.requiredArrayMinLength(1)
     );
   }
@@ -114,15 +114,15 @@ export abstract class DataRootEntityValidatorService<T extends DataRootEntity<T>
 }
 
 
-export abstract class DataRootVesselEntityValidatorService<T extends DataRootVesselEntity<T>>
-  extends DataRootEntityValidatorService<T> {
+export abstract class DataRootVesselEntityValidatorService<T extends DataRootVesselEntity<T>, O extends DataRootEntityValidatorOptions = DataRootEntityValidatorOptions>
+  extends DataRootEntityValidatorService<T, O> {
 
   protected constructor(
     formBuilder: FormBuilder) {
     super(formBuilder);
   }
 
-  getFormGroupConfig(data?: T): {
+  getFormGroupConfig(data?: T, opts?: O): {
     [key: string]: any;
   } {
 

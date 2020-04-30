@@ -1,30 +1,47 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
+} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {environment} from "../../core/core.module";
+import {environment, referentialToString, TableDataService} from "../../core/core.module";
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
-import {PhysicalGear, referentialToString} from "../services/trip.model";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PhysicalGearModal} from "./physicalgear.modal";
 import {AcquisitionLevelCodes} from "../services/model/base.model";
+import {PhysicalGear} from "../services/model/trip.model";
+import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearFilter} from "../services/physicalgear.service";
+import {createPromiseEventEmitter} from "../../shared/events";
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
+
 
 @Component({
   selector: 'app-physicalgears-table',
   templateUrl: 'physicalgears.table.html',
   styleUrls: ['physicalgears.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: PhysicalGearValidatorService}
+    {provide: ValidatorService, useExisting: PhysicalGearValidatorService},
+    {
+      provide: PHYSICAL_GEAR_DATA_SERVICE,
+      useFactory: () => new InMemoryTableDataService<PhysicalGear, PhysicalGearFilter>(PhysicalGear)
+    }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> implements OnInit, OnDestroy {
+export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
 
   protected cd: ChangeDetectorRef;
-  protected memoryDataService: InMemoryTableDataService<PhysicalGear, any>;
+  protected memoryDataService: InMemoryTableDataService<PhysicalGear>;
 
   set value(data: PhysicalGear[]) {
     this.memoryDataService.value = data;
@@ -34,12 +51,20 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
     return this.memoryDataService.value;
   }
 
+  @Input() canEdit = true;
+  @Input() canEditRankOrder = true;
+  @Input() canDelete = true;
+  @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
+
+  @Output() onSelectPreviousGear = createPromiseEventEmitter();
+
   constructor(
-    injector: Injector
+    injector: Injector,
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE) dataService?: TableDataService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
       PhysicalGear,
-      new InMemoryTableDataService<PhysicalGear, any>(PhysicalGear),
+      dataService,
       null, // No validator = no inline edition
       {
         prependNewElements: false,
@@ -49,9 +74,9 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)
       });
     this.cd = injector.get(ChangeDetectorRef);
-    this.memoryDataService = (this.dataService as InMemoryTableDataService<PhysicalGear, any>);
+    this.memoryDataService = (this.dataService as InMemoryTableDataService<PhysicalGear>);
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
-    this.autoLoad = false;
+    this.autoLoad = false; // waiting parent to be loaded
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
@@ -62,23 +87,38 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
 
   ngOnInit() {
     super.ngOnInit();
+
+    this._enable = this.canEdit;
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onNewRow.observers.length) {
+      this.onNewRow.emit();
+      return true;
+    }
 
     const newGear = await this.openDetailModal();
     if (newGear) {
-      await this.addGearToTable(newGear);
+      await this.addEntityToTable(newGear);
     }
     return true;
   }
 
   protected async openRow(id: number, row: TableElement<PhysicalGear>): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onOpenRow.observers.length) {
+      this.onOpenRow.emit({id, row});
+      return true;
+    }
+
     const gear = row.validator ? PhysicalGear.fromObject(row.currentData) : row.currentData;
 
     const updatedGear = await this.openDetailModal(gear);
     if (updatedGear) {
-      await this.addGearToTable(updatedGear, row);
+      await this.updateEntityToTable(updatedGear, row);
     }
     return true;
   }
@@ -98,50 +138,24 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: gear.clone(), // Do a copy, because edition can be cancelled
-        isNew: isNew
+        isNew: isNew,
+        canEditRankOrder: this.canEditRankOrder,
+        onInit: (inst: PhysicalGearModal) => {
+          // Subscribe to click on copy button, then redirect the event
+          inst.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event));
+        }
       },
       keyboardClose: true
     });
 
     // Open the modal
-    modal.present();
+    await modal.present();
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[physical-gear-table] Modal result: ", data);
 
     return (data instanceof PhysicalGear) ? data : undefined;
-  }
-
-  protected async addGearToTable(gear: PhysicalGear, row?: TableElement<PhysicalGear>): Promise<TableElement<PhysicalGear>> {
-    if (this.debug) console.debug("[physical-gear-table] Adding new gear", gear);
-
-    // Create a new row, if need
-    if (!row) {
-      row = await this.addRowToTable();
-      if (!row) throw new Error("Could not add row t table");
-
-      // Use the generated rankOrder
-      gear.rankOrder = row.currentData.rankOrder;
-
-    }
-
-    // Adapt measurement values to row
-    this.normalizeEntityToRow(gear, row);
-
-    // Affect new row
-    if (row.validator) {
-      row.validator.patchValue(gear);
-      row.validator.markAsDirty();
-    }
-    else {
-      row.currentData = gear;
-    }
-
-    this.confirmEditCreate(null, row);
-    this.markAsDirty();
-
-    return row;
   }
 
   referentialToString = referentialToString;

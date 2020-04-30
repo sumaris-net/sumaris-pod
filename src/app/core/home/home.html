@@ -23,7 +23,7 @@
 <ion-content [ngStyle]="contentStyle"
              no-padding-xs>
     <!-- loading spinner -->
-    <div class="loading-page" [class.hidden]="!loading">
+    <div class="loading-page" [class.cdk-visually-hidden]="!loading">
       <div class="spinner" *ngIf="loading && showSpinner">
         <p>Loading...</p>
         <div class="sk-cube1 sk-cube"></div>

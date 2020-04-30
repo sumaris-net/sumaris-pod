@@ -1,12 +1,14 @@
-import {fromDateISOString, toDateISOString} from "../../../core/core.module";
-import {Person, ReferentialRef} from "../../../referential/referential.module";
+import {fromDateISOString, NOT_MINIFY_OPTIONS, toDateISOString} from "../../../core/core.module";
+import {Person, ReferentialRef} from "../../../core/services/model";
 import {Moment} from "moment/moment";
-import {DataEntityAsObjectOptions, DataRootVesselEntity} from "./base.model";
+import {DataEntityAsObjectOptions, DataRootVesselEntity, IWithProductsEntity} from "./base.model";
 import {Sample} from "./sample.model";
-import {MeasurementValuesUtils} from "./measurement.model";
+import {Measurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
+import {Product} from "./product.model";
+import {isNotEmptyArray} from "../../../shared/functions";
 
 
-export class Sale extends DataRootVesselEntity<Sale> {
+export class Sale extends DataRootVesselEntity<Sale> implements IWithProductsEntity<Sale> {
 
   static TYPENAME = 'SaleVO';
 
@@ -23,19 +25,21 @@ export class Sale extends DataRootVesselEntity<Sale> {
   saleType: ReferentialRef;
   observedLocationId: number;
   tripId: number;
-  measurementValues: { [key: string]: any };
+  measurements: Measurement[];
   samples: Sample[];
   rankOrder: number;
   observers: Person[];
+  products: Product[];
 
   constructor() {
     super();
     this.__typename = Sale.TYPENAME;
     this.saleLocation = new ReferentialRef();
     this.saleType = new ReferentialRef();
-    this.measurementValues = {};
+    this.measurements = [];
     this.samples = [];
     this.observers = [];
+    this.products = [];
   }
 
   clone(): Sale {
@@ -60,19 +64,14 @@ export class Sale extends DataRootVesselEntity<Sale> {
     this.observedLocationId = source.observedLocationId;
     this.samples = source.samples && source.samples.map(Sample.fromObject) || [];
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
+    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
 
-    if (source.measurementValues) {
-      this.measurementValues = source.measurementValues;
-    }
-    // Convert measurement to map
-    else if (source.measurements) {
-      this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
-        const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
-        if (value) map[m.pmfmId] = value;
-        return map;
-      }, {}) || undefined;
-    }
-
+    // Products (sale)
+    this.products = source.products && source.products.map(Product.fromObject) || [];
+    // Affect parent
+    this.products.forEach(product => {
+      product.parent = this;
+    });
 
     return this;
   }
@@ -81,11 +80,22 @@ export class Sale extends DataRootVesselEntity<Sale> {
     const target = super.asObject(options);
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
-    target.saleLocation = this.saleLocation && this.saleLocation.asObject(options) || undefined;
-    target.saleType = this.saleType && this.saleType.asObject(options) || undefined;
+    target.saleLocation = this.saleLocation && this.saleLocation.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
+    target.saleType = this.saleType && this.saleType.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
     target.samples = this.samples && this.samples.map(s => s.asObject(options)) || undefined;
     target.observers = this.observers && this.observers.map(o => o.asObject(options)) || undefined;
-    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
+    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
+
+    // Products
+    target.products = this.products && this.products.map(o => o.asObject(options)) || undefined;
+    // Affect parent link
+    if (isNotEmptyArray(target.products)) {
+      target.products.forEach(product => {
+        product.saleId = target.id;
+        // todo product.landingId must also be set, but not here, see pod
+        delete product.parent;
+      });
+    }
 
     return target;
   }

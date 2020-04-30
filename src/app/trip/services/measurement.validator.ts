@@ -1,13 +1,13 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {Measurement, MeasurementUtils, PmfmStrategy} from "./trip.model";
 import {SharedValidators} from "../../shared/validator/validators";
 
-import {isNil, isNotEmptyArray, isNotNil, toBoolean} from '../../shared/shared.module';
+import {isNil, isNotNil, toBoolean} from '../../shared/functions';
 import {ProgramService} from "../../referential/services/program.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {MeasurementFormValues, MeasurementValuesUtils} from "./model/measurement.model";
+import {Measurement, MeasurementUtils, MeasurementValuesUtils} from "./model/measurement.model";
+import {PmfmStrategy} from "./model/base.model";
 
 const REGEXP_INTEGER = /^[0-9]+$/;
 const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;

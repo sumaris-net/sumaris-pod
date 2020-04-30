@@ -2,8 +2,8 @@ import { Injectable } from "@angular/core";
 import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import {Moment} from "moment";
-import {VesselPosition} from "./trip.model";
 import {toNumber} from "../../shared/functions";
+import {VesselPosition} from "./model/trip.model";
 
 @Injectable()
 export class PositionValidatorService implements ValidatorService {
@@ -15,7 +15,7 @@ export class PositionValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: {id?: number; dateTime: Date|Moment; latitude: number; longitude: number; updateDate?: Date|Moment}, opts?: {required: boolean;}): FormGroup {
+  getFormGroup(data?: {id?: number; dateTime: Date|Moment; latitude: number; longitude: number; updateDate?: Date|Moment}, opts?: {required: boolean; }): FormGroup {
     return this.formBuilder.group({
       __typename: [VesselPosition.TYPENAME],
       id: [toNumber(data && data.id, null)],

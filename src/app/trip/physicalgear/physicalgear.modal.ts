@@ -5,16 +5,19 @@ import {
   Component,
   Input,
   OnInit,
+  Output,
   ViewChild
 } from "@angular/core";
 import {AlertController, ModalController} from "@ionic/angular";
 import {AcquisitionLevelCodes, isNil} from "../../referential/services/model";
-import {PhysicalGear} from "../services/trip.model";
 import {PhysicalGearForm} from "./physicalgear.form";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../../core/services/platform.service";
 import {Alerts} from "../../shared/alerts";
+import {PhysicalGear} from "../services/model/trip.model";
+import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
+import {firstFalsePromise} from "../../shared/observables";
 
 @Component({
   selector: 'app-physical-gear-modal',
@@ -41,6 +44,12 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
   @Input() mobile: boolean;
 
+  @Input() canEditRankOrder = false;
+
+  @Input() onInit: (instance: PhysicalGearModal) => void;
+
+  @Output() onCopyPreviousGearClick = createPromiseEventEmitter<PhysicalGear>();
+
   @ViewChild('form', {static: true}) form: PhysicalGearForm;
 
   constructor(
@@ -66,12 +75,51 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
     // Compute the title
     this.computeTitle();
 
+    if (this.onInit) {
+      this.onInit(this);
+    }
   }
 
   ngAfterViewInit(): void {
     // Focus on the first field, is not in mobile
-    if (this.isNew && !this.mobile) {
-      setTimeout(() => this.form.focusFirstInput(), 400);
+     if (this.isNew && !this.mobile) {
+       setTimeout(() => this.form.focusFirstInput(), 400);
+     }
+  }
+
+  async copyPreviousGear(event?: UIEvent) {
+
+    if (this.onCopyPreviousGearClick.observers.length === 0) return; // Skip
+
+    // Emit event, then wait for a result
+    try {
+      const selectedData = await emitPromiseEvent(this.onCopyPreviousGearClick, 'copyPreviousGear');
+
+      // No result (user cancelled): skip
+      if (!selectedData) return;
+
+      // Clone, then clean
+      const data = selectedData.clone();
+      data.id = undefined;
+      data.trip = undefined;
+      data.tripId = undefined;
+
+      if (!this.canEditRankOrder) {
+        // Apply computed rankOrder
+        data.rankOrder = this.originalData.rankOrder;
+      }
+      data.comments = undefined;
+
+      // Apply to form
+      console.debug('[physical-gear-modal] Paste selected gear:', data);
+      this.form.unload();
+      this.form.reset(data);
+      this.form.markAsDirty();
+    }
+    catch (err) {
+      if (err === 'CANCELLED') return; // Skip
+      console.error(err);
+      this.form.error = err && err.message || err;
     }
   }
 

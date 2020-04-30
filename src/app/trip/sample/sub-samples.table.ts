@@ -1,15 +1,15 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {EntityUtils, environment, joinPropertiesPath, referentialToString} from "../../core/core.module";
-import {PmfmStrategy, Sample} from "../services/trip.model";
-import {PmfmIds} from "../../referential/referential.module";
+import {PmfmIds, PmfmStrategy} from "../../referential/services/model";
 import {SubSampleValidatorService} from "../services/sub-sample.validator";
-import {isNil, isNotNil} from "../../shared/shared.module";
+import {isNil, isNotNil} from "../../shared/functions";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {UsageMode} from "../../core/services/model";
 import {filterNotNil} from "../../shared/observables";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
+import {Sample} from "../services/model/sample.model";
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -108,7 +108,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
 
     //this.debug = false;
     this.debug = !environment.production;
-  };
+  }
 
   ngOnInit() {
     super.ngOnInit();
@@ -181,7 +181,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
         await this.addSampleToTable(sample);
       }
 
-    } catch(err) {
+    } catch (err) {
       console.error(err && err.message || err);
       this.error = err && err.message || err;
     }
@@ -277,7 +277,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     return this.memoryDataService.sort(data, sortBy, sortDirection);
   }
 
-  protected async addSampleToTable(newSample: Sample,): Promise<TableElement<Sample>> {
+  protected async addSampleToTable(newSample: Sample): Promise<TableElement<Sample>> {
     console.debug("[sub-sample-table] Adding new sample", newSample);
 
     const row = await this.addRowToTable();

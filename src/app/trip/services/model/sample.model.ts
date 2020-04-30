@@ -5,7 +5,7 @@ import {
   referentialToString,
   toDateISOString
 } from "../../../core/core.module";
-import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
+import {PmfmStrategy, ReferentialRef} from "../../../referential/services/model";
 import {Moment} from "moment/moment";
 import {DataEntityAsObjectOptions, DataRootEntity} from "./base.model";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";

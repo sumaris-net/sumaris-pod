@@ -30,6 +30,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   dateTime: Moment;
   location: ReferentialRef;
   rankOrder?: number;
+  rankOrderOnVessel?: number;
   measurementValues: { [key: string]: any };
 
   tripId: number;
@@ -76,6 +77,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     this.dateTime = fromDateISOString(source.dateTime);
     source.location && this.location.fromObject(source.location);
     this.rankOrder = source.rankOrder;
+    this.rankOrderOnVessel = source.rankOrderOnVessel;
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
     this.measurementValues = source.measurementValues;
     if (this.measurementValues === undefined) {
@@ -97,6 +99,8 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
       || (
         // Same vessel
         (this.vesselSnapshot && other.vesselSnapshot && this.vesselSnapshot.id === other.vesselSnapshot.id)
+        // Same rank order on vessel
+        && (this.rankOrderOnVessel && other.rankOrderOnVessel && this.rankOrderOnVessel === other.rankOrderOnVessel)
         // Same date
         && (this.dateTime === other.dateTime)
         // Same location

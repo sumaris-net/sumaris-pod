@@ -68,6 +68,19 @@ import {ReferentialModule} from "../referential/referential.module";
 import {SampleForm} from "./sample/sample.form";
 import {SampleModal} from "./sample/sample.modal";
 import {SelectVesselsModal} from "./observedlocation/vessels/select-vessel.modal";
+import {LandedTripPage} from "./landedtrip/landed-trip.page";
+import {OperationGroupTable} from "./operationgroup/operation-groups.table";
+import {OperationGroupValidatorService} from "./services/validator/operation-group.validator";
+import {ProductsTable} from "./product/products.table";
+import {ProductValidatorService} from "./services/validator/product.validator";
+import {LandedSaleForm} from "./sale/landed-sale.form";
+import {ProductSaleValidatorService} from "./services/validator/product-sale.validator";
+import {PacketsTable} from "./packet/packets.table";
+import {PacketValidatorService} from "./services/validator/packet.validator";
+import {PacketForm} from "./packet/packet.form";
+import {PacketModal} from "./packet/packet.modal";
+import {SelectPhysicalGearModal} from "./physicalgear/select-physicalgear.modal";
+import {PhysicalGearService} from "./services/physicalgear.service";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -83,6 +96,7 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     TripPage,
     TripForm,
     PhysicalGearModal,
+    SelectPhysicalGearModal,
     SaleForm,
     PhysicalGearForm,
     PhysicalGearTable,
@@ -118,7 +132,14 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     IndividualMonitoringSubSamplesTable,
     AuctionControlPage,
     EntityQualityFormComponent,
-    SelectVesselsModal
+    SelectVesselsModal,
+    LandedTripPage,
+    OperationGroupTable,
+    ProductsTable,
+    LandedSaleForm,
+    PacketsTable,
+    PacketForm,
+    PacketModal
   ],
   exports: [
     TripTable,
@@ -150,6 +171,7 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     TripTable,
     TripPage,
     PhysicalGearModal,
+    SelectPhysicalGearModal,
     PhysicalGearTable,
     OperationTable,
     OperationPage,
@@ -164,7 +186,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     BatchGroupPage,
     SubBatchModal,
     SampleModal,
-    SelectVesselsModal
+    SelectVesselsModal,
+    PacketModal
   ],
   providers: [
     TripService,
@@ -172,6 +195,7 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     PhysicalGearValidatorService,
     OperationService,
     OperationValidatorService,
+    OperationGroupValidatorService,
     ObservedLocationService,
     ObservedLocationValidatorService,
     LandingService,
@@ -186,7 +210,11 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     SampleValidatorService,
     SubSampleValidatorService,
     {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
-    AggregationTypeValidatorService
+    AggregationTypeValidatorService,
+    ProductValidatorService,
+    ProductSaleValidatorService,
+    PacketValidatorService,
+    PhysicalGearService
   ]
 })
 export class TripModule {

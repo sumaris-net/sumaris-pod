@@ -7,6 +7,7 @@ import {isEmptyArray, isNilOrBlank, isNotEmptyArray} from "../../shared/function
 import {BehaviorSubject} from "rxjs";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {NetworkService} from "../../core/services/network.service";
+import {Alerts} from "../../shared/alerts";
 
 declare interface CacheStatistic {
   name: string;
@@ -130,8 +131,13 @@ export class ConfigurationPage extends SoftwarePage<Configuration> {
 
   }
 
-  clearCache(cacheName?: string) {
-    this.configService.clearCache({cacheName: cacheName}).then(() => this.loadCacheStat());
+  async clearCache(event?: UIEvent, cacheName?: string) {
+    const confirm = await Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
+    if (confirm) {
+      await this.network.clearCache();
+      await this.settings.removeOfflineFeatures();
+      this.configService.clearCache({cacheName: cacheName}).then(() => this.loadCacheStat());
+    }
   }
 
   loadCacheStat() {

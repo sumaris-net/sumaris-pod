@@ -3,8 +3,7 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@
 import {EntityUtils, environment, isNil, isNotNil} from '../../core/core.module';
 import * as moment from "moment";
 import {LandingForm} from "./landing.form";
-import {Landing, ObservedLocation, PmfmStrategy, Trip, vesselSnapshotToString} from "../services/trip.model";
-import {ProgramProperties} from "../../referential/services/model";
+import {PmfmStrategy, ProgramProperties} from "../../referential/services/model";
 import {SamplesTable} from "../sample/samples.table";
 import {UsageMode} from "../../core/services/model";
 import {LandingService} from "../services/landing.service";
@@ -19,6 +18,9 @@ import {Observable} from "rxjs";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
+import {Landing} from "../services/model/landing.model";
+import {Trip} from "../services/model/trip.model";
+import {ObservedLocation} from "../services/model/observed-location.model";
 
 @Component({
   selector: 'app-landing-page',

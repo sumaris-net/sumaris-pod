@@ -370,7 +370,10 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
             .then(() => this.confirmEditCreate(event, row));
         }
         else {
-          if (this.debug) console.warn("[table] Row not valid: unable to confirm", row);
+          if (this.debug) {
+            console.warn("[table] Row not valid: unable to confirm", row);
+            AppFormUtils.logFormErrors(row.validator, '[table] ');
+          }
         }
         return false;
       }

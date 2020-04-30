@@ -1,0 +1,264 @@
+<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading && enabled" (onValidate)="save($event)"
+             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+  <ion-spinner *ngIf="loading"></ion-spinner>
+
+  <button mat-icon-button *ngIf="enabled"
+          [matMenuTriggerFor]="optionsMenu"
+          [title]=" 'COMMON.BTN_OPTIONS'|translate">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+</app-toolbar>
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+  <button mat-menu-item *ngIf="!isNewData" (click)="delete($event)">
+    <ion-label>
+      <mat-icon>delete</mat-icon>&nbsp;
+      <span translate>COMMON.BTN_DELETE</span>
+    </ion-label>
+  </button>
+
+  <!-- DEV only -->
+  <button mat-menu-item *ngIf="debug && !isNewData && data?.id > 0"
+          (click)="devDownloadToLocal()">
+    <ion-label>Save locally (#developer)
+    </ion-label>
+  </button>
+  <button mat-menu-item *ngIf="debug && network.online"
+          (click)="devToggleOfflineMode()">
+    <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
+  </button>
+</mat-menu>
+
+<ion-content>
+  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+
+    <!-- TAB: general -->
+    <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
+        </mat-icon>
+        <ion-label translate>TRIP.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert" color="danger"
+                  *ngIf="submitted && (tripForm.invalid || measurementsForm.invalid)"></ion-icon>
+      </ng-template>
+
+      <!-- error -->
+      <ion-item *ngIf="error||tripForm.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+        <ion-label color="danger" class="error" [innerHTML]="(error|| tripForm.error) |translate"></ion-label>
+      </ion-item>
+
+      <ion-grid class="ion-no-padding">
+
+        <ion-row class="ion-no-padding">
+          <ion-col class="ion-padding">
+            <!-- trip -->
+            <form-trip #tripForm
+                       (onSubmit)="save($event)"
+                       [showError]="false"
+                       [showAddVessel]="false">
+
+              <!-- Other features (Measurements) -->
+              <ion-grid class="ion-no-padding ion-padding-top">
+                <ion-row>
+                  <ion-col size="12" size-md="2" size-lg="3">
+                    <ion-label class="ion-float-end" translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
+                  </ion-col>
+                  <ion-col>
+                    <app-form-measurements #measurementsForm
+                                           entityName="VesselUseMeasurement"
+                                           [forceOptional]="isOnFieldMode"
+                                           [acquisitionLevel]="acquisitionLevel"
+                                           [debug]="debug"
+                                           [program]="programSubject|async"
+                                           [tabindex]="30">
+                    </app-form-measurements>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+
+            </form-trip>
+          </ion-col>
+          <ion-col size="12" size-xl="3" class="ion-no-padding">
+            <entity-metadata [value]="data">
+              <app-entity-quality-form [editor]="this">
+              </app-entity-quality-form>
+            </entity-metadata>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </mat-tab>
+
+    <!-- TAB: operations -->
+    <mat-tab label="{{'TRIP.TAB_OPERATION_GROUPS'|translate}}" [disabled]="!showOperationGroupTab">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="locate"></ion-icon>
+        </mat-icon>
+        <ion-label translate>TRIP.TAB_OPERATION_GROUPS</ion-label>
+        <ion-icon slot="end" name="alert" color="danger"
+                  *ngIf="operationGroupTable.invalid && operationGroupTable.dirty"></ion-icon>
+      </ng-template>
+
+      <app-operation-group-table #operationGroupTable
+                                 [program]="programSubject | async"
+                                 acquisitionLevel="OPERATION"
+                                 [$metiers]="$metiers"
+                                 (onOpenRow)="onOpenOperationGroup($event)"
+                                 (onNewRow)="onNewOperationGroup($event)"
+                                 (change)="onOperationGroupChange()">
+      </app-operation-group-table>
+    </mat-tab>
+
+    <!-- TAB: caches -->
+    <mat-tab label="{{'TRIP.TAB_CATCHES'|translate}}" [disabled]="!showCatchTab">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="qr-scanner"></ion-icon>
+        </mat-icon>
+        <ion-label translate>TRIP.TAB_CATCHES</ion-label>
+        <ion-icon slot="end" name="alert" color="danger"
+                  *ngIf="(productsTable.invalid && productsTable.dirty) || (packetsTable.invalid && packetsTable.dirty)"></ion-icon>
+      </ng-template>
+
+      <form class="form-container" [formGroup]="catchFilterForm">
+        <ion-grid>
+          <ion-row>
+            <ion-col size="12" size-md="2" size-lg="3">
+              <ion-label class="ion-float-end" translate>TRIP.LANDED_CATCH.OPERATION_GROUP_FILTER</ion-label>
+            </ion-col>
+            <ion-col>
+              <mat-autocomplete-field floatLabel="never" clearable="true"
+                [placeholder]="'COMMON.EMPTY_OPTION'|translate"
+                [config]="autocompleteFields.operationGroupFilter"
+                formControlName="operationGroup">
+                <ion-icon matPrefix name="locate"></ion-icon>
+              </mat-autocomplete-field>
+
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </form>
+
+      <mat-tab-group #catchTabGroup
+                     animationDuration="0s"
+                     [(selectedIndex)]="selectedCatchTabIndex"
+                     (selectedTabChange)="onCatchTabChange($event)">
+
+        <!-- SUB-TAB: products -->
+        <mat-tab label="{{'TRIP.LANDED_CATCH.TAB_PRODUCT'|translate}}">
+          <ng-template mat-tab-label>
+            <ion-label translate>TRIP.LANDED_CATCH.TAB_PRODUCT</ion-label>
+            <ion-icon slot="end" name="alert" color="danger"
+                      *ngIf="(productsTable.invalid && productsTable.dirty) "></ion-icon>
+          </ng-template>
+
+          <app-products-table #productsTable
+                              [program]="programSubject | async"
+                              acquisitionLevel="PRODUCT"
+                              [$parents]="$operationGroups"
+                              [$parentFilter]="catchFilterForm.controls['operationGroup'].valueChanges"
+                              [parentAttributes]="operationGroupAttributes"
+          >
+          </app-products-table>
+        </mat-tab>
+
+        <mat-tab label="{{'TRIP.LANDED_CATCH.TAB_BATCH'|translate}}">
+          <ng-template mat-tab-label>
+            <ion-label translate>TRIP.LANDED_CATCH.TAB_BATCH</ion-label>
+            <ion-icon slot="end" name="alert" color="danger"
+                      *ngIf="(packetsTable.invalid && packetsTable.dirty) "></ion-icon>
+          </ng-template>
+
+          <app-packets-table #packetsTable
+                             [debug]="debug"
+                             [program]="programSubject|async"
+                             [$parents]="$operationGroups"
+                             [$parentFilter]="catchFilterForm.controls['operationGroup'].valueChanges"
+                             [parentAttributes]="operationGroupAttributes"
+            ></app-packets-table>
+
+        </mat-tab>
+
+      </mat-tab-group>
+    </mat-tab>
+
+    <!-- TAB: sales -->
+    <mat-tab label="{{'TRIP.TAB_SALES'|translate}}" [disabled]="!showSaleTab">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="pricetag"></ion-icon>
+        </mat-icon>
+        <ion-label translate>TRIP.TAB_SALES</ion-label>
+<!--        <ion-icon slot="end" name="alert" color="danger"-->
+<!--                  *ngIf="(landedSaleForm.invalid && landedSaleForm.dirty) "></ion-icon>-->
+      </ng-template>
+
+<!--      <app-landed-sale-form #landedSaleForm-->
+<!--                            [program]="programSubject|async"-->
+<!--                            (tabChange)="onSubTabChange($event)"-->
+
+<!--        >-->
+
+<!--        &lt;!&ndash; Other features (Measurements) &ndash;&gt;-->
+<!--        <ion-grid class="ion-no-padding ion-padding-top">-->
+<!--          <ion-row>-->
+<!--            <ion-col size="12" size-md="2" size-lg="3">-->
+<!--              <ion-label class="ion-float-end" translate>TRIP.EDIT.OTHER_FEATURES</ion-label>-->
+<!--            </ion-col>-->
+<!--            <ion-col>-->
+<!--              <app-form-measurements #saleMeasurementsForm-->
+<!--                                     entityName="SaleMeasurement"-->
+<!--                                     acquisitionLevel="SALE"-->
+<!--                                     [debug]="debug"-->
+<!--                                     [program]="programSubject|async"-->
+<!--                                     [tabindex]="30">-->
+<!--              </app-form-measurements>-->
+<!--            </ion-col>-->
+<!--          </ion-row>-->
+<!--        </ion-grid>-->
+
+<!--      </app-landed-sale-form>-->
+
+    </mat-tab>
+
+    <!-- TAB: expenses -->
+    <mat-tab label="{{'TRIP.TAB_EXPENSES'|translate}}" [disabled]="!showExpenseTab">
+    </mat-tab>
+
+  </mat-tab-group>
+
+</ion-content>
+
+<ion-footer [translucent]="true" hidden-xs hidden-sm hidden-mobile>
+  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
+                    [disabledCancel]="isNewData || !dirty || loading">
+
+    <!-- error -->
+    <ion-item *ngIf="error || tripForm.error" lines="none">
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" [innerHTML]="(error || tripForm.error) | translate"></ion-label>
+    </ion-item>
+
+  </form-buttons-bar>
+</ion-footer>
+
+<!-- FAB button: add gear -->
+<!--<ion-fab slot="fixed" vertical="bottom" horizontal="end"-->
+<!--         *ngIf="physicalGearsTable.enabled && selectedTabIndex==1" @fadeInOutAnimation-->
+<!--         visible-xs visible-sm visible-mobile>-->
+<!--  <ion-fab-button color="tertiary" (click)="physicalGearsTable.addRow($event)">-->
+<!--    <ion-icon name="add"></ion-icon>-->
+<!--  </ion-fab-button>-->
+<!--</ion-fab>-->
+
+<!-- FAB button: add operation -->
+<!--<ion-fab slot="fixed" vertical="bottom" horizontal="end"-->
+<!--         *ngIf="operationsTable.enabled && selectedTabIndex==2" @fadeInOutAnimation-->
+<!--         visible-xs visible-sm visible-mobile>-->
+<!--  <ion-fab-button color="tertiary" (click)="!saving && operationsTable.addRow($event)">-->
+<!--    <ion-icon name="add"></ion-icon>-->
+<!--  </ion-fab-button>-->
+<!--</ion-fab>-->

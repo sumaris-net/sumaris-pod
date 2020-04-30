@@ -73,6 +73,9 @@ import {FileService} from "./file/file.service";
 import {HAMMER_GESTURE_CONFIG} from "@angular/platform-browser";
 import {AppGestureConfig} from "./gesture/gesture-config";
 import {FileSizePipe} from "./pipes/file-size.pipe";
+import {MatDuration} from "./material/material.duration";
+import {DurationPipe} from "./pipes/duration.pipe";
+import {ModalToolbarComponent} from "./toolbar/modal-toolbar";
 import {DragDropModule} from "@angular/cdk/drag-drop";
 
 
@@ -110,9 +113,11 @@ export {
   declarations: [
     AutofocusDirective,
     ToolbarComponent,
+    ModalToolbarComponent,
     NumpadComponent,
     DateFormatPipe,
     DateDiffDurationPipe,
+    DurationPipe,
     DateFromNowPipe,
     LatLongFormatPipe,
     LatitudeFormatPipe,
@@ -122,6 +127,7 @@ export {
     FileSizePipe,
     MatDate,
     MatDateTime,
+    MatDuration,
     MatLatLong,
     MatBooleanField,
     MatAutocompleteField,
@@ -134,10 +140,12 @@ export {
     HotkeysModule,
     AutofocusDirective,
     ToolbarComponent,
+    ModalToolbarComponent,
     NumpadComponent,
     DateFormatPipe,
     DateFromNowPipe,
     DateDiffDurationPipe,
+    DurationPipe,
     LatLongFormatPipe,
     LatitudeFormatPipe,
     LongitudeFormatPipe,
@@ -148,6 +156,7 @@ export {
     TranslateModule,
     MatDate,
     MatDateTime,
+    MatDuration,
     MatLatLong,
     MatBooleanField,
     MatAutocompleteField,

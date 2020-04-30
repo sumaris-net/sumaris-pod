@@ -2,21 +2,26 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@
 
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
-import {fromDateISOString, ReferentialRef, Trip, VesselSnapshot} from '../services/trip.model';
 import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment} from '../../core/core.module';
+import {environment, fromDateISOString, ReferentialRef} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil} from '../../shared/shared.module';
+import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray} from '../../shared/shared.module';
 import * as moment from "moment";
-import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/services/model";
+import {AcquisitionLevelCodes, ProgramProperties, VesselSnapshot} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripsPageSettingsEnum} from "./trips.table";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model";
+import {PhysicalGear, Trip} from "../services/model/trip.model";
+import {SelectPhysicalGearModal} from "../physicalgear/select-physicalgear.modal";
+import {ModalController} from "@ionic/angular";
+import {PhysicalGearFilter} from "../services/physicalgear.service";
+import {isEmptyArray} from "../../shared/functions";
+import {PromiseEvent} from "../../shared/events";
 
 @Component({
   selector: 'app-trip-page',
@@ -45,6 +50,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
   constructor(
     injector: Injector,
     protected entities: EntityStorage,
+    protected modalCtrl: ModalController,
     public network: NetworkService // Used for DEV (to debug OFFLINE mode)
   ) {
     super(injector,
@@ -71,6 +77,11 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
           if (!this.tripForm.showObservers) {
             this.data.observers = []; // make sure to reset data observers, if any
           }
+          this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
+          if (!this.tripForm.showMetiers) {
+            this.data.metiers = []; // make sure to reset data metiers, if any
+          }
+          this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
         })
     );
 
@@ -215,12 +226,57 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     }
   }
 
-  async devDownloadToLocal() {
+  async copyToOffline() {
     if (!this.data) return;
 
     // Copy the trip
-    await (this.dataService as TripService).downloadToLocal(this.data.id, { withOperations: true });
+    await (this.dataService as TripService).copyToOffline(this.data.id, { withOperations: true });
 
+  }
+
+  /**
+   * Open a modal to select a previous gear
+   * @param event
+   */
+  async openSelectPreviousGearsModal(event: PromiseEvent<PhysicalGear>) {
+    if (!event || !event.detail.success) return; // Skip (missing callback)
+
+    const trip = Trip.fromObject(this.tripForm.value);
+    const vessel = trip.vesselSnapshot;
+    const date = trip.departureDateTime || trip.returnDateTime;
+    if (!vessel || !date) return; // Skip
+
+    const filter = <PhysicalGearFilter>{
+      vesselId: vessel.id,
+      endDate: date,
+      excludeTripId: trip.id
+      // TODO startDate : endDate - 6 month ?
+    };
+    const modal = await this.modalCtrl.create({
+      component: SelectPhysicalGearModal,
+      componentProps: {
+        filter,
+        allowMultiple: false,
+        program: this.programSubject.getValue(),
+        acquisitionLevel: this.physicalGearTable.acquisitionLevel
+      }
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+
+    console.debug("[trip] Result of select gear modal:", res);
+    if (res && res.data && isNotEmptyArray(res.data)) {
+      // Cal resolve callback
+      event.detail.success(res.data[0]);
+    }
+    else {
+      // User cancelled
+      event.detail.error('CANCELLED');
+    }
   }
 
   /* -- protected methods -- */

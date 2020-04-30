@@ -46,7 +46,6 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     if (this._usageMode !== value) {
       this._usageMode = value;
       // TODO: Force refresh of the form
-      // this.form. ..
       this.markForCheck();
     }
   }
@@ -177,8 +176,6 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     this.previousDataId = data.id;
     this.setValue(data);
 
-    this.updateTitle(data);
-
     this.markAsPristine();
     this.markAsUntouched();
 
@@ -186,7 +183,13 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     // Need to update route
     if (opts.updateTabAndRoute === true) {
-      this.updateTabAndRoute(data, opts);
+      this.updateTabAndRoute(data, opts)
+        // Update the title - should be executed AFTER updateTabAndRoute because of path change - fix #185
+        .then(() => this.updateTitle(data));
+    }
+    else {
+      // Update the title.
+      this.updateTitle(data);
     }
 
     this.onUpdateView.emit(data);
@@ -213,7 +216,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
    */
   async updateTabAndRoute(data: T, opts?: {
     openTabIndex?: number;
-  }) {
+  }): Promise<boolean> {
 
     this.queryParams = this.queryParams || {};
 
@@ -234,10 +237,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
       queryParams: Object.assign(this.queryParams, forcedQueryParams)
     });
 
-    setTimeout(async () => {
-      await this.updateRoute(data, this.queryParams);
-    }, 400);
-
+    return this.updateRoute(data, this.queryParams);
   }
 
   async save(event, options?: any): Promise<boolean> {
@@ -267,7 +267,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     this.disable();
 
     try {
-      // Save saleControl form (with sale)
+      // Save form
       const updatedData = await this.dataService.save(data, options);
 
       // Update the view (e.g metadata)
@@ -387,6 +387,11 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
 
   /* -- protected methods -- */
+
+  async unload(): Promise<void> {
+    this.form.reset();
+    this.registerFormsAndTables()
+  }
 
   protected async onNewEntity(data: T, options?: EditorDataServiceLoadOptions): Promise<void> {
     // can be overwrite by subclasses

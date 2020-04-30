@@ -1,10 +1,9 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {Department, EntityUtils, Person, Sale, Sample} from "./trip.model";
 import {map} from "rxjs/operators";
 import {LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService} from "../../core/core.module";
+import {BaseDataService, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
@@ -12,9 +11,11 @@ import {WatchQueryFetchPolicy} from "apollo-client";
 import {AccountService} from "../../core/services/account.service";
 import {SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
+import {Sale} from "./model/sale.model";
+import {Sample} from "./model/sample.model";
 
 export const SaleFragments = {
-  lightSale: gql`fragment LightSaleFragment on SaleVO {
+  lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {
     id
     startDateTime
     endDateTime
@@ -35,7 +36,7 @@ export const SaleFragments = {
   ${Fragments.lightDepartment}
   ${VesselSnapshotFragments.lightVesselSnapshot}
   `,
-  sale: gql`fragment SaleFragment on SaleVO {
+  sale: gql`fragment SaleFragment_PENDING on SaleVO {
     id
     startDateTime
     endDateTime

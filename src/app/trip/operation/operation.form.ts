@@ -1,9 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {OperationValidatorService} from "../services/operation.validator";
-import {fromDateISOString, isNotNil, Operation, PhysicalGear, Trip} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {AppForm, IReferentialRef} from '../../core/core.module';
+import {AppForm, fromDateISOString, IReferentialRef, isNotNil} from '../../core/core.module';
 import {EntityUtils, ReferentialRefService} from '../../referential/referential.module';
 import {UsageMode} from "../../core/services/model";
 import {FormGroup} from "@angular/forms";
@@ -14,6 +13,7 @@ import {isNilOrBlank, suggestFromArray} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {SharedValidators} from "../../shared/validator/validators";
+import {Operation, PhysicalGear, Trip} from "../services/model/trip.model";
 
 @Component({
   selector: 'form-operation',

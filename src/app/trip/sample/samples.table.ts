@@ -10,11 +10,15 @@ import {
   Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
-import {getPmfmName, PmfmStrategy, referentialToString, Sample} from "../services/trip.model";
-import {AcquisitionLevelCodes, ReferentialRefService} from "../../referential/referential.module";
+import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
+import {
+  AcquisitionLevelCodes,
+  getPmfmName,
+  PmfmStrategy,
+  ReferentialRefService
+} from "../../referential/referential.module";
 import {SampleValidatorService} from "../services/sample.validator";
-import {isNilOrBlank, isNotNil} from "../../shared/shared.module";
+import {isNilOrBlank, isNotNil} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model";
 import * as moment from "moment";
 import {Moment} from "moment";
@@ -23,6 +27,7 @@ import {InMemoryTableDataService} from "../../shared/services/memory-data-servic
 import {SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
+import {Sample} from "../services/model/sample.model";
 
 export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
 export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];

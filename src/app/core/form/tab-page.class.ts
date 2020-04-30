@@ -256,6 +256,19 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     await this.reload();
   }
 
+  /**
+   * Unload the page (remove all data). Useful when reusing angular cache a cancelled page
+   * @param opts
+   */
+  async unload(opts?: {emitEvent?: boolean; }) {
+    console.debug("[tab-page] Unloading data...");
+    this.loading = true;
+    this.selectedTabIndex = 0;
+    this._forms.forEach(f => f.reset(null, opts));
+    this._tables.forEach(t => t.dataSource.disconnect());
+    // TODO: find a way to remove this page from the navigation history
+  }
+
   onBackClick(event: Event) {
     if (event.defaultPrevented) return;
 
@@ -335,7 +348,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
           await this.save(event); // sync save
         } else if (dirty) {
           if (this.isNewData) {
-            this.doUnload(); // async reset
+            this.unload(); // async reset
           }
           else {
             this.doReload(); // async reload
@@ -390,11 +403,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     await this.load(this.data && this.data.id);
   }
 
-  async doUnload() {
-    this.loading = true;
-    this.selectedTabIndex = 0;
-    // TODO: find a way to remove this page from the navigation history
-  }
+
 
   /* -- protected methods -- */
 

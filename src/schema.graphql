@@ -74,12 +74,14 @@ type BatchVO {
   parent: BatchVO
   parentId: Int
   qualityFlagId: Int
+  "Get batch quantification measurements"
   quantificationMeasurements: [MeasurementVO]
   rankOrder: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
   samplingRatio: Float
   samplingRatioText: String
+  "Get batch sorting measurements"
   sortingMeasurements: [MeasurementVO]
   taxonGroup: ReferentialVO
   taxonName: TaxonNameVO
@@ -221,11 +223,14 @@ type LandingVO {
   observedLocation: ObservedLocationVO
   observedLocationId: Int
   observers: [PersonVO]
+  "Get landing's products"
+  products: [ProductVO]
   program: ProgramVO
   qualificationComments: String
   qualificationDate: Date
   qualityFlagId: Int
   rankOrder: Int
+  rankOrderOnVessel: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
   "Get landing's samples"
@@ -364,6 +369,10 @@ type Mutation {
   saveConfiguration(config: ConfigurationVOInput): ConfigurationVO
   "Create or update a department"
   saveDepartment(department: DepartmentVOInput): DepartmentVO
+  "Create or update a landed trip"
+  saveLandedTrip(trip: TripVOInput, withOperationGroup: Boolean = false): TripVO
+  "Create or update many landed trips"
+  saveLandedTrips(trips: [TripVOInput], withOperationGroup: Boolean = false): [TripVO]
   "Create or update an landing"
   saveLanding(landing: LandingVOInput): LandingVO
   "Create or update many landings"
@@ -433,6 +442,35 @@ type ObservedLocationVO {
   validationDate: Date
 }
 
+type OperationGroupVO {
+  comments: String
+  controlDate: Date
+  "Get operation group's gear measurements"
+  gearMeasurementValues: Map_Integer_StringScalar
+  "Get operation group's gear measurements"
+  gearMeasurements: [MeasurementVO]
+  hasCatch: Boolean
+  id: Int
+  "Get operation group's measurements"
+  measurementValues: Map_Integer_StringScalar
+  "Get operation group's measurements"
+  measurements: [MeasurementVO]
+  metier: MetierVO
+  "Get operation group's packets"
+  packets: [PacketVO]
+  physicalGear: PhysicalGearVO
+  physicalGearId: Int
+  "Get operation group's products"
+  products: [ProductVO]
+  qualityFlagId: Int
+  rankOrderOnPeriod: Int
+  recorderDepartment: DepartmentVO
+  trip: TripVO
+  tripId: Int
+  updateDate: Date
+  validationDate: Date
+}
+
 type OperationVO {
   "Get operation's batches"
   batches: [BatchVO]
@@ -468,6 +506,33 @@ type OperationVO {
   tripId: Int
   updateDate: Date
   validationDate: Date
+}
+
+type PacketCompositionVO {
+  id: Int
+  rankOrder: Int
+  ratios: [Int]
+  taxonGroup: ReferentialVO
+}
+
+type PacketVO {
+  comments: String
+  composition: [PacketCompositionVO]
+  controlDate: Date
+  id: Int
+  number: Int
+  operation: OperationVO
+  operationId: Int
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+  rankOrder: Int
+  recorderDepartment: DepartmentVO
+  recorderPerson: PersonVO
+  sampledWeights: [Float]
+  updateDate: Date
+  validationDate: Date
+  weight: Float
 }
 
 type ParameterVO {
@@ -521,6 +586,7 @@ type PhysicalGearVO {
   rankOrder: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
+  "Get physical gear's trip"
   trip: TripVO
   tripId: Int
   updateDate: Date
@@ -546,9 +612,10 @@ type PmfmStrategyVO {
   qualitativeValues: [ReferentialVO]
   rankOrder: Int
   referenceTaxonIds: [Int]
+  signifFiguresNumber: Int
   taxonGroupIds: [Int]
   type: String
-  unit: String
+  unitLabel: String
   updateDate: Date
 }
 
@@ -591,6 +658,42 @@ type PmfmVO {
   unitLabel: String
   updateDate: Date
   validityStatusId: Int
+}
+
+type ProductVO {
+  batch: BatchVO
+  batchId: Int
+  comments: String
+  controlDate: Date
+  cost: Float
+  creationDate: Date
+  dressingId: Int
+  id: Int
+  individualCount: Int
+  label: String
+  landing: LandingVO
+  landingId: Int
+  "Get measurement values (as a key/value map, using pmfmId as key)"
+  measurementValues: Map_Integer_StringScalar
+  operation: OperationVO
+  operationId: Int
+  preservationId: Int
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+  rankOrder: Int
+  recorderDepartment: DepartmentVO
+  recorderPerson: PersonVO
+  sale: SaleVO
+  saleId: Int
+  saleType: ReferentialVO
+  sizeCategoryId: Int
+  subgroupCount: Float
+  taxonGroup: ReferentialVO
+  updateDate: Date
+  validationDate: Date
+  weight: Float
+  weightMethod: ReferentialVO
 }
 
 type ProgramVO {
@@ -649,6 +752,10 @@ type Query {
   landings(filter: LandingFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "dateTime", sortDirection: String = "asc"): [LandingVO]
   "Get total number of landings"
   landingsCount(filter: LandingFilterVOInput): Long!
+  "Get a metier by id"
+  metier(id: Int!): MetierVO
+  "Search in metiers"
+  metiers(filter: MetierFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [MetierVO]
   "Get an observed location, by id"
   observedLocation(id: Int!): ObservedLocationVO
   "Search in observed locations"
@@ -657,6 +764,8 @@ type Query {
   observedLocationsCount(filter: ObservedLocationFilterVOInput): Long!
   "Get an operation"
   operation(id: Int!): OperationVO
+  "Get trip's operation groups"
+  operationGroups(filter: OperationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "rankOrderOnPeriod", sortDirection: String = "asc"): [OperationGroupVO]
   "Get trip's operations"
   operations(filter: OperationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "asc"): [OperationVO]
   "Get a parameter"
@@ -665,6 +774,8 @@ type Query {
   persons(filter: PersonFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "pubkey", sortDirection: String = "asc"): [PersonVO]
   "Get total persons count"
   personsCount(filter: PersonFilterVOInput): Long!
+  "Get physical gears"
+  physicalGears(filter: PhysicalGearFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "rankOrder", sortDirection: String = "asc"): [PhysicalGearVO]
   "Get a PMFM"
   pmfm(id: Int, label: String): PmfmVO
   "Get a program"
@@ -730,9 +841,13 @@ type SaleVO {
   creationDate: Date
   endDateTime: Date
   id: Int
+  "Get sale measurement values"
   measurementValues: Map_Integer_StringScalar
+  "Get sale measurements"
   measurements: [MeasurementVO]
   observers: [PersonVO]
+  "Get sale's products"
+  products: [ProductVO]
   program: ProgramVO
   qualificationComments: String
   qualificationDate: Date
@@ -910,11 +1025,17 @@ type TripVO {
   "Get operation's gears"
   gears: [PhysicalGearVO]
   id: Int
+  landingId: Int
   "Get trip's measurements"
   measurementValues: Map_Integer_StringScalar
   "Get trip's measurements"
   measurements: [MeasurementVO]
+  "Get trip metiers"
+  metiers: [MetierVO]
+  observedLocationId: Int
   observers: [PersonVO]
+  "Get trip's operation groups"
+  operationGroups: [OperationGroupVO]
   "Get trip's operations"
   operations: [OperationVO]
   program: ProgramVO
@@ -1302,6 +1423,7 @@ input LandingVOInput {
   qualificationDate: Date
   qualityFlagId: Int
   rankOrder: Int
+  rankOrderOnVessel: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
   samples: [SampleVOInput]
@@ -1364,6 +1486,20 @@ input MeasurementVOInput {
   validationDate: Date
 }
 
+input MetierFilterVOInput {
+  date: Date
+  label: String
+  levelId: Int
+  levelIds: [Int]
+  name: String
+  searchAttribute: String
+  searchJoin: String
+  searchText: String
+  statusIds: [Int]
+  tripId: Int
+  vesselId: Int
+}
+
 input MetierVOInput {
   comments: String
   creationDate: Date
@@ -1413,6 +1549,29 @@ input OperationFilterVOInput {
   tripId: Int
 }
 
+input OperationGroupVOInput {
+  comments: String
+  controlDate: Date
+  gearMeasurementValues: Map_Integer_StringScalar
+  gearMeasurements: [MeasurementVOInput]
+  hasCatch: Boolean
+  id: Int
+  measurementValues: Map_Integer_StringScalar
+  measurements: [MeasurementVOInput]
+  metier: MetierVOInput
+  packets: [PacketVOInput]
+  physicalGear: PhysicalGearVOInput
+  physicalGearId: Int
+  products: [ProductVOInput]
+  qualityFlagId: Int
+  rankOrderOnPeriod: Int
+  recorderDepartment: DepartmentVOInput
+  trip: TripVOInput
+  tripId: Int
+  updateDate: Date
+  validationDate: Date
+}
+
 input OperationVOInput {
   batches: [BatchVOInput]
   catchBatch: BatchVOInput
@@ -1440,6 +1599,33 @@ input OperationVOInput {
   tripId: Int
   updateDate: Date
   validationDate: Date
+}
+
+input PacketCompositionVOInput {
+  id: Int
+  rankOrder: Int
+  ratios: [Int]
+  taxonGroup: ReferentialVOInput
+}
+
+input PacketVOInput {
+  comments: String
+  composition: [PacketCompositionVOInput]
+  controlDate: Date
+  id: Int
+  number: Int
+  operation: OperationVOInput
+  operationId: Int
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+  rankOrder: Int
+  recorderDepartment: DepartmentVOInput
+  recorderPerson: PersonVOInput
+  sampledWeights: [Float]
+  updateDate: Date
+  validationDate: Date
+  weight: Float
 }
 
 input ParameterVOInput {
@@ -1486,6 +1672,14 @@ input PersonVOInput {
   updateDate: Date
 }
 
+input PhysicalGearFilterVOInput {
+  endDate: Date
+  programLabel: String
+  startDate: Date
+  tripId: Int
+  vesselId: Int
+}
+
 input PhysicalGearVOInput {
   comments: String
   controlDate: Date
@@ -1525,9 +1719,10 @@ input PmfmStrategyVOInput {
   qualitativeValues: [ReferentialVOInput]
   rankOrder: Int
   referenceTaxonIds: [Int]
+  signifFiguresNumber: Int
   taxonGroupIds: [Int]
   type: String
-  unit: String
+  unitLabel: String
   updateDate: Date
 }
 
@@ -1558,6 +1753,41 @@ input PmfmVOInput {
   unitLabel: String
   updateDate: Date
   validityStatusId: Int
+}
+
+input ProductVOInput {
+  batch: BatchVOInput
+  batchId: Int
+  comments: String
+  controlDate: Date
+  cost: Float
+  creationDate: Date
+  dressingId: Int
+  id: Int
+  individualCount: Int
+  label: String
+  landing: LandingVOInput
+  landingId: Int
+  measurementValues: Map_Integer_StringScalar
+  operation: OperationVOInput
+  operationId: Int
+  preservationId: Int
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+  rankOrder: Int
+  recorderDepartment: DepartmentVOInput
+  recorderPerson: PersonVOInput
+  sale: SaleVOInput
+  saleId: Int
+  saleType: ReferentialVOInput
+  sizeCategoryId: Int
+  subgroupCount: Float
+  taxonGroup: ReferentialVOInput
+  updateDate: Date
+  validationDate: Date
+  weight: Float
+  weightMethod: ReferentialVOInput
 }
 
 input ProgramFilterVOInput {
@@ -1613,6 +1843,7 @@ input SaleVOInput {
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVOInput]
   observers: [PersonVOInput]
+  products: [ProductVOInput]
   program: ProgramVOInput
   qualificationComments: String
   qualificationDate: Date
@@ -1764,9 +1995,13 @@ input TripVOInput {
   departureLocation: LocationVOInput
   gears: [PhysicalGearVOInput]
   id: Int
+  landingId: Int
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVOInput]
+  metiers: [MetierVOInput]
+  observedLocationId: Int
   observers: [PersonVOInput]
+  operationGroups: [OperationGroupVOInput]
   operations: [OperationVOInput]
   program: ProgramVOInput
   qualificationComments: String

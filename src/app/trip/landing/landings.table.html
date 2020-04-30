@@ -1,7 +1,7 @@
 <mat-toolbar>
   <button mat-icon-button
           hidden-xs hidden-sm hidden-mobile
-          *ngIf="canEdit && !selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+          *ngIf="canEdit && !selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="openNewRowDetail()">
     <mat-icon>add</mat-icon>
   </button>
   <button mat-icon-button small color="light" *ngIf="canDelete && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
@@ -53,7 +53,7 @@
 </mat-table> -->
 
 
-<mat-table [dataSource]="dataSource" matSort matSortActive="rankOrder" matSortDirection="asc"
+<mat-table [dataSource]="dataSource" matSort matSortDirection="asc"
            matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
@@ -74,7 +74,7 @@
       <ion-label *ngIf="!loading">#</ion-label>
       <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData.rankOrder || row.currentData.id }}</mat-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder || row.currentData?.id }}</mat-cell>
   </ng-container>
 
   <!-- Vessel Column -->
@@ -87,23 +87,43 @@
     </mat-cell>
   </ng-container>
 
+  <!-- Vessel type Column -->
+  <ng-container matColumnDef="vesselType">
+    <mat-header-cell *matHeaderCellDef>
+      <span translate>LANDING.TABLE.VESSEL_TYPE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label>{{referentialToString(row.currentData?.vesselSnapshot?.vesselType, ['name'])}}</ion-label>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Vessel base port Column -->
+  <ng-container matColumnDef="vesselBasePortLocation">
+    <mat-header-cell *matHeaderCellDef>
+      <span translate>LANDING.TABLE.VESSEL_BASE_PORT_LOCATION</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label>{{referentialToString(row.currentData?.vesselSnapshot?.basePortLocation)}}</ion-label>
+    </mat-cell>
+  </ng-container>
+
   <!-- date time  -->
   <ng-container matColumnDef="dateTime">
     <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
       <span translate>LANDING.TABLE.DATE_TIME</span>
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      {{ row.currentData.dateTime | dateFormat: {time: true} }}
+      {{ getLandingDate(row.currentData) | dateFormat: {time: true} }}
     </mat-cell>
   </ng-container>
 
   <!-- Observers -->
   <ng-container matColumnDef="observers">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>LANDING.TABLE.OBSERVERS</span>
+      <ion-label translate>LANDING.TABLE.OBSERVERS</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      {{ personsToString(row.currentData.observers) }}
+      <ion-text>{{ personsToString(row.currentData?.observers) }}</ion-text>
     </mat-cell>
   </ng-container>
 
@@ -111,11 +131,15 @@
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
       <ion-label>{{getPmfmColumnHeader(pmfm)}}
-        <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unitLabel}})</small>
+        <small *ngIf="pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')"><br/>({{pmfm.unitLabel}})</small>
       </ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
-      {{measurementValueToString(row.currentData.measurementValues[pmfm.pmfmId], pmfm) }}
+    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate"
+              [class.mat-cell-computed]="pmfm.isComputed">
+      <mat-form-field-measurement
+        [readonly]="!row.editing"
+        [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
+        floatLabel="never"></mat-form-field-measurement>
     </mat-cell>
   </ng-container>
 
@@ -130,18 +154,50 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition && !tripEditor">
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition && !tripEditor">
+      <ion-spinner *ngIf="row.validator.pending" name="dots"
+                   [ngClass]="{'center':true}"></ion-spinner>
+
+      <!-- undo or delete  -->
+      <button mat-icon-button color="light" *ngIf="row.validator.invalid"
+              [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+              (click)="cancelOrDelete($event, row)">
+        <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
+        <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+      </button>
+      <!-- validate -->
+      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
+              [title]="'COMMON.BTN_VALIDATE'|translate"
+              (click)="confirmEditCreate($event, row)">
+        <mat-icon>check</mat-icon>
+      </button>
+
+      <!-- edit trip -->
+      <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1 && tripEditor"
+              [title]="'COMMON.BTN_EDIT'|translate"
+              (click)="$event.preventDefault() || confirmAndEditTrip($event, row)">
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
     </mat-cell>
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;"
-           class="mat-row-disabled"
+  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
+           [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing"
            (click)="clickRow($event, row)"></mat-row>
 
 </mat-table>
+
+<ion-row class="ion-no-padding">
+  <ion-col></ion-col>
+  <ion-col class="ion-no-padding" size="auto">
+    <mat-paginator [length]="resultsLength" [pageSize]="pageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
+<!--       [pageIndex]="pageIndex" (page)="onPageChange($event)" FIXME-->
+    </mat-paginator>
+  </ion-col>
+</ion-row>
 
 
 <!-- Add Button  -->

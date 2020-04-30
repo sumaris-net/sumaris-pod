@@ -11,21 +11,69 @@ import {Landing} from "./model/landing.model";
 import gql from "graphql-tag";
 import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
-import {map, throttleTime} from "rxjs/operators";
-import {fromDateISOString, isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
+import {filter, map, throttleTime} from "rxjs/operators";
+import {fromDateISOString, isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {RootDataService} from "./root-data-service.class";
 import {TripFilter} from "./trip.service";
 import {Sample} from "./model/sample.model";
 import {EntityUtils, MINIFY_OPTIONS} from "../../core/services/model";
-import {DataEntityAsObjectOptions, DataRootEntityUtils, SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
+import {
+  DataEntityAsObjectOptions,
+  DataRootEntityUtils, fillRankOrder,
+  SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS,
+  SynchronizationStatus
+} from "./model/base.model";
 import {WatchQueryFetchPolicy} from "apollo-client";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {FormErrors} from "../../core/form/form.utils";
+import {NetworkService} from "../../core/services/network.service";
+import {EntityStorage} from "../../core/services/entities-storage.service";
+import {AcquisitionLevelType} from "../../referential/services/model";
+import {Trip} from "./model/trip.model";
+import {dataIdFromObject} from "../../core/graphql/graphql.utils";
+import {concatPromises} from "../../shared/observables";
 
 
-export class LandingFilter extends TripFilter {
+export class LandingFilter /*extends TripFilter*/ {
+
   observedLocationId?: number;
   tripId?: number;
+  synchronizationStatus?: SynchronizationStatus;
+  acquisitionLevel?: AcquisitionLevelType;
+
+  static isEmpty(landingFilter: LandingFilter|any): boolean {
+    return !landingFilter || (
+      isNil(landingFilter.observedLocationId) && isNil(landingFilter.tripId)
+    );
+  }
+
+  static searchFilter<T extends Landing>(f: LandingFilter): (T) => boolean {
+    if (this.isEmpty(f)) return undefined;
+    return (t: T) => {
+
+      // observedLocationId
+      if (isNotNil(f.observedLocationId) && f.observedLocationId !== t.observedLocationId)
+        return false;
+
+      // tripId
+      if (isNotNil(f.tripId) && f.tripId !== t.tripId)
+        return false;
+
+      // Synchronization status
+      if (f.synchronizationStatus && (
+        // Check landing synchro status, if any
+        (t.synchronizationStatus && t.synchronizationStatus !== f.synchronizationStatus)
+        // Else, if SYNC is wanted: exclude if local id
+        || (f.synchronizationStatus === 'SYNC' && !t.synchronizationStatus && t.id < 0)
+        // Or else, if DIRTY or READY_TO_SYNC wanted: exclude if id is NOT local
+        || (f.synchronizationStatus !== 'SYNC' && !t.synchronizationStatus && t.id >= 0))
+      ) {
+        return false;
+      }
+
+      return true;
+    };
+  }
 }
 
 export const LandingFragments = {
@@ -85,8 +133,9 @@ export const LandingFragments = {
     observedLocationId
     tripId
     vesselSnapshot {
-      ...LightVesselSnapshotFragment
+      ...VesselSnapshotFragment
     }
+    rankOrderOnVessel
     recorderDepartment {
       ...LightDepartmentFragment
     }
@@ -104,7 +153,7 @@ export const LandingFragments = {
   ${Fragments.location}
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
-  ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   `
 };
@@ -155,15 +204,22 @@ const UpdateSubscription = gql`
 
 
 const sortByDateFn = (n1: Landing, n2: Landing) => {
-  return n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
+  return n1.dateTime.isSame(n2.dateTime)
+    ? (n1.id === n2.id ? 0 : n1.id > n2.id ? 1 : -1)
+    : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
 };
 
 @Injectable({providedIn: 'root'})
 export class LandingService extends RootDataService<Landing, LandingFilter>
   implements TableDataService<Landing, LandingFilter>, EditorDataService<Landing, LandingFilter> {
 
+  protected $importationProgress: Observable<number>;
+  protected loading = false;
+
   constructor(
-    injector: Injector
+    injector: Injector,
+    protected network: NetworkService,
+    protected entities: EntityStorage
   ) {
     super(injector);
 
@@ -173,41 +229,61 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
 
   watchAll(offset: number, size: number,
            sortBy?: string, sortDirection?: string,
-           filter?: LandingFilter,
+           dataFilter?: LandingFilter,
            options?: {
-              fetchPolicy?: WatchQueryFetchPolicy
+             fetchPolicy?: WatchQueryFetchPolicy
            }): Observable<LoadResult<Landing>> {
+
+    if (sortBy && sortBy === 'id')
+      sortBy = undefined;
 
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
       sortBy: sortBy || 'dateTime',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: { ...dataFilter, synchronizationStatus: undefined}
     };
 
-    // Save filter if load for a tables
-    // This is need to update cache, when save new entity (see save())
-    if (filter && (isNotNil(filter.observedLocationId) || isNotNil(filter.tripId))) {
-      this._lastVariables.loadByParent = variables;
+    let now = this._debug && Date.now();
+    let $loadResult: Observable<{ landings: Landing[]; landingsCount?: number; }>;
+    if (this._debug) console.debug("[landing-service] Watching landings... using options:", variables);
+
+    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+
+    if (offline) {
+      $loadResult = this.entities.watchAll<Landing>('LandingVO', {
+        ...variables,
+        filter: LandingFilter.searchFilter<Landing>(dataFilter)
+      })
+        .pipe(
+          map(res => {
+            return {landings: res && res.data, landingsCount: res && res.total};
+          }));
     }
     else {
-      this._lastVariables.loadAll = variables;
+
+      // Save filter if load for a tables
+      // This is need to update cache, when save new entity (see save())
+      if (dataFilter && (isNotNil(dataFilter.observedLocationId) || isNotNil(dataFilter.tripId))) {
+        this._lastVariables.loadByParent = variables;
+      } else {
+        this._lastVariables.loadAll = variables;
+      }
+
+      $loadResult = this.graphql.watchQuery<{ landings: Landing[]; landingsCount: number; }>({
+        query: LoadAllQuery,
+        variables,
+        error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
+        fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
+      })
+        .pipe(
+          filter(() => !this.loading)
+        );
     }
 
-    let now;
-    if (this._debug) {
-      now = Date.now();
-      console.debug("[landing-service] Watching landings... using options:", variables);
-    }
-    return this.graphql.watchQuery<{ landings: Landing[]; landingsCount: number }>({
-      query: LoadAllQuery,
-      variables: variables,
-      error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || undefined
-    })
-      .pipe(
-        throttleTime(200), // avoid multiple call
+    return $loadResult.pipe(
+        // throttleTime(200), // avoid multiple call
         map(res => {
           const data = (res && res.landings || []).map(Landing.fromObject);
           const total = res && isNotNil(res.landingsCount) ? res.landingsCount : undefined;
@@ -215,17 +291,16 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
             if (now) {
               console.debug(`[landing-service] Loaded {${data.length || 0}} landings in ${Date.now() - now}ms`, data);
               now = undefined;
-            } else {
-              console.debug(`[landing-service] Refreshed {${data.length || 0}} landings`);
             }
           }
 
           // Compute rankOrder, by tripId or observedLocationId
-          if (filter && (isNotNil(filter.tripId) || isNotNil(filter.observedLocationId))) {
-            let rankOrder = 1;
+          if (dataFilter && (isNotNil(dataFilter.tripId) || isNotNil(dataFilter.observedLocationId))) {
+            const asc = variables.sortDirection === 'asc';
+            let rankOrder = asc ? 1 + offset : total - offset;
             // apply a sorted copy (do NOT change original order), then compute rankOrder
             data.slice().sort(sortByDateFn)
-              .forEach(o => o.rankOrder = rankOrder++);
+              .forEach(o => o.rankOrder = asc ? rankOrder++ : rankOrder--);
 
             // sort by rankOrderOnPeriod (aka id)
             if (!sortBy || sortBy === 'rankOrder') {
@@ -250,19 +325,38 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
 
     const now = Date.now();
     if (this._debug) console.debug(`[landing-service] Loading landing {${id}}...`);
+    this.loading = true;
 
-    const res = await this.graphql.query<{ landing: Landing }>({
-      query: LoadQuery,
-      variables: {
-        id: id
-      },
-      error: {code: ErrorCodes.LOAD_LANDING_ERROR, message: "LANDING.ERROR.LOAD_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || 'cache-first'
-    });
-    const data = res && res.landing && Landing.fromObject(res.landing);
-    if (data && this._debug) console.debug(`[landing-service] landing #${id} loaded in ${Date.now() - now}ms`, data);
+    try {
+      let json: any;
 
-    return data;
+      // If local entity
+      if (id < 0) {
+        json = await this.entities.load<Landing>(id, Landing.TYPENAME);
+      }
+
+      else {
+        // Load remotely
+        const res = await this.graphql.query<{ landing: Landing }>({
+          query: LoadQuery,
+          variables: {
+            id: id
+          },
+          error: {code: ErrorCodes.LOAD_LANDING_ERROR, message: "LANDING.ERROR.LOAD_ERROR"},
+          fetchPolicy: options && options.fetchPolicy || undefined
+        });
+        json = res && res.landing;
+      }
+
+      // Transform to entity
+      const data = Landing.fromObject(json);
+      if (data && this._debug) console.debug(`[landing-service] landing #${id} loaded in ${Date.now() - now}ms`, data);
+      return data;
+    }
+    finally {
+      this.loading = false;
+    }
+
   }
 
   async saveAll(entities: Landing[], options?: any): Promise<Landing[]> {
@@ -280,17 +374,21 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     const res = await this.graphql.mutate<{ saveLandings: Landing[] }>({
       mutation: SaveAllQuery,
       variables: {
-        trips: json
+        landings: json
       },
-      error: {code: ErrorCodes.SAVE_LANDINGS_ERROR, message: "LANDING.ERROR.SAVE_ALL_ERROR"}
-    });
-    (res && res.saveLandings && entities || [])
-      .forEach(entity => {
-        const savedEntity = res.saveLandings.find(obj => entity.equals(obj));
-        this.copyIdAndUpdateDate(savedEntity, entity);
-      });
+      error: {code: ErrorCodes.SAVE_LANDINGS_ERROR, message: "LANDING.ERROR.SAVE_ALL_ERROR"},
+      update: (proxy, {data}) => {
 
-    if (this._debug) console.debug(`[landing-service] Landings saved in ${Date.now() - now}ms`, entities);
+        if (this._debug) console.debug(`[landing-service] Landings saved remotely in ${Date.now() - now}ms`, entities);
+
+        (res && res.saveLandings && entities || [])
+          .forEach(entity => {
+            const savedEntity = res.saveLandings.find(obj => entity.equals(obj));
+            this.copyIdAndUpdateDate(savedEntity, entity);
+          });
+
+      }
+    });
 
     return entities;
   }
@@ -298,20 +396,52 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
   async save(entity: Landing): Promise<Landing> {
 
     const now = Date.now();
-    if (this._debug) console.debug("[landing-service] Saving a landing...");
+    if (this._debug) console.debug("[landing-service] Saving a landing...", entity);
 
     // Prepare to save
     this.fillDefaultProperties(entity);
 
     // Reset the control date
     entity.controlDate = undefined;
+    entity.validationDate = undefined;
+    entity.qualificationDate = undefined;
+    entity.qualityFlagId = undefined;
 
     // If new, create a temporary if (for offline mode)
     const isNew = isNil(entity.id);
 
+    // If is a local entity: force a local save
+    const offline = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0;
+    if (offline) {
+      // Make sure to fill id, with local ids
+      await this.fillOfflineDefaultProperties(entity);
+
+      // Reset synchro status
+      entity.synchronizationStatus = 'DIRTY';
+
+      const object = this.asObject(entity, SAVE_LOCALLY_AS_OBJECT_OPTIONS);
+      if (this._debug) console.debug('[landing-service] [offline] Saving landing locally...', object);
+
+      // Save response locally
+      await this.entities.save(object);
+
+      return entity;
+    }
+
+    // When offline, provide an optimistic response
+    const offlineResponse = async (context) => {
+      // Make sure to fill id, with local ids
+      await this.fillOfflineDefaultProperties(entity);
+
+      // For the query to be tracked (see tracked query link) with a unique serialization key
+      context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
+      if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
+
+      return { saveLandings: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)] };
+    };
+
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
-    if (isNew) delete json.id; // Make to remove temporary id, before sending to graphQL
     if (this._debug) console.debug("[landing-service] Using minify object, to send:", json);
 
     await this.graphql.mutate<{ saveLandings: any }>({
@@ -319,71 +449,99 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       variables: {
         landings: [json]
       },
+      offlineResponse,
       error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ERROR"},
-      update: (proxy, {data}) => {
+      update: async (proxy, {data}) => {
         const savedEntity = data && data.saveLandings && data.saveLandings[0];
-        if (savedEntity) {
+
+        // Local entity: save it
+        if (savedEntity.id < 0) {
+          if (this._debug) console.debug('[landing-service] [offline] Saving landing locally...', savedEntity);
+
+          // Save response locally
+          await this.entities.save<Landing>(savedEntity);
+        }
+
+        // Update the entity and update GraphQL cache
+        else {
+
+          // Remove existing entity from the local storage
+          if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
+            if (this._debug) console.debug(`[landing-service] Deleting landing {${entity.id}} from local storage`);
+            await this.entities.delete(entity);
+          }
+
           this.copyIdAndUpdateDate(savedEntity, entity);
 
+          if (this._debug) console.debug(`[landing-service] Landing saved remotely in ${Date.now() - now}ms`, entity);
+
           // Add to cache
-          if (isNew) {
-            Object.keys(this._lastVariables)
-              .map(name => this._lastVariables[name])
-              .filter(variables => this.applyFilter(variables.filter, savedEntity))
-              .forEach(variables => {
-                this.graphql.addToQueryCache(proxy, {
-                  query: LoadAllQuery,
-                  variables: variables
-                }, 'landings', savedEntity);
-              });
+          if (isNew && this._lastVariables.loadAll) {
+            this.graphql.addToQueryCache(proxy, {
+              query: LoadAllQuery,
+              variables: this._lastVariables.loadAll
+            }, 'landings', savedEntity);
+          }
+          else if (this._lastVariables.load) {
+            this.graphql.updateToQueryCache(proxy, {
+              query: LoadQuery,
+              variables: this._lastVariables.load
+            }, 'landing', savedEntity);
           }
         }
       }
     });
 
-    if (this._debug) console.debug(`[landing-service] Landing saved in ${Date.now() - now}ms`, entity);
-
     return entity;
   }
 
   async delete(data: Landing): Promise<any> {
+    if (!data) return;
     await this.deleteAll([data]);
   }
 
   async deleteAll(entities: Landing[], options?: any): Promise<any> {
-    const ids = entities && entities
+
+    // Get local entity ids, then delete id
+    const localIds = entities && entities
       .map(t => t.id)
-      .filter(isNotNil);
+      .filter(id => id < 0);
+    if (isNotEmptyArray(localIds)) {
+      if (this._debug) console.debug("[landing-service] Deleting landings locally... ids:", localIds);
+      await this.entities.deleteMany<Landing>(localIds, 'LandingVO');
+    }
+
+    const remoteIds = entities && entities
+      .map(t => t.id)
+      .filter(id => id >= 0);
+    if (isEmptyArray(remoteIds)) return; // stop, if nothing else to do
 
     const now = Date.now();
-    if (this._debug) console.debug("[landing-service] Deleting landings... ids:", ids);
+    if (this._debug) console.debug("[landing-service] Deleting landings... ids:", remoteIds);
 
     await this.graphql.mutate<any>({
       mutation: DeleteByIdsMutation,
       variables: {
-        ids: ids
+        ids: remoteIds
       },
-      update: (proxy, {data}) => {
-
-        if (this._debug) console.debug(`[landing-service] Landings deleted in ${Date.now() - now}ms`);
+      update: (proxy) => {
 
         // Remove from cache
-        Object.keys(this._lastVariables)
-          .map(name => this._lastVariables[name])
-          .forEach(variables => {
-            this.graphql.removeToQueryCacheByIds(proxy,{
-              query: LoadAllQuery,
-              variables: variables
-            }, 'landings', ids);
-          });
+        if (this._lastVariables.loadAll) {
+          this.graphql.removeToQueryCacheByIds(proxy, {
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'landings', remoteIds);
+        }
+
+        if (this._debug) console.debug(`[landing-service] Landings deleted in ${Date.now() - now}ms`);
       }
     });
-
   }
 
 
   listenChanges(id: number): Observable<Landing> {
-    if (!id && id !== 0) throw "Missing argument 'id' ";
+    if (!id && id !== 0) throw new Error("Missing argument 'id'");
 
     if (this._debug) console.debug(`[landing-service] [WS] Listening changes for trip {${id}}...`);
 
@@ -407,21 +565,58 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       );
   }
 
+  async synchronizeById(id: number): Promise<Landing> {
+    const entity = await this.load(id);
+
+    if (!entity || entity.id >= 0) return; // skip
+
+    return await this.synchronize(entity);
+  }
+
   /* -- TODO implement this methods -- */
-  async synchronize(data: Landing): Promise<Landing> { return data; }
-  async control(data: Landing): Promise<FormErrors> { return undefined; }
-  async terminate(data: Landing): Promise<Landing> { return data; }
-  async validate(data: Landing): Promise<Landing> { return data; }
-  async unvalidate(data: Landing): Promise<Landing> { return data; }
-  async qualify(data: Landing, qualityFlagId: number): Promise<Landing> { return data; }
+  async synchronize(data: Landing): Promise<Landing> {
+    return data;
+  }
+
+  async control(data: Landing): Promise<FormErrors> {
+    return undefined;
+  }
+
+  async terminate(data: Landing): Promise<Landing> {
+    return data;
+  }
+
+  async validate(data: Landing): Promise<Landing> {
+    return data;
+  }
+
+  async unvalidate(data: Landing): Promise<Landing> {
+    return data;
+  }
+
+  async qualify(data: Landing, qualityFlagId: number): Promise<Landing> {
+    return data;
+  }
+
+  executeImport(opts?: {
+    maxProgression?: number;
+  }): Observable<number> {
+    return undefined;
+  }
+
+  async downloadToLocal(id: number, opts?: {
+    withOperations?: boolean
+  }): Promise<Trip> {
+    return undefined;
+  }
 
   /* -- private -- */
 
   protected asObject(entity: Landing, options?: DataEntityAsObjectOptions): any {
-    options = { ...MINIFY_OPTIONS, ...options };
+    options = {...MINIFY_OPTIONS, ...options};
     const copy: any = entity.asObject(options);
 
-    if (options && options.minify) {
+    if (options.minify && !options.keepEntityName && !options.keepTypename) {
       // Clean vessel features object, before saving
       copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
 
@@ -449,6 +644,21 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
         s.label = `#${s.rankOrder}`;
       }
     });
+
+    // Measurement: compute rankOrder
+    // fillRankOrder(entity.measurements); // todo ? use measurements instead of measurementValues
+  }
+
+  protected async fillOfflineDefaultProperties(entity: Landing) {
+    const isNew = isNil(entity.id);
+
+    // If new, generate a local id
+    if (isNew) {
+      entity.id = await this.entities.nextValue(entity);
+    }
+
+    // Fill default synchronization status
+    entity.synchronizationStatus = entity.synchronizationStatus || 'DIRTY';
   }
 
   protected copyIdAndUpdateDate(source: Landing | undefined, target: Landing) {
@@ -481,21 +691,21 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     }
   }
 
-  applyFilter(filter: LandingFilter, source: Landing): boolean {
-    return !filter ||
-      // Filter by parent
-      (isNotNil(filter.observedLocationId) && filter.observedLocationId === source.observedLocationId) ||
-      (isNotNil(filter.tripId) && filter.tripId === source.tripId) ||
-      // Filter by search criteria
-      (
-        // Program
-        (!filter.programLabel || filter.programLabel === source.program.label) &&
-        // Location
-        (isNil(filter.locationId) || (source.location && filter.locationId === source.location.id)) &&
-        // start date
-        (!filter.startDate || (source.dateTime && fromDateISOString(source.dateTime).isSameOrAfter(filter.startDate))) &&
-        // end date
-        (!filter.endDate || (source.dateTime && fromDateISOString(source.dateTime).isSameOrBefore(filter.endDate)))
-      );
-  }
+  // applyFilter(filter: LandingFilter, source: Landing): boolean {
+  //   return !filter ||
+  //     // Filter by parent
+  //     (isNotNil(filter.observedLocationId) && filter.observedLocationId === source.observedLocationId) ||
+  //     (isNotNil(filter.tripId) && filter.tripId === source.tripId) ||
+  //     // Filter by search criteria
+  //     (
+  //       // Program
+  //       (!filter.programLabel || filter.programLabel === source.program.label) &&
+  //       // Location
+  //       (isNil(filter.locationId) || (source.location && filter.locationId === source.location.id)) &&
+  //       // start date
+  //       (!filter.startDate || (source.dateTime && fromDateISOString(source.dateTime).isSameOrAfter(filter.startDate))) &&
+  //       // end date
+  //       (!filter.endDate || (source.dateTime && fromDateISOString(source.dateTime).isSameOrBefore(filter.endDate)))
+  //     );
+  // }
 }

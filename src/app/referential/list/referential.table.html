@@ -131,10 +131,14 @@
       <span translate>REFERENTIAL.COMMENTS</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
+      <mat-form-field floatLabel="never" *ngIf="row.editing; else iconComment">
+        <input matInput [formControl]="row.validator.controls.comments" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
                [readonly]="!row.editing">
       </mat-form-field>
+
+      <ng-template #iconComment>
+        <ion-icon color="medium" name="chatboxes" *ngIf="row.validator.controls.comments.value" slot="icon-only" [title]="row.validator.controls.comments.value"></ion-icon>
+      </ng-template>
     </mat-cell>
   </ng-container>
 
