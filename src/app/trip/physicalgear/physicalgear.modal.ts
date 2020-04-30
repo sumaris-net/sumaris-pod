@@ -44,9 +44,11 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
   @Input() mobile: boolean;
 
+  @Input() canEditRankOrder = false;
+
   @Input() onInit: (instance: PhysicalGearModal) => void;
 
-  @Output() onCopyPreviousGearClick = createPromiseEventEmitter();
+  @Output() onCopyPreviousGearClick = createPromiseEventEmitter<PhysicalGear>();
 
   @ViewChild('form', {static: true}) form: PhysicalGearForm;
 
@@ -91,26 +93,30 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
     // Emit event, then wait for a result
     try {
-      const selectedGear = await emitPromiseEvent(this.onCopyPreviousGearClick, 'copyPreviousGear');
+      const selectedData = await emitPromiseEvent(this.onCopyPreviousGearClick, 'copyPreviousGear');
 
       // No result (user cancelled): skip
-      if (!selectedGear) return;
+      if (!selectedData) return;
 
       // Clone, then clean
-      const gearCopy = selectedGear.clone();
-      gearCopy.id = undefined;
-      gearCopy.trip = undefined;
-      gearCopy.tripId = undefined;
-      gearCopy.rankOrder = this.originalData.rankOrder;
-      gearCopy.program = this.program;
+      const data = selectedData.clone();
+      data.id = undefined;
+      data.trip = undefined;
+      data.tripId = undefined;
+
+      if (!this.canEditRankOrder) {
+        // Apply computed rankOrder
+        data.rankOrder = this.originalData.rankOrder;
+      }
+      data.comments = undefined;
 
       // Apply to form
-      console.debug('[physical-gear-modal] Paste selected gear:', gearCopy);
+      console.debug('[physical-gear-modal] Paste selected gear:', data);
       this.form.unload();
-      this.form.reset(gearCopy);
+      this.form.reset(data);
       this.form.markAsDirty();
     }
-    catch(err) {
+    catch (err) {
       if (err === 'CANCELLED') return; // Skip
       console.error(err);
       this.form.error = err && err.message || err;

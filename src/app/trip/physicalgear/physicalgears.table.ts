@@ -52,6 +52,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   }
 
   @Input() canEdit = true;
+  @Input() canEditRankOrder = true;
   @Input() canDelete = true;
   @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
 
@@ -138,6 +139,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         disabled: this.disabled,
         value: gear.clone(), // Do a copy, because edition can be cancelled
         isNew: isNew,
+        canEditRankOrder: this.canEditRankOrder,
         onInit: (inst: PhysicalGearModal) => {
           // Subscribe to click on copy button, then redirect the event
           inst.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event));

@@ -81,6 +81,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
           if (!this.tripForm.showMetiers) {
             this.data.metiers = []; // make sure to reset data metiers, if any
           }
+          this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
         })
     );
 
@@ -247,7 +248,8 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
 
     const filter = <PhysicalGearFilter>{
       vesselId: vessel.id,
-      endDate: date
+      endDate: date,
+      excludeTripId: trip.id
       // TODO startDate : endDate - 6 month ?
     };
     const modal = await this.modalCtrl.create({

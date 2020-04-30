@@ -9,7 +9,7 @@ import {EntityStorage} from "../../core/services/entities-storage.service";
 import {environment} from "../../../environments/environment";
 import {Moment} from "moment";
 import {EMPTY, Observable} from "rxjs";
-import {isNil} from "../../shared/functions";
+import {fromDateISOString, isNil} from "../../shared/functions";
 import {filter, map, throttleTime} from "rxjs/operators";
 import {TripFilter} from "./trip.service";
 import {ErrorCodes} from "./trip.errors";
@@ -22,8 +22,9 @@ export class PhysicalGearFilter {
   tripId?: number;
   vesselId?: number;
   programLabel?: string;
-  startDate?: Date | Moment;
-  endDate?: Date | Moment;
+  startDate?: Moment;
+  endDate?: Moment;
+  excludeTripId?: number;
 }
 
 
@@ -87,8 +88,7 @@ export class PhysicalGearService extends BaseDataService
       offset: offset || 0,
       size: size || 1000,
       sortBy: (sortBy !== 'id' && sortBy) || 'rankOrder',
-      sortDirection: sortDirection || 'desc',
-      filter: dataFilter
+      sortDirection: sortDirection || 'desc'
     };
 
     let $loadResult: Observable<{ physicalGears?: PhysicalGear[] }>;
@@ -110,22 +110,46 @@ export class PhysicalGearService extends BaseDataService
           map(res =>  res && res.data || []),
           // Map to gears
           map(trips => {
+            if (this._debug) console.debug("[physical-gear-service] Will filter trips:", trips);
+            // TODO: group by unique gear (from a hash (GEAR.LABEL + measurements))
             return {
-              physicalGears: trips.reduce(
-                // TODO: group by unique gear (from a hash (GEAR.LABEL + measurements))
-                (res, t) => t.gears ? res.concat(t.gears) : res, []
-              )
+              physicalGears: trips.reduce((res, trip) => {
+                // Exclude if no gears
+                const tripDate = fromDateISOString(trip.returnDateTime || trip.departureDateTime);
+                if (!trip.gears || !tripDate
+                  // Or if endDate <= trip date
+                  || (dataFilter.startDate && tripDate.isBefore(dataFilter.startDate))
+                  || (dataFilter.endDate && tripDate.isSameOrAfter(dataFilter.endDate))
+                  || (dataFilter.excludeTripId && trip.id === dataFilter.excludeTripId)) {
+                  return res;
+                }
+
+                return res.concat(trip.gears.map(gear => {
+                  return {
+                    ...gear,
+                    trip: {
+                      departureDateTime: trip.departureDateTime,
+                      returnDateTime: trip.returnDateTime
+                    }
+                  };
+                }));
+              }, [])
             };
           })
         );
     }
     else {
       this._lastVariables.loadAll = variables;
+      const remoteFilter = {...dataFilter};
+      delete remoteFilter.excludeTripId;
 
       if (this._debug) console.debug("[physical-gear-service] Loading physical gears... using options:", variables);
       $loadResult = this.graphql.watchQuery({
         query: LoadAllQuery,
-        variables: variables,
+        variables: {
+          ...variables,
+          filter: remoteFilter
+        },
         error: {code: ErrorCodes.LOAD_PHYSICAL_GEARS_ERROR, message: "TRIP.PHYSICAL_GEAR.ERROR.LOAD_PHYSICAL_GEARS_ERROR"},
         fetchPolicy: options && options.fetchPolicy || undefined
       })

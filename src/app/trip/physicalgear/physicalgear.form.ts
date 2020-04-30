@@ -39,6 +39,8 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   @Input() tabindex: number;
 
+  @Input() canEditRankOrder = false;
+
   @Input()
   set program(value: string) {
     this.programSubject.next(value);

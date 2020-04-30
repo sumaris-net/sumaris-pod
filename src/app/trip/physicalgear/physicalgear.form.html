@@ -15,7 +15,7 @@
   </mat-autocomplete-field>
 
   <!-- rankOrder -->
-  <mat-form-field>
+  <mat-form-field [class.cdk-visually-hidden]="!canEditRankOrder">
     <input matInput
            formControlName="rankOrder"
            autocomplete="off"
