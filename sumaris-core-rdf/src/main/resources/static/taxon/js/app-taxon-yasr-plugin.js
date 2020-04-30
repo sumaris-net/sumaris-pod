@@ -46,55 +46,41 @@ class YasrTaxonPlugin {
     getTaxonsFromBindings(bindings) {
         const taxonsByUri = {};
         bindings.forEach(binding => {
-            let uri = binding.sourceUri && binding.sourceUri.value;
-            // If no match found (can occur n file import)
-            if (!uri) {
-                const lookupVars = Object.keys(binding);
-                const lookupVar = lookupVars.length === 1 ? lookupVars[0] : lookupVars[lookupVars.length -1];
-                const lookupValue = binding[lookupVar].value;
-                uri = lookupValue;
-                if (!taxonsByUri[uri]) {
-                    taxonsByUri[uri] = {
-                        uri: lookupVar === 'code' ? lookupValue : undefined,
-                        scientificName: lookupVar === 'name' ? lookupValue : undefined,
-                        missing: true,
-                        exactMatch: lookupVar === 'aphiaid' ? ['urn:lsid:marinespecies.org:taxname:' + lookupValue] : [],
-                        seeAlso: []
-                    };
-                }
-            }
-            else {
-                if (!taxonsByUri[uri]) {
-                    taxonsByUri[uri] = {
-                        uri,
-                        scientificName: binding.scientificName.value,
+            const missing = binding.lookup && binding.lookup.found === false;
+            const uniqueKey = (binding.sourceUri && binding.sourceUri.value) || (missing && binding.lookup.value);
+            if (uniqueKey) {
+                if (!taxonsByUri[uniqueKey]) {
+                    taxonsByUri[uniqueKey] = {
+                        uri: binding.sourceUri && binding.sourceUri.value,
+                        scientificName: binding.scientificName && binding.scientificName.value,
                         author: binding.author && binding.author.value,
                         rank: binding.rank && binding.rank.value,
                         created: binding.created && binding.created.value,
                         modified: binding.modified && binding.modified.value,
                         exactMatch : [],
                         seeAlso : [],
-                        parentUri: binding.parent && binding.parent.value
+                        parentUri: binding.parent && binding.parent.value,
+                        missing
                     };
                     // Remove modified date, if same as created
-                    if (taxonsByUri[uri].modified && taxonsByUri[uri].modified === taxonsByUri[uri].created) {
-                        taxonsByUri[uri].modified = undefined;
+                    if (taxonsByUri[uniqueKey].modified && taxonsByUri[uniqueKey].modified === taxonsByUri[uniqueKey].created) {
+                        taxonsByUri[uniqueKey].modified = undefined;
                     }
                 }
-            }
-            if (binding.exactMatch && binding.exactMatch.value
-                // Exclude if already present
-                && !taxonsByUri[uri].exactMatch.includes(binding.exactMatch.value)
-                // Exclude is same as source
-                && binding.exactMatch.value.trim() !== uri) {
-                taxonsByUri[uri].exactMatch.push(binding.exactMatch.value.trim())
-            }
-            if (binding.seeAlso && binding.seeAlso.value
-                // Exclude if already present
-                && !taxonsByUri[uri].seeAlso.includes(binding.seeAlso.value)
-                // Exclude is same as source
-                && binding.seeAlso.value.trim() !== uri) {
-                taxonsByUri[uri].seeAlso.push(binding.seeAlso.value.trim())
+                if (binding.exactMatch && binding.exactMatch.value
+                    // Exclude if already present
+                    && !taxonsByUri[uniqueKey].exactMatch.includes(binding.exactMatch.value)
+                    // Exclude is same as source
+                    && binding.exactMatch.value.trim() !== uniqueKey) {
+                    taxonsByUri[uniqueKey].exactMatch.push(binding.exactMatch.value.trim())
+                }
+                if (binding.seeAlso && binding.seeAlso.value
+                    // Exclude if already present
+                    && !taxonsByUri[uniqueKey].seeAlso.includes(binding.seeAlso.value)
+                    // Exclude is same as source
+                    && binding.seeAlso.value.trim() !== uniqueKey) {
+                    taxonsByUri[uniqueKey].seeAlso.push(binding.seeAlso.value.trim())
+                }
             }
         });
         return Object.keys(taxonsByUri).map(key => taxonsByUri[key]).sort((t1, t2) => t1.scientificName === t2.scientificName ? 0 : (t1.scientificName > t2.scientificName ? 1 : -1));

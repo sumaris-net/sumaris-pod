@@ -723,7 +723,7 @@ function AppTaxonSearch(config) {
                         reject("Response content type '{}' not implemented yet".format(res.type));
                     }
 
-                    console.debug("[taxon-search] Search on '{0}' give results:".format(searchText), res.body);
+                    console.debug("[taxon-search] Search on '{0}' give {1} results:".format(searchText, res.body && res.body.results && res.body.results.bindings.length || 0));
                     resolve(res);
                 }
             })
@@ -1020,7 +1020,8 @@ function AppTaxonSearch(config) {
 
         // Chain search on each value
         let res,
-            lookupVar,
+            lookupVar = 'lookup',
+            counter = 0,
             matchCount = 0;
         for (value of validValues) {
 
@@ -1034,53 +1035,86 @@ function AppTaxonSearch(config) {
             const curRes = await searchAsPromise(value, opts);
 
             const hasResult = curRes.body && curRes.body.results && curRes.body.results.bindings && curRes.body.results.bindings.length > 0;
-            matchCount += hasResult ? 1 : 0;
-
-            const bindings = hasResult ? curRes.body.results.bindings : [{}/*empty binding*/];
 
             // If first response, init the result
             if (!res) {
                 // Copy the first result, to init final response
-                res = {...curRes};
-
-                // Reset bindings (will be add later)
-                res.body.results.bindings = [];
-
-                // Compute and add a new var, to store the lookup value
-                lookupVar = valueType;
-                while (res.body.head.vars.findIndex(v => v === lookupVar) !== -1) {
-                    lookupVar = '_' + lookupVar;
-                }
-                res.body.head.vars.push(lookupVar);
+                res = {...curRes,
+                    body: {
+                        head: {
+                            // Add lookup var
+                            vars: [lookupVar].concat(curRes.body.head.vars)
+                        },
+                        results: {
+                            // Reset bindings (will be add later)
+                            bindings: []
+                        }
+                    }
+                };
             }
 
-            // Add the lookup value to each bindings
-            bindings.forEach(b => b[lookupVar] = {value, type: 'literal'});
+            let bindings;
+            if (hasResult) {
+                bindings = curRes.body.results.bindings;
+
+                // Add the lookup value to each bindings
+                bindings.forEach(binding => {
+                    binding[lookupVar] = {value, type: 'literal', found: true};
+                });
+            }
+            else {
+                // Create a fake binding, for the missing value
+                const binding = {};
+                binding[lookupVar] = {value, type: 'literal', found: false};
+                switch(valueType.toLowerCase()) {
+                    case 'code':
+                        binding.sourceUri = {value, type: 'literal'};
+                        break;
+                    case 'name':
+                        binding.scientificName = {value, type: 'literal'};
+                        break;
+                    case 'aphiaid':
+                        binding.exactMatch = {value: 'urn:lsid:marinespecies.org:taxname:' + value, type: 'uri'};
+                        break;
+                    default:
+                        console.warn('Unknown value type: ' + valueType);
+                }
+
+                bindings = [binding];
+            }
 
             // Append final bindings
             res.body.results.bindings = res.body.results.bindings.concat(bindings);
 
+            // Update counter
+            matchCount += hasResult ? 1 : 0;
+
             // Update progression
             progression += progressionStep;
             setProgression(progression);
+
+            // Display result, every 5 value
+            if (progression < 100 && counter % 5 === 0) {
+                displayResponse(this.yasgui, res, 0);
+            }
         }
 
         // All search has been executed
         setProgression(100);
         const duration = Date.now() - now;
-        console.debug("[taxon-search] All {0} imported in {1} ms".format(valueType, duration), res);
+        console.debug("[taxon-search] All {0} imported in {1} ms".format(valueType, duration));
 
         if (res) {
             file.response = res;
             file.duration = duration;
+
+            displayFileResponse(file);
         }
         else {
             hideResult();
         }
 
-        displayFileResponse(file);
-
-        displayFileResult(file, {
+        displayFileExecutionResult(file, {
             totalCount: values.length,
             matchCount: matchCount,
             ignoreCount : values.length - validValues.length,
@@ -1108,62 +1142,85 @@ function AppTaxonSearch(config) {
         })
     }
 
-    function displayFileResult(file, {totalCount, matchCount, ignoreCount, missingCount}) {
+    function displayFileExecutionResult(file, {totalCount, matchCount, ignoreCount, missingCount}) {
         if (!file || !file.previewElement) return;
-        const el = file.previewElement.querySelector(".result");
-        if (!el) return;
+        const resultElement = file.previewElement.querySelector(".result");
+        if (resultElement) {
+            // Total element
+            {
+                const totalEl = document.createElement("a");
+                totalEl.setAttribute('href', '#');
+                totalEl.innerText = totalCount + ' row' + (totalCount > 1 ? 's' : '');
+                totalEl.onclick = () => displayFileResponse(file);
+                resultElement.appendChild(totalEl);
+            }
 
-        {
-            const totalEl = document.createElement("a");
-            totalEl.setAttribute('href', '#');
-            totalEl.innerText = totalCount + ' row' + (totalCount > 1 ? 's' : '');
-            totalEl.onclick = () => displayFileResponse(file);
-            el.appendChild(totalEl);
-        }
+            {
+                const span = resultElement.appendChild(document.createElement("span"));
+                span.innerText = ' (';
+                resultElement.appendChild(span);
+            }
 
-        {
-            const span = el.appendChild(document.createElement("span"));
-            span.innerText = ' (';
-            el.appendChild(span);
-        }
-
-        if (ignoreCount > 0) {
-            const ignoreEl = el.appendChild(document.createElement("span"));
-            ignoreEl.innerText = ignoreCount + ' ignored';
-            el.appendChild(ignoreEl);
-        }
-
-        if (matchCount > 0) {
+            // Ignore count
             if (ignoreCount > 0) {
-                const span = el.appendChild(document.createElement("span"));
-                span.innerText = ', ';
-                el.appendChild(span);
+                const ignoreEl = resultElement.appendChild(document.createElement("span"));
+                ignoreEl.innerText = ignoreCount + ' ignored';
+                resultElement.appendChild(ignoreEl);
             }
-            const matchEl = document.createElement("a");
-            matchEl.setAttribute('href', '#');
-            matchEl.innerText = matchCount + ' found';
-            matchEl.onclick = () => displayFileResponse(file, {valid: true});
-            el.appendChild(matchEl);
+
+            // Match count
+            if (matchCount > 0) {
+                if (ignoreCount > 0) {
+                    const span = resultElement.appendChild(document.createElement("span"));
+                    span.innerText = ', ';
+                    resultElement.appendChild(span);
+                }
+                const matchEl = document.createElement("a");
+                matchEl.setAttribute('href', '#');
+                matchEl.innerText = matchCount + ' found';
+                matchEl.onclick = () => displayFileResponse(file, {valid: true});
+                resultElement.appendChild(matchEl);
+            }
+
+            // Not found count
+            if (missingCount > 0) {
+                if (ignoreCount > 0 || matchCount > 0) {
+                    const span = resultElement.appendChild(document.createElement("span"));
+                    span.innerText = ', ';
+                    resultElement.appendChild(span);
+                }
+                const missingEl = document.createElement("a");
+                missingEl.setAttribute('href', '#');
+                missingEl.innerText = missingCount + ' not found';
+                missingEl.onclick = () => displayFileResponse(file, {valid: false});
+                resultElement.appendChild(missingEl);
+            }
+
+            {
+                const span = resultElement.appendChild(document.createElement("span"));
+                span.innerHTML = ')';
+                resultElement.appendChild(span);
+            }
         }
 
+        // Update buttons
         if (missingCount > 0) {
-            if (ignoreCount > 0 || matchCount > 0) {
-                const span = el.appendChild(document.createElement("span"));
-                span.innerText = ', ';
-                el.appendChild(span);
+            const createMissingButton = file.previewElement.querySelector(".btn.create-missing");
+            if (createMissingButton) {
+                $('#create-missing-toast').toast({autohide: true, delay: 2500});
+                createMissingButton.classList.remove('d-none');
+                createMissingButton.onclick = () => {
+                    console.debug('[taxon-search] Asking creation of missing references...');
+                    $('#create-missing-toast').toast('show');
+                }
             }
-            const missingEl = document.createElement("a");
-            missingEl.setAttribute('href', '#');
-            missingEl.innerText = missingCount + ' not found';
-            missingEl.onclick = () => displayFileResponse(file, {valid: false});
-            el.appendChild(missingEl);
         }
 
-        {
-            const span = el.appendChild(document.createElement("span"));
-            span.innerHTML = ')';
-            el.appendChild(span);
-        }
+        // Hide the import button
+        //const importButton = file.previewElement.querySelector(".import-dropdown");
+        //if (importButton) {
+        //    importButton.classList.add('d-none')
+        //}
     }
 
     function hideFileResult(file) {
@@ -1176,26 +1233,31 @@ function AppTaxonSearch(config) {
     function displayFileResponse(file, opts) {
         if (!file || !file.response) return; // Skip
 
-        // Filter response
-        let res;
+        // Create a filter function, from options
+        let filterFn;
         if (opts && opts.valid === true) {
-            res = {
-                ...file.response
-            };
-            res.body.results.bindings =  res.body.results.bindings.slice().filter(binding => !!binding.sourceUri);
+            filterFn = (b) => !!b.sourceUri;
         }
         else if (opts && opts.valid === false) {
-            res = {
-                ...file.response
-            };
-            res.body.results.bindings =  res.body.results.bindings.slice().filter(binding => !binding.sourceUri);
-        }
-        else {
-            res = { ...file.response };
-            res.body.results.bindings = res.body.results.bindings.slice();
+            filterFn = (b) => !b.sourceUri;
         }
 
-        displayResponse(this.yasqe, res, file.duration);
+        if (filterFn) {
+            const response = {
+                ...file.response,
+                body: {
+                    head: file.response.body.head,
+                    results: {
+                        bindings: file.response.body.results.bindings.filter(b => !filterFn || filterFn(b))
+                    }
+                }
+            };
+            displayResponse(this.yasqe, response, file.duration);
+        }
+        else {
+            displayResponse(this.yasqe, file.response, file.duration);
+        }
+
     }
 
     function getFileProgressionFn(file) {
