@@ -47,7 +47,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PhysicalGearRepositoryImpl
-    extends DataRepositoryImpl<PhysicalGear, Integer, PhysicalGearVO, PhysicalGearFilterVO>
+    extends RootDataRepositoryImpl<PhysicalGear, Integer, PhysicalGearVO, PhysicalGearFilterVO>
     implements PhysicalGearRepositoryExtend {
 
     private static final Logger log =

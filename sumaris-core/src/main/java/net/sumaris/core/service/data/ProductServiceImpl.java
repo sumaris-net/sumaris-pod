@@ -8,10 +8,8 @@ import net.sumaris.core.vo.filter.ProductFilterVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -51,9 +49,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductVO save(ProductVO product) {
-        Preconditions.checkNotNull(product);
-        Preconditions.checkNotNull(product.getRecorderDepartment(), "Missing recorderDepartment");
-        Preconditions.checkNotNull(product.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+        checkProduct(product);
 
         // Save
         return productRepository.save(product);
@@ -69,16 +65,19 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductVO> saveByLandingId(int landingId, List<ProductVO> products) {
+        checkProducts(products);
         return productRepository.saveByLandingId(landingId, products);
     }
 
     @Override
     public List<ProductVO> saveByOperationId(int operationId, List<ProductVO> products) {
+        checkProducts(products);
         return productRepository.saveByOperationId(operationId, products);
     }
 
     @Override
     public List<ProductVO> saveBySaleId(int saleId, List<ProductVO> products) {
+        checkProducts(products);
         return productRepository.saveBySaleId(saleId, products);
     }
 
@@ -129,34 +128,16 @@ public class ProductServiceImpl implements ProductService {
         productRepository.fillMeasurementsMap(product);
     }
 
-    private void copyMeasurements(List<ProductVO> products) {
+    /* protected methods */
 
-        if (products == null) return;
-
-        products.forEach(this::copyMeasurements);
-
+    protected void checkProducts(final List<ProductVO> sources) {
+        Preconditions.checkNotNull(sources);
+        sources.forEach(this::checkProduct);
     }
-
-    private void copyMeasurements(ProductVO product) {
-
-        if (product == null) return;
-
-        if (product.getMeasurementValues() != null) {
-
-            Set<Integer> pmfmToRemove = new HashSet<>();
-
-            product.getMeasurementValues().forEach((pmfmId, value) -> {
-                if (pmfmService.isWeightPmfm(pmfmId)) {
-                    pmfmToRemove.add(pmfmId);
-//                    product.setWeight(value);
-                    if (pmfmService.isCalculatedPmfm(pmfmId)) {
-
-                    }
-                }
-            });
-
-        }
-
+    protected void checkProduct(final ProductVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
+        Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
     }
 
 }
