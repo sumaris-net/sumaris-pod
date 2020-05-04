@@ -22,28 +22,26 @@
 
 
 
-class YasrTaxonPlugin {
+function YasrTaxonPlugin(yasr) {
     // A priority value. If multiple plugin support rendering of a result, this value is used
     // to select the correct plugin
-    priority = 10;
+    this.priority = 10;
 
     // Name
-    label = "Taxon";
+    this.label = "Taxon";
 
     // Whether to show a select-button for this plugin
-    hideFromSelection = false;
+    this.hideFromSelection = false;
 
     // Max length, before truncated URI
-    uriMaxLength = undefined;
+    this.uriMaxLength = undefined;
 
     // Default options
     //defaults = YasrTaxonPlugin.defaults;
 
-    constructor(yasr) {
-        this.yasr = yasr;
-    }
+    this.yasr = yasr;
 
-    getTaxonsFromBindings(bindings) {
+    this.getTaxonsFromBindings = function(bindings) {
         const taxonsByUri = {};
         bindings.forEach(binding => {
             const missing = binding.lookup && binding.lookup.found === false;
@@ -87,7 +85,7 @@ class YasrTaxonPlugin {
     }
 
     // Draw the resultset. This plugin simply draws the string 'True' or 'False'
-    draw() {
+    this.draw = function () {
         const el = document.createElement("div");
         el.classList.add('taxon-plugin');
 
@@ -192,7 +190,7 @@ class YasrTaxonPlugin {
 
     // A required function, used to indicate whether this plugin can draw the current
     // resultset from yasr
-    canHandleResults() {
+    this.canHandleResults = function() {
         return (
             this.yasr.results.type === 'json' && this.yasr.results.json.head
             && this.yasr.results.json.head.vars.includes('scientificName')
@@ -200,14 +198,14 @@ class YasrTaxonPlugin {
         );
     }
     // A required function, used to identify the plugin, works best with an svg
-    getIcon() {
+    this.getIcon = function() {
         const textIcon = document.createElement("div");
         textIcon.classList.add("plugin_icon", "txtIcon");
         textIcon.innerText = "✓";
         return textIcon;
     }
 
-    download() {
+    this.download = function() {
         const hasResults = this.yasr.results && this.yasr.results.json && this.yasr.results.json.results.bindings.length && true;
         if (!hasResults) return undefined;
 
@@ -221,13 +219,13 @@ class YasrTaxonPlugin {
 
     /* -- Internal functions -- */
 
-    inverseArrayValue(array, index1, index2) {
+    this.inverseArrayValue = function(array, index1, index2) {
         let temp1 = array[index1];
         array[index1] = array[index2];
         array[index2] = temp1;
     }
 
-    urnToUrl(uri) {
+    this.urnToUrl = function(uri) {
         if (!uri || !uri.startsWith('urn:')) return uri;
 
         // WoRMS
@@ -244,7 +242,7 @@ class YasrTaxonPlugin {
         return uri;
     }
 
-    urnToRdfUrl(uri) {
+    this.urnToRdfUrl = function(uri) {
         if (!uri || !uri.startsWith('urn:')) return uri;
 
         // Resolve Life science ID (e.g. WoRMS urn, etc.)
@@ -255,7 +253,7 @@ class YasrTaxonPlugin {
         return uri;
     }
 
-    simplifyUri(uri, prefixes, truncLength) {
+    this.simplifyUri = function(uri, prefixes, truncLength) {
         if (uri && prefixes) {
             for (let prefix of Object.keys(prefixes)) {
                 const namespace = prefixes[prefix];
@@ -271,7 +269,7 @@ class YasrTaxonPlugin {
     }
 
 
-    truncText(text, truncLength) {
+    this.truncText = function(text, truncLength) {
         // No prefix found: check length
         if (truncLength && truncLength > 3 && text.length > truncLength) {
             return text.substr(0, truncLength-3) + '...';
@@ -279,7 +277,7 @@ class YasrTaxonPlugin {
         return text;
     }
 
-    displayUri(uri, prefixes, textTruncLength) {
+    this.displayUri = function(uri, prefixes, textTruncLength) {
         if (!uri) return '';
 
         let getStartTag;
@@ -315,7 +313,6 @@ class YasrTaxonPlugin {
         }
         return uri;
     }
-
 }
 
 YasrTaxonPlugin.prototype.defaults = {
