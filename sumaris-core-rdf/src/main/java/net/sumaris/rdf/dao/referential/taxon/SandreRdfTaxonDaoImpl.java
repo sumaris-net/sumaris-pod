@@ -42,6 +42,9 @@ public class SandreRdfTaxonDaoImpl extends BaseRdfTaxonDaoImpl {
     @Value("${rdf.sandre.dataset.name:http://id.eaufrance.fr/apt/}")
     private String name;
 
+    @Value("${rdf.taxref.query.name:classpath:sparql/taxon.sparql}")
+    private String queryFile;
+
     @Override
     public String getName() {
         return name;
@@ -57,5 +60,8 @@ public class SandreRdfTaxonDaoImpl extends BaseRdfTaxonDaoImpl {
         return endpointUrl;
     }
 
-
+    @Override
+    protected String getQueryFile() {
+        return queryFile;
+    }
 }

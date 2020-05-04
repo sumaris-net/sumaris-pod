@@ -42,6 +42,9 @@ public class TaxrefRdfTaxonDaoImpl extends BaseRdfTaxonDaoImpl {
     @Value("${rdf.taxref.dataset.name:http://taxref.mnhn.fr/lod/}")
     private String name;
 
+    @Value("${rdf.taxref.query.name:classpath:sparql/taxon.sparql}")
+    private String queryFile;
+
     public String getName() {
         return name;
     }
@@ -54,5 +57,10 @@ public class TaxrefRdfTaxonDaoImpl extends BaseRdfTaxonDaoImpl {
     @Override
     protected String getEndpointUrl() {
         return endpointUrl;
+    }
+
+    @Override
+    protected String getQueryFile() {
+        return queryFile;
     }
 }

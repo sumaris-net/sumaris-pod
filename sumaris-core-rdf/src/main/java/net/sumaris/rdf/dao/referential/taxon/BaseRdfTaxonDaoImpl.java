@@ -23,9 +23,12 @@
 package net.sumaris.rdf.dao.referential.taxon;
 
 
+import com.google.common.base.Charsets;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.rdf.dao.NamedModelProducer;
+import net.sumaris.rdf.dao.SparqlQueries;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryFactory;
@@ -34,7 +37,11 @@ import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ResourceUtils;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.stream.Stream;
 
 public abstract class BaseRdfTaxonDaoImpl implements NamedModelProducer {
@@ -70,8 +77,28 @@ public abstract class BaseRdfTaxonDaoImpl implements NamedModelProducer {
         return RDFConnectionFactory.connect(getEndpointUrl());
     }
 
+    protected String getQuery() {
+        String queryFile = getQueryFile();
+        if (queryFile == null) {
+            throw new SumarisTechnicalException("Not implemented. Please provide a queryFile, or override getQuery()");
+        }
+        try {
+            File file = ResourceUtils.getFile(queryFile);
+
+            // Read File Content
+            return new String(Files.readAllBytes(file.toPath()), Charsets.UTF_8);
+
+        } catch (IOException e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
+    protected String getQueryFile() {
+        return null;
+    }
+
     protected String getConstructQuery(Page page) {
-        return RdfTaxonQueries.getConstructQuery(page);
+        return SparqlQueries.getConstructQuery(getQuery(), page);
     }
 
 
