@@ -122,7 +122,14 @@ public class DatasetService {
 
         // Fill dataset (async if possible)
         if (taskExecutor != null) {
-            taskExecutor.execute(() -> loadDataset(this.dataset));
+            taskExecutor.execute(() -> {
+                try {
+                    Thread.sleep(10 * 1000); // Wait server starts
+
+                    loadDataset(this.dataset);
+
+                } catch (InterruptedException e) { }
+            });
         }
         else {
             loadDataset(this.dataset);

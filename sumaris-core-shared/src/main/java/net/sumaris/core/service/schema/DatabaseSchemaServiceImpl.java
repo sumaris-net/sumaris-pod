@@ -122,7 +122,7 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
         if (taskExecutor != null) {
             taskExecutor.execute(() -> {
                 try {
-                    Thread.sleep(10 * 1000);
+                    Thread.sleep(10 * 1000); // Wait server starts
 
                     self.fireOnSchemaUpdatedEvent();
                 } catch (InterruptedException e) {
