@@ -53,9 +53,11 @@ import org.apache.jena.tdb2.TDB2Factory;
 import org.apache.jena.util.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -103,7 +105,11 @@ public class DatasetService {
     @Resource(name = "sandreRdfTaxonDao")
     private NamedModelProducer sandreRdfTaxonDao;
 
+    @Autowired(required = false)
+    protected TaskExecutor taskExecutor;
+
     private Map<String, Callable<Model>> namedGraphFactories = Maps.newHashMap();
+
 
     @PostConstruct
     public void start() {
@@ -114,8 +120,13 @@ public class DatasetService {
         // Init the query dataset
         this.dataset = createDataset();
 
-        // fill dataset
-        loadDataset(this.dataset);
+        // Fill dataset (async if possible)
+        if (taskExecutor != null) {
+            taskExecutor.execute(() -> loadDataset(this.dataset));
+        }
+        else {
+            loadDataset(this.dataset);
+        }
     }
 
     @PreDestroy
