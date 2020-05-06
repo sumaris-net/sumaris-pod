@@ -68,8 +68,8 @@ public class ModelURIs {
             .put("skos", SKOS.getURI())
 
             // Darwin core
-            .put("dwc", "http://rs.tdwg.org/ontology/voc/TaxonName.rdf")
-            .put("dwctax", "http://rs.tdwg.org/ontology/voc/TaxonName")
+            .put("dwc", "http://rs.tdwg.org/dwc/terms/")
+            .put("dwctax", "http://rs.tdwg.org/ontology/voc/TaxonName.rdf")
 
             // TaxonConcept
             .put("txn", "http://lod.taxonconcept.org/ontology/txn.owl")
