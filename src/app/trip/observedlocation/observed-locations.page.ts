@@ -144,11 +144,11 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       this.markForCheck();
     });
 
-    // Restore filter from settings, or load all trips
+    // Restore filter from settings, or load all rows
     this.restoreFilterOrLoad();
   }
 
-  setFilter(json: TripFilter, opts?: { emitEvent: boolean }) {
+  setFilter(json: ObservedLocationFilter, opts?: { emitEvent: boolean }) {
     super.setFilter(json, opts);
 
     this.filterIsEmpty = TripFilter.isEmpty(json);

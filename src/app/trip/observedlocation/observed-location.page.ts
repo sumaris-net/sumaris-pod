@@ -14,6 +14,7 @@ import {HistoryPageReference} from "../../core/services/model";
 import {SelectVesselsModal} from "./vessels/select-vessel.modal";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {Landing} from "../services/model/landing.model";
+import {LandingFilter} from "../services/landing.service";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -215,18 +216,25 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
   /* -- protected methods -- */
 
   async openSelectVesselModal(): Promise<VesselSnapshot | undefined> {
+    if (!this.data.startDateTime || !this.data.program) {
+      throw new Error('Root entity has no program and start date. Cannot open select vessels modal');
+    }
+
+    const startDate = this.data.startDateTime.clone().add(-15, "days");
+    const endDate = this.data.startDateTime;
+
+    const landingFilter = <LandingFilter>{
+      programLabel: this.data.program && this.data.program.label,
+      startDate,
+      endDate,
+      locationId: EntityUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined
+    };
 
     const modal = await this.modalCtrl.create({
       component: SelectVesselsModal,
       componentProps: {
         allowMultiple: false,
-        landingFilter: {
-          acquisitionLevel: this.landingsTable.acquisitionLevel,
-          programLabel: this.data.program && this.data.program.label,
-          startDate: moment(this.data.startDateTime).subtract(15, "days"),
-          endDate: moment(this.data.startDateTime).add(1, "days"),
-          locationId: EntityUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined
-        }
+        landingFilter
       },
       keyboardClose: true,
       cssClass: 'modal-large'

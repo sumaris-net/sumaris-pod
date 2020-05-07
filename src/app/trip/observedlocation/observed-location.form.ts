@@ -37,6 +37,7 @@ import {ObservedLocation} from "../services/model/observed-location.model";
 export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation> implements OnInit {
 
   _showObservers: boolean;
+  _locationLevelIds: number[];
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
   mobile: boolean;
@@ -46,7 +47,18 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() showEndDateTime = true;
   @Input() showComment = true;
   @Input() showButtons = true;
-  @Input() locationLevelIds: number[];
+
+  @Input() set locationLevelIds(value: number[]) {
+    this._locationLevelIds = value;
+    // Update location complete field
+    if (this.autocompleteFields['location']) {
+      this.autocompleteFields['location'].filter.levelIds = this.locationLevelIds;
+    }
+  }
+
+  get locationLevelIds(): number[] {
+    return this._locationLevelIds;
+  }
 
   @Input()
   set showObservers(value: boolean) {
@@ -107,6 +119,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     if (isNil(this.locationLevelIds)) {
       this.locationLevelIds = [LocationLevelIds.PORT];
     }
+    console.debug("[observed-location-form] Location level ids:", this.locationLevelIds);
 
     // Combo: programs
     this.registerAutocompleteField('program', {

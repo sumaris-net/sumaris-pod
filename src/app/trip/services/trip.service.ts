@@ -10,7 +10,7 @@ import {
   isNotNil,
   LoadResult,
   TableDataService,
-  toBoolean
+  toBoolean, toDateISOString
 } from "../../shared/shared.module";
 import {AppFormUtils, Department, EntityUtils, environment} from "../../core/core.module";
 import {catchError, filter, map, switchMap, tap} from "rxjs/operators";
@@ -274,11 +274,10 @@ export class TripFilter {
   programLabel?: string;
   vesselId?: number;
   locationId?: number;
-  startDate?: Date | Moment;
-  endDate?: Date | Moment;
+  startDate?: Date | Moment | string;
+  endDate?: Date | Moment | string;
   recorderDepartmentId?: number;
   synchronizationStatus?: SynchronizationStatus;
-  acquisitionLevel?: AcquisitionLevelType;
 }
 
 export interface TripServiceLoadOption extends EditorDataServiceLoadOptions {
@@ -446,7 +445,14 @@ export class TripService extends RootDataService<Trip, TripFilter>
       size: size || 20,
       sortBy: sortBy || 'departureDateTime',
       sortDirection: sortDirection || 'asc',
-      filter: { ...dataFilter, synchronizationStatus: undefined}
+      filter: {
+        ...dataFilter,
+        // Serialize all dates
+        startDate: toDateISOString(dataFilter.startDate),
+        endDate: toDateISOString(dataFilter.endDate),
+        // Remove fields that not exists in pod
+        synchronizationStatus: undefined
+      }
     };
 
     let now = this._debug && Date.now();

@@ -12,7 +12,15 @@ import gql from "graphql-tag";
 import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {filter, map, throttleTime} from "rxjs/operators";
-import {fromDateISOString, isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil} from "../../shared/functions";
+import {
+  fromDateISOString,
+  isEmptyArray,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  toDateISOString
+} from "../../shared/functions";
 import {RootDataService} from "./root-data-service.class";
 import {TripFilter} from "./trip.service";
 import {Sample} from "./model/sample.model";
@@ -32,14 +40,21 @@ import {AcquisitionLevelType} from "../../referential/services/model";
 import {Trip} from "./model/trip.model";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {concatPromises} from "../../shared/observables";
+import {Moment} from "moment";
 
 
 export class LandingFilter /*extends TripFilter*/ {
 
+  programLabel?: string;
+  vesselId?: number;
+  startDate?: Date | Moment;
+  endDate?: Date | Moment;
+  recorderDepartmentId?: number;
+  locationId?: number;
+  synchronizationStatus?: SynchronizationStatus;
+
   observedLocationId?: number;
   tripId?: number;
-  synchronizationStatus?: SynchronizationStatus;
-  acquisitionLevel?: AcquisitionLevelType;
 
   static isEmpty(landingFilter: LandingFilter|any): boolean {
     return !landingFilter || (
@@ -58,6 +73,14 @@ export class LandingFilter /*extends TripFilter*/ {
       // tripId
       if (isNotNil(f.tripId) && f.tripId !== t.tripId)
         return false;
+
+      // Start/end period
+      const startDate = fromDateISOString(f.startDate);
+      const endDate = fromDateISOString(f.endDate);
+      if ((startDate && t.dateTime && startDate.isAfter(t.dateTime))
+        || (endDate && t.dateTime && endDate.add(1, 'day').isSameOrBefore(t.dateTime))) {
+        return false;
+      }
 
       // Synchronization status
       if (f.synchronizationStatus && (
@@ -242,7 +265,14 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       size: size || 20,
       sortBy: sortBy || 'dateTime',
       sortDirection: sortDirection || 'asc',
-      filter: { ...dataFilter, synchronizationStatus: undefined}
+      filter: {
+        ...dataFilter,
+        // Serialize all dates
+        startDate: toDateISOString(dataFilter.startDate),
+        endDate: toDateISOString(dataFilter.endDate),
+        // Remove fields that not exists in pod
+        synchronizationStatus: undefined
+      }
     };
 
     let now = this._debug && Date.now();
