@@ -10,17 +10,8 @@
       {{$title | async}}
     </ion-title>
 
-    <ion-buttons slot="start">
-      <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button class="back-button" (click)="save($event)"
-                  *ngIf="!loading && form.valid"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-
-    <ion-buttons slot="secondary">
+    <ion-buttons slot="end">
       <!-- copy existing button -->
       <ion-button *ngIf="isNew"
                   (click)="copyPreviousGear($event)">
@@ -28,6 +19,15 @@
         <ion-label>
           <span translate>COMMON.BTN_SEARCH</span>
         </ion-label>
+      </ion-button>
+
+      <ion-spinner *ngIf="loading"></ion-spinner>
+
+      <ion-button class="back-button" (click)="save($event)"
+                  *ngIf="!loading"
+                  [disabled]="!form.valid"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
