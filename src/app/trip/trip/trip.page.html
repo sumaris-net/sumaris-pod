@@ -4,7 +4,7 @@
              [defaultBackHref]="defaultBackHref" [canGoBack]="true" >
   <ion-spinner *ngIf="loading"></ion-spinner>
 
-  <button mat-icon-button *ngIf="enabled"
+  <button mat-icon-button *ngIf="enabled && !isNewData || debug"
           [matMenuTriggerFor]="optionsMenu"
           [title]=" 'COMMON.BTN_OPTIONS'|translate">
     <mat-icon>more_vert</mat-icon>
@@ -13,10 +13,20 @@
 
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
+
+  <!-- delete -->
   <button mat-menu-item *ngIf="!isNewData" (click)="delete($event)">
     <ion-label>
       <mat-icon>delete</mat-icon>&nbsp;
       <span translate>COMMON.BTN_DELETE</span>
+    </ion-label>
+  </button>
+
+  <!-- reset -->
+  <button mat-menu-item *ngIf="dirty && !isNewData" (click)="cancel($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_RESET</span>
     </ion-label>
   </button>
 
@@ -49,13 +59,13 @@
           <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
         </mat-icon>
         <ion-label translate>TRIP.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (tripForm.invalid || (saleForm.invalid && saleForm.dirty) || measurementsForm.invalid)"></ion-icon>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="error || (submitted && (tripForm.invalid || (saleForm.invalid && saleForm.dirty) || measurementsForm.invalid))"></ion-icon>
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="error||tripForm.error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="error ||tripForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="(error|| tripForm.error) |translate"></ion-label>
+        <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
       </ion-item>
 
       <ion-grid class="ion-no-padding">

@@ -21,6 +21,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   private _tables: AppTable<any, any>[];
   private _subscription = new Subscription();
   protected _enabled = false;
+  protected _dirty = false;
 
   debug = false;
   data: T;
@@ -91,7 +92,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   }
 
   get dirty(): boolean {
-    return (this._forms && !!this._forms.find(form => form.dirty)) || (this._tables && !!this._tables.find(table => table.dirty));
+    return this._dirty || (this._forms && !!this._forms.find(form => form.dirty)) || (this._tables && !!this._tables.find(table => table.dirty));
   }
 
   /**
@@ -210,6 +211,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   markAsPristine(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     this.error = null;
     this.submitted = false;
+    this._dirty = false;
     this._forms && this._forms.forEach(form => form.markAsPristine(opts));
     this._tables && this._tables.forEach(table => table.markAsPristine(opts));
     if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
@@ -224,6 +226,12 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   markAsTouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     this._forms && this._forms.forEach(form => form.markAsTouched(opts));
     this._tables && this._tables.forEach(table => table.markAsTouched(opts));
+    if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
+  }
+
+
+  markAsDirty(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){
+    this._dirty = true;
     if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
   }
 
@@ -251,7 +259,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     this.onTabChange(event, 'subtab');
   }
 
-  async cancel() {
+  async cancel(event?: Event) {
     if (!this.dirty) return;
     await this.reload();
   }

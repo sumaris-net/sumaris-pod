@@ -129,6 +129,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
       }
       catch (err) {
         this.setError(err);
+        this.selectedTabIndex = 0;
         this.loading = false;
       }
     }
@@ -176,10 +177,10 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     this.previousDataId = data.id;
     this.setValue(data);
 
-    this.markAsPristine();
-    this.markAsUntouched();
+    this.markAsPristine({emitEvent: false});
+    this.markAsUntouched({emitEvent: false});
 
-    this.updateViewState(data);
+    this.updateViewState(data, {emitEvent: false});
 
     // Need to update route
     if (opts.updateTabAndRoute === true) {
@@ -258,9 +259,14 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   async save(event: Event, options?: any): Promise<boolean> {
-    console.debug("[data-editor] Asking to save...", event);
-    if (this.loading || this.saving) return false;
-    if (!this.dirty) return true;
+    if (this.loading || this.saving) {
+      console.debug("[data-editor] Skip save: editor is busy (loading or saving)");
+      return false;
+    }
+    if (!this.dirty) {
+      console.debug("[data-editor] Skip save: editor not dirty");
+      return true;
+    }
 
     // Wait end of async validation
     await this.waitWhilePending();
@@ -300,6 +306,8 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     } catch (err) {
       this.submitted = true;
       this.setError(err);
+      this.selectedTabIndex = 0;
+      this.markAsDirty();
       this.enable();
 
       // Concurrent change on pod
@@ -373,6 +381,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     } catch (err) {
       this.submitted = true;
       this.setError(err);
+      this.selectedTabIndex = 0;
       this.saving = false;
       this.enable();
       return false;
@@ -409,7 +418,8 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
   async unload(): Promise<void> {
     this.form.reset();
-    this.registerFormsAndTables()
+    this.registerFormsAndTables();
+    this._dirty = false;
   }
 
   protected async onNewEntity(data: T, options?: EditorDataServiceLoadOptions): Promise<void> {

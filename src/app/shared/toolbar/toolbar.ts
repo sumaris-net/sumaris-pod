@@ -112,8 +112,7 @@ export class ToolbarComponent implements OnInit {
     setTimeout(() => {
       // Event is obsolete (a new tap event occur)
       if (event.tapCount < this.tapCount) {
-        // Ignore
-        event.stopPropagation();
+        // Ignore event
       }
 
       // If event still the last tap event: process it
