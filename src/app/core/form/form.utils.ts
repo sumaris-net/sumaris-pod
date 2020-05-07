@@ -1,4 +1,4 @@
-import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors} from "@angular/forms";
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
 import {
   filterNumberInput,
   isNil,
@@ -411,6 +411,7 @@ export class FormArrayHelper<T = Entity<any>> {
 
   private readonly arrayControl: FormArray;
   private _allowEmptyArray: boolean;
+  private readonly _validators: ValidatorFn[];
 
   get allowEmptyArray(): boolean {
     return this._allowEmptyArray;
@@ -429,6 +430,7 @@ export class FormArrayHelper<T = Entity<any>> {
     private isEmpty: (value: T) => boolean,
     options?: {
       allowEmptyArray: boolean;
+      validators?: ValidatorFn[];
     }
   ) {
 
@@ -439,6 +441,8 @@ export class FormArrayHelper<T = Entity<any>> {
       this.arrayControl = formBuilder.array([]);
       form.addControl(arrayName, this.arrayControl);
     }
+
+    this._validators = options && options.validators;
 
     // empty array not allow by default
     this.setAllowEmptyArray(toBoolean(options && options.allowEmptyArray, false));
@@ -509,10 +513,10 @@ export class FormArrayHelper<T = Entity<any>> {
 
     // Set required (or reste) min length validator
     if (this._allowEmptyArray) {
-      this.arrayControl.setValidators(null);
+      this.arrayControl.setValidators(this._validators || null);
     }
     else {
-      this.arrayControl.setValidators(SharedValidators.requiredArrayMinLength(1));
+      this.arrayControl.setValidators((this._validators || []).concat(SharedValidators.requiredArrayMinLength(1)));
     }
   }
 }

@@ -5,9 +5,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.validator";
 import {Packet, PacketComposition} from "../model/packet.model";
-import {fragmentOnNonCompositeErrorMessage} from "graphql/validation/rules/FragmentsOnCompositeTypes";
 import {PacketCompositionValidatorService} from "./packet-composition.validator";
-import {toNumber} from "../../../shared/functions";
 
 export interface PacketValidatorOptions extends DataEntityValidatorOptions {
   withComposition?: boolean;
@@ -20,7 +18,7 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
   constructor(
     formBuilder: FormBuilder,
     settings: LocalSettingsService,
-    // protected packetCompositionValidatorService: PacketCompositionValidatorService todo comment l'injecter proprement ?
+    protected packetCompositionValidatorService: PacketCompositionValidatorService //todo comment l'injecter proprement ?
   ) {
     super(formBuilder, settings);
   }
@@ -67,27 +65,6 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
   }
 
   getCompositionControl(composition: PacketComposition): FormGroup {
-    // return this.packetCompositionValidatorService.getFormGroup(composition);
-    // fixme je construit un FormGroup directement mais ce serait plus propre avec l'instruction ci-dessus
-    return this.formBuilder.group({
-      id: [toNumber(composition && composition.id, null)],
-      updateDate: [composition && composition.updateDate || null],
-      controlDate: [composition && composition.controlDate || null],
-      qualificationDate: [composition && composition.qualificationDate || null],
-      qualificationComments: [composition && composition.qualificationComments || null],
-      recorderDepartment: [composition && composition.recorderDepartment || null, SharedValidators.entity],
-      __typename: [PacketComposition.TYPENAME],
-      rankOrder: [composition && composition.rankOrder || null],
-      taxonGroup: [composition && composition.taxonGroup || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      weight: [composition && composition.weight || null, null],
-      ratio1: [composition && composition.ratio1, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-      ratio2: [composition && composition.ratio2, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-      ratio3: [composition && composition.ratio3, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-      ratio4: [composition && composition.ratio4, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-      ratio5: [composition && composition.ratio5, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-      ratio6: [composition && composition.ratio6, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])]
-    });
-
-
+    return this.packetCompositionValidatorService.getFormGroup(composition);
   }
 }

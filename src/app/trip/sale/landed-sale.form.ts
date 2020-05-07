@@ -14,9 +14,9 @@ import {DateAdapter, MatTabChangeEvent, MatTabGroup} from "@angular/material";
 import {Moment} from "moment";
 import {FormBuilder} from "@angular/forms";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ProductSaleValidatorService} from "../services/validator/product-sale.validator";
 import {ProductsTable} from "../product/products.table";
-import {Product} from "../services/model/product.model";
+import {MeasurementsForm} from "../measurement/measurements.form.component";
+import {SaleValidatorService} from "../services/sale.validator";
 
 @Component({
   selector: 'app-landed-sale-form',
@@ -28,17 +28,16 @@ export class LandedSaleForm extends AppForm<Sale> implements OnInit {
 
   @Input() program: string;
 
-
-  selectedTabIndex = 0;
-  @ViewChild('tabGroup', {static: true}) tabGroup: MatTabGroup;
-  @Output() tabChange: EventEmitter<any> = new EventEmitter<any>();
-
   @Input() showError = false;
 
+  @ViewChild('saleMeasurementsForm', {static: true}) saleMeasurementsForm: MeasurementsForm;
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
+
+  totalPriceCalculated: number;
 
   get value(): any {
     const value = this.form.value;
+    value.measurements = this.saleMeasurementsForm.value;
     value.products = this.productsTable.value; //.map(product => product.asObject());
     return value;
   }
@@ -48,19 +47,22 @@ export class LandedSaleForm extends AppForm<Sale> implements OnInit {
   }
 
   constructor(
-    protected productSaleValidatorService: ProductSaleValidatorService, // fixme c'est pas le bon validateur
+    protected landedSaleValidatorService: SaleValidatorService,
     protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: FormBuilder,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, productSaleValidatorService.getFormGroup(), settings);
+    super(dateAdapter, landedSaleValidatorService.getFormGroup(undefined, {required: false}), settings);
 
   }
 
   setValue(data: Sale, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     super.setValue(data, opts);
 
+    this.saleMeasurementsForm.value = data.measurements || [];
+
+    // populate table
     this.productsTable.value = data.products;
   }
 
@@ -68,13 +70,17 @@ export class LandedSaleForm extends AppForm<Sale> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
-
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
     super.enable(opts);
+    this.saleMeasurementsForm.enable(opts);
   }
 
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.disable(opts);
+    this.saleMeasurementsForm.disable(opts);
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

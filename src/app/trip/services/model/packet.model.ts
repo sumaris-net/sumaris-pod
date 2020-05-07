@@ -4,14 +4,12 @@ import {
   EntityUtils,
   isNil,
   isNotNil, IWithPacketsEntity, IWithProductsEntity,
-  NOT_MINIFY_OPTIONS,
+  NOT_MINIFY_OPTIONS, PmfmStrategy,
   ReferentialRef, referentialToString
 } from "./base.model";
 import {ReferentialAsObjectOptions} from "../../../core/services/model";
-import {OperationGroup} from "./trip.model";
-import {getResponseURL} from "@angular/http/src/http_utils";
 import {DataFilter} from "../../../shared/services/memory-data-service.class";
-import {Product} from "./product.model";
+import {PacketSale} from "./packet-sale.model";
 
 export class PacketFilter implements DataFilter<Packet> {
 
@@ -31,6 +29,12 @@ export class PacketFilter implements DataFilter<Packet> {
 
 export class Packet extends DataEntity<Packet> {
 
+  static fromObject(source: any): Packet {
+    const target = new Packet();
+    target.fromObject(source);
+    return target;
+  }
+
   static TYPENAME = 'PacketVO';
 
   rankOrder: number;
@@ -44,6 +48,7 @@ export class Packet extends DataEntity<Packet> {
   sampledWeight5: number;
   sampledWeight6: number;
   composition: PacketComposition[];
+  packetSales: PacketSale[];
 
   // used to compute packet's ratio from composition
   sampledRatio1: number;
@@ -63,6 +68,7 @@ export class Packet extends DataEntity<Packet> {
     this.weight = null;
     // this.sampledWeights = [];
     this.composition = [];
+    this.packetSales = [];
     this.parent = null;
     this.parentId = null;
   }
@@ -78,6 +84,10 @@ export class Packet extends DataEntity<Packet> {
     delete target.sampledWeight6;
     target.composition = this.composition && this.composition.map(c => c.asObject(options)) || undefined;
     target.operationId = this.parent && this.parent.id || this.parentId;
+
+    // packetSales is only for screens
+    delete target.packetSales;
+
     return target;
   }
 
@@ -105,12 +115,34 @@ export class Packet extends DataEntity<Packet> {
     return target;
   }
 
-  static fromObject(source: any): Packet {
-    const target = new Packet();
-    target.fromObject(source);
-    return target;
-  }
+  addPacketSale(packetSale: PacketSale) {
 
+    // find packet sale with same rank order
+    const existingPacketSale = this.packetSales.find(s => s && s.rankOrder === packetSale.rankOrder);
+    if (existingPacketSale) {
+
+      // Some assertions
+      if (existingPacketSale.number !== packetSale.number)
+        throw new Error(`Invalid packet sale: different packet number found: ${existingPacketSale.number} != ${packetSale.number}`);
+      if (isNil(packetSale.saleType) || !packetSale.saleType.equals(existingPacketSale.saleType))
+        throw new Error(`Invalid packet sale: different sale type found:
+        ${existingPacketSale.saleType && existingPacketSale.saleType.name || null} != ${packetSale.saleType && packetSale.saleType.name || null}`);
+
+      // Sum values
+      if (existingPacketSale.weight && packetSale.weight)
+        existingPacketSale.weight += packetSale.weight;
+      if (existingPacketSale.averagePackagingPrice && packetSale.averagePackagingPrice)
+        existingPacketSale.averagePackagingPrice += packetSale.averagePackagingPrice;
+      if (existingPacketSale.totalPrice && packetSale.totalPrice)
+        existingPacketSale.totalPrice += packetSale.totalPrice;
+
+    } else {
+
+      // just add to array
+      this.packetSales.push(packetSale);
+
+    }
+  }
 
 }
 

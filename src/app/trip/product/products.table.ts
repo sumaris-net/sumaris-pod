@@ -10,6 +10,7 @@ import {BehaviorSubject, Observable} from "rxjs";
 import {IWithProductsEntity} from "../services/model/base.model";
 import {IReferentialRef} from "../../core/services/model";
 import {TableElement} from "angular4-material-table";
+import {ProductSaleModal} from "../sale/product-sale.modal";
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -94,10 +95,12 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
     });
 
-    this.registerSubscription(this.$parentFilter.subscribe(parentFilter => {
-      // console.debug('parent test change', parentFilter);
-      this.setFilter(new ProductFilter(parentFilter));
-    }));
+    if (this.$parentFilter) {
+      this.registerSubscription(this.$parentFilter.subscribe(parentFilter => {
+        // console.debug('parent test change', parentFilter);
+        this.setFilter(new ProductFilter(parentFilter));
+      }));
+    }
   }
 
   /* -- protected methods -- */
@@ -126,8 +129,30 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     return pmfms;
   }
 
+  async openProductSale($event: MouseEvent, row: TableElement<Product>) {
+
+    const modal = await this.modalCtrl.create({
+      component: ProductSaleModal,
+      componentProps: {
+        product: row.currentData
+      },
+      backdropDismiss: false,
+      cssClass: 'modal-large'
+    });
+
+    modal.present();
+    const res = await modal.onDidDismiss();
+
+    if (res && res.data) {
+      // patch productSales only
+      row.validator.patchValue({ productSales: res.data.productSales }, {emitEvent: true});
+      this.markAsDirty();
+    }
+
+  }
 
   openSampling($event: MouseEvent, row: TableElement<Product>) {
     // todo
   }
+
 }

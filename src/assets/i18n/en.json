@@ -477,7 +477,16 @@
         "TAXON_GROUP": "Commercial species (FAO)",
         "WEIGHT": "Weight (kg)",
         "INDIVIDUAL_COUNT": "Individual count",
-        "INDIVIDUAL_SAMPLING": "Sampling"
+        "INDIVIDUAL_SAMPLING": "Sampling",
+        "PRODUCT_SALE": "Sales"
+      },
+      "SALE": {
+        "TITLE": "Sale",
+        "SALE_TYPE": "Disposal",
+        "RATIO": "Ratio (%)",
+        "AVG_WEIGHT_PRICE": "Average weight price",
+        "AVG_PACKAGING_PRICE": "Average packaging price",
+        "TOTAL_PRICE": "Total price"
       }
     },
     "BATCH": {

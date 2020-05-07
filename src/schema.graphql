@@ -693,7 +693,7 @@ type ProductVO {
   updateDate: Date
   validationDate: Date
   weight: Float
-  weightMethod: ReferentialVO
+  weightCalculated: Boolean!
 }
 
 type ProgramVO {
@@ -1674,7 +1674,9 @@ input PersonVOInput {
 
 input PhysicalGearFilterVOInput {
   endDate: Date
+  locationId: Int
   programLabel: String
+  recorderDepartmentId: Int
   startDate: Date
   tripId: Int
   vesselId: Int
@@ -1787,7 +1789,7 @@ input ProductVOInput {
   updateDate: Date
   validationDate: Date
   weight: Float
-  weightMethod: ReferentialVOInput
+  weightCalculated: Boolean!
 }
 
 input ProgramFilterVOInput {

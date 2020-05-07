@@ -1,20 +1,15 @@
 import {EntityUtils, isNotNil} from "../../../core/core.module";
 import {ReferentialRef} from "../../../core/services/model";
-import {DataEntity, DataEntityAsObjectOptions, IWithProductsEntity, NOT_MINIFY_OPTIONS} from "./base.model";
+import {DataEntity, DataEntityAsObjectOptions, IWithProductsEntity, NOT_MINIFY_OPTIONS, PmfmStrategy} from "./base.model";
 import {
   IEntityWithMeasurement,
-  IMeasurementValue, MeasurementFormValues,
-  MeasurementModelValues,
-  MeasurementUtils,
+  MeasurementFormValues,
   MeasurementValuesUtils
 } from "./measurement.model";
-import {isNotNilOrBlank} from "../../../shared/functions";
+import {isNotNilOrBlank, toNumber} from "../../../shared/functions";
 import {ReferentialAsObjectOptions} from "../../../core/services/model";
 import {DataFilter} from "../../../shared/services/memory-data-service.class";
-
-export declare interface ProductWeight extends IMeasurementValue {
-  unit?: 'kg';
-}
+import {ProductSale} from "./product-sale.model";
 
 export class ProductFilter implements DataFilter<Product> {
 
@@ -65,11 +60,12 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   individualCount: number;
   subgroupCount: number;
   taxonGroup: ReferentialRef;
-  weight: ProductWeight;
-  weightMethod: ReferentialRef;
+  weight: number;
+  weightCalculated: boolean;
   saleType: ReferentialRef;
 
   measurementValues: MeasurementFormValues;
+  productSales: ProductSale[];
 
   operationId: number;
   saleId: number;
@@ -89,10 +85,10 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.subgroupCount = null;
     this.taxonGroup = null;
     this.weight = null;
-    this.weightMethod = null;
     this.saleType = null;
 
     this.measurementValues = {};
+    this.productSales = [];
     this.operationId = null;
     this.saleId = null;
     this.landingId = null;
@@ -110,11 +106,13 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     const target = super.asObject(opts);
 
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true} as ReferentialAsObjectOptions) || undefined;
-    target.weightMethod = this.weightMethod && this.weightMethod.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true}) || undefined;
     target.saleType = this.saleType && this.saleType.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
 
     // target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
+
+    // productSales is only for screens
+    delete target.productSales;
 
     return target;
   }
@@ -128,7 +126,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.subgroupCount = isNotNilOrBlank(source.subgroupCount) ? parseFloat(source.subgroupCount) : null;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
     this.weight = source.weight || undefined;
-    this.weightMethod = source.weightMethod && ReferentialRef.fromObject(source.weightMethod) || undefined;
+    this.weightCalculated = source.weightCalculated || false;
     this.saleType = source.saleType && ReferentialRef.fromObject(source.saleType) || undefined;
 
     this.parent = source.parent;

@@ -2,9 +2,9 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {environment, isNotNil} from '../../core/core.module';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNilOrBlank} from '../../shared/shared.module';
+import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray, isNotNilOrBlank} from '../../shared/shared.module';
 import * as moment from "moment";
-import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/services/model";
+import {AcquisitionLevelCodes, PmfmStrategy, ProgramProperties} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
@@ -28,6 +28,9 @@ import {PacketsTable} from "../packet/packets.table";
 import {Packet} from "../services/model/packet.model";
 import {OperationGroup, Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
+import {ProductSale} from "../services/model/product-sale.model";
+import {PacketSale} from "../services/model/packet-sale.model";
+import {fillRankOrder, isRankOrderValid} from "../services/model/base.model";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -49,7 +52,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   showExpenseTab = false;
 
   autocompleteHelper: MatAutocompleteConfigHolder;
-  autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
+  autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
 
   // List of trip's metier, used to populate operation group's metier combobox
   $metiers = new BehaviorSubject<MetierRef[]>(null);
@@ -60,18 +63,19 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
   operationGroupAttributes = ['metier.label', 'metier.name'];
 
+  productSalePmfms: PmfmStrategy[];
+
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
-  @ViewChild('operationGroupTable', { static: true }) operationGroupTable: OperationGroupTable;
+  @ViewChild('operationGroupTable', {static: true}) operationGroupTable: OperationGroupTable;
 
-  // @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
-  // @ViewChild('saleMeasurementsForm', {static: true}) saleMeasurementsForm: MeasurementsForm;
+  @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
 
   @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
   // @ViewChild('saleTabGroup', {static: true}) saleTabGroup: MatTabGroup;
 
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
-  @ViewChild('packetsTable', { static: true }) packetsTable: PacketsTable;
+  @ViewChild('packetsTable', {static: true}) packetsTable: PacketsTable;
 
 
   constructor(
@@ -104,7 +108,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     // Watch program, to configure tables from program properties
     this.registerSubscription(
       this.onProgramChanged
-        .subscribe(program => {
+        .subscribe(async program => {
           if (this.debug) console.debug(`[landedTrip] Program ${program.label} loaded, with properties: `, program.properties);
           this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
           if (!this.tripForm.showObservers) {
@@ -137,15 +141,13 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     });
 
 
-
-
     // Cascade refresh to operation tables
     this.registerSubscription(
       this.onUpdateView.subscribe(() => {
         this.operationGroupTable.onRefresh.emit();
         this.productsTable.onRefresh.emit();
         this.packetsTable.onRefresh.emit();
-        // this.landedSaleForm.onRefresh.emit(); TODO ? le onRefresh sur les sous tableaux ?
+        //this.landedSaleForm.onRefresh.emit();// TODO ? le onRefresh sur les sous tableaux ?
       })
     );
 
@@ -153,7 +155,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
   protected registerFormsAndTables() {
     this.registerForms([this.tripForm, this.measurementsForm,
-      // this.landedSaleForm, this.saleMeasurementsForm
+      this.landedSaleForm //, this.saleMeasurementsForm
     ])
       .registerTables([this.operationGroupTable, this.productsTable, this.packetsTable]);
   }
@@ -257,6 +259,10 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     if (!isNew) {
       this.programSubject.next(data.program.label);
       this.$metiers.next(data.metiers);
+
+      // fixme trouver un meilleur moment pour charger les pmfms
+      this.productSalePmfms = await this.programService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
+
     }
     this.measurementsForm.value = data && data.measurements || [];
 
@@ -272,15 +278,49 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       packets = packets.concat(operationGroup.packets);
     });
 
+    // Fix products and packets rank orders (reset if rank order are invalid, ie. from SIH)
+    if (!isRankOrderValid(products))
+      fillRankOrder(products, 1);
+    if (!isRankOrderValid(packets))
+      fillRankOrder(packets, 1);
+
+    // Sale
+    if (data && data.sale && this.productSalePmfms) {
+
+      // fix sale startDateTime
+      data.sale.startDateTime = !data.sale.startDateTime ? data.returnDateTime : data.sale.startDateTime;
+
+      this.landedSaleForm.value = data.sale;
+      // this.saleMeasurementsForm.value = data.sale.measurements || [];
+
+
+      // Dispatch product and packet sales
+      data.sale.products.forEach(saleProduct => {
+        if (isNil(saleProduct.batchId)) {
+          // = product
+          const productFound = products.find(product => ProductSale.isSaleOfProduct(product, saleProduct, this.productSalePmfms));
+          if (productFound) {
+            productFound.productSales.push(ProductSale.toProductSale(saleProduct, this.productSalePmfms));
+          }
+        } else {
+          // = packet
+          const packetFound = packets.find(packet => PacketSale.isSaleOfPacket(packet, saleProduct));
+          if (packetFound) {
+            packetFound.addPacketSale(PacketSale.toPacketSale(saleProduct, this.productSalePmfms));
+          }
+        }
+      });
+
+      // need fill products.productSales.rankOrder
+      products.forEach(p => fillRankOrder(p.productSales));
+    }
+
     // Products table
     this.productsTable.value = products;
 
     // Packets table
     this.packetsTable.value = packets;
 
-    // Sale
-    // this.landedSaleForm.value = data && data.sale;
-    // this.saleMeasurementsForm.value = data && data.sale && data.sale.measurements || [];
 
     // todo set other tables
   }
@@ -400,10 +440,40 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
     const operationGroups: OperationGroup[] = this.operationGroupTable.value || [];
 
+    // Get products and packets
+    const products = this.productsTable.value || [];
+    const packets = this.packetsTable.value || [];
+
+    // Sale
+    json.sale = this.landedSaleForm.value;
+    if (json.sale && this.productSalePmfms) {
+      // json.sale.measurements = this.saleMeasurementsForm.value;
+
+      // Merge sales from products and packets
+      const existingProducts: any[] = json.sale.products || [];
+      const newProducts: Product[] = [];
+
+      // Parse ProductSales
+      products.forEach(product => {
+        (product.productSales || []).forEach(productSale => {
+          const existingProduct = existingProducts.find(p => p.id === productSale.id);
+          if (existingProduct) {
+            // merge existing product
+            const toMerge = productSale.asObject(this.productSalePmfms);
+            newProducts.push({...existingProduct, ...toMerge});
+          } else {
+            // new sale product
+          }
+        });
+      });
+
+      console.debug(newProducts);
+    }
+
     // Affect in each operation group : products and packets
     operationGroups.forEach(operationGroup => {
-      operationGroup.products = (this.productsTable.value || []).filter(product => operationGroup.equals(product.parent as OperationGroup));
-      operationGroup.packets = (this.packetsTable.value || []).filter(packet => operationGroup.equals(packet.parent as OperationGroup));
+      operationGroup.products = products.filter(product => operationGroup.equals(product.parent as OperationGroup));
+      operationGroup.packets = packets.filter(packet => operationGroup.equals(packet.parent as OperationGroup));
     });
 
     json.operationGroups = operationGroups;
@@ -463,26 +533,13 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
    * @param queryParams
    */
   protected async updateRoute(data: Trip, queryParams: any): Promise<boolean> {
-    const url = `${this.defaultBackHref}/trip/${data.id}`;
-    const title = await this.computeTitle(data);
-
-    this.addToPageHistory({
-      title,
-      path: url
-    });
-
-    return await this.router.navigateByUrl(url, {
+    return await this.router.navigateByUrl(`${this.defaultBackHref}/trip/${data.id}`, {
       replaceUrl: true,
       queryParams: this.queryParams
     });
   }
 
   protected addToPageHistory(page: HistoryPageReference) {
-
-    // workaround for #185
-    if (page.path.includes('/new'))
-      return;
-
     super.addToPageHistory({...page, icon: 'boat'});
   }
 

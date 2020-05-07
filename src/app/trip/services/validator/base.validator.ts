@@ -1,4 +1,4 @@
-import {Person,} from "../../../core/services/model";
+import {Person} from "../../../core/services/model";
 import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";

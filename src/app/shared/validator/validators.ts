@@ -1,7 +1,7 @@
-import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
+import {AbstractControl, Form, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
-import {fromDateISOString, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, toDateISOString} from "../functions";
+import {fromDateISOString, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, isNotNilOrNaN, toDateISOString} from "../functions";
 import {Moment} from "moment";
 import {DateFormatPipe} from "../shared.module";
 import {DateAdapter} from "@angular/material";
@@ -227,4 +227,42 @@ export class SharedValidators {
       return null;
     };
   }
+
+  static validSumMaxValue(controlName: string, max: number): ValidatorFn {
+    return (group: FormArray): ValidationErrors | null => {
+      const controls: AbstractControl[] = [];
+      if (group.length) {
+        for (const control of group.controls) {
+          const fromGroup = control as FormGroup;
+          if (fromGroup.controls[controlName] && isNotNilOrNaN(fromGroup.controls[controlName].value)) {
+            controls.push(fromGroup.controls[controlName]);
+          }
+        }
+        if (controls.reduce((sum, control) => sum + control.value , 0) > max) {
+          const error = {sumMaxValue: true};
+          controls.forEach(control => {
+            let errors: ValidationErrors = control.errors || {};
+            errors = {...errors, ...error};
+            control.setErrors(errors);
+            control.markAsTouched({onlySelf: true});
+          });
+          return error;
+        }
+      }
+      controls.forEach(control => SharedValidators.clearError(control, 'sumMaxValue'));
+      return null;
+    };
+  }
+
+  static propagateIfDirty(fieldName: string, fieldNameToPropagate: string, valueToPropagate: any): ValidatorFn {
+    return (group: FormGroup): null => {
+      const control = group.get(fieldName);
+      const controlToPropagate = group.get(fieldNameToPropagate);
+      if (control.dirty && controlToPropagate.value !== valueToPropagate) {
+        controlToPropagate.setValue(valueToPropagate);
+      }
+      return null;
+    };
+  }
+
 }

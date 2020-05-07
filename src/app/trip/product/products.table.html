@@ -132,7 +132,7 @@
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
       <ion-label>{{getPmfmColumnHeader(pmfm)}}
-        <small *ngIf="pmfm.hasUnit"><br/>({{pmfm.unit}})</small>
+        <small *ngIf="pmfm.hasUnit"><br/>({{pmfm.unitLabel}})</small>
       </ion-label>
     </mat-header-cell>
 
@@ -182,8 +182,15 @@
         <mat-icon>add</mat-icon>
       </button>
 
+      <!-- product sale -->
+      <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
+              [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE'|translate"
+              (click)="$event.preventDefault() || openProductSale($event, row)">
+        <mat-icon>local_offer</mat-icon>
+      </button>
+
       <!-- sampling -->
-      <button mat-icon-button color="light" *ngIf="row.validator.controls.individualCount.value > 0 && row.id !== -1"
+      <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1 && row.validator.controls.individualCount.value > 0"
               [title]="'TRIP.PRODUCT.LIST.INDIVIDUAL_SAMPLING'|translate"
               (click)="$event.preventDefault() || openSampling($event, row)">
         <mat-icon>center_focus_strong</mat-icon>

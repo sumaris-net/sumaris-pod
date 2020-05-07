@@ -7,7 +7,7 @@ import {
   joinPropertiesPath,
   toDateISOString
 } from "../../../core/core.module";
-import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
+import {PmfmStrategy, ReferentialRef} from "../../../referential/services/model";
 import {DataEntity, DataEntityAsObjectOptions} from "./base.model";
 import {FormGroup} from "@angular/forms";
 import {isNotNilOrNaN} from "../../../shared/functions";
@@ -114,14 +114,14 @@ export class MeasurementUtils {
     // Work on a copy, to be able to reduce the array
     let rankOrder = 1;
     return (pmfms || []).map(pmfm => {
-      const m = (source || []).find(m => m.pmfmId === pmfm.pmfmId) || new Measurement();
-      m.pmfmId = pmfm.pmfmId; // apply the pmfm (need for new object)
-      m.rankOrder = rankOrder++;
+      const measurement = (source || []).find(m => m.pmfmId === pmfm.pmfmId) || new Measurement();
+      measurement.pmfmId = pmfm.pmfmId; // apply the pmfm (need for new object)
+      measurement.rankOrder = rankOrder++;
 
       // Need by GraphQL cache
-      m.entityName = m.entityName || entityName;
-      m.__typename = m.__typename || 'MeasurementVO';
-      return m;
+      measurement.entityName = measurement.entityName || entityName;
+      measurement.__typename = measurement.__typename || 'MeasurementVO';
+      return measurement;
     });
   }
 
@@ -129,7 +129,7 @@ export class MeasurementUtils {
     switch (pmfm.type) {
       case "qualitative_value":
         if (source.qualitativeValue && source.qualitativeValue.id) {
-          return pmfm.qualitativeValues.find(qv => qv.id == source.qualitativeValue.id);
+          return pmfm.qualitativeValues.find(qv => +qv.id === +source.qualitativeValue.id);
         }
         return null;
       case "integer":
@@ -222,7 +222,7 @@ export class MeasurementUtils {
   // Update measurements from source values map
   static setValuesByFormValues(target: Measurement[], source: MeasurementFormValues, pmfms: PmfmStrategy[]) {
     (target || []).forEach(m => {
-      const pmfm = pmfms && pmfms.find(pmfm => pmfm.pmfmId === m.pmfmId);
+      const pmfm = pmfms && pmfms.find(p => p.pmfmId === m.pmfmId);
       if (pmfm) MeasurementUtils.setMeasurementValue(source[pmfm.pmfmId], m, pmfm);
     });
   }
@@ -345,7 +345,7 @@ export class MeasurementValuesUtils {
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts && opts.onlyExistingPmfms) {
       pmfms = Object.getOwnPropertyNames(source).reduce((res, pmfmId) => {
-        const pmfm = pmfms.find(p => p.pmfmId == +pmfmId);
+        const pmfm = pmfms.find(p => p.pmfmId === +pmfmId);
         return pmfm && res.concat(pmfm) || res;
       }, []);
     }
@@ -421,6 +421,28 @@ export class MeasurementValuesUtils {
         }
         return map;
       }, {}) || undefined;
+  }
+
+  static getValue(measurements: MeasurementModelValues | MeasurementFormValues, pmfms: PmfmStrategy[], pmfmLabel: string): MeasurementFormValue {
+    if (!measurements || !pmfms || !pmfmLabel)
+      return undefined;
+
+    const pmfm = pmfms.find(p => p.label && p.label === pmfmLabel);
+    if (pmfm && measurements[pmfm.pmfmId]) {
+      return MeasurementValuesUtils.normalizeValueToForm(measurements[pmfm.pmfmId], pmfm);
+    }
+    return undefined;
+  }
+
+  static setValue(measurements: MeasurementModelValues | MeasurementFormValues, pmfms: PmfmStrategy[], pmfmLabel: string, value: MeasurementFormValue) {
+    if (!measurements || !pmfms || !pmfmLabel)
+      return undefined;
+
+    const pmfm = pmfms.find(p => p.label && p.label === pmfmLabel);
+    if (pmfm) {
+      measurements[pmfm.pmfmId] = MeasurementValuesUtils.normalizeValueToModel(value, pmfm);
+    }
+    return undefined;
   }
 }
 

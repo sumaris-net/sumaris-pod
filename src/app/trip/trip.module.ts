@@ -74,13 +74,15 @@ import {OperationGroupValidatorService} from "./services/validator/operation-gro
 import {ProductsTable} from "./product/products.table";
 import {ProductValidatorService} from "./services/validator/product.validator";
 import {LandedSaleForm} from "./sale/landed-sale.form";
-import {ProductSaleValidatorService} from "./services/validator/product-sale.validator";
 import {PacketsTable} from "./packet/packets.table";
 import {PacketValidatorService} from "./services/validator/packet.validator";
 import {PacketForm} from "./packet/packet.form";
 import {PacketModal} from "./packet/packet.modal";
 import {SelectPhysicalGearModal} from "./physicalgear/select-physicalgear.modal";
 import {PhysicalGearService} from "./services/physicalgear.service";
+import {ProductSaleForm} from "./sale/product-sale.form";
+import {PacketCompositionValidatorService} from "./services/validator/packet-composition.validator";
+import {ProductSaleModal} from "./sale/product-sale.modal";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -136,6 +138,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     LandedTripPage,
     OperationGroupTable,
     ProductsTable,
+    ProductSaleForm,
+    ProductSaleModal,
     LandedSaleForm,
     PacketsTable,
     PacketForm,
@@ -187,7 +191,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     SubBatchModal,
     SampleModal,
     SelectVesselsModal,
-    PacketModal
+    PacketModal,
+    ProductSaleModal
   ],
   providers: [
     TripService,
@@ -212,8 +217,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
     AggregationTypeValidatorService,
     ProductValidatorService,
-    ProductSaleValidatorService,
     PacketValidatorService,
+    PacketCompositionValidatorService,
     PhysicalGearService
   ]
 })

@@ -25,7 +25,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   compositionHelper: FormArrayHelper<PacketComposition>;
   compositionFocusIndex = -1;
 
-  get compositionsForm(): FormArray {
+  get compositionsFormArray(): FormArray {
     return this.form.controls.composition as FormArray;
   }
 
@@ -52,8 +52,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   get value(): any {
     const json = this.form.value;
 
-
-
     // Update rankOrder on composition
     if (json.composition && isNotEmptyArray(json.composition)) {
       for (let i = 0; i < json.composition.length; i++) {
@@ -68,7 +66,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
         }
       }
     }
-
 
     return json;
   }
@@ -89,7 +86,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     super.ngOnInit();
 
     this.initCompositionHelper();
-
 
     this.usageMode = this.usageMode || this.settings.usageMode;
 
@@ -162,7 +158,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     try {
       this.computing = true;
       const totalWeight = this.form.controls.weight.value || 0;
-      const compositions: FormGroup[] = this.asFormGroups(this.asFormGroup(this.form.controls.composition).controls) || [];
+      const compositions: FormGroup[] = this.compositionsFormArray.controls as FormGroup[] || [];
 
       for (const composition of compositions) {
         const ratios: number[] = [];
@@ -229,10 +225,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   }
 
   asFormGroup(control): FormGroup {
-    return control;
-  }
-
-  asFormGroups(control): FormGroup[] {
     return control;
   }
 

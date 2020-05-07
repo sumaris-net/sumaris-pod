@@ -45,15 +45,25 @@ export {
 
 /* -- Helper function -- */
 
-export function fillRankOrder(values: { rankOrder: number }[]) {
+export function fillRankOrder(values: { rankOrder: number }[], initialRankOrder?: number) {
   // Compute rankOrder
-  let maxRankOrder = 0;
+  let maxRankOrder = initialRankOrder || 0;
   (values || []).forEach(m => {
     if (m.rankOrder && m.rankOrder > maxRankOrder) maxRankOrder = m.rankOrder;
   });
   (values || []).forEach(m => {
     m.rankOrder = m.rankOrder || maxRankOrder++;
   });
+}
+
+/**
+ * Compare unique rankOrder from values with values count
+ * @param values
+ * @return true if all rankOrder are unique
+ */
+export function isRankOrderValid(values: { rankOrder: number }[]): boolean {
+  return (values || []).length ===
+    (values || []).filter((v1, i, array) => array.findIndex(v2 => v2.rankOrder === v1.rankOrder) === i).length;
 }
 
 /* -- Data entity -- */
