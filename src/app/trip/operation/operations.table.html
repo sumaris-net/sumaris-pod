@@ -5,12 +5,14 @@
           [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
-    (click)="onRefresh.emit()">
+  <button mat-icon-button *ngIf="!selection.hasValue()"
+          [title]="'COMMON.BTN_REFRESH'|translate"
+          (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
-  <button mat-icon-button *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
-    (click)="deleteSelection()">
+  <button mat-icon-button *ngIf="selection.hasValue() && enabled"
+          [title]="'COMMON.BTN_DELETE'|translate"
+          (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
 
@@ -33,7 +35,7 @@
 </ion-item>
 
 <mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
-  matSortDisableClear [trackBy]="trackByFn">
+           matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
     <mat-header-cell  *matHeaderCellDef>

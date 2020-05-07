@@ -40,6 +40,13 @@
         <ion-icon slot="icon-only" name="search"></ion-icon>
       </ion-button>
 
+      <!-- close button -->
+      <ion-button *ngIf="hasClose"
+                  (tap)="onClose.emit($event)"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+
       <!-- validate button -->
       <ion-button *ngIf="hasValidate"
                   (tap)="doValidateTap($event)"

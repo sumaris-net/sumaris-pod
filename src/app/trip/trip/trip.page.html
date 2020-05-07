@@ -1,6 +1,9 @@
-<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading && enabled"
+<app-toolbar [title]="$title | async" color="primary"
+             [hasValidate]="!loading && enabled"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
+             [hasClose]="!loading && !dirty"
+             (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true" >
   <ion-spinner *ngIf="loading"></ion-spinner>
 
@@ -160,7 +163,7 @@
 
 </ion-content>
 
-<ion-footer [translucent]="true" hidden-xs hidden-sm hidden-mobile>
+<ion-footer hidden-xs hidden-sm hidden-mobile>
   <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 

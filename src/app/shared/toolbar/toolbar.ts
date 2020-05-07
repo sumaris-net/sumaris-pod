@@ -14,6 +14,8 @@ import {Observable} from "rxjs";
 })
 export class ToolbarComponent implements OnInit {
 
+  private _validateTapCount = 0;
+
   @Input()
   title = '';
 
@@ -30,6 +32,9 @@ export class ToolbarComponent implements OnInit {
   hasValidate = false;
 
   @Input()
+  hasClose = false;
+
+  @Input()
   hasSearch: boolean;
 
   @Input()
@@ -37,6 +42,9 @@ export class ToolbarComponent implements OnInit {
 
   @Output()
   onValidate = new EventEmitter<Event>();
+
+  @Output()
+  onClose = new EventEmitter<Event>();
 
   @Output()
   onValidateAndClose = new EventEmitter<Event>();
@@ -106,27 +114,33 @@ export class ToolbarComponent implements OnInit {
     }
   }
 
-  private tapCount = 0;
   doValidateTap(event: Event & { tapCount?: number; }) {
-    this.tapCount = event.tapCount;
-    setTimeout(() => {
-      // Event is obsolete (a new tap event occur)
-      if (event.tapCount < this.tapCount) {
-        // Ignore event
-      }
+    if (!this.onValidateAndClose.observers.length) {
+      this.onValidate.emit(event);
+    }
 
-      // If event still the last tap event: process it
-      else {
-        if (this.tapCount === 1) {
-          this.onValidate.emit(event);
-        }
-        else if (this.tapCount >= 2) {
-          this.onValidateAndClose.emit(event);
+    // Distinguish simple and double tap
+    else {
+      this._validateTapCount = event.tapCount;
+      setTimeout(() => {
+        // Event is obsolete (a new tap event occur)
+        if (event.tapCount < this._validateTapCount) {
+          // Ignore event
         }
 
-        // Reset tab count
-        this.tapCount = 0;
-      }
-    }, 500);
+        // If event still the last tap event: process it
+        else {
+          if (this._validateTapCount === 1) {
+            this.onValidate.emit(event);
+          }
+          else if (this._validateTapCount >= 2) {
+            this.onValidateAndClose.emit(event);
+          }
+
+          // Reset tab count
+          this._validateTapCount = 0;
+        }
+      }, 500);
+    }
   }
 }
