@@ -23,6 +23,7 @@ import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {AcquisitionLevelType} from "../../referential/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {Alerts} from "../../shared/alerts";
 
 
 export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {
@@ -47,6 +48,11 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   measurementValuesFormGroupConfig: { [key: string]: any };
   readonly hasRankOrder: boolean;
+
+  /**
+   * Allow to override the rankOrder. See physical-gear, on ADAP program
+   */
+  @Input() canEditRankOrder = false;
 
   @Input()
   set program(value: string) {
@@ -275,6 +281,11 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
+  protected async existsRankOrder(rankOrder: number): Promise<boolean> {
+    const rows = await this.dataSource.getRows();
+    return rows.findIndex(row => row.currentData.rankOrder === rankOrder) !== -1;
+  }
+
   protected getRowEntity(row: TableElement<T>, clone?: boolean): T {
     if (!row.validator) {
       const res = (row.currentData as T);
@@ -312,17 +323,29 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (!data) throw new Error("Missing data to add");
     if (this.debug) console.debug("[measurement-table] Adding new entity", data);
 
+    // Before using the given rankOrder, check if not already exists
+    if (this.canEditRankOrder && isNotNil(data.rankOrder)) {
+      if (await this.existsRankOrder(data.rankOrder)) {
+        const message = this.translate.instant('TRIP.MEASUREMENT.ERROR.DUPLICATE_RANK_ORDER', data);
+        await Alerts.showError(message, this.alertCtrl, this.translate);
+        throw new Error('DUPLICATE_RANK_ORDER');
+      }
+    }
+
     const row = await this.addRowToTable();
     if (!row) throw new Error("Could not add row to table");
 
-    // Adapt measurement values to row
-    this.normalizeEntityToRow(data, row);
-
-    // Override rankOrder (keep computed value)
-    if (this.hasRankOrder) {
+    // Override rankOrder (with a computed value)
+    if (this.hasRankOrder
+      // Do NOT override if can edit it and set
+      && (!this.canEditRankOrder || isNil(data.rankOrder))) {
       data.rankOrder = row.currentData.rankOrder;
     }
+
     await this.onNewEntity(data);
+
+    // Adapt measurement values to row
+    this.normalizeEntityToRow(data, row);
 
     // Affect new row
     if (row.validator) {

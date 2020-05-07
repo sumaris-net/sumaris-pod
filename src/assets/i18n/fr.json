@@ -400,7 +400,10 @@
       "SYNCHRONIZE_TRIP_ERROR": "Synchronisation impossible"
     },
     "MEASUREMENT": {
-      "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}"
+      "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}",
+      "ERROR": {
+        "DUPLICATE_RANK_ORDER": "Le numero #{{rankOrder}} existe déjà. Impossible de l'ajouter à nouveau."
+      }
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
@@ -1173,6 +1176,7 @@
     }
   },
   "ERROR": {
+    "ALERT_HEADER": "Erreur",
     "FIELD_REQUIRED": "Champ obligatoire.",
     "FIELD_TOO_SHORT": "Valeur trop courte.",
     "FIELD_TOO_SHORT_WITH_LENGTH": "Valeur trop courte ({{minLength}} caractères min)",
