@@ -19,7 +19,7 @@
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <span class="toolbar-spacer"></span>
+  <div class="toolbar-spacer"></div>
 
   <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
     <mat-icon>more_vert</mat-icon>
@@ -32,7 +32,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<mat-table [dataSource]="dataSource" class="table-operations" matSort matSortDirection="asc"
+<mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
   matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
@@ -50,7 +50,8 @@
   <!-- id -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label *ngIf="!($loading|async); else loadingSpinner">#</ion-label>
+      <ion-label *ngIf="!loading">#</ion-label>
+      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{row.currentData.rankOrderOnPeriod}}</ion-text>
@@ -152,7 +153,3 @@
   </ion-col>
 </ion-row>
 -->
-
-<ng-template #loadingSpinner>
-  <ion-spinner [ngClass]="{'center':true}" ></ion-spinner>
-</ng-template>

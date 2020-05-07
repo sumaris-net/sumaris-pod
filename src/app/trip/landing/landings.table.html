@@ -71,8 +71,7 @@
   <!-- rankOrder Column = id -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label *ngIf="!loading">#</ion-label>
-      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+      <ion-label>#</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder || row.currentData?.id }}</mat-cell>
   </ng-container>

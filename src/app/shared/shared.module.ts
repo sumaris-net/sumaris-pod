@@ -77,6 +77,7 @@ import {MatDuration} from "./material/material.duration";
 import {DurationPipe} from "./pipes/duration.pipe";
 import {ModalToolbarComponent} from "./toolbar/modal-toolbar";
 import {DragDropModule} from "@angular/cdk/drag-drop";
+import {MathAbsPipe} from "./pipes/math-abs.pipe";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -125,6 +126,7 @@ export {
     HighlightPipe,
     NumberFormatPipe,
     FileSizePipe,
+    MathAbsPipe,
     MatDate,
     MatDateTime,
     MatDuration,
@@ -152,6 +154,7 @@ export {
     HighlightPipe,
     NumberFormatPipe,
     FileSizePipe,
+    MathAbsPipe,
     TextMaskModule,
     TranslateModule,
     MatDate,
