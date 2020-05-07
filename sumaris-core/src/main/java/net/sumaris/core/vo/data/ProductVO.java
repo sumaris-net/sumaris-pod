@@ -40,17 +40,16 @@ public class ProductVO implements IDataVO<Integer>, IWithRecorderPersonEntity<In
     private ReferentialVO taxonGroup;
     private ReferentialVO saleType;
 
-    // Mapped as measurements
     private Double weight;
-    private ReferentialVO weightMethod; // attention c'est une method et pas un qualitative_value
+    private boolean weightCalculated;
+
+    // Mapped as measurements
     private Integer dressingId;
     private Integer preservationId;
     private Integer sizeCategoryId;
     private Double cost;
 
     private Map<Integer, String> measurementValues; // = sorting_measurement_p or quantification_measurement_p
-//    private List<MeasurementVO> sortingMeasurements; // = sorting_measurement_p (from a list)
-//    private List<MeasurementVO> quantificationMeasurements; // = quantification_measurement_p (from a list)
 
     @EqualsAndHashCode.Exclude
     private OperationVO operation;

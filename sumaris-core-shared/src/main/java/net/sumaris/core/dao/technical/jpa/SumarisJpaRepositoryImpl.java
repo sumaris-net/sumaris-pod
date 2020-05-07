@@ -40,6 +40,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -51,6 +52,7 @@ import java.sql.Timestamp;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
+@NoRepositoryBean
 public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
         extends SimpleJpaRepository<T, ID>
         implements SumarisJpaRepository<T, ID> {

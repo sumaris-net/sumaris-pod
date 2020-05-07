@@ -25,34 +25,28 @@ package net.sumaris.core.model.referential.pmfm;
 import java.io.Serializable;
 import java.util.Arrays;
 
-public enum QualitativeValueEnum implements Serializable  {
+public enum MethodEnum implements Serializable  {
 
-    SORTING_BULK(20, "SORTING_BULK"),
-    DRESSING_WHOLE(74, "DRESSING_WHOLE"),
-    PRESERVATION_FRESH(76, "PRESERVATION_FRESH"),
-    SIZE_CATEGORY_NONE(298, "SIZE_CATEGORY_NONE"),
-
-    /*PACKAGING*/
-    WEIGHT(317, "WEI"),
-    VOLUME(318, "VOL"),
-    UNIT(319, "UNI"),
-    DOZEN(320, "DOZ"),
-    HUNDRED(321, "HUN"),
-    PIECES(423, "PCS"),
-
+    UNKNOWN(0, "UNK"),
+    MEASURED_BY_OBSERVER(1, "MEASURED_BY_OBSERVER"),
+    OBSERVED_BY_OBSERVER(2, "OBSERVED_BY_OBSERVER"),
+    ESTIMATED_BY_OBSERVER(3, "ESTIMATED_BY_OBSERVER"),
+    CALCULATED(4, "CALCULATED"),
+    OBSERVED_BY_FISHERMAN(5, "OBSERVED_BY_FISHERMAN"),
+    DECLARED_BY_FISHERMAN(6, "DECLARED_BY_FISHERMAN"),
     ;
 
-    public static QualitativeValueEnum valueOf(final int id) {
+    public static MethodEnum valueOf(final int id) {
         return Arrays.stream(values())
-                .filter(level -> level.id == id)
+                .filter(methodEnum -> methodEnum.id == id)
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown QualitativeValueEnum: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Unknown MethodEnum: " + id));
     }
 
     private int id;
     private String label;
 
-    QualitativeValueEnum(int id, String label) {
+    MethodEnum(int id, String label) {
         this.id = id;
         this.label = label;
     }

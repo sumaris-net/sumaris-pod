@@ -183,6 +183,9 @@ public class TripServiceImpl implements TripService {
         // Save
         TripVO savedTrip = tripDao.save(source);
 
+        // Save or update parent entity
+        saveParent(savedTrip);
+
         // Save sales
         if (CollectionUtils.isNotEmpty(source.getSales())) {
             List<SaleVO> sales = Beans.getList(source.getSales());
@@ -269,18 +272,30 @@ public class TripServiceImpl implements TripService {
             savedTrip.setOperationGroups(operationGroups);
         }
 
+        // Emit event
+        if (isNew) {
+            eventPublisher.publishEvent(new DataEntityCreatedEvent(Trip.class.getSimpleName(), savedTrip));
+        } else {
+            eventPublisher.publishEvent(new DataEntityUpdatedEvent(Trip.class.getSimpleName(), savedTrip));
+        }
+
+        return savedTrip;
+    }
+
+    private void saveParent(TripVO trip) {
+
         // Landing
         boolean createLanding = false;
-        if (savedTrip.getLandingId() != null) {
+        if (trip.getLandingId() != null) {
 
             // update update_date on landing
-            LandingVO landing = landingRepository.get(savedTrip.getLandingId());
+            LandingVO landing = landingRepository.get(trip.getLandingId());
 
             if (landing.getTripId() == null) {
-                landing.setTripId(savedTrip.getId());
+                landing.setTripId(trip.getId());
             }
-            landing.setDateTime(savedTrip.getReturnDateTime());
-            landing.setObservers(Beans.getSet(savedTrip.getObservers()));
+            landing.setDateTime(trip.getReturnDateTime());
+            landing.setObservers(Beans.getSet(trip.getObservers()));
 
             landingRepository.save(landing);
 
@@ -293,10 +308,10 @@ public class TripServiceImpl implements TripService {
         }
 
         // ObservedLocation
-        if (savedTrip.getObservedLocationId() != null) {
+        if (trip.getObservedLocationId() != null) {
 
             // update update_date on observed_location
-            ObservedLocationVO observedLocation = observedLocationDao.get(savedTrip.getObservedLocationId());
+            ObservedLocationVO observedLocation = observedLocationDao.get(trip.getObservedLocationId());
             observedLocationDao.save(observedLocation);
 
             if (createLanding) {
@@ -304,28 +319,20 @@ public class TripServiceImpl implements TripService {
                 LandingVO landing = new LandingVO();
 
                 landing.setObservedLocationId(observedLocation.getId());
-                landing.setTripId(savedTrip.getId());
+                landing.setTripId(trip.getId());
                 landing.setProgram(observedLocation.getProgram());
                 landing.setLocation(observedLocation.getLocation());
-                landing.setVesselSnapshot(savedTrip.getVesselSnapshot());
-                landing.setDateTime(savedTrip.getReturnDateTime());
-                landing.setObservers(Beans.getSet(savedTrip.getObservers()));
+                landing.setVesselSnapshot(trip.getVesselSnapshot());
+                landing.setDateTime(trip.getReturnDateTime());
+                landing.setObservers(Beans.getSet(trip.getObservers()));
                 landing.setRecorderDepartment(observedLocation.getRecorderDepartment());
 
                 LandingVO savedLanding = landingRepository.save(landing);
-                savedTrip.setLandingId(savedLanding.getId());
+                trip.setLandingId(savedLanding.getId());
             }
 
         }
 
-        // Emit event
-        if (isNew) {
-            eventPublisher.publishEvent(new DataEntityCreatedEvent(Trip.class.getSimpleName(), savedTrip));
-        } else {
-            eventPublisher.publishEvent(new DataEntityUpdatedEvent(Trip.class.getSimpleName(), savedTrip));
-        }
-
-        return savedTrip;
     }
 
     private void fillPhysicalGearMeasurementsFromOperationGroups(PhysicalGearVO physicalGear, List<OperationGroupVO> operationGroups) {
