@@ -247,6 +247,11 @@ export class TripFilter {
         return false;
       }
 
+      // Recorder person
+      if (isNotNil(f.recorderPersonId) && t.recorderPerson && t.recorderPerson.id !== f.recorderPersonId) {
+        return false;
+      }
+
       // Start/end period
       const startDate = fromDateISOString(f.startDate);
       const endDate = fromDateISOString(f.endDate);
@@ -277,6 +282,7 @@ export class TripFilter {
   startDate?: Date | Moment | string;
   endDate?: Date | Moment | string;
   recorderDepartmentId?: number;
+  recorderPersonId?: number;
   synchronizationStatus?: SynchronizationStatus;
 }
 
@@ -448,8 +454,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
       filter: {
         ...dataFilter,
         // Serialize all dates
-        startDate: toDateISOString(dataFilter.startDate),
-        endDate: toDateISOString(dataFilter.endDate),
+        startDate: dataFilter && toDateISOString(dataFilter.startDate),
+        endDate: dataFilter && toDateISOString(dataFilter.endDate),
         // Remove fields that not exists in pod
         synchronizationStatus: undefined
       }

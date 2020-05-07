@@ -154,21 +154,44 @@
         <ion-row>
           <ion-col>
             <!-- Start date -->
-            <mat-date-time [placeholder]="'TRIP.TABLE.FILTER.START_DATE'|translate"
+            <mat-date [placeholder]="'TRIP.TABLE.FILTER.START_DATE'|translate"
                            formControlName="startDate"
-                           [displayTime]="false"
                            [clearable]="true">
               <ion-icon matPrefix name="calendar"></ion-icon>
-            </mat-date-time>
+            </mat-date>
           </ion-col>
 
           <ion-col>
             <!-- End date -->
-            <mat-date-time [placeholder]="'TRIP.TABLE.FILTER.END_DATE'|translate"
+            <mat-date [placeholder]="'TRIP.TABLE.FILTER.END_DATE'|translate"
                            [formControl]="filterForm.controls.endDate"
-                           [displayTime]="false"
                            clearable="true">
-            </mat-date-time>
+            </mat-date>
+          </ion-col>
+        </ion-row>
+
+        <!-- recorder criteria -->
+        <ion-row>
+          <ion-col>
+            <!-- Recorder department -->
+            <mat-autocomplete-field
+              [placeholder]="'TRIP.TABLE.FILTER.RECORDER_DEPARTMENT'|translate"
+              formControlName="recorderDepartment"
+              [config]="autocompleteFields.department"
+              clearable="true">
+              <ion-icon matPrefix name="business"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+
+          <ion-col>
+            <!-- Recorder person -->
+            <mat-autocomplete-field
+              [placeholder]="'TRIP.TABLE.FILTER.RECORDER_PERSON'|translate"
+              formControlName="recorderPerson"
+              [config]="autocompleteFields.person"
+              clearable="true">
+              <ion-icon matPrefix name="person"></ion-icon>
+            </mat-autocomplete-field>
           </ion-col>
         </ion-row>
       </ion-grid>

@@ -268,8 +268,8 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       filter: {
         ...dataFilter,
         // Serialize all dates
-        startDate: toDateISOString(dataFilter.startDate),
-        endDate: toDateISOString(dataFilter.endDate),
+        startDate: dataFilter && toDateISOString(dataFilter.startDate),
+        endDate: dataFilter && toDateISOString(dataFilter.endDate),
         // Remove fields that not exists in pod
         synchronizationStatus: undefined
       }
