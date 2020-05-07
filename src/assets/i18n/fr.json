@@ -771,7 +771,7 @@
       "BAD": "Mauvaise",
       "FIXED": "Corrigée",
       "NOT_COMPLETED": "Incomplète",
-      "MISSING": "Manquante"
+      "MISSING": "à remplir"
     },
     "ERROR": {
       "INVALID_FORM": "Vérifier et corriger votre saisie."

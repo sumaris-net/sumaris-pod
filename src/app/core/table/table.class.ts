@@ -102,7 +102,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   @Output() onStartEditingRow = new EventEmitter<TableElement<T>>();
 
   get $loading(): Observable<boolean> {
-    return this.dataSource.loadingSubject;
+    return this.dataSource.loadingSubject.asObservable();
   }
 
   @Output()
