@@ -6,9 +6,7 @@ import {Injectable, Pipe, PipeTransform} from '@angular/core';
 @Injectable({providedIn: 'root'})
 export class MathAbsPipe implements PipeTransform {
 
-    transform(val: number): number | Promise<number> {
-      // Format the output to display any way you want here.
-      // For instance:
+    transform(val: number): any {
       if (val !== undefined && val !== null) {
         return Math.abs(val);
       } else {
