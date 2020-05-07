@@ -1,10 +1,27 @@
 <app-toolbar [title]="$title | async" color="primary"
-             [hasValidate]="dirty && !loading"
+             [hasValidate]="!loading && enabled"
              (onValidate)="save($event)"
+             (onValidateAndClose)="saveAndClose($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
   <ion-spinner *ngIf="loading"></ion-spinner>
+
+  <button mat-icon-button *ngIf="enabled"
+          [matMenuTriggerFor]="optionsMenu"
+          [title]=" 'COMMON.BTN_OPTIONS'|translate">
+    <mat-icon>more_vert</mat-icon>
+  </button>
 </app-toolbar>
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+  <button mat-menu-item *ngIf="!isNewData" (click)="delete($event)">
+    <ion-label>
+      <mat-icon>delete</mat-icon>&nbsp;
+      <span translate>COMMON.BTN_DELETE</span>
+    </ion-label>
+  </button>
+</mat-menu>
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
 

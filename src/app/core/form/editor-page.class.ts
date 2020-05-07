@@ -240,9 +240,27 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     return this.updateRoute(data, this.queryParams);
   }
 
-  async save(event, options?: any): Promise<boolean> {
-    console.debug("[data-editor] Asking to save...");
-    if (this.loading || this.saving || !this.dirty) return false;
+  async saveAndClose(event: Event, options?: any): Promise<boolean> {
+    const saved = await this.save(event);
+    if (saved) {
+      await this.close(event);
+    }
+    return saved;
+  }
+
+  async close(event: Event) {
+    if (this.appToolbar && this.appToolbar.canGoBack) {
+      await this.appToolbar.goBack();
+    }
+    else if (this.defaultBackHref) {
+      await this.router.navigateByUrl(this.defaultBackHref);
+    }
+  }
+
+  async save(event: Event, options?: any): Promise<boolean> {
+    console.debug("[data-editor] Asking to save...", event);
+    if (this.loading || this.saving) return false;
+    if (!this.dirty) return true;
 
     // Wait end of async validation
     await this.waitWhilePending();
@@ -277,6 +295,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
       if (!this.hasRemoteListener) this.startListenRemoteChanges();
 
       this.submitted = false;
+
       return true;
     } catch (err) {
       this.submitted = true;

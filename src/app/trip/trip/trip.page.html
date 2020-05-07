@@ -1,4 +1,6 @@
-<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading && enabled" (onValidate)="save($event)"
+<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading && enabled"
+             (onValidate)="save($event)"
+             (onValidateAndClose)="saveAndClose($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true" >
   <ion-spinner *ngIf="loading"></ion-spinner>
 

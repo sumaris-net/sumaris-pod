@@ -39,6 +39,10 @@ export class ToolbarComponent implements OnInit {
   onValidate = new EventEmitter<Event>();
 
   @Output()
+  onValidateAndClose = new EventEmitter<Event>();
+
+
+  @Output()
   onBackClick = new EventEmitter<Event>();
 
   @Output()
@@ -102,4 +106,28 @@ export class ToolbarComponent implements OnInit {
     }
   }
 
+  private tapCount = 0;
+  doValidateTap(event: Event & { tapCount?: number; }) {
+    this.tapCount = event.tapCount;
+    setTimeout(() => {
+      // Event is obsolete (a new tap event occur)
+      if (event.tapCount < this.tapCount) {
+        // Ignore
+        event.stopPropagation();
+      }
+
+      // If event still the last tap event: process it
+      else {
+        if (this.tapCount === 1) {
+          this.onValidate.emit(event);
+        }
+        else if (this.tapCount >= 2) {
+          this.onValidateAndClose.emit(event);
+        }
+
+        // Reset tab count
+        this.tapCount = 0;
+      }
+    }, 500);
+  }
 }

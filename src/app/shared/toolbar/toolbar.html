@@ -41,7 +41,9 @@
       </ion-button>
 
       <!-- validate button -->
-      <ion-button (click)="onValidate.emit($event)" visible-xs visible-sm visible-mobile *ngIf="hasValidate">
+      <ion-button *ngIf="hasValidate"
+                  (tap)="doValidateTap($event)"
+                  visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
