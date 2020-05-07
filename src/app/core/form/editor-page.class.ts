@@ -177,10 +177,10 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     this.previousDataId = data.id;
     this.setValue(data);
 
-    this.markAsPristine({emitEvent: false});
-    this.markAsUntouched({emitEvent: false});
+    this.markAsPristine();
+    this.markAsUntouched();
 
-    this.updateViewState(data, {emitEvent: false});
+    this.updateViewState(data);
 
     // Need to update route
     if (opts.updateTabAndRoute === true) {
