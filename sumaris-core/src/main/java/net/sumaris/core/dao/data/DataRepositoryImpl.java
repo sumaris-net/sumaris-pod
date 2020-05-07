@@ -6,9 +6,16 @@ import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.exception.DataLockedException;
+import net.sumaris.core.model.QualityFlagEnum;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.data.IWithObserversEntity;
+import net.sumaris.core.model.data.IWithVesselEntity;
+import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
+import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -17,9 +24,11 @@ import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.NotImplementedException;
+import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,8 +38,11 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.LockTimeoutException;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -51,6 +63,8 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
     private boolean checkUpdateDate = true;
 
+    private boolean enableLockForUpdate = false;
+
     private String[] copyExcludeProperties = new String[]{IUpdateDateEntityBean.Fields.UPDATE_DATE};
 
     @Autowired
@@ -61,7 +75,6 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
     public DataRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         super(domainClass, entityManager);
-
     }
 
     @Override
@@ -147,9 +160,12 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
     public V save(V vo) {
         E entity = toEntity(vo);
 
-        if (checkUpdateDate) {
+        boolean isNew = entity.getId() == null;
+        if (!isNew) {
             // Check update date
-            Daos.checkUpdateDateForUpdate(vo, entity);
+            if (checkUpdateDate) Daos.checkUpdateDateForUpdate(vo, entity);
+
+            if (enableLockForUpdate) lockForUpdate(entity);
         }
 
         // Update update_dt
@@ -166,7 +182,35 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
     @Override
     public V control(V vo) {
-        throw new NotImplementedException("Not implemented yet");
+        Preconditions.checkNotNull(vo);
+
+        E entity = getOne(vo.getId());
+        if (entity == null) {
+            throw new DataRetrievalFailureException(String.format("E {%s} not found", vo.getId()));
+        }
+
+        // Check update date
+        Daos.checkUpdateDateForUpdate(vo, entity);
+
+        // Lock entityName
+        lockForUpdate(entity);
+
+        // TODO CONTROL PROCESS HERE
+        Date controlDate = getDatabaseCurrentTimestamp();
+        entity.setControlDate(controlDate);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // Save entityName
+        getEntityManager().merge(entity);
+
+        // Update source
+        vo.setControlDate(controlDate);
+        vo.setUpdateDate(newUpdateDate);
+
+        return vo;
     }
 
     @Override
@@ -178,6 +222,52 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
     public V unvalidate(V vo) {
         throw new NotImplementedException("Not implemented yet");
     }
+
+    @Override
+    public V qualify(V vo) {
+        Preconditions.checkNotNull(vo);
+
+        E entity = getOne(vo.getId());
+        if (entity == null) {
+            throw new DataRetrievalFailureException(String.format("E {%s} not found", vo.getId()));
+        }
+
+        // Check update date
+        if (checkUpdateDate) Daos.checkUpdateDateForUpdate(vo, entity);
+
+        // Lock entityName
+        if (enableLockForUpdate) lockForUpdate(entity);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId().intValue() : 0;
+
+        // If not qualify, then remove the qualification date
+        if (qualityFlagId == QualityFlagEnum.NOT_QUALIFED.getId()) {
+            entity.setQualificationDate(null);
+        }
+        else {
+            entity.setQualificationDate(newUpdateDate);
+        }
+        // Apply a get, because can return a null value (e.g. if id is not in the DB instance)
+        entity.setQualityFlag(get(QualityFlag.class, Integer.valueOf(qualityFlagId)));
+
+        // TODO UNVALIDATION PROCESS HERE
+        // - insert into qualification history
+
+        // Save entityName
+        getEntityManager().merge(entity);
+
+        // Update source
+        vo.setQualificationDate(entity.getQualificationDate());
+        vo.setQualityFlagId(entity.getQualityFlag() != null ? entity.getQualityFlag().getId() : 0);
+        vo.setUpdateDate(newUpdateDate);
+
+        return vo;
+    }
+
 
     public E toEntity(V vo) {
         Preconditions.checkNotNull(vo);
@@ -272,11 +362,37 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         this.checkUpdateDate = checkUpdateDate;
     }
 
+    protected boolean isLockForUpdateEnable() {
+        return enableLockForUpdate;
+    }
+
+    protected void setEnableForUpdate(boolean enableLockForUpdate) {
+        this.enableLockForUpdate = enableLockForUpdate;
+    }
+
     protected String[] getCopyExcludeProperties() {
         return this.copyExcludeProperties;
     }
 
     protected void setCopyExcludeProperties(String... excludedProperties) {
         this.copyExcludeProperties = excludedProperties;
+    }
+
+    protected void lockForUpdate(IEntity<?> entity) {
+        lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
+    }
+
+    protected void lockForUpdate(IEntity<?> entity, LockModeType modeType) {
+        // Lock entityName
+        try {
+            getEntityManager().lock(entity, modeType);
+        } catch (LockTimeoutException e) {
+            throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
+                    getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
+        }
+    }
+
+    protected String getTableName(String entityName) {
+        return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
     }
 }

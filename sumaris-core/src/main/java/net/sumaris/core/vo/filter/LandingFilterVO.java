@@ -48,6 +48,8 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
 
     private Integer recorderDepartmentId;
 
+    private Integer recorderPersonId;
+
     private Integer vesselId;
 
     private Integer locationId;

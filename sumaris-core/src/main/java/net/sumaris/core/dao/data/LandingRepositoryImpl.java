@@ -70,6 +70,9 @@ public class LandingRepositoryImpl
 
         return Specification.where(hasObservedLocationId(filter.getObservedLocationId()))
             .and(hasTripId(filter.getTripId()))
+            .and(hasRecorderDepartmentId(filter.getRecorderDepartmentId()))
+            .and(hasRecorderPersonId(filter.getRecorderPersonId()))
+            .and(hasProgramLabel(filter.getProgramLabel()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
             .and(hasVesselId(filter.getVesselId()));

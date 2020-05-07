@@ -59,7 +59,7 @@ public class TripServiceImpl implements TripService {
     private static final Logger log = LoggerFactory.getLogger(TripServiceImpl.class);
 
     @Autowired
-    protected TripDao tripDao;
+    protected TripRepository tripRepository;
 
     @Autowired
     protected SaleDao saleDao;
@@ -104,21 +104,18 @@ public class TripServiceImpl implements TripService {
     @Override
     public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute,
                                      SortDirection sortDirection, DataFetchOptions fieldOptions) {
-        if (filter == null) {
-            return tripDao.findAll(offset, size, sortAttribute, sortDirection, fieldOptions);
-        }
-
-        return tripDao.findAll(filter, offset, size, sortAttribute, sortDirection, fieldOptions);
+        return tripRepository.findAll(filter, offset, size, sortAttribute, sortDirection, fieldOptions)
+                .stream().collect(Collectors.toList());
     }
 
     @Override
     public Long countByFilter(TripFilterVO filter) {
-        return tripDao.countByFilter(filter);
+        return tripRepository.count(filter);
     }
 
     @Override
     public TripVO get(int tripId) {
-        return tripDao.get(tripId);
+        return tripRepository.get(new Integer(tripId));
     }
 
     @Override
@@ -181,7 +178,7 @@ public class TripServiceImpl implements TripService {
         }
 
         // Save
-        TripVO savedTrip = tripDao.save(source);
+        TripVO savedTrip = tripRepository.save(source);
 
         // Save sales
         if (CollectionUtils.isNotEmpty(source.getSales())) {
@@ -375,7 +372,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public void delete(int id) {
-        tripDao.delete(id);
+        tripRepository.deleteById(id);
     }
 
     @Override
@@ -392,7 +389,7 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getId());
         Preconditions.checkArgument(trip.getControlDate() == null);
 
-        return tripDao.control(trip);
+        return tripRepository.control(trip);
     }
 
     @Override
@@ -402,7 +399,7 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getControlDate());
         Preconditions.checkArgument(trip.getValidationDate() == null);
 
-        return tripDao.validate(trip);
+        return tripRepository.validate(trip);
     }
 
     @Override
@@ -412,7 +409,7 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getControlDate());
         Preconditions.checkNotNull(trip.getValidationDate());
 
-        return tripDao.unvalidate(trip);
+        return tripRepository.unvalidate(trip);
     }
 
     @Override
@@ -423,7 +420,7 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getValidationDate());
         Preconditions.checkNotNull(trip.getQualityFlagId());
 
-        return tripDao.qualify(trip);
+        return tripRepository.qualify(trip);
     }
 
     /* protected methods */

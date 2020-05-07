@@ -149,27 +149,32 @@ public class ParameterDaoImpl extends BaseReferentialDaoImpl<Parameter, Paramete
                     target.setIsBoolean(false);
                     target.setIsDate(false);
                     target.setIsQualitative(false);
+                    break;
                 case BOOLEAN:
                     target.setIsAlphanumeric(false);
                     target.setIsBoolean(true);
                     target.setIsDate(false);
                     target.setIsQualitative(false);
+                    break;
                 case DATE:
                     target.setIsAlphanumeric(false);
                     target.setIsBoolean(false);
                     target.setIsDate(true);
                     target.setIsQualitative(false);
+                    break;
                 case QUALITATIVE_VALUE:
                     target.setIsAlphanumeric(false);
                     target.setIsBoolean(false);
                     target.setIsDate(false);
                     target.setIsQualitative(true);
+                    break;
                 case DOUBLE:
                 default:
                     target.setIsAlphanumeric(false);
                     target.setIsBoolean(false);
                     target.setIsDate(false);
                     target.setIsQualitative(false);
+                    break;
             }
         }
     }

@@ -23,7 +23,9 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.LandingVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -44,6 +46,22 @@ public interface LandingRepositoryExtend
         if (tripId == null) return null;
         return (root, query, cb) -> cb.equal(root.get(Landing.Fields.TRIP).get(IEntity.Fields.ID), tripId);
     }
+
+    default Specification<Landing> hasRecorderPersonId(Integer personId) {
+        if (personId == null) return null;
+        return (root, query, cb) -> cb.equal(root.get(Landing.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), personId);
+    }
+
+    default Specification<Landing> hasRecorderDepartmentId(Integer depId) {
+        if (depId == null) return null;
+        return (root, query, cb) -> cb.equal(root.get(Landing.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), depId);
+    }
+
+    default Specification<Landing> hasProgramLabel(String programLabel) {
+        if (StringUtils.isBlank(programLabel)) return null;
+        return (root, query, cb) -> cb.equal(root.get(Landing.Fields.PROGRAM).get(Program.Fields.LABEL), programLabel);
+    }
+
 
     default Specification<Landing> hasTripIds(Collection<Integer> tripIds) {
         if (CollectionUtils.isEmpty(tripIds)) return null;

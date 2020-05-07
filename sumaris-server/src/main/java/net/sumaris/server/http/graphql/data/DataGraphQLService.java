@@ -206,7 +206,7 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "trips", description = "Search in trips")
     @Transactional(readOnly = true)
-    //@IsUser
+    @IsUser
     public List<TripVO> findTripsByFilter(@GraphQLArgument(name = "filter") TripFilterVO filter,
                                           @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                           @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
@@ -787,7 +787,7 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "landings", description = "Search in landings")
     @Transactional(readOnly = true)
-    //@IsUser
+    @IsUser
     public List<LandingVO> findLandings(@GraphQLArgument(name = "filter") LandingFilterVO filter,
                                         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,

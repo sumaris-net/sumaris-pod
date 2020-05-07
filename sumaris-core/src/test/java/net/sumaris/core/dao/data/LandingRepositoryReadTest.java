@@ -38,11 +38,11 @@ import java.util.List;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class LandingDaoReadTest extends AbstractDaoTest{
+public class LandingRepositoryReadTest extends AbstractDaoTest{
 
     /** Logger. */
     private static final Logger log =
-            LoggerFactory.getLogger(LandingDaoReadTest.class);
+            LoggerFactory.getLogger(LandingRepositoryReadTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();
