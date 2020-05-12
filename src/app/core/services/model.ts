@@ -743,6 +743,8 @@ export class Configuration extends Software<Configuration> {
 
 export class Person extends Entity<Person> implements Cloneable<Person> {
 
+  static TYPENAME = 'PersonVO';
+
   static fromObject(source: any): Person {
     if (!source || source instanceof Person) return source;
     const result = new Person();
@@ -764,7 +766,7 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
   constructor() {
     super();
     this.department = null;
-    this.__typename = 'PersonVO';
+    this.__typename = Person.TYPENAME;
   }
 
   clone(): Person {
@@ -783,7 +785,9 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     if (options && options.minify)  {
       return {
         id: this.id,
-        __typename: options.keepTypename && this.__typename || undefined
+        __typename: options.keepTypename && this.__typename || undefined,
+        firstName: this.firstName,
+        lastName: this.lastName
       };
     }
     const target: any = super.asObject(options);
@@ -936,9 +940,11 @@ export class Account extends Person {
    * Convert into a Person. This will fill __typename with a right value, for data cache
    */
   asPerson(): Person {
-    return Person.fromObject(this.asObject({
+    const person = Person.fromObject(this.asObject({
       keepTypename: true // This is need for the department object
     }));
+    person.__typename = Person.TYPENAME; // Do not keep AccountVO as typename
+    return person;
   }
 
 }
