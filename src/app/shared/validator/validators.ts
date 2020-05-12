@@ -22,7 +22,7 @@ export class SharedValidators {
   static latitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
     if (isNotNil(value) && (value < -90 || value > 90)) {
-      return {validLatitude: true};
+      return { latitude: true };
     }
     return null;
   }
@@ -30,7 +30,7 @@ export class SharedValidators {
   static longitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
     if (isNotNil(value) && (value < -180 || value > 180)) {
-      return { validLongitude: true };
+      return { longitude: true };
     }
     return null;
   }

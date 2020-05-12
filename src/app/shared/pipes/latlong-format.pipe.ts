@@ -34,14 +34,14 @@ function formatToDD(value: number, isLongitude: boolean, maxDecimals: number, pl
   let negative = value < 0;
   if (negative) value *= -1;
 
-  // Fix longitude when outside [-90, 90]
-  while (isLongitude && value >= 90) {
+  // Fix longitude when outside [-180, 180]
+  while (isLongitude && value > 180) {
     value = (value - 180);
     negative = value < 0;
     if (negative) value *= -1;
   }
   // Fix latitude when outside [-90, 90]
-  while (!isLongitude && value >= 45) {
+  while (!isLongitude && value > 90) {
     value = (value - 90);
     negative = value < 0;
     if (negative) value *= -1;
@@ -61,14 +61,14 @@ function formatToDDMMSS(value: number, isLongitude: boolean, maxDecimals: number
   let negative = value < 0;
   if (negative) value *= -1;
 
-  // Fix longitude when outside [-90, 90]
-  while (isLongitude && value >= 90) {
+  // Fix longitude when outside [-180, 180]
+  while (isLongitude && value > 180) {
     value = (value - 180);
     negative = value < 0;
     if (negative) value *= -1;
   }
   // Fix latitude when outside [-90, 90]
-  while (!isLongitude && value >= 45) {
+  while (!isLongitude && value > 90) {
     value = (value - 90);
     negative = value < 0;
     if (negative) value *= -1;
@@ -119,14 +119,14 @@ function formatToDDMM(value: number, isLongitude: boolean, maxDecimals: number, 
   let negative = value < 0;
   if (negative) value *= -1;
 
-  // Fix longitude when outside [-90, 90]
-  while (isLongitude && value >= 90) {
+  // Fix longitude when outside [-180, 180]
+  while (isLongitude && value > 180) {
     value = (value - 180);
     negative = value < 0;
     if (negative) value *= -1;
   }
   // Fix latitude when outside [-90, 90]
-  while (!isLongitude && value >= 45) {
+  while (!isLongitude && value > 90) {
     value = (value - 90);
     negative = value < 0;
     if (negative) value *= -1;
@@ -174,7 +174,7 @@ function formatToDDMM(value: number, isLongitude: boolean, maxDecimals: number, 
 function parseLatitudeOrLongitude(input: string, pattern: string, maxDecimals?: number, placeholderChar?: string): number | null {
   // Remove all placeholder (= trim on each parts)
   const inputFix = input.trim().replace(new RegExp("[+" + (placeholderChar || DEFAULT_PLACEHOLDER_CHAR) + ']+', "g"), '');
-
+  console.log("Parsing lat= " + inputFix);
   const parts = inputFix.split(/[^\d\w-.,]+/);
   let degrees = parseFloat(parts[0].replace(/,/g, '.'));
   if (isNaN(degrees)) {
