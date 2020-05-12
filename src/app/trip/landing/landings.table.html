@@ -1,18 +1,19 @@
 <mat-toolbar>
   <button mat-icon-button
           hidden-xs hidden-sm hidden-mobile
-          *ngIf="canEdit && !selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="openNewRowDetail()">
+          *ngIf="canEdit && !selection.hasValue() && enabled"
+          [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="canDelete && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
-          (click)="deleteSelection()">
-    <mat-icon>delete</mat-icon>
-  </button>
-
-  <!-- refresh (debug only) -->
-  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+  <button mat-icon-button *ngIf="!selection.hasValue()"
+          [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
+  </button>
+  <button mat-icon-button *ngIf="canDelete && selection.hasValue() && enabled"
+          [title]="'COMMON.BTN_DELETE'|translate"
+          (click)="deleteSelection()">
+    <mat-icon>delete</mat-icon>
   </button>
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
@@ -20,7 +21,7 @@
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <span class="toolbar-spacer"></span>
+  <div class="toolbar-spacer"></div>
 
   <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
     <mat-icon>more_vert</mat-icon>
@@ -33,27 +34,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<!-- First table header
-<mat-table class="table-survival-test">
-  <ng-container matColumnDef="select">
-    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef></mat-header-cell>
-  </ng-container>
-  <ng-container matColumnDef="rankOrder">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
-  </ng-container>
-  <ng-container *ngFor="let pmfm of pmfmHeaders | async" matColumnDef="{{pmfm.pmfmId}}">
-    <mat-header-cell *matHeaderCellDef class="col-{{pmfm.count}}">
-      <ion-label>{{pmfm.name | translate}}</ion-label>
-    </mat-header-cell>
-  </ng-container>
-  <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
-  </ng-container>
-  <mat-header-row *matHeaderRowDef="displayedHeaderColumns"></mat-header-row>
-</mat-table> -->
-
-
-<mat-table [dataSource]="dataSource" matSort matSortDirection="asc"
+<mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
            matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
@@ -71,8 +52,7 @@
   <!-- rankOrder Column = id -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label *ngIf="!loading">#</ion-label>
-      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+      <ion-label>#</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder || row.currentData?.id }}</mat-cell>
   </ng-container>

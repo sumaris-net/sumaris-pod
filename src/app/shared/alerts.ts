@@ -6,6 +6,8 @@ export class Alerts {
   static askSaveBeforeLeave = askSaveBeforeLeave;
   static askDeleteConfirmation = askDeleteConfirmation;
   static askActionConfirmation = askActionConfirmation;
+  static askConfirmation = askConfirmation;
+  static showError = showError;
 }
 
 /**
@@ -114,17 +116,33 @@ export async function askDeleteConfirmation(
  * Ask the user to conform an action. If return undefined: user has cancelled
  * @param alertCtrl
  * @param translate
+ * @param immediate is action has an immediate effect ?
  * @param event
  */
 export async function askActionConfirmation(
   alertCtrl: AlertController,
   translate: TranslateService,
-  immediate: boolean,
+  immediate?: boolean,
+  event?: UIEvent): Promise<boolean|undefined> {
+  const messageKey = immediate === true ? 'CONFIRM.ACTION_IMMEDIATE' : 'CONFIRM.ACTION';
+  return askConfirmation(messageKey, alertCtrl, translate, event);
+}
+
+/**
+ * Ask the user to confirm. If return undefined: user has cancelled
+ * @pram messageKey i18n message key
+ * @param alertCtrl
+ * @param translate
+ * @param event
+ */
+export async function askConfirmation(
+  messageKey: string,
+  alertCtrl: AlertController,
+  translate: TranslateService,
   event?: UIEvent): Promise<boolean|undefined> {
   if (!alertCtrl || !translate) throw new Error("Missing required argument 'alertCtrl' or 'translate'");
   let confirm = false;
   let cancel = false;
-  const messageKey = immediate ? 'CONFIRM.ACTION_IMMEDIATE' : 'CONFIRM.ACTION';
   const translations = translate.instant(['COMMON.BTN_YES_CONTINUE', 'COMMON.BTN_CANCEL', messageKey, 'CONFIRM.ALERT_HEADER']);
   const alert = await alertCtrl.create({
     header: translations['CONFIRM.ALERT_HEADER'],
@@ -161,3 +179,24 @@ export async function askActionConfirmation(
   return false; // Leave without saving
 }
 
+
+export async function showError(
+  messageKey: string,
+  alertCtrl: AlertController,
+  translate: TranslateService) {
+  if (!alertCtrl || !translate) throw new Error("Missing required argument 'alertCtrl' or 'translate'");
+  const translations = translate.instant(['COMMON.BTN_OK', messageKey, 'ERROR.ALERT_HEADER']);
+  const alert = await alertCtrl.create({
+    header: translations['ERROR.ALERT_HEADER'],
+    message: translations[messageKey],
+    buttons: [
+      {
+        text: translations['COMMON.BTN_OK'],
+        role: 'cancel'
+      }
+    ]
+  });
+  await alert.present();
+  await alert.onDidDismiss();
+
+}

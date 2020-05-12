@@ -11,7 +11,13 @@ import {map} from "rxjs/operators";
 import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {RootDataService} from "./root-data-service.class";
-import {DataEntityAsObjectOptions, isNil, isNotNil, SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
+import {
+  DataEntityAsObjectOptions,
+  isNil,
+  isNotNil,
+  SAVE_AS_OBJECT_OPTIONS,
+  SynchronizationStatus, toDateISOString
+} from "./model/base.model";
 import {FormErrors} from "../../core/form/form.utils";
 import {ObservedLocation} from "./model/observed-location.model";
 
@@ -21,6 +27,9 @@ export declare class ObservedLocationFilter {
   startDate?: Date | Moment;
   endDate?: Date | Moment;
   locationId?: number;
+  recorderDepartmentId?: number;
+  recorderPersonId?: number;
+  synchronizationStatus?: SynchronizationStatus;
 }
 
 export const ObservedLocationFragments = {
@@ -148,14 +157,21 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
     this._debug = !environment.production;
   }
 
-  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: string, filter?: ObservedLocationFilter, options?: any): Observable<LoadResult<ObservedLocation>> {
+  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: string, dataFilter?: ObservedLocationFilter, options?: any): Observable<LoadResult<ObservedLocation>> {
 
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
       sortBy: sortBy || 'startDateTime',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: {
+        ...dataFilter,
+        // Serialize all dates
+        startDate: dataFilter && toDateISOString(dataFilter.startDate),
+        endDate: dataFilter && toDateISOString(dataFilter.endDate),
+        // Remove fields that not exists in pod
+        synchronizationStatus: undefined
+      }
     };
 
     this._lastVariables.loadAll = variables;

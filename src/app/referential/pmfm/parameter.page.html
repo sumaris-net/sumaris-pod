@@ -78,6 +78,9 @@
       <app-referential-table #qualitativeValuesTable entityName="QualitiveValue"
                              [canEdit]="canEdit" [canDelete]="canEdit">
       </app-referential-table>
+
+      <!-- final space-->
+      <p visible-xs visible-sm visible-mobile>&nbsp;</p>
     </mat-tab>
   </mat-tab-group>
 
@@ -97,3 +100,13 @@
   </form-buttons-bar>
 </ion-footer>
 
+
+<!-- FAB button: add qualitative value -->
+<ion-fab slot="fixed" vertical="bottom" horizontal="end"
+         *ngIf="qualitativeValuesTable.enabled && selectedTabIndex===1"
+         @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="!saving && qualitativeValuesTable.addRow($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

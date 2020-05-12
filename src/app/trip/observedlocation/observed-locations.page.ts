@@ -8,7 +8,7 @@ import {
   RESERVED_START_COLUMNS,
   referentialToString,
   personsToString,
-  ReferentialRef
+  ReferentialRef, StatusIds, personToString
 } from "../../core/core.module";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ModalController} from "@ionic/angular";
@@ -26,6 +26,8 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TripFilter} from "../services/trip.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {ObservedLocation} from "../services/model/observed-location.model";
+import {PersonService} from "../../admin/services/person.service";
+import {SharedValidators} from "../../shared/validator/validators";
 
 @Component({
   selector: 'app-observed-locations-page',
@@ -54,6 +56,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     protected settings: LocalSettingsService,
     protected accountService: AccountService,
     protected dataService: ObservedLocationService,
+    protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
@@ -81,10 +84,13 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     );
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({
-      'program': [null],
-      'location': [null],
-      'startDate': [null],
-      'endDate': [null]
+      program: [null, SharedValidators.entity],
+      location: [null, SharedValidators.entity],
+      startDate: [null, SharedValidators.validDate],
+      endDate: [null, SharedValidators.validDate],
+      synchronizationStatus: [null],
+      recorderDepartment: [null, SharedValidators.entity],
+      recorderPerson: [null, SharedValidators.entity]
       // TODO: add observer filter ?
       //,'observer': [null]
     });
@@ -120,6 +126,24 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       }
     });
 
+    // Combo: recorder department
+    this.registerAutocompleteField('department', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Department'
+      }
+    });
+
+    // Combo: recorder person
+    this.registerAutocompleteField('person', {
+      service: this.personService,
+      filter: {
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+      },
+      attributes: ['lastName', 'firstName', 'department.name'],
+      displayWith: personToString
+    });
+
     // Update filter when changes
     this.filterForm.valueChanges
       .pipe(
@@ -130,7 +154,10 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
           programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
           startDate: json.startDate,
           endDate: json.endDate,
-          locationId: json.location && typeof json.location === "object" && json.location.id || undefined
+          locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
+          synchronizationStatus: json.synchronizationStatus || undefined,
+          recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
+          recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
         }, {emitEvent: this.mobile || isNil(this.filter)})),
         // Save filter in settings (after a debounce time)
         debounceTime(1000),
@@ -144,11 +171,11 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       this.markForCheck();
     });
 
-    // Restore filter from settings, or load all trips
+    // Restore filter from settings, or load all rows
     this.restoreFilterOrLoad();
   }
 
-  setFilter(json: TripFilter, opts?: { emitEvent: boolean }) {
+  setFilter(json: ObservedLocationFilter, opts?: { emitEvent: boolean }) {
     super.setFilter(json, opts);
 
     this.filterIsEmpty = TripFilter.isEmpty(json);

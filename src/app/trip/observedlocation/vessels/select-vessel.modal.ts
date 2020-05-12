@@ -57,10 +57,11 @@ export class SelectVesselsModal implements OnInit {
   }
 
   ngOnInit() {
-    // Init landing vessels
+    // Init landing table
     this.landingFilter = this.landingFilter || {};
-    this.landingFilter.acquisitionLevel = this.landingFilter.acquisitionLevel || AcquisitionLevelCodes.LANDING;
     this.landingsTable.filter = this.landingFilter;
+    this.landingsTable.program = this.landingFilter.programLabel;
+    this.landingsTable.acquisitionLevel = AcquisitionLevelCodes.LANDING;
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);

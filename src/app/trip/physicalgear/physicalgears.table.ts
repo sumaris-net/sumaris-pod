@@ -52,7 +52,6 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   }
 
   @Input() canEdit = true;
-  @Input() canEditRankOrder = true;
   @Input() canDelete = true;
   @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
 
@@ -101,6 +100,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
     const newGear = await this.openDetailModal();
     if (newGear) {
+      if (this.debug) console.debug("Adding new gear:", newGear);
       await this.addEntityToTable(newGear);
     }
     return true;

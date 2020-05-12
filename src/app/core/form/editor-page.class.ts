@@ -129,6 +129,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
       }
       catch (err) {
         this.setError(err);
+        this.selectedTabIndex = 0;
         this.loading = false;
       }
     }
@@ -240,9 +241,32 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     return this.updateRoute(data, this.queryParams);
   }
 
-  async save(event, options?: any): Promise<boolean> {
-    console.debug("[data-editor] Asking to save...");
-    if (this.loading || this.saving || !this.dirty) return false;
+  async saveAndClose(event: Event, options?: any): Promise<boolean> {
+    const saved = await this.save(event);
+    if (saved) {
+      await this.close(event);
+    }
+    return saved;
+  }
+
+  async close(event: Event) {
+    if (this.appToolbar && this.appToolbar.canGoBack) {
+      await this.appToolbar.goBack();
+    }
+    else if (this.defaultBackHref) {
+      await this.router.navigateByUrl(this.defaultBackHref);
+    }
+  }
+
+  async save(event: Event, options?: any): Promise<boolean> {
+    if (this.loading || this.saving) {
+      console.debug("[data-editor] Skip save: editor is busy (loading or saving)");
+      return false;
+    }
+    if (!this.dirty) {
+      console.debug("[data-editor] Skip save: editor not dirty");
+      return true;
+    }
 
     // Wait end of async validation
     await this.waitWhilePending();
@@ -277,10 +301,13 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
       if (!this.hasRemoteListener) this.startListenRemoteChanges();
 
       this.submitted = false;
+
       return true;
     } catch (err) {
       this.submitted = true;
       this.setError(err);
+      this.selectedTabIndex = 0;
+      this.markAsDirty();
       this.enable();
 
       // Concurrent change on pod
@@ -354,6 +381,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     } catch (err) {
       this.submitted = true;
       this.setError(err);
+      this.selectedTabIndex = 0;
       this.saving = false;
       this.enable();
       return false;
@@ -390,7 +418,8 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
   async unload(): Promise<void> {
     this.form.reset();
-    this.registerFormsAndTables()
+    this.registerFormsAndTables();
+    this._dirty = false;
   }
 
   protected async onNewEntity(data: T, options?: EditorDataServiceLoadOptions): Promise<void> {

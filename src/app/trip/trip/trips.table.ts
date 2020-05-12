@@ -5,7 +5,7 @@ import {
   AppTableDataSource,
   environment,
   isNil, isNotNil,
-  personsToString, ReferentialRef,
+  personsToString, personToString, ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   StatusIds
@@ -35,6 +35,7 @@ import {SynchronizationStatus} from "../services/model/base.model";
 import {concatPromises} from "../../shared/observables";
 import {isEmptyArray} from "../../shared/functions";
 import {Trip} from "../services/model/trip.model";
+import {PersonService} from "../../admin/services/person.service";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -80,6 +81,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected settings: LocalSettingsService,
     protected accountService: AccountService,
     protected service: TripService,
+    protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected formBuilder: FormBuilder,
@@ -117,7 +119,11 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       location: [null, SharedValidators.entity],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
-      synchronizationStatus: [null]
+      synchronizationStatus: [null],
+      recorderDepartment: [null, SharedValidators.entity],
+      recorderPerson: [null, SharedValidators.entity]
+      // TODO: add observer filter ?
+      //,'observer': [null]
     });
 
     this.readOnly = false; // Allow deletion
@@ -177,6 +183,24 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       }
     });
 
+    // Combo: recorder department
+    this.registerAutocompleteField('department', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Department'
+      }
+    });
+
+    // Combo: recorder person
+    this.registerAutocompleteField('person', {
+      service: this.personService,
+      filter: {
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+      },
+      attributes: ['lastName', 'firstName', 'department.name'],
+      displayWith: personToString
+    });
+
     // Update filter when changes
     this.filterForm.valueChanges
       .pipe(
@@ -191,6 +215,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
             locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
             vesselId:  json.vesselSnapshot && typeof json.vesselSnapshot === "object" && json.vesselSnapshot.id || undefined,
             synchronizationStatus: json.synchronizationStatus || undefined,
+            recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
+            recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
           }, {emitEvent: this.mobile || isNil(this.filter)});
         }),
         // Save filter in settings (after a debounce time)

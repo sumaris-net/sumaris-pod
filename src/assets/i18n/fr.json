@@ -379,7 +379,9 @@
         "END_DATE": "Fin de période",
         "LOCATION": "Port (départ ou retour)",
         "VESSEL": "Navire",
-        "SYNCHRONIZATION_STATUS": "Etat de la données"
+        "SYNCHRONIZATION_STATUS": "Etat de la données",
+        "RECORDER_DEPARTMENT": "Organisme saisisseur",
+        "RECORDER_PERSON": "Saisisseur"
       },
       "SYNCHRONIZATION_STATUS": {
         "DIRTY_HELP": "Marées non synchronisées",
@@ -400,7 +402,10 @@
       "SYNCHRONIZE_TRIP_ERROR": "Synchronisation impossible"
     },
     "MEASUREMENT": {
-      "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}"
+      "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}",
+      "ERROR": {
+        "DUPLICATE_RANK_ORDER": "Le numero #{{rankOrder}} existe déjà. Impossible de l'ajouter à nouveau."
+      }
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
@@ -775,7 +780,7 @@
       "BAD": "Mauvaise",
       "FIXED": "Corrigée",
       "NOT_COMPLETED": "Incomplète",
-      "MISSING": "Manquante"
+      "MISSING": "à remplir"
     },
     "ERROR": {
       "INVALID_FORM": "Vérifier et corriger votre saisie."
@@ -1182,6 +1187,7 @@
     }
   },
   "ERROR": {
+    "ALERT_HEADER": "Erreur",
     "FIELD_REQUIRED": "Champ obligatoire.",
     "FIELD_TOO_SHORT": "Valeur trop courte.",
     "FIELD_TOO_SHORT_WITH_LENGTH": "Valeur trop courte ({{minLength}} caractères min)",
