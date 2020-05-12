@@ -1,7 +1,8 @@
 <app-toolbar [title]="$title | async" color="primary"
-             [hasValidate]="!loading && enabled"
+             [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
+             [hasClose]="!loading && !dirty"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
   <ion-spinner *ngIf="loading"></ion-spinner>
