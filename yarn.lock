@@ -147,7 +147,7 @@
   optionalDependencies:
     parse5 "^5.0.0"
 
-"@angular/cli@^8.3.22":
+"@angular/cli@^8.3.26":
   version "8.3.26"
   resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-8.3.26.tgz#419239e1444e7ef968ce080d11c249c4658097f3"
   integrity sha512-/dZik0ALcMSNaZdzqeG5hnFqyezrPQlWv+NXPidp1l0VTIwdEmjWmL26QpSBBvZ9bqXjY5/5SZYb+zZlGu78Kg==
@@ -1208,7 +1208,7 @@
     tslib "^1.9.0"
     ws "^7.0.1"
 
-"@ionic/angular@^4.11.8":
+"@ionic/angular@^4.11.10":
   version "4.11.10"
   resolved "https://registry.yarnpkg.com/@ionic/angular/-/angular-4.11.10.tgz#467430de7ae49c5c5e1506fa64b2d51847ce62eb"
   integrity sha512-wdi4LJLUEfGK7jxYLNH+8Q2nMPBFCGaheRmQV4hQLQDx3RjVMFJKCsqAmgXXkLtUJfSDBY68r/dvWeYO645HaQ==
@@ -1216,7 +1216,7 @@
     "@ionic/core" "4.11.10"
     tslib "^1.9.3"
 
-"@ionic/core@4.11.10", "@ionic/core@^4.11.8":
+"@ionic/core@4.11.10", "@ionic/core@^4.11.10":
   version "4.11.10"
   resolved "https://registry.yarnpkg.com/@ionic/core/-/core-4.11.10.tgz#1aa5f2e31b8d0c741471af9c272964c34155ab5a"
   integrity sha512-PeonKl5E+VOTBeKDr83y0N/1wbfkZ5jV3PSJTsVPE3Q15LxGEO0GzBvVMgkmkssuqOI3WJPXxYWZVL8ejzSFOQ==
@@ -1224,7 +1224,7 @@
     ionicons "^4.6.3"
     tslib "^1.10.0"
 
-"@ionic/pwa-elements@^1.4.1":
+"@ionic/pwa-elements@^1.4.2":
   version "1.5.2"
   resolved "https://registry.yarnpkg.com/@ionic/pwa-elements/-/pwa-elements-1.5.2.tgz#fa09df335edac62b48f350c38b12647310f1b967"
   integrity sha512-OMa+el4XjnAx22P6S8CN2GGEfDgMkuwOxE5x5Cd/6ZDfcZKRuP//l4+JLF4YBvfvyPPHvaQLI+Ies7H2OTmAuA==
