@@ -72,8 +72,7 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
     opts = super.fillDefaultOptions(opts);
 
     opts.withObservers = toBoolean(opts.withObservers,
-      toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE),
-        ProgramProperties.LANDING_OBSERVERS_ENABLE.defaultValue === "true"));
+      opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE) || false);
 
     opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
 

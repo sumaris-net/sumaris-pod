@@ -218,7 +218,8 @@ export class TripFilter {
   static isEmpty(tripFilter: TripFilter|any): boolean {
     return !tripFilter || (isNilOrBlank(tripFilter.programLabel) && isNilOrBlank(tripFilter.vesselId) && isNilOrBlank(tripFilter.locationId)
       && !tripFilter.startDate && !tripFilter.endDate
-      && isNil(tripFilter.recorderDepartmentId))
+      && isNil(tripFilter.recorderDepartmentId)
+      && isNil(tripFilter.recorderPersonId))
       // && !tripFilter.synchronizationStatus -- not included, because separated button
       ;
   }
@@ -242,21 +243,21 @@ export class TripFilter {
         return false;
       }
 
+      // Start/end period
+      const startDate = fromDateISOString(f.startDate);
+      const endDate = fromDateISOString(f.endDate);
+      if ((startDate && t.returnDateTime && startDate.isAfter(t.returnDateTime))
+        || (endDate && t.departureDateTime && endDate.add(1, 'day').isSameOrBefore(t.departureDateTime))) {
+        return false;
+      }
+
       // Recorder department
       if (isNotNil(f.recorderDepartmentId) && t.recorderDepartment && t.recorderDepartment.id !== f.recorderDepartmentId) {
         return false;
       }
 
       // Recorder person
-      if (isNotNil(f.recorderPersonId) && t.recorderPerson && t.recorderPerson.id !== f.recorderPersonId) {
-        return false;
-      }
-
-      // Start/end period
-      const startDate = fromDateISOString(f.startDate);
-      const endDate = fromDateISOString(f.endDate);
-      if ((startDate && t.returnDateTime && startDate.isAfter(t.returnDateTime))
-        || (endDate && t.departureDateTime && endDate.add(1, 'day').isSameOrBefore(t.departureDateTime))) {
+      if (isNotNil(f.recorderPersonId) && (!t.recorderPerson || t.recorderPerson.id !== f.recorderPersonId)) {
         return false;
       }
 
