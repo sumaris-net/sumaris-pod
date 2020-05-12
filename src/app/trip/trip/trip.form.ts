@@ -143,7 +143,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined),
       filter: {
         entityName: 'Program'
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: vessels

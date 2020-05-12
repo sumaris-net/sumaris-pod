@@ -27,6 +27,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   enableGeolocation: boolean;
   latLongFormat: string;
+  mobile: boolean;
 
   @Input() showComment = true;
   @Input() showError = true;
@@ -81,26 +82,26 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, validatorService.getFormGroup(), settings);
+    this.mobile = this.settings.mobile;
   }
 
   ngOnInit() {
     this.usageMode = this.usageMode || (this.settings.isUsageMode('FIELD') ? 'FIELD' : 'DESK');
     this.latLongFormat = this.settings.latLongFormat;
 
-    this.enableGeolocation = (this.usageMode === 'FIELD') &&
-      (this.platform.is('mobile') || this.platform.is('mobileweb'));
+    this.enableGeolocation = (this.usageMode === 'FIELD') && this.settings.mobile;
 
     // Combo: physicalGears
     this.registerAutocompleteField('physicalGear', {
       suggestFn: (value, options) => this.suggestPhysicalGear(value, options),
-      attributes: ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key))
+      attributes: ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key)),
+      mobile: this.mobile
     });
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value, options) => this.suggestTargetSpecies(value, options),
-      showPanelOnFocus: true,
-      showAllOnFocus: true
+      mobile: this.mobile
     });
   }
 

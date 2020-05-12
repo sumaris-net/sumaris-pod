@@ -50,6 +50,7 @@ export declare interface MatAutocompleteFieldConfig<T = any> {
   displayWith?: DisplayFn;
   showAllOnFocus?: boolean;
   showPanelOnFocus?: boolean;
+  mobile?: boolean;
 }
 
 export declare interface MatAutocompleteFieldAddOptions<T = any> extends Partial<MatAutocompleteFieldConfig<T>> {
@@ -99,7 +100,8 @@ export class MatAutocompleteConfigHolder {
       columnSizes: options.columnSizes,
       columnNames: options.columnNames,
       showAllOnFocus: options.showAllOnFocus,
-      showPanelOnFocus: options.showPanelOnFocus
+      showPanelOnFocus: options.showPanelOnFocus,
+      mobile: options.mobile
     };
     this.fields[fieldName] = config;
     return config;
@@ -139,6 +141,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   _tabindex: number;
   $items: Observable<any[]>;
   onDropButtonClick = new EventEmitter<UIEvent>(true);
+  autocomplete: boolean;
 
   @Input() formControl: FormControl;
 
@@ -197,6 +200,8 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @Input() showPanelOnFocus: boolean;
 
+  @Input() mobile: boolean;
+
   @Input() appAutofocus: boolean;
 
   @Input() config: MatAutocompleteFieldConfig;
@@ -249,8 +254,9 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this.displayColumnSizes = this.displayColumnSizes || this.config.columnSizes;
       this.displayColumnNames = this.displayColumnNames || this.config.columnNames;
       this.displayWith = this.displayWith || this.config.displayWith;
-      this.showAllOnFocus = toBoolean(this.showAllOnFocus, toBoolean(this.config.showAllOnFocus, false));
-      this.showPanelOnFocus = toBoolean(this.showPanelOnFocus, toBoolean(this.config.showPanelOnFocus, false));
+      this.mobile = toBoolean(this.mobile, this.config.mobile);
+      this.showAllOnFocus = toBoolean(this.showAllOnFocus, toBoolean(this.config.showAllOnFocus, this.mobile));
+      this.showPanelOnFocus = toBoolean(this.showPanelOnFocus, toBoolean(this.config.showPanelOnFocus, this.mobile));
     }
 
     // Default values
@@ -263,11 +269,12 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         (attr && attr.endsWith('rankOrder') ? 1 :
           // Else, auto
           undefined));
-
     this.displayColumnNames = this.displayAttributes.map((attr, index) => {
       return this.displayColumnNames && this.displayColumnNames[index] ||
         (this.i18nPrefix + changeCaseToUnderscore(attr).toUpperCase());
     });
+    this.mobile = toBoolean(this.mobile, false);
+    this.autocomplete = !this.mobile;
 
     const updateEvents$ = merge(
       merge(this.onFocus
@@ -275,10 +282,10 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
             // Skip when event comes from a mat-option
             filter(event => !event.defaultPrevented && !(event.relatedTarget instanceof HTMLElement && event.relatedTarget.tagName === 'MAT-OPTION'))
           ),
-        this.onClick)
-         .pipe(
-           map((_) => this.showAllOnFocus ? '*' : this.formControl.value)
-        ),
+          this.onClick)
+           .pipe(
+             map((_) => this.showAllOnFocus || !this.autocomplete ? '*' : this.formControl.value)
+          ),
       this.onDropButtonClick
         .pipe(
           filter(event => !event || !event.defaultPrevented),
@@ -286,7 +293,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         ),
       this.formControl.valueChanges
         .pipe(
-          filter(value => isNotNil(value)),
+          filter(value => this.autocomplete && isNotNil(value)),
           debounceTime(this.debounceTime)
         )
     );
@@ -385,11 +392,17 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     }
 
     const hasContent = selectInputContent(event);
-    if (!hasContent || (this.showPanelOnFocus && this.showAllOnFocus) ) {
+    if (!hasContent || !this.autocomplete || (this.showPanelOnFocus && this.showAllOnFocus) ) {
       this.onFocus.emit(event);
       return true;
     }
     return false;
+  }
+
+  enableAutocomplete(event: UIEvent) {
+    this.autocomplete = true;
+    this.appAutofocus = true;
+    this.markForCheck();
   }
 
   /* -- protected method -- */

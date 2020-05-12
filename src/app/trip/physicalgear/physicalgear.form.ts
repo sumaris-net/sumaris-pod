@@ -91,7 +91,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     // Combo: gears
     this.registerAutocompleteField('gear', {
       suggestFn: async (value, options) => suggestFromArray<ReferentialRef>(this._gears, value, options),
-      showAllOnFocus: false
+      mobile: this.mobile
     });
 
     this.form.get('gear').valueChanges
