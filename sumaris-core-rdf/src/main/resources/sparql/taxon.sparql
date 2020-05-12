@@ -1,0 +1,47 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+PREFIX dwctax: <http://rs.tdwg.org/ontology/voc/TaxonName#>
+PREFIX apt: <http://id.eaufrance.fr/ddd/APT/>
+PREFIX apt2: <http://id.eaufrance.fr/ddd/APT/2.1/>
+PREFIX taxref: <http://taxref.mnhn.fr/lod/>
+PREFIX taxrefprop: <http://taxref.mnhn.fr/lod/property/>
+CONSTRUCT {
+  ?sub dwc:scientificName ?label ;
+      rdf:type dwctax:TaxonName ;
+      skos:broader ?parent ;
+      dc:author ?author ;
+      dc:created ?created ;
+      dc:modified ?modified ;
+      taxrefprop:hasRank ?rank ;
+      owl:sameAs ?match ;
+      rdfs:seeAlso ?seeAlso .
+}
+WHERE { 
+  ?sub dwc:scientificName ?label ;
+       rdf:type ?type .
+  FILTER ( ?type = dwctax:TaxonName || URI(?type) = apt:AppelTaxon )
+  OPTIONAL {
+      ?sub taxrefprop:hasAuthority|apt2:AuteurAppelTaxon ?author ;
+         taxrefprop:hasRank|apt2:NiveauTaxonomique ?rank .
+    }
+  OPTIONAL {
+      ?sub skos:exactMatch|owl:sameAs ?match .
+      #      FILTER ( isURI(?match) )
+    }
+  OPTIONAL {
+      ?sub rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .
+      #      FILTER ( isURI(?seeAlso) )
+    }
+  OPTIONAL {
+      ?sub dc:created|apt2:DateCreationAppelTaxon ?created ;
+          dc:modified|apt2:DateMajAppelTaxon ?modified .
+    }
+  OPTIONAL {
+      ?sub skos:broader|apt2:AppelTaxonParent ?parent .
+    }
+}

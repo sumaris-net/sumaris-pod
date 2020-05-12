@@ -22,19 +22,29 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.exception.DataLockedException;
+import net.sumaris.core.model.QualityFlagEnum;
 import net.sumaris.core.model.data.IRootDataEntity;
+import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.filter.IRootDataFilter;
+import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataRetrievalFailureException;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.LockTimeoutException;
 import java.sql.Timestamp;
 
 public class RootDataRepositoryImpl<
@@ -64,6 +74,8 @@ public class RootDataRepositoryImpl<
         setCopyExcludeProperties(
                 IRootDataEntity.Fields.UPDATE_DATE,
                 IRootDataEntity.Fields.CREATION_DATE);
+
+        this.setEnableForUpdate(true);
     }
 
     @Override
@@ -99,6 +111,74 @@ public class RootDataRepositoryImpl<
 
     }
 
+    @Override
+    public V validate(V source) {
+        Preconditions.checkNotNull(source);
+
+        E entity = getOne(source.getId());
+        if (entity == null) {
+            throw new DataRetrievalFailureException(String.format("Entity {%s} not found", source.getId()));
+        }
+
+        // Check update date
+        if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(source, entity);
+
+        // Lock entityName
+        if (isLockForUpdateEnable()) lockForUpdate(entity);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // TODO VALIDATION PROCESS HERE
+        entity.setValidationDate(newUpdateDate);
+
+        // Save entityName
+        getEntityManager().merge(entity);
+
+        // Update source
+        source.setValidationDate(newUpdateDate);
+        source.setUpdateDate(newUpdateDate);
+
+        return source;
+    }
+
+    @Override
+    public V unvalidate(V vo) {
+        Preconditions.checkNotNull(vo);
+
+        E entity = getOne(vo.getId());
+        if (entity == null) {
+            throw new DataRetrievalFailureException(String.format("Entity{%s} not found", vo.getId()));
+        }
+
+        // Check update date
+        if (isCheckUpdateDate()) Daos.checkUpdateDateForUpdate(vo, entity);
+
+        // Lock entityName
+        if (isLockForUpdateEnable()) lockForUpdate(entity);
+
+        // TODO UNVALIDATION PROCESS HERE
+        entity.setValidationDate(null);
+        entity.setQualificationDate(null);
+        entity.setQualityFlag(load(QualityFlag.class, QualityFlagEnum.NOT_QUALIFED.getId()));
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // Save entityName
+        getEntityManager().merge(entity);
+
+        // Update source
+        vo.setValidationDate(null);
+        vo.setQualificationDate(null);
+        vo.setQualityFlagId(QualityFlagEnum.NOT_QUALIFED.getId());
+        vo.setUpdateDate(newUpdateDate);
+
+        return vo;
+    }
+
     /* -- protected method -- */
 
     @Override
@@ -109,4 +189,5 @@ public class RootDataRepositoryImpl<
             vo.setCreationDate(savedEntity.getCreationDate());
         }
     }
+
 }

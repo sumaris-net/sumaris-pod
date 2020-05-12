@@ -1,0 +1,58 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.0.3.xml">
+    
+    <changeSet author="benoit.lavenier@e-is.pro" id="1587480552182-1">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="virtual_component"/></not>
+        </preConditions>
+        <createTable tableName="virtual_component">
+            <column name="taxon_name_fk" type="INT">
+                <constraints primaryKey="true" primaryKeyName="virtual_component_pk"/>
+            </column>
+            <column name="reference_taxon_fk" type="INT">
+                <constraints primaryKey="true" primaryKeyName="virtual_component_pk"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1587480552182-2" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyTableName="virtual_component" foreignKeyName="FKf8njcpml7f6gvfgti9sa7xxe"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="taxon_name_fk" baseTableName="virtual_component" constraintName="FKf8njcpml7f6gvfgti9sa7xxe" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_name"/>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1587480552182-3" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyTableName="virtual_component" foreignKeyName="FKaiap5thmcoyoc9aieusa91dbv"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="virtual_component" constraintName="FKaiap5thmcoyoc9aieusa91dbv" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon"/>
+    </changeSet>
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1587480552182-200" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='1.0.3'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">1.0.3</column>
+            <column name="DESCRIPTION">
+                - Add table VIRTUAL_COMPONENT;
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="COMMENTS">
+            </column>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

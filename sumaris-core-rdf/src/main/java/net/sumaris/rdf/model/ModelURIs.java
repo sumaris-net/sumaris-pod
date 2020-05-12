@@ -34,8 +34,11 @@ public class ModelURIs {
 
             // Darwin core
             .put("dwc", DWC.Terms.NS)
-            .put("dwciri","http://rs.tdwg.org/dwc/iri/")
+            .put("dwciri", "http://rs.tdwg.org/dwc/iri/")
             .put("dwctax", "http://rs.tdwg.org/ontology/voc/TaxonName#")
+
+            // TaxonConcept
+            .put("txn", "http://lod.taxonconcept.org/ontology/txn.owl")
 
             // Appellation Taxon (Sandre)
             .put("apt", APT.NS)
@@ -64,7 +67,12 @@ public class ModelURIs {
             .put("foaf", "http://xmlns.com/foaf/spec/index.rdf")
             .put("skos", SKOS.getURI())
 
-            .put("dwc", "http://rs.tdwg.org/ontology/voc/TaxonName.rdf+")
+            // Darwin core
+            .put("dwc", "http://rs.tdwg.org/dwc/terms/")
+            .put("dwctax", "http://rs.tdwg.org/ontology/voc/TaxonName.rdf")
+
+            // TaxonConcept
+            .put("txn", "http://lod.taxonconcept.org/ontology/txn.owl")
 
             // Sandre
             .put("apt", "http://owl.sandre.eaufrance.fr/apt/2.1/sandre_fmt_owl_apt.owl")

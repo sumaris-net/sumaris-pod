@@ -22,22 +22,31 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldNameConstants
 public class ObservedLocationFilterVO implements IRootDataFilter {
+
+    private String programLabel;
 
     private Date startDate;
 
     private Date endDate;
 
-    private String programLabel;
+    private Integer locationId;
 
     private Integer recorderDepartmentId;
 
-    private Integer locationId;
+    private Integer recorderPersonId;
+
 }

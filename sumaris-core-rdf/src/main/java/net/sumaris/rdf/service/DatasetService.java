@@ -26,7 +26,6 @@ import com.github.jsonldjava.shaded.com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.crypto.CryptoService;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.file.FileContentReplacer;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.NamedModelProducer;
@@ -53,9 +52,10 @@ import org.apache.jena.tdb2.TDB2Factory;
 import org.apache.jena.util.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.context.annotation.Bean;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -103,7 +103,11 @@ public class DatasetService {
     @Resource(name = "sandreRdfTaxonDao")
     private NamedModelProducer sandreRdfTaxonDao;
 
+    @Autowired(required = false)
+    protected TaskExecutor taskExecutor;
+
     private Map<String, Callable<Model>> namedGraphFactories = Maps.newHashMap();
+
 
     @PostConstruct
     public void start() {
@@ -114,8 +118,20 @@ public class DatasetService {
         // Init the query dataset
         this.dataset = createDataset();
 
-        // fill dataset
-        loadDataset(this.dataset);
+        // Fill dataset (async if possible)
+        if (taskExecutor != null) {
+            taskExecutor.execute(() -> {
+                try {
+                    Thread.sleep(10 * 1000); // Wait server starts
+
+                    loadDataset(this.dataset);
+
+                } catch (InterruptedException e) { }
+            });
+        }
+        else {
+            loadDataset(this.dataset);
+        }
     }
 
     @PreDestroy
@@ -133,16 +149,17 @@ public class DatasetService {
 
     public void loadAllNamedModels(Dataset dataset, boolean replaceIfExists) {
         Collection<String> existingNames = listNames();
-        namedGraphFactories.entrySet().forEach(entry -> {
-            final String name = entry.getKey();
-            Callable<Model> producer = entry.getValue();
+        namedGraphFactories.forEach((name, producer) -> {
 
             boolean exists = existingNames.contains(name);
 
             if (!exists || replaceIfExists) {
                 try {
+                    // Fetch the model
                     Model model = producer.call();
-                    loadNamedModel(dataset, name, model, replaceIfExists);
+
+                    // Store into dataset
+                    saveNamedModel(dataset, name, model, replaceIfExists);
                 } catch (Exception e) {
                     log.warn("Cannot load {{}}: {}", name, e.getMessage(), e);
                 }
@@ -354,7 +371,7 @@ public class DatasetService {
         }
     }
 
-    public void loadNamedModel(Dataset dataset, String name, Model model, boolean replaceIfExists) {
+    public void saveNamedModel(Dataset dataset, String name, Model model, boolean replaceIfExists) {
 
         try {
             long now = System.currentTimeMillis();

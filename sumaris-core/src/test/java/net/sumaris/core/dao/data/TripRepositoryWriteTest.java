@@ -26,6 +26,7 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
+import net.sumaris.core.vo.filter.TripFilterVO;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -35,18 +36,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class TripDaoWriteTest extends AbstractDaoTest{
+public class TripRepositoryWriteTest extends AbstractDaoTest{
 
     /** Logger. */
     private static final Logger log =
-            LoggerFactory.getLogger(TripDaoWriteTest.class);
+            LoggerFactory.getLogger(TripRepositoryWriteTest.class);
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private TripDao dao;
+    private TripRepository repository;
 
     @Before
     public void setUp() throws Exception {
@@ -55,16 +57,37 @@ public class TripDaoWriteTest extends AbstractDaoTest{
     }
 
     @Test
-    public void getAllTrips() {
-        List<TripVO> trips = dao.findAll(0, 100, null, null, DataFetchOptions.builder().build());
+    public void findAll() {
+        List<TripVO> trips = repository.findAll(0, 100, null, null, DataFetchOptions.builder().build())
+                .stream().collect(Collectors.toList());
         Assert.assertNotNull(trips);
         Assert.assertTrue(trips.size() > 0);
     }
 
     @Test
-    public void delete() {
+    public void findAllByRecorderPerson() {
+        TripFilterVO filter = TripFilterVO.builder()
+                .recorderPersonId(dbResource.getFixtures().getPersonId(0))
+                .build();
+        List<TripVO> trips = repository.findAll(filter);
+        Assert.assertNotNull(trips);
+        Assert.assertTrue(trips.size() > 0);
+    }
+
+    @Test
+    public void findAllByRecorderDepartment() {
+        TripFilterVO filter = TripFilterVO.builder()
+                .recorderDepartmentId(dbResource.getFixtures().getDepartmentId(0))
+                .build();
+        List<TripVO> trips = repository.findAll(filter);
+        Assert.assertNotNull(trips);
+        Assert.assertTrue(trips.size() > 0);
+    }
+
+    @Test
+    public void deleteById() {
         Integer id = dbResource.getFixtures().getTripId(0);
-        dao.delete(id);
+        repository.deleteById(id);
 
     }
 

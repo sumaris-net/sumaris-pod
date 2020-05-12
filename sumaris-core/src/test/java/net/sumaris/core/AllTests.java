@@ -55,8 +55,8 @@ import org.junit.runners.Suite;
     // DAO : data
     BatchDaoWriteTest.class,
     SampleDaoWriteTest.class,
-    TripDaoWriteTest.class,
-    LandingDaoReadTest.class,
+    TripRepositoryWriteTest.class,
+    LandingRepositoryReadTest.class,
     VesselDaoImplReadTest.class,
     VesselSnapshotDaoImplReadTest.class,
     // DAO: referential

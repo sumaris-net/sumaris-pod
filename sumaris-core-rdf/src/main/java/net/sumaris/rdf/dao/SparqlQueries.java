@@ -1,10 +1,8 @@
-package net.sumaris.core.dao.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,14 +20,19 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.model.data.IRootDataEntity;
-import net.sumaris.core.vo.data.IRootDataVO;
-import net.sumaris.core.vo.filter.IRootDataFilter;
-import org.springframework.data.repository.NoRepositoryBean;
+package net.sumaris.rdf.dao;
 
-@NoRepositoryBean
-public interface RootDataRepository<E extends IRootDataEntity<ID>, ID extends Integer, V extends IRootDataVO<ID>, F extends IRootDataFilter>
-    extends DataRepository<E, ID, V, F> {
+import net.sumaris.core.dao.technical.Page;
 
+/**
+ * Helper class
+ */
+public class SparqlQueries {
 
+    public static final String LIMIT_CLAUSE = "LIMIT %s OFFSET %s";
+
+    public static String getConstructQuery(String baseQuery, Page page) {
+        if (page == null || page.getSize() < 0 || page.getOffset() < 0) return baseQuery;
+        return baseQuery + "\n" + String.format(LIMIT_CLAUSE, page.getSize(), page.getOffset());
+    }
 }

@@ -118,11 +118,11 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
 
 
         // Emit event to listeners
-        // WARN: should always be done in a transactionnal service method
+        // WARN: should always be done in a transactional service method
         if (taskExecutor != null) {
             taskExecutor.execute(() -> {
                 try {
-                    Thread.sleep(10 * 1000);
+                    Thread.sleep(10 * 1000); // Wait server starts
 
                     self.fireOnSchemaUpdatedEvent();
                 } catch (InterruptedException e) {
