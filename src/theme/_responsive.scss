@@ -28,6 +28,13 @@ html.plt-mobile {
   }
 
 }
+html:not(.plt-mobile) {
+  [visible-mobile],
+  .visible-mobile {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
 
 @media screen and (max-width: $screen-xxs-max) {
   @-ms-viewport {

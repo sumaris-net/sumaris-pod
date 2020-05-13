@@ -1,19 +1,18 @@
 <app-toolbar visible-xs visible-sm visible-mobile>
   <ion-button mat-icon-button [matMenuTriggerFor]="matmenu">
-    <mat-icon slot="icon-only">public</mat-icon>
+    <ion-label>&nbsp;{{ currentLocaleCode | uppercase }}</ion-label>
+    <mat-icon slot="end">arrow_drop_down</mat-icon>
   </ion-button>
 </app-toolbar>
 
 <!-- change locale menu -->
 <mat-menu #matmenu="matMenu">
   <button mat-menu-item (click)="changeLanguage('en')">
-    <mat-icon>flag</mat-icon>
     <ion-label>
       English
     </ion-label>
   </button>
   <button mat-menu-item (click)="changeLanguage('fr')">
-    <mat-icon>flag</mat-icon>
     <ion-label>
       Français
     </ion-label>
@@ -47,8 +46,8 @@
         <ion-buttons slot="end">
           <!-- change locale button -->
           <ion-button color="secondary" fill="solid" [matMenuTriggerFor]="matmenu">
-            <mat-icon slot="start">public</mat-icon>
             <ion-label>&nbsp;{{ currentLocaleCode | uppercase }}</ion-label>
+            <mat-icon slot="end">arrow_drop_down</mat-icon>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -150,6 +149,18 @@
       <!-- If user login -->
       <ng-template #loginButtons>
 
+        <ng-container *ngFor="let item of $filteredButtons | async">
+          <ion-button *ngIf="item.path"
+                      expand="block" color="tertiary"
+                      [class]="item.cssClass"
+                      [routerLink]="item.path"
+                      routerDirection="root">
+            <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
+            <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
+            <ion-label>{{'HOME.BTN_DATA_ENTRY'|translate: {name: (item.title | translate) } }}</ion-label>
+          </ion-button>
+        </ng-container>
+
         <ion-button expand="block" color="secondary" [routerLink]="['/account']">
           <ion-icon name="contact" slot="start"></ion-icon>
           <span translate>HOME.BTN_MY_ACCOUNT</span>
@@ -164,6 +175,7 @@
             </a>
           </ion-text>
         </p>
+
 
       </ng-template>
 

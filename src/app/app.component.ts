@@ -1,18 +1,17 @@
-import {Component, Inject} from '@angular/core';
+import {Component, Inject, InjectionToken, Optional} from '@angular/core';
 import {MenuItem} from './core/menu/menu.component';
 import {isNotNil, joinPropertiesPath} from './core/core.module';
 import {ReferentialRefService} from './referential/referential.module';
-import {ConfigService} from './core/services/config.service';
+import {APP_CONFIG_OPTIONS, ConfigService} from './core/services/config.service';
 import {DOCUMENT} from "@angular/common";
 import {Configuration} from "./core/services/model";
 import {PlatformService} from "./core/services/platform.service";
 import {throttleTime} from "rxjs/operators";
 import {changeCaseToUnderscore} from "./shared/shared.module";
-import {FormFieldDefinition} from "./shared/form/field.model";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "./shared/form/field.model";
 import {getColorContrast, getColorShade, getColorTint, hexToRgbArray, mixHex} from "./shared/graph/colors.utils";
 import {AccountService} from "./core/services/account.service";
 import {LocalSettingsService} from "./core/services/local-settings.service";
-
 
 @Component({
   selector: 'app-root',
@@ -23,41 +22,6 @@ export class AppComponent {
 
   logo: String;
   appName: String;
-  menuItems: MenuItem[] = [
-    {title: 'MENU.HOME', path: '/', icon: 'home'},
-
-    // Data entry
-    {title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
-    {title: 'MENU.TRIPS', path: '/trips', icon: 'pin',
-      ifProperty: 'sumaris.trip.enable',
-      profile: 'USER'},
-    {
-      title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
-      matIcon: 'verified_user',
-      profile: 'USER',
-      ifProperty: 'sumaris.observedLocation.enable',
-      titleProperty: 'sumaris.observedLocation.name'
-    },
-
-    // Data extraction
-    {title: 'MENU.EXTRACTION_DIVIDER', profile: 'SUPERVISOR'},
-    {title: 'MENU.TRIPS', path: '/extraction/table', icon: 'download', profile: 'SUPERVISOR'},
-    {title: 'MENU.MAP', path: '/extraction/map', icon: 'globe', profile: 'SUPERVISOR'},
-
-    // Referential
-    {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
-    {title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER'},
-    {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
-    {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
-    {title: 'MENU.SERVER_SETTINGS', path: '/admin/config', matIcon: 'build', profile: 'ADMIN'},
-
-    // Settings
-    {title: '' /*empty divider*/},
-    {title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings'},
-    {title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', cssClass: 'visible xs visible-sm'},
-    {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', cssClass: 'ion-color-danger'}
-
-  ];
 
   constructor(
     @Inject(DOCUMENT) private _document: HTMLDocument,

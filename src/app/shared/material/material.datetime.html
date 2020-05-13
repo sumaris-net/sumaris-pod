@@ -104,7 +104,7 @@
           </button>
           <button *ngIf="!compact && mobile" type="button" matSuffix
                   (click)="openTimePickerIfMobile($event)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
-            <mat-icon><ion-icon name="time"></ion-icon></mat-icon>
+            <mat-icon>access_time</mat-icon>
           </button>
 
           <ngx-material-timepicker #timePicker
@@ -211,8 +211,4 @@
 
 <ng-template #iconDate>
   <mat-icon>date_range</mat-icon>
-</ng-template>
-
-<ng-template #iconTime>
-  <mat-icon><ion-icon name="time"></ion-icon></mat-icon>
 </ng-template>

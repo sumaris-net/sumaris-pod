@@ -10,7 +10,7 @@ import {
   toDateISOString
 } from "../../shared/shared.module";
 import {isEmptyArray, noTrailingSlash} from "../../shared/functions";
-import {FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
+import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 
 export {
   joinPropertiesPath,
@@ -737,6 +737,25 @@ export class Configuration extends Software<Configuration> {
       this.partners = (source.partners || []).map(Department.fromObject);
 
     return this;
+  }
+
+  getPropertyAsBoolean(definition: FormFieldDefinition): boolean {
+    const value = this.getProperty(definition);
+    return isNotNil(value) ? (value && value !== "false") : undefined;
+  }
+
+  getPropertyAsNumbers(definition: FormFieldDefinition): number[] {
+    const value = this.getProperty(definition);
+    return value && value.split(',').map(parseInt) || undefined;
+  }
+
+  getPropertyAsStrings(definition: FormFieldDefinition): string[] {
+    const value = this.getProperty(definition);
+    return value && value.split(',') || undefined;
+  }
+
+  getProperty<T = string>(definition: FormFieldDefinition): T {
+    return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : (definition.defaultValue || undefined);
   }
 }
 

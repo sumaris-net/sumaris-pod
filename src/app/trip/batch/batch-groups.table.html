@@ -280,7 +280,7 @@
         <!-- open individual measures -->
         <button mat-icon-button
                 *ngIf="mobile && row.currentData.observedIndividualCount"
-                color="primary"
+                color="tertiary"
                 [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
                 (click)="onSubBatchesClick($event, row)">
           <mat-icon [matBadge]="row.currentData.observedIndividualCount"

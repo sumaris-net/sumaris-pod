@@ -14,8 +14,7 @@
         <mat-autocomplete-field [formControl]="form.controls.taxonGroup"
                                 [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP'|translate"
                                 [config]="autocompleteFields.taxonGroup"
-                                readonly
-        >
+                                [readonly]="true">
         </mat-autocomplete-field>
       </ion-col>
 

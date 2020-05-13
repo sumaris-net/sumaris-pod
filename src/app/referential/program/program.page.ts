@@ -148,7 +148,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     this.form.patchValue(json, {emitEvent: false});
 
     // strategies
-    this.strategiesTable.value = data.strategies.slice(); // force update
+    this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
 
     this.markAsPristine();
   }

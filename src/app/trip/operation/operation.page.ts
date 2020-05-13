@@ -649,7 +649,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   }
 
   protected addToPageHistory(page: HistoryPageReference) {
-    super.addToPageHistory({ ...page, icon: 'pin'});
+    super.addToPageHistory({ ...page, icon: 'navigate'});
   }
 
   protected async setAutoFillSpecies(enable: boolean) {

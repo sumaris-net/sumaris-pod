@@ -17,7 +17,7 @@
 
       <ion-button *ngIf="$entity | async as entity" color="secondary" [matMenuTriggerFor]="selectEntityMenu">
         <ion-label>{{entity.label}}</ion-label>
-        <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+        <mat-icon slot="end">arrow_drop_down</mat-icon>
       </ion-button>
 
       <button mat-icon-button *ngIf="canEdit && !selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate"

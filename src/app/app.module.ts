@@ -35,6 +35,8 @@ import {TripConfigOptions} from "./trip/services/config/trip.config";
 import {IonicStorageModule} from "@ionic/storage";
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
 import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS} from "@angular/material/autocomplete";
+import {APP_MENU_ITEMS} from "./core/menu/menu.component";
+import {APP_HOME_BUTTONS} from "./core/home/home";
 
 
 @NgModule({
@@ -97,7 +99,66 @@ import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS} from "@angular/material/autocomplete";
     },
 
     // Config options (Core + trip)
-    { provide: APP_CONFIG_OPTIONS, useValue: {...ConfigOptions, ...TripConfigOptions}}
+    { provide: APP_CONFIG_OPTIONS, useValue: {...ConfigOptions, ...TripConfigOptions}},
+
+    // Menu items
+    { provide: APP_MENU_ITEMS, useValue: [
+        {title: 'MENU.HOME', path: '/', icon: 'home'},
+
+        // Data entry
+        {title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
+        {title: 'MENU.TRIPS', path: '/trips',
+          icon: 'navigate',
+          profile: 'USER',
+          ifProperty: 'sumaris.trip.enable',
+          titleProperty: 'sumaris.trip.name'
+        },
+        {
+          title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
+          matIcon: 'verified_user',
+          profile: 'USER',
+          ifProperty: 'sumaris.observedLocation.enable',
+          titleProperty: 'sumaris.observedLocation.name'
+        },
+
+        // Data extraction
+        {title: 'MENU.EXTRACTION_DIVIDER', profile: 'SUPERVISOR'},
+        {title: 'MENU.TRIPS', path: '/extraction/table', icon: 'download', profile: 'SUPERVISOR'},
+        {title: 'MENU.MAP', path: '/extraction/map', icon: 'globe', profile: 'SUPERVISOR'},
+
+        // Referential
+        {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
+        {title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER'},
+        {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
+        {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
+        {title: 'MENU.SERVER_SETTINGS', path: '/admin/config', matIcon: 'build', profile: 'ADMIN'},
+
+        // Settings
+        {title: '' /*empty divider*/},
+        {title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings'},
+        {title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', cssClass: 'visible xs visible-sm'},
+        {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', cssClass: 'ion-color-danger'}
+
+      ]
+    },
+
+    // Home buttons
+    { provide: APP_HOME_BUTTONS, useValue: [
+        // Data entry
+        { title: 'MENU.TRIPS', path: '/trips',
+          icon: 'navigate', cssClass: 'visible-mobile',
+          profile: 'USER',
+          ifProperty: 'sumaris.trip.enable',
+          titleProperty: 'sumaris.trip.name'
+        },
+        { title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
+          matIcon: 'verified_user', cssClass: 'visible-mobile',
+          profile: 'USER',
+          ifProperty: 'sumaris.observedLocation.enable',
+          titleProperty: 'sumaris.observedLocation.name'
+        }
+      ]
+    }
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

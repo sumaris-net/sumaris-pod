@@ -1,4 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component, Inject,
+  InjectionToken,
+  OnDestroy,
+  Optional
+} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {RegisterModal} from '../register/modal/modal-register';
 import {BehaviorSubject, Subscription} from 'rxjs';
@@ -20,15 +27,18 @@ import {debounceTime, map, startWith} from "rxjs/operators";
 import {AuthModal} from "../auth/modal/modal-auth";
 import {environment} from "../../../environments/environment"
 import {NetworkService} from "../services/network.service";
+import {APP_MENU_ITEMS, MenuItem, MenuItems} from "../menu/menu.component";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
   return files[imgIndex];
 }
 
+export const APP_HOME_BUTTONS = new InjectionToken<MenuItem[]>('homeButton');
+
 @Component({
   moduleId: module.id.toString(),
-  selector: 'page-home',
+  selector: 'app-page-home',
   templateUrl: 'home.html',
   styleUrls: ['./home.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,7 +46,9 @@ export function getRandomImage(files: String[]) {
 })
 export class HomePage implements OnDestroy {
 
+  private readonly _debug: boolean;
   private _subscription = new Subscription();
+  private _config: Configuration;
 
   loading = true;
   showSpinner = true;
@@ -54,6 +66,7 @@ export class HomePage implements OnDestroy {
   appInstallName: string;
   appInstallUrl: string;
   offline: boolean;
+  $filteredButtons = new BehaviorSubject<MenuItem[]>(undefined);
 
   get currentLocaleCode(): string {
     return (this.translate.currentLang || this.translate.defaultLang).substr(0,2);
@@ -67,11 +80,12 @@ export class HomePage implements OnDestroy {
     private platform: PlatformService,
     private cd: ChangeDetectorRef,
     public network: NetworkService,
-    public settings: LocalSettingsService
+    public settings: LocalSettingsService,
+    @Optional() @Inject(APP_HOME_BUTTONS) public buttons: MenuItem[]
   ) {
 
+    this._debug = !environment.production;
     this.showSpinner = !this.platform.started;
-
     this.platform.ready().then(() => this.start());
   }
 
@@ -153,12 +167,11 @@ export class HomePage implements OnDestroy {
           }
         })
     );
-
-
   }
 
   protected onConfigLoaded(config: Configuration) {
     console.debug("[home] Configuration loaded:", config);
+    this._config = config;
 
     this.appName = config.label || environment.defaultAppName || 'SUMARiS';
     this.logo = config.largeLogo || config.smallLogo || undefined;
@@ -190,6 +203,7 @@ export class HomePage implements OnDestroy {
       }
     }
 
+    this.refreshButtons();
     this.markForCheck();
 
     // If first load, hide the loading indicator
@@ -219,6 +233,7 @@ export class HomePage implements OnDestroy {
     this.displayName = account &&
       ((account.firstName && (account.firstName + " ") || "") +
         (account.lastName || "")) || "";
+    this.refreshButtons();
     this.markForCheck();
   }
 
@@ -226,12 +241,30 @@ export class HomePage implements OnDestroy {
     this.isLogin = false;
     this.displayName = "";
     this.pageHistory = [];
+    this.refreshButtons();
     this.markForCheck();
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
+  protected refreshButtons() {
+    if (this._debug) console.debug("[home] Refreshing buttons...");
+
+    const filteredButtons = (this.buttons || [])
+      .filter((item) => MenuItems.checkIfVisible(item, this.accountService, this._config, {
+        isLogin: this.isLogin,
+        debug: this._debug
+      }))
+      .map(item => {
+        // Replace title using properties
+        if (isNotNilOrBlank(item.titleProperty) && this._config) {
+          const title = this._config.properties[item.titleProperty];
+          if (title) return { ...item, title}; // Create a copy, to keep the original item.title
+        }
+        return item;
+      });
+
+    this.$filteredButtons.next(filteredButtons);
   }
+
 
   protected async computeInstallAppUrl(config: Configuration) {
     if (this.appInstallUrl) return; // Already computed: skip
@@ -263,4 +296,10 @@ export class HomePage implements OnDestroy {
       // else if (...)
     }
   }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
+
 }
