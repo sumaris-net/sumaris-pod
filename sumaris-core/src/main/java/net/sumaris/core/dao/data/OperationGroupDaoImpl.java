@@ -91,7 +91,9 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
         final Map<Integer, OperationGroupVO> groupsByMetierId = Beans.splitByProperty(existingOperationGroups, OperationGroupVO.Fields.METIER + '.' + ReferentialVO.Fields.ID);
 
         // Save each operation group
-        for (MetierVO source : sources) {
+        sources.stream()
+                .filter(s -> s != null && s.getId() != null)
+                .forEach(source -> {
             OperationGroupVO operationGroup = groupsByMetierId.remove(source.getId());
             Operation entity;
             boolean isNew = false;
@@ -128,7 +130,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
                 getEntityManager().merge(entity);
             }
 
-        }
+        });
 
         // Remove unused entities
         if (CollectionUtils.isNotEmpty(groupsByMetierId.values())) {
