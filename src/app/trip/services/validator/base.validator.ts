@@ -2,7 +2,7 @@ import {Person} from "../../../core/services/model";
 import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
-import {DataEntity, DataRootEntity, DataRootVesselEntity, IWithObserversEntity} from "../model/base.model";
+import {DataEntity, RootDataEntity, DataRootVesselEntity, IWithObserversEntity} from "../model/base.model";
 import {Program} from "../../../referential/services/model";
 import {toBoolean, toNumber} from "../../../shared/functions";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
@@ -76,7 +76,7 @@ export interface DataRootEntityValidatorOptions extends DataEntityValidatorOptio
   program?: Program;
 }
 
-export abstract class DataRootEntityValidatorService<T extends DataRootEntity<T>, O extends DataRootEntityValidatorOptions = DataRootEntityValidatorOptions>
+export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>, O extends DataRootEntityValidatorOptions = DataRootEntityValidatorOptions>
   extends DataEntityValidatorService<T, O> {
 
   protected constructor(

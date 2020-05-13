@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Output} from "@angular/core";
 import {Batch} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormBuilder, FormGroup} from "@angular/forms";

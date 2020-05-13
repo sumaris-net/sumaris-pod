@@ -10,7 +10,7 @@ import {
   referentialToString,
   StatusIds
 } from '../../core/core.module';
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {
   AcquisitionLevelCodes,

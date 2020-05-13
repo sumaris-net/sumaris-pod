@@ -114,7 +114,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       service: this.referentialRefService,
       filter: {
         entityName: 'Program'
-      }
+      },
+      mobile: this.mobile
     });
 
     // Locations combo (filter)
@@ -123,7 +124,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       filter: {
         entityName: 'Location',
         levelIds: [LocationLevelIds.AUCTION, LocationLevelIds.PORT]
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: recorder department
@@ -131,7 +133,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       service: this.referentialRefService,
       filter: {
         entityName: 'Department'
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: recorder person
@@ -141,7 +144,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: personToString
+      displayWith: personToString,
+      mobile: this.mobile
     });
 
     // Update filter when changes

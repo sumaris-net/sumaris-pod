@@ -1,5 +1,5 @@
-@import '~@ionic/core/dist/collection/themes/ionic.mixins';
-@import '~@ionic/core/dist/collection/themes/ionic.functions.color';
+@import './ionic/ionic.mixins';
+@import './ionic/ionic.functions.color';
 
 @mixin font-size($size) {
   font-size: $size;

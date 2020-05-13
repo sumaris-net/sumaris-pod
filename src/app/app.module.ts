@@ -4,7 +4,7 @@ import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule} from "@angular/core";
 import {IonicModule} from "@ionic/angular";
-import {DateAdapter, MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material";
+import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
 import {DATE_ISO_PATTERN} from "./core/constants";
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
@@ -34,6 +34,7 @@ import {APP_CONFIG_OPTIONS, ConfigService} from "./core/services/config.service"
 import {TripConfigOptions} from "./trip/services/config/trip.config";
 import {IonicStorageModule} from "@ionic/storage";
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
+import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS} from "@angular/material/autocomplete";
 
 
 @NgModule({

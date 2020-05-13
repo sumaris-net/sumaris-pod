@@ -23,7 +23,7 @@ import {
   referentialToString
 } from '../../referential/referential.module';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
-import {FloatLabelType} from "@angular/material";
+import {FloatLabelType} from "@angular/material/form-field";
 
 
 import {SharedValidators} from '../../shared/validator/validators';
@@ -106,7 +106,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   @Output()
   onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
-  @ViewChild('matInput', { static: false }) matInput: ElementRef;
+  @ViewChild('matInput') matInput: ElementRef;
 
   constructor(
     private platform: PlatformService,

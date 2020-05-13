@@ -10,7 +10,7 @@ import {
   Output
 } from '@angular/core';
 import {Platform} from '@ionic/angular';
-import {FloatLabelType} from '@angular/material';
+import {FloatLabelType} from '@angular/material/form-field';
 import {
   ControlValueAccessor,
   FormBuilder,

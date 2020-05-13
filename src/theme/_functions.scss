@@ -1,5 +1,5 @@
-@import '~@ionic/core/dist/collection/themes/ionic.functions.string';
-@import '~@ionic/core/dist/collection/themes/ionic.functions.color';
+@import './ionic/ionic.functions.string';
+@import './ionic/ionic.functions.color';
 
 @function calculateRem($size) {
   $remSize: $size / 16px;

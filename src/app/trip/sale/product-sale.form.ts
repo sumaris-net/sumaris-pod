@@ -1,18 +1,15 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {AppForm, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../core/core.module";
+import {AppForm, FormArrayHelper, isNotNil} from "../../core/core.module";
 import {ProductSale, ProductSaleUtils} from "../services/model/product-sale.model";
 import {Product} from "../services/model/product.model";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {UsageMode} from "../../core/services/model";
-import {isNotEmptyArray, isNotNilOrNaN, round, toBoolean} from "../../shared/functions";
-import {DateAdapter} from "@angular/material";
+import {isNotEmptyArray, round, toBoolean} from "../../shared/functions";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {PacketValidatorService} from "../services/validator/packet.validator";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ProductValidatorService} from "../services/validator/product.validator";
-import {PacketComposition, PacketUtils} from "../services/model/packet.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {TranslateService} from "@ngx-translate/core";
 import {Subscription} from "rxjs";
 
 @Component({

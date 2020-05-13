@@ -30,7 +30,7 @@ import {
   toBoolean
 } from "../functions";
 import {InputElement} from "./focusable";
-import {MatAutocomplete} from "@angular/material";
+import {MatAutocomplete} from "@angular/material/autocomplete";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -227,7 +227,6 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @ViewChild('matInput', { static: true }) matInput: ElementRef;
 
-  @ViewChild('autoCombo', { static: true }) matAutocomplete: MatAutocomplete;
 
   get value(): any {
     return this.formControl.value;
@@ -329,8 +328,6 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
        .pipe(
          // Skip if focus target is a mat-option
          filter(event => !event.defaultPrevented || !(event.relatedTarget instanceof HTMLElement) || event.relatedTarget.tagName !== 'MAT-OPTION'),
-         // Wait panel closed
-         //mergeMap(() => this.matAutocomplete.closed.pipe(first())),
        )
        .subscribe( (_) => {
           // When leave component without object, use implicit value if :
@@ -403,6 +400,11 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     this.autocomplete = true;
     this.appAutofocus = true;
     this.markForCheck();
+  }
+
+  clearValue(event: UIEvent) {
+    this.writeValue(null);
+    event.stopPropagation();
   }
 
   /* -- protected method -- */

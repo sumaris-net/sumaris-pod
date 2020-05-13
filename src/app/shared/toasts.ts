@@ -1,4 +1,4 @@
-import {ToastController} from "@ionic/angular";
+import {IonicSafeString, ToastController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {ToastOptions} from "@ionic/core";
 import {ToastButton} from "@ionic/core/dist/types/components/toast/toast-interface";
@@ -11,11 +11,12 @@ export class Toasts {
 export async function showToast(
   toastController: ToastController,
   translate: TranslateService,
-  opts: ToastOptions & { error?: boolean; }
+  opts: ToastOptions & { error?: boolean; showCloseButton?: boolean; }
 ) {
   if (!toastController || !translate) throw new Error("Missing required argument 'toastController' or 'translate'");
 
-  const i18nKeys = [opts.message];
+  const message = opts.message && opts.message instanceof IonicSafeString ? opts.message.value : opts.message as string;
+  const i18nKeys = [message];
   if (opts.header) i18nKeys.push(opts.header);
 
   let closeButton: ToastButton;
@@ -53,7 +54,7 @@ export async function showToast(
     position: !this.mobile && 'top' || undefined,
     duration: 3000,
     ...opts,
-    message: translations[opts.message],
+    message: translations[message],
     header: opts.header && translations[opts.header] || undefined
   });
   return toast.present();

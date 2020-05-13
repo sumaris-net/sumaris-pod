@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
 import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material";
 import {Subject} from 'rxjs';
 import {distinctUntilChanged, filter} from 'rxjs/operators';
 import {
@@ -21,6 +20,7 @@ import {InputElement} from "../../shared/material/focusable";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PhysicalGear} from "../services/model/trip.model";
+import {DateAdapter} from "@angular/material/core";
 
 @Component({
   selector: 'app-physical-gear-form',

@@ -65,8 +65,8 @@ export class HomePage implements OnDestroy {
     private translate: TranslateService,
     private configService: ConfigService,
     private platform: PlatformService,
-    private network: NetworkService,
     private cd: ChangeDetectorRef,
+    public network: NetworkService,
     public settings: LocalSettingsService
   ) {
 

@@ -60,7 +60,7 @@ export class ToolbarComponent implements OnInit {
 
   showSearchBar = false;
 
-  @ViewChild("backButton", { static: false }) backButton: IonBackButton;
+  @ViewChild("backButton") backButton: IonBackButton;
 
   @ViewChild('searchbar', {static: true}) searchbar: IonSearchbar;
 
@@ -115,6 +115,7 @@ export class ToolbarComponent implements OnInit {
   }
 
   doValidateTap(event: Event & { tapCount?: number; }) {
+    console.log("TODO doValidateTap", event);
     if (!this.onValidateAndClose.observers.length) {
       this.onValidate.emit(event);
     }

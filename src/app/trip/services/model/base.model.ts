@@ -159,7 +159,7 @@ export const SynchronizationStatusEnum = {
   DELETED: 'DELETED'
 };
 
-export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRecorderPersonEntity<T>, IWithProgramEntity<T> {
+export abstract class RootDataEntity<T> extends DataEntity<T> implements IWithRecorderPersonEntity<T>, IWithProgramEntity<T> {
   creationDate: Moment;
   validationDate: Moment;
   comments: string = null;
@@ -191,7 +191,7 @@ export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRe
     return target;
   }
 
-  fromObject(source: any): DataRootEntity<T> {
+  fromObject(source: any): RootDataEntity<T> {
     super.fromObject(source);
     this.comments = source.comments;
     this.creationDate = fromDateISOString(source.creationDate);
@@ -204,7 +204,7 @@ export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRe
 }
 
 
-export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> implements IWithVesselSnapshotEntity<T> {
+export abstract class DataRootVesselEntity<T> extends RootDataEntity<T> implements IWithVesselSnapshotEntity<T> {
   vesselSnapshot: VesselSnapshot;
 
   protected constructor() {
@@ -227,7 +227,7 @@ export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> implemen
 
 export class DataRootEntityUtils {
 
-  static copyControlAndValidationDate(source: DataRootEntity<any> | undefined, target: DataRootEntity<any>) {
+  static copyControlAndValidationDate(source: RootDataEntity<any> | undefined, target: RootDataEntity<any>) {
     if (!source) return;
 
     // Update (id and updateDate)

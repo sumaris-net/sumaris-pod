@@ -12,7 +12,6 @@ import {
   ViewChildren
 } from '@angular/core';
 import {Platform} from '@ionic/angular';
-import {DateAdapter, FloatLabelType, MatDatepicker, MatDatepickerInputEvent} from '@angular/material';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -34,6 +33,9 @@ import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {first} from "rxjs/operators";
 import {InputElement, isFocusableElement} from "./focusable";
 import {BehaviorSubject} from "rxjs";
+import {FloatLabelType} from "@angular/material/form-field";
+import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
+import {DateAdapter} from "@angular/material/core";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -104,8 +106,8 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
 
   @Input() clearable = false;
 
-  @ViewChild('datePicker1', { static: false }) datePicker1: MatDatepicker<Moment>;
-  @ViewChild('datePicker2', { static: false }) datePicker2: MatDatepicker<Moment>;
+  @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
+  @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
 
   @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
 
@@ -221,6 +223,30 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
     this.markForCheck();
   }
 
+  onDatePickerChange(event: MatDatepickerInputEvent<Moment>): void {
+    if (this.writing || !(event && event.value)) return; // Skip if call by self
+    this.writing = true;
+
+    let date = event.value;
+    date = typeof date === 'string' && this.dateAdapter.parse(date, DATE_ISO_PATTERN) || date;
+    let day;
+
+    // avoid to have TZ offset
+    date = date && date.utc(true).hour(0).minute(0).seconds(0).millisecond(0);
+    day = date && date.clone().startOf('day');
+
+    // update day value
+    this.dayControl.setValue(day && day.format(this.dayPattern), {emitEvent: false});
+
+    // Get the model value
+    const dateStr = date && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z');
+    this.formControl.patchValue(dateStr, {emitEvent: false});
+    this.writing = false;
+    this.markForCheck();
+
+    this._onChangeCallback(dateStr);
+  }
+
   private updatePattern(patterns: string[]) {
     this.displayPattern =
             (this.displayPattern = patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
@@ -265,29 +291,7 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
     this._onChangeCallback(dateStr);
   }
 
-  private onDatePickerChange(event: MatDatepickerInputEvent<Moment>): void {
-    if (this.writing || !(event && event.value)) return; // Skip if call by self
-    this.writing = true;
 
-    let date = event.value;
-    date = typeof date === 'string' && this.dateAdapter.parse(date, DATE_ISO_PATTERN) || date;
-    let day;
-
-    // avoid to have TZ offset
-    date = date && date.utc(true).hour(0).minute(0).seconds(0).millisecond(0);
-    day = date && date.clone().startOf('day');
-
-    // update day value
-    this.dayControl.setValue(day && day.format(this.dayPattern), {emitEvent: false});
-
-    // Get the model value
-    const dateStr = date && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z');
-    this.formControl.patchValue(dateStr, {emitEvent: false});
-    this.writing = false;
-    this.markForCheck();
-
-    this._onChangeCallback(dateStr);
-  }
 
   public checkIfTouched() {
     if (this.dayControl.touched) {

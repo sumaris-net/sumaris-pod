@@ -13,11 +13,10 @@
           <ion-row>
             <ion-col size="4">
               <div class="user-avatar" [class.primary]="!account?.avatar" [ngStyle]="{'background-image':'url('+(account?.avatar||'./assets/img/person.png')+')'}"
-                   menuClose
                    [routerLink]="['/account']"
                    routerDirection="root"
                    routerLinkActive="ion-color-primary"
-                   (click)="menu.close()">
+                   (click)="menuClose()">
               </div>
             </ion-col>
             <ion-col size="8" class="user-logo">
@@ -27,11 +26,11 @@
           </ion-row>
           <ion-row class="ion-no-padding">
 
-            <button mat-button menuClose
+            <button mat-button
                         [routerLink]="['/account']"
                         routerDirection="root"
                         routerLinkActive="ion-color-primary"
-                        (click)="menu.close()">
+                        (click)="menuClose()">
               <ion-label color="primary" class="ion-text-wrap">
                 <h3 full class="no-margin username">
                   <b>{{account?.firstName}} {{account?.lastName}}</b>
@@ -59,7 +58,7 @@
                     [routerLink]="item.path"
                     routerDirection="root"
                     routerLinkActive="selected"
-                    (click)="menu.close()"
+                    (click)="menuClose()"
                     [routerLinkActiveOptions]="{exact: (item.path === '/')}">
             <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
             <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
@@ -70,7 +69,7 @@
           <ion-item *ngIf="!loading && item.action"
                     @fadeInAnimation
                     tappable class="text-1x"
-                    (click)="menu.close() && doAction(item.action, $event)">
+                    (click)="doAction(item.action, $event)">
             <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
             <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
             <ion-label translate>{{item.title}}</ion-label>

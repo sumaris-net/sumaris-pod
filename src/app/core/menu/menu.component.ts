@@ -182,6 +182,10 @@ export class MenuComponent implements OnInit {
     await alert.present();
   }
 
+  async menuClose(): Promise<boolean> {
+    return this.menu.close('menu');
+  }
+
   async openAboutModal(event) {
     const modal = await this.modalCtrl.create({component: AboutModal});
     return modal.present();
@@ -199,6 +203,8 @@ export class MenuComponent implements OnInit {
   }
 
   async doAction(action: string, event: UIEvent) {
+    this.menuClose();
+
     switch (action) {
       case 'logout':
         await this.logout();

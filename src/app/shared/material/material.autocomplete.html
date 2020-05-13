@@ -55,7 +55,7 @@
     <button matSuffix mat-icon-button tabindex="-1"
             type="button"
             *ngIf="clearable"
-            (click)="writeValue(null) || $event.stopPropagation()"
+            (click)="clearValue($event)"
             [hidden]="formControl.disabled || !formControl.value">
       <mat-icon>close</mat-icon>
     </button>
@@ -98,7 +98,7 @@
   <button matSuffix mat-icon-button tabindex="-1"
           type="button"
           *ngIf="clearable"
-          (click)="writeValue(null) || $event.stopPropagation()"
+          (click)="clearValue($event)"
           [hidden]="formControl.disabled || !formControl.value">
     <mat-icon>close</mat-icon>
   </button>

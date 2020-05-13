@@ -1,4 +1,4 @@
-import {NgModule} from '@angular/core';
+import { NgModule, Injectable } from '@angular/core';
 import {ActivatedRouteSnapshot, ExtraOptions, RouteReuseStrategy, RouterModule, Routes} from '@angular/router';
 import {HomePage} from './core/home/home';
 import {RegisterConfirmPage} from './core/register/confirm/confirm';
@@ -332,6 +332,7 @@ const routes: Routes = [
   },
 ];
 
+@Injectable()
 export class CustomReuseStrategy extends IonicRouteStrategy {
 
   shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {

@@ -2,7 +2,7 @@ import {fromDateISOString, Person, ReferentialRef, toDateISOString} from "../../
 
 import {
   DataEntityAsObjectOptions,
-  DataRootEntity,
+  RootDataEntity,
   DataRootVesselEntity,
   IWithObserversEntity,
   NOT_MINIFY_OPTIONS
@@ -15,7 +15,7 @@ import {Landing} from "./landing.model";
 import {ReferentialAsObjectOptions} from "../../../core/services/model";
 
 
-export class ObservedLocation extends DataRootEntity<ObservedLocation>
+export class ObservedLocation extends RootDataEntity<ObservedLocation>
   implements IEntityWithMeasurement<ObservedLocation>, IWithObserversEntity<ObservedLocation> {
 
   static TYPENAME = 'ObservedLocationVO';

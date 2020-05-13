@@ -20,7 +20,7 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 import {isEmptyArray} from "../../shared/functions";
 import {OperationGroupTable} from "../operationgroup/operation-groups.table";
 import {MatAutocompleteConfigHolder, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
-import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
+import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
 import {Product} from "../services/model/product.model";
 import {LandedSaleForm} from "../sale/landed-sale.form";

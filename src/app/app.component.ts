@@ -186,7 +186,7 @@ export class AppComponent {
         filter: {entityName: 'Department'},
         displayWith: (value) => value && joinPropertiesPath(value, attributes),
         attributes: attributes,
-        columnSizes: attributes.map(attr => attr === 'label' ? '3' : undefined)
+        columnSizes: attributes.map(attr => attr === 'label' ? 3 : undefined)
       },
       extra: {
         registration: {

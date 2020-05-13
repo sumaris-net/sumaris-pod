@@ -12,7 +12,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {FloatLabelType} from "@angular/material";
+import {FloatLabelType} from "@angular/material/form-field";
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {AppFormUtils, isNil} from "../../core/core.module";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -78,7 +78,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
     return this.settings.settings.latLongFormat || 'DDMM';
   }
 
-  @ViewChild('matInput', { static: false }) matInput: ElementRef;
+  @ViewChild('matInput') matInput: ElementRef;
 
   constructor(
     protected settings: LocalSettingsService,

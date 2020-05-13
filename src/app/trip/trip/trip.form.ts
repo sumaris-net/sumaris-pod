@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {TripValidatorService} from "../services/trip.validator";
 import {ModalController} from "@ionic/angular";
 import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {AppForm, EntityUtils, FormArrayHelper, isNil, Person, personToString, StatusIds} from '../../core/core.module';
 import {
   LocationLevelIds,
@@ -183,19 +183,19 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     this.metiersFiltered = false;
     this.registerAutocompleteField('metier', {
       service: this.metierRefService,
-      filter: this.metierFilter()
+      filter: this.getFilterMetier()
     });
 
   }
 
-  protected metierFilter(): any {
+  getFilterMetier(): any {
     const defaultFilter = {statusId: StatusIds.ENABLE};
     return this.metiersFiltered
       ? {
         ...defaultFilter,
-        date: this.form.controls['returnDateTime'].value,
-        vesselId: this.form.controls['vesselSnapshot'].value.id,
-        tripId: this.form.controls['id'].value
+        date: this.form.get('returnDateTime').value,
+        vesselId: this.form.get('vesselSnapshot').value.id,
+        tripId: this.form.get('id').value
       }
       : defaultFilter;
   }

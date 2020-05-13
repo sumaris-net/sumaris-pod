@@ -7,13 +7,13 @@ import {
 } from "../../../core/core.module";
 import {PmfmStrategy, ReferentialRef} from "../../../referential/services/model";
 import {Moment} from "moment/moment";
-import {DataEntityAsObjectOptions, DataRootEntity} from "./base.model";
+import {DataEntityAsObjectOptions, RootDataEntity} from "./base.model";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {ITreeItemEntity, NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 
 
-export class Sample extends DataRootEntity<Sample>
+export class Sample extends RootDataEntity<Sample>
   implements IEntityWithMeasurement<Sample>, ITreeItemEntity<Sample>{
 
   static TYPENAME = 'SampleVO';

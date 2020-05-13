@@ -162,7 +162,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       service: this.referentialRefService,
       filter: {
         entityName: 'Program'
-      }
+      },
+      mobile: this.mobile
     });
 
     // Locations combo (filter)
@@ -171,7 +172,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       filter: {
         entityName: 'Location',
         levelId: LocationLevelIds.PORT
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: vessels
@@ -188,7 +190,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       service: this.referentialRefService,
       filter: {
         entityName: 'Department'
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: recorder person
@@ -198,7 +201,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: personToString
+      displayWith: personToString,
+      mobile: this.mobile
     });
 
     // Update filter when changes

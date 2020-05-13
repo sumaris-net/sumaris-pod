@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {PmfmStrategy, ProgramService} from "../../referential/referential.module";
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';

@@ -141,7 +141,7 @@
                                 [placeholder]="('TRIP.METIER_PLACEHOLDER'|translate) + (i+1)"
                                 [appAutofocus]="metierFocusIndex === i"
                                 [config]="autocompleteFields.metier"
-                                [filter]="metierFilter()"
+                                [filter]="getFilterMetier()"
                                 [tabindex]="tabindex+10+i*3"
                                 [i18nPrefix]="'REFERENTIAL.'"
                                 [required]="showMetiers && first">

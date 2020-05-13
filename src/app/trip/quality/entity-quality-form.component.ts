@@ -8,7 +8,7 @@ import {
   OnInit,
   Output
 } from '@angular/core';
-import {DataEntity, DataRootEntity, isNil, isNotNil, ReferentialRef, StatusIds} from '../services/model/base.model';
+import {DataEntity, RootDataEntity, isNil, isNotNil, ReferentialRef, StatusIds} from '../services/model/base.model';
 // import fade in animation
 import {fadeInAnimation} from '../../shared/shared.module';
 import {AccountService} from "../../core/services/account.service";
@@ -34,7 +34,7 @@ import {AppDataEditorPage} from "../form/data-editor-page.class";
   animations: [fadeInAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EntityQualityFormComponent<T extends DataRootEntity<T> = DataRootEntity<any>> implements OnInit, OnDestroy {
+export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEntity<any>> implements OnInit, OnDestroy {
 
   private _debug = false;
   private _subscription = new Subscription();

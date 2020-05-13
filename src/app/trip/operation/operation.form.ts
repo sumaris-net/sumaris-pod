@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {OperationValidatorService} from "../services/operation.validator";
 import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {AppForm, fromDateISOString, IReferentialRef, isNotNil} from '../../core/core.module';
 import {EntityUtils, ReferentialRefService} from '../../referential/referential.module';
 import {UsageMode} from "../../core/services/model";

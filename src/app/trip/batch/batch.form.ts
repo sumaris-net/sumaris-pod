@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
@@ -34,7 +34,7 @@ import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'app-batch-form',
-  templateUrl: 'batch.form.html',
+  templateUrl: './batch.form.html',
   styleUrls: ['batch.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -99,8 +99,12 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
     if (!this._showWeight) this.disableWeightFormGroup();
   }
 
-  get childrenArray() {
+  get childrenArray(): FormArray {
     return this.form.get('children') as FormArray;
+  }
+
+  get weightForm(): FormGroup {
+    return this.form.get('weight') as FormGroup;
   }
 
   @Input()

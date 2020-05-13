@@ -1,4 +1,4 @@
-import {EventEmitter, OnInit, ViewChild} from '@angular/core';
+import { EventEmitter, OnInit, ViewChild, Directive } from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {isNil, isNotEmptyArray, isNotNil} from '../../shared/shared.module';
 import {
@@ -26,6 +26,7 @@ import {PlatformService} from "../../core/services/platform.service";
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
+@Directive()
 export abstract class ExtractionAbstractPage<T extends ExtractionType | AggregationType> extends AppTabPage<any> implements OnInit {
 
   loading = true;
@@ -363,7 +364,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
 
   }
 
-  protected getI18nColumnName(columnName: string) {
+  getI18nColumnName(columnName: string) {
     let key = `EXTRACTION.TABLE.${this.type.category.toUpperCase()}.${columnName.toUpperCase()}`;
     let message = this.translate.instant(key);
 
@@ -386,7 +387,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     }
     return message;
   }
-  protected hasFilterCriteria(sheetName: string) {
+
+  hasFilterCriteria(sheetName: string) {
     return this.criteriaForm.hasFilterCriteria(sheetName);
   }
 }

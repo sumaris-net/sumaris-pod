@@ -13,7 +13,6 @@ import {
   ExtractionUtils
 } from "../services/extraction.model";
 import {Location} from "@angular/common";
-import {MatExpansionPanel} from "@angular/material";
 import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
 import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
@@ -29,6 +28,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {AppFormUtils} from "../../core/core.module";
+import {MatExpansionPanel} from "@angular/material/expansion";
 
 
 @Component({

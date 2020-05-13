@@ -2,7 +2,7 @@ import {Component, Input, OnInit} from '@angular/core';
 import {SaleValidatorService} from "../services/sale.validator";
 import {Moment} from 'moment/moment';
 import {AppForm, referentialToString, StatusIds} from '../../core/core.module';
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {LocationLevelIds, ReferentialRefService, VesselService} from '../../referential/referential.module';
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";

@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {TableElement} from "angular4-material-table";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {Packet, PacketFilter, PacketUtils} from "../services/model/packet.model";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
@@ -13,7 +13,6 @@ import {AppTableDataSource, isNil} from "../../core/core.module";
 import {BehaviorSubject, Observable} from "rxjs";
 import {IWithProductsEntity} from "../services/model/base.model";
 import {PacketModal} from "./packet.modal";
-import {ProductFilter} from "../services/model/product.model";
 
 @Component({
   selector: 'app-packets-table',
