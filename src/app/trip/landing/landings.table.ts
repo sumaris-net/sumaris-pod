@@ -158,7 +158,9 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return landing.dateTime;
   }
 
-  confirmAndEditTrip(event?: any, row?: TableElement<Landing>): boolean {
+  confirmAndEditTrip(event?: MouseEvent, row?: TableElement<Landing>): boolean {
+    if (event) event.stopPropagation();
+
     if (!this.confirmEditCreate(event, row)) {
       return false;
     }

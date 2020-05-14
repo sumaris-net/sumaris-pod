@@ -11,6 +11,7 @@ import {IWithProductsEntity} from "../services/model/base.model";
 import {IReferentialRef} from "../../core/services/model";
 import {TableElement} from "angular4-material-table";
 import {ProductSaleModal} from "../sale/product-sale.modal";
+import {$e} from "codelyzer/angular/styles/chars";
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -127,7 +128,8 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     return pmfms;
   }
 
-  async openProductSale($event: MouseEvent, row: TableElement<Product>) {
+  async openProductSale(event: MouseEvent, row: TableElement<Product>) {
+    if (event) event.stopPropagation();
 
     const modal = await this.modalCtrl.create({
       component: ProductSaleModal,
@@ -150,7 +152,8 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
   }
 
-  openSampling($event: MouseEvent, row: TableElement<Product>) {
+  openSampling(event: MouseEvent, row: TableElement<Product>) {
+    if (event) event.stopPropagation();
     // todo
   }
 

@@ -143,8 +143,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   }
 
 
-  async onCompositionClick(row: TableElement<Packet>) {
-    // console.debug('onCompositionClick', row);
+  async onCompositionClick(event: MouseEvent, row: TableElement<Packet>) {
+    if (event) event.stopPropagation();
 
     const modal = await this.modalCtrl.create({
       component: PacketModal,
@@ -171,8 +171,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     return PacketUtils.getComposition(row.currentData);
   }
 
-  async openPacketSale($event: MouseEvent, row: TableElement<Packet>) {
-    $event.preventDefault();
+  async openPacketSale(event: MouseEvent, row: TableElement<Packet>) {
+    if (event) event.stopPropagation();
 
     const modal = await this.modalCtrl.create({
       component: PacketSaleModal,

@@ -185,14 +185,14 @@
       <!-- sampling -->
       <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1 && row.validator.controls.individualCount.value > 0"
               [title]="'TRIP.PRODUCT.LIST.INDIVIDUAL_SAMPLING'|translate"
-              (click)="$event.preventDefault() || openSampling($event, row)">
+              (click)="openSampling($event, row)">
         <mat-icon>center_focus_strong</mat-icon>
       </button>
 
       <!-- product sale -->
       <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
               [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE'|translate"
-              (click)="$event.preventDefault() || openProductSale($event, row)">
+              (click)="openProductSale($event, row)">
         <mat-icon [color]="(!row.currentData.saleProducts || !row.currentData.saleProducts.length) ? 'medium' : undefined"
                   [matBadge]="row.currentData.saleProducts && row.currentData.saleProducts.length"
                   [matBadgeHidden]="!row.currentData.saleProducts || !row.currentData.saleProducts.length"
