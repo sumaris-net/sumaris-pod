@@ -193,7 +193,8 @@
       <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
               [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE'|translate"
               (click)="$event.preventDefault() || openProductSale($event, row)">
-        <mat-icon [matBadge]="row.currentData.saleProducts && row.currentData.saleProducts.length"
+        <mat-icon [color]="(!row.currentData.saleProducts || !row.currentData.saleProducts.length) ? 'medium' : undefined"
+                  [matBadge]="row.currentData.saleProducts && row.currentData.saleProducts.length"
                   [matBadgeHidden]="!row.currentData.saleProducts || !row.currentData.saleProducts.length"
                   matBadgeColor="accent"
                   matBadgeSize="small"

@@ -90,6 +90,10 @@ $candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-
 .mat-button.mat-secondary, .mat-icon-button.mat-secondary, .mat-stroked-button.mat-secondary {
   color: var(--ion-color-secondary, $secondary);
 }
+// marche pas ...
+.mat-button.mat-medium, .mat-icon-button.mat-medium, .mat-stroked-button.mat-medium {
+  color: var(--ion-color-medium, $medium);
+}
 
 // Badge
 .mat-badge-primary .mat-badge-content {
