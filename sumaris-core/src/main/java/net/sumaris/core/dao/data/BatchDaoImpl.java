@@ -80,6 +80,9 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
     @Autowired
     private TaxonNameDao taxonNameDao;
 
+    @Autowired
+    private ProductRepository productRepository;
+
     @PostConstruct
     protected void init() {
         this.enableSaveUsingHash = config.enableBatchHashOptimization();
@@ -313,6 +316,8 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         // Remove not processed batches
         if (MapUtils.isNotEmpty(sourcesIdsToProcess)) {
+            // Delete linked produces first (ie. Sales of packets)
+            productRepository.deleteProductsByBatchIdIn(sourcesIdsToProcess.keySet());
             sourcesIdsToProcess.values().forEach(this::delete);
             dirty = true;
         }

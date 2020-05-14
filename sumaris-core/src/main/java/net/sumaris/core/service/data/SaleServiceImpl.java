@@ -30,6 +30,7 @@ import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SaleMeasurement;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.ProductVO;
 import net.sumaris.core.vo.data.SaleVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,9 @@ public class SaleServiceImpl implements SaleService {
 	@Autowired
 	protected MeasurementDao measurementDao;
 
+	@Autowired
+	protected ProductService productService;
+
 	@Override
 	public List<SaleVO> getAllByTripId(int tripId) {
 		return saleDao.getAllByTripId(tripId);
@@ -63,32 +67,23 @@ public class SaleServiceImpl implements SaleService {
 
 	@Override
 	public List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sources) {
-		return saleDao.saveAllByTripId(tripId, sources);
+		Preconditions.checkNotNull(sources);
+		sources.forEach(this::checkSale);
+
+		List<SaleVO> saved = saleDao.saveAllByTripId(tripId, sources);
+
+		saved.forEach(this::saveChildrenEntities);
+
+		return saved;
 	}
 
 	@Override
 	public SaleVO save(SaleVO sale) {
-		Preconditions.checkNotNull(sale);
-		Preconditions.checkNotNull(sale.getStartDateTime(), "Missing startDateTime");
-		Preconditions.checkNotNull(sale.getSaleLocation(), "Missing saleLocation");
-		Preconditions.checkNotNull(sale.getSaleLocation().getId(), "Missing saleLocation.id");
-		Preconditions.checkNotNull(sale.getSaleType(), "Missing saleType");
-		Preconditions.checkNotNull(sale.getSaleType().getId(), "Missing saleType.id");
-		Preconditions.checkNotNull(sale.getRecorderDepartment(), "Missing sale.recorderDepartment");
-		Preconditions.checkNotNull(sale.getRecorderDepartment().getId(), "Missing sale.recorderDepartment.id");
+		checkSale(sale);
 
 		SaleVO savedSale = saleDao.save(sale);
 
-		// Save measurements
-		if (savedSale.getMeasurementValues() != null) {
-			measurementDao.saveSaleMeasurementsMap(savedSale.getId(), savedSale.getMeasurementValues());
-		}
-		else {
-			List<MeasurementVO> measurements = Beans.getList(savedSale.getMeasurements());
-			measurements.forEach(m -> fillDefaultProperties(savedSale, m, SaleMeasurement.class));
-			measurements = measurementDao.saveSaleMeasurements(savedSale.getId(), measurements);
-			savedSale.setMeasurements(measurements);
-		}
+		saveChildrenEntities(savedSale);
 
 		return savedSale;
 	}
@@ -117,6 +112,35 @@ public class SaleServiceImpl implements SaleService {
 
 	/* -- protected methods -- */
 
+	protected void checkSale(final SaleVO source) {
+		Preconditions.checkNotNull(source);
+		Preconditions.checkNotNull(source.getStartDateTime(), "Missing startDateTime");
+		Preconditions.checkNotNull(source.getSaleLocation(), "Missing saleLocation");
+		Preconditions.checkNotNull(source.getSaleLocation().getId(), "Missing saleLocation.id");
+		Preconditions.checkNotNull(source.getSaleType(), "Missing saleType");
+		Preconditions.checkNotNull(source.getSaleType().getId(), "Missing saleType.id");
+		Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing sale.recorderDepartment");
+		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing sale.recorderDepartment.id");
+	}
+
+	protected void saveChildrenEntities(final SaleVO source) {
+
+		// Save measurements
+		if (source.getMeasurementValues() != null) {
+			measurementDao.saveSaleMeasurementsMap(source.getId(), source.getMeasurementValues());
+		}
+		else {
+			List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
+			measurements.forEach(m -> fillDefaultProperties(source, m, SaleMeasurement.class));
+			measurements = measurementDao.saveSaleMeasurements(source.getId(), measurements);
+			source.setMeasurements(measurements);
+		}
+
+		// Save produces
+		if (source.getProducts() != null) source.getProducts().forEach(product -> fillDefaultProperties(source, product));
+		productService.saveBySaleId(source.getId(), source.getProducts());
+	}
+
 	protected void fillDefaultProperties(SaleVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
 		if (measurement == null) return;
 
@@ -126,5 +150,16 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		measurement.setEntityName(entityClass.getSimpleName());
+	}
+
+	protected void fillDefaultProperties(SaleVO parent, ProductVO product) {
+		if (product == null) return;
+
+		// Copy recorder department from the parent
+		if (product.getRecorderDepartment() == null || product.getRecorderDepartment().getId() == null) {
+			product.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		product.setSaleId(parent.getId());
 	}
 }

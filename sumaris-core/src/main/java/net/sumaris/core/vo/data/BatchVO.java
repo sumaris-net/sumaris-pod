@@ -30,8 +30,6 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Date;
 import java.util.List;
@@ -41,6 +39,8 @@ import java.util.Map;
 @FieldNameConstants
 @EqualsAndHashCode
 public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
+
+    // todo? LP 03/05/2020 : why not implements IDataVO<Integer>, IWithRecorderPersonEntity<Integer, PersonVO> and add qualification properties ?
 
     @EqualsAndHashCode.Exclude
     private Integer id;

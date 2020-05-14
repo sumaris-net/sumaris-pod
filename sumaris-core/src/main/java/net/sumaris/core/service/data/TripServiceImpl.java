@@ -34,6 +34,9 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
+import net.sumaris.core.model.referential.SaleType;
+import net.sumaris.core.model.referential.SaleTypeEnum;
+import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
@@ -47,10 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("tripService")
@@ -91,6 +91,9 @@ public class TripServiceImpl implements TripService {
     @Autowired
     private ObservedLocationDao observedLocationDao;
 
+    @Autowired
+    protected ReferentialService referentialService;
+
     @Override
     public List<TripVO> getAllTrips(int offset, int size) {
         return findByFilter(null, offset, size, null, null, DataFetchOptions.builder().build());
@@ -115,7 +118,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public TripVO get(int tripId) {
-        return tripRepository.get(new Integer(tripId));
+        return tripRepository.get(Integer.valueOf(tripId));
     }
 
     @Override
@@ -182,22 +185,6 @@ public class TripServiceImpl implements TripService {
 
         // Save or update parent entity
         saveParent(savedTrip);
-
-        // Save sales
-        if (CollectionUtils.isNotEmpty(source.getSales())) {
-            List<SaleVO> sales = Beans.getList(source.getSales());
-            sales.forEach(g -> fillDefaultProperties(savedTrip, g));
-            sales = saleService.saveAllByTripId(savedTrip.getId(), sales);
-            savedTrip.setSales(sales);
-        } else if (source.getSale() != null) {
-            SaleVO sale = source.getSale();
-            fillDefaultProperties(savedTrip, sale);
-            List<SaleVO> sales = saleService.saveAllByTripId(savedTrip.getId(), ImmutableList.of(sale));
-            savedTrip.setSale(sales.get(0));
-        } else {
-            // Remove all
-            saleService.saveAllByTripId(savedTrip.getId(), ImmutableList.of());
-        }
 
         // Save measurements
         if (source.getMeasurementValues() != null) {
@@ -267,6 +254,26 @@ public class TripServiceImpl implements TripService {
 
             operationGroups = operationGroupService.saveAllByTripId(savedTrip.getId(), operationGroups);
             savedTrip.setOperationGroups(operationGroups);
+        }
+
+        // Save sales
+        if (CollectionUtils.isNotEmpty(source.getSales())) {
+            List<SaleVO> sales = Beans.getList(source.getSales());
+            sales.forEach(sale -> fillDefaultProperties(savedTrip, sale));
+            // fill sale products but only if there is only one sale
+            if (sales.size() == 1)
+                fillSaleProducts(savedTrip, sales.get(0));
+            sales = saleService.saveAllByTripId(savedTrip.getId(), sales);
+            savedTrip.setSales(sales);
+        } else if (source.getSale() != null) {
+            SaleVO sale = source.getSale();
+            fillDefaultProperties(savedTrip, sale);
+            fillSaleProducts(savedTrip, sale);
+            List<SaleVO> sales = saleService.saveAllByTripId(savedTrip.getId(), ImmutableList.of(sale));
+            savedTrip.setSale(sales.get(0));
+        } else {
+            // Remove all
+            saleService.saveAllByTripId(savedTrip.getId(), ImmutableList.of());
         }
 
         // Emit event
@@ -440,6 +447,16 @@ public class TripServiceImpl implements TripService {
         DataBeans.setDefaultRecorderPerson(sale, parent.getRecorderPerson());
         DataBeans.setDefaultVesselFeatures(sale, parent.getVesselSnapshot());
 
+        if (sale.getStartDateTime() == null) {
+            sale.setStartDateTime(parent.getReturnDateTime());
+        }
+        if (sale.getSaleLocation() == null || sale.getSaleLocation().getId() == null) {
+            sale.setSaleLocation(parent.getReturnLocation());
+        }
+        if (sale.getSaleType() == null || sale.getSaleType().getId() == null) {
+            sale.setSaleType(referentialService.findByUniqueLabel(SaleType.class.getSimpleName(), SaleTypeEnum.OTHER.getLabel()));
+        }
+
         sale.setTripId(parent.getId());
     }
 
@@ -464,5 +481,22 @@ public class TripServiceImpl implements TripService {
         DataBeans.setDefaultRecorderPerson(measurement, parent.getRecorderPerson());
 
         measurement.setEntityName(VesselUseMeasurement.class.getSimpleName());
+    }
+
+    void fillSaleProducts(TripVO parent, SaleVO sale) {
+
+        // Fill sale products list with parent trip products, from operation group's product and packets
+        if (CollectionUtils.isNotEmpty(parent.getOperationGroups())) {
+            List<ProductVO> saleProducts = new ArrayList<>();
+            parent.getOperationGroups().forEach(operationGroup -> {
+                operationGroup.getProducts().forEach(product -> saleProducts.addAll(product.getSaleProducts()));
+                operationGroup.getPackets().forEach(packet -> saleProducts.addAll(
+                    // Applying packet id to product.batchId
+                    packet.getSaleProducts().stream().peek(saleProduct -> saleProduct.setBatchId(packet.getId())).collect(Collectors.toList())
+                ));
+            });
+            sale.setProducts(saleProducts);
+        }
+
     }
 }
