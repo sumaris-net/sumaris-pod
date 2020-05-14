@@ -193,7 +193,11 @@
       <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
               [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE'|translate"
               (click)="$event.preventDefault() || openProductSale($event, row)">
-        <mat-icon>local_offer</mat-icon>
+        <mat-icon [matBadge]="row.currentData.saleProducts && row.currentData.saleProducts.length"
+                  [matBadgeHidden]="!row.currentData.saleProducts || !row.currentData.saleProducts.length"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">local_offer</mat-icon>
       </button>
 
     </mat-cell>

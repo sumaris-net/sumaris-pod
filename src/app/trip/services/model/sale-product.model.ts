@@ -30,7 +30,7 @@ export class SaleProduct extends Product {
   constructor() {
     super();
     this.__typename = Product.TYPENAME;
-    this.saleProducts = null;
+    this.saleProducts = [];
     this.productIdByTaxonGroup = {};
   }
 
@@ -54,7 +54,7 @@ export class SaleProduct extends Product {
     this.averagePackagingPriceCalculated = source.averagePackagingPriceCalculated;
     this.totalPrice = source.totalPrice;
     this.totalPriceCalculated = source.totalPriceCalculated;
-    this.saleProducts = null;
+    this.saleProducts = [];
     this.productIdByTaxonGroup = source.productIdByTaxonGroup || {};
     return this;
   }

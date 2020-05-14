@@ -116,7 +116,11 @@
       <button mat-icon-button color="light"
               [title]="getComposition(row)"
               (click)="$event.preventDefault() || onCompositionClick(row)">
-        <mat-icon>pie_chart</mat-icon>
+        <mat-icon [matBadge]="row.currentData.composition && row.currentData.composition.length"
+                  [matBadgeHidden]="!row.currentData.composition || !row.currentData.composition.length"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">pie_chart</mat-icon>
       </button>
 
       <!-- undo or delete  -->
@@ -143,7 +147,11 @@
       <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
               [title]="'PACKET.LIST.PACKET_SALE'|translate"
               (click)="openPacketSale($event, row)">
-        <mat-icon>local_offer</mat-icon>
+        <mat-icon [matBadge]="row.currentData.saleProducts && row.currentData.composition && (row.currentData.saleProducts.length / row.currentData.composition.length).toString()"
+                  [matBadgeHidden]="!row.currentData.saleProducts || !row.currentData.saleProducts.length || !row.currentData.composition || !row.currentData.composition.length"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">local_offer</mat-icon>
       </button>
 
     </mat-cell>
