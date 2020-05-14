@@ -3,6 +3,7 @@
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
              [hasClose]="!loading && !dirty"
+             (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
   <ion-spinner *ngIf="loading"></ion-spinner>
