@@ -1,4 +1,5 @@
-@import 'core';
+@import 'ionic.globals';
+
 $card-background: rgba(255, 255, 255, .7) !default;
 
 h1,
@@ -135,7 +136,7 @@ ion-content {
 
       ion-card-content {
         ion-list {
-          --ion-item-background: $transparent;
+          --ion-item-background: var(--ion-color-transparent);
           ion-item {
             --ion-item-icon-color: var(--ion-color-dark);
             --ion-item-text-color: var(--ion-color-dark);

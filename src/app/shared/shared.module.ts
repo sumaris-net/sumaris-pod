@@ -78,7 +78,8 @@ import {DurationPipe} from "./pipes/duration.pipe";
 import {ModalToolbarComponent} from "./toolbar/modal-toolbar";
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import {MathAbsPipe} from "./pipes/math-abs.pipe";
-import {MAT_AUTOCOMPLETE_SCROLL_STRATEGY} from "@angular/material/autocomplete";
+import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_AUTOCOMPLETE_SCROLL_STRATEGY} from "@angular/material/autocomplete";
+import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -197,6 +198,11 @@ export {
     // FIXME: try to force a custom overlay for autocomplete, because of there is a bug when using inside an ionic modal
     //{ provide: Overlay, useClass: Overlay},
     { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
+    { provide: MAT_SELECT_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
+    { provide: MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, useValue: {
+        autoActiveFirstOption: true
+      }
+    }
   ]
 })
 export class SharedModule {

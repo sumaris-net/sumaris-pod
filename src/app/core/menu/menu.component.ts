@@ -33,6 +33,7 @@ export interface MenuItem {
   matIcon?: string;
   profile?: UserProfileLabel;
   exactProfile?: UserProfileLabel;
+  color?: string,
   cssClass?: string;
   // A config property, to enable the menu item
   ifProperty?: string;

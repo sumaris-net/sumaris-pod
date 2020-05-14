@@ -7,7 +7,7 @@
   "readmeFilename": "README.md",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng serve",
     "serve.aot": "ng serve --aot",
     "install-platforms": "ionic cordova prepare",
     "build": "ng build",

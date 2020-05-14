@@ -37,6 +37,7 @@ import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
 import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS} from "@angular/material/autocomplete";
 import {APP_MENU_ITEMS} from "./core/menu/menu.component";
 import {APP_HOME_BUTTONS} from "./core/home/home";
+import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
 
 
 @NgModule({
@@ -89,10 +90,7 @@ import {APP_HOME_BUTTONS} from "./core/home/home";
       }
     },
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
-    {provide: MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, useValue: {
-        autoActiveFirstOption: true
-      }
-    },
+
     { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: {
         pageHistoryMaxSize: 3
       } as LocalSettings
@@ -123,7 +121,7 @@ import {APP_HOME_BUTTONS} from "./core/home/home";
 
         // Data extraction
         {title: 'MENU.EXTRACTION_DIVIDER', profile: 'SUPERVISOR'},
-        {title: 'MENU.TRIPS', path: '/extraction/table', icon: 'download', profile: 'SUPERVISOR'},
+        {title: 'MENU.TRIPS', path: '/extraction/table', icon: 'cloud-download', profile: 'SUPERVISOR'},
         {title: 'MENU.MAP', path: '/extraction/map', icon: 'globe', profile: 'SUPERVISOR'},
 
         // Referential
@@ -134,10 +132,13 @@ import {APP_HOME_BUTTONS} from "./core/home/home";
         {title: 'MENU.SERVER_SETTINGS', path: '/admin/config', matIcon: 'build', profile: 'ADMIN'},
 
         // Settings
-        {title: '' /*empty divider*/},
-        {title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings'},
-        {title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', cssClass: 'visible xs visible-sm'},
-        {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', cssClass: 'ion-color-danger'}
+        {title: '' /*empty divider*/, cssClass: 'flex-spacer'},
+        {title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings', color: 'medium'},
+        {title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', color: 'medium', cssClass: 'visible-mobile'},
+
+        // Logout
+        {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'medium hidden-mobile'},
+        {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'danger visible-mobile'}
 
       ]
     },
@@ -145,6 +146,7 @@ import {APP_HOME_BUTTONS} from "./core/home/home";
     // Home buttons
     { provide: APP_HOME_BUTTONS, useValue: [
         // Data entry
+        { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER', cssClass: 'visible-mobile'},
         { title: 'MENU.TRIPS', path: '/trips',
           icon: 'navigate', cssClass: 'visible-mobile',
           profile: 'USER',
@@ -156,7 +158,8 @@ import {APP_HOME_BUTTONS} from "./core/home/home";
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name'
-        }
+        },
+        { title: '' /*empty divider*/, cssClass: 'visible-mobile'}
       ]
     }
   ],

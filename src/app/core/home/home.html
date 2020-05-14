@@ -149,21 +149,31 @@
       <!-- If user login -->
       <ng-template #loginButtons>
 
-        <ng-container *ngFor="let item of $filteredButtons | async">
-          <ion-button *ngIf="item.path"
-                      expand="block" color="tertiary"
-                      [class]="item.cssClass"
-                      [routerLink]="item.path"
-                      routerDirection="root">
-            <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
-            <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
-            <ion-label>{{'HOME.BTN_DATA_ENTRY'|translate: {name: (item.title | translate) } }}</ion-label>
-          </ion-button>
+        <!-- Feature buttons -->
+        <ng-container *ngIf="$filteredButtons | async as buttons">
+          <ng-container *ngFor="let item of buttons">
+            <ion-button *ngIf="item.path"
+                        expand="block" color="tertiary"
+                        [class]="item.cssClass"
+                        [routerLink]="item.path"
+                        routerDirection="root">
+              <ion-icon slot="start" class="ion-float-start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
+              <mat-icon slot="start" class="ion-float-start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
+              <ion-text>{{'HOME.BTN_DATA_ENTRY'|translate: {name: (item.title | translate) } }}</ion-text>
+            </ion-button>
+
+            <!-- divider -->
+            <div *ngIf="!item.path && !item.action" [class]="item.cssClass">
+              <ion-label translate>{{item.title}}&nbsp;</ion-label>
+            </div>
+          </ng-container>
+
+          <!--<p *ngIf="buttons.length" class="visible-mobile">&nbsp;</p>-->
         </ng-container>
 
         <ion-button expand="block" color="secondary" [routerLink]="['/account']">
-          <ion-icon name="contact" slot="start"></ion-icon>
-          <span translate>HOME.BTN_MY_ACCOUNT</span>
+          <ion-icon slot="start" class="ion-float-start" name="person-circle"></ion-icon>
+          <ion-text translate>HOME.BTN_MY_ACCOUNT</ion-text>
         </ion-button>
 
         <p hidden-xs hidden-sm hidden-mobile>
@@ -182,8 +192,6 @@
     </ion-footer>
   </ion-card>
 
-
-
   <!-- Page history -->
   <ion-grid *ngIf="!loading && isLogin && pageHistory.length; else bottomBanner"
             class="history-container ion-align-self-center">
@@ -201,7 +209,7 @@
               </button>
               <ion-label [innerHTML]="page.subtitle"></ion-label>
               <ion-text class="ion-float-end" [title]="page.time|dateFormat:{time: true}">
-                <small><ion-icon name="time"></ion-icon>&nbsp;{{ page.time|dateFromNow }}</small>&nbsp;
+                <small><ion-icon name="time-outline"></ion-icon>&nbsp;{{ page.time|dateFromNow }}</small>&nbsp;
               </ion-text>
             </ion-card-subtitle>
 

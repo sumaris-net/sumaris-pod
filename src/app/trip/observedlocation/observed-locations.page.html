@@ -230,7 +230,7 @@
       <mat-header-cell *matHeaderCellDef>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-icon color="medium" name="chatboxes" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
+        <mat-icon color="primary" *ngIf="row.currentData.comments" [title]="row.currentData.comments">comment</mat-icon>
       </mat-cell>
     </ng-container>
 

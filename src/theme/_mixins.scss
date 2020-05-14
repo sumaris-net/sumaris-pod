@@ -1,5 +1,5 @@
-@import './ionic/ionic.mixins';
-@import './ionic/ionic.functions.color';
+@use './ionic/ionic.mixins';
+@use './ionic/ionic.functions.color';
 
 @mixin font-size($size) {
   font-size: $size;
@@ -78,4 +78,6 @@
     @include generate-color-list($color-name);
   }
 
+  --ion-grid-column-padding: #{$ion-grid-column-padding};
+  --ion-padding: #{$ion-padding};
 }
