@@ -9,16 +9,6 @@
   <ion-grid class="ion-margin-bottom">
 
     <ion-row>
-      <!--  taxon group  -->
-      <ion-col>
-        <mat-autocomplete-field [formControl]="form.controls.taxonGroup"
-                                [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP'|translate"
-                                [config]="autocompleteFields.taxonGroup"
-                                readonly
-        >
-        </mat-autocomplete-field>
-      </ion-col>
-
       <!--  weight  -->
       <ion-col *ngIf="isProductWithWeight()">
         <mat-form-field>

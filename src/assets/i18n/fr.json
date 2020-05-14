@@ -499,7 +499,7 @@
         "PRODUCT_SALE": "Ventes"
       },
       "SALE": {
-        "TITLE": "Vente",
+        "TITLE": "Vente de {{taxonGroupLabel}}",
         "SALE_TYPE": "Type de vente",
         "RATIO": "Ratio (%)",
         "AVG_WEIGHT_PRICE": "Prix moyen / poids",
@@ -734,13 +734,13 @@
       "PACKET_SALE": "Ventes"
     },
     "COMPOSITION": {
-      "TITLE": "Composition du paquet",
+      "TITLE": "Composition du Lot #{{rankOrder}}",
       "TAXON_GROUP": "Espèce commerciale (FAO)",
       "RATIO": "#{{rankOrder}} %",
       "WEIGHT": "Poids (kg)"
     },
     "SALE": {
-      "TITLE": "Ventes",
+      "TITLE": "Ventes du Lot #{{rankOrder}}",
       "SALE_TYPE": "Type de vente"
     }
   },

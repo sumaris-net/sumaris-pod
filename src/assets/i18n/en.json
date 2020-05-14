@@ -481,7 +481,7 @@
         "PRODUCT_SALE": "Sales"
       },
       "SALE": {
-        "TITLE": "Sale",
+        "TITLE": "Sale of {{taxonGroupLabel}}",
         "SALE_TYPE": "Disposal",
         "RATIO": "Ratio (%)",
         "AVG_WEIGHT_PRICE": "Average weight price",
@@ -715,13 +715,13 @@
       "PACKET_SALE": "Sales"
     },
     "COMPOSITION": {
-      "TITLE": "Packet composition",
+      "TITLE": "Packet composition of Batch #{{rankOrder}}",
       "TAXON_GROUP": "Commercial species (FAO)",
       "RATIO": "#{{rankOrder}} %",
       "WEIGHT": "Weight (kg)"
     },
     "SALE": {
-      "TITLE": "Sales",
+      "TITLE": "Sales of Batch #{{rankOrder}}",
       "SALE_TYPE": "Sale type"
     }
   },

@@ -1,5 +1,5 @@
 <app-modal-toolbar modalName="PacketModal"
-                   [title]="'PACKET.COMPOSITION.TITLE'"
+                   [title]="$title | async"
                    [color]="'secondary'"
                    [showSpinner]="loading"
                    [canValidate]="!loading && valid"

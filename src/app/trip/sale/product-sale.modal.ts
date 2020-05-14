@@ -7,11 +7,12 @@ import {
   ViewChild
 } from "@angular/core";
 import {ModalController} from "@ionic/angular";
-import {Subscription} from "rxjs";
+import {Subject, Subscription} from "rxjs";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {ProductSaleForm} from "./product-sale.form";
 import {Product} from "../services/model/product.model";
-import {PmfmStrategy} from "../../referential/services/model";
+import {PmfmStrategy, referentialToString} from "../../referential/services/model";
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'app-product-sale-modal',
@@ -21,6 +22,7 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
 
   loading = false;
   subscription = new Subscription();
+  $title = new Subject<string>();
 
   @ViewChild('productSaleForm', {static: true}) productSaleForm: ProductSaleForm;
 
@@ -41,7 +43,8 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
 
 
   constructor(
-    protected viewCtrl: ModalController
+    protected viewCtrl: ModalController,
+    protected translate: TranslateService
   ) {
 
   }
@@ -54,9 +57,18 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
 
     setTimeout(() => {
       this.productSaleForm.setValue(Product.fromObject(this.product));
+      this.updateTitle();
     });
 
   }
+
+  protected async updateTitle() {
+    const title = await this.translate.get('TRIP.PRODUCT.SALE.TITLE', {taxonGroupLabel: referentialToString(this.product.taxonGroup)}).toPromise();
+    this.$title.next(title);
+  }
+
+  referentialToString = referentialToString;
+
 
   async onSave(event: any): Promise<any> {
 

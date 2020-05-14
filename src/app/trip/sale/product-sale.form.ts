@@ -69,9 +69,6 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
 
     this.usageMode = this.usageMode || this.settings.usageMode;
 
-    // Combo: taxonGroup
-    this.registerAutocompleteField('taxonGroup', {});
-
     // Combo: sale types
     this.registerAutocompleteField('saleType', {
       service: this.referentialRefService,

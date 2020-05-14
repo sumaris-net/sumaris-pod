@@ -8,9 +8,10 @@ import {
 } from "@angular/core";
 import {Packet, PacketComposition} from "../services/model/packet.model";
 import {ModalController} from "@ionic/angular";
-import {Subscription} from "rxjs";
+import {Subject, Subscription} from "rxjs";
 import {PacketForm} from "./packet.form";
 import {AppFormUtils} from "../../core/form/form.utils";
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'app-packet-modal',
@@ -20,6 +21,7 @@ export class PacketModal implements OnInit, OnDestroy, AfterViewInit {
 
   loading = false;
   subscription = new Subscription();
+  $title = new Subject<string>();
 
   @ViewChild('packetForm', {static: true}) packetForm: PacketForm;
 
@@ -39,7 +41,8 @@ export class PacketModal implements OnInit, OnDestroy, AfterViewInit {
 
 
   constructor(
-    protected viewCtrl: ModalController
+    protected viewCtrl: ModalController,
+    protected translate: TranslateService
   ) {
 
   }
@@ -52,8 +55,14 @@ export class PacketModal implements OnInit, OnDestroy, AfterViewInit {
 
     setTimeout(() => {
       this.packetForm.setValue(this.packet);
+      this.updateTitle();
     });
 
+  }
+
+  protected async updateTitle() {
+    const title = await this.translate.get('PACKET.COMPOSITION.TITLE', {rankOrder: this.packet.rankOrder}).toPromise();
+    this.$title.next(title);
   }
 
   async onSave(event: any): Promise<any> {

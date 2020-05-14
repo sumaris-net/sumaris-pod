@@ -1,5 +1,5 @@
 <app-modal-toolbar modalName="PacketSaleModal"
-                   [title]="'PACKET.SALE.TITLE'"
+                   [title]="$title | async"
                    [color]="'secondary'"
                    [showSpinner]="loading"
                    [canValidate]="!loading && valid"

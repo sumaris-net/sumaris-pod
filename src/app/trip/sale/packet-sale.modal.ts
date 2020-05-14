@@ -7,11 +7,12 @@ import {
   ViewChild
 } from "@angular/core";
 import {ModalController} from "@ionic/angular";
-import {Subscription} from "rxjs";
+import {Subject, Subscription} from "rxjs";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {Packet} from "../services/model/packet.model";
 import {PacketSaleForm} from "./packet-sale.form";
 import {PmfmStrategy} from "../../referential/services/model";
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'app-packet-sale-modal',
@@ -21,6 +22,7 @@ export class PacketSaleModal implements OnInit, OnDestroy, AfterViewInit {
 
   loading = false;
   subscription = new Subscription();
+  $title = new Subject<string>();
 
   @ViewChild('packetSaleForm', {static: true}) packetSaleForm: PacketSaleForm;
 
@@ -41,7 +43,8 @@ export class PacketSaleModal implements OnInit, OnDestroy, AfterViewInit {
 
 
   constructor(
-    protected viewCtrl: ModalController
+    protected viewCtrl: ModalController,
+    protected translate: TranslateService
   ) {
 
   }
@@ -54,8 +57,14 @@ export class PacketSaleModal implements OnInit, OnDestroy, AfterViewInit {
 
     setTimeout(() => {
       this.packetSaleForm.setValue(Packet.fromObject(this.packet));
+      this.updateTitle();
     });
 
+  }
+
+  protected async updateTitle() {
+    const title = await this.translate.get('PACKET.SALE.TITLE', {rankOrder: this.packet.rankOrder}).toPromise();
+    this.$title.next(title);
   }
 
   async onSave(event: any): Promise<any> {
