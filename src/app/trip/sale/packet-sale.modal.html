@@ -1,5 +1,5 @@
-<app-modal-toolbar modalName="ProductSaleModal"
-                   [title]="'TRIP.PRODUCT.SALE.TITLE'"
+<app-modal-toolbar modalName="PacketSaleModal"
+                   [title]="'PACKET.SALE.TITLE'"
                    [color]="'secondary'"
                    [showSpinner]="loading"
                    [canValidate]="!loading && valid"
@@ -8,9 +8,9 @@
 ></app-modal-toolbar>
 
 <ion-content class="ion-padding">
-  <app-product-sale-form #productSaleForm
-                         [productSalePmfms]="productSalePmfms"
-  ></app-product-sale-form>
+  <app-packet-sale-form #packetSaleForm
+                        [packetSalePmfms]="packetSalePmfms"
+  ></app-packet-sale-form>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>

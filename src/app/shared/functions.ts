@@ -339,3 +339,7 @@ export function round(value: number | undefined | null): number {
   }
   return value;
 }
+
+export function equalsOrNil(value1: any, value2: any) {
+  return (value1 === value2) || (isNil(value1) && isNil(value2));
+}

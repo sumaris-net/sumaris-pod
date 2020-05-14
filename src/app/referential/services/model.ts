@@ -775,7 +775,7 @@ export class Program extends Entity<Program> {
 
 export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CATCH_BATCH'
   | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
-  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' ;
+  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' ;
 
 export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   TRIP: 'TRIP',
@@ -793,7 +793,8 @@ export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   OBSERVED_LOCATION: 'OBSERVED_LOCATION',
   OBSERVED_VESSEL: 'OBSERVED_VESSEL',
   PRODUCT: 'PRODUCT',
-  PRODUCT_SALE: 'PRODUCT_SALE'
+  PRODUCT_SALE: 'PRODUCT_SALE',
+  PACKET_SALE: 'PACKET_SALE'
 };
 
 export class PmfmStrategy extends Entity<PmfmStrategy> {

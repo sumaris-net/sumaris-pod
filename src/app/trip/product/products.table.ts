@@ -117,8 +117,6 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     this.cd.markForCheck();
   }
 
-  // TODO prévoir le filtrage des avgPrice
-  // changer les label des pmfm d'avgPrice : AVERAG_PRICE_<packaging_label> et construire une map d'id <qv,pmfm>
   private mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
 
     if (this.platform.is('mobile')) {
@@ -134,7 +132,8 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     const modal = await this.modalCtrl.create({
       component: ProductSaleModal,
       componentProps: {
-        product: row.currentData
+        product: row.currentData,
+        productSalePmfms: await this.programService.loadProgramPmfms(this.program, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE})
       },
       backdropDismiss: false,
       cssClass: 'modal-large'
@@ -144,8 +143,8 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     const res = await modal.onDidDismiss();
 
     if (res && res.data) {
-      // patch productSales only
-      row.validator.patchValue({ productSales: res.data.productSales }, {emitEvent: true});
+      // patch saleProducts only
+      row.validator.patchValue({ saleProducts: res.data.saleProducts }, {emitEvent: true});
       this.markAsDirty();
     }
 

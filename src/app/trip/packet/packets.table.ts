@@ -11,9 +11,10 @@ import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AppTableDataSource, isNil} from "../../core/core.module";
 import {BehaviorSubject, Observable} from "rxjs";
-import {IWithProductsEntity} from "../services/model/base.model";
 import {PacketModal} from "./packet.modal";
-import {ProductFilter} from "../services/model/product.model";
+import {AcquisitionLevelCodes, IWithPacketsEntity} from "../services/model/base.model";
+import {PacketSaleModal} from "../sale/packet-sale.modal";
+import {ProgramService} from "../../referential/services/program.service";
 
 @Component({
   selector: 'app-packets-table',
@@ -30,7 +31,7 @@ import {ProductFilter} from "../services/model/product.model";
 export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnInit {
 
   @Input() $parentFilter: Observable<any>;
-  @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
+  @Input() $parents: BehaviorSubject<IWithPacketsEntity<any>[]>;
   @Input() parentAttributes: string[];
 
   private _program: string;
@@ -67,6 +68,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     protected settings: LocalSettingsService,
     protected validatorService: PacketValidatorService,
     protected memoryDataService: InMemoryTableDataService<Packet, PacketFilter>,
+    protected programService: ProgramService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, platform, location, modalCtrl, settings,
@@ -74,9 +76,9 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       RESERVED_START_COLUMNS
         .concat([
           'parent',
+          'rankOrder',
           'number',
-          'weight',
-          'composition'
+          'weight'
         ])
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<Packet, PacketFilter>(Packet, memoryDataService, validatorService, {
@@ -167,6 +169,30 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
   getComposition(row: TableElement<Packet>): string {
     return PacketUtils.getComposition(row.currentData);
+  }
+
+  async openPacketSale($event: MouseEvent, row: TableElement<Packet>) {
+    $event.preventDefault();
+
+    const modal = await this.modalCtrl.create({
+      component: PacketSaleModal,
+      componentProps: {
+        packet: row.currentData,
+        packetSalePmfms: await this.programService.loadProgramPmfms(this.program, {acquisitionLevel: AcquisitionLevelCodes.PACKET_SALE})
+      },
+      backdropDismiss: false,
+      cssClass: 'modal-large'
+    });
+
+    modal.present();
+    const res = await modal.onDidDismiss();
+
+    if (res && res.data) {
+      // patch saleProducts only
+      row.validator.patchValue({ saleProducts: res.data.saleProducts }, {emitEvent: true});
+      this.markAsDirty();
+    }
+
   }
 
 }

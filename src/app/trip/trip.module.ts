@@ -83,6 +83,8 @@ import {PhysicalGearService} from "./services/physicalgear.service";
 import {ProductSaleForm} from "./sale/product-sale.form";
 import {PacketCompositionValidatorService} from "./services/validator/packet-composition.validator";
 import {ProductSaleModal} from "./sale/product-sale.modal";
+import {PacketSaleModal} from "./sale/packet-sale.modal";
+import {PacketSaleForm} from "./sale/packet-sale.form";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -143,7 +145,9 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     LandedSaleForm,
     PacketsTable,
     PacketForm,
-    PacketModal
+    PacketModal,
+    PacketSaleForm,
+    PacketSaleModal
   ],
   exports: [
     TripTable,
@@ -192,7 +196,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     SampleModal,
     SelectVesselsModal,
     PacketModal,
-    ProductSaleModal
+    ProductSaleModal,
+    PacketSaleModal
   ],
   providers: [
     TripService,

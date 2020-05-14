@@ -9,34 +9,34 @@ import {
 import {ModalController} from "@ionic/angular";
 import {Subscription} from "rxjs";
 import {AppFormUtils} from "../../core/form/form.utils";
-import {ProductSaleForm} from "./product-sale.form";
-import {Product} from "../services/model/product.model";
+import {Packet} from "../services/model/packet.model";
+import {PacketSaleForm} from "./packet-sale.form";
 import {PmfmStrategy} from "../../referential/services/model";
 
 @Component({
-  selector: 'app-product-sale-modal',
-  templateUrl: './product-sale.modal.html'
+  selector: 'app-packet-sale-modal',
+  templateUrl: './packet-sale.modal.html'
 })
-export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
+export class PacketSaleModal implements OnInit, OnDestroy, AfterViewInit {
 
   loading = false;
   subscription = new Subscription();
 
-  @ViewChild('productSaleForm', {static: true}) productSaleForm: ProductSaleForm;
+  @ViewChild('packetSaleForm', {static: true}) packetSaleForm: PacketSaleForm;
 
-  @Input() product: Product;
-  @Input() productSalePmfms: PmfmStrategy[];
+  @Input() packet: Packet;
+  @Input() packetSalePmfms: PmfmStrategy[];
 
   get disabled() {
-    return this.productSaleForm.disabled;
+    return this.packetSaleForm.disabled;
   }
 
   get enabled() {
-    return this.productSaleForm.enabled;
+    return this.packetSaleForm.enabled;
   }
 
   get valid() {
-    return this.productSaleForm.valid;
+    return this.packetSaleForm.valid;
   }
 
 
@@ -53,7 +53,7 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
 
     setTimeout(() => {
-      this.productSaleForm.setValue(Product.fromObject(this.product));
+      this.packetSaleForm.setValue(Packet.fromObject(this.packet));
     });
 
   }
@@ -63,34 +63,34 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
     // Avoid multiple call
     if (this.disabled) return;
 
-    await AppFormUtils.waitWhilePending(this.productSaleForm);
+    await AppFormUtils.waitWhilePending(this.packetSaleForm);
 
-    if (this.productSaleForm.invalid) {
-      AppFormUtils.logFormErrors(this.productSaleForm.form);
+    if (this.packetSaleForm.invalid) {
+      AppFormUtils.logFormErrors(this.packetSaleForm.form);
       return;
     }
 
     this.loading = true;
 
     try {
-      const value = this.productSaleForm.value;
+      const value = this.packetSaleForm.value;
       this.disable();
       await this.viewCtrl.dismiss(value);
-      this.productSaleForm.error = null;
+      this.packetSaleForm.error = null;
     } catch (err) {
       console.error(err);
-      this.productSaleForm.error = err && err.message || err;
+      this.packetSaleForm.error = err && err.message || err;
       this.enable();
       this.loading = false;
     }
   }
 
   disable() {
-    this.productSaleForm.disable();
+    this.packetSaleForm.disable();
   }
 
   enable() {
-    this.productSaleForm.enable();
+    this.packetSaleForm.enable();
   }
 
   cancel() {

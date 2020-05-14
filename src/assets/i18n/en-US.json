@@ -698,22 +698,31 @@
     }
   },
   "PACKET": {
-    "NUMBER": "Packet number",
+    "LABEL": "Batch number",
+    "LABEL_VALUE": "Batch #{{rankOrder}}",
+    "NUMBER": "Packet count",
     "WEIGHT": "Calculated packets total weight (kg)",
     "SAMPLED_WEIGHTS": "Sampled weights (kg)",
     "SAMPLED_WEIGHT": "Packet #{{rankOrder}}",
     "SAMPLED_RATIO": "Composition %",
     "LIST": {
+      "LABEL": "Batch number",
+      "LABEL_VALUE": "Batch #{{rankOrder}}",
       "PARENT": "Effort",
-      "NUMBER": "Packets number",
+      "NUMBER": "Packets count",
       "WEIGHT": "Weight (kg)",
-      "COMPOSITION": "Composition"
+      "COMPOSITION": "Composition",
+      "PACKET_SALE": "Sales"
     },
     "COMPOSITION": {
       "TITLE": "Packet composition",
       "TAXON_GROUP": "Commercial species (FAO)",
       "RATIO": "#{{rankOrder}} %",
       "WEIGHT": "Weight (kg)"
+    },
+    "SALE": {
+      "TITLE": "Sales",
+      "SALE_TYPE": "Sale type"
     }
   },
   "AUCTION_CONTROL": {

@@ -1,15 +1,9 @@
 import {EntityUtils, isNotNil} from "../../../core/core.module";
-import {ReferentialRef} from "../../../core/services/model";
-import {DataEntity, DataEntityAsObjectOptions, IWithProductsEntity, NOT_MINIFY_OPTIONS, PmfmStrategy} from "./base.model";
-import {
-  IEntityWithMeasurement,
-  MeasurementFormValues,
-  MeasurementValuesUtils
-} from "./measurement.model";
-import {isNotNilOrBlank, toNumber} from "../../../shared/functions";
-import {ReferentialAsObjectOptions} from "../../../core/services/model";
+import {ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model";
+import {DataEntity, DataEntityAsObjectOptions, IWithProductsEntity, NOT_MINIFY_OPTIONS} from "./base.model";
+import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from "./measurement.model";
+import {equalsOrNil, isNotNilOrBlank} from "../../../shared/functions";
 import {DataFilter} from "../../../shared/services/memory-data-service.class";
-import {ProductSale} from "./product-sale.model";
 
 export class ProductFilter implements DataFilter<Product> {
 
@@ -65,7 +59,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   saleType: ReferentialRef;
 
   measurementValues: MeasurementFormValues;
-  productSales: ProductSale[];
+  saleProducts: Product[];
 
   operationId: number;
   saleId: number;
@@ -88,7 +82,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.saleType = null;
 
     this.measurementValues = {};
-    this.productSales = [];
+    this.saleProducts = [];
     this.operationId = null;
     this.saleId = null;
     this.landingId = null;
@@ -97,9 +91,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   }
 
   clone(): Product {
-    const target = new Product();
-    target.fromObject(this.asObject());
-    return target;
+    return Product.fromObject(this.asObject());
   }
 
   asObject(opts?: DataEntityAsObjectOptions): any {
@@ -111,9 +103,9 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     // target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
 
-    // productSales is only for screens
-    delete target.productSales;
+    target.saleProducts = this.saleProducts && this.saleProducts.map(s => s.asObject(opts)) || [];
 
+    delete target.parent;
     return target;
   }
 
@@ -135,10 +127,24 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.landingId = source.landingId;
     this.batchId = source.batchId;
 
-    // Get all measurements values
-    this.measurementValues = source.measurementValues;
+    // Get all measurements values (by copy)
+    this.measurementValues = source.measurementValues && {...source.measurementValues};
+
+    this.saleProducts = source.saleProducts && source.saleProducts.map(saleProduct => Product.fromObject(saleProduct)) || [];
 
     return this;
   }
 
+  /**
+   * This equals function should also works with SaleProduct
+   * @param other
+   */
+  equals(other: Product): boolean {
+    return super.equals(other)
+      || (
+        this.taxonGroup.equals(other.taxonGroup) && this.rankOrder === other.rankOrder
+        && equalsOrNil(this.individualCount, other.individualCount) && equalsOrNil(this.weight, other.weight)
+        && equalsOrNil(this.subgroupCount, other.subgroupCount) && EntityUtils.equals(this.saleType, other.saleType)
+      );
+  }
 }

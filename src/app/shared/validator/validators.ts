@@ -3,10 +3,6 @@ import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
 import {fromDateISOString, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, isNotNilOrNaN, toDateISOString} from "../functions";
 import {Moment} from "moment";
-import {DateFormatPipe} from "../shared.module";
-import {DateAdapter} from "@angular/material";
-import {MomentDateAdapter} from "@angular/material-moment-adapter";
-import {PipeTransform} from "@angular/core";
 
 export class SharedValidators {
 
@@ -49,6 +45,48 @@ export class SharedValidators {
       return { entity: true };
     }
     return null;
+  }
+
+  /**
+   * Validate uniqueness of an entity in a FormArray
+   * @param controlName the name of the control in FormArray
+   */
+  static uniqueEntity(controlName: string): ValidatorFn {
+    return (group: FormArray): ValidationErrors | null => {
+      const controls: AbstractControl[] = [];
+      if (group.length) {
+        // gather controls in array with valid entity
+        for (const control of group.controls) {
+          const fromGroup = control as FormGroup;
+          if (fromGroup.controls[controlName]) {
+            const value = fromGroup.controls[controlName].value;
+            if (!!value && !!value.id)
+              controls.push(fromGroup.controls[controlName]);
+          }
+        }
+        // get occurrences of entity by id
+        const occurrences = controls.reduce((acc, control) => {
+          const id = control.value.id;
+          acc[id] ? acc[id]++ : acc[id] = 1;
+          return acc;
+        } , {});
+        // get controls with value occurrences > 1
+        const error = {uniqueEntity: true};
+        let returnError = false;
+        controls.filter(control => occurrences[control.value.id] > 1)
+          .forEach(control => {
+                let errors: ValidationErrors = control.errors || {};
+                errors = {...errors, ...error};
+                control.setErrors(errors);
+                control.markAsTouched({onlySelf: true});
+                returnError = true;
+          });
+        if (returnError)
+          return error;
+      }
+      controls.forEach(control => SharedValidators.clearError(control, 'uniqueEntity'));
+      return null;
+    };
   }
 
   static empty(control: FormControl): ValidationErrors | null {
@@ -228,6 +266,12 @@ export class SharedValidators {
     };
   }
 
+  /**
+   * Validate the sum of control values in an FormArray not overflow the max value
+   *
+   * @param controlName the name of the control in FormArray
+   * @param max the maximum value
+   */
   static validSumMaxValue(controlName: string, max: number): ValidatorFn {
     return (group: FormArray): ValidationErrors | null => {
       const controls: AbstractControl[] = [];

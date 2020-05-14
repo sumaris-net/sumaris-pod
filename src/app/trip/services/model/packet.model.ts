@@ -3,13 +3,12 @@ import {
   DataEntityAsObjectOptions,
   EntityUtils,
   isNil,
-  isNotNil, IWithPacketsEntity, IWithProductsEntity,
-  NOT_MINIFY_OPTIONS, PmfmStrategy,
-  ReferentialRef, referentialToString
+  isNotNil, IWithPacketsEntity, NOT_MINIFY_OPTIONS, ReferentialRef, referentialToString
 } from "./base.model";
 import {ReferentialAsObjectOptions} from "../../../core/services/model";
 import {DataFilter} from "../../../shared/services/memory-data-service.class";
-import {PacketSale} from "./packet-sale.model";
+import {Product} from "./product.model";
+import {equalsOrNil, isNotNilOrNaN} from "../../../shared/functions";
 
 export class PacketFilter implements DataFilter<Packet> {
 
@@ -40,7 +39,6 @@ export class Packet extends DataEntity<Packet> {
   rankOrder: number;
   number: number;
   weight: number;
-  // sampledWeights: number[];
   sampledWeight1: number;
   sampledWeight2: number;
   sampledWeight3: number;
@@ -48,7 +46,7 @@ export class Packet extends DataEntity<Packet> {
   sampledWeight5: number;
   sampledWeight6: number;
   composition: PacketComposition[];
-  packetSales: PacketSale[];
+  saleProducts: Product[];
 
   // used to compute packet's ratio from composition
   sampledRatio1: number;
@@ -66,9 +64,8 @@ export class Packet extends DataEntity<Packet> {
     this.rankOrder = null;
     this.number = null;
     this.weight = null;
-    // this.sampledWeights = [];
     this.composition = [];
-    this.packetSales = [];
+    this.saleProducts = [];
     this.parent = null;
     this.parentId = null;
   }
@@ -85,8 +82,7 @@ export class Packet extends DataEntity<Packet> {
     target.composition = this.composition && this.composition.map(c => c.asObject(options)) || undefined;
     target.operationId = this.parent && this.parent.id || this.parentId;
 
-    // packetSales is only for screens
-    delete target.packetSales;
+    target.saleProducts = this.saleProducts && this.saleProducts.map(s => s.asObject(options)) || [];
 
     return target;
   }
@@ -96,7 +92,6 @@ export class Packet extends DataEntity<Packet> {
     this.rankOrder = source.rankOrder;
     this.number = source.number;
     this.weight = source.weight;
-    // this.sampledWeights = source.sampledWeights;
     this.sampledWeight1 = source.sampledWeights && source.sampledWeights[0] || source.sampledWeight1;
     this.sampledWeight2 = source.sampledWeights && source.sampledWeights[1] || source.sampledWeight2;
     this.sampledWeight3 = source.sampledWeights && source.sampledWeights[2] || source.sampledWeight3;
@@ -104,44 +99,22 @@ export class Packet extends DataEntity<Packet> {
     this.sampledWeight5 = source.sampledWeights && source.sampledWeights[4] || source.sampledWeight5;
     this.sampledWeight6 = source.sampledWeights && source.sampledWeights[5] || source.sampledWeight6;
     this.composition = source.composition && source.composition.map(c => PacketComposition.fromObject(c));
+    this.saleProducts = source.saleProducts && source.saleProducts.map(saleProduct => Product.fromObject(saleProduct)) || [];
+
     this.parentId = source.operationId;
     this.parent = source.parent;
     return this;
   }
 
-  clone(): Packet {
-    const target = new Packet();
-    target.fromObject(this.asObject());
-    return target;
+  equals(other: Packet): boolean {
+    return super.equals(other)
+      || (
+        this.rankOrder === other.rankOrder && equalsOrNil(this.number, other.number) && equalsOrNil(this.weight, other.weight)
+      );
   }
 
-  addPacketSale(packetSale: PacketSale) {
-
-    // find packet sale with same rank order
-    const existingPacketSale = this.packetSales.find(s => s && s.rankOrder === packetSale.rankOrder);
-    if (existingPacketSale) {
-
-      // Some assertions
-      if (existingPacketSale.number !== packetSale.number)
-        throw new Error(`Invalid packet sale: different packet number found: ${existingPacketSale.number} != ${packetSale.number}`);
-      if (isNil(packetSale.saleType) || !packetSale.saleType.equals(existingPacketSale.saleType))
-        throw new Error(`Invalid packet sale: different sale type found:
-        ${existingPacketSale.saleType && existingPacketSale.saleType.name || null} != ${packetSale.saleType && packetSale.saleType.name || null}`);
-
-      // Sum values
-      if (existingPacketSale.weight && packetSale.weight)
-        existingPacketSale.weight += packetSale.weight;
-      if (existingPacketSale.averagePackagingPrice && packetSale.averagePackagingPrice)
-        existingPacketSale.averagePackagingPrice += packetSale.averagePackagingPrice;
-      if (existingPacketSale.totalPrice && packetSale.totalPrice)
-        existingPacketSale.totalPrice += packetSale.totalPrice;
-
-    } else {
-
-      // just add to array
-      this.packetSales.push(packetSale);
-
-    }
+  clone(): Packet {
+    return Packet.fromObject(this.asObject());
   }
 
 }
@@ -149,10 +122,10 @@ export class Packet extends DataEntity<Packet> {
 export class PacketComposition extends DataEntity<PacketComposition> {
 
   static TYPENAME = 'PacketCompositionVO';
+  static indexes = [1, 2, 3, 4, 5, 6];
 
   rankOrder: number;
   taxonGroup: ReferentialRef;
-  // ratios: number[];
   ratio1: number;
   ratio2: number;
   ratio3: number;
@@ -166,7 +139,6 @@ export class PacketComposition extends DataEntity<PacketComposition> {
     this.rankOrder = null;
     this.taxonGroup = null;
     this.weight = null;
-    // this.ratios = [];
   }
 
   asObject(options?: DataEntityAsObjectOptions): any {
@@ -189,7 +161,6 @@ export class PacketComposition extends DataEntity<PacketComposition> {
     super.fromObject(source);
     this.rankOrder = source.rankOrder || undefined;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
-    // this.ratios = source.ratios || undefined;
     this.ratio1 = source.ratios && source.ratios[0] || source.ratio1;
     this.ratio2 = source.ratios && source.ratios[1] || source.ratio2;
     this.ratio3 = source.ratios && source.ratios[2] || source.ratio3;
@@ -197,6 +168,13 @@ export class PacketComposition extends DataEntity<PacketComposition> {
     this.ratio5 = source.ratios && source.ratios[4] || source.ratio5;
     this.ratio6 = source.ratios && source.ratios[5] || source.ratio6;
     return this;
+  }
+
+  equals(other: PacketComposition): boolean {
+    return super.equals(other)
+      || (
+        this.taxonGroup.equals(other.taxonGroup) && this.rankOrder === other.rankOrder
+      );
   }
 
   clone(): PacketComposition {
@@ -237,4 +215,17 @@ export class PacketUtils {
   static getComposition(packet: Packet) {
     return packet && packet.composition && packet.composition.map(composition => referentialToString(composition.taxonGroup)).join('\n') || "";
   }
+
+  static getCompositionAverageRatio(composition: PacketComposition): number {
+    const ratios: number[] = [];
+    for (const i of PacketComposition.indexes) {
+      const ratio = composition['ratio' + i];
+      if (isNotNilOrNaN(ratio))
+        ratios.push(ratio);
+    }
+    const sum = ratios.reduce((a, b) => a + b, 0);
+    const avg = (sum / ratios.length) || 0;
+    return avg / 100;
+  }
+
 }

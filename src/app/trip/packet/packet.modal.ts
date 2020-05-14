@@ -50,7 +50,9 @@ export class PacketModal implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
 
-    this.packetForm.setValue(this.packet);
+    setTimeout(() => {
+      this.packetForm.setValue(this.packet);
+    });
 
   }
 
@@ -62,8 +64,6 @@ export class PacketModal implements OnInit, OnDestroy, AfterViewInit {
     await AppFormUtils.waitWhilePending(this.packetForm);
 
     if (this.packetForm.invalid) {
-      this.packetForm.markAsTouched({emitEvent: true});
-
       AppFormUtils.logFormErrors(this.packetForm.form);
       return;
     }

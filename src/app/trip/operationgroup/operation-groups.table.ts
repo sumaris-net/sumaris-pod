@@ -59,8 +59,6 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
 
   @Input() $metiers: BehaviorSubject<MetierRef[]>;
 
-  @Output() change: EventEmitter<void> = new EventEmitter<void>();
-
   constructor(
     injector: Injector,
     protected platform: Platform,
@@ -107,24 +105,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
       items: this.$metiers
     });
 
-    // Apply trip id, if already set
-    // if (isNotNil(this.tripId)) {
-    //   this.setTripId(this.tripId);
-    // }
   }
-
-  // setTrip(data: Trip) {
-  //   this.setTripId(data && data.id || undefined);
-  // }
-  //
-  // setTripId(id: number) {
-  //   this.tripId = id;
-  //   const filter = this.filter || {};
-  //   filter.tripId = id;
-  //   this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
-  //   this.dataSource.serviceOptions.tripId = id;
-  //   this.setFilter(filter, {emitEvent: isNotNil(id)});
-  // }
 
   referentialToString = referentialToString;
 
@@ -132,9 +113,6 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
 
   protected markForCheck() {
     this.cd.markForCheck();
-    if (this.dirty) {
-      this.change.emit();
-    }
   }
 
   private mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {

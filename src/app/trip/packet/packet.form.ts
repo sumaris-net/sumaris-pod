@@ -19,7 +19,6 @@ import {isEmptyArray, isNil, isNotEmptyArray, isNotNilOrNaN, round} from "../../
 })
 export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
-  private readonly indexes = [1, 2, 3, 4, 5, 6];
   computing = false;
 
   compositionHelper: FormArrayHelper<PacketComposition>;
@@ -59,7 +58,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
         json.composition[i].rankOrder = i + 1;
 
         // Fix ratio if empty
-        for (const index of this.indexes) {
+        for (const index of PacketComposition.indexes) {
           if (isNotNilOrNaN(json['sampledWeight' + index]) && isNil(json.composition[i]['ratio' + index])) {
             json.composition[i]['ratio' + index] = 0;
           }
@@ -121,7 +120,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
       this.computeTaxonGroupWeight();
     }));
 
-    for (const i of this.indexes) {
+    for (const i of PacketComposition.indexes) {
       this.registerSubscription(this.form.controls['sampledWeight' + i].valueChanges.subscribe(() => {
         this.computeTotalWeight();
         this.computeTaxonGroupWeight();
@@ -142,7 +141,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     try {
       this.computing = true;
       const compositions: any[] = this.form.controls.composition.value || [];
-      for (const i of this.indexes) {
+      for (const i of PacketComposition.indexes) {
         const ratio = compositions.reduce((sum, current) => sum + current['ratio' + i], 0);
         this.form.controls['sampledRatio' + i].setValue(ratio > 0 ? ratio : null);
       }
@@ -162,7 +161,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
       for (const composition of compositions) {
         const ratios: number[] = [];
-        for (const i of this.indexes) {
+        for (const i of PacketComposition.indexes) {
           const ratio = composition.controls['ratio' + i].value;
           if (isNotNilOrNaN(ratio))
             ratios.push(ratio);
@@ -184,7 +183,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     try {
       this.computing = true;
       const sampledWeights: number[] = [];
-      for (const i of this.indexes) {
+      for (const i of PacketComposition.indexes) {
         const weight = this.form.controls['sampledWeight' + i].value;
         if (isNotNilOrNaN(weight))
           sampledWeights.push(weight);
@@ -207,7 +206,8 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
       PacketUtils.isPacketCompositionEquals,
       PacketUtils.isPacketCompositionEmpty,
       {
-        allowEmptyArray: false
+        allowEmptyArray: false,
+        validators: this.validatorService.getDefaultCompositionValidators()
       }
     );
     if (this.compositionHelper.size() === 0) {

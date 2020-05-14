@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment, isNotNil} from '../../core/core.module';
+import {EntityUtils, environment, isNotNil} from '../../core/core.module';
 import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray, isNotNilOrBlank} from '../../shared/shared.module';
 import * as moment from "moment";
 import {AcquisitionLevelCodes, PmfmStrategy, ProgramProperties} from "../../referential/services/model";
@@ -28,9 +28,10 @@ import {PacketsTable} from "../packet/packets.table";
 import {Packet} from "../services/model/packet.model";
 import {OperationGroup, Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
-import {ProductSale} from "../services/model/product-sale.model";
-import {PacketSale} from "../services/model/packet-sale.model";
 import {fillRankOrder, isRankOrderValid} from "../services/model/base.model";
+import {SaleProductUtils} from "../services/model/sale-product.model";
+import {ok} from "assert";
+import {debounceTime, filter} from "rxjs/operators";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -140,6 +141,13 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       attributes: this.operationGroupAttributes
     });
 
+    // Update available operation groups for catches forms
+    this.registerSubscription(
+      this.operationGroupTable.dataSource.datasourceSubject.pipe(
+        debounceTime(400),
+        filter(() => !this.loading)
+      ).subscribe(operationGroups => this.$operationGroups.next(operationGroups))
+    );
 
     // Cascade refresh to operation tables
     this.registerSubscription(
@@ -280,9 +288,9 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
     // Fix products and packets rank orders (reset if rank order are invalid, ie. from SIH)
     if (!isRankOrderValid(products))
-      fillRankOrder(products, 1);
+      fillRankOrder(products);
     if (!isRankOrderValid(packets))
-      fillRankOrder(packets, 1);
+      fillRankOrder(packets);
 
     // Sale
     if (data && data.sale && this.productSalePmfms) {
@@ -293,26 +301,32 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       this.landedSaleForm.value = data.sale;
       // this.saleMeasurementsForm.value = data.sale.measurements || [];
 
-
       // Dispatch product and packet sales
-      data.sale.products.forEach(saleProduct => {
-        if (isNil(saleProduct.batchId)) {
-          // = product
-          const productFound = products.find(product => ProductSale.isSaleOfProduct(product, saleProduct, this.productSalePmfms));
-          if (productFound) {
-            productFound.productSales.push(ProductSale.toProductSale(saleProduct, this.productSalePmfms));
-          }
-        } else {
-          // = packet
-          const packetFound = packets.find(packet => PacketSale.isSaleOfPacket(packet, saleProduct));
-          if (packetFound) {
-            packetFound.addPacketSale(PacketSale.toPacketSale(saleProduct, this.productSalePmfms));
-          }
-        }
-      });
+      if (isNotEmptyArray(data.sale.products)) {
 
-      // need fill products.productSales.rankOrder
-      products.forEach(p => fillRankOrder(p.productSales));
+        // First, reset products and packets sales
+        products.forEach(product => product.saleProducts = []);
+        packets.forEach(packet => packet.saleProducts = []);
+
+        data.sale.products.forEach(saleProduct => {
+          if (isNil(saleProduct.batchId)) {
+            // = product
+            const productFound = products.find(product => SaleProductUtils.isSaleOfProduct(product, saleProduct, this.productSalePmfms));
+            if (productFound) {
+              productFound.saleProducts.push(saleProduct);
+            }
+          } else {
+            // = packet
+            const packetFound = packets.find(packet => SaleProductUtils.isSaleOfPacket(packet, saleProduct));
+            if (packetFound) {
+              packetFound.saleProducts.push(saleProduct);
+            }
+          }
+        });
+
+        // need fill products.saleProducts.rankOrder
+        products.forEach(p => fillRankOrder(p.saleProducts));
+      }
     }
 
     // Products table
@@ -325,13 +339,8 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     // todo set other tables
   }
 
-  onOperationGroupChange() {
-    this.$operationGroups.next(this.operationGroupTable.value);
-  }
-
   // todo attention à cette action
   async onOpenOperationGroup({id, row}) {
-
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       this.loading = true;
@@ -446,28 +455,9 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
     // Sale
     json.sale = this.landedSaleForm.value;
-    if (json.sale && this.productSalePmfms) {
-      // json.sale.measurements = this.saleMeasurementsForm.value;
-
-      // Merge sales from products and packets
-      const existingProducts: any[] = json.sale.products || [];
-      const newProducts: Product[] = [];
-
-      // Parse ProductSales
-      products.forEach(product => {
-        (product.productSales || []).forEach(productSale => {
-          const existingProduct = existingProducts.find(p => p.id === productSale.id);
-          if (existingProduct) {
-            // merge existing product
-            const toMerge = productSale.asObject(this.productSalePmfms);
-            newProducts.push({...existingProduct, ...toMerge});
-          } else {
-            // new sale product
-          }
-        });
-      });
-
-      console.debug(newProducts);
+    if (json.sale) {
+      // sale products won't be saved with sale directly
+      delete json.sale.products;
     }
 
     // Affect in each operation group : products and packets
@@ -505,7 +495,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       saveOptions.withOperationGroup = true;
     }
 
-    // todo same for products, productsale, expense
+    // todo same for expenses
 
     return await super.save(event, {...options, ...saveOptions});
   }

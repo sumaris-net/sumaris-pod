@@ -12,9 +12,11 @@ import {Entity} from "../services/model";
 import {timer} from "rxjs";
 import {filter, first, tap} from "rxjs/operators";
 import {SharedValidators} from "../../shared/validator/validators";
+import {round} from "../../shared/functions";
 
 export {selectInputContent};
 
+// TODO continue to use this kind of declaration ?
 export class AppFormUtils {
   static copyForm2Entity = copyForm2Entity;
   static copyEntity2Form = copyEntity2Form;
@@ -36,6 +38,13 @@ export class AppFormUtils {
   static removeValueInArray = removeValueInArray;
   static resizeArray = resizeArray;
   static clearValueInArray = clearValueInArray;
+
+  // Calculated fields
+  static calculatedSuffix = 'Calculated';
+  static isControlHasInput = isControlHasInput;
+  static setCalculatedValue = setCalculatedValue;
+  static resetCalculatedValue = resetCalculatedValue;
+
 }
 
 /**
@@ -406,6 +415,26 @@ export function waitWhilePending<T extends {pending: boolean; }>(form: T, opts?:
       first()
     ).toPromise();
 }
+
+export function isControlHasInput(controls: { [key: string]: AbstractControl }, controlName: string): boolean {
+  // true if the control has a value and its 'calculated' control has the value 'false'
+  return controls[controlName].value && !toBoolean(controls[controlName + AppFormUtils.calculatedSuffix].value, false);
+}
+
+export function setCalculatedValue(controls: { [key: string]: AbstractControl }, controlName: string, value: number | undefined) {
+  // set value to control
+  controls[controlName].setValue(round(value));
+  // set 'calculated' control to 'true'
+  controls[controlName + AppFormUtils.calculatedSuffix].setValue(true);
+}
+
+export function resetCalculatedValue(controls: { [key: string]: AbstractControl }, controlName: string) {
+  if (!this.isControlHasInput(controls, controlName)) {
+    // set undefined only if control already calculated
+    this.setCalculatedValue(controls, controlName, undefined);
+  }
+}
+
 
 export class FormArrayHelper<T = Entity<any>> {
 

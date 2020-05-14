@@ -1,14 +1,17 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.validator";
 import {Packet, PacketComposition} from "../model/packet.model";
 import {PacketCompositionValidatorService} from "./packet-composition.validator";
+import {Product} from "../model/product.model";
+import {SaleProduct} from "../model/sale-product.model";
 
 export interface PacketValidatorOptions extends DataEntityValidatorOptions {
   withComposition?: boolean;
+  withSaleProducts?: boolean;
 }
 
 @Injectable()
@@ -18,7 +21,7 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
   constructor(
     formBuilder: FormBuilder,
     settings: LocalSettingsService,
-    protected packetCompositionValidatorService: PacketCompositionValidatorService //todo comment l'injecter proprement ?
+    protected packetCompositionValidatorService: PacketCompositionValidatorService
   ) {
     super(formBuilder, settings);
   }
@@ -53,18 +56,73 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
       formConfig.composition = [data && data.composition || null, Validators.required];
     }
 
+    if (opts.withSaleProducts) {
+      formConfig.saleProducts = this.getSaleProductsFormArray(data);
+    } else {
+      formConfig.saleProducts = [data && data.saleProducts || null];
+    }
+
     return formConfig;
   }
+
+  updateFormGroup(formGroup: FormGroup, opts?: O) {
+
+    if (opts.withSaleProducts) {
+      const saleValidators = [];
+      if (formGroup.controls.number.value) {
+        saleValidators.push(SharedValidators.validSumMaxValue('subgroupCount', formGroup.controls.number.value));
+      }
+      if (saleValidators.length) {
+        formGroup.controls.saleProducts.setValidators(saleValidators);
+      }
+    }
+  }
+
   /* -- protected methods -- */
 
-  getCompositionFormArray(data?: Packet) {
+  private getCompositionFormArray(data?: Packet) {
     return this.formBuilder.array(
       (data && data.composition || [null]).map(composition => this.getCompositionControl(composition)),
-      SharedValidators.requiredArrayMinLength(1)
+      this.getDefaultCompositionValidators()
     );
+  }
+
+  getDefaultCompositionValidators(): ValidatorFn[] {
+    return [
+      SharedValidators.uniqueEntity('taxonGroup')
+    ];
   }
 
   getCompositionControl(composition: PacketComposition): FormGroup {
     return this.packetCompositionValidatorService.getFormGroup(composition);
+  }
+
+  private getSaleProductsFormArray(data: Packet): FormArray {
+    return this.formBuilder.array(
+      (data && data.saleProducts || [null]).map(saleProduct => this.getSaleProductControl(saleProduct))
+    );
+  }
+
+  getSaleProductControl(sale?: any): FormGroup {
+    return this.formBuilder.group({
+        saleType: [sale && sale.saleType || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        rankOrder: [sale && sale.rankOrder || null],
+        subgroupCount: [sale && sale.subgroupCount || null, Validators.compose([SharedValidators.integer, Validators.min(0)])],
+        weight: [sale && sale.weight || null],
+        weightCalculated: [true],
+        averagePackagingPrice: [sale && sale.averagePackagingPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        averagePackagingPriceCalculated: [sale && sale.averagePackagingPriceCalculated || null],
+        totalPrice: [sale && sale.totalPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        totalPriceCalculated: [sale && sale.totalPriceCalculated || null],
+        productIdByTaxonGroup: [sale && sale.productIdByTaxonGroup || null]
+      },
+      {
+        validators: [
+          SharedValidators.propagateIfDirty('averagePackagingPrice', 'averagePackagingPriceCalculated', false),
+          SharedValidators.propagateIfDirty('averagePackagingPrice', 'totalPriceCalculated', true),
+          SharedValidators.propagateIfDirty('totalPrice', 'totalPriceCalculated', false),
+          SharedValidators.propagateIfDirty('totalPrice', 'averagePackagingPriceCalculated', true),
+        ]
+      });
   }
 }

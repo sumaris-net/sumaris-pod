@@ -8,8 +8,13 @@
 
   <ion-grid class="ion-margin-bottom">
 
-    <!--  NB packets  -->
     <ion-row>
+      <!--  label  -->
+      <ion-col>
+        <h3>{{'PACKET.LABEL_VALUE' | translate : {rankOrder: form.controls.rankOrder.value} }}</h3>
+      </ion-col>
+
+      <!--  NB packets  -->
       <ion-col>
         <mat-form-field>
           <input matInput #packetNumber

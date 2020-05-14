@@ -423,13 +423,16 @@ export class MeasurementValuesUtils {
       }, {}) || undefined;
   }
 
-  static getValue(measurements: MeasurementModelValues | MeasurementFormValues, pmfms: PmfmStrategy[], pmfmLabel: string): MeasurementFormValue {
+  static getValue(measurements: MeasurementModelValues | MeasurementFormValues, pmfms: PmfmStrategy[], pmfmLabel: string, remove?: boolean): MeasurementFormValue {
     if (!measurements || !pmfms || !pmfmLabel)
       return undefined;
 
     const pmfm = pmfms.find(p => p.label && p.label === pmfmLabel);
     if (pmfm && measurements[pmfm.pmfmId]) {
-      return MeasurementValuesUtils.normalizeValueToForm(measurements[pmfm.pmfmId], pmfm);
+      const value = MeasurementValuesUtils.normalizeValueToForm(measurements[pmfm.pmfmId], pmfm);
+      if (!!remove)
+        delete measurements[pmfm.pmfmId];
+      return value;
     }
     return undefined;
   }

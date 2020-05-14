@@ -717,22 +717,31 @@
     }
   },
   "PACKET": {
+    "LABEL": "Numéro de lot",
+    "LABEL_VALUE": "Lot #{{rankOrder}}",
     "NUMBER": "Nombre de paquets",
     "WEIGHT": "Poids total des paquets calculé (kg)",
     "SAMPLED_WEIGHTS": "Poids des échantillons (kg)",
     "SAMPLED_WEIGHT": "Paquet #{{rankOrder}}",
     "SAMPLED_RATIO": "Composition %",
     "LIST": {
+      "LABEL": "Numéro de lot",
+      "LABEL_VALUE": "Lot #{{rankOrder}}",
       "PARENT": "Effort",
       "NUMBER": "Nombre de paquets",
       "WEIGHT": "Poids (kg)",
-      "COMPOSITION": "Composition"
+      "COMPOSITION": "Composition",
+      "PACKET_SALE": "Ventes"
     },
     "COMPOSITION": {
       "TITLE": "Composition du paquet",
       "TAXON_GROUP": "Espèce commerciale (FAO)",
       "RATIO": "#{{rankOrder}} %",
       "WEIGHT": "Poids (kg)"
+    },
+    "SALE": {
+      "TITLE": "Ventes",
+      "SALE_TYPE": "Type de vente"
     }
   },
   "AUCTION_CONTROL": {

@@ -45,14 +45,14 @@ export {
 
 /* -- Helper function -- */
 
-export function fillRankOrder(values: { rankOrder: number }[], initialRankOrder?: number) {
+export function fillRankOrder(values: { rankOrder: number }[]) {
   // Compute rankOrder
-  let maxRankOrder = initialRankOrder || 0;
+  let maxRankOrder = 0;
   (values || []).forEach(m => {
     if (m.rankOrder && m.rankOrder > maxRankOrder) maxRankOrder = m.rankOrder;
   });
   (values || []).forEach(m => {
-    m.rankOrder = m.rankOrder || maxRankOrder++;
+    m.rankOrder = m.rankOrder || ++maxRankOrder;
   });
 }
 

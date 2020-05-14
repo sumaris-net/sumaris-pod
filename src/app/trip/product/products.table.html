@@ -182,18 +182,18 @@
         <mat-icon>add</mat-icon>
       </button>
 
-      <!-- product sale -->
-      <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
-              [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE'|translate"
-              (click)="$event.preventDefault() || openProductSale($event, row)">
-        <mat-icon>local_offer</mat-icon>
-      </button>
-
       <!-- sampling -->
       <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1 && row.validator.controls.individualCount.value > 0"
               [title]="'TRIP.PRODUCT.LIST.INDIVIDUAL_SAMPLING'|translate"
               (click)="$event.preventDefault() || openSampling($event, row)">
         <mat-icon>center_focus_strong</mat-icon>
+      </button>
+
+      <!-- product sale -->
+      <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
+              [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE'|translate"
+              (click)="$event.preventDefault() || openProductSale($event, row)">
+        <mat-icon>local_offer</mat-icon>
       </button>
 
     </mat-cell>

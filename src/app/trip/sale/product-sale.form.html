@@ -1,15 +1,15 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <!-- error -->
-  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+  <ion-item *ngIf="error && showError" lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <ion-grid class="ion-margin-bottom">
 
-    <!--  taxon group  -->
     <ion-row>
+      <!--  taxon group  -->
       <ion-col>
         <mat-autocomplete-field [formControl]="form.controls.taxonGroup"
                                 [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP'|translate"
@@ -44,6 +44,8 @@
     </ion-row>
 
     <ion-row *ngFor="let saleForm of saleFormArray?.controls; index as i; first as first">
+
+<!--      todo use ion-card -->
 
       <!-- sale type -->
       <ion-col>
@@ -99,10 +101,10 @@
         </mat-form-field>
       </ion-col>
 
-      <!-- number -->
+      <!-- individualCount -->
       <ion-col *ngIf="isProductWithNumber()">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'">
-          <input matInput [formControl]="asFormGroup(saleForm).controls.number"
+          <input matInput [formControl]="asFormGroup(saleForm).controls.individualCount"
                  [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT'|translate"
                  autocomplete="off" type="number" pattern="[0-9]*" step="1"
                  [tabIndex]="tabindex+3+i*9+4"
