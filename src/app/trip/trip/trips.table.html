@@ -111,7 +111,7 @@
   </ion-list>
 
   <!-- search -->
-  <mat-expansion-panel #filterExpansionPanel class="ion-no-padding" [expanded]="true">
+  <mat-expansion-panel #filterExpansionPanel class="ion-no-padding">
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
       <ion-grid>
