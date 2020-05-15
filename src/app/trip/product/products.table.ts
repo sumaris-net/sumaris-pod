@@ -5,13 +5,16 @@ import {ProductValidatorService} from "../services/validator/product.validator";
 import {Product, ProductFilter} from "../services/model/product.model";
 import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
-import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
+import {AcquisitionLevelCodes, isNotNil, PmfmStrategy} from "../../referential/services/model";
 import {BehaviorSubject, Observable} from "rxjs";
 import {IWithProductsEntity} from "../services/model/base.model";
 import {IReferentialRef} from "../../core/services/model";
 import {TableElement} from "angular4-material-table";
 import {ProductSaleModal} from "../sale/product-sale.modal";
 import {$e} from "codelyzer/angular/styles/chars";
+import {isNotEmptyArray} from "../../shared/functions";
+import {SaleProductUtils} from "../services/model/sale-product.model";
+import {filterNotNil} from "../../shared/observables";
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -48,6 +51,8 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   get dirty(): boolean {
     return this._dirty || this.memoryDataService.dirty;
   }
+
+  private productSalePmfms: PmfmStrategy[];
 
   constructor(
     injector: Injector,
@@ -102,6 +107,15 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
         this.setFilter(new ProductFilter(parentFilter));
       }));
     }
+
+    this.registerSubscription(
+      filterNotNil(this.$pmfms)
+        .subscribe(() => {
+          // if main pmfms are loaded, then other pmfm can be loaded
+          this.programService.loadProgramPmfms(this.program, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE})
+            .then(productSalePmfms => this.productSalePmfms = productSalePmfms);
+        }));
+
   }
 
   /* -- protected methods -- */
@@ -128,6 +142,18 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     return pmfms;
   }
 
+  confirmEditCreate(event?: any, row?: TableElement<Product>): boolean {
+    const confirmed = super.confirmEditCreate(event, row);
+    if (confirmed && row && row.currentData) {
+      // update sales if any
+      if (isNotEmptyArray(row.currentData.saleProducts)) {
+        const updatedSaleProducts = SaleProductUtils.updateSaleProducts(row.currentData, this.productSalePmfms);
+        row.validator.patchValue({saleProducts: updatedSaleProducts}, {emitEvent: true});
+      }
+    }
+    return confirmed;
+  }
+
   async openProductSale(event: MouseEvent, row: TableElement<Product>) {
     if (event) event.stopPropagation();
 
@@ -135,7 +161,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
       component: ProductSaleModal,
       componentProps: {
         product: row.currentData,
-        productSalePmfms: await this.programService.loadProgramPmfms(this.program, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE})
+        productSalePmfms: this.productSalePmfms
       },
       backdropDismiss: false,
       cssClass: 'modal-large'
@@ -146,7 +172,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     if (res && res.data) {
       // patch saleProducts only
-      row.validator.patchValue({ saleProducts: res.data.saleProducts }, {emitEvent: true});
+      row.validator.patchValue({saleProducts: res.data.saleProducts}, {emitEvent: true});
       this.markAsDirty();
     }
 

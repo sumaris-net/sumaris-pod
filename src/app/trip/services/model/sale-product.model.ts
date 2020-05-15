@@ -1,9 +1,12 @@
-import {EntityUtils, isNil, PmfmStrategy} from "../../../referential/services/model";
+import {EntityUtils, isNil, isNotNil, PmfmStrategy} from "../../../referential/services/model";
 import {MeasurementValuesUtils} from "./measurement.model";
-import {isNotNilOrNaN, round} from "../../../shared/functions";
+import {isNotEmptyArray, isNotNilOrNaN, round} from "../../../shared/functions";
 import {DataEntityAsObjectOptions} from "./base.model";
 import {Product} from "./product.model";
 import {Packet, PacketUtils} from "./packet.model";
+import {AppFormUtils} from "../../../core/form/form.utils";
+import {AbstractControl} from "@angular/forms";
+import {ObjectMap} from "../../../core/services/model";
 
 export class SaleProduct extends Product {
 
@@ -61,6 +64,17 @@ export class SaleProduct extends Product {
 }
 
 export class SaleProductUtils {
+
+  static isSaleProductEmpty(saleProduct: SaleProduct): boolean {
+    return !saleProduct || isNil(saleProduct.saleType);
+  }
+
+  static isSaleProductEquals(saleProduct1: SaleProduct, saleProduct2: SaleProduct): boolean {
+    return (saleProduct1 === saleProduct2) || (isNil(saleProduct1) && isNil(saleProduct2)) || (
+      saleProduct1 && saleProduct2 && EntityUtils.equals(saleProduct1.saleType, saleProduct2.saleType)
+      && saleProduct1.rankOrder === saleProduct2.rankOrder
+    );
+  }
 
   static isSaleOfProduct(product: Product, saleProduct: Product, pmfms: PmfmStrategy[]): boolean {
     return product && saleProduct
@@ -165,7 +179,7 @@ export class SaleProductUtils {
     if (!options || !options.keepId)
       delete target.id;
 
-    target.measurementValues = MeasurementValuesUtils.normalizeValuesToModel(target.measurementValues, pmfms);
+    target.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(target.measurementValues, pmfms);
 
     // even a calculated ratio need to be saved
     MeasurementValuesUtils.setValue(target.measurementValues, pmfms, 'SALE_RATIO', saleProduct.ratio);
@@ -238,15 +252,159 @@ export class SaleProductUtils {
     return target;
   }
 
-  static isSaleProductEmpty(saleProduct: SaleProduct): boolean {
-    return !saleProduct || isNil(saleProduct.saleType);
+  static updateSaleProducts(product: Product, pmfms: PmfmStrategy[]): Product[] {
+
+    // convert to SaleProduct
+    const saleProducts = isNotEmptyArray(product.saleProducts) ? product.saleProducts.map(p => SaleProductUtils.productToSaleProduct(p, pmfms)) : [];
+
+    // compute prices
+    saleProducts.forEach(saleProduct =>
+      SaleProductUtils.computeSaleProduct(
+        product,
+        saleProduct,
+        (object, valueName) => !!object[valueName],
+        (object, valueName) => object[valueName],
+        (object, valueName, value) => object[valueName] = round(value),
+        (object, valueName) => object[valueName] = undefined,
+        true,
+        'individualCount'
+      )
+    );
+
+    // convert back to Product
+    return saleProducts.map(saleProduct => SaleProductUtils.saleProductToProduct(product, saleProduct, pmfms, {keepId: true}));
+
   }
 
-  static isSaleProductEquals(saleProduct1: SaleProduct, saleProduct2: SaleProduct): boolean {
-    return (saleProduct1 === saleProduct2) || (isNil(saleProduct1) && isNil(saleProduct2)) || (
-      saleProduct1 && saleProduct2 && EntityUtils.equals(saleProduct1.saleType, saleProduct2.saleType)
-      && saleProduct1.rankOrder === saleProduct2.rankOrder
+  static updateAggregatedSaleProducts(packet: Packet, pmfms: PmfmStrategy[]): Product[] {
+
+    // convert to SaleProduct
+    const saleProducts = isNotEmptyArray(packet.saleProducts) ? SaleProductUtils.productsToAggregatedSaleProduct(packet.saleProducts, pmfms) : [];
+
+    // compute prices
+    saleProducts.forEach(saleProduct =>
+      SaleProductUtils.computeSaleProduct(
+        packet,
+        saleProduct,
+        (object, valueName) => !!object[valueName],
+        (object, valueName) => object[valueName],
+        (object, valueName, value) => object[valueName] = round(value),
+        (object, valueName) => object[valueName] = undefined,
+        false,
+        'subgroupCount',
+        'number'
+      )
     );
+
+    // convert back to Product
+    return SaleProductUtils.aggregatedSaleProductsToProducts(packet, saleProducts, pmfms);
+
+  }
+
+  static computeSaleProduct(
+    parent: {},
+    saleProduct: ObjectMap,
+    hasValueFn: (object: ObjectMap, valueName: string) => boolean,
+    getValueFn: (object: ObjectMap, valueName: string) => any | undefined,
+    setValueFn: (object: ObjectMap, valueName: string, value: any) => void,
+    resetValueFn: (object: ObjectMap, valueName: string) => void,
+    useRatioAndWeight: boolean,
+    countProperty: string,
+    parentCountProperty?: string
+  ) {
+
+    const parentCount = parent[parentCountProperty || countProperty];
+    const parentWeight = parent['weight'];
+
+    if (isNotNil(parentCount)) {
+
+      // with saleProduct count (should be < whole parent count)
+      const count = getValueFn(saleProduct, countProperty);
+      if (count) {
+        if (hasValueFn(saleProduct, 'averagePackagingPrice')) {
+          // compute total price
+          setValueFn(saleProduct, 'totalPrice', getValueFn(saleProduct, 'averagePackagingPrice') * count);
+
+        } else if (hasValueFn(saleProduct, 'totalPrice')) {
+          // compute average packaging price
+          setValueFn(saleProduct, 'averagePackagingPrice', getValueFn(saleProduct, 'totalPrice') / count);
+
+        }
+
+        if (useRatioAndWeight) {
+          // compute ratio
+          const ratio = count / parentCount * 100;
+          setValueFn(saleProduct, 'ratio', ratio);
+
+          if (isNotNil(parentWeight)) {
+            // calculate weight
+            setValueFn(saleProduct, 'weight', ratio * parentWeight / 100);
+
+            // calculate average weight price (with calculated or input total price)
+            if (isNotNil(getValueFn(saleProduct, 'totalPrice'))) {
+              setValueFn(saleProduct, 'averageWeightPrice', getValueFn(saleProduct, 'totalPrice') / parentWeight);
+            }
+          } else {
+            // reset weight part
+            resetValueFn(saleProduct, 'weight');
+            resetValueFn(saleProduct, 'averageWeightPrice');
+          }
+        } else {
+
+          // compute weigh (always calculated)
+          setValueFn(saleProduct, 'weight', count * parentWeight / parentCount);
+
+        }
+
+      } else {
+        // reset all
+        resetValueFn(saleProduct, 'averagePackagingPrice');
+        resetValueFn(saleProduct, 'totalPrice');
+        resetValueFn(saleProduct, 'weight');
+        if (useRatioAndWeight) {
+          resetValueFn(saleProduct, 'ratio');
+          resetValueFn(saleProduct, 'averageWeightPrice');
+        }
+      }
+
+    } else if (useRatioAndWeight && isNotNil(parentWeight)) {
+      // with weight only
+      if (hasValueFn(saleProduct, 'weight')) {
+        // calculate ratio
+        setValueFn(saleProduct, 'ratio', getValueFn(saleProduct, 'weight') / parentWeight * 100);
+
+      } else if (hasValueFn(saleProduct, 'ratio')) {
+        // calculate weight
+        setValueFn(saleProduct, 'weight', getValueFn(saleProduct, 'ratio') * parentWeight / 100);
+
+      } else {
+        // reset all
+        resetValueFn(saleProduct, 'ratio');
+        resetValueFn(saleProduct, 'weight');
+        resetValueFn(saleProduct, 'averageWeightPrice');
+        resetValueFn(saleProduct, 'totalPrice');
+      }
+
+      const weight = getValueFn(saleProduct, 'weight');
+      if (isNotNil(weight)) {
+
+        if (hasValueFn(saleProduct, 'averageWeightPrice')) {
+          // compute total price
+          setValueFn(saleProduct, 'totalPrice', getValueFn(saleProduct, 'averageWeightPrice') * weight);
+
+        } else if (hasValueFn(saleProduct, 'totalPrice')) {
+          // compute average weight price
+          setValueFn(saleProduct, 'averageWeightPrice', getValueFn(saleProduct, 'totalPrice') / weight);
+
+        } else {
+          // reset
+          resetValueFn(saleProduct, 'averageWeightPrice');
+          resetValueFn(saleProduct, 'totalPrice');
+        }
+
+      }
+
+    }
   }
 
 }

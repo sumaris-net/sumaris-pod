@@ -423,7 +423,7 @@ export class MeasurementValuesUtils {
       }, {}) || undefined;
   }
 
-  static getValue(measurements: MeasurementModelValues | MeasurementFormValues, pmfms: PmfmStrategy[], pmfmLabel: string, remove?: boolean): MeasurementFormValue {
+  static getValue(measurements: MeasurementFormValues, pmfms: PmfmStrategy[], pmfmLabel: string, remove?: boolean): MeasurementFormValue {
     if (!measurements || !pmfms || !pmfmLabel)
       return undefined;
 
@@ -437,13 +437,13 @@ export class MeasurementValuesUtils {
     return undefined;
   }
 
-  static setValue(measurements: MeasurementModelValues | MeasurementFormValues, pmfms: PmfmStrategy[], pmfmLabel: string, value: MeasurementFormValue) {
+  static setValue(measurements: MeasurementFormValues, pmfms: PmfmStrategy[], pmfmLabel: string, value: MeasurementFormValue) {
     if (!measurements || !pmfms || !pmfmLabel)
       return undefined;
 
     const pmfm = pmfms.find(p => p.label && p.label === pmfmLabel);
     if (pmfm) {
-      measurements[pmfm.pmfmId] = MeasurementValuesUtils.normalizeValueToModel(value, pmfm);
+      measurements[pmfm.pmfmId] = MeasurementValuesUtils.normalizeValueToForm(value, pmfm);
     }
     return undefined;
   }

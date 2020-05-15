@@ -252,6 +252,15 @@ export function personsToString(data: Person[], separator?: string): string {
   }, '');
 }
 
+
+/* Base */
+
+// todo: replace interfaces from '[key: string]: ?' to ObjectMap<?>, when possible ...
+export interface ObjectMap<O = any> { [key: string]: O; }
+
+
+/* Entities */
+
 export interface EntityAsObjectOptions {
   minify?: boolean;
   keepTypename?: boolean; // true by default

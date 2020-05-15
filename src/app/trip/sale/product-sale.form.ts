@@ -129,82 +129,16 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     try {
       this.computing = true;
 
-      if (this.isProductWithNumber()) {
-
-        // with product individualCount (should be < whole product individualCount)
-        const individualCount = controls.individualCount.value;
-        if (individualCount) {
-          if (AppFormUtils.isControlHasInput(controls, 'averagePackagingPrice')) {
-            // compute total price
-            AppFormUtils.setCalculatedValue(controls, 'totalPrice', controls.averagePackagingPrice.value * individualCount);
-
-          } else if (AppFormUtils.isControlHasInput(controls, 'totalPrice')) {
-            // compute average packaging price
-            AppFormUtils.setCalculatedValue(controls, 'averagePackagingPrice', controls.totalPrice.value / individualCount);
-
-          }
-          // compute ratio
-          const ratio = individualCount / this.form.controls.individualCount.value * 100;
-          AppFormUtils.setCalculatedValue(controls, 'ratio', ratio);
-
-          if (this.isProductWithWeight()) {
-            // calculate weight
-            AppFormUtils.setCalculatedValue(controls, 'weight', ratio * this.form.controls.weight.value / 100);
-
-            // calculate average weight price
-            if (controls.totalPrice.value) {
-              AppFormUtils.setCalculatedValue(controls, 'averageWeightPrice', controls.totalPrice.value / this.form.controls.weight.value);
-            }
-          } else {
-            // reset weight part
-            AppFormUtils.resetCalculatedValue(controls, 'weight');
-            AppFormUtils.resetCalculatedValue(controls, 'averageWeightPrice');
-          }
-
-        } else {
-          // reset all
-          AppFormUtils.resetCalculatedValue(controls, 'averagePackagingPrice');
-          AppFormUtils.resetCalculatedValue(controls, 'totalPrice');
-          AppFormUtils.resetCalculatedValue(controls, 'ratio');
-          AppFormUtils.resetCalculatedValue(controls, 'weight');
-          AppFormUtils.resetCalculatedValue(controls, 'averageWeightPrice');
-        }
-
-      } else if (this.isProductWithWeight()) {
-        // with weight only
-        if (AppFormUtils.isControlHasInput(controls, 'weight')) {
-          // calculate ratio
-          AppFormUtils.setCalculatedValue(controls, 'ratio', controls.weight.value / this.form.controls.weight.value * 100);
-
-        } else if (AppFormUtils.isControlHasInput(controls, 'ratio')) {
-          // calculate weight
-          AppFormUtils.setCalculatedValue(controls, 'weight', controls.ratio.value * this.form.controls.weight.value / 100);
-
-        } else {
-          // reset weight and ratio
-          AppFormUtils.resetCalculatedValue(controls, 'ratio');
-          AppFormUtils.resetCalculatedValue(controls, 'weight');
-        }
-
-        const weight = controls.weight.value;
-        if (weight) {
-
-          if (AppFormUtils.isControlHasInput(controls, 'averageWeightPrice')) {
-            // compute total price
-            AppFormUtils.setCalculatedValue(controls, 'totalPrice', controls.averageWeightPrice.value * weight);
-
-          } else if (AppFormUtils.isControlHasInput(controls, 'totalPrice')) {
-            // compute average weight price
-            AppFormUtils.setCalculatedValue(controls, 'averageWeightPrice', controls.totalPrice.value / weight);
-          }
-
-        } else {
-          // reset
-          AppFormUtils.resetCalculatedValue(controls, 'averageWeightPrice');
-          AppFormUtils.resetCalculatedValue(controls, 'totalPrice');
-        }
-
-      }
+      SaleProductUtils.computeSaleProduct(
+        this.form.value,
+        controls,
+        (object, valueName) => AppFormUtils.isControlHasInput(object, valueName),
+        (object, valueName) => object[valueName].value,
+        (object, valueName, value1) => AppFormUtils.setCalculatedValue(object, valueName, value1),
+        (object, valueName) => AppFormUtils.resetCalculatedValue(object, valueName),
+        true,
+        'individualCount'
+      );
 
     } finally {
       this.computing = false;
@@ -213,11 +147,11 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   }
 
   isProductWithNumber(): boolean {
-    return isNotNil(this.form.controls.individualCount.value);
+    return isNotNil(this.form.value.individualCount);
   }
 
   isProductWithWeight(): boolean {
-    return isNotNil(this.form.controls.weight.value);
+    return isNotNil(this.form.value.weight);
   }
 
   private initSalesHelper() {

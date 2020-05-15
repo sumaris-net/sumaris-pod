@@ -138,27 +138,17 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     try {
       this.computing = true;
 
-      // with packet subgroupCount (should be < whole packet number)
-      const subgroupCount = controls.subgroupCount.value;
-      if (subgroupCount) {
-        if (AppFormUtils.isControlHasInput(controls, 'averagePackagingPrice')) {
-          // compute total price
-          AppFormUtils.setCalculatedValue(controls, 'totalPrice', controls.averagePackagingPrice.value * subgroupCount);
-
-        } else if (AppFormUtils.isControlHasInput(controls, 'totalPrice')) {
-          // compute average packaging price
-          AppFormUtils.setCalculatedValue(controls, 'averagePackagingPrice', controls.totalPrice.value / subgroupCount);
-
-        }
-        // compute weigh (always calculated)
-        AppFormUtils.setCalculatedValue(controls, 'weight', subgroupCount * this.form.controls.weight.value / this.form.controls.number.value);
-
-      } else {
-        // reset all
-        AppFormUtils.resetCalculatedValue(controls, 'averagePackagingPrice');
-        AppFormUtils.resetCalculatedValue(controls, 'totalPrice');
-        AppFormUtils.resetCalculatedValue(controls, 'weight');
-      }
+      SaleProductUtils.computeSaleProduct(
+        this.form.value,
+        controls,
+        (object, valueName) => AppFormUtils.isControlHasInput(object, valueName),
+        (object, valueName) => object[valueName].value,
+        (object, valueName, value) => AppFormUtils.setCalculatedValue(object, valueName, value),
+        (object, valueName) => AppFormUtils.resetCalculatedValue(object, valueName),
+        false,
+        'subgroupCount',
+        'number'
+      );
 
     } finally {
       this.computing = false;
