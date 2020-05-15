@@ -53,6 +53,10 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.Serializable;
@@ -1597,7 +1601,8 @@ public class Daos {
 
     public static String getEscapedSearchText(String searchText, boolean searchAny) {
         searchText = StringUtils.trimToNull(searchText);
-        return StringUtils.isBlank(searchText) ? null : (searchAny ? "*" : "" + searchText + "*") // add leading wildcard (if searchAny specified) and trailing wildcard
+        if (searchText == null) return null;
+        return  ((searchAny ? "*" : "") + searchText + "*") // add leading wildcard (if searchAny specified) and trailing wildcard
             .replaceAll("[*]+", "*") // group escape chars
             .replaceAll("[%]", "\\%") // protected '%' chars
             .replaceAll("[*]", "%"); // replace asterisk mark
@@ -1681,5 +1686,32 @@ public class Daos {
             offset += 3;
 
         }
+    }
+
+    public static <X> Path<X> composePath(Root<?> root, String attributePath) {
+
+        String[] paths = attributePath.split("\\.");
+        From<?, ?> from = root; // starting from root
+        Path<X> result = null;
+
+        for (int i = 0; i < paths.length; i++) {
+            String path = paths[i];
+
+            if (i == paths.length - 1) {
+                // last path, get it
+                result = from.get(path);
+            } else {
+                // need a join (find it from existing joins of from)
+                Join join = from.getJoins().stream()
+                        .filter(j -> j.getAttribute().getName().equals(path))
+                        .findFirst().orElse(null);
+                if (join == null) {
+                    throw new IllegalArgumentException(String.format("the join %s from %s doesn't exists", path, from.getClass().getSimpleName()));
+                }
+                from = join;
+            }
+        }
+
+        return result;
     }
 }

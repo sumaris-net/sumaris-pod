@@ -414,7 +414,7 @@ public abstract class HibernateDaoSupport {
                                               Root<?> root, String sortAttribute, SortDirection sortDirection) {
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
-            Expression<?> sortExpression = composePath(root, sortAttribute);
+            Expression<?> sortExpression = Daos.composePath(root, sortAttribute);
             query.orderBy(SortDirection.DESC.equals(sortDirection) ?
                     cb.desc(sortExpression) :
                     cb.asc(sortExpression)
@@ -430,6 +430,7 @@ public abstract class HibernateDaoSupport {
      * @param attributePath the attribute path, can contains '.'
      * @param <X> Type of Path
      * @return the composed Path
+     * @deprecated use Daos.composePath()
      */
     protected <X> Path<X> composePath(Root<?> root, String attributePath) {
 

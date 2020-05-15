@@ -93,19 +93,22 @@ public class MetierRepositoryImpl
         String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
         String searchText = Daos.getEscapedSearchText(filter.getSearchText());
 
+        final boolean enableSearchOnJoin = (searchJoinProperty != null);
+
         // With join property
+        Pageable page;
         Specification<Metier> searchTextSpecification;
-        if (searchJoinProperty != null) {
+        if (enableSearchOnJoin) {
             searchTextSpecification = joinSearchText(
                 searchJoinProperty,
                 filter.getSearchAttribute(), SEARCH_TEXT_PARAMETER);
+            page =  getPageable(offset, size, null, null);
         } else {
             searchTextSpecification = searchText(filter.getSearchAttribute(), SEARCH_TEXT_PARAMETER);
+            page =  getPageable(offset, size, sortAttribute, sortDirection);
         }
 
         Specification<Metier> specification = toSpecification(filter).and(searchTextSpecification);
-
-        Pageable page = getPageable(offset, size, sortAttribute, sortDirection);
         TypedQuery<Metier> query = getQuery(specification, Metier.class, page);
 
         Parameter<String> searchTextParam = query.getParameter(SEARCH_TEXT_PARAMETER, String.class);
@@ -122,7 +125,7 @@ public class MetierRepositoryImpl
                 MetierVO target = this.toVO(source);
 
                 // Copy join search to label/name
-                if (searchJoinProperty != null) {
+                if (enableSearchOnJoin) {
                     Object joinSource = Beans.getProperty(source, searchJoinProperty);
                     if (joinSource instanceof IItemReferentialEntity) {
                         target.setLabel(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.LABEL));
@@ -131,6 +134,8 @@ public class MetierRepositoryImpl
                 }
                 return target;
             })
+            // If join search: sort using a comparator (sort was skipped in query)
+            .sorted(enableSearchOnJoin ? Beans.naturalComparator(sortAttribute, sortDirection) : Beans.nilComparator())
             .collect(Collectors.toList());
     }
 

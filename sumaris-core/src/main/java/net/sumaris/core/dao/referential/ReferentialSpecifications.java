@@ -23,6 +23,7 @@ package net.sumaris.core.dao.referential;
  */
 
 import com.google.common.collect.ImmutableList;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.SpecificationWithParameters;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
@@ -63,7 +64,7 @@ public class ReferentialSpecifications {
                 if (StringUtils.isNotBlank(searchAttribute)) {
                     return cb.or(
                             cb.isNull(searchTextParam),
-                            cb.like(cb.upper(root.get(searchAttribute)), cb.upper(searchTextParam)));
+                            cb.like(cb.upper(Daos.composePath(root, searchAttribute)), cb.upper(searchTextParam)));
                 }
                 // Search on label+name
                 return cb.or(

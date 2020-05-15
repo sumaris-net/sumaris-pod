@@ -334,6 +334,10 @@ public class Beans {
         }
     }
 
+    public static <T> Comparator<T> nilComparator() {
+        return (o1, o2) -> -1;
+    }
+
     //public static Map<String, String[]> cacheCopyPropertiesIgnored;
     public static Map<Class<?>, Map<Class<?>, String[]>> cacheCopyPropertiesIgnored = Maps.newConcurrentMap();
 
