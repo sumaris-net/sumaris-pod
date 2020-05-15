@@ -11,17 +11,12 @@ import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.data.BatchVO;
-import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.OperationGroupVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -195,10 +190,28 @@ public class OperationGroupServiceImpl implements OperationGroupService {
         }
 
         // Save products
+        if (source.getProducts() != null) source.getProducts().forEach(product -> fillDefaultProperties(source, product));
         productService.saveByOperationId(source.getId(), source.getProducts());
 
         // Save packets
-        packetService.saveByOperationId(source.getId(), source.getPackets());
+        if (source.getPackets() != null) {
+
+            // Keep saleProducts before save packets
+            Map<Integer, List<ProductVO>> saleProductsByPacketRankOrder = new HashMap<>();
+            source.getPackets().forEach(packet -> {
+                fillDefaultProperties(source, packet);
+                saleProductsByPacketRankOrder.put(packet.getRankOrder(), packet.getSaleProducts());
+            });
+
+            // Save packets
+            List<PacketVO> savedPackets = packetService.saveByOperationId(source.getId(), source.getPackets());
+
+            // Restore saleProducts
+            savedPackets.forEach(savedPacket -> savedPacket.setSaleProducts(saleProductsByPacketRankOrder.get(savedPacket.getRankOrder())));
+
+            // Re-affect saved packets to source
+            source.setPackets(savedPackets);
+        }
 
     }
 
@@ -223,6 +236,28 @@ public class OperationGroupServiceImpl implements OperationGroupService {
         }
 
         batch.setOperationId(parent.getId());
+    }
+
+    protected void fillDefaultProperties(OperationGroupVO parent, ProductVO product) {
+        if (product == null) return;
+
+        // Copy recorder department from the parent
+        if (product.getRecorderDepartment() == null || product.getRecorderDepartment().getId() == null) {
+            product.setRecorderDepartment(parent.getRecorderDepartment());
+        }
+
+        product.setOperationId(parent.getId());
+    }
+
+    protected void fillDefaultProperties(OperationGroupVO parent, PacketVO packet) {
+        if (packet == null) return;
+
+        // Copy recorder department from the parent
+        if (packet.getRecorderDepartment() == null || packet.getRecorderDepartment().getId() == null) {
+            packet.setRecorderDepartment(parent.getRecorderDepartment());
+        }
+
+        packet.setOperationId(parent.getId());
     }
 
     protected void fillDefaultProperties(BatchVO parent, BatchVO batch) {

@@ -590,7 +590,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
                 }
 
                 // Set parent
-                setParent(entity, parent.getClass(), parent.getId(), false);
+                setParent(entity, getEntityClass(parent), parent.getId(), false);
 
                 // Update update_dt
                 Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
