@@ -91,7 +91,7 @@
         </button>
         <button matSuffix mat-icon-button tabindex="-1"
                 type="button"
-                *ngIf="clearable && searchable"
+                *ngIf="clearable"
                 (click)="clearValue($event)"
                 [hidden]="disabled || !formControl.value">
           <mat-icon>close</mat-icon>
