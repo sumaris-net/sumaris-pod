@@ -80,13 +80,14 @@
         <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
       </ion-button>
 
+      <!-- delete -->
       <button mat-icon-button class="hidden-xs hidden-sm" *ngIf="canDelete"
               [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
         <mat-icon>delete</mat-icon>
       </button>
     </ng-template>
 
-
+    <!-- error -->
     <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
       <ion-icon color="danger" slot="start" name="alert"></ion-icon>
       <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
@@ -146,7 +147,7 @@
               formControlName="location"
               [config]="autocompleteFields.location"
               clearable="true">
-              <ion-icon matPrefix name="pin"></ion-icon>
+              <mat-icon matPrefix>room</mat-icon>
             </mat-autocomplete-field>
           </ion-col>
         </ion-row>
@@ -157,7 +158,7 @@
             <mat-date [placeholder]="'TRIP.TABLE.FILTER.START_DATE'|translate"
                            formControlName="startDate"
                            [clearable]="true">
-              <ion-icon matPrefix name="calendar"></ion-icon>
+              <ion-icon matPrefix name="calendar-outline"></ion-icon>
             </mat-date>
           </ion-col>
 

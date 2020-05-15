@@ -22,6 +22,7 @@ import {Vessel} from "../../referential/services/model";
 import {MetierRef} from "../../referential/services/model/taxon.model";
 import {MetierRefService} from "../../referential/services/metier-ref.service";
 import {Trip} from "../services/model/trip.model";
+import {ReferentialRefFilter} from "../../referential/services/referential-ref.service";
 
 @Component({
   selector: 'form-trip',
@@ -140,7 +141,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       service: this.referentialRefService,
       attributes: programAttributes,
       // Increase default column size, for 'label'
-      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined),
+      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
       filter: {
         entityName: 'Program'
       },
@@ -181,7 +182,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
     // Combo: metiers
     this.metiersFiltered = false;
-    this.registerAutocompleteField('metier', {
+    this.registerAutocompleteField<MetierRef, ReferentialRefFilter>('metier', {
       service: this.metierRefService,
       filter: this.getFilterMetier()
     });

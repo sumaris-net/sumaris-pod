@@ -1,7 +1,8 @@
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, Inject,
+  Component,
+  Inject,
   InjectionToken,
   OnDestroy,
   Optional
@@ -25,9 +26,9 @@ import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {debounceTime, map, startWith} from "rxjs/operators";
 import {AuthModal} from "../auth/modal/modal-auth";
-import {environment} from "../../../environments/environment"
+import {environment} from "../../../environments/environment";
 import {NetworkService} from "../services/network.service";
-import {APP_MENU_ITEMS, MenuItem, MenuItems} from "../menu/menu.component";
+import {MenuItem, MenuItems} from "../menu/menu.component";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);

@@ -6,7 +6,7 @@ import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {FetchPolicy} from "apollo-client";
 import {ReferentialService} from "./referential.service";
-import {SuggestionDataService} from "../../shared/services/data-service.class";
+import {LoadPage, SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {MetierRef} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
@@ -43,7 +43,7 @@ const LoadQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class MetierRefService extends BaseDataService
-  implements SuggestionDataService<MetierRef> {
+  implements SuggestionDataService<MetierRef, ReferentialRefFilter> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -155,20 +155,13 @@ export class MetierRefService extends BaseDataService
     };
   }
 
-  async suggest(value: any, opts: {
-    levelId?: number;
-    levelIds?: number[];
-    searchAttribute?: string;
-    statusId?: number;
-    statusIds?: number[];
-    searchJoin?: string;
-  }): Promise<MetierRef[]> {
+  async suggest(value: any, filter?: MetierRefFilter): Promise<MetierRef[]> {
     if (EntityUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
-      {...opts, searchText: value}, {
-        withCount: false // not need
-      });
+      {...filter, searchText: value},
+      { withTotal: false /* total not need */ }
+      );
     return res.data;
   }
 

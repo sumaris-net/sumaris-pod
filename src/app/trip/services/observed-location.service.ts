@@ -20,9 +20,10 @@ import {
 } from "./model/base.model";
 import {FormErrors} from "../../core/form/form.utils";
 import {ObservedLocation} from "./model/observed-location.model";
+import {Beans, KeysEnum} from "../../shared/functions";
 
 
-export declare class ObservedLocationFilter {
+export class ObservedLocationFilter {
   programLabel?: string;
   startDate?: Date | Moment;
   endDate?: Date | Moment;
@@ -30,6 +31,22 @@ export declare class ObservedLocationFilter {
   recorderDepartmentId?: number;
   recorderPersonId?: number;
   synchronizationStatus?: SynchronizationStatus;
+
+  static isEmpty(f: ObservedLocationFilter|any): boolean {
+    return Beans.isEmpty({...f, synchronizationStatus: null}, ObservedLocationFilterKeys, {
+      blankStringLikeEmpty: true
+    });
+  }
+}
+
+export const ObservedLocationFilterKeys: KeysEnum<ObservedLocationFilter> = {
+  programLabel: true,
+  startDate: true,
+  endDate: true,
+  locationId: true,
+  recorderDepartmentId: true,
+  recorderPersonId: true,
+  synchronizationStatus: true
 }
 
 export const ObservedLocationFragments = {

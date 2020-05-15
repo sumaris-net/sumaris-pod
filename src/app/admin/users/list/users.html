@@ -5,32 +5,38 @@
 
 <ion-content class="ion-no-padding">
 
-  <mat-toolbar class="ion-no-padding">
+  <mat-toolbar>
 
-    <button mat-icon-button
-            hidden-xs hidden-sm
-            *ngIf="canEdit && !selection.hasValue()"
-            [title]="'COMMON.BTN_ADD'|translate"
-            (click)="addRow()"
-            [class.cdk-visually-hidden]="!inlineEdition">
-      <mat-icon>add</mat-icon>
-    </button>
-    <button mat-icon-button color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
-      (click)="onRefresh.emit()">
-      <mat-icon>refresh</mat-icon>
-    </button>
-    <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
-      <mat-icon>filter_list</mat-icon>
-    </button>
-    <button mat-icon-button color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()"
-      [class.cdk-visually-hidden]="!inlineEdition">
-      <mat-icon>delete</mat-icon>
-    </button>
+    <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+      <button mat-icon-button class="hidden-xs hidden-sm hidden-mobile"
+              *ngIf="canEdit"
+              [title]="'COMMON.BTN_ADD'|translate"
+              (click)="addRow()">
+        <mat-icon>add</mat-icon>
+      </button>
+      <button mat-icon-button color="light" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button mat-icon-button color="{{filterIsEmpty ? '' : 'primary'}}"
+              [title]="'COMMON.BTN_FILTER'|translate"
+              (click)="filterExpansionPanel.toggle()">
+        <mat-icon>filter_list</mat-icon>
+        <ion-text *ngIf="!filterIsEmpty">
+          <span [innerHTML]="'COMMON.TABLE.FILTERED_PARENTHESIS'|translate"></span></ion-text>
+      </button>
+    </ng-container>
 
-    <!-- <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
-      [disabled]="true" #inlineEditionBtn>
-      <mat-icon>edit</mat-icon>
-    </mat-button-toggle> -->
+    <!-- if row selection -->
+    <ng-template #hasSelection>
+
+      <!-- delete -->
+      <button mat-icon-button
+              class="hidden-xs hidden-sm"
+              [title]="'COMMON.BTN_DELETE'|translate"
+              (click)="deleteSelection()">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </ng-template>
 
     <!-- error -->
     <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
@@ -45,26 +51,40 @@
     </button>
   </mat-toolbar>
 
-  <!-- <ion-toolbar>
-
-    <ion-buttons slot="start">
-      <ion-button color="dark" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
-        <ion-icon slot="icon-only" name="add" round></ion-icon>
-      </ion-button>
-
-    </ion-buttons>
-  </ion-toolbar> -->
-
   <!-- search -->
-  <mat-expansion-panel #filterExpansionPanel color="primary">
+  <mat-expansion-panel #filterExpansionPanel class="ion-no-padding">
     <form class="form-container ion-padding" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
-      <!-- search -->
-      <mat-form-field>
-        <input matInput [placeholder]="'USER.LIST.FILTER.SEARCH'|translate" formControlName="searchText">
-      </mat-form-field>
-
-      <button mat-raised-button color="primary" (click)="onRefresh.emit(true)">{{'COMMON.BTN_SEARCH'|translate}}</button>
+      <ion-grid>
+        <ion-row>
+          <ion-col>
+            <!-- search -->
+            <mat-form-field>
+              <input matInput [placeholder]="'USER.LIST.FILTER.SEARCH'|translate" formControlName="searchText">
+            </mat-form-field>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </form>
+
+    <mat-action-row>
+      <!-- Counter  -->
+      <ion-label [hidden]="($loading|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'"
+                 class="ion-padding">
+        {{ (resultsLength ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (resultsLength |
+              numberFormat)} }}
+      </ion-label>
+
+      <div class="toolbar-spacer"></div>
+
+      <!-- Search button -->
+      <ion-button mat-button
+                  *ngIf="!mobile"
+                  [color]="filterForm.dirty ? 'tertiary' : undefined"
+                  [fill]="filterForm.dirty ? 'solid' : 'clear'"
+                  (click)="onRefresh.emit()">
+        <ion-text translate>COMMON.BTN_SEARCH</ion-text>
+      </ion-button>
+    </mat-action-row>
   </mat-expansion-panel>
 
   <!-- error -->

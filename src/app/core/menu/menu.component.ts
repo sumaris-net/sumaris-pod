@@ -1,10 +1,12 @@
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, Inject,
+  Component,
+  Inject,
   InjectionToken,
   Input,
-  OnInit, Optional,
+  OnInit,
+  Optional,
   ViewChild
 } from '@angular/core';
 import {AlertController, IonSplitPane, MenuController, ModalController} from "@ionic/angular";
@@ -15,7 +17,6 @@ import {AccountService} from "../services/account.service";
 import {AboutModal} from '../about/modal-about';
 
 import {environment} from '../../../environments/environment';
-import {HomePage} from '../home/home';
 import {fadeInAnimation} from '../../shared/material/material.animations';
 import {TranslateService} from "@ngx-translate/core";
 import {isNotNilOrBlank} from "../../shared/functions";
@@ -80,6 +81,7 @@ export class MenuItems {
   }
 }
 
+export const APP_MENU_ROOT = new InjectionToken<MenuItem[]>('menuRoot');
 export const APP_MENU_ITEMS = new InjectionToken<MenuItem[]>('menuItems');
 
 const SPLIT_PANE_SHOW_WHEN = 'lg';
@@ -111,15 +113,11 @@ export class MenuComponent implements OnInit {
   @Input()
   appVersion: String = environment.version;
 
-  @Input() content: any;
-
-  @Input() side: string = "left";
-
-  root: any = HomePage;
+  @Input() side = "left";
 
   @ViewChild('splitPane', { static: true }) splitPane: IonSplitPane;
 
-  constructor(
+  constructor (
     protected accountService: AccountService,
     protected router: Router,
     protected menu: MenuController,

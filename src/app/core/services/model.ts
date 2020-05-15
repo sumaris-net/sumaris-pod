@@ -228,6 +228,7 @@ export function hasUpperOrEqualsProfile(actualProfiles: string[], expectedProfil
   return expectedProfileIndex !== -1 && getMainProfileIndex(actualProfiles) <= expectedProfileIndex;
 }
 
+
 export declare interface Cloneable<T> {
   clone(): Cloneable<T>;
 }

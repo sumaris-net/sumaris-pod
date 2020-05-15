@@ -1,15 +1,22 @@
 import {BehaviorSubject, Observable} from "rxjs";
 import {FetchPolicy} from "apollo-client";
 import {isNil, isNotNil} from "../functions";
-import {Entity} from "../../core/services/model";
+
+export declare interface LoadPage<T> {
+  offset: number;
+  size: number;
+  sortBy?: keyof T;
+  sortDirection?: 'asc'|'desc';
+}
 
 export declare interface LoadResult<T> {
   data: T[];
   total?: number;
 }
-export declare type SuggestFn<T, F = any> = (value: any, filter?: F) => Promise<T[]>;
 
-export declare interface SuggestionDataService<T, F = any> {
+export declare type SuggestFn<T, F> = (value: any, filter?: F) => Promise<T[]>;
+
+export declare interface SuggestionDataService<T, F> {
   suggest: SuggestFn<T, F>;
 }
 
@@ -65,7 +72,6 @@ export declare interface TableDataService<T, F> {
 }
 
 export declare interface ImportDataService<T, F> {
-
   executeImport(opts?: {
     maxProgression?: number;
   }): Observable<number>;

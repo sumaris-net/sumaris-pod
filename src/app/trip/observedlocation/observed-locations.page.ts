@@ -149,10 +149,12 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     });
 
     // Update filter when changes
+    this.registerSubscription(
     this.filterForm.valueChanges
       .pipe(
         debounceTime(250),
         filter(() => this.filterForm.valid),
+
         // Applying the filter
         tap(json => this.setFilter({
           programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
@@ -163,26 +165,23 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
           recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
           recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
         }, {emitEvent: this.mobile || isNil(this.filter)})),
+
         // Save filter in settings (after a debounce time)
         debounceTime(1000),
         tap(json => this.settings.savePageSetting(this.settingsId, json, 'filter'))
     )
-    .subscribe();
+    .subscribe());
 
-    this.onRefresh.subscribe(() => {
-      this.filterForm.markAsUntouched();
-      this.filterForm.markAsPristine();
-      this.markForCheck();
-    });
+    this.registerSubscription(
+      this.onRefresh.subscribe(() => {
+        this.filterIsEmpty = ObservedLocationFilter.isEmpty(this.filter);
+        this.filterForm.markAsUntouched();
+        this.filterForm.markAsPristine();
+        this.markForCheck();
+      }));
 
     // Restore filter from settings, or load all rows
     this.restoreFilterOrLoad();
-  }
-
-  setFilter(json: ObservedLocationFilter, opts?: { emitEvent: boolean }) {
-    super.setFilter(json, opts);
-
-    this.filterIsEmpty = TripFilter.isEmpty(json);
   }
 
   vesselSnapshotToString = vesselSnapshotToString;
@@ -197,11 +196,15 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
   /* -- protected methods -- */
 
   protected async restoreFilterOrLoad() {
+    console.debug("[observed-locations] Restoring filter from settings...");
     const json = this.settings.getPageSettings(this.settingsId, 'filter');
 
     // No default filter: load all trips
     if (isNil(json) || typeof json !== 'object') {
+      // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
       this.onRefresh.emit();
+      // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
+      this.filterForm.patchValue({}, {emitEvent: false});
     }
     // Restore the filter (will apply it)
     else {

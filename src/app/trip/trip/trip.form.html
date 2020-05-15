@@ -145,10 +145,12 @@
                                 [i18nPrefix]="'REFERENTIAL.'"
                                 [required]="showMetiers && first">
 
-          <button matSuffix type="button" mat-icon-button
+          <button matAfter type="button" mat-icon-button
+                  tabindex="-1"
                   [title]="'TRIP.METIERS_FILTER'|translate"
-                  (click)="metiersFiltered = !metiersFiltered">
-            <mat-icon [color]="metiersFiltered ? 'accent' : undefined">filter_list</mat-icon>
+                  (click)="metiersFiltered = !metiersFiltered"
+                  [color]="metiersFiltered ? 'primary' : undefined">
+            <mat-icon >filter_list</mat-icon>
           </button>
 
           <!--          <button matSuffix mat-icon-button-->

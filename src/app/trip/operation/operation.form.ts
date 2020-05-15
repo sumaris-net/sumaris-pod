@@ -14,6 +14,7 @@ import {AccountService} from "../../core/services/account.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {SharedValidators} from "../../shared/validator/validators";
 import {Operation, PhysicalGear, Trip} from "../services/model/trip.model";
+import {ReferentialRefFilter} from "../../referential/services/referential-ref.service";
 
 @Component({
   selector: 'form-operation',
@@ -54,7 +55,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       this.form.get('endDateTime').setAsyncValidators(async (control) => {
         if (!control.touched) return;
         const endDateTime = fromDateISOString(control.value);
-        // Make sure: departureDateTime < endDateTime < returnDateTime
+        // Make sure: trip.departureDateTime < operation.endDateTime < trip.returnDateTime
         if (endDateTime && ((trip.departureDateTime && endDateTime.isBefore(trip.departureDateTime))
           || (trip.returnDateTime && endDateTime.isAfter(trip.returnDateTime)))) {
           return {msg: await this.translate.get('TRIP.OPERATION.ERROR.FIELD_DATE_OUTSIDE_TRIP').toPromise() };
@@ -175,7 +176,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return suggestFromArray<PhysicalGear>(this._trip.gears, value, options);
   }
 
-  protected async suggestTargetSpecies(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected async suggestTargetSpecies(value: any, filter?: ReferentialRefFilter): Promise<IReferentialRef[]> {
     const physicalGear = this.form.get('physicalGear').value;
 
     // IF taxonGroup column exists: gear must be filled first
@@ -183,9 +184,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     return this.referentialRefService.suggest(value,
       {
+        ...filter,
         entityName: "Metier",
         searchJoin: "TaxonGroup",
-        searchAttribute: options && options.searchAttribute,
         levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || undefined
       });
   }

@@ -1,9 +1,7 @@
 import * as moment from "moment";
-import {isMoment, Moment} from "moment";
-import {asInputElement, FocusableElement, isInputElement} from "./material/focusable";
+import {Duration, isMoment, Moment} from "moment";
+import {asInputElement, isInputElement} from "./material/focusable";
 import {ElementRef} from "@angular/core";
-import {environment} from "../../environments/environment";
-import {Duration} from "moment";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 export const DATE_UNIX_TIMESTAMP = 'X';
@@ -338,4 +336,41 @@ export function round(value: number | undefined | null): number {
     return Math.round((value + Number.EPSILON) * 100) / 100;
   }
   return value;
+}
+
+
+export declare type KeysEnum<T> = { [P in keyof Required<T>]: true };
+
+export class Beans {
+  /**
+   * Copy a source object, by including only properties of the given dataType.
+   * IMPORTANT: extra properties that are NOT in the targetClass are NOT copied.
+   * @param source The source object to copy
+   * @param dataType the class to use as target class
+   * @param keys The keys to copy. If empty, will copy only NOT optional properties from the dataType
+   */
+  static copy<T>(source: T, dataType: new() => T, keys?: KeysEnum<T>): T {
+    if (isNil(source)) return source;
+    const target = new dataType();
+    Object.keys(keys || target).forEach(key => {
+      target[key] = source[key];
+    });
+    return target;
+  }
+
+  /**
+   * Says if an object all all properties to nil
+   */
+  static isEmpty<T>(data: T, keys?: KeysEnum<T>, opts?: {
+    blankStringLikeEmpty?: boolean
+  }): boolean {
+    return isNil(data) || Object.keys(keys || data)
+      // Find index of the first NOT nil value
+      .findIndex(key => {
+        const value = data[key];
+        if (value && typeof value === 'object') return !Beans.isEmpty(value, null, opts); // Loop
+        if (opts && opts.blankStringLikeEmpty === true && typeof value === 'string') return isNotNilOrBlank(value);
+        return isNotNil(value);
+      }) === -1;
+  }
 }

@@ -217,12 +217,13 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   /* -- protected methods -- */
 
-  protected registerSubscription(sub: Subscription) {
-    this._subscription.add(sub);
+  protected registerSubscription(sub: Subscription): Subscription {
+    return this._subscription.add(sub);
   }
 
-  protected registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions) {
-    return this.autocompleteHelper.add(fieldName, options);
+  protected registerAutocompleteField<T = any, F = any>(fieldName: string,
+                                                        opts?: MatAutocompleteFieldAddOptions<T, F>): MatAutocompleteFieldConfig<T, F> {
+    return this.autocompleteHelper.add(fieldName, opts);
   }
 
   protected markForCheck() {
