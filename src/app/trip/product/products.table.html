@@ -1,15 +1,17 @@
 <mat-toolbar>
   <button mat-icon-button
           hidden-xs hidden-sm hidden-mobile
-          *ngIf="!selection.hasValue() && enabled"
+          *ngIf="!selection.hasValue() && enabled && !readOnly"
           [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+  <button mat-icon-button *ngIf="!selection.hasValue()"
+          [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
-  <button mat-icon-button *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
+  <button mat-icon-button *ngIf="selection.hasValue() && enabled && !readOnly"
+          [title]="'COMMON.BTN_DELETE'|translate"
           (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
@@ -36,12 +38,12 @@
            matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
-    <mat-header-cell *matHeaderCellDef>
+    <mat-header-cell *matHeaderCellDef [hidden]="readOnly">
       <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                     [indeterminate]="selection.hasValue() && !isAllSelected()">
       </mat-checkbox>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">
+    <mat-cell *matCellDef="let row" [hidden]="readOnly">
       <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null"
                     [checked]="selection.isSelected(row)">
       </mat-checkbox>
@@ -50,20 +52,20 @@
 
   <!-- id -->
   <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef mat-sort-header [hidden]="readOnly">
       <ion-label *ngIf="!($loading|async); else loadingSpinner">#</ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">
+    <mat-cell *matCellDef="let row" [hidden]="readOnly">
       <ion-text>{{row.currentData.rankOrder}}</ion-text>
     </mat-cell>
   </ng-container>
 
   <!-- parent -->
   <ng-container matColumnDef="parent">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef mat-sort-header [hidden]="!showParent">
       <ion-label translate>TRIP.PRODUCT.LIST.PARENT</ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">
+    <mat-cell *matCellDef="let row" [hidden]="!showParent">
 
       <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                               [appAutofocus]="row.id == -1 && row.editing"

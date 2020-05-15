@@ -69,14 +69,10 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
   @ViewChild('operationGroupTable', {static: true}) operationGroupTable: OperationGroupTable;
-
-  @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
-
   @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
-  // @ViewChild('saleTabGroup', {static: true}) saleTabGroup: MatTabGroup;
-
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
   @ViewChild('packetsTable', {static: true}) packetsTable: PacketsTable;
+  @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
 
 
   constructor(

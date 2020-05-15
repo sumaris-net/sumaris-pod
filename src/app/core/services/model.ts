@@ -393,16 +393,23 @@ export class EntityUtils {
       return (a, b) => {
         const valueA = isNotNil(a) && a[sortBy] || undefined;
         const valueB = isNotNil(b) && b[sortBy] || undefined;
-        return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+        return EntityUtils.compare(valueA, valueB, after);
       };
     }
     else {
       return (a, b) => {
         const valueA = EntityUtils.getPropertyByPath(a, sortBy);
         const valueB = EntityUtils.getPropertyByPath(b, sortBy);
-        return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+        return EntityUtils.compare(valueA, valueB, after);
       };
     }
+  }
+
+  static compare(value1: {id: number} | any, value2: {id: number} | any, direction: 1 | -1): number {
+    if (EntityUtils.isNotEmptyEntity(value1) && EntityUtils.isNotEmptyEntity(value2)) {
+      return EntityUtils.equals(value1, value2) ? 0 : (value1.id > value2.id ? direction : (-1 * direction));
+    }
+    return value1 === value2 ? 0 : (value1 > value2 ? direction : (-1 * direction));
   }
 
   static filter<T extends Entity<T> | any>(data: T[],

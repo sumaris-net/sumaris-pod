@@ -38,6 +38,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   @Input() $parentFilter: Observable<any>;
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
   @Input() parentAttributes: string[];
+  @Input() showParent = true;
 
   @Input()
   set value(data: Product[]) {
