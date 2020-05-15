@@ -115,7 +115,7 @@ export class ToolbarComponent implements OnInit {
   }
 
   doValidateTap(event: Event & { tapCount?: number; }) {
-    console.log("TODO doValidateTap", event);
+    //FIXME console.log("TODO doValidateTap", event);
     if (!this.onValidateAndClose.observers.length) {
       this.onValidate.emit(event);
     }

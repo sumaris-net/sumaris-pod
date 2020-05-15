@@ -1,9 +1,8 @@
-import { NgModule, Injectable } from '@angular/core';
+import {Injectable, NgModule} from '@angular/core';
 import {ActivatedRouteSnapshot, ExtraOptions, RouteReuseStrategy, RouterModule, Routes} from '@angular/router';
 import {HomePage} from './core/home/home';
 import {RegisterConfirmPage} from './core/register/confirm/confirm';
 import {AccountPage} from './core/account/account';
-import {VesselsTable} from './referential/vessel/list/vessels.table';
 import {VesselPage} from './referential/vessel/page/vessel.page';
 import {ReferentialsPage} from './referential/list/referentials';
 import {TripPage, TripTable} from './trip/trip.module';
@@ -23,6 +22,7 @@ import {VesselsPage} from "./referential/vessel/list/vessels.page";
 import {LandedTripPage} from "./trip/landedtrip/landed-trip.page";
 import {PmfmPage} from "./referential/pmfm/pmfm.page";
 import {ParameterPage} from "./referential/pmfm/parameter.page";
+import {environment} from "../environments/environment";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -63,6 +63,7 @@ const routes: Routes = [
     canActivate: [AuthGuardService],
     loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
   },
+
 
   // Referential path
   {
@@ -324,13 +325,35 @@ const routes: Routes = [
     path: 'extraction',
     canActivate: [AuthGuardService],
     loadChildren: () => import('./trip/extraction/extraction.module').then(m => m.ExtractionModule)
-  },
-
-  {
-    path: "**",
-    redirectTo: '/'
-  },
+  }
 ];
+
+// Add test pages (DEV only)
+if (!environment.production) {
+  routes.push(
+    {
+      path: 'dev',
+      children: [
+        {
+          path: '',
+          pathMatch: 'full',
+          redirectTo: 'shared',
+        },
+        // Shared module
+        {
+          path: 'shared',
+          loadChildren: () => import('./shared/test/shared.test.module').then(m => m.SharedTestModule)
+        }
+      ]
+    });
+
+}
+
+// Other route redirection (should at the end of the array)
+routes.push({
+  path: "**",
+  redirectTo: '/'
+});
 
 @Injectable()
 export class CustomReuseStrategy extends IonicRouteStrategy {

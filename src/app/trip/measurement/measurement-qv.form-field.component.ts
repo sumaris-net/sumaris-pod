@@ -255,6 +255,8 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     return item.id;
   }
 
+  compareWith = EntityUtils.equals;
+
   selectInputContent = AppFormUtils.selectInputContent;
   entityToString = entityToString;
 

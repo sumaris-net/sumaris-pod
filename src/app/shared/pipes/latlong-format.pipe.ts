@@ -174,7 +174,7 @@ function formatToDDMM(value: number, isLongitude: boolean, maxDecimals: number, 
 function parseLatitudeOrLongitude(input: string, pattern: string, maxDecimals?: number, placeholderChar?: string): number | null {
   // Remove all placeholder (= trim on each parts)
   const inputFix = input.trim().replace(new RegExp("[+" + (placeholderChar || DEFAULT_PLACEHOLDER_CHAR) + ']+', "g"), '');
-  console.log("Parsing lat= " + inputFix);
+  //DEBUG console.debug("Parsing lat= " + inputFix);
   const parts = inputFix.split(/[^\d\w-.,]+/);
   let degrees = parseFloat(parts[0].replace(/,/g, '.'));
   if (isNaN(degrees)) {

@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
 import {Moment} from 'moment/moment';
-import {Subject} from 'rxjs';
+import {BehaviorSubject, Subject} from 'rxjs';
 import {distinctUntilChanged, filter} from 'rxjs/operators';
 import {
   AcquisitionLevelCodes,
@@ -14,8 +14,7 @@ import {
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormBuilder} from "@angular/forms";
-import {selectInputContent} from "../../shared/functions";
-import {isNotNil, suggestFromArray} from "../../shared/functions";
+import {isNotNil, selectInputContent} from "../../shared/functions";
 import {InputElement} from "../../shared/material/focusable";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -30,8 +29,7 @@ import {DateAdapter} from "@angular/material/core";
 })
 export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implements OnInit {
 
-  private _gears: ReferentialRef[] = [];
-
+  gearsSubject = new BehaviorSubject<ReferentialRef[]>(undefined);
   programSubject = new Subject<string>();
   mobile: boolean;
 
@@ -44,6 +42,11 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   @Input()
   set program(value: string) {
     this.programSubject.next(value);
+  }
+
+  @Input()
+  set gears(value: ReferentialRef[]) {
+    this.gearsSubject.next(value);
   }
 
   @ViewChild("firstInput", { static: true }) firstInputField: InputElement;
@@ -75,7 +78,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
         )
         .subscribe(async (value) => {
           if (this._program !== value) {
-            this._gears = await this.programService.loadGears(value);
+            this.gearsSubject.next(await this.programService.loadGears(value));
             this._program = value;
             if (!this.loading) this._onRefreshPmfms.emit();
           }
@@ -90,7 +93,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
     // Combo: gears
     this.registerAutocompleteField('gear', {
-      suggestFn: async (value, options) => suggestFromArray<ReferentialRef>(this._gears, value, options),
+      items: this.gearsSubject,
       mobile: this.mobile
     });
 

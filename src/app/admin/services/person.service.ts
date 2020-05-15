@@ -223,7 +223,6 @@ export class PersonService extends BaseDataService<Person, PersonFilter>
   async suggest(value: any, filter?: PersonFilter): Promise<Person[]> {
     if (EntityUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
-    console.log('TODO check person suggest', filter);
     const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
       {
         ...filter,

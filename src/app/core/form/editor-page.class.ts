@@ -260,7 +260,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   async save(event: Event, options?: any): Promise<boolean> {
-    console.log("TODO call save");
+    // DEBUG console.debug("TODO call save");
     if (this.loading || this.saving) {
       console.debug("[data-editor] Skip save: editor is busy (loading or saving)");
       return false;
