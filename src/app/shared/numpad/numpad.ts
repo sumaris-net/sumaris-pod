@@ -14,7 +14,7 @@ export class NumpadComponent implements OnInit, OnDestroy {
 
   constructor() {
     this.keymap = [
-      [[1, 1], [2, 2], [3, 3], ['<ion-icon name="pin"></ion-icon>', 'back']],
+      [[1, 1], [2, 2], [3, 3], ['<mat-icon>room</mat-icon>', 'back']],
       [[4, 4], [5, 5], [6, 6]],
       [[7, 7], [8, 8], [9, 9]],
       [['.', '.'], [0, 0], ['']]

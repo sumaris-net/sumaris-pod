@@ -34,6 +34,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   private _showObservers: boolean;
   private _showMetiers: boolean;
+  private _metierFilter = {statusId: StatusIds.ENABLE};
 
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
@@ -184,21 +185,28 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     this.metiersFiltered = false;
     this.registerAutocompleteField<MetierRef, ReferentialRefFilter>('metier', {
       service: this.metierRefService,
-      filter: this.getFilterMetier()
+      filter: this._metierFilter
     });
 
   }
 
+  toggleFilteredMetier(event: UIEvent) {
+
+
+  }
+
   getFilterMetier(): any {
-    const defaultFilter = {statusId: StatusIds.ENABLE};
-    return this.metiersFiltered
-      ? {
-        ...defaultFilter,
-        date: this.form.get('returnDateTime').value,
-        vesselId: this.form.get('vesselSnapshot').value.id,
-        tripId: this.form.get('id').value
-      }
-      : defaultFilter;
+    if (!this.metiersFiltered) return METIER_DEFAULT_FILTER;
+    const value = this.form.value;
+    const date = value.returnDateTime || value.departureDateTime;
+    const vesselId = value.vesselSnapshot && value.vesselSnapshot.id;
+    if (!date || isNil(vesselId)) return METIER_DEFAULT_FILTER;
+    return {
+      ...METIER_DEFAULT_FILTER,
+      date,
+      vesselId,
+      tripId: value.id
+    };
   }
 
   setValue(value: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {

@@ -148,7 +148,7 @@
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
                   [title]="'TRIP.METIERS_FILTER'|translate"
-                  (click)="metiersFiltered = !metiersFiltered"
+                  (click)="toggleFilteredMetier($event)"
                   [color]="metiersFiltered ? 'primary' : undefined">
             <mat-icon >filter_list</mat-icon>
           </button>

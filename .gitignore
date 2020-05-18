@@ -36,6 +36,4 @@ $RECYCLE.BIN/
 Thumbs.db
 UserInterfaceState.xcuserstate
 
-package-lock.json
-
 resources/android/build/local
