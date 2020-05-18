@@ -3,7 +3,7 @@ import {AppForm, AppFormUtils, FormArrayHelper} from "../../core/core.module";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {UsageMode} from "../../core/services/model";
 import {isNotEmptyArray} from "../../shared/functions";
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {PacketValidatorService} from "../services/validator/packet.validator";
 import {LocalSettingsService} from "../../core/services/local-settings.service";

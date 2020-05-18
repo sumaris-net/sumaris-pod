@@ -217,7 +217,7 @@
             <!-- Warn if not sampling weight nor sampling ratio, BUT individual count -->
             <ion-label *ngIf="col.rankOrder % 5 === 3 && measurementValues[col.rankOrder-1] == null && measurementValues[col.rankOrder+1] !== null"
                        color="danger">
-              <ion-icon matSuffix color="danger" name="warning"></ion-icon>
+              <ion-icon color="danger" class="text-size" name="warning"></ion-icon>
               <ion-text translate>COMMON.MISSING</ion-text>
             </ion-label>
 

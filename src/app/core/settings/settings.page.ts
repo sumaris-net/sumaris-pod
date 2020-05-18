@@ -4,7 +4,7 @@ import {EntityUtils, Locales, LocalSettings, Peer, referentialToString, UsageMod
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AppForm} from '../form/form.class';
 import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {AppFormUtils, FormArrayHelper} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
 import {ValidatorService} from "angular4-material-table";

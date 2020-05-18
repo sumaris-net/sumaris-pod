@@ -1,18 +1,4 @@
 // --------------------------------------------------
-// Responsive: Utility var
-// --------------------------------------------------
-$screen-xxs-max: 400px;
-$screen-xs: 401px;
-$screen-xs-max: 575px;
-$screen-sm: 576px;
-$screen-sm-max: 767px;
-$screen-md: 768px;
-$screen-md-max: 991px;
-$screen-lg: 992px;
-$screen-lg-max: 1199px;
-$screen-xl: 1200px;
-
-// --------------------------------------------------
 // Hidden/Visible responsive
 // --------------------------------------------------
 html.plt-mobile {
@@ -27,6 +13,13 @@ html.plt-mobile {
     visibility: visible !important;
   }
 
+}
+html:not(.plt-mobile) {
+  [visible-mobile],
+  .visible-mobile {
+    display: none !important;
+    visibility: hidden !important;
+  }
 }
 
 @media screen and (max-width: $screen-xxs-max) {
@@ -406,7 +399,7 @@ html.plt-mobile {
 }
 
 [padding] {
-  padding: 16px;
+  padding: var(--ion-padding);
 }
 
 [padding-left] {

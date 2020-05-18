@@ -54,12 +54,12 @@ export class ConfigurationPage extends SoftwarePage<Configuration> {
     const config = await firstNotNilPromise(this.configService.config);
 
     // Force the load of the config
-    super.load(config.id, {...opts, fetchPolicy: "network-only"});
+    await super.load(config.id, {...opts, fetchPolicy: "network-only"});
 
     this.cacheStatistics.subscribe(value => this.computeStatisticTotal(value));
 
     // Get server cache statistics
-    this.loadCacheStat();
+    await this.loadCacheStat();
   }
 
   protected setValue(data: Configuration) {
@@ -136,24 +136,24 @@ export class ConfigurationPage extends SoftwarePage<Configuration> {
     if (confirm) {
       await this.network.clearCache();
       await this.settings.removeOfflineFeatures();
-      this.configService.clearCache({cacheName: cacheName}).then(() => this.loadCacheStat());
+      await this.configService.clearCache({cacheName: cacheName});
+      await this.loadCacheStat();
     }
   }
 
-  loadCacheStat() {
-    this.configService.getCacheStatistics().then(value => {
-      const stats: CacheStatistic[] = Object.keys(value).map(cacheName => {
-        const stat = value[cacheName];
-        return {
-          name: cacheName,
-          size: stat.size,
-          heapSize: stat.heapSize,
-          offHeapSize: stat.offHeapSize,
-          diskSize: stat.diskSize
-        };
-      });
-      this.cacheStatistics.next(stats);
+  async loadCacheStat() {
+    const value = await this.configService.getCacheStatistics();
+    const stats: CacheStatistic[] = Object.keys(value).map(cacheName => {
+      const stat = value[cacheName];
+      return {
+        name: cacheName,
+        size: stat.size,
+        heapSize: stat.heapSize,
+        offHeapSize: stat.offHeapSize,
+        diskSize: stat.diskSize
+      };
     });
+    this.cacheStatistics.next(stats);
   }
 
   computeStatisticTotal(stats: CacheStatistic[]) {

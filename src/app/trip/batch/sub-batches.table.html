@@ -154,8 +154,7 @@
                 ERROR.FIELD_REQUIRED
               </mat-error>
               <mat-error *ngIf="row.validator.controls.individualCount.hasError('min')">
-                {{(compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') |
-                translate:row.validator.controls.individualCount.errors['min'] }}
+                {{'ERROR.FIELD_MIN_COMPACT'|translate:row.validator.controls.individualCount.errors['min'] }}
               </mat-error>
               <mat-error *ngIf="row.validator.controls.individualCount.hasError('integer')">
                 {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}

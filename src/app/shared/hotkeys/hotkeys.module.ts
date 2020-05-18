@@ -1,10 +1,10 @@
 import {NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
-import {MaterialModule} from "../material/material.module";
 import {TranslateModule} from "@ngx-translate/core";
 import {Hotkeys} from "./hotkeys.service";
 import {HotkeysDialogComponent} from "./dialog/hotkeys-dialog.component";
-import {MatCommonModule, MatDialogModule} from "@angular/material";
+import {MatDialogModule} from "@angular/material/dialog";
+import {MatCommonModule} from "@angular/material/core";
 
 export {
   Hotkeys

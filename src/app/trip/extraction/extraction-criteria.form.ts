@@ -8,7 +8,7 @@ import {ExtractionService} from "../services/extraction.service";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {debounceTime, distinctUntilChanged, filter, map} from "rxjs/operators";
 import {AppForm} from "../../core/core.module";
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {ExtractionCriteriaValidatorService} from "../services/validator/extraction-criterion.validator";
 import {FormFieldDefinition, FormFieldType} from "../../shared/form/field.model";

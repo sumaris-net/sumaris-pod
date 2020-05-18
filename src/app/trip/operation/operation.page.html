@@ -3,6 +3,7 @@
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
              [hasClose]="!loading && !dirty"
+             (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
   <ion-spinner *ngIf="loading"></ion-spinner>
@@ -62,7 +63,7 @@
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
             <!-- form -->
-            <form-operation #opeForm
+            <app-form-operation #opeForm
                             (onSubmit)="save($event)" [showError]="false"
                             [usageMode]="usageMode"
                             [tabindex]="1"
@@ -86,10 +87,10 @@
                   </ion-col>
                 </ion-row>
               </ion-grid>
-            </form-operation>
+            </app-form-operation>
           </ion-col>
           <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="!mobile && data?.updateDate">
-            <entity-metadata [value]="data"></entity-metadata>
+            <app-entity-metadata [value]="data"></app-entity-metadata>
           </ion-col>
         </ion-row>
       </ion-grid>

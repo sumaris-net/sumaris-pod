@@ -2,7 +2,7 @@ import {Inject, Injectable} from '@angular/core';
 import {EventManager} from '@angular/platform-browser';
 import {Observable} from 'rxjs';
 import {DOCUMENT} from "@angular/common";
-import {MatDialog} from '@angular/material';
+import {MatDialog} from '@angular/material/dialog';
 import {HotkeysDialogComponent} from './dialog/hotkeys-dialog.component';
 import {isNotNilOrBlank} from "../functions";
 import {environment} from "../../../environments/environment";

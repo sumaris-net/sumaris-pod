@@ -9,7 +9,7 @@ import {Moment} from "moment/moment";
 import {
   DataEntity,
   DataEntityAsObjectOptions,
-  DataRootEntity,
+  RootDataEntity,
   DataRootVesselEntity,
   IWithObserversEntity, IWithPacketsEntity, IWithProductsEntity,
   NOT_MINIFY_OPTIONS,
@@ -96,9 +96,18 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.gears = this.gears && this.gears.map(p => p && p.asObject(options)) || undefined;
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
     target.observers = this.observers && this.observers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
-    target.metiers = this.metiers && this.metiers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
+
+    // Metiers
+    target.metiers = this.metiers && this.metiers.filter(isNotNil).map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
+    if (isEmptyArray(target.metiers)) delete target.metiers; // Clean is empty, for compat with previous version
+
+    // Operations
     target.operations = this.operations && this.operations.map(o => o.asObject(options)) || undefined;
-    target.operationGroups = this.operationGroups && this.operationGroups.map(o => o.asObject(options)) || undefined;
+
+    // Operation groups
+    target.operationGroups = this.operationGroups && this.operationGroups.filter(isNotNil).map(o => o.asObject(options)) || undefined;
+    if (isEmptyArray(target.operationGroups)) delete target.operationGroups; // Clean if empty, for compat with previous version
+
     return target;
   }
 
@@ -142,7 +151,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   }
 }
 
-export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntityWithMeasurement<PhysicalGear> {
+export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntityWithMeasurement<PhysicalGear> {
 
   static TYPENAME = 'PhysicalGearVO';
 

@@ -51,11 +51,7 @@ export class AggregationTypeSelectModal implements OnInit {
     await this.viewCtrl.dismiss();
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  protected getI18nTypeName(type: AggregationType) {
+  getI18nTypeName(type: AggregationType) {
     if (type.name) return type.name;
     const format = type.label && type.label.split('-')[0].toUpperCase();
     const key = `EXTRACTION.PRODUCT.${format}.TITLE`;
@@ -69,4 +65,10 @@ export class AggregationTypeSelectModal implements OnInit {
 
     return type.name;
   }
+
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
 }

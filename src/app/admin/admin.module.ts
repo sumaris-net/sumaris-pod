@@ -4,7 +4,6 @@ import {CoreModule} from '../core/core.module';
 import {PersonValidatorService} from './services/person.validator';
 import {UsersPage} from './users/list/users';
 import {AdminRoutingModule} from "./admin-routing.module";
-import {SoftwarePage} from "../referential/software/software.page";
 import {ReferentialModule} from "../referential/referential.module";
 import {ConfigurationPage} from "./config/configuration.page";
 

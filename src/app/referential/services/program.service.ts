@@ -31,7 +31,7 @@ import {
 import {TaxonGroupIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 import {isNilOrBlank, isNotEmptyArray, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
-import {ReferentialRefService} from "./referential-ref.service";
+import {ReferentialRefFilter, ReferentialRefService} from "./referential-ref.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
@@ -251,8 +251,8 @@ const LoadAllQuery: any = gql`
   ${ProgramFragments.lightProgram}
 `;
 
-const LoadAllWithCountQuery: any = gql`
-  query Programs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ProgramFilterVOInput){
+const LoadAllWithTotalQuery: any = gql`
+  query ProgramsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ProgramFilterVOInput){
     programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightProgramFragment
     }
@@ -262,7 +262,7 @@ const LoadAllWithCountQuery: any = gql`
 `;
 
 
-const LoadAllRefWithCountQuery: any = gql`
+const LoadAllRefWithTotalQuery: any = gql`
   query Programs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ProgramFilterVOInput){
     programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...ProgramRefFragment
@@ -356,7 +356,7 @@ export class ProgramService extends BaseDataService
     const now = Date.now();
     if (this._debug) console.debug("[program-service] Watching programs using options:", variables);
 
-    const query = (!opts || opts.withTotal !== false) ? LoadAllWithCountQuery : LoadAllQuery;
+    const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
     return this.graphql.watchQuery<{ programs: any[], referentialsCount?: number }>({
       query,
       variables,
@@ -428,7 +428,7 @@ export class ProgramService extends BaseDataService
 
     // Online mode
     else {
-      const query = opts && opts.query || opts && opts.withTotal && LoadAllWithCountQuery || LoadAllQuery;
+      const query = opts && opts.query || opts && opts.withTotal && LoadAllWithTotalQuery || LoadAllQuery;
       loadResult = await this.graphql.query<{ programs: any[], referentialsCount?: number }>({
         query,
         variables,
@@ -683,25 +683,22 @@ export class ProgramService extends BaseDataService
   /**
    * Suggest program taxon groups
    */
-  async suggestTaxonGroups(value: any, options: {
-    program?: string;
-    searchAttribute?: string;
-  }): Promise<IReferentialRef[]> {
+  async suggestTaxonGroups(value: any, filter?: Partial<ReferentialRefFilter & { program: string; }>): Promise<IReferentialRef[]> {
     // Search on program's taxon groups
-    if (isNotNil(options.program)) {
-      const values = await this.loadTaxonGroups(options.program);
-      if (isNotEmptyArray(values)) {
-        return suggestFromArray(values, value, {
-          searchAttribute: options.searchAttribute
+    if (filter && isNotNil(filter.program)) {
+      const programItems = await this.loadTaxonGroups(filter.program);
+      if (isNotEmptyArray(programItems)) {
+        return suggestFromArray(programItems, value, {
+          searchAttribute: filter.searchAttribute
         });
       }
     }
 
     // If nothing found in program, or species defined
     return await this.referentialRefService.suggest(value, {
+      ...filter,
       entityName: 'TaxonGroup',
-      levelId: TaxonGroupIds.FAO,
-      searchAttribute: options.searchAttribute
+      levelId: TaxonGroupIds.FAO
     });
   }
 
@@ -883,7 +880,7 @@ export class ProgramService extends BaseDataService
       const res = await fetchAllPagesWithProgress((offset, size) =>
           this.loadAll(offset, size, 'id', 'asc', loadFilter, {
             debug: false,
-            query: LoadAllRefWithCountQuery, // Need fragment ProgramRefFragment
+            query: LoadAllRefWithTotalQuery, // Need fragment ProgramRefFragment
             fetchPolicy: "network-only",
             toEntity: false
           }),

@@ -1,16 +1,7 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-  ViewChild
-} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {AppForm} from "../../core/core.module";
 import {Sale} from "../services/model/sale.model";
-import {DateAdapter, MatTabChangeEvent, MatTabGroup} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {FormBuilder} from "@angular/forms";
 import {LocalSettingsService} from "../../core/services/local-settings.service";

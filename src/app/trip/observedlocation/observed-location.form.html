@@ -145,7 +145,7 @@
         <!-- pmfms -->
         <mat-form-field-measurement *ngFor="let pmfm of $pmfms | async; index as i;"
                                     [pmfm]="pmfm"
-                                    [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                    [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                     [compact]="compact"
                                     [tabindex]="50 + i*2"
                                     [floatLabel]="floatLabel">

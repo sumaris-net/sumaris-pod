@@ -9,7 +9,7 @@ import {HistoryPageReference, UsageMode} from '../../core/services/model';
 import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {AcquisitionLevelCodes, PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
 import {BehaviorSubject, Subject} from 'rxjs';
-import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
+import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {debounceTime, distinctUntilChanged, filter, first, map, startWith, switchMap} from "rxjs/operators";
 import {FormGroup, Validators} from "@angular/forms";
 import * as moment from "moment";
@@ -649,7 +649,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   }
 
   protected addToPageHistory(page: HistoryPageReference) {
-    super.addToPageHistory({ ...page, icon: 'pin'});
+    super.addToPageHistory({ ...page, icon: 'navigate'});
   }
 
   protected async setAutoFillSpecies(enable: boolean) {

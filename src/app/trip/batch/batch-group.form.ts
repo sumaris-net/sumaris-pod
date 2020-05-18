@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, QueryList, ViewChildren} from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {AbstractControl, FormBuilder, FormControl} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";

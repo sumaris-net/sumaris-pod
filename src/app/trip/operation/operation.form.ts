@@ -1,22 +1,25 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {OperationValidatorService} from "../services/operation.validator";
 import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material";
-import {AppForm, fromDateISOString, IReferentialRef, isNotNil} from '../../core/core.module';
+import {DateAdapter} from "@angular/material/core";
+import {AppForm, fromDateISOString, IReferentialRef, isNotNil, ReferentialRef} from '../../core/core.module';
 import {EntityUtils, ReferentialRefService} from '../../referential/referential.module';
 import {UsageMode} from "../../core/services/model";
 import {FormGroup} from "@angular/forms";
 import * as moment from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
-import {isNilOrBlank, suggestFromArray} from "../../shared/functions";
+import {isNilOrBlank, isNotEmptyArray, suggestFromArray} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {SharedValidators} from "../../shared/validator/validators";
 import {Operation, PhysicalGear, Trip} from "../services/model/trip.model";
+import {ReferentialRefFilter} from "../../referential/services/referential-ref.service";
+import {BehaviorSubject, Subject} from "rxjs";
+import {distinctUntilChanged} from "rxjs/operators";
 
 @Component({
-  selector: 'form-operation',
+  selector: 'app-form-operation',
   templateUrl: './operation.form.html',
   styleUrls: ['./operation.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -24,6 +27,8 @@ import {Operation, PhysicalGear, Trip} from "../services/model/trip.model";
 export class OperationForm extends AppForm<Operation> implements OnInit {
 
   private _trip: Trip;
+  private _physicalGearsSubject = new BehaviorSubject<PhysicalGear[]>(undefined);
+  private _metiersSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
 
   enableGeolocation: boolean;
   latLongFormat: string;
@@ -42,6 +47,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this._trip = trip;
 
     if (trip) {
+      // Propagate physical gears
+      this._physicalGearsSubject.next(trip.gears || []);
+
       // Use trip physical gear Object (if possible)
       const physicalGearControl = this.form.get("physicalGear");
       let physicalGear = physicalGearControl.value;
@@ -54,7 +62,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       this.form.get('endDateTime').setAsyncValidators(async (control) => {
         if (!control.touched) return;
         const endDateTime = fromDateISOString(control.value);
-        // Make sure: departureDateTime < endDateTime < returnDateTime
+        // Make sure: trip.departureDateTime < operation.endDateTime < trip.returnDateTime
         if (endDateTime && ((trip.departureDateTime && endDateTime.isBefore(trip.departureDateTime))
           || (trip.returnDateTime && endDateTime.isAfter(trip.returnDateTime)))) {
           return {msg: await this.translate.get('TRIP.OPERATION.ERROR.FIELD_DATE_OUTSIDE_TRIP').toPromise() };
@@ -93,16 +101,63 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     // Combo: physicalGears
     this.registerAutocompleteField('physicalGear', {
-      suggestFn: (value, options) => this.suggestPhysicalGear(value, options),
+      items: this._physicalGearsSubject.asObservable(),
+      //suggestFn: (value, options) => this.suggestPhysicalGear(value, options),
       attributes: ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key)),
       mobile: this.mobile
     });
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value, options) => this.suggestTargetSpecies(value, options),
+      items: this._metiersSubject.asObservable(),
+      //suggestFn: (value, options) => this.suggestTargetSpecies(value, options),
       mobile: this.mobile
     });
+
+    // Listen physical gear, to enablme/disable metier
+    const metierControl = this.form.get('metier');
+    const physicalGearControl = this.form.get('physicalGear');
+    this.registerSubscription(
+      physicalGearControl.valueChanges
+        .pipe(
+          distinctUntilChanged(EntityUtils.equals)
+        )
+        .subscribe(async (physicalGear) => {
+
+          const hasPhysicalGear = EntityUtils.isNotEmpty(physicalGear);
+          const gears = this._physicalGearsSubject.getValue() || this._trip && this._trip.gears;
+          // Use same trip's gear Object (if found)
+          if (hasPhysicalGear && isNotEmptyArray(gears)) {
+            physicalGear = (gears || []).find(g => g.id === physicalGear.id);
+            physicalGearControl.patchValue(physicalGear, {emitEvent: false});
+          }
+
+          const enableMetier = hasPhysicalGear && this.form.enabled && isNotEmptyArray(gears);
+          if (enableMetier) {
+            metierControl.enable();
+          }
+          else {
+            metierControl.disable();
+          }
+
+          if (hasPhysicalGear) {
+
+            // Refresh metiers
+            const metiers = await this.loadMetiers(physicalGear);
+            this._metiersSubject.next(metiers);
+
+            const metier = metierControl.value;
+            if (EntityUtils.isNotEmpty(metier)) {
+              // Find new reference, by label (WARN: because of searchJoin, label = taxonGroup.label)
+              const updatedMetier = (metiers || []).find(m => m.label === metier.label);
+              // Update the metier, if not found (=reset) or ID changed
+              if (!updatedMetier || !EntityUtils.equals(metier, updatedMetier)) {
+                metierControl.setValue(updatedMetier);
+              }
+            }
+          }
+        })
+    );
   }
 
   /**
@@ -159,35 +214,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   /* -- protected methods -- */
 
-  protected async suggestPhysicalGear(value: any, options?: any): Promise<PhysicalGear[]> {
-    // Display the selected object
-    if (EntityUtils.isNotEmpty(value)) {
-      if (this.form.enabled) this.form.controls["metier"].enable();
-      else this.form.controls["metier"].disable();
-      return [value];
-    }
-    // Skip if no trip (or no physical gears)
-    if (!this._trip || !this._trip.gears || !this._trip.gears.length) {
-      this.form.controls["metier"].disable();
-      return [];
-    }
+  protected async loadMetiers(physicalGear?: PhysicalGear|any): Promise<ReferentialRef[]> {
 
-    return suggestFromArray<PhysicalGear>(this._trip.gears, value, options);
-  }
+    // No gears selected: skip
+    if (EntityUtils.isEmpty(physicalGear)) return undefined;
 
-  protected async suggestTargetSpecies(value: any, options?: any): Promise<IReferentialRef[]> {
-    const physicalGear = this.form.get('physicalGear').value;
-
-    // IF taxonGroup column exists: gear must be filled first
-    if (isNilOrBlank(value) && EntityUtils.isEmpty(physicalGear)) return [];
-
-    return this.referentialRefService.suggest(value,
+    const res = await this.referentialRefService.loadAll(0, 100, null,null,
       {
         entityName: "Metier",
         searchJoin: "TaxonGroup",
-        searchAttribute: options && options.searchAttribute,
         levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || undefined
+      },
+      {
+        withTotal: false
       });
+    return res.data;
   }
 
   protected markForCheck() {

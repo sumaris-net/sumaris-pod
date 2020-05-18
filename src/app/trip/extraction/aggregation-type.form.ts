@@ -6,7 +6,7 @@ import {AggregationTypeValidatorService} from "../services/validator/aggregation
 import {ReferentialForm} from "../../referential/form/referential.form";
 import {BehaviorSubject} from "rxjs";
 import {arraySize} from "../../shared/functions";
-import {DateAdapter, MatTable} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 

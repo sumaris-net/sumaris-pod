@@ -11,7 +11,8 @@ import {
   ViewChildren
 } from '@angular/core';
 import {Platform} from '@ionic/angular';
-import {DateAdapter, FloatLabelType} from '@angular/material';
+import {DateAdapter} from '@angular/material/core';
+import {FloatLabelType} from '@angular/material/form-field';
 import {
   ControlValueAccessor,
   FormBuilder,

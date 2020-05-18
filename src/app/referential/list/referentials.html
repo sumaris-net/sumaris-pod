@@ -15,26 +15,42 @@
   <mat-toolbar>
     <mat-toolbar-row>
 
-      <ion-button *ngIf="$entity | async as entity" color="secondary" [matMenuTriggerFor]="selectEntityMenu">
-        <ion-label>{{entity.label}}</ion-label>
-        <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
-      </ion-button>
+      <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+        <ion-button *ngIf="$entity | async as entity" color="secondary" [matMenuTriggerFor]="selectEntityMenu">
+          <ion-label>{{entity.label}}</ion-label>
+          <mat-icon slot="end">arrow_drop_down</mat-icon>
+        </ion-button>
 
-      <button mat-icon-button *ngIf="canEdit && !selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate"
-        (click)="addRow()" class="hidden-xs hidden-sm">
-        <mat-icon>add</mat-icon>
-      </button>
-      <button mat-icon-button small color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
-        (click)="onRefresh.emit()">
-        <mat-icon>refresh</mat-icon>
-      </button>
-      <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
-        <mat-icon>filter_list</mat-icon>
-      </button>
-      <button mat-icon-button small color="light" *ngIf="canEdit && selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate"
-        (click)="deleteSelection()" class="hidden-xs hidden-sm">
-        <mat-icon>delete</mat-icon>
-      </button>
+        <button mat-icon-button class="hidden-xs hidden-sm hidden-mobile"
+                *ngIf="canEdit"
+                [title]="'COMMON.BTN_ADD'|translate"
+                (click)="addRow()" >
+          <mat-icon>add</mat-icon>
+        </button>
+        <button mat-icon-button small color="light" [title]="'COMMON.BTN_REFRESH'|translate"
+          (click)="onRefresh.emit()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <button mat-icon-button color="{{filterIsEmpty ? '' : 'primary'}}"
+                [title]="'COMMON.BTN_FILTER'|translate"
+                (click)="filterExpansionPanel.toggle()">
+          <mat-icon>filter_list</mat-icon>
+          <ion-text *ngIf="!filterIsEmpty">
+            <span [innerHTML]="'COMMON.TABLE.FILTERED_PARENTHESIS'|translate"></span></ion-text>
+        </button>
+      </ng-container>
+
+      <!-- if row selection -->
+      <ng-template #hasSelection>
+
+        <!-- delete -->
+        <button mat-icon-button
+                class="hidden-xs hidden-sm"
+                *ngIf="canEdit" [title]="'COMMON.BTN_DELETE'|translate"
+                (click)="deleteSelection()" >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </ng-template>
 
       <div class="toolbar-spacer"></div>
 
@@ -241,7 +257,7 @@
 
         <ng-template #iconComment>
           <ion-label class="ion-text-center">
-            <ion-icon color="medium" name="chatboxes"
+            <ion-icon color="medium" name="chatbox"
                       *ngIf="row.validator.controls.comments.value"
                       [title]="row.validator.controls.comments.value"></ion-icon>
           </ion-label>

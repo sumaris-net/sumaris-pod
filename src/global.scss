@@ -1,5 +1,4 @@
-/* You can add global styles to this file, and also import other style files */
-@import "core";
+@import "theme";
 
 body,
 html {
@@ -174,9 +173,28 @@ form.form-container {
     font-size: 16px !important;
 
     ion-icon[matPrefix],
-    mat-icon[matPrefix] {
+    mat-icon[matPrefix],
+    .mat-form-field-prefix ion-icon,
+    .mat-form-field-prefix .mat-icon {
+      font-size: 150%;
+      line-height: 1.125;
       margin-left: 5px;
       margin-right: 5px;
+      height: 0.8em;
+      position: relative;
+      bottom: -3px;
+    }
+
+    ion-icon[matSuffix],
+    mat-icon[matSuffix],
+    .mat-form-field-suffix ion-icon,
+    .mat-form-field-suffix .mat-icon {
+      width: 0.8em !important;
+
+      &.large {
+        font-size: 150%;
+        line-height: 1.125;
+      }
     }
 
     // When field use choice button, reduce the font size, and optimize layout
@@ -238,7 +256,8 @@ mat-form-field {
   }
 }
 
-// --- mat-date-time
+
+  // --- mat-date-time
 mat-date-time {
   // Need for errors injected using the <ng-content> tag
   mat-error {
@@ -555,7 +574,6 @@ mat-table {
     }
 
 
-
   }
 
 
@@ -648,6 +666,7 @@ mat-table {
 
 // Other material component
 
+.flex-spacer,
 .toolbar-spacer {
   flex: 1 1 auto;
 }
@@ -806,9 +825,56 @@ ion-item {
 }
 
 // --------------------------------------------------
+// Icon inside text
+// --------------------------------------------------
+mat-icon,
+ion-icon {
+  &.text-size {
+    font-size: 1em;
+    width: 1em;
+    height: 1em;
+  }
+}
+ion-button[expand="block"],
+ion-button[expand="full"],
+.mat-button,
+.mat-raised-button {
+  mat-icon,
+  ion-icon {
+    &[slot] {
+      pointer-events: none;
+      width: 24px;
+      height: 24px;
+    }
+    &[slot='start'],
+    &[slot='end'] {
+      margin-left: unset;
+      margin-right: unset;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    &t[slot='start'] {
+      margin-inline-start: -0.3em;
+      margin-inline-end: 0.3em;
+    }
+    &[slot='end'] {
+      margin-inline-start: 0.3em;
+      margin-inline-end: -0.3em;
+    }
+    &.ion-float-start[slot='start'] {
+      position: absolute;
+      left: 0;
+    }
+    &.ion-float-end[slot='end'] {
+      position: absolute;
+      right: 0;
+    }
+  }
+}
+
+// --------------------------------------------------
 // Inject theme colors (as CSS variables)
 // --------------------------------------------------
 :root {
-
   @include css-variables-to-root();
 }

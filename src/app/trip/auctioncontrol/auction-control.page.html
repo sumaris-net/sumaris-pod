@@ -38,10 +38,10 @@
             </app-landing-form>
           </ion-col>
           <ion-col class="ion-no-padding" size="12" size-xl="3">
-            <entity-metadata [value]="data">
+            <app-entity-metadata [value]="data">
               <app-entity-quality-form [editor]="this">
               </app-entity-quality-form>
-            </entity-metadata>
+            </app-entity-metadata>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -67,7 +67,7 @@
               <ion-col *ngFor="let pmfm of landingForm.$pmfms | async; index as i;"
                   size="12" size-md="6">
                 <mat-form-field-measurement [pmfm]="pmfm"
-                                            [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                            [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                             [tabindex]="50 + i*2">
                 </mat-form-field-measurement>
               </ion-col>

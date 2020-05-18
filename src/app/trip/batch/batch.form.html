@@ -46,7 +46,7 @@
                                          [hidden]="pmfm.hidden"
                                          [pmfm]="pmfm"
                                          [style]="mobile? 'button' : 'autocomplete'"
-                                         [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                         [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                          [compact]="compact"
                                          [tabindex]="tabindex+2 + i*2">
           </mat-form-field-measurement-qv>
@@ -57,7 +57,7 @@
           <mat-form-field-measurement #matInput
                                       [pmfm]="pmfm"
                                       [hidden]="pmfm.hidden"
-                                      [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                      [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                       [compact]="compact"
                                       [tabindex]="tabindex+2 + i*2">
           </mat-form-field-measurement>
@@ -70,9 +70,9 @@
     <ion-row *ngIf="defaultWeightPmfm && showWeight">
       <ion-col class="ion-no-padding">
         <mat-form-field-measurement #matInput
-                                    [class.computed]="form.controls.weight.controls.computed.value"
+                                    [class.computed]="weightForm.controls.computed.value"
                                     [pmfm]="defaultWeightPmfm"
-                                    [formControl]="form.controls.weight.controls.value"
+                                    [formControl]="weightForm.controls.value"
                                     [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
                                     [compact]="compact"
                                     [tabindex]="tabindex+28"
@@ -92,7 +92,7 @@
 
           <!-- checkbox, when compact -->
           <mat-checkbox matPrefix
-                        [formControl]="form.controls.weight.controls.estimated"
+                        [formControl]="weightForm.controls.estimated"
                         labelPosition="after"
                         [tabindex]="tabindex+29">
             <ion-text translate>TRIP.BATCH.EDIT.ESTIMATED_WEIGHT</ion-text>
@@ -141,7 +141,7 @@
       </ion-row>
 
       <ion-row class="ion-no-padding"
-        *ngFor="let samplingBatchForm of form.get('children')?.controls; let i=index"
+        *ngFor="let samplingBatchForm of childrenArray.controls; let i=index"
         [formGroupName]="i">
 
         <!-- Sampling ratio -->

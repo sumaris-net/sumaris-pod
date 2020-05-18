@@ -19,7 +19,7 @@
                                 [placeholder]="'TRIP.OPERATION.LIST.PHYSICAL_GEAR'|translate"
                                 [config]="autocompleteFields.physicalGear"
                                 [tabindex]="tabindex"
-                                required>
+                                [required]="true">
         </mat-autocomplete-field>
 
       </ion-col>
@@ -30,7 +30,7 @@
                                 [placeholder]="'TRIP.OPERATION.LIST.TARGET_SPECIES'|translate"
                                 [config]="autocompleteFields.taxonGroup"
                                 [tabindex]="tabindex+1"
-                                required>
+                                [required]="true">
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>

@@ -1,4 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  InjectionToken,
+  Input,
+  OnInit,
+  Optional,
+  ViewChild
+} from '@angular/core';
 import {AlertController, IonSplitPane, MenuController, ModalController} from "@ionic/angular";
 
 import {Router} from "@angular/router";
@@ -7,7 +17,6 @@ import {AccountService} from "../services/account.service";
 import {AboutModal} from '../about/modal-about';
 
 import {environment} from '../../../environments/environment';
-import {HomePage} from '../home/home';
 import {fadeInAnimation} from '../../shared/material/material.animations';
 import {TranslateService} from "@ngx-translate/core";
 import {isNotNilOrBlank} from "../../shared/functions";
@@ -25,12 +34,55 @@ export interface MenuItem {
   matIcon?: string;
   profile?: UserProfileLabel;
   exactProfile?: UserProfileLabel;
+  color?: string,
   cssClass?: string;
   // A config property, to enable the menu item
   ifProperty?: string;
   // A config property, to override the title
   titleProperty?: string;
+  titleArgs?: {[key: string]: string};
 }
+
+export class MenuItems {
+  static checkIfVisible(item: MenuItem,
+                        accountService: AccountService,
+                        config: Configuration,
+                        opts?: {
+                    isLogin?: boolean;
+                    debug?: boolean
+                  }): boolean {
+    opts = opts || {};
+    if (item.profile) {
+      const hasProfile = accountService.isLogin() && accountService.hasMinProfile(item.profile);
+      if (!hasProfile) {
+        if (opts.debug) console.debug("[menu] User does not have minimal profile '" + item.profile + "' for ", (item.path || item.page));
+        return false;
+      }
+    }
+
+    else if (item.exactProfile) {
+      const hasExactProfile =  accountService.isLogin() && accountService.hasExactProfile(item.profile);
+      if (!hasExactProfile) {
+        if (opts.debug) console.debug("[menu] User does not have exact profile '" + item.exactProfile + "' for ", (item.path || item.page));
+        return false;
+      }
+    }
+
+    // If enable by config
+    if (item.ifProperty) {
+      const isEnableByConfig = config && config.properties[item.ifProperty] === 'true';
+      if (!isEnableByConfig) {
+        if (opts.debug) console.debug("[menu] Config property '" + item.ifProperty + "' not 'true' for ", (item.path || item.page));
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
+
+export const APP_MENU_ROOT = new InjectionToken<MenuItem[]>('menuRoot');
+export const APP_MENU_ITEMS = new InjectionToken<MenuItem[]>('menuItems');
 
 const SPLIT_PANE_SHOW_WHEN = 'lg';
 
@@ -43,13 +95,14 @@ const SPLIT_PANE_SHOW_WHEN = 'lg';
 })
 export class MenuComponent implements OnInit {
 
-  private _debug = false;
+  private readonly _debug: boolean;
   private _subscription = new Subscription();
+  private _config: Configuration;
+
   public loading = true;
   public isLogin = false;
   public account: Account;
   public splitPaneOpened: boolean;
-  public config: Configuration;
 
   @Input() logo: String;
 
@@ -60,18 +113,11 @@ export class MenuComponent implements OnInit {
   @Input()
   appVersion: String = environment.version;
 
-  @Input() content: any;
-
-  @Input() side: string = "left";
-
-  root: any = HomePage;
-
-  @Input()
-  items: Array<MenuItem>;
+  @Input() side = "left";
 
   @ViewChild('splitPane', { static: true }) splitPane: IonSplitPane;
 
-  constructor(
+  constructor (
     protected accountService: AccountService,
     protected router: Router,
     protected menu: MenuController,
@@ -79,10 +125,11 @@ export class MenuComponent implements OnInit {
     protected alertController: AlertController,
     protected translate: TranslateService,
     protected configService: ConfigService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    @Optional() @Inject(APP_MENU_ITEMS) public items: MenuItem[]
   ) {
 
-    //this._debug = !environment.production;
+    this._debug = !environment.production;
   }
 
   async ngOnInit() {
@@ -97,7 +144,7 @@ export class MenuComponent implements OnInit {
         this.accountService.onLogout,
         this.configService.config
           .pipe(
-            tap(config => this.config = config)
+            tap(config => this._config = config)
           )
         )
         .pipe(
@@ -182,6 +229,10 @@ export class MenuComponent implements OnInit {
     await alert.present();
   }
 
+  async menuClose(): Promise<boolean> {
+    return this.menu.close('menu');
+  }
+
   async openAboutModal(event) {
     const modal = await this.modalCtrl.create({component: AboutModal});
     return modal.present();
@@ -199,6 +250,8 @@ export class MenuComponent implements OnInit {
   }
 
   async doAction(action: string, event: UIEvent) {
+    this.menuClose();
+
     switch (action) {
       case 'logout':
         await this.logout();
@@ -223,49 +276,23 @@ export class MenuComponent implements OnInit {
   /* -- protected methods -- */
 
   protected refreshMenuItems() {
-    if (this._debug) console.debug("[menu] Updating menu...");
+    if (this._debug) console.debug("[menu] Refreshing menu items...");
 
     const filteredItems = (this.items || [])
-      .filter((item) => this.filterMenuItem(item))
+      .filter((item) => MenuItems.checkIfVisible(item, this.accountService, this._config, {
+        isLogin: this.isLogin,
+        debug: this._debug
+      }))
       .map(item => {
         // Replace title using properties
-        if (isNotNilOrBlank(item.titleProperty) && this.config) {
-          const title = this.config.properties[item.titleProperty];
+        if (isNotNilOrBlank(item.titleProperty) && this._config) {
+          const title = this._config.properties[item.titleProperty];
           if (title) return { ...item, title}; // Create a copy, to keep the original item.title
         }
         return item;
       });
 
     this.$filteredItems.next(filteredItems);
-  }
-
-  protected filterMenuItem(item: MenuItem): boolean {
-    if (item.profile) {
-      const hasProfile = this.isLogin && this.accountService.hasMinProfile(item.profile);
-      if (!hasProfile) {
-        if (this._debug) console.debug("[menu] User does not have minimal profile '" + item.profile + "' for ", (item.path || item.page));
-        return false;
-      }
-    }
-
-    else if (item.exactProfile) {
-      const hasExactProfile =  this.isLogin && this.accountService.hasExactProfile(item.profile);
-      if (!hasExactProfile) {
-        if (this._debug) console.debug("[menu] User does not have exact profile '" + item.exactProfile + "' for ", (item.path || item.page));
-        return false;
-      }
-    }
-
-    // If enable by config
-    if (item.ifProperty) {
-      const isEnableByConfig = this.config && this.config.properties[item.ifProperty] === 'true';
-      if (!isEnableByConfig) {
-        if (this._debug) console.debug("[menu] Config property '" + item.ifProperty + "' not 'true' for ", (item.path || item.page));
-        return false;
-      }
-    }
-
-    return true;
   }
 
   protected markForCheck() {

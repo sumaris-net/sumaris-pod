@@ -4,7 +4,7 @@ import {Product} from "../services/model/product.model";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {UsageMode} from "../../core/services/model";
 import {isNotEmptyArray} from "../../shared/functions";
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ProductValidatorService} from "../services/validator/product.validator";
@@ -12,7 +12,6 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {Subscription} from "rxjs";
 import {SaleProduct, SaleProductUtils} from "../services/model/sale-product.model";
 import {PmfmStrategy} from "../../referential/services/model";
-import {isJsonArray} from "@angular-devkit/core";
 
 @Component({
   selector: 'app-product-sale-form',

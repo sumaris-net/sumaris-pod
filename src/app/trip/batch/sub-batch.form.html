@@ -49,7 +49,7 @@
                                  *ngIf="!($loadingControls|async) && qvPmfm"
                                  [pmfm]="qvPmfm"
                                  [style]="mobile? 'button' : 'autocomplete'"
-                                 [formControl]="form.controls.measurementValues.controls[qvPmfm.pmfmId]"
+                                 [formControl]="form.get('measurementValues.' + qvPmfm.pmfmId.toString())"
                                  [floatLabel]="floatLabel"
                                  [compact]="compact"
                                  [tabindex]="tabindex+1">
@@ -153,7 +153,7 @@
                                      [pmfm]="pmfm"
                                      [style]="mobile? 'button' : 'autocomplete'"
                                      [sortAttribute]="mobile ? ['name'] : undefined"
-                                     [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId.toString()]"
+                                     [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                      [compact]="compact"
                                      (keyup.enter)="last && doSubmitLastMeasurementField($event)"
                                      [tabindex]="tabindex + 20 + i">
@@ -164,7 +164,7 @@
         <mat-form-field-measurement #matInput
                                     [pmfm]="pmfm"
                                     [hidden]="pmfm.hidden"
-                                    [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId.toString()]"
+                                    [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                     [compact]="compact"
                                     (keyup.enter)="last && doSubmitLastMeasurementField($event)"
                                     [tabindex]="tabindex + 20 + i">

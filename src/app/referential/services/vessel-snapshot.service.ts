@@ -50,8 +50,8 @@ const LoadAllQuery: any = gql`
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${ReferentialFragments.location}
 `;
-const LoadAllWithCountQuery: any = gql`
-  query VesselSnapshots($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
+const LoadAllWithTotalQuery: any = gql`
+  query VesselSnapshotsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
     vesselSnapshots(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       ...LightVesselSnapshotFragment
     }
@@ -72,8 +72,8 @@ const LoadQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class VesselSnapshotService
-  extends BaseDataService
-  implements SuggestionDataService<VesselSnapshot> {
+  extends BaseDataService<VesselSnapshot, VesselFilter>
+  implements SuggestionDataService<VesselSnapshot, VesselFilter> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -122,57 +122,52 @@ export class VesselSnapshotService
     const now = debug && Date.now();
     if (debug) console.debug("[vessel-snapshot-service] Loading vessel snapshots using options:", variables);
 
-    let loadResult: { vesselSnapshots: any[], vesselsCount?: number; };
+    let res: LoadResult<VesselSnapshot>;
 
     // Offline: use local store
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      loadResult = await this.entities.loadAll('VesselSnapshotVO',
+      res = await this.entities.loadAll('VesselSnapshotVO',
         {
           ...variables,
           filter: VesselFilter.searchFilter(filter)
         }
-      ).then(res => {
-        return res && {
-          vesselSnapshots: res.data,
-          vesselsCount: res.total
-        };
-      });
+      );
     }
 
     // Online: use GraphQL
     else {
-      const query = (opts && opts.withTotal) ? LoadAllWithCountQuery : LoadAllQuery;
-      loadResult = await this.graphql.query<{ vesselSnapshots: any[], vesselsCount?: number; }>({
+      const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
+      res = await this.graphql.query<{ vesselSnapshots: any[], vesselsCount?: number; }>({
         query,
         variables,
         error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || undefined /*use default*/
-      });
+      })
+        .then(res => {
+          return {
+            data: res && res.vesselSnapshots,
+            total: res && res.vesselsCount
+          };
+        });
     }
 
-    const data = (!opts || opts.toEntity !== false) ?
-      (loadResult && loadResult.vesselSnapshots || []).map(VesselSnapshot.fromObject) :
-      (loadResult && loadResult.vesselSnapshots || []) as VesselSnapshot[];
+    res.data = (!opts || opts.toEntity !== false) ?
+      (res && res.data || []).map(VesselSnapshot.fromObject) :
+      (res && res.data || []) as VesselSnapshot[];
     if (debug) console.debug(`[referential-ref-service] Vessels loaded (from offline storage) in ${Date.now() - now}ms`);
-    return {
-      data: data,
-      total: loadResult && loadResult.vesselsCount
-    };
+    return res;
   }
 
-  async suggest(value: any, options?: {
-    date: Date | Moment;
-    statusIds?: number[];
-  }): Promise<VesselSnapshot[]> {
+  async suggest(value: any, filter?: VesselFilter): Promise<VesselSnapshot[]> {
     if (EntityUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
       {
-        statusIds: options && options.statusIds || undefined,
-        date: options && options.date || undefined,
-        searchText: value as string
-      }
+        ...filter,
+        searchText: value
+      },
+      { withTotal: false /* total not need */ }
     );
     return res.data;
   }

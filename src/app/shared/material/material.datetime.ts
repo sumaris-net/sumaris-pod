@@ -12,7 +12,8 @@ import {
   ViewChildren
 } from '@angular/core';
 import {Platform} from '@ionic/angular';
-import {DateAdapter, FloatLabelType, MatDatepicker, MatDatepickerInputEvent} from '@angular/material';
+import {DateAdapter} from '@angular/material/core';
+import {FloatLabelType} from '@angular/material/form-field';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -33,6 +34,7 @@ import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {first} from "rxjs/operators";
 import {InputElement, isFocusableElement} from "./focusable";
 import {BehaviorSubject} from "rxjs";
+import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -118,9 +120,9 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
   @Input() clearable = false;
 
-  @ViewChild('datePicker1', { static: false }) datePicker1: MatDatepicker<Moment>;
-  @ViewChild('datePicker2', { static: false }) datePicker2: MatDatepicker<Moment>;
-  @ViewChild('timePicker', { static: false }) timePicker: NgxTimePicker;
+  @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
+  @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
+  @ViewChild('timePicker') timePicker: NgxTimePicker;
 
   @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
 
@@ -338,7 +340,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     this._onChangeCallback(dateStr);
   }
 
-  private onDatePickerChange(event: MatDatepickerInputEvent<Moment>): void {
+  onDatePickerChange(event: MatDatepickerInputEvent<Moment>): void {
     if (this.writing || !(event && event.value)) return; // Skip if call by self
     this.writing = true;
 
@@ -375,7 +377,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
     this._onChangeCallback(dateStr);
   }
 
-  public checkIfTouched() {
+  checkIfTouched() {
     if (this.form.touched) {
       this.markForCheck();
       this._onTouchedCallback();

@@ -1,4 +1,4 @@
-import {Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import { Injector, Input, OnDestroy, OnInit, Directive } from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
@@ -32,6 +32,7 @@ export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
 }
 
+@Directive()
 export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, F> extends AppTable<T, F>
   implements OnInit, OnDestroy, ValidatorService {
 

@@ -53,7 +53,7 @@
                                     [title]="'CONFIGURATION.BTN_SHOW_MORE_HELP'|translate"
                                     (click)="propertiesFormHelper.add()">
                           <ion-label translate>COMMON.BTN_SHOW_MORE</ion-label>
-                          <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+                          <mat-icon slot="end">arrow_drop_down</mat-icon>
                         </ion-button>
                       </ion-col>
                     </ion-row>
@@ -118,7 +118,7 @@
 
             <!-- entity metadata-->
             <ion-col class="ion-no-padding" size="12" size-xl="3">
-              <entity-metadata [value]="data"></entity-metadata>
+              <app-entity-metadata [value]="data"></app-entity-metadata>
             </ion-col>
           </ion-row>
         </ion-grid>

@@ -13,11 +13,10 @@
           <ion-row>
             <ion-col size="4">
               <div class="user-avatar" [class.primary]="!account?.avatar" [ngStyle]="{'background-image':'url('+(account?.avatar||'./assets/img/person.png')+')'}"
-                   menuClose
                    [routerLink]="['/account']"
                    routerDirection="root"
                    routerLinkActive="ion-color-primary"
-                   (click)="menu.close()">
+                   (click)="menuClose()">
               </div>
             </ion-col>
             <ion-col size="8" class="user-logo">
@@ -27,11 +26,11 @@
           </ion-row>
           <ion-row class="ion-no-padding">
 
-            <button mat-button menuClose
+            <button mat-button
                         [routerLink]="['/account']"
                         routerDirection="root"
                         routerLinkActive="ion-color-primary"
-                        (click)="menu.close()">
+                        (click)="menuClose()">
               <ion-label color="primary" class="ion-text-wrap">
                 <h3 full class="no-margin username">
                   <b>{{account?.firstName}} {{account?.lastName}}</b>
@@ -49,17 +48,18 @@
     <ion-content [class.has-user-header]="isLogin">
 
       <ion-list lines="none">
-        <ion-menu-toggle auto-hide="false" *ngFor="let item of $filteredItems | async"
-                         [class]="item.cssClass">
+        <ion-menu-toggle auto-hide="false"
+                         [class.flex-spacer]="item.cssClass == 'flex-spacer'"
+                         *ngFor="let item of $filteredItems | async">
 
           <!-- link -->
           <ion-item *ngIf="!loading && item.path"
                     @fadeInAnimation
+                    class="{{item.cssClass}} {{item.color}}"
                     tappable class="text-1x"
                     [routerLink]="item.path"
                     routerDirection="root"
                     routerLinkActive="selected"
-                    (click)="menu.close()"
                     [routerLinkActiveOptions]="{exact: (item.path === '/')}">
             <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
             <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
@@ -69,15 +69,18 @@
           <!-- action -->
           <ion-item *ngIf="!loading && item.action"
                     @fadeInAnimation
+                    class="{{item.cssClass}} {{item.color}}"
                     tappable class="text-1x"
-                    (click)="menu.close() && doAction(item.action, $event)">
+                    (click)="doAction(item.action, $event)">
             <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
             <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
             <ion-label translate>{{item.title}}</ion-label>
           </ion-item>
 
           <!-- divider -->
-          <ion-item-divider @fadeInAnimation *ngIf="!loading && !item.path && !item.action">
+          <ion-item-divider @fadeInAnimation
+                            class="{{item.cssClass}} {{item.color}}"
+                            *ngIf="!loading && !item.path && !item.action">
             <ion-label translate>{{item.title}}</ion-label>
           </ion-item-divider>
         </ion-menu-toggle>

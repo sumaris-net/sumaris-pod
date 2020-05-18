@@ -1,5 +1,5 @@
 import {AppForm, Referential, StatusIds} from "../../core/core.module";
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {ReferentialValidatorService} from "../services/referential.validator";
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";

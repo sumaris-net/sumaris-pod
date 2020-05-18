@@ -1,15 +1,15 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {AppForm} from "../../core/form/form.class";
 import {Packet, PacketComposition, PacketUtils} from "../services/model/packet.model";
-import {EntityUtils, IReferentialRef, UsageMode} from "../../core/services/model";
-import {DateAdapter} from "@angular/material";
+import {IReferentialRef, UsageMode} from "../../core/services/model";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PacketValidatorService} from "../services/validator/packet.validator";
 import {FormArrayHelper} from "../../core/form/form.utils";
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNilOrNaN, round} from "../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNilOrNaN, round} from "../../shared/functions";
 
 @Component({
   selector: 'app-packet-form',

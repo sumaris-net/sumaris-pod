@@ -17,7 +17,7 @@
         <mat-autocomplete-field formControlName="program"
                                 [placeholder]="'TRIP.PROGRAM'|translate"
                                 [config]="autocompleteFields.program"
-                                required>
+                                [required]="true">
           <ion-icon matPrefix name="contract"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
@@ -33,17 +33,16 @@
           [placeholder]="'TRIP.VESSEL'|translate"
           formControlName="vesselSnapshot"
           [config]="autocompleteFields.vesselSnapshot"
-          required>
+          [required]="true">
           <ion-icon matPrefix name="boat"></ion-icon>
+
+          <button matAfter type="button" mat-icon-button tabindex="-1"
+                  *ngIf="showAddVessel && network.online"
+                  [title]="'TRIP.BTN_ADD_VESSEL'|translate"
+                  (click)="addVesselModal()">
+            <mat-icon>add</mat-icon>
+          </button>
         </mat-autocomplete-field>
-      </ion-col>
-      <ion-col size="auto" class="ion-align-self-center">
-        <button type="button" mat-icon-button tabindex="-1"
-                *ngIf="showAddVessel && network.online"
-                [title]="'TRIP.BTN_ADD_VESSEL'|translate"
-                (click)="addVesselModal()">
-          <mat-icon>add</mat-icon>
-        </button>
       </ion-col>
     </ion-row>
 
@@ -57,15 +56,15 @@
           [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate"
           formControlName="departureLocation"
           [config]="autocompleteFields.location"
-          required>
-          <ion-icon matPrefix name="pin"></ion-icon>
+          [required]="true">
+          <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
 
       </ion-col>
       <ion-col size="12" size-sm="auto">
         <mat-date-time [placeholder]="'TRIP.DEPARTURE_DATE_TIME'|translate"
                        formControlName="departureDateTime"
-                       required>
+                       [required]="true">
         </mat-date-time>
       </ion-col>
     </ion-row>
@@ -81,7 +80,7 @@
           formControlName="returnLocation"
           [config]="autocompleteFields.location"
           [required]="!isOnFieldMode">
-          <ion-icon matPrefix name="pin"></ion-icon>
+          <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="12" size-sm="auto">
@@ -141,15 +140,17 @@
                                 [placeholder]="('TRIP.METIER_PLACEHOLDER'|translate) + (i+1)"
                                 [appAutofocus]="metierFocusIndex === i"
                                 [config]="autocompleteFields.metier"
-                                [filter]="metierFilter()"
+                                [filter]="getFilterMetier()"
                                 [tabindex]="tabindex+10+i*3"
                                 [i18nPrefix]="'REFERENTIAL.'"
                                 [required]="showMetiers && first">
 
-          <button matSuffix type="button" mat-icon-button
+          <button matAfter type="button" mat-icon-button
+                  tabindex="-1"
                   [title]="'TRIP.METIERS_FILTER'|translate"
-                  (click)="metiersFiltered = !metiersFiltered">
-            <mat-icon [color]="metiersFiltered ? 'accent' : undefined">filter_list</mat-icon>
+                  (click)="metiersFiltered = !metiersFiltered"
+                  [color]="metiersFiltered ? 'primary' : undefined">
+            <mat-icon >filter_list</mat-icon>
           </button>
 
           <!--          <button matSuffix mat-icon-button-->

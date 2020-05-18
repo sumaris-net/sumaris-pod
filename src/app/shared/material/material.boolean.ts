@@ -10,11 +10,13 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import {FloatLabelType, MatCheckbox, MatCheckboxChange, MatRadioButton, MatRadioChange} from '@angular/material';
+import {FloatLabelType} from '@angular/material/form-field';
 import {ControlValueAccessor, FormBuilder, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {isNil, isNotNil} from '../functions';
 import {InputElement} from "./focusable";
+import {MatRadioButton, MatRadioChange} from "@angular/material/radio";
+import {MatCheckbox, MatCheckboxChange} from "@angular/material/checkbox";
 
 const noop = () => {
 };
@@ -83,12 +85,12 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
     }
   }
 
-  @ViewChild('yesButton', { static: false }) yesButton: MatRadioButton;
-  @ViewChild('noButton', { static: false }) noButton: MatRadioButton;
+  @ViewChild('yesButton') yesButton: MatRadioButton;
+  @ViewChild('noButton') noButton: MatRadioButton;
 
-  @ViewChild('checkboxButton', { static: false }) checkboxButton: MatCheckbox;
+  @ViewChild('checkboxButton') checkboxButton: MatCheckbox;
 
-  @ViewChild('fakeInput', { static: false }) fakeInput: ElementRef;
+  @ViewChild('fakeInput') fakeInput: ElementRef;
 
   constructor(
     private translate: TranslateService,
@@ -165,6 +167,24 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
     this.markForCheck();
   }
 
+  onRadioValueChanged(event: MatRadioChange): void {
+    if (this._writing) return; // Skip if call by self
+    this._writing = true;
+    this._value = event.value;
+    this.checkIfTouched();
+    this._onChangeCallback(event.value);
+    this._writing = false;
+  }
+
+  onCheckboxValueChanged(event: MatCheckboxChange): void {
+    if (this._writing) return; // Skip if call by self
+    this._writing = true;
+    this._value = event.checked;
+    this.checkIfTouched();
+    this._onChangeCallback(event.checked);
+    this._writing = false;
+  }
+
   /* -- private method -- */
 
   private checkIfTouched() {
@@ -198,23 +218,6 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
     this.markForCheck();
   }
 
-  private onRadioValueChanged(event: MatRadioChange): void {
-    if (this._writing) return; // Skip if call by self
-    this._writing = true;
-    this._value = event.value;
-    this.checkIfTouched();
-    this._onChangeCallback(event.value);
-    this._writing = false;
-  }
-
-  private onCheckboxValueChanged(event: MatCheckboxChange): void {
-    if (this._writing) return; // Skip if call by self
-    this._writing = true;
-    this._value = event.checked;
-    this.checkIfTouched();
-    this._onChangeCallback(event.checked);
-    this._writing = false;
-  }
 
   private markForCheck() {
     this.cd.markForCheck();

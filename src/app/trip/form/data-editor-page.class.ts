@@ -1,4 +1,4 @@
-import {Injector, OnInit} from '@angular/core';
+import { Injector, OnInit, Directive } from '@angular/core';
 
 import {EntityUtils, ReferentialRef} from '../../core/core.module';
 import {BehaviorSubject, Subject} from 'rxjs';
@@ -10,10 +10,11 @@ import {isNotNilOrBlank} from "../../shared/functions";
 import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {AppEditorPage} from "../../core/form/editor-page.class";
 import {HistoryPageReference} from "../../core/services/model";
-import {DataRootEntity} from "../services/model/base.model";
+import {RootDataEntity} from "../services/model/base.model";
 
 
-export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends EditorDataService<T>>
+@Directive()
+export abstract class AppDataEditorPage<T extends RootDataEntity<T>, S extends EditorDataService<T>>
   extends AppEditorPage<T>
   implements OnInit {
 

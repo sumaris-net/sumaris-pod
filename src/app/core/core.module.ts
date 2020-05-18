@@ -35,7 +35,7 @@ import {HomePage} from './home/home';
 import {RegisterForm} from './register/form/form-register';
 import {RegisterModal} from './register/modal/modal-register';
 import {AppGraphQLModule} from './graphql/graphql.module';
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import * as moment from "moment/moment";
 import {AppFormUtils, FormArrayHelper} from './form/form.utils';
 import {AppTableUtils} from './table/table.utils';
