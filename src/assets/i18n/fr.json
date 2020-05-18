@@ -338,9 +338,10 @@
     "RETURN_LOCATION": "Port de retour",
     "OBSERVER_PLACEHOLDER": "Observateur #",
     "OBSERVERS": "Observateurs :",
-    "METIER_PLACEHOLDER": "Métier #",
+    "MAIN_METIER_PLACEHOLDER": "Métier principal",
+    "SECONDARY_METIER_PLACEHOLDER": "Métier secondaire #{{rank}}",
     "METIERS": "Métiers:",
-    "METIERS_FILTER": "Filtrer les métiers",
+    "BTN_FILTER_METIER": "Restreindre aux métiers déjà pratiqués",
     "COMMENTS": "Commentaires",
     "QUALITY": "État de saisie",
     "TAB_GENERAL": "Détails",
@@ -399,7 +400,8 @@
       "VALIDATE_TRIP_ERROR": "Erreur lors de la validation de la marée",
       "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée",
       "QUALIFY_TRIP_ERROR": "Erreur lors de la qualification de la marée",
-      "SYNCHRONIZE_TRIP_ERROR": "Synchronisation impossible"
+      "SYNCHRONIZE_TRIP_ERROR": "Synchronisation impossible",
+      "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé"
     },
     "MEASUREMENT": {
       "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}",

@@ -249,7 +249,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       this.onRefresh
     )
       .pipe(
-        startWith(this.autoLoad ? {} : 'skip'),
+        startWith<any, any>(this.autoLoad ? {} : 'skip'),
         switchMap(
           (any: any) => {
             this._dirty = false;

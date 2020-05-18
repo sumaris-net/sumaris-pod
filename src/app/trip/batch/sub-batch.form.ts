@@ -320,7 +320,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     this.registerSubscription(
       this.enableIndividualCountControl.valueChanges
         .pipe(
-          startWith(this.enableIndividualCountControl.value)
+          startWith<any, any>(this.enableIndividualCountControl.value)
         )
         .subscribe((enable) => {
           const individualCountControl = this.form.get('individualCount');

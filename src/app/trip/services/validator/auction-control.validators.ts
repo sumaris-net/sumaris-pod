@@ -25,7 +25,7 @@ export class AuctionControlValidators {
     let computing = false;
     const subscription = form.valueChanges
       .pipe(
-        startWith(form.value),
+        startWith<any, any>(form.value),
         filter(() => !computing),
         // Protected against loop
         tap(() => computing = true),

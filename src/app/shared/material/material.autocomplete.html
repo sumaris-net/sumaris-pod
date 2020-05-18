@@ -44,6 +44,15 @@
                 </ion-row>
               </mat-option>
 
+              <!-- No item option -->
+              <mat-option *ngIf="!items.length" class="ion-no-padding">
+                <ion-row class="ion-no-padding">
+                  <ion-col class="ion-no-padding">
+                    <ion-label><i>{{noResultMessage | translate}}</i></ion-label>
+                  </ion-col>
+                </ion-row>
+              </mat-option>
+
               <!-- options -->
               <mat-option class="ion-no-padding"
                           *ngFor="let item of items" [value]="item">

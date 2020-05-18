@@ -130,8 +130,8 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   private _onTouchedCallback = () => {};
   private _implicitValue: any;
   private _subscription = new Subscription();
-
   private _itemsSubscription: Subscription;
+  private _$filter = new BehaviorSubject<any>(undefined);
 
   _tabindex: number;
   matSelectItems$: Observable<any[]>;
@@ -154,7 +154,16 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @Input() suggestFn: SuggestFn<any, any>;
 
-  @Input() filter: any = undefined;
+  @Input() set filter(value: any) {
+    console.log(this.logPrefix + " Setting filter:", filter);
+    if (value !== this._$filter.getValue()) {
+      this._$filter.next(value);
+    }
+  }
+
+  get filter(): any {
+    return this._$filter.getValue();
+  }
 
   @Input() required = false;
 
@@ -208,6 +217,8 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() config: MatAutocompleteFieldConfig;
 
   @Input() i18nPrefix = 'REFERENTIAL.';
+
+  @Input() noResultMessage: 'COMMON.NO_RESULT';
 
   @Input('class') classList: string;
 
@@ -307,12 +318,22 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     }
     else if (!this.searchable) {
       // Manually fill input items, from the given suggest function
-      this.suggestFn('*', this.filter).then(res => this.$inputItems.next(res));
+      this._subscription.add(
+        this._$filter.pipe(
+          startWith<any, any>(this._$filter.getValue()),
+          debounceTime(250),
+          takeWhile((_) => !this.searchable) // Close subscription, when enabling search (no more mat-select)
+        )
+          .subscribe(async (filter) => {
+            const res = await this.suggestFn('*', filter);
+            this.$inputItems.next(res);
+          })
+      )
     }
 
     this.matSelectItems$ = this.$inputItems.asObservable()
       .pipe(
-        takeWhile((_) => !this.searchable),
+        takeWhile((_) => !this.searchable), // Close subscription, when enabling search (no more mat-select)
         filter(isNotNil),
         map((items) => {
           // Make sure control value is inside
@@ -341,7 +362,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
           ),
         this.formControl.valueChanges
           .pipe(
-            startWith(this.formControl.value),
+            startWith<any, any>(this.formControl.value),
             filter(value => isNotNil(value)),
             //tap((value) => console.debug(this.logPrefix + " valueChanges:", value)),
             debounceTime(this.debounceTime)
@@ -395,6 +416,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   }
 
   writeValue(value: any): void {
+    console.log(this.logPrefix + " Writing value: ", value);
     if (value !== this.formControl.value) {
       this.formControl.patchValue(value, {emitEvent: false});
       this._onChangeCallback(value);

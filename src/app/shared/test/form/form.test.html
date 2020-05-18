@@ -88,12 +88,32 @@
             </ion-card-content>
           </ion-card>
         </ion-col>
+
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Disabled control
+                </ion-label>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-autocomplete-field formControlName="disableEntity"
+                                      [config]="autocompleteFields.get('entity-$items')"
+                                      [mobile]="true"
+                                      [compareWith]="compareWithFn"
+                                      [logPrefix]="'[combo-mobile-2]'"
+              ></mat-autocomplete-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
       </ion-row>
 
       <!-- desktop mode -->
       <ion-row><ion-col><ion-text><h4>Desktop mode</h4></ion-text></ion-col></ion-row>
       <ion-row>
-        <!--<ion-col>
+        <ion-col>
           <ion-card>
             <ion-card-header>
               <ion-card-title>
@@ -111,10 +131,12 @@
             <mat-autocomplete-field formControlName="entity"
                                     [config]="autocompleteFields.get('entity-items')"
                                     [logPrefix]="'[combo-desktop-1]'"
+                                    [compareWith]="compareWithFn"
+                                    [mobile]="false"
             ></mat-autocomplete-field>
             </ion-card-content>
           </ion-card>
-        </ion-col>-->
+        </ion-col>
 
         <ion-col>
           <ion-card>
@@ -134,14 +156,59 @@
               <mat-autocomplete-field formControlName="entity"
                                       [config]="autocompleteFields.get('entity-$items')"
                                       [logPrefix]="'[combo-desktop-2]'"
+                                      [compareWith]="compareWithFn"
+                                      [mobile]="false"
               ></mat-autocomplete-field>
             </ion-card-content>
 
           </ion-card>
         </ion-col>
+
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Control value if missing in items
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>mobile: true, items: Observable&lt;any[]&gt;</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-autocomplete-field formControlName="missingEntity"
+                                      [config]="autocompleteFields.get('entity-$items')"
+                                      [compareWith]="compareWithFn"
+                                      [logPrefix]="'[combo-desktop-missing]'"
+                                      [mobile]="false"
+              ></mat-autocomplete-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
       </ion-row>
 
-
+      <ion-col>
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-label color="primary">
+                Disabled control
+              </ion-label>
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <mat-autocomplete-field formControlName="disableEntity"
+                                    [config]="autocompleteFields.get('entity-$items')"
+                                    [mobile]="false"
+                                    [compareWith]="compareWithFn"
+                                    [logPrefix]="'[combo-desktop-disable]'"
+            ></mat-autocomplete-field>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
     </ion-grid>
 
   </form>
