@@ -202,24 +202,24 @@
     </mat-tab>
 
     <!-- TAB: sales -->
-    <mat-tab label="{{'TRIP.TAB_SALES'|translate}}" [disabled]="!showSaleTab">
-      <ng-template mat-tab-label>
-        <mat-icon>
-          <ion-icon matPrefix slot="start" name="pricetag"></ion-icon>
-        </mat-icon>
-        <ion-label translate>TRIP.TAB_SALES</ion-label>
-        <ion-icon slot="end" name="alert" color="danger"
-                  *ngIf="(landedSaleForm.invalid && landedSaleForm.dirty) "></ion-icon>
-      </ng-template>
+<!--    <mat-tab label="{{'TRIP.TAB_SALES'|translate}}" [disabled]="!showSaleTab">-->
+<!--      <ng-template mat-tab-label>-->
+<!--        <mat-icon>-->
+<!--          <ion-icon matPrefix slot="start" name="pricetag"></ion-icon>-->
+<!--        </mat-icon>-->
+<!--        <ion-label translate>TRIP.TAB_SALES</ion-label>-->
+<!--        <ion-icon slot="end" name="alert" color="danger"-->
+<!--                  *ngIf="(landedSaleForm.invalid && landedSaleForm.dirty) "></ion-icon>-->
+<!--      </ng-template>-->
 
-      <app-landed-sale-form #landedSaleForm
-                            [program]="programSubject|async"
+<!--      <app-landed-sale-form #landedSaleForm-->
+<!--                            [program]="programSubject|async"-->
 
-        >
+<!--        >-->
 
-      </app-landed-sale-form>
+<!--      </app-landed-sale-form>-->
 
-    </mat-tab>
+<!--    </mat-tab>-->
 
     <!-- TAB: expenses -->
     <mat-tab label="{{'TRIP.TAB_EXPENSES'|translate}}" [disabled]="!showExpenseTab">
