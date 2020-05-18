@@ -14,7 +14,7 @@ import {
 } from "@angular/core";
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
-import {debounceTime, distinctUntilChanged, filter, map, switchMap, tap} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, takeWhile, tap} from "rxjs/operators";
 import {SuggestFn, SuggestionDataService} from "../services/data-service.class";
 import {
   changeCaseToUnderscore,
@@ -22,6 +22,7 @@ import {
   getPropertyByPath,
   isNil,
   isNilOrBlank,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   joinPropertiesPath,
@@ -30,7 +31,7 @@ import {
   toBoolean
 } from "../functions";
 import {InputElement} from "./focusable";
-import {MatAutocomplete} from "@angular/material";
+import {firstNotNilPromise} from "../observables";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -40,10 +41,10 @@ export const DEFAULT_VALUE_ACCESSOR: any = {
 
 export declare type DisplayFn = (obj: any) => string;
 
-export declare interface MatAutocompleteFieldConfig<T = any> {
+export declare interface MatAutocompleteFieldConfig<T = any, F = any> {
   attributes: string[];
-  suggestFn?: (value: any, options?: any) => Promise<any[]>;
-  filter?: any;
+  suggestFn?: (value: any, options?: any) => Promise<T[]>;
+  filter?: F;
   items?: Observable<T[]> | T[];
   columnSizes?: (number|'auto'|undefined)[];
   columnNames?: (string|undefined)[];
@@ -53,8 +54,8 @@ export declare interface MatAutocompleteFieldConfig<T = any> {
   mobile?: boolean;
 }
 
-export declare interface MatAutocompleteFieldAddOptions<T = any> extends Partial<MatAutocompleteFieldConfig<T>> {
-  service?: SuggestionDataService<T>;
+export declare interface MatAutocompleteFieldAddOptions<T = any, F = any> extends Partial<MatAutocompleteFieldConfig<T, F>> {
+  service?: SuggestionDataService<T, F>;
 }
 
 export class MatAutocompleteConfigHolder {
@@ -75,27 +76,28 @@ export class MatAutocompleteConfigHolder {
       };
   }
 
-  add<T = any>(fieldName: string, options?: MatAutocompleteFieldAddOptions<T>): MatAutocompleteFieldConfig<T> {
+  add<T = any, F = any>(fieldName: string, options?: MatAutocompleteFieldAddOptions<T, F>): MatAutocompleteFieldConfig<T, F> {
     if (!fieldName) {
       throw new Error("Unable to add config, with name: " + (fieldName || 'undefined'));
     }
     options = options || <MatAutocompleteFieldAddOptions>{};
-    const suggestFn: SuggestFn<T> = options.suggestFn
-        || (options.service && ((v, o) => options.service.suggest(v, o)))
+    const suggestFn: SuggestFn<T, F> = options.suggestFn
+        || (options.service && ((v, f) => options.service.suggest(v, f)))
         || undefined;
     const attributes = this.getUserAttributes(fieldName, options.attributes) || ['label', 'name'];
     const attributesOrFn = attributes.map((a, index) => typeof a === "function" && options.attributes[index] || a);
-    const searchFilter = Object.assign({
+    const filter = <F>{
       searchAttribute: attributes.length === 1 ? attributes[0] : undefined,
-      searchAttributes: attributes.length > 1 ? attributes : undefined
-    }, options.filter || {});
+      searchAttributes: attributes.length > 1 ? attributes : undefined,
+      ...options.filter
+    };
     const displayWith = options.displayWith || ((obj) => obj && joinPropertiesPath(obj, attributesOrFn));
 
     const config: MatAutocompleteFieldConfig = {
       attributes: attributesOrFn,
       suggestFn,
       items: options.items,
-      filter: searchFilter,
+      filter,
       displayWith,
       columnSizes: options.columnSizes,
       columnNames: options.columnNames,
@@ -119,13 +121,7 @@ export class MatAutocompleteConfigHolder {
   selector: 'mat-autocomplete-field',
   styleUrls: ['./material.autocomplete.scss'],
   templateUrl: 'material.autocomplete.html',
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      multi: true,
-      useExisting: forwardRef(() => MatAutocompleteField),
-    }
-  ],
+  providers: [DEFAULT_VALUE_ACCESSOR],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, ControlValueAccessor  {
@@ -136,12 +132,17 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   private _subscription = new Subscription();
 
   private _itemsSubscription: Subscription;
-  private _itemsSubject: BehaviorSubject<any[]>;
 
   _tabindex: number;
-  $items: Observable<any[]>;
+  matSelectItems$: Observable<any[]>;
+  $inputItems = new BehaviorSubject<any[]>(undefined);
+  filteredItems$: Observable<any[]>;
   onDropButtonClick = new EventEmitter<UIEvent>(true);
-  autocomplete: boolean;
+  searchable: boolean;
+
+  @Input() compareWith: (o1: any, o2: any) => boolean;
+
+  @Input() logPrefix = "[mat-autocomplete] ";
 
   @Input() formControl: FormControl;
 
@@ -151,11 +152,13 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @Input() placeholder: string;
 
-  @Input() suggestFn: SuggestFn<any>;
+  @Input() suggestFn: SuggestFn<any, any>;
 
   @Input() filter: any = undefined;
 
   @Input() required = false;
+
+  @Input() mobile: boolean;
 
   @Input() readonly = false;
 
@@ -164,26 +167,26 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() set items(value: Observable<any[]> | any[]) {
     // Remove previous subscription on items, (if exits)
     if (this._itemsSubscription) {
+      console.warn("Items received twice !");
       this._subscription.remove(this._itemsSubscription);
       this._itemsSubscription.unsubscribe();
     }
 
-    this._itemsSubject = this._itemsSubject || new BehaviorSubject<any[]>(undefined);
     if (value instanceof Observable) {
 
       this._itemsSubscription = this._subscription.add(
-        value.subscribe(v => this._itemsSubject.next(v))
+        value.subscribe(v => this.$inputItems.next(v))
       );
     }
     else {
-      if (value !== this._itemsSubject.getValue()) {
-        this._itemsSubject.next(value as any[]);
+      if (value !== this.$inputItems.getValue()) {
+        this.$inputItems.next(value as any[]);
       }
     }
   }
 
   get items(): Observable<any[]> | any[] {
-    return this._itemsSubject;
+    return this.$inputItems;
   }
 
   @Input() debounceTime = 250;
@@ -199,8 +202,6 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() showAllOnFocus: boolean;
 
   @Input() showPanelOnFocus: boolean;
-
-  @Input() mobile: boolean;
 
   @Input() appAutofocus: boolean;
 
@@ -225,12 +226,21 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @Output('focus') onFocus = new EventEmitter<FocusEvent>();
 
-  @ViewChild('matInput', { static: true }) matInput: ElementRef;
+  @ViewChild('matSelect') matSelect: ElementRef;
 
-  @ViewChild('autoCombo', { static: true }) matAutocomplete: MatAutocomplete;
+  @ViewChild('matInputText') matInputText: ElementRef;
+
 
   get value(): any {
     return this.formControl.value;
+  }
+
+  get disabled(): any {
+    return this.readonly || this.formControl.disabled;
+  }
+
+  get enabled(): any {
+    return !this.readonly && this.formControl.enabled;
   }
 
   constructor(
@@ -246,7 +256,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     // Configuration from config object
     if (this.config) {
       this.suggestFn = this.suggestFn || this.config.suggestFn;
-      if (isNil(this._itemsSubject) && this.config.items) {
+      if (!this.suggestFn && this.config.items) {
         this.items = this.config.items;
       }
       this.filter = this.filter || this.config.filter;
@@ -267,70 +277,101 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         attr && attr.endsWith('label')) ? 2 :
         // If rankOrder then col size = 1
         (attr && attr.endsWith('rankOrder') ? 1 :
-          // Else, auto
+          // Else, auto size
           undefined));
     this.displayColumnNames = this.displayAttributes.map((attr, index) => {
       return this.displayColumnNames && this.displayColumnNames[index] ||
         (this.i18nPrefix + changeCaseToUnderscore(attr).toUpperCase());
     });
     this.mobile = toBoolean(this.mobile, false);
-    this.autocomplete = !this.mobile;
+    this.searchable = !this.mobile;
+    // Default comparator (only need when using mat-select)
+    if (!this.searchable && !this.compareWith) this.compareWith = (o1: any, o2: any) => o1 && o2 && o1.id === o2.id;
 
-    const updateEvents$ = merge(
-      merge(this.onFocus
+    // No suggestFn: filter on array, from given items
+    if (!this.suggestFn) {
+      const suggestFromArrayFn: SuggestFn<any, any> = async (value, filter) => suggestFromArray(this.$inputItems.getValue(), value, {
+        searchAttributes: this.displayAttributes,
+        ...filter
+      });
+      // Wait (once) that items are loaded, then call suggest from array fn
+      this.suggestFn = async (value, filter) => {
+        if (isNil(this.$inputItems.getValue())) {
+          //console.debug("[mat-autocomplete] Waiting items to be set...");
+          await firstNotNilPromise(this.$inputItems);
+          //console.debug("[mat-autocomplete] Received items:", this.$inputItems.getValue());
+        }
+        this.suggestFn = suggestFromArrayFn;
+        return this.suggestFn(value, filter); // Loop
+      };
+    }
+    else if (!this.searchable) {
+      // Manually fill input items, from the given suggest function
+      this.suggestFn('*', this.filter).then(res => this.$inputItems.next(res));
+    }
+
+    this.matSelectItems$ = this.$inputItems.asObservable()
+      .pipe(
+        takeWhile((_) => !this.searchable),
+        filter(isNotNil),
+        map((items) => {
+          // Make sure control value is inside
+          const value = this.formControl.value;
+          // If form value is missing: add it to the list
+          if (isNotNil(value) && typeof value === 'object' && items.findIndex(item => this.compareWith(item, value)) === -1) {
+            // console.debug(this.logPrefix + " Add form value to items, because missed in items", value);
+            return items.concat(value);
+          }
+          return items;
+        })
+      );
+
+
+    const updateFilteredItemsEvents$ = merge(
+      // Focus or click => Load all
+      merge(this.onFocus, this.onClick)
+      .pipe(
+         filter(_ => this.searchable && this.enabled),
+         map((_) => this.showAllOnFocus ? '*' : this.formControl.value)
+      ),
+        this.onDropButtonClick
           .pipe(
-            // Skip when event comes from a mat-option
-            filter(event => !event.defaultPrevented && !(event.relatedTarget instanceof HTMLElement && event.relatedTarget.tagName === 'MAT-OPTION'))
+            filter(event => (!event || !event.defaultPrevented) && this.formControl.enabled),
+            map((_) => "*")
           ),
-          this.onClick)
-           .pipe(
-             map((_) => this.showAllOnFocus || !this.autocomplete ? '*' : this.formControl.value)
+        this.formControl.valueChanges
+          .pipe(
+            startWith(this.formControl.value),
+            filter(value => isNotNil(value)),
+            //tap((value) => console.debug(this.logPrefix + " valueChanges:", value)),
+            debounceTime(this.debounceTime)
           ),
-      this.onDropButtonClick
-        .pipe(
-          filter(event => !event || !event.defaultPrevented),
-          map((_) => "*")
-        ),
-      this.formControl.valueChanges
-        .pipe(
-          filter(value => this.autocomplete && isNotNil(value)),
-          debounceTime(this.debounceTime)
-        )
+        this.$inputItems.asObservable()
+          .pipe(
+            map(items => this.formControl.value)
+          )
+      );
+
+
+    this.filteredItems$ = updateFilteredItemsEvents$
+      .pipe(
+        distinctUntilChanged(),
+        //tap(value => console.debug(this.logPrefix + " Received update event: ", value)),
+        switchMap(async (value) => {
+          const res = await this.suggestFn(value, this.filter);
+          // console.debug(this.logPrefix + " Filtered items by suggestFn:", value, res);
+          return res;
+        }),
+        // Store implicit value (will use it onBlur if not other value selected)
+        tap(res => this.updateImplicitValue(res)),
     );
 
-    if (this.suggestFn) {
-      this.$items = updateEvents$
-        .pipe(
-          distinctUntilChanged(),
-          //throttleTime(1000),
-          switchMap((value) => this.suggestFn(value, this.filter)),
-          // Store implicit value (will use it onBlur if not other value selected)
-          tap(res =>  this.updateImplicitValue(res))
-        );
-    }
-    else if (isNotNil(this._itemsSubject)) {
-      const searchOptions = Object.assign({searchAttributes: this.displayAttributes}, this.filter);
-      this.$items = updateEvents$
-        .pipe(
-          map(value => {
-            return suggestFromArray(this._itemsSubject.getValue(), value, searchOptions);
-          }),
-          // Store implicit value (will use it onBlur if not other value selected)
-          tap(res =>  this.updateImplicitValue(res))
-        );
-    }
-
-    else if (this.formControl.enabled) {
-      console.warn("Missing attribute 'suggestFn', 'items' or 'config' in <mat-autocomplete-field>", this);
-    }
-
+    // Applying implicit value, on blur
     this._subscription.add(
       this.onBlur
        .pipe(
-         // Skip if focus target is a mat-option
-         filter(event => !event.defaultPrevented || !(event.relatedTarget instanceof HTMLElement) || event.relatedTarget.tagName !== 'MAT-OPTION'),
-         // Wait panel closed
-         //mergeMap(() => this.matAutocomplete.closed.pipe(first())),
+         // Skip if no implicit value, or has already a value
+         filter(_ => this.searchable && !this._implicitValue)
        )
        .subscribe( (_) => {
           // When leave component without object, use implicit value if :
@@ -338,14 +379,13 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
           // - field is not empty (user fill something)
           // - OR field empty but is required
           const existingValue = this.formControl.value;
-          if (this._implicitValue
-            && ((this.required && isNilOrBlank(existingValue)) || (isNotNilOrBlank(existingValue) && typeof existingValue !== "object"))) {
-            this.writeValue(this._implicitValue);
-            this.formControl.markAsPending({emitEvent: false, onlySelf: true});
-            this.formControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
-          }
-          this._implicitValue = null; // reset the implicit value
-          this.checkIfTouched();
+         if ((this.required && isNilOrBlank(existingValue)) || (isNotNilOrBlank(existingValue) && typeof existingValue !== "object")) {
+           this.writeValue(this._implicitValue);
+           this.formControl.markAsPending({emitEvent: false, onlySelf: true});
+           this.formControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
+         }
+         this._implicitValue = null; // reset the implicit value
+         this.checkIfTouched();
         }));
   }
 
@@ -377,10 +417,15 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   getPropertyByPath = getPropertyByPath;
 
   focus() {
-    focusInput(this.matInput);
+    if (this.searchable) {
+      focusInput(this.matInputText);
+    }
+    else {
+      focusInput(this.matSelect);
+    }
   }
 
-  _onFocus(event: FocusEvent) {
+  filterInputTextFocusEvent(event: FocusEvent) {
     if (!event || event.defaultPrevented) return;
 
     // Ignore event from mat-option
@@ -388,32 +433,77 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       event.preventDefault();
       if (event.stopPropagation) event.stopPropagation();
       event.returnValue = false;
+      //DEBUG console.debug(this.logPrefix + " Cancelling focus event");
       return false;
     }
 
     const hasContent = selectInputContent(event);
-    if (!hasContent || !this.autocomplete || (this.showPanelOnFocus && this.showAllOnFocus) ) {
+    if (!hasContent || (this.showPanelOnFocus && this.showAllOnFocus) ) {
+      //DEBUG console.debug(this.logPrefix + " Emit focus event");
       this.onFocus.emit(event);
       return true;
     }
     return false;
   }
 
-  enableAutocomplete(event: UIEvent) {
-    this.autocomplete = true;
-    this.appAutofocus = true;
-    this.markForCheck();
+  filterMatSelectFocusEvent(event: FocusEvent) {
+    if (!event || event.defaultPrevented) return;
+    // DEBUG
+    // console.debug(this.logPrefix + " Received <mat-select> focus event", event);
+    this.onFocus.emit(event);
+  }
+
+  filterMatSelectBlurEvent(event: FocusEvent) {
+    if (!event || event.defaultPrevented) return;
+
+    // DEBUG
+    // console.debug(this.logPrefix + " Received <mat-select> blur event", event);
+
+    // Ignore event from mat-option
+    if (event.relatedTarget instanceof HTMLElement && event.relatedTarget.tagName === 'MAT-OPTION') {
+      event.preventDefault();
+      if (event.stopPropagation) event.stopPropagation();
+      event.returnValue = false;
+      // DEBUG
+      // console.debug(this.logPrefix + " Cancelling <mat-select> blur event");
+      return false;
+    }
+
+    this.onBlur.emit(event);
+    return true;
+  }
+
+  toggleSearch(event: UIEvent) {
+    const searchable = !this.searchable;
+    if (searchable && this.searchable && this.matInputText) {
+      this.focus();
+    }
+    else {
+      this.searchable = searchable;
+      if (searchable) {
+        this.appAutofocus = true;
+        this.showPanelOnFocus = false;
+      }
+      this.markForCheck();
+    }
+  }
+
+  clearValue(event: UIEvent) {
+    this.writeValue(null);
+    event.stopPropagation();
   }
 
   /* -- protected method -- */
 
   private updateImplicitValue(res: any[]) {
-    // Store implicit value (will use it onBlur if not other value selected)
-    if (res && res.length === 1) {
-      this._implicitValue = res[0];
-      //this.formControl.setErrors(null);
-    } else {
-      this._implicitValue = undefined;
+    if (this.searchable) {
+      // Store implicit value (will use it onBlur if not other value selected)
+      if (res && res.length === 1) {
+        this._implicitValue = res[0];
+        //this.formControl.setErrors(null);
+      } else {
+        this._implicitValue = undefined;
+      }
     }
   }
 

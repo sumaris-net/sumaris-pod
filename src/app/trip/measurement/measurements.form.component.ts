@@ -8,7 +8,8 @@ import {
   Output
 } from '@angular/core';
 import {Moment} from 'moment/moment';
-import {DateAdapter, FloatLabelType} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
+import {FloatLabelType} from "@angular/material/form-field";
 import {BehaviorSubject} from 'rxjs';
 import {filter, throttleTime} from "rxjs/operators";
 import {AppForm} from '../../core/core.module';

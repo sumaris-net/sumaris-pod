@@ -1,6 +1,7 @@
-import {ChangeDetectorRef, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import { ChangeDetectorRef, EventEmitter, Input, OnInit, Output, Directive } from '@angular/core';
 import {Moment} from 'moment/moment';
-import {DateAdapter, FloatLabelType} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
+import {FloatLabelType} from "@angular/material/form-field";
 import {BehaviorSubject, Observable} from 'rxjs';
 import {AppForm, isNil, isNotNil} from '../../core/core.module';
 import {PmfmStrategy, ProgramService} from "../../referential/referential.module";
@@ -16,6 +17,7 @@ export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T
   onUpdateControls?: (formGroup: FormGroup) => void | Promise<void>;
 }
 
+@Directive()
 export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>> extends AppForm<T> implements OnInit {
 
   protected _onValueChanged = new EventEmitter<T>();

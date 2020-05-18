@@ -1,6 +1,6 @@
 import {Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable, of} from "rxjs";
-import {filter, first, map} from "rxjs/operators";
+import {debounceTime, filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {AppTable, AppTableDataSource, environment, isNil, isNotNil} from "../../core/core.module";
 import {ReferentialValidatorService} from "../services/referential.validator";
@@ -16,6 +16,7 @@ import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/tab
 import {sort, DefaultStatusList} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {isNotNilOrBlank} from "../../shared/functions";
+import {PersonFilter} from "../../admin/services/person.service";
 
 
 @Component({
@@ -40,6 +41,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   levels: Observable<ReferentialRef[]>;
   statusList = DefaultStatusList;
   statusById: any;
+  filterIsEmpty = true;
 
   canOpenDetail = false;
   detailsPath = {
@@ -149,13 +151,23 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     );
 
     // Update filter when changes
-    this.filterForm.valueChanges.subscribe(() => {
-      this.setFilter(this.filterForm.value, {emitEvent: false});
-    });
+    this.registerSubscription(
+      this.filterForm.valueChanges
+        .pipe(
+          debounceTime(250),
+          filter(() => this.filterForm.valid)
+        )
+        // Applying the filter
+        .subscribe((json) => this.setFilter(json, {emitEvent: this.mobile}))
+      );
+
+    this.registerSubscription(
     this.onRefresh.subscribe(() => {
+      this.filterIsEmpty = ReferentialFilter.isEmpty({...this.filter, entityName: null /*Ignore*/});
       this.filterForm.markAsUntouched();
       this.filterForm.markAsPristine();
-    });
+      this.markForCheck();
+    }));
   }
 
   async setEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {

@@ -4,7 +4,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 import {environment} from "../../../environments/environment";
 import {LocalSettings, Peer} from "./model";
-import {ModalController, ToastController} from "@ionic/angular";
+import {IonicSafeString, ModalController, ToastController} from "@ionic/angular";
 import {SelectPeerModal} from "../peer/select-peer.modal";
 import {BehaviorSubject, Subject, Subscription} from "rxjs";
 import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.service";
@@ -376,7 +376,8 @@ export class NetworkService {
   protected showToast(opts: ToastOptions): Promise<void> {
     if (!this.toastController || !this.translate) {
       console.error("[network] Cannot show toast - missing toastController or translate");
-      if (opts.message) console.info("[network] toast message: " + (this.translate && this.translate.instant(opts.message) || opts.message));
+      if (opts.message instanceof IonicSafeString) console.info("[network] toast message: " + (this.translate && this.translate.instant(opts.message.value) || opts.message.value));
+      else if (typeof opts.message === "string") console.info("[network] toast message: " + (this.translate && this.translate.instant(opts.message) || opts.message));
       return Promise.resolve();
     }
     return Toasts.show(this.toastController, this.translate, opts);

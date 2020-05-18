@@ -67,7 +67,7 @@
                                          [hidden]="pmfm.hidden"
                                          [pmfm]="pmfm"
                                          [style]="mobile? 'button' : 'autocomplete'"
-                                         [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                         [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                          [compact]="compact"
                                          [tabindex]="tabindex+2 + i*2">
           </mat-form-field-measurement-qv>
@@ -79,7 +79,7 @@
                                       [pmfm]="pmfm"
                                       [hidden]="pmfm.hidden"
                                       [floatLabel]="pmfm.isComputed ? 'always' : 'auto'"
-                                      [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                      [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                       [compact]="compact"
                                       [tabindex]="tabindex+2 + i*2">
           </mat-form-field-measurement>

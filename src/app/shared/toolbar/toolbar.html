@@ -42,16 +42,17 @@
 
       <!-- close button -->
       <ion-button *ngIf="hasClose"
-                  (tap)="onClose.emit($event)"
+                  (click)="onClose.emit($event)"
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="close"></ion-icon>
       </ion-button>
 
       <!-- validate button -->
       <ion-button *ngIf="hasValidate"
+                  (click)="onValidate.emit($event)"
                   (tap)="doValidateTap($event)"
                   visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+        <ion-icon slot="icon-only" name="save"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>

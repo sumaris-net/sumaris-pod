@@ -83,7 +83,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
           } else {
             this.loadingSubject.next(false);
             if (this._debug) console.debug(`[table-datasource] Service ${this._dataService.constructor.name} sent new data: updating datasource...`, res);
-            this.updateDatasource(res.data);
+            this.updateDatasource(res.data || []);
           }
           return res;
         })

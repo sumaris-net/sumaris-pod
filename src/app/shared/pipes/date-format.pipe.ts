@@ -1,6 +1,6 @@
 import { Pipe, Injectable, PipeTransform } from '@angular/core';
 import {isMoment, Moment} from "moment/moment";
-import { DateAdapter } from "@angular/material";
+import { DateAdapter } from "@angular/material/core";
 import { DATE_ISO_PATTERN } from '../constants';
 
 @Pipe({
@@ -13,7 +13,7 @@ export class DateFormatPipe implements PipeTransform {
         private dateAdapter: DateAdapter<Moment>) {
     }
 
-    transform(value: string | Moment, args?: any): string | Promise<string> {
+    transform(value: string | Moment | Date, args?: any): string | Promise<string> {
         args = args || {};
         args.pattern = args.pattern || (args.time ? 'L LT' : 'L');
         // Keep original moment object, if possible (to avoid a conversion)

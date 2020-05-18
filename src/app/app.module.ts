@@ -4,7 +4,7 @@ import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule} from "@angular/core";
 import {IonicModule} from "@ionic/angular";
-import {DateAdapter, MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material";
+import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
 import {DATE_ISO_PATTERN} from "./core/constants";
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
@@ -34,6 +34,10 @@ import {APP_CONFIG_OPTIONS, ConfigService} from "./core/services/config.service"
 import {TripConfigOptions} from "./trip/services/config/trip.config";
 import {IonicStorageModule} from "@ionic/storage";
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
+import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS} from "@angular/material/autocomplete";
+import {APP_MENU_ITEMS} from "./core/menu/menu.component";
+import {APP_HOME_BUTTONS} from "./core/home/home";
+import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
 
 
 @NgModule({
@@ -86,17 +90,78 @@ import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
       }
     },
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
-    {provide: MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, useValue: {
-        autoActiveFirstOption: true
-      }
-    },
+
     { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: {
         pageHistoryMaxSize: 3
       } as LocalSettings
     },
 
     // Config options (Core + trip)
-    { provide: APP_CONFIG_OPTIONS, useValue: {...ConfigOptions, ...TripConfigOptions}}
+    { provide: APP_CONFIG_OPTIONS, useValue: {...ConfigOptions, ...TripConfigOptions}},
+
+    // Menu items
+    { provide: APP_MENU_ITEMS, useValue: [
+        {title: 'MENU.HOME', path: '/', icon: 'home'},
+
+        // Data entry
+        {title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
+        {title: 'MENU.TRIPS', path: '/trips',
+          icon: 'navigate',
+          profile: 'USER',
+          ifProperty: 'sumaris.trip.enable',
+          titleProperty: 'sumaris.trip.name'
+        },
+        {
+          title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
+          matIcon: 'verified_user',
+          profile: 'USER',
+          ifProperty: 'sumaris.observedLocation.enable',
+          titleProperty: 'sumaris.observedLocation.name'
+        },
+
+        // Data extraction
+        {title: 'MENU.EXTRACTION_DIVIDER', profile: 'SUPERVISOR'},
+        {title: 'MENU.TRIPS', path: '/extraction/table', icon: 'cloud-download', profile: 'SUPERVISOR'},
+        {title: 'MENU.MAP', path: '/extraction/map', icon: 'globe', profile: 'SUPERVISOR'},
+
+        // Referential
+        {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
+        {title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER'},
+        {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
+        {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
+        {title: 'MENU.SERVER_SETTINGS', path: '/admin/config', matIcon: 'build', profile: 'ADMIN'},
+
+        // Settings
+        {title: '' /*empty divider*/, cssClass: 'flex-spacer'},
+        {title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings', color: 'medium'},
+        {title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', color: 'medium', cssClass: 'visible-mobile'},
+
+        // Logout
+        {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'medium hidden-mobile'},
+        {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'danger visible-mobile'}
+
+      ]
+    },
+
+    // Home buttons
+    { provide: APP_HOME_BUTTONS, useValue: [
+        // Data entry
+        { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER', cssClass: 'visible-mobile'},
+        { title: 'MENU.TRIPS', path: '/trips',
+          icon: 'navigate', cssClass: 'visible-mobile',
+          profile: 'USER',
+          ifProperty: 'sumaris.trip.enable',
+          titleProperty: 'sumaris.trip.name'
+        },
+        { title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
+          matIcon: 'verified_user', cssClass: 'visible-mobile',
+          profile: 'USER',
+          ifProperty: 'sumaris.observedLocation.enable',
+          titleProperty: 'sumaris.observedLocation.name'
+        },
+        { title: '' /*empty divider*/, cssClass: 'visible-mobile'}
+      ]
+    }
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

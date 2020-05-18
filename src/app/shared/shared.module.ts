@@ -18,7 +18,7 @@ import {MatLatLong} from "./material/material.latlong";
 import {MatBooleanField} from "./material/material.boolean";
 import {MatAutocompleteField} from "./material/material.autocomplete";
 import {TextMaskModule} from "angular2-text-mask";
-import {MAT_AUTOCOMPLETE_SCROLL_STRATEGY, MatPaginatorIntl} from "@angular/material";
+import {MatPaginatorIntl} from "@angular/material/paginator";
 import {MatPaginatorI18n} from "./material/material.paginator-i18n";
 import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
@@ -78,6 +78,8 @@ import {DurationPipe} from "./pipes/duration.pipe";
 import {ModalToolbarComponent} from "./toolbar/modal-toolbar";
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import {MathAbsPipe} from "./pipes/math-abs.pipe";
+import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_AUTOCOMPLETE_SCROLL_STRATEGY} from "@angular/material/autocomplete";
+import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -192,13 +194,15 @@ export {
       deps: [TranslateService]
     },
     // Configure hammer gesture
-    {
-      provide: HAMMER_GESTURE_CONFIG,
-      useClass: AppGestureConfig
-    },
+    {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
     // FIXME: try to force a custom overlay for autocomplete, because of there is a bug when using inside an ionic modal
     //{ provide: Overlay, useClass: Overlay},
     { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
+    { provide: MAT_SELECT_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
+    { provide: MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, useValue: {
+        autoActiveFirstOption: true
+      }
+    }
   ]
 })
 export class SharedModule {

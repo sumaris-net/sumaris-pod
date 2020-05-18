@@ -1,13 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
-import {
-  AppTable,
-  AppTableDataSource,
-  environment, isNotNil
-} from "../../../core/core.module";
-import {Person, PRIORITIZED_USER_PROFILES, referentialToString, DefaultStatusList} from "../../../core/services/model";
+import {AppTable, AppTableDataSource, isNil, isNotNil} from "../../../core/core.module";
+import {DefaultStatusList, Person, PRIORITIZED_USER_PROFILES, referentialToString} from "../../../core/services/model";
 import {PersonFilter, PersonService} from "../../services/person.service";
 import {PersonValidatorService} from "../../services/person.validator";
-import {AlertController, ModalController} from "@ionic/angular";
+import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService} from "../../../core/services/account.service";
 import {Location} from '@angular/common';
@@ -17,6 +13,7 @@ import {ValidatorService} from "angular4-material-table";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {PlatformService} from "../../../core/services/platform.service";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {debounceTime, filter, tap} from "rxjs/operators";
 
 @Component({
   selector: 'app-users-table',
@@ -35,6 +32,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
   additionalFields: FormFieldDefinition[];
   statusList = DefaultStatusList;
   statusById;
+  filterIsEmpty = true;
   any;
 
   constructor(
@@ -66,7 +64,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<Person, PersonFilter>(Person, dataService, validatorService, {
         prependNewElements: false,
-        suppressErrors: environment.production,
+        suppressErrors: true,
         serviceOptions: {
           saveOnlyDirtyRows: true
         }
@@ -89,15 +87,14 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     this.statusById = {};
     this.statusList.forEach((status) => this.statusById[status.id] = status);
 
-    this.additionalFields = this.accountService.additionalFields;
-
-    (this.additionalFields || [])
+    this.additionalFields = (this.accountService.additionalFields || [])
       .filter(field => isNotNil(field.autocomplete))
-      .forEach(field => {
+      .map(field => {
+        // Make sure to get the final autocomplete config (e.g. with a suggestFn function)
         field.autocomplete = this.registerAutocompleteField(field.key, {
-          ...field.autocomplete
+          ...field.autocomplete // Copy, to be sure the original config is unchanged
         });
-
+        return field;
       });
 
     // For DEV only --
@@ -109,12 +106,17 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
 
     // Update filter when changes
     this.registerSubscription(
-      this.filterForm.valueChanges.subscribe(() => {
-        this.filter = this.filterForm.value;
-      }));
+      this.filterForm.valueChanges
+        .pipe(
+          debounceTime(250),
+          filter(() => this.filterForm.valid)
+        )
+        // Applying the filter
+        .subscribe(json => this.setFilter(json, {emitEvent: this.mobile})));
 
     this.registerSubscription(
       this.onRefresh.subscribe(() => {
+        this.filterIsEmpty = PersonFilter.isEmpty(this.filter);
         this.filterForm.markAsUntouched();
         this.filterForm.markAsPristine();
         this.cd.markForCheck();

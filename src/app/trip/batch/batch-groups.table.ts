@@ -606,7 +606,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     return data;
   }
 
-  async openSelectColumnsModal() {
+  async openSelectColumnsModal(event?: UIEvent) {
 
     let userColumns = this.getUserColumns();
     const hiddenColumns = DEFAULT_USER_COLUMNS.slice(0)

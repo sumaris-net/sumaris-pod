@@ -12,7 +12,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {FloatLabelType} from "@angular/material";
+import {FloatLabelType} from "@angular/material/form-field";
 import {
   filterNumberInput,
   isNotNilOrBlank,
@@ -89,7 +89,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     return this.formControl.value;
   }
 
-  @ViewChild('matInput', { static: false }) matInput: ElementRef;
+  @ViewChild('matInput') matInput: ElementRef;
 
   constructor(
     protected translate: TranslateService,

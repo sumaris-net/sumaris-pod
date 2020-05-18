@@ -1,6 +1,6 @@
-import {OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { OnDestroy, OnInit, ViewChild, Directive } from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
-import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
+import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {Entity} from '../services/model';
 import {AlertController, ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
@@ -15,6 +15,7 @@ import {Toasts} from "../../shared/toasts";
 
 export declare type HammerSwipeAction = 'swipeleft' | 'swiperight';
 
+@Directive()
 export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
 
   private _forms: AppForm<any>[];

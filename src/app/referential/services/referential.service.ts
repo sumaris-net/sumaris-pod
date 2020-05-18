@@ -12,6 +12,8 @@ import {FetchPolicy, MutationUpdaterFn} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {environment} from "../../../environments/environment";
+import {Beans, KeysEnum} from "../../shared/functions";
+import {PersonFilterKeys} from "../../admin/services/person.service";
 
 export class ReferentialFilter {
   entityName: string;
@@ -27,7 +29,25 @@ export class ReferentialFilter {
   searchJoin?: string; // If search is on a sub entity (e.g. Metier can esearch on TaxonGroup)
   searchText?: string;
   searchAttribute?: string;
+
+  static isEmpty(f: ReferentialFilter|any): boolean {
+    return Beans.isEmpty(f, ReferentialFilterKeys, {
+      blankStringLikeEmpty: true
+    });
+  }
 }
+export const ReferentialFilterKeys: KeysEnum<ReferentialFilter> = {
+  entityName: true,
+  label: true,
+  name: true,
+  statusId: true,
+  statusIds: true,
+  levelId: true,
+  levelIds: true,
+  searchJoin: true,
+  searchText: true,
+  searchAttribute: true
+};
 
 export interface ReferentialType {
   id: string;
@@ -38,8 +58,8 @@ const CountQuery: any = gql`
     referentialsCount(entityName: $entityName, filter: $filter)
   }
 `;
-const LoadAllWithCountQuery: any = gql`
-  query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+const LoadAllWithTotalQuery: any = gql`
+  query ReferentialsWithTotal($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       ...FullReferentialFragment
     }
@@ -111,7 +131,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
            filter?: ReferentialFilter,
            opts?: {
       fetchPolicy?: FetchPolicy;
-      withCount: boolean;
+      withTotal: boolean;
     }): Observable<LoadResult<Referential>> {
 
     if (!filter || !filter.entityName) {
@@ -144,7 +164,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     // Saving variables, to be able to update the cache when saving or deleting
     this._lastVariables.loadAll = variables;
 
-    const query = (!opts || opts.withCount !== false) ? LoadAllWithCountQuery : LoadAllQuery;
+    const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
     return this.graphql.watchQuery<{ referentials: any[]; referentialsCount: number }>({
       query,
       variables,
@@ -205,7 +225,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     const now = Date.now();
     if (debug) console.debug(`[referential-service] Loading ${entityName} items...`, variables);
 
-    const query = (!opts || opts.withTotal !== false) ? LoadAllWithCountQuery : LoadAllQuery;
+    const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
     const res = await this.graphql.query<{ referentials: any[]; referentialsCount: number }>({
       query,
       variables,

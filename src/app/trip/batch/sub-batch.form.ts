@@ -10,10 +10,9 @@ import {
   QueryList,
   ViewChildren
 } from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
 import {Batch} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {DateAdapter, MatSelect} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/forms";
@@ -21,7 +20,7 @@ import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {EntityUtils, UsageMode} from "../../core/services/model";
-import {debounceTime, distinctUntilKeyChanged, delay, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
+import {debounceTime, delay, distinctUntilKeyChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
 import {
   AcquisitionLevelCodes,
   isNil,
@@ -31,13 +30,7 @@ import {
   QualitativeLabels
 } from "../../referential/services/model";
 import {BehaviorSubject, combineLatest} from "rxjs";
-import {
-  getPropertyByPath,
-  isNilOrBlank,
-  isNotNilOrBlank,
-  startsWithUpperCase,
-  toBoolean
-} from "../../shared/functions";
+import {getPropertyByPath, isNilOrBlank, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PlatformService} from "../../core/services/platform.service";

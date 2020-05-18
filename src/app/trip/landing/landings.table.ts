@@ -16,7 +16,7 @@ import {AcquisitionLevelCodes} from "../../referential/services/model";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {Moment} from "moment";
 import {LandingValidatorService} from "../services/landing.validator";
-import {MatPaginator, PageEvent} from "@angular/material";
+import {PageEvent} from "@angular/material/paginator";
 import {Alerts, askSaveBeforeLeave} from "../../shared/alerts";
 import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";

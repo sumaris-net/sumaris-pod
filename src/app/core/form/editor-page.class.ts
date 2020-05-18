@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, EventEmitter, Injector, OnDestroy, OnInit} from '@angular/core';
+import { ChangeDetectorRef, EventEmitter, Injector, OnDestroy, OnInit, Directive } from '@angular/core';
 import {ActivatedRoute, ActivatedRouteSnapshot, Router} from "@angular/router";
 import {AlertController, ToastController} from "@ionic/angular";
 
@@ -23,6 +23,7 @@ import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
 import {ServerErrorCodes} from "../services/errors";
 
+@Directive()
 export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit, OnDestroy {
 
   protected idAttribute = 'id';
@@ -259,6 +260,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   async save(event: Event, options?: any): Promise<boolean> {
+    // DEBUG console.debug("TODO call save");
     if (this.loading || this.saving) {
       console.debug("[data-editor] Skip save: editor is busy (loading or saving)");
       return false;

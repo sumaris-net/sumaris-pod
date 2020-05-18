@@ -17,8 +17,8 @@ export class RegisterConfirmPage implements OnDestroy {
 
   isLogin: boolean;
   loading = true;
-  error: String;
-  email: String;
+  error: string;
+  email: string;
   contentStyle = {};
 
   constructor(
@@ -57,7 +57,7 @@ export class RegisterConfirmPage implements OnDestroy {
     this.subscriptions = [];
   }
 
-  async doConfirm(email: String, code: String) {
+  async doConfirm(email: string, code: string) {
     this.email = email;
 
     if (!code) {
@@ -68,7 +68,7 @@ export class RegisterConfirmPage implements OnDestroy {
 
     try {
       if (this.accountService.isLogin()) {
-        let emailAccount = this.accountService.account && this.accountService.account.email;
+        const emailAccount = this.accountService.account && this.accountService.account.email;
         if (email != emailAccount) {
           // Not same email => logout, then retry
           await this.accountService.logout();
@@ -87,7 +87,7 @@ export class RegisterConfirmPage implements OnDestroy {
     catch (err) {
       this.error = err && err.message || err;
       this.loading = false;
-    };
+    }
 
   }
 }

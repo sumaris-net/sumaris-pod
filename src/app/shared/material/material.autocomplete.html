@@ -1,133 +1,140 @@
-<ng-container *ngIf="!autocomplete">
-  <!-- readonly -->
-  <mat-form-field *ngIf="readonly">
-    <input matInput hidden type="text" readonly="true" [formControl]="formControl">
-    <ion-label>{{ displayWith(value) }}</ion-label>
-  </mat-form-field>
+<ion-grid class="ion-no-padding">
+  <ion-row>
+    <ion-col class="ion-no-padding">
+      <mat-form-field [floatLabel]="floatLabel" [class.mat-form-field-disabled]="disabled">
 
-  <!-- Basic select -->
-  <mat-form-field *ngIf="!readonly" [floatLabel]="floatLabel">
+        <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>
 
-    <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>
+        <!-- readonly -->
+        <ng-container *ngIf="readonly; else writable">
+          <input matInput hidden type="text"
+                 [placeholder]="placeholder"
+                 [formControl]="formControl"
+                 readonly>
+          <ion-label>{{ displayWith(value) }}&nbsp;</ion-label>
+        </ng-container>
 
-    <mat-select #matInput
-                [placeholder]="placeholder"
-                [formControl]="formControl"
-                (blur)="onBlur.emit($event)"
-                (focus)="_onFocus($event)"
-                [tabindex]="_tabindex"
-                [required]="required">
-      <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
+        <ng-template #writable>
 
-      <!-- header -->
-      <ion-row class="mat-autocomplete-header ion-no-padding">
-        <ion-col *ngFor="let attr of displayAttributes; index as i;" [size]="displayColumnSizes[i]" >
-          <ion-text [innerHTML]="displayColumnNames[i] | translate"></ion-text>
-        </ion-col>
-      </ion-row>
+          <!-- Basic select -->
+          <mat-select #matSelect
+                      *ngIf="!readonly && !searchable"
+                      [placeholder]="placeholder"
+                      [formControl]="formControl"
+                      [tabindex]="_tabindex"
+                      (focus)="filterMatSelectFocusEvent($event)"
+                      (blur)="filterMatSelectBlurEvent($event)"
+                      [compareWith]="compareWith">
+            <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
 
-      <!-- None option -->
-      <mat-option *ngIf="!required" class="ion-no-padding">
-        <ion-row class="ion-no-padding">
-          <ion-col class="ion-no-padding">
-            <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
-          </ion-col>
-        </ion-row>
-      </mat-option>
+            <ng-container *ngIf="(matSelectItems$ | async) as items">
+              <!-- header -->
+              <ion-row class="mat-autocomplete-header ion-no-padding">
+                <ion-col *ngFor="let attr of displayAttributes; index as i; last as isLast" [size]="displayColumnSizes[i]" >
+                  <ion-label [innerHTML]="displayColumnNames[i] | translate"></ion-label>
+                </ion-col>
+              </ion-row>
 
-      <!-- options -->
-      <mat-option *ngFor="let item of $items | async" [value]="item" class="ion-no-padding">
-        <ion-row >
-          <ion-col *ngFor="let attr of displayAttributes; index as i;"
-                   [size]="displayColumnSizes[i]">
-            <ion-text [innerHTML]="getPropertyByPath(item, attr) | highlight: {search: formControl.value }"></ion-text>
-          </ion-col>
-        </ion-row>
-      </mat-option>
-    </mat-select>
+              <!-- None option -->
+              <mat-option *ngIf="!required" class="ion-no-padding">
+                <ion-row class="ion-no-padding">
+                  <ion-col class="ion-no-padding">
+                    <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
+                  </ion-col>
+                </ion-row>
+              </mat-option>
 
-    <button matSuffix mat-icon-button tabindex="-1"
-            type="button"
-            (click)="enableAutocomplete($event)"
-            [hidden]="formControl.disabled">
-      <mat-icon>search</mat-icon>
-    </button>
-    <button matSuffix mat-icon-button tabindex="-1"
-            type="button"
-            *ngIf="clearable"
-            (click)="writeValue(null) || $event.stopPropagation()"
-            [hidden]="formControl.disabled || !formControl.value">
-      <mat-icon>close</mat-icon>
-    </button>
-    <ng-content matSuffix select="[matSuffix]"></ng-content>
+              <!-- options -->
+              <mat-option class="ion-no-padding"
+                          *ngFor="let item of items" [value]="item">
+                <ion-row>
+                  <ion-col *ngFor="let attr of displayAttributes; index as i;"
+                           [size]="displayColumnSizes[i]">
+                    <ion-text>{{getPropertyByPath(item, attr)}}</ion-text>
+                  </ion-col>
+                </ion-row>
+              </mat-option>
+            </ng-container>
+          </mat-select>
 
-    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-    <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-  </mat-form-field>
-</ng-container>
+          <!--
+            NOTE :
+             - "selectInputContent($event) || onFocus.emit($event)" : call onFocus only when to the input is empty (nothing to select)
+          -->
+          <input matInput #matInputText type="text"
+                 *ngIf="readonly || searchable"
+                 [matAutocomplete]="autoCombo"
+                 [formControl]="formControl"
+                 [placeholder]="placeholder"
+                 [appAutofocus]="appAutofocus"
+                 [tabindex]="_tabindex"
+                 [readonly]="readonly"
+                 [required]="required"
+                 (click)="onClick.emit($event)"
+                 (blur)="onBlur.emit($event)"
+                 (focus)="filterInputTextFocusEvent($event)"
+                 (keyup.arrowdown)="!autoCombo.showPanel && onDropButtonClick.emit($event)">
+        </ng-template>
 
-<!-- Filterable -->
-<mat-form-field *ngIf="autocomplete" [floatLabel]="floatLabel">
+        <button matSuffix mat-icon-button tabindex="-1"
+                type="button"
+                *ngIf="searchable"
+                (click)="onDropButtonClick.emit($event)"
+                [hidden]="disabled">
+          <mat-icon class="large select-arrow">arrow_drop_down</mat-icon>
+        </button>
+        <button matSuffix type="button" mat-icon-button tabindex="-1"
+                *ngIf="enabled && mobile && !searchable"
+                [title]="'COMMON.BTN_SEARCH'|translate"
+                (click)="toggleSearch($event)">
+          <mat-icon>search</mat-icon>
+        </button>
+        <button matSuffix mat-icon-button tabindex="-1"
+                type="button"
+                *ngIf="clearable"
+                (click)="clearValue($event)"
+                [hidden]="disabled || !formControl.value">
+          <mat-icon>close</mat-icon>
+        </button>
+        <ng-content matSuffix select="[matSuffix]"></ng-content>
 
-  <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>
+        <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
 
-  <!--
-    NOTE :
-     - "selectInputContent($event) || onFocus.emit($event)" : call onFocus only when to the input is empty (nothing to select)
-  -->
-  <input matInput #matInput type="text"
-         [matAutocomplete]="autoCombo"
-         [formControl]="formControl"
-         [placeholder]="placeholder"
-         [appAutofocus]="appAutofocus"
-         [tabindex]="_tabindex"
-         [readonly]="readonly"
-         [required]="required"
-         (click)="onClick.emit($event)"
-         (blur)="onBlur.emit($event)"
-         (focus)="_onFocus($event)"
-         (keyup.arrowdown)="formControl.enabled && !autoCombo.showPanel && onDropButtonClick.emit($event)">
+        <!-- autocomplete -->
+        <mat-autocomplete #autoCombo="matAutocomplete"
+                          autoActiveFirstOption
+                          [displayWith]="displayWith"
+                          [class]="classList"
+                          [class.cdk-visually-hidden]="!searchable">
+          <ng-container *ngIf="searchable && (filteredItems$ | async) as items">
+            <ion-row class="mat-autocomplete-header ion-no-padding" *ngIf="items.length">
+              <ion-col *ngFor="let attr of displayAttributes; index as i;" [size]="displayColumnSizes[i]" >
+                <ion-text [innerHTML]="displayColumnNames[i] | translate"></ion-text>
+              </ion-col>
+            </ion-row>
 
+            <mat-option *ngFor="let item of items" [value]="item" class="ion-no-padding" >
+              <ion-row>
+                <ion-col *ngFor="let attr of displayAttributes; index as i;"
+                         [size]="displayColumnSizes[i]">
+                  <ion-text [innerHTML]="getPropertyByPath(item, attr) | highlight: {search: formControl.value }"></ion-text>
+                </ion-col>
+              </ion-row>
+            </mat-option>
+          </ng-container>
+        </mat-autocomplete>
+      </mat-form-field>
+    </ion-col>
+    <ion-col size="auto" class="ion-align-self-center" >
+      <!--<button type="button" mat-icon-button tabindex="-1"
+              *ngIf="enabled && mobile && !searchable"
+              [title]="'COMMON.BTN_SEARCH'|translate"
+              (click)="toggleSearch($event)">
+        <mat-icon>search</mat-icon>
+      </button>-->
 
-  <button mat-button matSuffix mat-icon-button tabindex="-1"
-          type="button"
-          (click)="onDropButtonClick.emit($event)"
-          [hidden]="formControl.disabled">
-    <mat-icon>arrow_drop_down</mat-icon>
-  </button>
-  <button matSuffix mat-icon-button tabindex="-1"
-          type="button"
-          *ngIf="clearable"
-          (click)="writeValue(null) || $event.stopPropagation()"
-          [hidden]="formControl.disabled || !formControl.value">
-    <mat-icon>close</mat-icon>
-  </button>
-  <ng-content matSuffix select="[matSuffix]"></ng-content>
-
-  <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-  <mat-error *ngIf="formControl.hasError('entity')||formControl.hasError('object')" translate>ERROR.FIELD_INVALID</mat-error>
-
-  <!-- combo -->
-  <mat-autocomplete #autoCombo="matAutocomplete"
-                    autoActiveFirstOption
-                    [displayWith]="displayWith"
-                    [class]="classList">
-    <ng-container *ngIf="$items | async as items">
-      <ion-row class="mat-autocomplete-header ion-no-padding" *ngIf="items.length">
-        <ion-col *ngFor="let attr of displayAttributes; index as i;" [size]="displayColumnSizes[i]" >
-          <ion-text [innerHTML]="displayColumnNames[i] | translate"></ion-text>
-        </ion-col>
-      </ion-row>
-
-      <mat-option *ngFor="let item of items" [value]="item" class="ion-no-padding">
-        <ion-row>
-          <ion-col *ngFor="let attr of displayAttributes; index as i;"
-                   [size]="displayColumnSizes[i]">
-            <ion-text [innerHTML]="getPropertyByPath(item, attr) | highlight: {search: formControl.value }"></ion-text>
-          </ion-col>
-        </ion-row>
-      </mat-option>
-    </ng-container>
-  </mat-autocomplete>
-</mat-form-field>
-
+      <ng-content select="[matAfter]"></ng-content>
+    </ion-col>
+  </ion-row>
+</ion-grid>

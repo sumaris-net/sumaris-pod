@@ -113,27 +113,32 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     // TODO fill vessel types
 
     // Update filter when changes
-    this.filterForm.valueChanges
-      .pipe(
-        debounceTime(250),
-        filter(() => this.filterForm.valid),
-        // Applying the filter
-        tap(json => this.setFilter({
-          date: json.date,
-          searchText: json.searchText,
-          statusId: json.statusId
-        }, {emitEvent: this.mobile || isNil(this.filter)})),
-        // Save filter in settings (after a debounce time)
-        debounceTime(1000),
-        tap(json => this.settings.savePageSetting(this.settingsId, json, 'filter'))
-      )
-      .subscribe();
+    this.registerSubscription(
+      this.filterForm.valueChanges
+        .pipe(
+          debounceTime(250),
+          filter(() => this.filterForm.valid),
 
-    this.onRefresh.subscribe(() => {
-      this.filterForm.markAsUntouched();
-      this.filterForm.markAsPristine();
-      this.markForCheck();
-    });
+          // Applying the filter
+          tap(json => this.setFilter({
+            date: json.date,
+            searchText: json.searchText,
+            statusId: json.statusId
+          }, {emitEvent: this.mobile || isNil(this.filter)})),
+
+          // Save filter in settings (after a debounce time)
+          debounceTime(1000),
+          tap(json => this.settings.savePageSetting(this.settingsId, json, 'filter'))
+        )
+        .subscribe());
+
+    this.registerSubscription(
+      this.onRefresh.subscribe(() => {
+        this.filterIsEmpty = VesselFilter.isEmpty(this.filter);
+        this.filterForm.markAsUntouched();
+        this.filterForm.markAsPristine();
+        this.markForCheck();
+      }));
 
     // Restore filter from settings, or load all vessels
     this.restoreFilterOrLoad();
@@ -156,22 +161,20 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
   /* -- protected methods -- */
 
   protected async restoreFilterOrLoad() {
+    console.debug("[vessels] Restoring filter from settings...");
     const json = this.settings.getPageSettings(this.settingsId, 'filter');
 
     // No default filter: load all vessels
     if (isNil(json) || typeof json !== 'object') {
+      // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
       this.onRefresh.emit();
+      // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
+      this.filterForm.patchValue({}, {emitEvent: false});
     }
     // Restore the filter (will apply it)
     else {
       this.filterForm.patchValue(json);
     }
-  }
-
-  setFilter(json: VesselFilter, opts?: { emitEvent: boolean }) {
-    super.setFilter(json, opts);
-
-    this.filterIsEmpty = VesselFilter.isEmpty(json);
   }
 
   protected markForCheck() {

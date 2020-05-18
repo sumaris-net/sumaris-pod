@@ -3,6 +3,10 @@ import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
 import {fromDateISOString, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, isNotNilOrNaN, toDateISOString} from "../functions";
 import {Moment} from "moment";
+import {DateFormatPipe} from "../shared.module";
+import {DateAdapter} from "@angular/material/core";
+import {MomentDateAdapter} from "@angular/material-moment-adapter";
+import {PipeTransform} from "@angular/core";
 
 export class SharedValidators {
 

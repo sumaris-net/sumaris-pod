@@ -1,5 +1,4 @@
-@import 'responsive';
-
+@import 'ionic.globals';
 
 ion-menu {
 
@@ -60,7 +59,7 @@ ion-menu {
     }
 
     button[mat-button] {
-      padding: 0px;
+      padding: 0;
       text-align: start !important;
       width: 100%;
     }
@@ -74,20 +73,54 @@ ion-menu {
     margin-top: 188px !important;
   }
 
-
-  ion-content.has-profile-header {
-    --offset-top: 188px;
-  }
-
-  ion-content.no-profile-header {
-    --offset-top: 79px;
-  }
-
   ion-content {
+    &.has-profile-header {
+      --offset-top: 188px;
+    }
+
+    &.no-profile-header {
+      --offset-top: 79px;
+    }
+
     ion-list {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+
+      ion-menu-toggle.flex-spacer {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
 
       ion-item {
 
+        &.primary {
+          --ion-item-icon-color: var(--ion-color-primary-tint);
+          --ion-item-text-color: var(--ion-color-primary-tint);
+        }
+        &.secondary {
+          --ion-item-icon-color: var(--ion-color-secondary-tint);
+          --ion-item-text-color: var(--ion-color-secondary-tint);
+        }
+        &.tertiary {
+          --ion-item-icon-color: var(--ion-color-tertiary-tint);
+          --ion-item-text-color: var(--ion-color-tertiary-tint);
+        }
+        &.danger {
+          --ion-item-icon-color: var(--ion-color-danger-tint);
+          --ion-item-text-color: var(--ion-color-danger-tint);
+        }
+        &.medium {
+          --ion-item-icon-color: var(--ion-color-medium-shade);
+          --ion-item-text-color: var(--ion-color-medium-shade);
+        }
+        &.dark {
+          --ion-item-icon-color: var(--ion-color-dark-tint);
+          --ion-item-text-color: var(--ion-color-dark-tint);
+        }
         mat-icon,
         ion-icon {
           color: var(--ion-item-icon-color) !important;
@@ -158,7 +191,7 @@ ion-menu {
   }
 }
 
-// Larger screen: larger avatar size
+// Medium screen: larger avatar size
 @media screen and (min-width: $screen-md) {
 
   ion-menu {
@@ -180,4 +213,9 @@ ion-menu {
       }
     }
   }
+}
+
+// Large screen
+@media screen and (min-width: $screen-lg) {
+
 }

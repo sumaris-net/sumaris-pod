@@ -1,5 +1,7 @@
-import {AfterViewInit, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
-import {MatPaginator, MatSort, MatTable} from "@angular/material";
+import { AfterViewInit, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild, Directive } from "@angular/core";
+import {MatPaginator} from "@angular/material/paginator";
+import {MatSort} from "@angular/material/sort";
+import {MatTable} from "@angular/material/table";
 import {EMPTY, merge, Observable, of, Subject, Subscription} from 'rxjs';
 import {catchError, filter, mergeMap, startWith, switchMap, takeUntil} from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
@@ -36,6 +38,7 @@ export class CellValueChangeListener {
   formPath?: string;
 }
 
+@Directive()
 export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, OnDestroy, AfterViewInit {
 
   private _initialized = false;
@@ -601,7 +604,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       .concat(fixedEndColumns);
   }
 
-  public async openSelectColumnsModal(event: any): Promise<any> {
+  public async openSelectColumnsModal(event?: UIEvent): Promise<any> {
     const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
     const hiddenColumns = this.columns.slice(fixedColumns.length)
       .filter(name => this.displayedColumns.indexOf(name) == -1);
@@ -779,7 +782,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     return Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
   }
 
-  protected async showToast(opts: ToastOptions & { error?: boolean;}) {
+  protected async showToast(opts: ToastOptions & { error?: boolean; showCloseButton?: boolean }) {
     if (!this.toastController) {
       console.warn("[table] Missing toastController in component's constructor. Cannot show toast");
       return;

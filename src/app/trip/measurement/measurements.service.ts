@@ -3,15 +3,15 @@ import {isNil, isNotNil, LoadResult, TableDataService} from "../../core/core.mod
 import {filter, first, map, switchMap} from "rxjs/operators";
 import {
   IEntityWithMeasurement,
-  MeasurementUtils,
   MeasurementValuesUtils,
   PMFM_ID_REGEXP
 } from "../../trip/services/model/measurement.model";
 import {EntityUtils} from "../../core/services/model";
 import {PmfmStrategy} from "../../referential/services/model";
-import {EventEmitter, Injector, Input} from "@angular/core";
+import {Directive, EventEmitter, Injector, Input} from "@angular/core";
 import {ProgramService} from "../../referential/referential.module";
 
+@Directive()
 export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> implements TableDataService<T, F> {
 
   private _program: string;

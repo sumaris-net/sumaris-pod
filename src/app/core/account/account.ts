@@ -7,7 +7,7 @@ import {FormBuilder, FormGroup} from '@angular/forms';
 import {AccountValidatorService} from '../services/account.validator';
 import {AppForm} from '../form/form.class';
 import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {AppFormUtils} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
 import {FormFieldDefinition} from "../../shared/form/field.model";
@@ -38,6 +38,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
   locales = Locales;
   latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
   saving = false;
+  submitted = false;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -147,6 +148,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
       return;
     }
 
+    this.submitted = true;
     this.saving = true;
     this.error = undefined;
 

@@ -1,9 +1,7 @@
 import {Injectable} from "@angular/core";
-import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ValidatorService} from "angular4-material-table";
-import {SharedValidators} from "../../../shared/validator/validators";
-import {AggregationStrata, AggregationType, ExtractionFilterCriterion, ExtractionType} from "../extraction.model";
-import {toInt} from "../../../shared/functions";
+import {ExtractionFilterCriterion, ExtractionType} from "../extraction.model";
 
 @Injectable()
 export class ExtractionCriteriaValidatorService implements ValidatorService {
