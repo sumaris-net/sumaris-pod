@@ -105,27 +105,23 @@ if [[ -d "${NVM_DIR}" ]]; then
     fi
 else
     echo "nvm (Node version manager) not found (directory ${NVM_DIR} not found). Please install, and retry"
-    exit -1
+    exit 1
 fi
 
 # Install global dependencies
-YARN_PATH=`which yarn`
 IONIC_PATH=`which ionic`
 CORDOVA_PATH=`which cordova`
 CORDOVA_RES_PATH=`which cordova-res`
 NATIVE_RUN_PATH=`which native-run`
-if [[ "_" == "_${YARN_PATH}" || "_" == "_${IONIC_PATH}" || "_" == "_${CORDOVA_PATH}" || "_" == "_${CORDOVA_RES_PATH}" ]]; then
+if [[ "_" == "_${IONIC_PATH}" || "_" == "_${CORDOVA_PATH}" || "_" == "_${CORDOVA_RES_PATH}" || "_" == "_${NATIVE_RUN_PATH}" ]]; then
   echo "Installing global dependencies..."
-  npm install -g yarn cordova cordova-res @ionic/cli native-run
+  npm install -g cordova cordova-res @ionic/cli native-run
   [[ $? -ne 0 ]] && exit 1
-
-  # Make sure Ionic use yarn
-  ionic config set -g yarn true
 fi
 
 # Install project dependencies
 if [[ ! -d "${PROJECT_DIR}/node_modules" ]]; then
     echo "Installing project dependencies..."
     cd ${PROJECT_DIR}
-    yarn install
+    npm install
 fi

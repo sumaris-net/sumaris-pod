@@ -42,7 +42,7 @@ cd sumaris-app/scripts
 3. Start the app
     ```bash
     cd sumaris-app
-    yarn run start
+    npm start
     ```
    By default, the app should be accessible at [http://localhost:4200](http://localhost:4200)
    
