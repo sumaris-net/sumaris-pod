@@ -28,6 +28,7 @@ import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
@@ -85,7 +86,7 @@ public class MetierRepositoryImpl
         // Switch to specific search if a date and a vessel id is provided
         if (filter instanceof MetierFilterVO) {
             MetierFilterVO metierFilter = (MetierFilterVO) filter;
-            if (metierFilter.getDate() != null && metierFilter.getVesselId() == null)
+            if (metierFilter.getDate() != null && metierFilter.getVesselId() != null)
                 return findByDateAndVesselId(metierFilter, offset, size, sortAttribute, sortDirection);
         }
 
@@ -151,40 +152,53 @@ public class MetierRepositoryImpl
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Metier> criteriaQuery = cb.createQuery(Metier.class);
         Root<Metier> metiers = criteriaQuery.from(Metier.class);
-        Root<Operation> operations = criteriaQuery.from(Operation.class);
-        Join<Operation, Trip> trips = operations.join(Operation.Fields.TRIP, JoinType.INNER);
+        Root<Trip> trips = criteriaQuery.from(Trip.class);
+        Join<Trip, Operation> operations = trips.join(Trip.Fields.OPERATIONS, JoinType.INNER);
+
         ParameterExpression<Integer> tripIdParameter = cb.parameter(Integer.class);
+        ParameterExpression<String> programLabelParameter = cb.parameter(String.class);
 
         String searchText = Daos.getEscapedSearchText(filter.getSearchText());
         Specification<Metier> searchTextSpecification = searchText(filter.getSearchAttribute(), SEARCH_TEXT_PARAMETER);
-        Specification<Metier> specification = toSpecification(filter).and(searchTextSpecification);
 
         criteriaQuery.where(cb.and(
-            cb.equal(operations.get(Operation.Fields.METIER), metiers.get(Metier.Fields.ID)),
-            cb.equal(trips.get(Trip.Fields.VESSEL).get(Vessel.Fields.ID), filter.getVesselId()),
-            // TODO add program filter
-            cb.not(
+                // Vessel
+                cb.equal(trips.get(Trip.Fields.VESSEL).get(Vessel.Fields.ID), filter.getVesselId()),
+                // Program
                 cb.or(
-                    cb.greaterThan(operations.get(Operation.Fields.START_DATE_TIME), endDate),
-                    cb.lessThan(cb.coalesce(operations.get(Operation.Fields.END_DATE_TIME), startDate), startDate)
-                )
-            ),
-            cb.or(
-                cb.isNull(tripIdParameter),
-                cb.notEqual(trips.get(Trip.Fields.ID), tripIdParameter)
-            ),
-            specification.toPredicate(metiers, criteriaQuery, cb)
+                        cb.isNull(programLabelParameter),
+                        cb.notEqual(trips.get(Trip.Fields.PROGRAM).get(Program.Fields.LABEL), programLabelParameter)
+                ),
+                // Date
+                cb.not(
+                    cb.or(
+                        cb.greaterThan(operations.get(Operation.Fields.START_DATE_TIME), endDate),
+                        cb.lessThan(cb.coalesce(operations.get(Operation.Fields.END_DATE_TIME), startDate), startDate)
+                    )
+                ),
+
+                // Exclude given tripId
+                cb.or(
+                    cb.isNull(tripIdParameter),
+                    cb.notEqual(trips.get(Trip.Fields.ID), tripIdParameter)
+                ),
+
+                // Link metier to operation
+                cb.equal(operations.get(Operation.Fields.METIER), metiers.get(Metier.Fields.ID)),
+                // Default filter criteria
+                toSpecification(filter).and(searchTextSpecification).toPredicate(metiers, criteriaQuery, cb)
         ));
 
         criteriaQuery.select(metiers);
 
-        TypedQuery<Metier> query = getEntityManager().createQuery(criteriaQuery);
+        TypedQuery<Metier> query = getEntityManager().createQuery(criteriaQuery)
+                .setParameter(tripIdParameter, filter.getTripId())
+                .setParameter(programLabelParameter, filter.getProgramLabel());
 
         Parameter<String> searchTextParam = query.getParameter(SEARCH_TEXT_PARAMETER, String.class);
         if (searchTextParam != null) {
             query.setParameter(searchTextParam, searchText);
         }
-        query.setParameter(tripIdParameter, filter.getTripId());
 
         return query
             .setFirstResult(offset)
