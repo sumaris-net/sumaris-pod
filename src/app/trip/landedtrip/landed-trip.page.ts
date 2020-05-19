@@ -1,8 +1,14 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {EntityUtils, environment, isNotNil} from '../../core/core.module';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray, isNotNilOrBlank} from '../../shared/shared.module';
+import {environment, isNotNil} from '../../core/core.module';
+import {
+  EditorDataServiceLoadOptions,
+  fadeInOutAnimation,
+  isNil,
+  isNotEmptyArray,
+  isNotNilOrBlank
+} from '../../shared/shared.module';
 import * as moment from "moment";
 import {AcquisitionLevelCodes, PmfmStrategy, ProgramProperties} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
@@ -30,7 +36,6 @@ import {OperationGroup, Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {fillRankOrder, isRankOrderValid} from "../services/model/base.model";
 import {SaleProductUtils} from "../services/model/sale-product.model";
-import {ok} from "assert";
 import {debounceTime, filter} from "rxjs/operators";
 
 @Component({

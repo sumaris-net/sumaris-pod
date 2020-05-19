@@ -28,6 +28,10 @@ ANDROID_OUTPUT_APK_PREFIX=app
 
 PROJECT_NAME=sumaris-app
 
+NODE_CMD="node --max-old-space-size=8192"
+IONIC_CMD="${NODE_CMD} ./node_modules/.bin/ionic"
+NG_CMD="${NODE_CMD} ./node_modules/.bin/ng"
+
 # /!\ WARN can be define in your <project>/.local/env.sh file
 #JAVA_HOME=
 

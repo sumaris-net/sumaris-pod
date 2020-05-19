@@ -60,8 +60,6 @@ export class ToolbarComponent implements OnInit {
 
   showSearchBar = false;
 
-  @ViewChild("backButton") backButton: IonBackButton;
-
   @ViewChild('searchbar', {static: true}) searchbar: IonSearchbar;
 
   constructor(

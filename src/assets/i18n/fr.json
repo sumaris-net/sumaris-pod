@@ -360,8 +360,8 @@
       "OTHER_FEATURES": "Caractéristiques :"
     },
     "OPTIONS": {
-      "ENABLE": "Marée > Activer ?",
-      "NAME": "Marée > Titre (menu, etc.)"
+      "ENABLE": "Marées > Activer ?",
+      "NAME": "Marées > Titre (menu, etc.)"
     },
     "TABLE": {
       "TITLE": "Marées",
@@ -412,7 +412,7 @@
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
       "RANK_ORDER": "#",
-      "SEARCH_EXISTING_BTN": "Chercher parmi les engins existants",
+      "SEARCH_EXISTING_BTN": "Chercher parmi les données déjà saisis",
       "NEW": {
         "TITLE": "Nouvel engin"
       },
@@ -913,7 +913,7 @@
       "FRACTION": "Fraction",
       "METHOD": "Méthode de collecte",
       "UNIT": "Unité",
-      "BTN_ADD_PARAMETER": "Nouveau paramètre",
+      "BTN_ADD_PARAMETER": "Créer un nouveau paramètre",
       "BTN_OPEN_PARAMETER": "Ouvrir le paramètre",
       "NEW": {
         "TITLE": "Nouveau PSFM"

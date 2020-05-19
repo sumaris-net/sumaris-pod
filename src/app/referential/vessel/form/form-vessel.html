@@ -48,12 +48,12 @@
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="auto">
-        <mat-date-time [placeholder]="'VESSEL.REGISTRATION.START_DATE'|translate" formControlName="startDate" [displayTime]="false"
-                       [required]="true">
+        <mat-date-time-field [placeholder]="'VESSEL.REGISTRATION.START_DATE'|translate" formControlName="startDate" [displayTime]="false"
+                             [required]="true">
           <mat-error *ngIf="form.get('registration.startDate').hasError('dateIsAfter')">
             {{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: form.get('registration.startDate').errors.dateIsAfter }}
           </mat-error>
-        </mat-date-time>
+        </mat-date-time-field>
       </ion-col>
     </ion-row>
 
@@ -67,12 +67,12 @@
         </mat-form-field>
       </ion-col>
       <ion-col size="auto">
-        <mat-date-time [placeholder]="'VESSEL.FEATURES.START_DATE'|translate" formControlName="startDate" [displayTime]="false"
-          [required]="true">
+        <mat-date-time-field [placeholder]="'VESSEL.FEATURES.START_DATE'|translate" formControlName="startDate" [displayTime]="false"
+                             [required]="true">
           <mat-error *ngIf="form.get('features.startDate').hasError('dateIsAfter')">
             {{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: form.get('features.startDate').errors.dateIsAfter }}
           </mat-error>
-        </mat-date-time>
+        </mat-date-time-field>
       </ion-col>
     </ion-row>
 

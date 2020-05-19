@@ -20,15 +20,15 @@ import {
   Validators
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {SharedValidators} from '../validator/validators';
+import {SharedValidators} from '../../validator/validators';
 import {
   DEFAULT_MAX_DECIMALS,
   LatLongFormatFn,
   formatLatitude,
   formatLongitude,
   parseLatitudeOrLongitude
-} from '../pipes/latlong-format.pipe';
-import {DEFAULT_PLACEHOLDER_CHAR} from '../constants';
+} from './latlong.utils';
+import {DEFAULT_PLACEHOLDER_CHAR} from '../../constants';
 
 const MASKS = {
   'latitude': {
@@ -47,19 +47,19 @@ const noop = () => {
 };
 
 @Component({
-  selector: 'mat-latlong',
-  templateUrl: 'material.latlong.html',
+  selector: 'mat-latlong-field',
+  templateUrl: './material.latlong.html',
   styleUrls: ['./material.latlong.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
       multi: true,
-      useExisting: forwardRef(() => MatLatLong),
+      useExisting: forwardRef(() => MatLatLongField),
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MatLatLong implements OnInit, ControlValueAccessor {
+export class MatLatLongField implements OnInit, ControlValueAccessor {
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
   protected disabling = false;
@@ -141,7 +141,7 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
     );
 
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
-    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-latlong>.");
+    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-latlong-field>.");
 
     this.formControl.setValidators(Validators.compose([
       this.formControl.validator,

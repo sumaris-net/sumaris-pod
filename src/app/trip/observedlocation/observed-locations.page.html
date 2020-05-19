@@ -78,19 +78,19 @@
           <ion-col size="12" size-lg="6">
 
             <!-- Start date -->
-            <mat-date [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate"
-                      [formControl]="filterForm.controls.startDate"
-                      [clearable]="true">
+            <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate"
+                            [formControl]="filterForm.controls.startDate"
+                            [clearable]="true">
               <ion-icon matPrefix name="calendar"></ion-icon>
-            </mat-date>
+            </mat-date-field>
           </ion-col>
 
           <ion-col size="12" size-lg="6">
             <!-- End date -->
-            <mat-date [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE'|translate"
-                      [formControl]="filterForm.controls.endDate"
-                      [clearable]="true">
-            </mat-date>
+            <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE'|translate"
+                            [formControl]="filterForm.controls.endDate"
+                            [clearable]="true">
+            </mat-date-field>
           </ion-col>
         </ion-row>
 

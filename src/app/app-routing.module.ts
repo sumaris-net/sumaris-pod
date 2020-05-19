@@ -342,7 +342,7 @@ if (!environment.production) {
         // Shared module
         {
           path: 'shared',
-          loadChildren: () => import('./shared/test/shared.test.module').then(m => m.SharedTestModule)
+          loadChildren: () => import('./shared/shared.testing.module').then(m => m.SharedTestingModule)
         }
       ]
     });

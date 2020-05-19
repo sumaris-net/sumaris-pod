@@ -229,6 +229,7 @@ form.form-container {
 
       ion-col > ion-label {
         color: var(--ion-color-primary100);
+        padding-inline-end: 5px;
       }
 
       ion-col > ion-label[text-wrap] {
@@ -241,7 +242,6 @@ form.form-container {
       // No top/bottom padding between grid cell
       padding-bottom: 0;
       padding-top: 0;
-
     }
   }
 }
@@ -258,7 +258,7 @@ mat-form-field {
 
 
   // --- mat-date-time
-mat-date-time {
+mat-date-time-field {
   // Need for errors injected using the <ng-content> tag
   mat-error {
     text-align: end;
@@ -268,7 +268,7 @@ mat-date-time {
 @media screen and (min-width: $screen-sm) {
   form.form-container {
     ion-grid {
-      ion-col[size-sm="auto"] > mat-date-time {
+      ion-col[size-sm="auto"] > mat-date-time-field {
         // When inside a form + grid : fix <ion-col size-sm="auto"> alignment in some screen resolution
         max-width: 190px;
       }

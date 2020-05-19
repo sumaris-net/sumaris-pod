@@ -25,7 +25,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {PersonService} from "../../admin/services/person.service";
-import {toBoolean} from "../../shared/functions";
+import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
 import {Vessel} from "../../referential/services/model";
 import {MetierRef} from "../../referential/services/model/taxon.model";
@@ -356,9 +356,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   protected updateMetierFilter(value?: Trip) {
     console.debug("[trip-form] Updating metier filter...");
     value = value || this.form.value as Trip;
+    const programLabel = value.program && value.program.label;
     const date = value.returnDateTime || value.departureDateTime;
     const vesselId = value.vesselSnapshot && value.vesselSnapshot.id;
-    const canFilterMetier = date && isNotNil(vesselId);
+    const canFilterMetier = date && isNotNilOrBlank(programLabel) && isNotNil(vesselId);
 
     let metierFilter;
     if (!this.enableMetierFilter || !canFilterMetier) {
@@ -367,8 +368,9 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     else {
       metierFilter = {
         ...METIER_DEFAULT_FILTER,
-        date,
+        programLabel,
         vesselId,
+        date,
         tripId: value.id
       };
     }

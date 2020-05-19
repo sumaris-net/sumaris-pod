@@ -1,8 +1,8 @@
 import {Component, OnInit} from "@angular/core";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {SharedValidators} from "../../validator/validators";
-import {MatAutocompleteConfigHolder} from "../../material/material.autocomplete";
-import {isNotNil, suggestFromArray} from "../../functions";
+import {SharedValidators} from "../../../validator/validators";
+import {MatAutocompleteConfigHolder} from "../material.autocomplete";
+import {isNotNil, suggestFromArray} from "../../../functions";
 import {BehaviorSubject} from "rxjs";
 
 export class Entity {
@@ -22,10 +22,10 @@ function deepCopy(values?: Entity[]): Entity[] {
 }
 
 @Component({
-  selector: 'app-test-form',
-  templateUrl: './form.test.html'
+  selector: 'app-autocomplete-test',
+  templateUrl: './autocomplete.test.html'
 })
-export class FormTestPage implements OnInit {
+export class AutocompleteTestPage implements OnInit {
 
   private _items = deepCopy(FAKE_ENTITIES);
   private _$items = new BehaviorSubject<Entity[]>(undefined);
@@ -85,7 +85,7 @@ export class FormTestPage implements OnInit {
         id: -1, label: '??', name: 'Missing item'
       },
 
-      disableEntity: deepCopy(FAKE_ENTITIES)[3]
+      disableEntity: deepCopy(FAKE_ENTITIES)[2]
     };
 
     this.form.setValue(data);

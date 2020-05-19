@@ -98,16 +98,22 @@
                  [ngxTimepicker]="timePicker"
                  [format]="24">
 
-          <button *ngIf="!compact && !mobile" type="button" matSuffix
-                  (click)="openTimePicker($event)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
+          <button matSuffix type="button" mat-icon-button
+                  tabindex="-1"
+                  *ngIf="!compact && !mobile"
+                  [disabled]="formControl.disabled"
+                  (click)="openTimePicker($event)" >
             <mat-icon>keyboard_arrow_down</mat-icon>
           </button>
-          <button *ngIf="!compact && mobile" type="button" matSuffix
-                  (click)="openTimePickerIfMobile($event)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
+          <button matSuffix type="button" mat-icon-button
+                  tabindex="-1"
+                  *ngIf="!compact && mobile"
+                  [disabled]="formControl.disabled"
+                  (click)="openTimePickerIfMobile($event)">
             <mat-icon>access_time</mat-icon>
           </button>
 
-          <ngx-material-timepicker #timePicker
+          <ngx-material-timepicker #timePicker [@.disabled]="true"
                                    (timeSet)="onTimePickerChange($event)"
                                    [ESC]="false"
                                    [defaultTime]="'00:00'"
@@ -115,9 +121,9 @@
                                    [confirmBtnTmpl]="timePickerOkButton"
                                    [preventOverlayClick]="false"
                                    [enableKeyboardInput]="false"
+                                   [disableAnimation]="true"
                                    (keyup.escape)="onTimePickerKeyup($event)"
-                                   (keyup.enter)="onTimePickerKeyup($event)"
-                                   [disableAnimation]="true">
+                                   (keyup.enter)="onTimePickerKeyup($event)">
             <!-- cancel button -->
             <ng-template #timePickerCancelButton>
               <ion-button fill="clear" color="dark">
