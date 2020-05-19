@@ -76,7 +76,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
   // Table options
   autoLoad = true;
-  readOnly = false;
+  @Input() readOnly = false;
   inlineEdition = false;
   focusFirstColumn = false;
   confirmBeforeDelete = false;

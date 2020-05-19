@@ -85,16 +85,19 @@ import {PacketCompositionValidatorService} from "./services/validator/packet-com
 import {ProductSaleModal} from "./sale/product-sale.modal";
 import {PacketSaleModal} from "./sale/packet-sale.modal";
 import {PacketSaleForm} from "./sale/packet-sale.form";
+import {ExpenseForm} from "./expense/expense.form";
+import {MatTabsModule} from "@angular/material/tabs";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
 @NgModule({
-  imports: [
-    CommonModule,
-    CoreModule,
-    LeafletModule,
-    ReferentialModule
-  ],
+    imports: [
+        CommonModule,
+        CoreModule,
+        LeafletModule,
+        ReferentialModule,
+        MatTabsModule
+    ],
   declarations: [
     TripTable,
     TripPage,
@@ -143,6 +146,7 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     ProductSaleForm,
     ProductSaleModal,
     LandedSaleForm,
+    ExpenseForm,
     PacketsTable,
     PacketForm,
     PacketModal,

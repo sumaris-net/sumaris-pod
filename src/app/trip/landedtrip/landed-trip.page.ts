@@ -29,7 +29,6 @@ import {MatAutocompleteConfigHolder, MatAutocompleteFieldConfig} from "../../sha
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
 import {Product} from "../services/model/product.model";
-import {LandedSaleForm} from "../sale/landed-sale.form";
 import {PacketsTable} from "../packet/packets.table";
 import {Packet} from "../services/model/packet.model";
 import {OperationGroup, Trip} from "../services/model/trip.model";
@@ -37,6 +36,8 @@ import {ObservedLocation} from "../services/model/observed-location.model";
 import {fillRankOrder, isRankOrderValid} from "../services/model/base.model";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {debounceTime, filter} from "rxjs/operators";
+import {Sale} from "../services/model/sale.model";
+import {ExpenseForm} from "../expense/expense.form";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -74,15 +75,12 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
   @ViewChild('operationGroupTable', {static: true}) operationGroupTable: OperationGroupTable;
-
-  @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
-
   @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
-  // @ViewChild('saleTabGroup', {static: true}) saleTabGroup: MatTabGroup;
-
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
   @ViewChild('packetsTable', {static: true}) packetsTable: PacketsTable;
-
+  @ViewChild('expenseForm', {static: true}) expenseForm: ExpenseForm;
+  // @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
+  private _sale: Sale; // pending sale
 
   constructor(
     injector: Injector,
@@ -168,7 +166,8 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
   protected registerFormsAndTables() {
     this.registerForms([this.tripForm, this.measurementsForm,
-      this.landedSaleForm //, this.saleMeasurementsForm
+      // this.landedSaleForm //, this.saleMeasurementsForm
+      this.expenseForm
     ])
       .registerTables([this.operationGroupTable, this.productsTable, this.packetsTable]);
   }
@@ -277,7 +276,12 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       this.productSalePmfms = await this.programService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
 
     }
-    this.measurementsForm.value = data && data.measurements || [];
+
+    // Trip measurements todo filter ????????
+    const tripMeasurements = data && data.measurements || [];
+    this.measurementsForm.value = tripMeasurements;
+    // Expenses
+    this.expenseForm.value = tripMeasurements;
 
     // Operations table
     const operationGroups = data && data.operationGroups || [];
@@ -303,8 +307,9 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       // fix sale startDateTime
       data.sale.startDateTime = !data.sale.startDateTime ? data.returnDateTime : data.sale.startDateTime;
 
-      this.landedSaleForm.value = data.sale;
-      // this.saleMeasurementsForm.value = data.sale.measurements || [];
+      // this.landedSaleForm.value = data.sale;
+      // keep sale object in safe place
+      this._sale = data.sale;
 
       // Dispatch product and packet sales
       if (isNotEmptyArray(data.sale.products)) {
@@ -340,8 +345,6 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     // Packets table
     this.packetsTable.value = packets;
 
-
-    // todo set other tables
   }
 
   // todo attention à cette action
@@ -458,8 +461,10 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     const products = this.productsTable.value || [];
     const packets = this.packetsTable.value || [];
 
+    // Restore sale
+    json.sale = this._sale && this._sale.asObject();
     // Sale
-    json.sale = this.landedSaleForm.value;
+    // json.sale = this.landedSaleForm.value;
     if (json.sale) {
       // sale products won't be saved with sale directly
       delete json.sale.products;
@@ -554,15 +559,6 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       // todo On each tables, confirm editing row
       // this.productTABLE.confirmEditCreate();
       // this.batchTABLE.confirmEditCreate();
-    }
-  }
-
-  onSaleTabChange($event: MatTabChangeEvent) {
-    super.onSubTabChange($event);
-    if (!this.loading) {
-      // todo On each tables, confirm editing row
-      // this.productsSAleTABLE.confirmEditCreate();
-      // this.batchSaleTABLE.confirmEditCreate();
     }
   }
 

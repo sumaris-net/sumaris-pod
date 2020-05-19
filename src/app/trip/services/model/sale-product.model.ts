@@ -222,7 +222,7 @@ export class SaleProductUtils {
         const compositionAverageRatio = PacketUtils.getCompositionAverageRatio(composition);
         let averageWeight = composition.weight;
         if (!averageWeight) {
-          averageWeight = compositionAverageRatio * packet.weight; // todo be sure packet.weight is defined
+          averageWeight = compositionAverageRatio * packet.weight;
         }
         product.weight = round(averageWeight * saleProduct.subgroupCount / packet.number);
         product.weightCalculated = true;
@@ -245,7 +245,6 @@ export class SaleProductUtils {
         // add to target
         target.push(product);
       });
-
 
     });
 
