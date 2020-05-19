@@ -1,4 +1,4 @@
-import { Pipe, Injectable, PipeTransform } from '@angular/core';
+import {Injectable, Pipe, PipeTransform} from '@angular/core';
 import {formatLatitude, formatLongitude} from "../material/latlong/latlong.utils";
 
 
@@ -12,9 +12,7 @@ import {formatLatitude, formatLongitude} from "../material/latlong/latlong.utils
 export class LatLongFormatPipe implements PipeTransform {
 
     transform(value: number, args?: any): string | Promise<string> {
-        args = args || {};
-        return ((!args.type || args.type !== 'latitude') ? formatLongitude : formatLatitude)
-            (value, { pattern: args.pattern, maxDecimals: args.maxDecimals, placeholderChar: args.placeholderChar });
+        return ((!args.type || args.type !== 'latitude') ? formatLongitude : formatLatitude)(value, args);
     }
 
 
@@ -24,10 +22,7 @@ export class LatLongFormatPipe implements PipeTransform {
 })
 @Injectable({providedIn: 'root'})
 export class LatitudeFormatPipe implements PipeTransform {
-  transform(value: number, args?: any): string | Promise<string> {
-    args = args || {};
-    return formatLatitude(value, { pattern: args.pattern, maxDecimals: args.maxDecimals, placeholderChar: args.placeholderChar });
-  }
+  transform = formatLatitude;
 }
 
 @Pipe({
@@ -35,8 +30,5 @@ export class LatitudeFormatPipe implements PipeTransform {
 })
 @Injectable({providedIn: 'root'})
 export class LongitudeFormatPipe implements PipeTransform {
-  transform(value: number, args?: any): string | Promise<string> {
-    args = args || {};
-    return formatLongitude(value, { ...args });
-  }
+  transform = formatLongitude;
 }

@@ -459,7 +459,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   protected getJsonValueToSave(): Promise<any> {
-    return this.form.value;
+    return Promise.resolve(this.form.value);
   }
 
   /**

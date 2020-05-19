@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, OnDestroy} from '@angular/core';
-import {Observable, Subject, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
 import {Account, Locales, referentialToString, StatusIds} from '../services/model';
 import {UserSettingsValidatorService} from '../services/user-settings.validator';
@@ -11,9 +11,8 @@ import {DateAdapter} from "@angular/material/core";
 import {AppFormUtils} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
 import {FormFieldDefinition} from "../../shared/form/field.model";
-import {subscribe} from "graphql";
-import {throttleTime} from "rxjs/operators";
 import {LocalSettingsService} from "../services/local-settings.service";
+import {LAT_LONG_PATTERNS} from "../../shared/material/latlong/latlong.utils";
 
 @Component({
   selector: 'page-account',
@@ -36,7 +35,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
   settingsForm: FormGroup;
   settingsContentForm: FormGroup;
   locales = Locales;
-  latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
+  latLongFormats = LAT_LONG_PATTERNS;
   saving = false;
   submitted = false;
 

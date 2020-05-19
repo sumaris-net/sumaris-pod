@@ -2,11 +2,12 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy,
 import {ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource, environment,
+  AppTableDataSource,
+  environment,
   isNotNil,
+  referentialToString,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-  referentialToString
+  RESERVED_START_COLUMNS
 } from "../../core/core.module";
 import {OperationValidatorService} from "../services/operation.validator";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
@@ -17,6 +18,7 @@ import {OperationFilter, OperationService} from "../services/operation.service";
 import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Operation, Trip} from "../services/model/trip.model";
+import {LatLongFormatFn, LatLongPattern} from "../../shared/material/latlong/latlong.utils";
 
 
 @Component({
@@ -33,7 +35,8 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
   displayAttributes: {
     [key: string]: string[]
   };
-  @Input() latLongPattern: string;
+
+  @Input() latLongPattern: LatLongPattern;
 
   @Input() tripId: number;
 
@@ -89,7 +92,12 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.pageSize = 1000; // Do not use paginator
 
     settings.ready().then(() => {
-      this.latLongPattern = this.settings.latLongFormat;
+      if (this.settings.settings.accountInheritance) {
+
+      }
+      else {
+        this.latLongPattern = this.settings.latLongFormat;
+      }
     });
   }
 

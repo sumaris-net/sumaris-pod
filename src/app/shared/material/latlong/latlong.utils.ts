@@ -1,16 +1,21 @@
 
-export const DEFAULT_PLACEHOLDER_CHAR = '\u005F';
-export const DEFAULT_MAX_DECIMALS = 3;
-const DEFAULT_OPTIONS = {
-  pattern: 'DDMM', maxDecimals: DEFAULT_MAX_DECIMALS
-};
+export declare type LatLongPattern = 'DDMMSS' | 'DDMM' | 'DD';
+export const LAT_LONG_PATTERNS: LatLongPattern[] = ['DDMMSS', 'DDMM', 'DD'];
 
 export declare class LatLongFormatOptions {
-  pattern: 'DDMMSS' | 'DDMM' | 'DD';
+  pattern: LatLongPattern;
   maxDecimals?: number;
   placeholderChar?: string;
 }
 export declare type LatLongFormatFn = (value: number | null, opts?: LatLongFormatOptions) => string;
+export const DEFAULT_PLACEHOLDER_CHAR = '\u005F';
+export const DEFAULT_MAX_DECIMALS = 3;
+
+const DEFAULT_OPTIONS = <LatLongFormatOptions>{
+  pattern: 'DDMM',
+  maxDecimals: DEFAULT_MAX_DECIMALS,
+  placeholderChar: DEFAULT_PLACEHOLDER_CHAR
+};
 
 export  function formatLatitude(value: number | null, opts?: LatLongFormatOptions): string {
   opts = { ...DEFAULT_OPTIONS, ...opts };

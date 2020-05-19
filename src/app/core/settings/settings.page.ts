@@ -191,8 +191,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
     this.saving = true;
     this.error = undefined;
-    const json = this.form.value;
-    json.properties = EntityUtils.getPropertyArrayAsObject(json.properties);
+    const data = await this.getValue();
 
     // Check peer alive, before saving
     const peerChanged = this.form.get('peerUrl').dirty;
@@ -200,13 +199,13 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     try {
       this.disable();
 
-      await this.settings.apply(json);
-      this.data = json;
+      await this.settings.apply(data);
+      this.data = data;
       this.markAsPristine();
 
       // Update the network peer
       if (peerChanged) {
-        this.network.peer = Peer.parseUrl(json.peerUrl);
+        this.network.peer = Peer.parseUrl(data.peerUrl);
       }
 
     } catch (err) {
@@ -216,14 +215,15 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       this.enable({emitEvent: false});
 
       // Apply inheritance
-      this.setAccountInheritance(json.accountInheritance, {emitEvent: false});
+      this.setAccountInheritance(data.accountInheritance, {emitEvent: false});
 
       this.saving = false;
       this.markForCheck();
     }
   }
 
-  public setAccountInheritance(enable: boolean, opts?: { emitEvent?: boolean; }) {
+
+  setAccountInheritance(enable: boolean, opts?: { emitEvent?: boolean; }) {
     // Make sure to update the value in control
     this.form.controls['accountInheritance'].setValue(enable, opts);
     if (this.data.accountInheritance !== enable) {
@@ -292,6 +292,28 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   referentialToString = referentialToString;
 
   /* -- protected functions -- */
+
+  protected async getValue(): Promise<LocalSettings> {
+    const json = await this.getJsonValueToSave();
+
+    // Override properties from account
+    if (json.accountInheritance && this.accountService.isLogin()) {
+      const account = this.accountService.account;
+      const userSettings = account && account.settings;
+      console.debug(`[settings] Applying account inheritance {locale: '${userSettings.locale}', latLongFormat: '${userSettings.latLongFormat}'}...`);
+      json.locale = userSettings.locale || json.locale;
+      json.latLongFormat = userSettings.latLongFormat || json.latLongFormat;
+    }
+
+    return json;
+  }
+
+  protected getJsonValueToSave(): Promise<any> {
+    const json = this.form.value;
+    json.properties = EntityUtils.getPropertyArrayAsObject(json.properties);
+
+    return Promise.resolve(json);
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();
