@@ -119,32 +119,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     this.hasIndividualMeasureControl.setValue(value);
   }
 
-  constructor(
-    protected measurementValidatorService: MeasurementsValidatorService,
-    protected dateAdapter: DateAdapter<Moment>,
-    protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
-    protected platform: PlatformService,
-    protected cd: ChangeDetectorRef,
-    protected validatorService: BatchGroupValidatorService,
-    protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService
-  ) {
-    super(dateAdapter,
-      measurementValidatorService,
-      formBuilder,
-      programService,
-      platform,
-      cd,
-      validatorService,
-      referentialRefService,
-      settings);
-
-    // Default value
-    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
-    this.hasIndividualMeasureControl = new FormControl(false);
-  }
-
   ngOnInit() {
     super.ngOnInit();
 
@@ -157,6 +131,32 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         });
         this.markForCheck();
       });
+  }
+
+  constructor(
+    protected measurementValidatorService: MeasurementsValidatorService,
+    protected dateAdapter: DateAdapter<Moment>,
+    protected formBuilder: FormBuilder,
+    protected programService: ProgramService,
+    protected platform: PlatformService,
+    protected validatorService: BatchGroupValidatorService,
+    protected referentialRefService: ReferentialRefService,
+    protected settings: LocalSettingsService,
+    protected cd: ChangeDetectorRef
+  ) {
+    super(dateAdapter,
+      measurementValidatorService,
+      formBuilder,
+      programService,
+      platform,
+      validatorService,
+      referentialRefService,
+      settings,
+      cd);
+
+    // Default value
+    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
+    this.hasIndividualMeasureControl = new FormControl(false);
   }
 
   setValue(data: BatchGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {

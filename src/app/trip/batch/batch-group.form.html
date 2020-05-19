@@ -29,7 +29,8 @@
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                                 [tabindex]="tabindex+1"
                                 [required]="showTaxonName"
-                                [config]="autocompleteFields.taxonName">
+                                [config]="autocompleteFields.taxonName"
+                                [filter]="taxonNameFilter">
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>

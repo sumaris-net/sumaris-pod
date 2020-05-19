@@ -9,13 +9,12 @@ import {FormGroup} from "@angular/forms";
 import * as moment from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
-import {isNilOrBlank, isNotEmptyArray, suggestFromArray} from "../../shared/functions";
+import {isNotEmptyArray} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {SharedValidators} from "../../shared/validator/validators";
 import {Operation, PhysicalGear, Trip} from "../services/model/trip.model";
-import {ReferentialRefFilter} from "../../referential/services/referential-ref.service";
-import {BehaviorSubject, Subject} from "rxjs";
+import {BehaviorSubject} from "rxjs";
 import {distinctUntilChanged} from "rxjs/operators";
 
 @Component({

@@ -158,7 +158,8 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() suggestFn: SuggestFn<any, any>;
 
   @Input() set filter(value: any) {
-    //console.log(this.logPrefix + " Setting filter:", filter);
+    // DEBUG
+    //console.debug(this.logPrefix + " Setting filter:", value);
     if (value !== this._$filter.getValue()) {
       this._$filter.next(value);
     }
@@ -175,31 +176,6 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() readonly = false;
 
   @Input() clearable = false;
-
-  @Input() set items(value: Observable<any[]> | any[]) {
-    // Remove previous subscription on items, (if exits)
-    if (this._itemsSubscription) {
-      console.warn("Items received twice !");
-      this._subscription.remove(this._itemsSubscription);
-      this._itemsSubscription.unsubscribe();
-    }
-
-    if (value instanceof Observable) {
-
-      this._itemsSubscription = this._subscription.add(
-        value.subscribe(v => this.$inputItems.next(v))
-      );
-    }
-    else {
-      if (value !== this.$inputItems.getValue()) {
-        this.$inputItems.next(value as any[]);
-      }
-    }
-  }
-
-  get items(): Observable<any[]> | any[] {
-    return this.$inputItems;
-  }
 
   @Input() debounceTime = 250;
 
@@ -234,6 +210,31 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     return this._tabindex;
   }
 
+  @Input() set items(value: Observable<any[]> | any[]) {
+    // Remove previous subscription on items, (if exits)
+    if (this._itemsSubscription) {
+      console.warn("Items received twice !");
+      this._subscription.remove(this._itemsSubscription);
+      this._itemsSubscription.unsubscribe();
+    }
+
+    if (value instanceof Observable) {
+
+      this._itemsSubscription = this._subscription.add(
+        value.subscribe(v => this.$inputItems.next(v))
+      );
+    }
+    else {
+      if (value !== this.$inputItems.getValue()) {
+        this.$inputItems.next(value as any[]);
+      }
+    }
+  }
+
+  get items(): Observable<any[]> | any[] {
+    return this.$inputItems;
+  }
+
   @Output('click') onClick = new EventEmitter<MouseEvent>();
 
   @Output('blur') onBlur = new EventEmitter<FocusEvent>();
@@ -243,7 +244,6 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @ViewChild('matSelect') matSelect: ElementRef;
 
   @ViewChild('matInputText') matInputText: ElementRef;
-
 
   get value(): any {
     return this.formControl.value;
@@ -422,6 +422,19 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
     this._implicitValue = undefined;
+  }
+
+  /**
+   * Allow to reload content. Useful when filter has been changed but not detected
+   */
+  reloadItems() {
+    if (!this.searchable) {
+      // Re sent the filter, to force a refresh
+      this._$filter.next(this._$filter.getValue());
+    }
+    else {
+      this.onDropButtonClick.emit();
+    }
   }
 
   writeValue(value: any): void {

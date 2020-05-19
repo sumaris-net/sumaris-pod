@@ -126,10 +126,10 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
     protected platform: PlatformService,
-    protected cd: ChangeDetectorRef,
     protected validatorService: BatchValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService
+    protected settings: LocalSettingsService,
+    protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
       validatorService.getFormGroup(null, {
