@@ -24,12 +24,10 @@ import {
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {Moment} from "moment/moment";
-import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../constants';
-import {SharedValidators} from '../validator/validators';
-import {delay, isNil, isNilOrBlank, setTabIndex, toBoolean, toDateISOString, toDuration} from "../functions";
+import {DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
+import {isNil, setTabIndex, toBoolean, toDuration} from "../../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
-import {first} from "rxjs/operators";
-import {InputElement, isFocusableElement} from "./focusable";
+import {InputElement, isFocusableElement} from "../focusable";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -39,16 +37,13 @@ export const DEFAULT_VALUE_ACCESSOR: any = {
 
 const HOUR_TIME_PATTERN = /[0-1]\d\d:[0-5]\d/;
 const HOUR_MASK = [/[0-1]/, /\d/, /\d/, ':', /[0-5]/, /\d/];
-// patterns with _ allowed
-const HOUR_TIME_PATTERN2 = /[_0-1][_\d][_\d]:[_0-5][_\d]/;
-const HOUR_MASK2 = [/[_0-1]/, /[_\d]/, /[_\d]/, ':', /[_0-5]/, /[_\d]/];
 
 const noop = () => {
 };
 
 @Component({
-  selector: 'mat-duration',
-  templateUrl: 'material.duration.html',
+  selector: 'mat-duration-field',
+  templateUrl: './material.duration.html',
   styleUrls: ['./material.duration.scss'],
   providers: [
     DEFAULT_VALUE_ACCESSOR,
@@ -125,7 +120,7 @@ export class MatDuration implements OnInit, ControlValueAccessor, InputElement {
   ngOnInit() {
 
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
-    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-date-time>.");
+    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-date-time-field>.");
 
     this.required = toBoolean(this.required, this.formControl.validator === Validators.required);
 

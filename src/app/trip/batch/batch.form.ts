@@ -13,7 +13,7 @@ import {
   referentialToString,
   UsageMode
 } from "../../core/services/model";
-import {filter, first} from "rxjs/operators";
+import {debounceTime, filter, first} from "rxjs/operators";
 import {
   AcquisitionLevelCodes,
   isNil,
@@ -27,7 +27,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
 import {AppFormUtils, FormArrayHelper} from "../../core/core.module";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {isNilOrBlank, isNotNilOrBlank, isNotNilOrNaN, toBoolean} from "../../shared/functions";
+import {isNilOrBlank, isNotNilOrBlank, isNotNilOrNaN, toBoolean, toNumber} from "../../shared/functions";
 import {BatchValidatorService} from "../services/batch.validator";
 import {firstNotNilPromise} from "../../shared/observables";
 import {PlatformService} from "../../core/services/platform.service";
@@ -52,6 +52,7 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
   mobile: boolean;
   childrenFormHelper: FormArrayHelper<Batch>;
   samplingFormValidator: Subscription;
+  taxonNameFilter: any;
 
 
   @Input() tabindex: number;
@@ -155,6 +156,7 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
   ngOnInit() {
     super.ngOnInit();
 
+    // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
     // This will cause update controls
@@ -162,16 +164,26 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
+      suggestFn: (value: any, filter?: any) => this.programService.suggestTaxonGroups(value, {...filter, program: this.program}),
       mobile: this.settings.mobile
     });
+
     // Taxon name combo
+    this.updateTaxonNameFilter();
     this.registerAutocompleteField('taxonName', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
+      suggestFn: (value: any, filter?: any) => this.programService.suggestTaxonNames(value, filter),
+      filter: this.taxonNameFilter,
       mobile: this.settings.mobile
     });
 
-
+    this.registerSubscription(
+      this.form.get('taxonGroup').valueChanges
+        .pipe(
+          debounceTime(250),
+          filter((value) => this.showTaxonGroup && this.showTaxonName)
+        )
+        .subscribe(taxonGroup => this.updateTaxonNameFilter({taxonGroup}))
+    );
   }
 
   ngOnDestroy() {
@@ -368,26 +380,22 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
     }
   }
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
-    return this.programService.suggestTaxonGroups(value,
-      {
-        program: this.program,
-        searchAttribute: options && options.searchAttribute
-      });
-  }
+  protected updateTaxonNameFilter(opts?: {taxonGroup?: any}) {
 
-  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
-    const taxonGroup = this.form.get('taxonGroup').value;
-
-    // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroup && isNilOrBlank(value) && isNil(parent)) return [];
-
-    return this.programService.suggestTaxonNames(value,
-      {
-        program: this.program,
-        searchAttribute: options && options.searchAttribute,
-        taxonGroupId: taxonGroup && taxonGroup.id || undefined
-      });
+    // If taxonGroup exists: taxon group must be filled first
+    if (this.showTaxonGroup && EntityUtils.isEmpty(opts && opts.taxonGroup)) {
+      this.taxonNameFilter = {
+        program: 'NONE' /*fake program, will cause empty array*/
+      };
+    }
+    else {
+      this.taxonNameFilter =
+        {
+          program: this.program,
+          taxonGroupId: opts && opts.taxonGroup && opts.taxonGroup.id
+        };
+    }
+    this.markForCheck();
   }
 
   protected mapPmfms(pmfms: PmfmStrategy[]) {

@@ -533,6 +533,14 @@ export class FormArrayHelper<T = Entity<any>> {
     this.arrayControl.controls.forEach(c => c.enable(opts));
   }
 
+  forEach(ite: (control: AbstractControl) => void ) {
+    const size = this.size();
+    for(let i = 0; i < size; i++) {
+      const control = this.arrayControl.at(i);
+      if (control) ite(control);
+    }
+  }
+
   /* -- internal methods -- */
 
   protected setAllowEmptyArray(value: boolean) {

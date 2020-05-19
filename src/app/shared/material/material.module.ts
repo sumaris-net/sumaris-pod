@@ -8,11 +8,9 @@ import {InputElement} from './focusable';
 import {A11yModule} from "@angular/cdk/a11y";
 import {OverlayModule} from "@angular/cdk/overlay";
 import {ScrollingModule} from "@angular/cdk/scrolling";
-import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 import {MatCommonModule, MatRippleModule} from "@angular/material/core";
 import {MatTableModule} from "@angular/material/table";
 import {MatSortModule} from "@angular/material/sort";
-import {MatAutocompleteModule} from "@angular/material/autocomplete";
 import {MatPaginatorModule} from "@angular/material/paginator";
 import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatInputModule} from "@angular/material/input";
@@ -34,20 +32,23 @@ import {MatRadioModule} from "@angular/material/radio";
 import {MatBadgeModule} from "@angular/material/badge";
 import {MatSlideToggleModule} from "@angular/material/slide-toggle";
 import {MatDialogModule} from "@angular/material/dialog";
+import {SharedMatAutocompleteModule} from "./autocomplete/autocomplete.module";
+import {SharedMatLatLongModule} from "./latlong/latlong.module";
+import {SharedMatDateTimeModule} from "./datetime/datetime.module";
+import {SharedMatDurationModule} from "./duration/duration.module";
+import {SharedMatBooleanModule} from "./boolean/boolean.module";
 
 export { fadeInAnimation, slideInOutAnimation, InputElement };
 
 const modules: Array<Type<any> | any[]> = [
+  // Angular material components
   MatCommonModule,
   MatTableModule,
   MatSortModule,
-  MatAutocompleteModule,
   MatPaginatorModule,
   MatFormFieldModule,
   MatInputModule,
   CdkTableModule,
-  MatDatepickerModule,
-  MatMomentDateModule,
   MatCheckboxModule,
   MatExpansionModule,
   MatToolbarModule,
@@ -70,7 +71,12 @@ const modules: Array<Type<any> | any[]> = [
   OverlayModule,
   ScrollingModule,
   MatRippleModule,
-  NgxMaterialTimepickerModule
+  // Custom components
+  SharedMatAutocompleteModule,
+  SharedMatLatLongModule,
+  SharedMatDateTimeModule,
+  SharedMatDurationModule,
+  SharedMatBooleanModule
 ];
 
 @NgModule({

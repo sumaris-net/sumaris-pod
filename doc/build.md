@@ -10,12 +10,7 @@ This article will explain how to install your environment, then build the applic
 
 2. Install global dependency: 
 ```bash
-npm install -g yarn ionic@5.4.5 cordova@9.0.0 cordova-res@0.8.1 native-run@0.2.9 
-```
-
-OR, use latest versions (beta):
-```bash
-npm install -g yarn ionic@latest cordova@latest cordova-res@latest native-run@latest
+npm install -g @ionic/cli cordova cordova-res native-run 
 ```
 
 2. Get sources (clone the repo) : `git clone ...`
@@ -32,7 +27,7 @@ sudo apt-get install chromium-browser docker.io
 1. Install project's dependencies:
 ```bash
 cd sumaris-app
-yarn
+npm install
 ```
 OR, alternatively: 
 ```bash
@@ -47,7 +42,7 @@ cd sumaris-app/scripts
 3. Start the app
     ```bash
     cd sumaris-app
-    yarn run start
+    npm start
     ```
    By default, the app should be accessible at [http://localhost:4200](http://localhost:4200)
    

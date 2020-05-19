@@ -35,7 +35,5 @@ $RECYCLE.BIN/
 .directory
 Thumbs.db
 UserInterfaceState.xcuserstate
-
-package-lock.json
-
+yarn.lock
 resources/android/build/local

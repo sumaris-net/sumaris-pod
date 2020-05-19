@@ -1,8 +1,14 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {EntityUtils, environment, isNotNil} from '../../core/core.module';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray, isNotNilOrBlank} from '../../shared/shared.module';
+import {environment, isNotNil} from '../../core/core.module';
+import {
+  EditorDataServiceLoadOptions,
+  fadeInOutAnimation,
+  isNil,
+  isNotEmptyArray,
+  isNotNilOrBlank
+} from '../../shared/shared.module';
 import * as moment from "moment";
 import {AcquisitionLevelCodes, PmfmStrategy, ProgramProperties} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";

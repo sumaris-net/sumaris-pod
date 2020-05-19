@@ -198,7 +198,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
               samplingTypeControl.valueChanges
                 .pipe(
                   debounceTime(400),
-                  startWith(samplingTypeControl.value),
+                  startWith<any, any>(samplingTypeControl.value),
                   filter(EntityUtils.isNotEmpty),
                   map(qv => qv.label),
                   distinctUntilChanged()
@@ -238,7 +238,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
               isSamplingControl.valueChanges
                 .pipe(
                   debounceTime(400),
-                  startWith(isSamplingControl.value),
+                  startWith<any, any>(isSamplingControl.value),
                   filter(isNotNil),
                   distinctUntilChanged()
                 )
@@ -281,7 +281,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
               tripProgressControl.valueChanges
                 .pipe(
                   debounceTime(400),
-                  startWith(tripProgressControl.value),
+                  startWith<any, any>(tripProgressControl.value),
                   filter(isNotNil),
                   distinctUntilChanged()
                 )

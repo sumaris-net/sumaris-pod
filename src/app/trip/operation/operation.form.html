@@ -45,23 +45,23 @@
           <ion-row class="ion-no-padding">
 
             <ion-col size="12" size-lg="4">
-              <mat-date-time [placeholder]="'COMMON.DATE'|translate"
-                             formControlName="startDateTime"
-                             [required]="true"
-                             [tabindex]="tabindex+2"
-                             [startDate]="trip?.departureDateTime">
-              </mat-date-time>
+              <mat-date-time-field [placeholder]="'COMMON.DATE'|translate"
+                                   formControlName="startDateTime"
+                                   [required]="true"
+                                   [tabindex]="tabindex+2"
+                                   [startDate]="trip?.departureDateTime">
+              </mat-date-time-field>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
-              <mat-latlong formControlName="latitude" type="latitude"
+              <mat-latlong-field formControlName="latitude" type="latitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                            [latLongPattern]="latLongFormat"
                            [tabindex]="tabindex+3"
                            [required]="true">
-              </mat-latlong>
+              </mat-latlong-field>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
-              <mat-latlong formControlName="longitude"
+              <mat-latlong-field formControlName="longitude"
                            type="longitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                            [latLongPattern]="latLongFormat"
@@ -80,7 +80,7 @@
                         [tabindex]="tabindex+5">
                   <mat-icon>arrow_downward</mat-icon>
                 </button>
-              </mat-latlong>
+              </mat-latlong-field>
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -97,29 +97,29 @@
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
             <ion-col size="12" size-lg="4" *ngIf="form.controls.endDateTime as endDateTimeControl">
-              <mat-date-time [formControl]="endDateTimeControl"
-                             [placeholder]="'COMMON.DATE'|translate"
-                             [tabindex]="tabindex+6"
-                             [startDate]="form.controls.startDateTime.value"
-                             [required]="!isOnFieldMode">
+              <mat-date-time-field [formControl]="endDateTimeControl"
+                                   [placeholder]="'COMMON.DATE'|translate"
+                                   [tabindex]="tabindex+6"
+                                   [startDate]="form.controls.startDateTime.value"
+                                   [required]="!isOnFieldMode">
 
                 <mat-hint align="end" *ngIf="endDateTimeControl.value && !endDateTimeControl.errors">
                   <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.controls.startDateTime.value,
                   endValue: endDateTimeControl.value} | dateDiffDuration }}
                 </mat-hint>
-              </mat-date-time>
+              </mat-date-time-field>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']">
-              <mat-latlong formControlName="latitude"
+              <mat-latlong-field formControlName="latitude"
                            type="latitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                            [latLongPattern]="latLongFormat"
                            [tabindex]="tabindex+7"
                            [required]="!isOnFieldMode">
-              </mat-latlong>
+              </mat-latlong-field>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']">
-              <mat-latlong formControlName="longitude"
+              <mat-latlong-field formControlName="longitude"
                            type="longitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                            [latLongPattern]="latLongFormat"
@@ -130,7 +130,7 @@
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-              </mat-latlong>
+              </mat-latlong-field>
             </ion-col>
           </ion-row>
         </ion-grid>

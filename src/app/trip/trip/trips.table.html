@@ -155,19 +155,19 @@
         <ion-row>
           <ion-col>
             <!-- Start date -->
-            <mat-date [placeholder]="'TRIP.TABLE.FILTER.START_DATE'|translate"
-                           formControlName="startDate"
-                           [clearable]="true">
+            <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.START_DATE'|translate"
+                            formControlName="startDate"
+                            [clearable]="true">
               <ion-icon matPrefix name="calendar-outline"></ion-icon>
-            </mat-date>
+            </mat-date-field>
           </ion-col>
 
           <ion-col>
             <!-- End date -->
-            <mat-date [placeholder]="'TRIP.TABLE.FILTER.END_DATE'|translate"
-                           [formControl]="filterForm.controls.endDate"
-                           clearable="true">
-            </mat-date>
+            <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.END_DATE'|translate"
+                            [formControl]="filterForm.controls.endDate"
+                            clearable="true">
+            </mat-date-field>
           </ion-col>
         </ion-row>
 

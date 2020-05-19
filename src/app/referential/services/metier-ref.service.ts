@@ -5,8 +5,7 @@ import {BaseDataService, EntityUtils, environment, Referential, StatusIds} from 
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {FetchPolicy} from "apollo-client";
-import {ReferentialService} from "./referential.service";
-import {LoadPage, SuggestionDataService} from "../../shared/services/data-service.class";
+import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {MetierRef} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
@@ -14,15 +13,16 @@ import {EntityStorage} from "../../core/services/entities-storage.service";
 import {ReferentialFragments} from "./referential.queries";
 import {ReferentialRefFilter} from "./referential-ref.service";
 import {Moment} from "moment";
-import {Vessel} from "./model";
 
 export type MetierRefFilter = Partial<ReferentialRefFilter> & {
 
+  programLabel?: string;
   date?: Date | Moment;
   vesselId?: number;
   tripId?: number;
 };
 
+export const METIER_DEFAULT_FILTER: MetierRefFilter = {statusId: StatusIds.ENABLE};
 
 const LoadAllQuery: any = gql`
   query MetiersRefs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: MetierFilterVOInput){
@@ -108,6 +108,8 @@ export class MetierRefService extends BaseDataService
         searchJoin: filter.searchJoin,
         levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
         statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE]),
+        // Predoc filter
+        programLabel: filter.programLabel,
         date: filter.date,
         vesselId: filter.vesselId,
         tripId: filter.tripId

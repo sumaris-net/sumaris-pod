@@ -20,8 +20,7 @@ import {
   selectInputContent, toBoolean,
   toDateISOString
 } from "../../shared/functions";
-import {FormFieldDefinition} from "./field.model";
-import {DisplayFn} from "../material/material.autocomplete";
+import {FormFieldDefinition, DisplayFn} from "./field.model";
 import {TranslateService} from "@ngx-translate/core";
 import {getColorContrast} from "../graph/colors.utils";
 import {asInputElement} from "../material/focusable";

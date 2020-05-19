@@ -30,5 +30,5 @@ export {
     Hotkeys
   ]
 })
-export class HotkeysModule {
+export class SharedHotkeysModule {
 }
