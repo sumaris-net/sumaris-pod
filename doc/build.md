@@ -1,6 +1,6 @@
 # Building from source
 
-Technologies: SUMARiS App is an Ionic 4 + Angular 7 App.
+Technologies: SUMARiS App is an Ionic 5 + Angular 9 App.
 
 This article will explain how to install your environment, then build the application.
 
