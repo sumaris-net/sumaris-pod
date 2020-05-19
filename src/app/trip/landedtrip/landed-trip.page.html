@@ -132,7 +132,7 @@
     <mat-tab label="{{'TRIP.TAB_CATCHES'|translate}}" [disabled]="!showCatchTab">
       <ng-template mat-tab-label>
         <mat-icon>
-          <ion-icon matPrefix slot="start" name="qr-scanner"></ion-icon>
+          <ion-icon matPrefix slot="start" name="scan"></ion-icon>
         </mat-icon>
         <ion-label translate>TRIP.TAB_CATCHES</ion-label>
         <ion-icon slot="end" name="alert" color="danger"
@@ -172,6 +172,7 @@
           </ng-template>
 
           <app-products-table #productsTable
+                              [debug]="debug"
                               [program]="programSubject | async"
                               acquisitionLevel="PRODUCT"
                               [$parents]="$operationGroups"
@@ -223,6 +224,21 @@
 
     <!-- TAB: expenses -->
     <mat-tab label="{{'TRIP.TAB_EXPENSES'|translate}}" [disabled]="!showExpenseTab">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="cash"></ion-icon>
+        </mat-icon>
+        <ion-label translate>TRIP.TAB_EXPENSES</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="expenseForm.invalid && expenseForm.dirty"></ion-icon>
+      </ng-template>
+
+      <app-expense-form #expenseForm
+                        [program]="programSubject|async"
+                        [showError]="true"
+      >
+
+      </app-expense-form>
+
     </mat-tab>
 
   </mat-tab-group>

@@ -37,6 +37,7 @@ import {fillRankOrder, isRankOrderValid} from "../services/model/base.model";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {debounceTime, filter} from "rxjs/operators";
 import {Sale} from "../services/model/sale.model";
+import {ExpenseForm} from "../expense/expense.form";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -77,6 +78,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
   @ViewChild('packetsTable', {static: true}) packetsTable: PacketsTable;
+  @ViewChild('expenseForm', {static: true}) expenseForm: ExpenseForm;
   // @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
   private _sale: Sale; // pending sale
 
@@ -165,6 +167,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   protected registerFormsAndTables() {
     this.registerForms([this.tripForm, this.measurementsForm,
       // this.landedSaleForm //, this.saleMeasurementsForm
+      this.expenseForm
     ])
       .registerTables([this.operationGroupTable, this.productsTable, this.packetsTable]);
   }
@@ -273,7 +276,12 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       this.productSalePmfms = await this.programService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
 
     }
-    this.measurementsForm.value = data && data.measurements || [];
+
+    // Trip measurements todo filter ????????
+    const tripMeasurements = data && data.measurements || [];
+    this.measurementsForm.value = tripMeasurements;
+    // Expenses
+    this.expenseForm.value = tripMeasurements;
 
     // Operations table
     const operationGroups = data && data.operationGroups || [];
@@ -337,8 +345,6 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     // Packets table
     this.packetsTable.value = packets;
 
-
-    // todo set other tables
   }
 
   // todo attention à cette action

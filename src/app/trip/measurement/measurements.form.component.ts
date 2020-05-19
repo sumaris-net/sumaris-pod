@@ -265,19 +265,23 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
       }
 
       // Apply
-      this.loadingPmfms = false;
-      this.$pmfms.next(pmfms);
+      this.setPmfms(pmfms);
     }
     catch (err) {
       console.error(`${this.logPrefix} Error while loading pmfms: ${err && err.message || err}`, err);
-      this.loadingPmfms = false;
-      this.$pmfms.next(null); // Reset pmfms
+      // Reset pmfms
+      this.setPmfms(null);
     }
     finally {
       if (this.enabled) this.loading = false;
       this.markForCheck();
     }
 
+  }
+
+  setPmfms(pmfms: PmfmStrategy[]) {
+    this.loadingPmfms = false;
+    this.$pmfms.next(pmfms);
   }
 
   protected async updateControls(event?: string, pmfms?: PmfmStrategy[]) {
