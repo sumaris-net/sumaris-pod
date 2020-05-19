@@ -29,11 +29,11 @@
               <button mat-menu-item translate (click)="editStatus()">VESSEL.ACTION.EDIT_STATUS</button>
             </mat-menu>
 
-            <ion-button color="tertiary" size="full" class="flex-margin"
+            <ion-button color="tertiary" expand="block"
                         [matMenuTriggerFor]="selectTypeMenu" [disabled]="!data || !canUserWrite(data)">
-              <ion-icon slot="start" name="create"></ion-icon>&nbsp;
+              <ion-icon slot="start" name="create" class="ion-float-start"></ion-icon>&nbsp;
               <ion-label translate>VESSEL.ACTION.EDIT</ion-label>
-              <mat-icon slot="end">arrow_drop_down</mat-icon>
+              <mat-icon slot="end" class="ion-float-end">arrow_drop_down</mat-icon>
             </ion-button>
 
           </app-entity-metadata>

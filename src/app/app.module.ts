@@ -54,7 +54,6 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
     LeafletModule.forRoot(),
     // functional modules
     CoreModule,
-    ReferentialModule,
     TripModule,
     IonicStorageModule.forRoot({
       name: 'sumaris',

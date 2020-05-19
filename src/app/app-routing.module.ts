@@ -64,110 +64,11 @@ const routes: Routes = [
     loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
   },
 
-
-  // Referential path
+  // Referential
   {
     path: 'referential',
     canActivate: [AuthGuardService],
-    children: [
-      {
-        path: 'list',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: ReferentialsPage,
-            data: {
-              profile: 'ADMIN'
-            }
-          }
-        ]
-      },
-      {
-        path: 'vessels',
-        children: [
-          {
-            path: '',
-            component: VesselsPage,
-            data: {
-              profile: 'USER'
-            }
-          },
-          {
-            path: ':id',
-            component: VesselPage,
-            data: {
-              profile: 'USER'
-            }
-          }
-        ]
-      },
-      {
-        path: 'program/:id',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: ProgramPage,
-            data: {
-              profile: 'ADMIN'
-            }
-          }
-        ]
-      },
-      {
-        path: 'software/:id',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: SoftwarePage,
-            data: {
-              profile: 'ADMIN'
-            }
-          }
-        ]
-      },
-      {
-        path: 'parameter/:id',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: ParameterPage,
-            data: {
-              profile: 'ADMIN'
-            }
-          }
-        ]
-      },
-      {
-        path: 'pmfm/:id',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: PmfmPage,
-            data: {
-              profile: 'ADMIN'
-            }
-          }
-        ]
-      },
-      /*{
-        path: 'parameter/:id',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: ParameterPage,
-            data: {
-              profile: 'ADMIN'
-            }
-          }
-        ]
-      }*/
-    ]
+    loadChildren: () => import('./referential/referential.module').then(m => m.ReferentialModule)
   },
 
   // Trip path

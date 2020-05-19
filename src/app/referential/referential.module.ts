@@ -59,6 +59,7 @@ import {PmfmPage} from "./pmfm/pmfm.page";
 import {ParameterPage} from "./pmfm/parameter.page";
 import {ParameterValidatorService} from "./services/validator/parameter.validator";
 import {ReferentialTable} from "./list/referential.table";
+import {ReferentialRoutingModule} from "./referential-routing.module";
 
 export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
@@ -73,7 +74,8 @@ export {
 @NgModule({
   imports: [
     CommonModule,
-    CoreModule
+    CoreModule,
+    ReferentialRoutingModule
   ],
   declarations: [
     ReferentialsPage,

@@ -103,6 +103,8 @@ $colors: (
   warning: (base: $warning, contrast: #fff, shade: get-color-shade($warning), tint: get-color-tint($warning)),
   /* danger */
   danger: (base: $danger, contrast: #fff, shade: get-color-shade($danger), tint: get-color-tint($danger)),
+  /* danger100 */
+  danger100: (base: $danger100, contrast: #fff, shade: get-color-shade($danger100), tint: get-color-tint($danger100)),
   /* light */
   light: (base: $light, contrast: $dark, shade: get-color-shade($light), tint: get-color-tint($light)),
   /* medium */
