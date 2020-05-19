@@ -334,7 +334,7 @@ public class Beans {
         }
     }
 
-    public static <T> Comparator<T> nilComparator() {
+    public static <T> Comparator<T> unsortedComparator() {
         return (o1, o2) -> -1;
     }
 

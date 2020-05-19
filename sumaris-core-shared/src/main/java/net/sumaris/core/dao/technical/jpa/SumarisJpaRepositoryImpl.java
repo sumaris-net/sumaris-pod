@@ -44,6 +44,8 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
+import javax.persistence.Parameter;
+import javax.persistence.TypedQuery;
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
@@ -182,4 +184,16 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
     protected Pageable getPageable(Page page) {
         return getPageable((int)page.getOffset(), page.getSize(), page.getSortAttribute(), page.getSortDirection());
     }
+
+    protected <E, T extends Object> TypedQuery<E> setParameterIfExists(TypedQuery<E> query, String parameterName, T value) {
+        try {
+            Parameter<T> parameter = (Parameter<T>) query.getParameter(parameterName, Object.class);
+            if (parameter != null) query.setParameter(parameter, value);
+        }
+        catch(IllegalArgumentException iae) {
+            // Not found
+        }
+        return query;
+    }
+
 }

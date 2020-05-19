@@ -67,17 +67,29 @@ public class MetierRepositoryReadTest extends AbstractDaoTest{
     }
 
     @Test
-    // FIXME
     public void findByMetierFilter() throws ParseException {
+        // With vessel and date
+        {
+            MetierFilterVO filter = new MetierFilterVO();
+            filter.setVesselId(1);
+            filter.setDate(Dates.parseDate("2018-05-15", "yyyy-MM-dd"));
 
-        MetierFilterVO filter = new MetierFilterVO();
-        filter.setVesselId(1);
-        filter.setProgramLabel("SUMARiS");
-        filter.setDate(Dates.parseDate("2018-05-15", "YYYY-MM-DD"));
+            List<MetierVO> metiers = metierRepository.findByFilter(filter, 0, 100, null, null);
+            Assert.assertNotNull(metiers);
+            Assert.assertTrue(metiers.size() > 0);
+        }
 
-        List<MetierVO> metiers = metierRepository.findByFilter(filter, 0, 100, null, null);
-        Assert.assertNotNull(metiers);
-        Assert.assertTrue(metiers.size() > 0);
+        // With program
+        {
+            MetierFilterVO filter = new MetierFilterVO();
+            filter.setVesselId(1);
+            filter.setProgramLabel("SUMARiS");
+            filter.setDate(Dates.parseDate("2018-05-15", "yyyy-MM-dd"));
+
+            List<MetierVO> metiers = metierRepository.findByFilter(filter, 0, 100, null, null);
+            Assert.assertNotNull(metiers);
+            Assert.assertTrue(metiers.size() > 0);
+        }
 
     }
 

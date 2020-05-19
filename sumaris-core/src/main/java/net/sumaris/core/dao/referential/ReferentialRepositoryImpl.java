@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  */
 public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends Serializable>
     extends SumarisJpaRepositoryImpl<E, Integer>
-    implements ReferentialRepository<E, V, F> {
+    implements ReferentialRepository<E, V, F>, ReferentialSpecifications {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
 

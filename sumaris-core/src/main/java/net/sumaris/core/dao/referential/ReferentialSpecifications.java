@@ -33,27 +33,28 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
 import javax.persistence.criteria.*;
 
-public class ReferentialSpecifications {
+public interface ReferentialSpecifications {
 
-    public static final String SEARCH_TEXT_PARAMETER = "searchText";
+    String SEARCH_TEXT_PARAMETER = "searchText";
 
-    public static <T extends IReferentialWithStatusEntity> Specification<T> inLevelIds(String levelProperty, Integer[] gearIds) {
+    default <T extends IReferentialWithStatusEntity> Specification<T> inLevelIds(String levelProperty, Integer[] gearIds) {
         if (ArrayUtils.isEmpty(gearIds)) return null;
         return (root, query, cb) -> cb.in(
                 root.join(levelProperty, JoinType.INNER).get(Gear.Fields.ID))
                 .value(ImmutableList.copyOf(gearIds));
     }
 
-    public static <T extends IReferentialWithStatusEntity> Specification<T> inStatusIds(Integer[] statusIds) {
+    default <T extends IReferentialWithStatusEntity> Specification<T> inStatusIds(@Nullable Integer[] statusIds) {
         if (ArrayUtils.isEmpty(statusIds)) return null;
         return (root, query, cb) -> cb.in(
                 root.get(IReferentialWithStatusEntity.Fields.STATUS).get(Status.Fields.ID))
                 .value(ImmutableList.copyOf(statusIds));
     }
 
-    public static <T extends IItemReferentialEntity> Specification<T> searchText(String searchAttribute, String paramName) {
+    default <T extends IItemReferentialEntity> Specification<T> searchText(String searchAttribute, String paramName) {
 
         return new SpecificationWithParameters<T>() {
 
@@ -76,7 +77,7 @@ public class ReferentialSpecifications {
         };
     }
 
-    public static <T extends IItemReferentialEntity> Specification<T> joinSearchText(String joinProperty, String searchAttribute, String paramName) {
+    default <T extends IItemReferentialEntity> Specification<T> joinSearchText(String joinProperty, String searchAttribute, String paramName) {
 
         return new SpecificationWithParameters<T>() {
 

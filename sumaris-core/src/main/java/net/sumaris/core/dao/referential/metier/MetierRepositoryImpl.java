@@ -25,13 +25,10 @@ package net.sumaris.core.dao.referential.metier;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
+import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
@@ -48,14 +45,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Parameter;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static net.sumaris.core.dao.referential.metier.MetierSpecifications.*;
 
 public class MetierRepositoryImpl
     extends ReferentialRepositoryImpl<Metier, MetierVO, ReferentialFilterVO>
@@ -83,39 +76,15 @@ public class MetierRepositoryImpl
 
         Preconditions.checkNotNull(filter);
 
-        // Switch to specific search if a date and a vessel id is provided
-        if (filter instanceof MetierFilterVO) {
-            MetierFilterVO metierFilter = (MetierFilterVO) filter;
-            if (metierFilter.getDate() != null && metierFilter.getVesselId() != null)
-                return findByDateAndVesselId(metierFilter, offset, size, sortAttribute, sortDirection);
-        }
-
         // Prepare query parameters
         String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
-        String searchText = Daos.getEscapedSearchText(filter.getSearchText());
-
         final boolean enableSearchOnJoin = (searchJoinProperty != null);
 
-        // With join property
-        Pageable page;
-        Specification<Metier> searchTextSpecification;
-        if (enableSearchOnJoin) {
-            searchTextSpecification = joinSearchText(
-                searchJoinProperty,
-                filter.getSearchAttribute(), SEARCH_TEXT_PARAMETER);
-            page =  getPageable(offset, size, null, null);
-        } else {
-            searchTextSpecification = searchText(filter.getSearchAttribute(), SEARCH_TEXT_PARAMETER);
-            page =  getPageable(offset, size, sortAttribute, sortDirection);
-        }
+        // Create page (do NOT sort if searchJoin : will be done later)
+        Pageable page = getPageable(offset, size, enableSearchOnJoin ? null : sortAttribute, enableSearchOnJoin ? null : sortDirection);
 
-        Specification<Metier> specification = toSpecification(filter).and(searchTextSpecification);
-        TypedQuery<Metier> query = getQuery(specification, Metier.class, page);
-
-        Parameter<String> searchTextParam = query.getParameter(SEARCH_TEXT_PARAMETER, String.class);
-        if (searchTextParam != null) {
-            query.setParameter(searchTextParam, searchText);
-        }
+        // Create the query
+        TypedQuery<Metier> query = createQueryByFilter(filter, page);
 
         return query
             .setFirstResult(offset)
@@ -136,78 +105,11 @@ public class MetierRepositoryImpl
                 return target;
             })
             // If join search: sort using a comparator (sort was skipped in query)
-            .sorted(enableSearchOnJoin ? Beans.naturalComparator(sortAttribute, sortDirection) : Beans.nilComparator())
+            .sorted(enableSearchOnJoin ? Beans.naturalComparator(sortAttribute, sortDirection) : Beans.unsortedComparator())
             .collect(Collectors.toList());
     }
 
-    private List<MetierVO> findByDateAndVesselId(MetierFilterVO filter, Integer offset, Integer size, String sort, SortDirection sortDirection) {
-        Preconditions.checkNotNull(filter);
-        Preconditions.checkNotNull(filter.getDate());
-        Preconditions.checkNotNull(filter.getVesselId());
 
-        // Calculate dates
-        Date endDate = filter.getDate();
-        Date startDate = Dates.removeMonth(endDate, 12); // TODO get this predocumentation length from configuration
-
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Metier> criteriaQuery = cb.createQuery(Metier.class);
-        Root<Metier> metiers = criteriaQuery.from(Metier.class);
-        Root<Trip> trips = criteriaQuery.from(Trip.class);
-        Join<Trip, Operation> operations = trips.join(Trip.Fields.OPERATIONS, JoinType.INNER);
-
-        ParameterExpression<Integer> tripIdParameter = cb.parameter(Integer.class);
-        ParameterExpression<String> programLabelParameter = cb.parameter(String.class);
-
-        String searchText = Daos.getEscapedSearchText(filter.getSearchText());
-        Specification<Metier> searchTextSpecification = searchText(filter.getSearchAttribute(), SEARCH_TEXT_PARAMETER);
-
-        criteriaQuery.where(cb.and(
-                // Vessel
-                cb.equal(trips.get(Trip.Fields.VESSEL).get(Vessel.Fields.ID), filter.getVesselId()),
-                // Program
-                cb.or(
-                        cb.isNull(programLabelParameter),
-                        cb.notEqual(trips.get(Trip.Fields.PROGRAM).get(Program.Fields.LABEL), programLabelParameter)
-                ),
-                // Date
-                cb.not(
-                    cb.or(
-                        cb.greaterThan(operations.get(Operation.Fields.START_DATE_TIME), endDate),
-                        cb.lessThan(cb.coalesce(operations.get(Operation.Fields.END_DATE_TIME), startDate), startDate)
-                    )
-                ),
-
-                // Exclude given tripId
-                cb.or(
-                    cb.isNull(tripIdParameter),
-                    cb.notEqual(trips.get(Trip.Fields.ID), tripIdParameter)
-                ),
-
-                // Link metier to operation
-                cb.equal(operations.get(Operation.Fields.METIER), metiers.get(Metier.Fields.ID)),
-                // Default filter criteria
-                toSpecification(filter).and(searchTextSpecification).toPredicate(metiers, criteriaQuery, cb)
-        ));
-
-        criteriaQuery.select(metiers);
-
-        TypedQuery<Metier> query = getEntityManager().createQuery(criteriaQuery)
-                .setParameter(tripIdParameter, filter.getTripId())
-                .setParameter(programLabelParameter, filter.getProgramLabel());
-
-        Parameter<String> searchTextParam = query.getParameter(SEARCH_TEXT_PARAMETER, String.class);
-        if (searchTextParam != null) {
-            query.setParameter(searchTextParam, searchText);
-        }
-
-        return query
-            .setFirstResult(offset)
-            .setMaxResults(size)
-            .getResultStream()
-            .distinct()
-            .map(this::toVO)
-            .collect(Collectors.toList());
-    }
 
     @Override
     public void toVO(Metier source, MetierVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
@@ -239,8 +141,59 @@ public class MetierRepositoryImpl
 
         Integer[] levelIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} : filter.getLevelIds();
 
-        return Specification
-            .where(inGearIds(levelIds))
-            .and(inStatusIds(filter.getStatusIds()));
+        String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
+        final boolean enableSearchOnJoin = (searchJoinProperty != null);
+        Specification<Metier> searchTextSpecification;
+        if (enableSearchOnJoin) {
+            searchTextSpecification = joinSearchText(
+                    searchJoinProperty,
+                    filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER);
+        } else {
+            searchTextSpecification = searchText(filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER);
+        }
+
+        Specification<Metier> result = Specification
+                .where(inGearIds(levelIds))
+                .and(inStatusIds(filter.getStatusIds()))
+                .and(searchTextSpecification)
+                .and(alreadyPraticedMetier(filter)); // Limit to already practiced metier
+
+        return result;
     }
+
+    /* -- protected method -- */
+
+
+    private Specification<Metier> alreadyPraticedMetier(ReferentialFilterVO filter) {
+        if (filter == null || !(filter instanceof MetierFilterVO)) return null;
+        MetierFilterVO metierFilter = (MetierFilterVO) filter;
+
+        return alreadyPraticedMetier(metierFilter.getVesselId());
+    }
+
+    private TypedQuery<Metier> createQueryByFilter(ReferentialFilterVO filter, Pageable pageable) {
+        Preconditions.checkNotNull(filter);
+
+        TypedQuery<Metier> query = getQuery(toSpecification(filter), Metier.class, pageable);
+
+        // Bind search text parameter
+        setParameterIfExists(query, SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(filter.getSearchText()));
+
+        // Bind metiers parameters
+        if (filter instanceof MetierFilterVO){
+            MetierFilterVO metierFilter = (MetierFilterVO)filter;
+
+            // Calculate dates
+            final Date endDate = metierFilter.getDate() != null ? metierFilter.getDate() : new Date();
+            final Date startDate = Dates.removeMonth(endDate, 12); // TODO: get it from a config option
+
+            setParameterIfExists(query, START_DATE_PARAMETER, startDate);
+            setParameterIfExists(query, END_DATE_PARAMETER, endDate);
+            setParameterIfExists(query, PROGRAM_LABEL_PARAMETER, metierFilter.getProgramLabel());
+            setParameterIfExists(query, TRIP_ID_PARAMETER, metierFilter.getTripId());
+        }
+
+        return query;
+    }
+
 }
