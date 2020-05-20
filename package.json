@@ -7,21 +7,21 @@
   "readmeFilename": "README.md",
   "scripts": {
     "postinstall": "ngcc",
-    "ng": "ng",
-    "start": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng serve",
-    "serve.aot": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng serve --aot",
-    "serve.android": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng run app:ionic-cordova-serve --platform=android",
-    "install-platforms": "ionic cordova prepare",
-    "build": "ng build",
-    "build.aot": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng build --aot",
-    "build.prod": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng build --prod --aot && npm run build.i18n",
-    "build.android": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng run app:ionic-cordova-build:dev --platform=android",
-    "build.android.prod": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng run app:ionic-cordova-build:production --platform=android",
-    "build.dev": "ng build --configuration=dev && lite-server --baseDir=\"www\"",
+    "ng": "node --max-old-space-size=8192 ./node_modules/@angular/cli/bin/ng",
+    "start": "npm run ng serve",
+    "serve.aot": "npm run ng serve --aot",
+    "serve.android": "npm run ng run app:ionic-cordova-serve --platform=android",
+    "prepare.android": "ionic cordova prepare --platform=android",
+    "build": "npm run ng build",
+    "build.aot": "npm run ng build --aot",
+    "build.prod": "npm run ng build --prod --aot && npm run build.i18n",
+    "build.android": "npm run ng run app:ionic-cordova-build:dev --platform=android",
+    "build.android.prod": "npm run ng run app:ionic-cordova-build:production --platform=android",
+    "build.dev": "npm run ng build --configuration=dev && lite-server --baseDir=\"www\"",
     "build.i18n": "node scripts/build-i18n.js",
-    "test": "ng test",
-    "lint": "ng lint",
-    "e2e": "ng e2e"
+    "test": "npm run ng test",
+    "lint": "npm run ng lint",
+    "e2e": "npm run ng e2e"
   },
   "dependencies": {
     "@angular/animations": "~9.1.7",
@@ -189,7 +189,6 @@
   },
   "engines": {
     "node": ">= 10.20.0",
-    "npm": ">= 6.14.4",
-    "yarn": ">= 1.22.0"
+    "npm": ">= 6.14.4"
   }
 }
