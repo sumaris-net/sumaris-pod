@@ -6,9 +6,11 @@ export declare class LatLongFormatOptions {
   pattern: LatLongPattern;
   maxDecimals?: number;
   placeholderChar?: string;
+  hideSign?: boolean;
 }
 export declare type LatLongFormatFn = (value: number | null, opts?: LatLongFormatOptions) => string;
 export const DEFAULT_PLACEHOLDER_CHAR = '\u005F';
+export const SPACE_PLACEHOLDER_CHAR = '\u2000';
 export const DEFAULT_MAX_DECIMALS = 3;
 
 const DEFAULT_OPTIONS = <LatLongFormatOptions>{
@@ -16,33 +18,49 @@ const DEFAULT_OPTIONS = <LatLongFormatOptions>{
   maxDecimals: DEFAULT_MAX_DECIMALS,
   placeholderChar: DEFAULT_PLACEHOLDER_CHAR
 };
-
+const DEFAULT_LATITUDE_OPTIONS: LatLongFormatOptions & { longitude: boolean; } = {
+  ...DEFAULT_OPTIONS,
+  longitude: false
+};
+const DEFAULT_LONGITUDE_OPTIONS: LatLongFormatOptions & { longitude: boolean; } =  {
+  ...DEFAULT_OPTIONS,
+  longitude: true
+};
 export  function formatLatitude(value: number | null, opts?: LatLongFormatOptions): string {
-  opts = { ...DEFAULT_OPTIONS, ...opts };
   if (value === undefined || value === null) return null;
-  if (opts.pattern === 'DDMMSS') return formatToDDMMSS(value, false, opts.maxDecimals, opts.placeholderChar);
-  if (opts.pattern === 'DDMM') return formatToDDMM(value, false, opts.maxDecimals, opts.placeholderChar);
 
-  return formatToDD(value, false, opts.maxDecimals, opts.placeholderChar);
+  switch(opts.pattern) {
+    case 'DDMMSS':
+      return formatToDDMMSS(value, { ...DEFAULT_LATITUDE_OPTIONS, ...opts })
+    case 'DDMM':
+      return formatToDDMM(value, { ...DEFAULT_LATITUDE_OPTIONS, ...opts })
+    case 'DD':
+    default:
+      return formatToDD(value, { ...DEFAULT_LATITUDE_OPTIONS, ...opts });
+  }
 }
 
 export function formatLongitude(value: number | null, opts?: LatLongFormatOptions): string {
-  opts = { ...DEFAULT_OPTIONS, ...opts };
   if (value === undefined || value === null) return null;
 
-  if (opts.pattern === 'DDMMSS') return formatToDDMMSS(value, true, opts.maxDecimals, opts.placeholderChar);
-  if (opts.pattern === 'DDMM') return formatToDDMM(value, true, opts.maxDecimals, opts.placeholderChar);
-
-  return formatToDD(value, true, opts.maxDecimals, opts.placeholderChar);
+  switch(opts.pattern) {
+    case 'DDMMSS':
+      return formatToDDMMSS(value, { ...DEFAULT_LONGITUDE_OPTIONS, ...opts })
+    case 'DDMM':
+      return formatToDDMM(value, { ...DEFAULT_LONGITUDE_OPTIONS, ...opts })
+    case 'DD':
+    default:
+      return formatToDD(value, { ...DEFAULT_LONGITUDE_OPTIONS, ...opts });
+  }
 }
 
-function formatToDD(value: number, isLongitude: boolean, maxDecimals: number, placeholderChar?: string): string {
+function formatToDD(value: number, opts: LatLongFormatOptions & {longitude: boolean;}): string {
   // opts.pattern === DD
   let negative = value < 0;
   if (negative) value *= -1;
 
   // Fix longitude when outside [-180, 180]
-  if (isLongitude) {
+  if (opts.longitude) {
     while (value > 180) {
       value = (value - 180);
       negative = value < 0;
@@ -58,25 +76,42 @@ function formatToDD(value: number, isLongitude: boolean, maxDecimals: number, pl
     }
   }
 
-  // Add sign and prefix
-  let prefix = negative ? '-' : '+';
-  if (placeholderChar) {
-    if (isLongitude && value < 100) {
-      prefix += placeholderChar;
+  let degrees = roundFloat(value, opts.maxDecimals).toString();
+
+  // Add sign
+  let sign = negative ? '-' : '+';
+
+  if (opts.placeholderChar) {
+    if (opts.longitude) {
+      if (value < 100) {
+        degrees = opts.placeholderChar + degrees;
+      }
+    }
+    else {
+      sign += ' '; // Add space after the sign
     }
     if (value < 10) {
-      prefix += placeholderChar;
+      degrees = opts.placeholderChar + degrees;
+    }
+    // Add decimal separator
+    const integerLength = (opts.longitude && 3 || 2);
+    if (degrees.length === integerLength) {
+      degrees += '.';
+    }
+    // Add trailing placeholder chars
+    while ((degrees.length < opts.maxDecimals + integerLength)) {
+      degrees += opts.placeholderChar;
     }
   }
-  return prefix + roundFloat(value, maxDecimals).toString() + '°';
+  return (opts.hideSign ? '' : sign) + degrees + '°';
 }
 
-function formatToDDMMSS(value: number, isLongitude: boolean, maxDecimals: number, placeholderChar?: string): string {
+function formatToDDMMSS(value: number, opts: LatLongFormatOptions & {longitude: boolean;}): string {
   let negative = value < 0;
   if (negative) value *= -1;
 
   // Fix longitude when outside [-180, 180]
-  if (isLongitude) {
+  if (opts.longitude) {
     while (value > 180) {
       value = (value - 180);
       negative = value < 0;
@@ -93,8 +128,9 @@ function formatToDDMMSS(value: number, isLongitude: boolean, maxDecimals: number
   }
 
   let degrees: number = Math.trunc(value);
-  let minutes: number = Math.trunc((value - degrees) * 60);
-  let seconds: number | string = roundFloat(((value - degrees) * 60 - minutes) * 60, maxDecimals);
+  let minutes: number | string = Math.trunc((value - degrees) * 60);
+  let seconds: number | string = roundFloat(((value - degrees) * 60 - minutes) * 60, opts.maxDecimals);
+
   while (seconds >= 60) {
     seconds -= 60;
     minutes += 1;
@@ -103,51 +139,56 @@ function formatToDDMMSS(value: number, isLongitude: boolean, maxDecimals: number
     minutes -= 60;
     degrees += 1;
   }
-  const direction = isLongitude ? (negative ? 'W' : 'E') : (negative ? 'S' : 'N');
+  const sign = opts.longitude ? (negative ? 'W' : 'E') : (negative ? 'S' : 'N');
 
   // Force spacer
   let prefix = '';
-  if (placeholderChar) {
-    if (isLongitude && degrees < 100) {
-      prefix += placeholderChar;
+  if (opts.placeholderChar) {
+    if (opts.longitude && degrees < 100) {
+      prefix += opts.placeholderChar;
     }
     if (degrees < 10) {
-      prefix += placeholderChar;
+      prefix += opts.placeholderChar;
     }
 
     if (minutes < 10) {
-      minutes = placeholderChar + minutes;
+      minutes = opts.placeholderChar + minutes;
     }
 
     if (seconds < 10) {
-      seconds = placeholderChar + seconds;
+      seconds = opts.placeholderChar + seconds;
     }
     else {
       seconds = seconds.toString(); // convert to string - required for the next while
     }
-    if (maxDecimals > 0) {
+    if (opts.maxDecimals > 0) {
       // Add decimal separator
       if (seconds.length === 2) {
         seconds += '.';
       }
       // Add trailing placeholder chars
-      while ((seconds.length < maxDecimals + 3)) {
-        seconds += placeholderChar;
+      while ((seconds.length < opts.maxDecimals + 3)) {
+        seconds += opts.placeholderChar;
       }
     }
   }
 
-  const output = prefix + degrees + '° ' + minutes + '\' ' + seconds + '" ' + direction;
+  const output = prefix + degrees + '° ' + minutes + '\' ' + seconds + '"'
+    + (opts.hideSign ? '' : ' ' + sign);
+
+  // DEBUG
   //console.debug("formatToDDMMSS: " + value + " -> " + output);
+
+
   return output;
 }
 
-function formatToDDMM(value: number, isLongitude: boolean, maxDecimals: number, placeholderChar?: string): string {
+function formatToDDMM(value: number, opts: LatLongFormatOptions & {longitude: boolean;}): string {
   let negative = value < 0;
   if (negative) value *= -1;
 
   // Fix longitude when outside [-180, 180]
-  if (isLongitude) {
+  if (opts.longitude) {
     while (value > 180) {
       value = (value - 180);
       negative = value < 0;
@@ -164,52 +205,56 @@ function formatToDDMM(value: number, isLongitude: boolean, maxDecimals: number, 
   }
 
   let degrees: number | string = Math.trunc(value);
-  let minutes: number | string = roundFloat((value - degrees) * 60, maxDecimals);
+  let minutes: number | string = roundFloat((value - degrees) * 60, opts.maxDecimals);
   while (minutes >= 60) {
     minutes -= 60;
     degrees += 1;
   }
-  const direction = isLongitude ? (negative ? 'W' : 'E') : (negative ? 'S' : 'N');
+  const sign = opts.longitude ? (negative ? 'W' : 'E') : (negative ? 'S' : 'N');
 
   // Add placeholderChar
   let prefix = ''
-  if (placeholderChar) {
-    if (isLongitude && degrees < 100) {
-      prefix += placeholderChar;
+  if (opts.placeholderChar) {
+    if (opts.longitude && degrees < 100) {
+      prefix += opts.placeholderChar;
     }
     if (degrees < 10) {
-      prefix += placeholderChar;
+      prefix += opts.placeholderChar;
     }
 
     if (minutes < 10) {
-      minutes = placeholderChar + minutes;
+      minutes = opts.placeholderChar + minutes;
     }
     else {
       minutes = minutes.toString(); // convert to string - required for the next while
     }
-    if (maxDecimals > 0) {
+    if (opts.maxDecimals > 0) {
       // Add decimal separator
       if (minutes.length === 2) {
         minutes += '.';
       }
       // Add trailing placeholder chars
-      while ((minutes.length < maxDecimals + 3)) {
-        minutes += placeholderChar;
+      while ((minutes.length < opts.maxDecimals + 3)) {
+        minutes += opts.placeholderChar;
       }
     }
   }
-  const result = prefix + degrees + '° ' + minutes + '\' ' + direction;
+  const output = prefix + degrees + '° ' + minutes + '\''
+    + (opts.hideSign ? '' : ' ' + sign);
 
-  return result;
+  // DEBUG
+  //console.debug('formatToDDMM output:', output);
+
+  return output;
 }
 
 // 36°57'9" N  = 36.9525000
 // 10°4'21" W = -10.0725000
 export function parseLatitudeOrLongitude(input: string, pattern: string, maxDecimals?: number, placeholderChar?: string): number | null {
   // Remove all placeholder (= trim on each parts)
-  const inputFix = input.trim().replace(new RegExp("[+" + (placeholderChar || DEFAULT_PLACEHOLDER_CHAR) + ']+', "g"), '');
+  const inputFix = input.trim().replace(new RegExp("[ +" + (placeholderChar || DEFAULT_PLACEHOLDER_CHAR) + ']+', "g"), '');
   //DEBUG console.debug("Parsing lat= " + inputFix);
-  const parts = inputFix.split(/[^\d\w-.,]+/);
+  const parts = inputFix.split(/[^-\d\w.,]+/);
   let degrees = parseFloat(parts[0].replace(/,/g, '.'));
   if (isNaN(degrees)) {
     console.debug("parseLatitudeOrLongitude " + input + " -> Invalid degrees (NaN). Parts found:", parts);
@@ -232,6 +277,10 @@ function roundFloat(input: number, maxDecimals: number): number {
   if (maxDecimals > 0) {
     const powDecimal = Math.pow(10, maxDecimals);
     return Math.trunc(input * powDecimal + 0.5) / powDecimal;
+  }
+  // no decimals: round to integer
+  else if (maxDecimals === 0) {
+    return Math.trunc(input + 0.5);
   }
   return input;
 }

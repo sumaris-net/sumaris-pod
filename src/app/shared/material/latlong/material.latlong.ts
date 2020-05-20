@@ -1,13 +1,17 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ElementRef,
   EventEmitter,
   forwardRef,
   Input,
+  OnDestroy,
   OnInit,
   Optional,
-  Output
+  Output, QueryList,
+  ViewChild, ViewChildren
 } from '@angular/core';
 import {Platform} from '@ionic/angular';
 import {FloatLabelType} from '@angular/material/form-field';
@@ -23,23 +27,33 @@ import {TranslateService} from "@ngx-translate/core";
 import {SharedValidators} from '../../validator/validators';
 import {
   DEFAULT_MAX_DECIMALS,
-  LatLongFormatFn,
   formatLatitude,
   formatLongitude,
+  LatLongFormatFn,
+  LatLongFormatOptions,
+  LatLongPattern,
   parseLatitudeOrLongitude
 } from './latlong.utils';
 import {DEFAULT_PLACEHOLDER_CHAR} from '../../constants';
-import {isNotNil} from "../../functions";
+import {filter} from "rxjs/operators";
+import {isNil, isNotNil, isNotNilOrBlank, selectInputContent, selectInputRange} from "../../functions";
+import {Subscription} from "rxjs";
+import {getCaretPosition, moveInputCaretToSeparator} from "../../inputs";
+import {TextMaskConfig} from "angular2-text-mask";
 
-const MASKS = {
+const MASKS: {
+  [key: string] : {
+    [pattern: string]: Array<string|RegExp>
+  }
+} = {
   'latitude': {
-    'DDMMSS': [' ', /\d/, /\d/, '°', ' ', /\d/, /\d/, '\'', ' ', /\d/, /\d/, '"', ' ', /N|S|n|s/],
-    'DDMM': [' ', /\d/, /\d/, '°', ' ', /\d/, /\d/, '.', /\d/, /\d/, /\d/, '\'', ' ', /N|S|n|s/],
-    'DD': [' ', /[+-]/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '°']
+    'DDMMSS': [' ', /\d/, /\d/, '°', ' ', /\d/, /\d/, '\'', ' ', /\d/, /\d/, '.', /\d/, /\d/, '"'],
+    'DDMM': [' ', /\d/, /\d/, '°', ' ', /\d/, /\d/, '.', /\d/, /\d/, /\d/, '\''],
+    'DD': [/[+-]/, ' ', /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '°']
   },
   'longitude': {
-    'DDMMSS': [/\d/, /\d/, /\d/, '°', ' ', /\d/, /\d/, '\'', ' ', /\d/, /\d/, '"', ' ', /E|W|e|w/],
-    'DDMM': [/\d/, /\d/, /\d/, '°', ' ', /\d/, /\d/, '.', /\d/, /\d/, /\d/, '\'', ' ', /E|W|e|w/],
+    'DDMMSS': [/\d/, /\d/, /\d/, '°', ' ', /\d/, /\d/, '\'', ' ', /\d/, /\d/, '.', /\d/, /\d/, '"'],
+    'DDMM': [/\d/, /\d/, /\d/, '°', ' ', /\d/, /\d/, '.', /\d/, /\d/, /\d/, '\''],
     'DD': [/[+-]/, /\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '°']
   }
 };
@@ -60,22 +74,29 @@ const noop = () => {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MatLatLongField implements OnInit, ControlValueAccessor {
+export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, ControlValueAccessor {
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
+  private _subscription = new Subscription();
+  protected _disabled: boolean;
   protected disabling = false;
   protected writing = false;
-  protected touchUi = false;
-  protected formatFn: LatLongFormatFn;
 
-  mobile: boolean;
+  formatFn: LatLongFormatFn;
+  formatFnOptions: LatLongFormatOptions;
+  textMaskConfig: TextMaskConfig;
   textFormControl: FormControl;
-  mask: (string | RegExp)[];
+  signFormControl: FormControl;
+  mask: Array<string | RegExp> | ((raw: string) => Array<string | RegExp>) | false;
   value: number;
   inputPlaceholder: string;
+  showSignControl : boolean;
 
+  @Input() mobile: boolean;
 
-  @Input() disabled: boolean = false
+  get disabled(): any {
+    return this.readonly || this.formControl.disabled;
+  }
 
   @Input() formControl: FormControl;
 
@@ -85,15 +106,15 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
 
   @Input() type: 'latitude' | 'longitude';
 
-  @Input("latLongPattern") pattern: 'DDMMSS' | 'DDMM' | 'DD';
+  @Input("latLongPattern") pattern: LatLongPattern;
 
-  @Input() defaultDirection: '-' | '+';
+  @Input() defaultSign: '-' | '+';
 
   @Input() maxDecimals: number = DEFAULT_MAX_DECIMALS;
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
-  @Input() floatLabel: FloatLabelType = "auto";
+  @Input() floatLabel: FloatLabelType = 'auto';
 
   @Input() readonly = false;
 
@@ -104,19 +125,26 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
   @Output()
   onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
+  @Output()
+  onFocus: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+
+  @ViewChild('inputElement') inputElement: ElementRef;
+
+  @ViewChild('suffix', {static: false}) suffixDiv: ElementRef;
+
+  @ViewChildren('injectMatSuffix') suffixInjections: QueryList<ElementRef>;
+
   constructor(
-    platform: Platform,
+    private platform: Platform,
     private translate: TranslateService,
     private formBuilder: FormBuilder,
     private cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
-    this.mobile = this.touchUi && platform.is('mobile');
-    this.touchUi = !platform.is('desktop');
+    this.mobile = this.platform.is('mobile');
   }
 
   ngOnInit() {
-
     this.type = this.type || 'latitude';
     this.pattern = this.pattern || 'DDMM';
     this.mask = MASKS[this.type] && MASKS[this.type][this.pattern];
@@ -126,13 +154,16 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
       this.pattern = 'DDMM';
       this.mask = MASKS[this.type][this.pattern];
     }
-    this.formatFn = this.type === 'latitude' ? formatLatitude : formatLongitude;
     if (this.maxDecimals) {
       if (this.maxDecimals < 0) {
         console.error("Invalid attribute 'maxDecimals'. Must a positive value.");
         this.maxDecimals = DEFAULT_MAX_DECIMALS;
       }
       // Remove max decimals in the DDMMSS format
+      else if (this.pattern === 'DD') {
+        console.warn(`Invalid attribute 'maxDecimals' - Must be '0' when using the 'DDMMSS' pattern.`);
+        this.maxDecimals = 7;
+      }
       else if (this.pattern === 'DDMMSS') {
         console.warn(`Invalid attribute 'maxDecimals' - Must be '0' when using the 'DDMMSS' pattern.`);
         this.maxDecimals = 0;
@@ -143,10 +174,20 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
       }
     }
 
-    this.inputPlaceholder = 'COMMON.' + (this.type === 'longitude' && 'D' || '') + this.pattern + '_PLACEHOLDER';
+    this.showSignControl = this.pattern !== 'DD';
+
+    this.formatFn = this.type === 'latitude' ? formatLatitude : formatLongitude;
+    this.formatFnOptions = {pattern: this.pattern, maxDecimals: this.maxDecimals, hideSign: this.showSignControl};
+
+    this.inputPlaceholder = 'COMMON.LAT_LONG.' + (this.type === 'longitude' && 'D' || '') + this.pattern + '_PLACEHOLDER';
 
     this.textFormControl = this.formBuilder.control(
-      this.required ? ['', Validators.required] : ['']
+      this.required ? [null, Validators.required] : [null]
+    );
+    this.textMaskConfig = {mask: this.mask, keepCharPositions: true, placeholderChar: this.placeholderChar};
+
+    this.signFormControl = this.formBuilder.control(
+      this.required ? [null, Validators.required] : [null]
     );
 
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
@@ -157,15 +198,39 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
       this.type === 'latitude' ? SharedValidators.latitude : SharedValidators.longitude
     ]));
 
-    this.textFormControl.valueChanges
-      .subscribe((value) => this.onFormChange(value));
+    this._subscription.add(
+      this.textFormControl.valueChanges
+        //.pipe(debounceTime(250))
+        .subscribe((value) => this.onFormChange(value))
+    );
+    this._subscription.add(
+      this.signFormControl.valueChanges
+        //.pipe(debounceTime(250))
+        .subscribe((value) => this.onFormChange(this.textFormControl.value))
+    );
 
-    // Listen status changes outside the component (e.g. when setErrors() is calling on the formControl)
-    this.formControl.statusChanges
-      .subscribe((status) => {
-        if (this.readonly || this.writing || this.disabling) return; // Skip
-        this.markForCheck();
+    // Listen status changes (when done outside the component  - e.g. when setErrors() is calling on the formControl)
+    this._subscription.add(
+      this.formControl.statusChanges
+        .pipe(
+          filter((_) => !this.readonly && !this.writing && !this.disabling) // Skip
+        )
+        .subscribe((_) => this.markForCheck())
+    );
+  }
+
+  ngAfterViewInit() {
+    // Inject suffix elements, into the first injection point found
+    if (this.suffixDiv) {
+      this.suffixInjections.find(item => {
+        item.nativeElement.append(this.suffixDiv.nativeElement);
+        return true;
       });
+    }
+  }
+
+  ngOnDestroy() {
+    this._subscription.unsubscribe();
   }
 
   writeValue(obj: any): void {
@@ -176,17 +241,18 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
     const strValue = this.formatFn(
       this.value,
       {
-        pattern: this.pattern,
-        maxDecimals: this.maxDecimals,
+        ...this.formatFnOptions,
         placeholderChar: this.placeholderChar
       });
+    const sign = isNotNil(this.value) ? (this.value < 0 ? -1 : 1) :
+      // Use default sign, if any
+      (this.defaultSign ? (this.defaultSign === '-' ? -1 : 1) : null);
 
     // DEBUG
-    if (this.type === 'longitude' && isNotNil(obj) && this.pattern === 'DDMMSS') {
-      console.debug("strValue: " + strValue)
-    }
+    // console.debug("strValue: " + strValue)
 
     this.textFormControl.patchValue(strValue, {emitEvent: false});
+    this.signFormControl.patchValue(sign, {emitEvent: false});
     this.writing = false;
     this.markForCheck();
   }
@@ -204,11 +270,13 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
 
     this.disabling = true;
     this.writing = true;
-    this.disabled = isDisabled;
+    this._disabled = isDisabled;
     if (isDisabled) {
       this.textFormControl.disable({onlySelf: true, emitEvent: false});
+      this.signFormControl.disable({onlySelf: true, emitEvent: false});
     } else {
       this.textFormControl.enable({onlySelf: true, emitEvent: false});
+      this.signFormControl.enable({onlySelf: true, emitEvent: false});
     }
     this.writing = false;
     this.disabling = false;
@@ -219,21 +287,26 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
     if (this.writing) return; // Skip if call by self
     this.writing = true;
 
-    if (this.textFormControl.invalid) {
+    if (this.textFormControl.invalid || this.signFormControl.invalid) {
       this.formControl.markAsPending();
-      this.formControl.setErrors(Object.assign({}, this.textFormControl.errors));
+      this.formControl.setErrors({...this.textFormControl.errors, ...this.signFormControl.errors});
       this.writing = false;
       return;
     }
 
-    this.value = strValue && parseLatitudeOrLongitude(strValue, this.pattern, 7 /*=precision of the converted double value */, this.placeholderChar);
+    let parsedValue = isNotNilOrBlank(strValue) ? parseLatitudeOrLongitude(strValue, this.pattern, 7 /*=precision of the converted double value */, this.placeholderChar) : null;
 
-    if (isNaN(this.value)) {
+    // DEBUG
+    //console.debug('parsedValue=', parsedValue);
+
+    if (isNaN(parsedValue)) {
       this.formControl.markAsPending();
-      this.formControl.setErrors(this.type === 'latitude' ? {invalidLatitude: true} : {invalidLongitude: true});
+      this.formControl.setErrors(this.type === 'latitude' ? {latitude: true} : {longitude: true});
       this.writing = false;
       return;
     }
+    const sign = (this.pattern === 'DD') ? 1 /*ignore sign*/ : (this.signFormControl.value || 1);
+    this.value = isNotNil(parsedValue) ? sign * parsedValue : null;
 
     // Get the model value
     //console.debug("[mat-latlon] Setting value {" + this.value + "} parsed from {" + strValue + "}");
@@ -244,21 +317,141 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
     this._onChangeCallback(this.value);
   }
 
-
-  public checkIfTouched() {
+  checkIfTouched(): boolean {
     if (this.formControl.touched || this.textFormControl.touched) {
       this.markForCheck();
       this._onTouchedCallback();
+      return true;
     }
+    return false
   }
 
-  public _onBlur(event: FocusEvent) {
-    this.checkIfTouched();
+  _onFocus(event: FocusEvent) {
+
+    // Apply the default sign, when pattern is DD and field is empty
+    if (isNil(this.value)) {
+      if (this.defaultSign && isNil(this.value) && this.pattern === 'DD') {
+
+        // Compute the text value, using the default sign
+        const defaultSign = this.defaultSign === '-' ? -1 : 1;
+        let valueStr = this.formatFn(defaultSign, {...this.formatFnOptions, placeholderChar: this.placeholderChar})
+        valueStr = valueStr && valueStr.replace('1', this.placeholderChar);
+
+        // Wait end of focus animation (label should move to top)
+        setTimeout(() => {
+          // Set the value
+          this.inputElement.nativeElement.value = valueStr;
+
+          // Move cursor after the sign
+          const caretIndex = (this.type === 'latitude') ? 2 : 1;
+          selectInputRange(event.target, caretIndex);
+        }, 250);
+      }
+    }
+
+    // Select the content (if there is a value)
+    else {
+      selectInputContent(event);
+    }
+
+    this.onFocus.emit(event);
+    return true;
+  }
+
+  _onBlur(event: FocusEvent) {
+    const touched = this.checkIfTouched();
+    if (touched && isNil(this.value)) {
+      this.inputElement.nativeElement.value = '';
+    }
     this.onBlur.emit(event);
+  }
+
+  moveCaretToSeparator(event: any, forward: boolean): boolean {
+    // Move to the space separator
+    return moveInputCaretToSeparator(event, ' ', forward);
+  }
+
+  onKeypress(event: KeyboardEvent) {
+    // Number entered or one of the 4 direction up, down, left and right
+    if ((event.which >= 48 && event.which <= 57) || (event.which >= 37 && event.which <= 40)) {
+      //console.debug('input number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+      // OK
+    }
+    // Decimal separator entered
+    else if (event.key === '.' || event.key === ',') {
+      // DEBUG
+      // console.debug('input decimal separator entered :' + event.code);
+
+      // Move caret after point
+      moveInputCaretToSeparator(event, '.');
+
+      // OK
+    } else {
+      // Command entered (delete, backspace or one of the 4 direction up, down, left and right)
+      if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8 || event.keyCode == 9) {
+        // DEBUG
+        //console.debug('input command entered:' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+
+        // OK
+      }
+      // Sign entered ('+' or '-')
+      else if (event.keyCode === 43 || event.keyCode === 45) {
+        // DEBUG
+        // console.debug('input sign entered:' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+        const caretPosition = getCaretPosition(event.target);
+        if (this.pattern === 'DD' && caretPosition > 0) {
+          const sign = event.key;
+          // Wait key apply
+          const value = this.inputElement.nativeElement.value;
+          if (value && !value.startsWith(sign)) {
+            const newValue = sign + (value.length > 1 ? value.substr(1) : '');
+
+            // DEBUG
+            // console.debug("sign entered. Updating input value to:", newValue);
+
+            this.inputElement.nativeElement.value = newValue;
+            selectInputRange(this.inputElement.nativeElement, caretPosition);
+          }
+          event.preventDefault();
+        }
+
+        // OK
+      }
+      // Direction char (capitalized)
+      else if (event.key === 'N' || event.key === 'S' || event.key === 'E' || event.key === 'W') {
+        // DEBUG
+        // console.debug('input direction entered:' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+
+        // OK
+      }
+      // Direction char
+      else if (event.key === 'n' || event.key === 's' || event.key === 'e' || event.key === 'w') {
+        // DEBUG
+        // console.debug('input direction entered:' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+
+        // Capitalize (with a delay, to be sure the key has been applied to input text)
+        setTimeout(() => {
+          this.inputElement.nativeElement.value = this.inputElement.nativeElement.value.toUpperCase();
+        }, 10);
+
+        // OK
+      }
+
+      // Any other keyboard events
+      else {
+        // DEBUG
+        //console.debug('input not number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode + ' ' + event.code );
+
+        // KO: cancel the event
+        event.preventDefault();
+      }
+    }
   }
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  moveInputCaretToSeparator = moveInputCaretToSeparator;
 }
 

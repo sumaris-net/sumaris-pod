@@ -14,18 +14,68 @@
   <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
     <!-- Empty value -->
-    <form *ngIf="form.get('emptyValue') as formGroup" [formGroup]="formGroup">
+    <form *ngIf="form.get('empty') as formGroup" [formGroup]="formGroup">
     <ion-grid>
-      <ion-row><ion-col><ion-text><h4>Empty, with default directions</h4></ion-text></ion-col></ion-row>
+      <ion-row><ion-col><ion-text><h4>Empty, with defaults</h4></ion-text></ion-col></ion-row>
 
       <ion-row >
-        <!-- DD -->
+
+        <!-- DD Default sign -->
         <ion-col>
           <ion-card>
             <ion-card-header>
               <ion-card-title>
                 <ion-label color="primary">
-                  Format DDMM with default direction '+' (latitude: E, longitude: N)
+                  Format DD, defaultSign '-'
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>{{stringify(formGroup.value)}}</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-grid class="ion-no-padding">
+                <ion-row>
+                  <ion-col>
+                    <mat-latlong-field formControlName="latitude"
+                                       type="latitude"
+                                       latLongPattern="DD"
+                                       defaultSign="-"
+                                       placeholder="Latitude">
+                      <mat-icon matPrefix>room</mat-icon>
+                      <button matSuffix mat-icon-button (click)="geoPosition($event)">
+                        <mat-icon>gps_fixed</mat-icon>
+                      </button>
+                    </mat-latlong-field>
+                  </ion-col>
+                  <ion-col>
+                    <mat-latlong-field formControlName="longitude"
+                                       type="longitude"
+                                       latLongPattern="DD"
+                                       defaultSign="-"
+                                       placeholder="Longitude">
+                      <mat-icon matPrefix>room</mat-icon>
+                      <button type="button" mat-icon-button matSuffix
+                              (click)="geoPosition($event)">
+                        <mat-icon>gps_fixed</mat-icon>
+                      </button>
+                    </mat-latlong-field>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <!-- DDMM Default sign -->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Format DDMM, defaultSign '+'
                 </ion-label>
               </ion-card-title>
               <ion-card-subtitle>
@@ -41,15 +91,67 @@
                     <mat-latlong-field formControlName="latitude"
                                        type="latitude"
                                        latLongPattern="DDMM"
-                                       defaultDirection="+"
+                                       defaultSign="+"
                                        placeholder="Latitude">
+
+                      <mat-icon matPrefix >room</mat-icon>
+                      <button type="button" mat-icon-button matSuffix
+                              (click)="geoPosition($event)">
+                        <mat-icon>gps_fixed</mat-icon>
+                      </button>
                     </mat-latlong-field>
                   </ion-col>
                   <ion-col>
                     <mat-latlong-field formControlName="longitude"
                                        type="longitude"
                                        latLongPattern="DDMM"
-                                       defaultDirection="+"
+                                       defaultSign="+"
+                                       placeholder="Longitude">
+                      <mat-icon matPrefix>room</mat-icon>
+                      <button type="button" mat-icon-button matSuffix
+                              (click)="geoPosition($event)">
+                        <mat-icon>gps_fixed</mat-icon>
+                      </button>
+                    </mat-latlong-field>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <!-- Mobile + DDMM -->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Mobile=true
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>{{stringify(formGroup.value)}}</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-grid class="ion-no-padding">
+                <ion-row>
+                  <ion-col>
+                    <mat-latlong-field formControlName="latitude"
+                                       type="latitude"
+                                       latLongPattern="DDMM"
+                                       defaultSign="+"
+                                       placeholder="Latitude"
+                                       mobile="true">
+                    </mat-latlong-field>
+                  </ion-col>
+                  <ion-col>
+                    <mat-latlong-field formControlName="longitude"
+                                       type="longitude"
+                                       latLongPattern="DDMM"
+                                       defaultSign="+"
                                        placeholder="Longitude">
                     </mat-latlong-field>
                   </ion-col>
@@ -62,7 +164,7 @@
     </ion-grid>
     </form>
 
-    <form *ngIf="form.get('withValue') as formGroup" [formGroup]="formGroup">
+    <form *ngIf="form.get('enable') as formGroup" [formGroup]="formGroup">
       <ion-grid>
         <!-- With value -->
         <ion-row><ion-col><ion-text><h4>With value</h4></ion-text></ion-col></ion-row>
@@ -176,6 +278,58 @@
                                          type="longitude"
                                          latLongPattern="DDMMSS"
                                          placeholder="Longitude">
+                      </mat-latlong-field>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </form>
+
+    <!-- Disable  -->
+    <form *ngIf="form.get('disable') as formGroup" [formGroup]="formGroup">
+      <ion-grid>
+        <ion-row><ion-col><ion-text><h4>Disabled control</h4></ion-text></ion-col></ion-row>
+        <ion-row>
+          <ion-col>
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>
+                  <ion-label color="primary">
+                    Format DDMM
+                  </ion-label>
+                </ion-card-title>
+                <ion-card-subtitle>
+                  <ion-text color="medium">
+                    <small><pre>{{stringify(formGroup.value)}}</pre></small>
+                  </ion-text>
+                </ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-grid class="ion-no-padding">
+                  <ion-row>
+                    <ion-col>
+                      <mat-latlong-field formControlName="latitude"
+                                         type="latitude"
+                                         latLongPattern="DDMM"
+                                         placeholder="Latitude">
+                        <mat-icon matPrefix>room</mat-icon>
+                        <mat-icon matSuffix>gps_fixed</mat-icon>
+                      </mat-latlong-field>
+                    </ion-col>
+                    <ion-col>
+                      <mat-latlong-field formControlName="longitude"
+                                         type="longitude"
+                                         latLongPattern="DDMM"
+                                         placeholder="Longitude">
+                        <mat-icon matPrefix>room</mat-icon>
+                        <button type="button" mat-icon-button matSuffix
+                                (click)="geoPosition($event)">
+                          <mat-icon>gps_fixed</mat-icon>
+                        </button>
                       </mat-latlong-field>
                     </ion-col>
                   </ion-row>

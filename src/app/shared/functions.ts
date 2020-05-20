@@ -1,7 +1,10 @@
 import * as moment from "moment";
 import {Duration, isMoment, Moment} from "moment";
-import {asInputElement, isInputElement} from "./material/focusable";
-import {ElementRef} from "@angular/core";
+import {selectInputRange, selectInputContent, filterNumberInput, focusInput, setTabIndex} from './inputs';
+
+// This function has moved to inputs.ts
+export {selectInputRange, selectInputContent, filterNumberInput, focusInput, setTabIndex};
+
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 export const DATE_UNIX_TIMESTAMP = 'X';
@@ -238,48 +241,7 @@ export function sort<T>(array: T[], attribute: string): T[] {
     });
 }
 
-export function selectInputContent(event: UIEvent) {
-  if (event.defaultPrevented) return false;
-  const input = (event.target as any);
-  if (input && typeof input.select === "function") {
 
-    // Nothing to select
-    if (isNilOrBlank(input.value)) return false;
-
-    try {
-      input.select();
-    } catch (err) {
-      console.error("Could not select input content", err);
-      return false;
-    }
-  }
-  return true;
-}
-
-export function filterNumberInput(event: KeyboardEvent, allowDecimals: boolean, decimalSeparator?: string) {
-  //input number entered or one of the 4 direction up, down, left and right
-  if ((event.which >= 48 && event.which <= 57) || (event.which >= 37 && event.which <= 40)) {
-    //console.debug('input number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
-    // OK
-  }
-  // Decimal separator
-  else if (allowDecimals && ((!decimalSeparator && (event.key === '.' || event.key === ','))
-    || (decimalSeparator && event.key === decimalSeparator))) {
-    //console.debug('input decimal separator entered :' + event.code);
-    // OK
-  } else {
-    //input command entered of delete, backspace or one of the 4 direction up, down, left and right, or negative sign
-    if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8 || event.keyCode == 9 || event.keyCode == 45) {
-      //console.debug('input command entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
-      // OK
-    }
-    // Cancel other keyboard events
-    else {
-      //console.debug('input not number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode + ' ' + event.code );
-      event.preventDefault();
-    }
-  }
-}
 
 export function getPropertyByPath(obj: any, path: string, defaultValue?: any): any {
   if (isNil(obj)) return undefined;
@@ -305,26 +267,6 @@ export function getProperty<T = any, K extends keyof T = any>(obj: T, key: K): T
 export function getPropertyByPathAsString(obj: any, path: string): string | undefined {
   const res = getPropertyByPath(obj, path);
   return res && (typeof res === 'string' ? res : ('' + res));
-}
-
-export function focusInput(element: ElementRef) {
-  const inputElement = asInputElement(element);
-  if (inputElement)
-    inputElement.focus();
-  else {
-    console.warn("Trying to focus on this element:", element);
-  }
-}
-export function setTabIndex(element: ElementRef, tabIndex: number) {
-  if(isInputElement(element)) {
-    element.tabindex = tabIndex;
-  }
-  else if (element && isInputElement(element.nativeElement)) {
-    element.nativeElement.tabIndex = tabIndex;
-  }
-  else {
-    console.warn("Trying to change tabindex on this element:", element);
-  }
 }
 
 export function delay(ms: number): Promise<void> {

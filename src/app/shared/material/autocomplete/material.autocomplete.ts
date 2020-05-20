@@ -32,6 +32,7 @@ import {
 import {InputElement} from "../focusable";
 import {firstNotNilPromise} from "../../observables";
 import {DisplayFn} from "../../form/field.model";
+import {FloatLabelType} from "@angular/material/form-field";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -151,7 +152,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @Input() formControlName: string;
 
-  @Input() floatLabel: string;
+  @Input() floatLabel: FloatLabelType;
 
   @Input() placeholder: string;
 

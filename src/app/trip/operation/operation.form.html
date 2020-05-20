@@ -67,17 +67,17 @@
                            [latLongPattern]="latLongFormat"
                            [tabindex]="tabindex+4"
                            [required]="true">
-                <button type="button" mat-icon-button matLatlongSuffix
-                        (click)="fillPosition('startPosition')"
+                <button type="button" mat-icon-button matSuffix
+                        (click)="fillPosition($event,'startPosition')"
                         tabindex="-1"
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <button type="button" mat-icon-button matLatlongSuffix
+                <button type="button" mat-icon-button matSuffix
                         [hidden]="enableGeolocation || form.controls.startPosition.invalid"
-                        (click)="copyPosition('startPosition', 'endPosition')"
+                        (click)="copyPosition($event,'startPosition', 'endPosition')"
                         [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate"
-                        [tabindex]="tabindex+5">
+                        [tabindex]="tabindex+6">
                   <mat-icon>arrow_downward</mat-icon>
                 </button>
               </mat-latlong-field>
@@ -114,7 +114,7 @@
                            type="latitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                            [latLongPattern]="latLongFormat"
-                           [tabindex]="tabindex+7"
+                           [tabindex]="tabindex+8"
                            [required]="!isOnFieldMode">
               </mat-latlong-field>
             </ion-col>
@@ -123,10 +123,10 @@
                            type="longitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                            [latLongPattern]="latLongFormat"
-                           [tabindex]="tabindex+8"
+                           [tabindex]="tabindex+9"
                            [required]="!isOnFieldMode">
-                <button type="button" mat-icon-button matLatlongSuffix
-                        (click)="fillPosition('endPosition')" tabindex="-1"
+                <button type="button" mat-icon-button matSuffix
+                        (click)="fillPosition($event, 'endPosition')" tabindex="-1"
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
