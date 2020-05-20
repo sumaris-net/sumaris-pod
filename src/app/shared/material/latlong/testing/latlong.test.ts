@@ -16,8 +16,14 @@ export class LatLongTestPage implements OnInit {
     protected formBuilder: FormBuilder
   ) {
     this.form = formBuilder.group({
-      latitude: [null, SharedValidators.latitude],
-      longitude: [null, SharedValidators.longitude]
+      withValue: formBuilder.group({
+        latitude: [null, SharedValidators.latitude],
+        longitude: [null, SharedValidators.longitude]
+      }),
+      emptyValue: formBuilder.group({
+        latitude: [null, SharedValidators.latitude],
+        longitude: [null, SharedValidators.longitude]
+      })
     });
 
   }
@@ -31,8 +37,14 @@ export class LatLongTestPage implements OnInit {
   // Load the form with data
   async loadData() {
     const data = {
-      latitude: 50.1,
-      longitude: -2
+      withValue: {
+        latitude: 50.1,
+        longitude: -2
+      },
+      emptyValue: {
+        latitude: null,
+        longitude: null
+      }
     };
 
     this.form.setValue(data);

@@ -1,7 +1,7 @@
 <!-- readonly -->
 <mat-form-field *ngIf="readonly">
   <input matInput hidden type="text" readonly="true" [formControl]="formControl">
-  <ion-text>{{ value | latLongFormat: {type: type, pattern: latLongPattern, maxDecimals: maxDecimals} }}</ion-text>
+  <ion-text>{{ value | latLongFormat: {type: type, pattern: pattern, maxDecimals: maxDecimals} }}</ion-text>
 
   <div matSuffix>
     <ng-content select="[matSuffix]"></ng-content>
@@ -9,7 +9,7 @@
 </mat-form-field>
 
 <mat-form-field [floatLabel]="floatLabel" *ngIf="!readonly" [class.mat-form-field-invalid]="formControl.touched && formControl.invalid">
-  <mat-label *ngIf="!mobile && labelPlaceholder">{{labelPlaceholder}}</mat-label>
+  <mat-label *ngIf="!mobile && placeholder">{{placeholder}}</mat-label>
   <input matInput
          type="text"
          autocomplete="off"

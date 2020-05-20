@@ -29,6 +29,7 @@ import {
   parseLatitudeOrLongitude
 } from './latlong.utils';
 import {DEFAULT_PLACEHOLDER_CHAR} from '../../constants';
+import {isNotNil} from "../../functions";
 
 const MASKS = {
   'latitude': {
@@ -80,11 +81,13 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
 
   @Input() formControlName: string;
 
-  @Input("placeholder") labelPlaceholder: string;
+  @Input() placeholder: string;
 
   @Input() type: 'latitude' | 'longitude';
 
-  @Input() latLongPattern: 'DDMMSS' | 'DDMM' | 'DD';
+  @Input("latLongPattern") pattern: 'DDMMSS' | 'DDMM' | 'DD';
+
+  @Input() defaultDirection: '-' | '+';
 
   @Input() maxDecimals: number = DEFAULT_MAX_DECIMALS;
 
@@ -115,27 +118,32 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
   ngOnInit() {
 
     this.type = this.type || 'latitude';
-    this.latLongPattern = this.latLongPattern || 'DDMM';
-    this.mask = MASKS[this.type] && MASKS[this.type][this.latLongPattern];
-    console.log(this.mask);
+    this.pattern = this.pattern || 'DDMM';
+    this.mask = MASKS[this.type] && MASKS[this.type][this.pattern];
     if (!this.mask) {
       console.error("Invalid attribute value. Expected: type: 'latitude|longitude' and latlongPattern: 'DD|DDMM|DDMMSS'");
       this.type = 'latitude';
-      this.latLongPattern = 'DDMM';
-      this.mask = MASKS[this.type][this.latLongPattern];
+      this.pattern = 'DDMM';
+      this.mask = MASKS[this.type][this.pattern];
     }
     this.formatFn = this.type === 'latitude' ? formatLatitude : formatLongitude;
     if (this.maxDecimals) {
       if (this.maxDecimals < 0) {
         console.error("Invalid attribute 'maxDecimals'. Must a positive value.");
         this.maxDecimals = DEFAULT_MAX_DECIMALS;
-      } else if (this.maxDecimals !== DEFAULT_MAX_DECIMALS) {
-        console.warn("Invalid attribute 'maxDecimals'. Must be equals to " + DEFAULT_MAX_DECIMALS + " ! TODO: manage other value in pattern.");
+      }
+      // Remove max decimals in the DDMMSS format
+      else if (this.pattern === 'DDMMSS') {
+        console.warn(`Invalid attribute 'maxDecimals' - Must be '0' when using the 'DDMMSS' pattern.`);
+        this.maxDecimals = 0;
+      }
+      else if (this.maxDecimals !== DEFAULT_MAX_DECIMALS) {
+        console.warn(`Invalid attribute 'maxDecimals' - Expected value: ${DEFAULT_MAX_DECIMALS}. Other value not implemented.`);
         this.maxDecimals = DEFAULT_MAX_DECIMALS;
       }
     }
 
-    this.inputPlaceholder = 'COMMON.' + (this.type === 'longitude' && 'D' || '') + this.latLongPattern + '_PLACEHOLDER';
+    this.inputPlaceholder = 'COMMON.' + (this.type === 'longitude' && 'D' || '') + this.pattern + '_PLACEHOLDER';
 
     this.textFormControl = this.formBuilder.control(
       this.required ? ['', Validators.required] : ['']
@@ -168,10 +176,15 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
     const strValue = this.formatFn(
       this.value,
       {
-        pattern: this.latLongPattern,
+        pattern: this.pattern,
         maxDecimals: this.maxDecimals,
         placeholderChar: this.placeholderChar
       });
+
+    // DEBUG
+    if (this.type === 'longitude' && isNotNil(obj) && this.pattern === 'DDMMSS') {
+      console.debug("strValue: " + strValue)
+    }
 
     this.textFormControl.patchValue(strValue, {emitEvent: false});
     this.writing = false;
@@ -213,7 +226,7 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
       return;
     }
 
-    this.value = strValue && parseLatitudeOrLongitude(strValue, this.latLongPattern, 7 /*=precision of the converted double value */, this.placeholderChar);
+    this.value = strValue && parseLatitudeOrLongitude(strValue, this.pattern, 7 /*=precision of the converted double value */, this.placeholderChar);
 
     if (isNaN(this.value)) {
       this.formControl.markAsPending();

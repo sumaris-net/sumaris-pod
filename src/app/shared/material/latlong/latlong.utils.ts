@@ -76,21 +76,25 @@ function formatToDDMMSS(value: number, isLongitude: boolean, maxDecimals: number
   if (negative) value *= -1;
 
   // Fix longitude when outside [-180, 180]
-  while (isLongitude && value > 180) {
-    value = (value - 180);
-    negative = value < 0;
-    if (negative) value *= -1;
+  if (isLongitude) {
+    while (value > 180) {
+      value = (value - 180);
+      negative = value < 0;
+      if (negative) value *= -1;
+    }
   }
   // Fix latitude when outside [-90, 90]
-  while (!isLongitude && value > 90) {
-    value = (value - 90);
-    negative = value < 0;
-    if (negative) value *= -1;
+  else {
+    while (value > 90) {
+      value = (value - 90);
+      negative = value < 0;
+      if (negative) value *= -1;
+    }
   }
 
-  let degrees: number | string = Math.trunc(value);
-  let minutes: number | string = Math.trunc((value - degrees) * 60);
-  let seconds = roundFloat(((value - degrees) * 60 - minutes) * 60, maxDecimals);
+  let degrees: number = Math.trunc(value);
+  let minutes: number = Math.trunc((value - degrees) * 60);
+  let seconds: number | string = roundFloat(((value - degrees) * 60 - minutes) * 60, maxDecimals);
   while (seconds >= 60) {
     seconds -= 60;
     minutes += 1;
@@ -102,29 +106,38 @@ function formatToDDMMSS(value: number, isLongitude: boolean, maxDecimals: number
   const direction = isLongitude ? (negative ? 'W' : 'E') : (negative ? 'S' : 'N');
 
   // Force spacer
+  let prefix = '';
   if (placeholderChar) {
-    if (degrees < 10) {
-      degrees = placeholderChar + degrees;
+    if (isLongitude && degrees < 100) {
+      prefix += placeholderChar;
     }
+    if (degrees < 10) {
+      prefix += placeholderChar;
+    }
+
     if (minutes < 10) {
       minutes = placeholderChar + minutes;
     }
+
+    if (seconds < 10) {
+      seconds = placeholderChar + seconds;
+    }
     else {
-      minutes = minutes.toString(); // convert to string (need by  the while)
+      seconds = seconds.toString(); // convert to string - required for the next while
     }
     if (maxDecimals > 0) {
       // Add decimal separator
-      if (minutes.length === 2) {
-        minutes += '.';
+      if (seconds.length === 2) {
+        seconds += '.';
       }
       // Add trailing placeholder chars
-      while ((minutes.length < maxDecimals + 3)) {
-        minutes += placeholderChar;
+      while ((seconds.length < maxDecimals + 3)) {
+        seconds += placeholderChar;
       }
     }
   }
 
-  const output = degrees + '° ' + minutes + '\' ' + seconds + '" ' + direction;
+  const output = prefix + degrees + '° ' + minutes + '\' ' + seconds + '" ' + direction;
   //console.debug("formatToDDMMSS: " + value + " -> " + output);
   return output;
 }
@@ -134,16 +147,20 @@ function formatToDDMM(value: number, isLongitude: boolean, maxDecimals: number, 
   if (negative) value *= -1;
 
   // Fix longitude when outside [-180, 180]
-  while (isLongitude && value > 180) {
-    value = (value - 180);
-    negative = value < 0;
-    if (negative) value *= -1;
+  if (isLongitude) {
+    while (value > 180) {
+      value = (value - 180);
+      negative = value < 0;
+      if (negative) value *= -1;
+    }
   }
   // Fix latitude when outside [-90, 90]
-  while (!isLongitude && value > 90) {
-    value = (value - 90);
-    negative = value < 0;
-    if (negative) value *= -1;
+  else {
+    while (value > 90) {
+      value = (value - 90);
+      negative = value < 0;
+      if (negative) value *= -1;
+    }
   }
 
   let degrees: number | string = Math.trunc(value);
@@ -155,17 +172,20 @@ function formatToDDMM(value: number, isLongitude: boolean, maxDecimals: number, 
   const direction = isLongitude ? (negative ? 'W' : 'E') : (negative ? 'S' : 'N');
 
   // Add placeholderChar
+  let prefix = ''
   if (placeholderChar) {
+    if (isLongitude && degrees < 100) {
+      prefix += placeholderChar;
+    }
     if (degrees < 10) {
-      degrees = placeholderChar + degrees;
+      prefix += placeholderChar;
     }
 
     if (minutes < 10) {
       minutes = placeholderChar + minutes;
     }
     else {
-      // convert to string (need by  the while)
-      minutes = minutes.toString();
+      minutes = minutes.toString(); // convert to string - required for the next while
     }
     if (maxDecimals > 0) {
       // Add decimal separator
@@ -178,7 +198,7 @@ function formatToDDMM(value: number, isLongitude: boolean, maxDecimals: number, 
       }
     }
   }
-  const result = degrees + '° ' + minutes + '\' ' + direction;
+  const result = prefix + degrees + '° ' + minutes + '\' ' + direction;
 
   return result;
 }
