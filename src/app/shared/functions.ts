@@ -342,6 +342,43 @@ export function equalsOrNil(value1: any, value2: any) {
   return (value1 === value2) || (isNil(value1) && isNil(value2));
 }
 
+/**
+ * remove elements from an array
+ *
+ * @return the removed elements
+ * @param array the array on which elements will be removed
+ * @param predicate the selection predicate
+ */
+export function removeAll<T>(array: T[], predicate: (pmfm: T) => boolean): T[] {
+  let nbRemove = 0;
+  return array.slice().map((value, index) => {
+    if (predicate(value)) {
+      nbRemove++; // glitch counter to avoid index gap
+      return array.splice(index - nbRemove + 1, 1)[0];
+    }
+    return null;
+  }).filter(isNotNil);
+}
+
+/**
+ * remove the first element from an array
+ *
+ * @return the removed element
+ * @param array the array on which the element will be removed
+ * @param predicate the selection predicate
+ */
+export function remove<T>(array: T[], predicate: (pmfm: T) => boolean): T {
+  return array.slice().find((value, index) => {
+    if (predicate(value)) {
+      array.splice(index, 1);
+      return true;
+    }
+    return false;
+  });
+}
+
+
+
 export declare type KeysEnum<T> = { [P in keyof Required<T>]: true };
 
 export class Beans {

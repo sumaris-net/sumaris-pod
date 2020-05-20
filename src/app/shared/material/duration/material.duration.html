@@ -18,7 +18,6 @@
 
       <input matInput #matInput type="text"
              autocomplete="off"
-             *ngIf="!mobile"
              formControlName="duration"
              [textMask]="{mask: hourMask, keepCharPositions: true, placeholderChar: placeholderChar, guide: true}"
              [placeholder]="'COMMON.DURATION_PLACEHOLDER'|translate"

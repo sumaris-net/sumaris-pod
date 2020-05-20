@@ -1,9 +1,9 @@
-<form class="form-container" [formGroup]="form" >
+<form class="form-container" [formGroup]="form">
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <!-- Global -->
@@ -13,11 +13,14 @@
         <ion-label class="ion-float-end" translate>TRIP.EXPENSE.TOTAL_ESTIMATION</ion-label>
       </ion-col>
       <ion-col>
-        <app-form-measurements #globalMeasurementsForm
-                               entityName="VesselUseMeasurement"
-                               [debug]="debug"
-                               [tabindex]="0">
-        </app-form-measurements>
+        <ng-container *ngIf="$totalPmfm | async; let totalPmfm">
+          <mat-form-field-measurement [pmfm]="totalPmfm"
+                                      [formControlName]="totalPmfm.pmfmId.toString()"
+                                      [hidden]="totalPmfm.hidden"
+                                      [compact]="compact"
+                                      [tabindex]="tabindex+2">
+          </mat-form-field-measurement>
+        </ng-container>
       </ion-col>
     </ion-row>
   </ion-grid>
@@ -27,101 +30,159 @@
 
     <!-- SUB-TAB: fluid -->
     <mat-tab label="{{'TRIP.EXPENSE.TAB_FLUID'|translate}}">
-      <ng-template mat-tab-label>
-        <ion-label translate>TRIP.EXPENSE.TAB_FLUID</ion-label>
-        <ion-icon slot="end" name="alert" color="danger"
-                  *ngIf="(fuelMeasurementsForm.dirty && fuelMeasurementsForm.invalid)
-                        || (engineOilMeasurementsForm.dirty && engineOilMeasurementsForm.invalid)
-                        || (hydraulicOilMeasurementsForm.dirty && hydraulicOilMeasurementsForm.invalid)"></ion-icon>
-      </ng-template>
-      <ion-grid class="ion-no-padding ion-padding-top">
-        <ion-row>
+      <ion-grid class="ion-no-padding ion-padding-top form-container">
+
+        <!-- fuel -->
+        <ion-row [hidden]="!($fuelTypePmfm | async) && !($fuelPmfms | async).length">
           <ion-col size="12" size-md="2" size-lg="3">
-            <ion-label class="ion-float-end" translate>TRIP.EXPENSE.FUEL</ion-label>
+            <ng-container *ngIf="$fuelTypePmfm | async; else fuelTypeLabel; let fuelTypePmfm">
+              <mat-form-field-measurement-qv #fuelTypeField
+                                             [pmfm]="fuelTypePmfm"
+                                             [style]="mobile? 'button' : 'autocomplete'"
+                                             [formControlName]="fuelTypePmfm.pmfmId.toString()"
+                                             [compact]="false"
+                                             [tabindex]="tabindex+2">
+              </mat-form-field-measurement-qv>
+            </ng-container>
+            <ng-template #fuelTypeLabel>
+              <ion-label translate>TRIP.EXPENSE.FUEL_TYPE</ion-label>
+            </ng-template>
           </ion-col>
-          <ion-col>
-            <app-form-measurements #fuelMeasurementsForm
-                                   entityName="VesselUseMeasurement"
-                                   [debug]="debug"
-                                   [tabindex]="10">
-            </app-form-measurements>
-          </ion-col>
+          <ng-container *ngIf="$fuelPmfms | async; let fuelPmfms;">
+            <ion-col *ngFor="let pmfm of fuelPmfms; index as i;">
+              <!-- qualitative value (force 'button' style, on mobile)-->
+              <ng-container *ngIf="pmfm.isQualitative; else otherField">
+                <mat-form-field-measurement-qv [pmfm]="pmfm"
+                                               [formControlName]="pmfm.pmfmId.toString()"
+                                               [hidden]="pmfm.hidden"
+                                               [style]="mobile? 'button' : 'autocomplete'"
+                                               [compact]="compact"
+                                               [tabindex]="tabindex+2 + i*2">
+                </mat-form-field-measurement-qv>
+              </ng-container>
+              <!-- NOT qualitative value -->
+              <ng-template #otherField>
+                <mat-form-field-measurement [pmfm]="pmfm"
+                                            [formControlName]="pmfm.pmfmId.toString()"
+                                            [hidden]="pmfm.hidden"
+                                            [compact]="compact"
+                                            [tabindex]="tabindex+2 + i*2">
+                </mat-form-field-measurement>
+              </ng-template>
+            </ion-col>
+          </ng-container>
         </ion-row>
+
+        <!-- engine oil -->
         <ion-row>
           <ion-col size="12" size-md="2" size-lg="3">
             <ion-label class="ion-float-end" translate>TRIP.EXPENSE.ENGINE_OIL</ion-label>
           </ion-col>
-          <ion-col>
-            <app-form-measurements #engineOilMeasurementsForm
-                                   entityName="VesselUseMeasurement"
-                                   [debug]="debug"
-                                   [tabindex]="10">
-            </app-form-measurements>
-          </ion-col>
+          <ng-container *ngIf="$engineOilPmfms | async; let engineOilPmfms;">
+            <ion-col *ngFor="let pmfm of engineOilPmfms; index as i;">
+              <!-- qualitative value (force 'button' style, on mobile)-->
+              <ng-container *ngIf="pmfm.isQualitative; else otherField">
+                <mat-form-field-measurement-qv [pmfm]="pmfm"
+                                               [formControlName]="pmfm.pmfmId.toString()"
+                                               [hidden]="pmfm.hidden"
+                                               [style]="mobile? 'button' : 'autocomplete'"
+                                               [compact]="compact"
+                                               [tabindex]="tabindex+2 + i*2">
+                </mat-form-field-measurement-qv>
+              </ng-container>
+              <!-- NOT qualitative value -->
+              <ng-template #otherField>
+                <mat-form-field-measurement [pmfm]="pmfm"
+                                            [formControlName]="pmfm.pmfmId.toString()"
+                                            [hidden]="pmfm.hidden"
+                                            [compact]="compact"
+                                            [tabindex]="tabindex+2 + i*2">
+                </mat-form-field-measurement>
+              </ng-template>
+            </ion-col>
+          </ng-container>
         </ion-row>
+
+        <!-- hydraulic oil -->
         <ion-row>
           <ion-col size="12" size-md="2" size-lg="3">
             <ion-label class="ion-float-end" translate>TRIP.EXPENSE.HYDRAULIC_OIL</ion-label>
           </ion-col>
-          <ion-col>
-            <app-form-measurements #hydraulicOilMeasurementsForm
-                                   entityName="VesselUseMeasurement"
-                                   [debug]="debug"
-                                   [tabindex]="10">
-            </app-form-measurements>
-          </ion-col>
+          <ng-container *ngIf="$hydraulicOilPmfms | async; let hydraulicOilPmfms;">
+            <ion-col *ngFor="let pmfm of hydraulicOilPmfms; index as i;">
+              <!-- qualitative value (force 'button' style, on mobile)-->
+              <ng-container *ngIf="pmfm.isQualitative; else otherField">
+                <mat-form-field-measurement-qv [pmfm]="pmfm"
+                                               [formControlName]="pmfm.pmfmId.toString()"
+                                               [hidden]="pmfm.hidden"
+                                               [style]="mobile? 'button' : 'autocomplete'"
+                                               [compact]="compact"
+                                               [tabindex]="tabindex+2 + i*2">
+                </mat-form-field-measurement-qv>
+              </ng-container>
+              <!-- NOT qualitative value -->
+              <ng-template #otherField>
+                <mat-form-field-measurement [pmfm]="pmfm"
+                                            [formControlName]="pmfm.pmfmId.toString()"
+                                            [hidden]="pmfm.hidden"
+                                            [compact]="compact"
+                                            [tabindex]="tabindex+2 + i*2">
+                </mat-form-field-measurement>
+              </ng-template>
+            </ion-col>
+          </ng-container>
         </ion-row>
       </ion-grid>
     </mat-tab>
     <!-- SUB-TAB: ice -->
     <mat-tab label="{{'TRIP.EXPENSE.TAB_ICE'|translate}}">
-      <ng-template mat-tab-label>
-        <ion-label translate>TRIP.EXPENSE.TAB_ICE</ion-label>
-        <ion-icon slot="end" name="alert" color="danger"
-                  *ngIf="iceMeasurementsForm.invalid && iceMeasurementsForm.dirty"></ion-icon>
-      </ng-template>
-      <ion-grid class="ion-no-padding ion-padding-top">
+      <ion-grid class="ion-no-padding ion-padding-top form-container">
         <ion-row>
           <ion-col size="12" size-md="2" size-lg="3">
           </ion-col>
           <ion-col>
-            <app-form-measurements #iceMeasurementsForm
-                                   entityName="VesselUseMeasurement"
-                                   [debug]="debug"
-                                   [tabindex]="30">
-            </app-form-measurements>
           </ion-col>
         </ion-row>
       </ion-grid>
+    </mat-tab>
+    <!-- SUB-TAB: bait -->
+    <mat-tab label="{{'TRIP.EXPENSE.TAB_BAIT'|translate}}">
+
     </mat-tab>
     <!-- SUB-TAB: misc -->
     <mat-tab label="{{'TRIP.EXPENSE.TAB_MISC'|translate}}">
-      <ng-template mat-tab-label>
-        <ion-label translate>TRIP.EXPENSE.TAB_MISC</ion-label>
-        <ion-icon slot="end" name="alert" color="danger"
-                  *ngIf="miscMeasurementsForm.invalid && miscMeasurementsForm.dirty"></ion-icon>
-      </ng-template>
-      <ion-grid class="ion-no-padding ion-padding-top">
+      <ion-grid class="ion-no-padding ion-padding-top form-container">
         <ion-row>
           <ion-col size="12" size-md="2" size-lg="3">
+            <ion-label class="ion-float-end" translate>TRIP.EXPENSE.OTHER</ion-label>
           </ion-col>
           <ion-col>
-            <app-form-measurements #miscMeasurementsForm
-                                   entityName="VesselUseMeasurement"
-                                   [debug]="debug"
-                                   [tabindex]="40">
-            </app-form-measurements>
+            <ng-container *ngIf="$miscPmfms | async; let miscPmfms">
+              <div *ngFor="let pmfm of miscPmfms; index as i;">
+                <!-- qualitative value (force 'button' style, on mobile)-->
+                <ng-container *ngIf="pmfm.isQualitative; else otherField">
+                  <mat-form-field-measurement-qv [pmfm]="pmfm"
+                                                 [formControlName]="pmfm.pmfmId.toString()"
+                                                 [hidden]="pmfm.hidden"
+                                                 [style]="mobile? 'button' : 'autocomplete'"
+                                                 [compact]="compact"
+                                                 [tabindex]="tabindex+2 + i*2">
+                  </mat-form-field-measurement-qv>
+                </ng-container>
+                <!-- NOT qualitative value -->
+                <ng-template #otherField>
+                  <mat-form-field-measurement [pmfm]="pmfm"
+                                              [formControlName]="pmfm.pmfmId.toString()"
+                                              [hidden]="pmfm.hidden"
+                                              [compact]="compact"
+                                              [tabindex]="tabindex+2 + i*2">
+                  </mat-form-field-measurement>
+                </ng-template>
+              </div>
+            </ng-container>
           </ion-col>
         </ion-row>
       </ion-grid>
-    </mat-tab>
-    <!-- SUB-TAB: misc -->
-    <mat-tab label="{{'TRIP.EXPENSE.TAB_BAIT'|translate}}">
-      <ng-template mat-tab-label>
-        <ion-label translate>TRIP.EXPENSE.TAB_BAIT</ion-label>
-<!--        <ion-icon slot="end" name="alert" color="danger"-->
-<!--                  *ngIf="baitMeasurementsForm.invalid && baitMeasurementsForm.dirty"></ion-icon>-->
-      </ng-template>
     </mat-tab>
 
 

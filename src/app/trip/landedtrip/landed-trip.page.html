@@ -233,7 +233,10 @@
       </ng-template>
 
       <app-expense-form #expenseForm
+                        entityName="VesselUseMeasurement"
                         [program]="programSubject|async"
+                        acquisitionLevel="EXPENSE"
+                        [forceOptional]="isOnFieldMode"
                         [showError]="true"
       >
 
