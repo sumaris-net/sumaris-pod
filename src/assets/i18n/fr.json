@@ -144,7 +144,8 @@
       },
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Statut par défaut pour un nouveau navire"
-      }
+      },
+      "TESTING": "Mode développeur ?"
     },
     "CACHE": {
       "NAME": "Nom",
@@ -157,6 +158,7 @@
   },
   "MENU": {
     "HOME": "Accueil",
+    "TESTING": "Mode développeur",
     "TRIPS": "Marées",
     "DATA_ENTRY_DIVIDER": "Saisie de données",
     "EXTRACTION_DIVIDER": "Extractions",

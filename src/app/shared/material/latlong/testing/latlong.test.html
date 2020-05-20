@@ -1,0 +1,143 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Lat/Long field test page</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+
+
+    <ion-grid>
+
+      <!-- mobile -->
+      <ion-row><ion-col><ion-text><h4>Mobile mode</h4></ion-text></ion-col></ion-row>
+      <ion-row>
+
+
+        <!-- DD -->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Format DD
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>{{stringify(form.value)}}</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-grid class="ion-no-padding">
+                <ion-row>
+                  <ion-col>
+                    <mat-latlong-field formControlName="latitude"
+                                       type="latitude"
+                                       latLongPattern="DD"
+                                       placeholder="Latitude">
+                    </mat-latlong-field>
+                  </ion-col>
+                  <ion-col>
+                    <mat-latlong-field formControlName="longitude"
+                                       type="longitude"
+                                       latLongPattern="DD"
+                                       placeholder="Longitude">
+                    </mat-latlong-field>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <!-- DDMMSS -->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Format DDMM
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>{{stringify(form.value)}}</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-grid class="ion-no-padding">
+                <ion-row>
+                  <ion-col>
+                    <mat-latlong-field formControlName="latitude"
+                                       type="latitude"
+                                       latLongPattern="DDMM"
+                                       placeholder="Latitude">
+                    </mat-latlong-field>
+                  </ion-col>
+                  <ion-col>
+                    <mat-latlong-field formControlName="longitude"
+                                       type="longitude"
+                                       latLongPattern="DDMM"
+                                       placeholder="Longitude">
+                    </mat-latlong-field>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+
+        <!-- DDMMSS -->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Format DDMMSS
+                </ion-label>
+              </ion-card-title>
+              <ion-card-subtitle>
+                <ion-text color="medium">
+                  <small><pre>{{stringify(form.value)}}</pre></small>
+                </ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-grid class="ion-no-padding">
+                <ion-row>
+                  <ion-col>
+                    <mat-latlong-field formControlName="latitude"
+                                       type="latitude"
+                                       latLongPattern="DDMMSS"
+                                       placeholder="Latitude">
+                    </mat-latlong-field>
+                  </ion-col>
+                  <ion-col>
+                    <mat-latlong-field formControlName="longitude"
+                                       type="longitude"
+                                       latLongPattern="DDMMSS"
+                                       placeholder="Longitude">
+                    </mat-latlong-field>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+  </form>
+
+</ion-content>

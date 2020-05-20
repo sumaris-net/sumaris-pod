@@ -114,6 +114,11 @@ export const ConfigOptions: FormFieldDefinitionMap = {
       }
     ]
   },
+  TESTING: {
+    key: 'sumaris.testing.enable',
+    label: 'CONFIGURATION.OPTIONS.TESTING',
+    type: 'boolean',
+  },
   VESSEL_DEFAULT_STATUS: {
     key: 'sumaris.vessel.status.default',
     label: 'CONFIGURATION.OPTIONS.VESSEL.DEFAULT_NEW_VESSEL_STATUS',

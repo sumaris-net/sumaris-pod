@@ -233,7 +233,7 @@ const routes: Routes = [
 if (!environment.production) {
   routes.push(
     {
-      path: 'dev',
+      path: 'testing',
       children: [
         {
           path: '',

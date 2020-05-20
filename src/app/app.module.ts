@@ -132,6 +132,7 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
 
         // Settings
         {title: '' /*empty divider*/, cssClass: 'flex-spacer'},
+        {title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable',},
         {title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings', color: 'medium'},
         {title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', color: 'medium', cssClass: 'visible-mobile'},
 

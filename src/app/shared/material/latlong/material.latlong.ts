@@ -65,7 +65,7 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
   protected disabling = false;
   protected writing = false;
   protected touchUi = false;
-  protected formatter: LatLongFormatFn;
+  protected formatFn: LatLongFormatFn;
 
   mobile: boolean;
   textFormControl: FormControl;
@@ -117,13 +117,14 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
     this.type = this.type || 'latitude';
     this.latLongPattern = this.latLongPattern || 'DDMM';
     this.mask = MASKS[this.type] && MASKS[this.type][this.latLongPattern];
+    console.log(this.mask);
     if (!this.mask) {
       console.error("Invalid attribute value. Expected: type: 'latitude|longitude' and latlongPattern: 'DD|DDMM|DDMMSS'");
       this.type = 'latitude';
       this.latLongPattern = 'DDMM';
       this.mask = MASKS[this.type][this.latLongPattern];
     }
-    this.formatter = this.type === 'latitude' ? formatLatitude : formatLongitude;
+    this.formatFn = this.type === 'latitude' ? formatLatitude : formatLongitude;
     if (this.maxDecimals) {
       if (this.maxDecimals < 0) {
         console.error("Invalid attribute 'maxDecimals'. Must a positive value.");
@@ -164,7 +165,7 @@ export class MatLatLongField implements OnInit, ControlValueAccessor {
 
     this.value = (typeof obj === "string") ? parseFloat(obj.replace(/,/g, '.')) : obj;
     this.writing = true;
-    const strValue = this.formatter(
+    const strValue = this.formatFn(
       this.value,
       {
         pattern: this.latLongPattern,

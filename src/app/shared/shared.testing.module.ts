@@ -1,7 +1,7 @@
 import {NgModule} from "@angular/core";
 import {RouterModule, Routes} from "@angular/router";
 import {MaterialModule} from "./material/material.module";
-import {MaterialTestingModule} from "./material/material.testing.module";
+import {MaterialTestingModule} from "./material/testing/material.testing.module";
 
 
 const routes: Routes = [
@@ -12,7 +12,7 @@ const routes: Routes = [
   },
   {
     path: 'material',
-    loadChildren: () => import('./material/material.testing.module').then(m => m.MaterialTestingModule)
+    loadChildren: () => import('./material/testing/material.testing.module').then(m => m.MaterialTestingModule)
   }
 ];
 

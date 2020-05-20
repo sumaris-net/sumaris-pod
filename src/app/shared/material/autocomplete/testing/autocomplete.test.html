@@ -1,10 +1,15 @@
-<app-toolbar title="Shared module: Forms"
-             color="primary">
-</app-toolbar>
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Autocomplete field test page</ion-title>
+  </ion-toolbar>
+</ion-header>
 
 <ion-content class="ion-padding">
-
-  <ion-text><h1>Autocomplete test page</h1></ion-text>
 
   <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
@@ -188,27 +193,27 @@
             </ion-card-content>
           </ion-card>
         </ion-col>
-      </ion-row>
 
-      <ion-col>
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>
-              <ion-label color="primary">
-                Disabled control
-              </ion-label>
-            </ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <mat-autocomplete-field formControlName="disableEntity"
-                                    [config]="autocompleteFields.get('entity-$items')"
-                                    [mobile]="false"
-                                    [compareWith]="compareWithFn"
-                                    [logPrefix]="'[combo-desktop-disable]'"
-            ></mat-autocomplete-field>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Disabled control
+                </ion-label>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-autocomplete-field formControlName="disableEntity"
+                                      [config]="autocompleteFields.get('entity-$items')"
+                                      [mobile]="false"
+                                      [compareWith]="compareWithFn"
+                                      [logPrefix]="'[combo-desktop-disable]'"
+              ></mat-autocomplete-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
     </ion-grid>
 
   </form>
