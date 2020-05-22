@@ -68,7 +68,7 @@
                            [tabindex]="tabindex+4"
                            [required]="true">
                 <button type="button" mat-icon-button matSuffix
-                        (click)="fillPosition($event,'startPosition')"
+                        (click)="onFillPositionClick($event,'startPosition')"
                         tabindex="-1"
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
@@ -126,7 +126,8 @@
                            [tabindex]="tabindex+9"
                            [required]="!isOnFieldMode">
                 <button type="button" mat-icon-button matSuffix
-                        (click)="fillPosition($event, 'endPosition')" tabindex="-1"
+                        (click)="onFillPositionClick($event, 'endPosition')"
+                        tabindex="-1"
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>

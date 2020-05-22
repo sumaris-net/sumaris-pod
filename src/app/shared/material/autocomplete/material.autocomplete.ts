@@ -13,7 +13,7 @@ import {
   ViewChild
 } from "@angular/core";
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
-import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
+import {BehaviorSubject, isObservable, merge, Observable, Subscription} from "rxjs";
 import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, takeWhile, tap} from "rxjs/operators";
 import {SuggestFn, SuggestionDataService} from "../../services/data-service.class";
 import {
@@ -219,7 +219,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this._itemsSubscription.unsubscribe();
     }
 
-    if (value instanceof Observable) {
+    if (isObservable<any[]>(value)) {
 
       this._itemsSubscription = this._subscription.add(
         value.subscribe(v => this.$inputItems.next(v))

@@ -10,17 +10,25 @@ import {
   OnInit,
   ViewChild
 } from "@angular/core";
-import {Observable, Subscription} from 'rxjs';
+import {isObservable, Observable, Subscription} from 'rxjs';
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {AppFormUtils, EntityUtils, environment, IReferentialRef, referentialToString} from "../../core/core.module";
 import {
   AcquisitionLevelCodes,
-  PmfmIds, PmfmStrategy,
+  PmfmIds,
+  PmfmStrategy,
   QualitativeLabels,
   ReferentialRefService
 } from "../../referential/referential.module";
 import {FormGroup, Validators} from "@angular/forms";
-import {isNil, isNilOrBlank, isNotNil, startsWithUpperCase, toBoolean} from "../../shared/functions";
+import {
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  selectInputContent,
+  startsWithUpperCase,
+  toBoolean
+} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
@@ -28,7 +36,6 @@ import {Batch, BatchUtils} from "../services/model/batch.model";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SubBatchForm} from "./sub-batch.form";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {selectInputContent} from "../../shared/functions";
 import {SubBatchModal} from "./sub-batch.modal";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
@@ -95,7 +102,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
   @Input()
   set availableParents(parents: Observable<Batch[]> | Batch[]) {
-    if (parents instanceof Observable) {
+    if (!parents) return; // Skip
+    if (isObservable<Batch[]>(parents)) {
       if (this._parentSubscription) this._parentSubscription.unsubscribe();
       this._parentSubscription = parents.subscribe((values) => this.setAvailableParents(values));
       this.registerSubscription(this._parentSubscription);

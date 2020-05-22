@@ -339,7 +339,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   async doNewParentClick(event: UIEvent) {
-    if (!this.onNewParentClick) return;
+    if (!this.onNewParentClick) return; // No callback: skip
     const res = await this.onNewParentClick();
 
     if (res && res instanceof Batch) {
@@ -544,8 +544,14 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     data.parent = this._availableParents.find(p => Batch.equals(p, parentInfo));
 
-    // Get the parent of the praent (e.g. if parent is a sample batch)
-    if (!data.parent.hasTaxonNameOrGroup && data.parent.parent && data.parent.parent.hasTaxonNameOrGroup) {
+    // Parent not found
+    if (!data.parent) {
+      // Force to allow parent selection
+      this.showParent = this.showParent || true;
+    }
+
+    // Get the parent of the parent (e.g. if parent is a sample batch)
+    else if (!data.parent.hasTaxonNameOrGroup && data.parent.parent && data.parent.parent.hasTaxonNameOrGroup) {
       data.parent = data.parent.parent;
     }
   }
