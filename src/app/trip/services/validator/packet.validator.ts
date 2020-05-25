@@ -1,16 +1,17 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.validator";
 import {Packet, PacketComposition} from "../model/packet.model";
-import {fragmentOnNonCompositeErrorMessage} from "graphql/validation/rules/FragmentsOnCompositeTypes";
 import {PacketCompositionValidatorService} from "./packet-composition.validator";
-import {toNumber} from "../../../shared/functions";
+import {Product} from "../model/product.model";
+import {SaleProduct} from "../model/sale-product.model";
 
 export interface PacketValidatorOptions extends DataEntityValidatorOptions {
   withComposition?: boolean;
+  withSaleProducts?: boolean;
 }
 
 @Injectable()
@@ -20,7 +21,7 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
   constructor(
     formBuilder: FormBuilder,
     settings: LocalSettingsService,
-    // protected packetCompositionValidatorService: PacketCompositionValidatorService todo comment l'injecter proprement ?
+    protected packetCompositionValidatorService: PacketCompositionValidatorService
   ) {
     super(formBuilder, settings);
   }
@@ -55,39 +56,73 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
       formConfig.composition = [data && data.composition || null, Validators.required];
     }
 
+    if (opts.withSaleProducts) {
+      formConfig.saleProducts = this.getSaleProductsFormArray(data);
+    } else {
+      formConfig.saleProducts = [data && data.saleProducts || null];
+    }
+
     return formConfig;
   }
+
+  updateFormGroup(formGroup: FormGroup, opts?: O) {
+
+    if (opts.withSaleProducts) {
+      const saleValidators = [];
+      if (formGroup.controls.number.value) {
+        saleValidators.push(SharedValidators.validSumMaxValue('subgroupCount', formGroup.controls.number.value));
+      }
+      if (saleValidators.length) {
+        formGroup.controls.saleProducts.setValidators(saleValidators);
+      }
+    }
+  }
+
   /* -- protected methods -- */
 
-  getCompositionFormArray(data?: Packet) {
+  private getCompositionFormArray(data?: Packet) {
     return this.formBuilder.array(
       (data && data.composition || [null]).map(composition => this.getCompositionControl(composition)),
-      SharedValidators.requiredArrayMinLength(1)
+      this.getDefaultCompositionValidators()
     );
   }
 
+  getDefaultCompositionValidators(): ValidatorFn[] {
+    return [
+      SharedValidators.uniqueEntity('taxonGroup')
+    ];
+  }
+
   getCompositionControl(composition: PacketComposition): FormGroup {
-    // return this.packetCompositionValidatorService.getFormGroup(composition);
-    // fixme je construit un FormGroup directement mais ce serait plus propre avec l'instruction ci-dessus
+    return this.packetCompositionValidatorService.getFormGroup(composition);
+  }
+
+  private getSaleProductsFormArray(data: Packet): FormArray {
+    return this.formBuilder.array(
+      (data && data.saleProducts || [null]).map(saleProduct => this.getSaleProductControl(saleProduct))
+    );
+  }
+
+  getSaleProductControl(sale?: any): FormGroup {
     return this.formBuilder.group({
-      id: [toNumber(composition && composition.id, null)],
-      updateDate: [composition && composition.updateDate || null],
-      controlDate: [composition && composition.controlDate || null],
-      qualificationDate: [composition && composition.qualificationDate || null],
-      qualificationComments: [composition && composition.qualificationComments || null],
-      recorderDepartment: [composition && composition.recorderDepartment || null, SharedValidators.entity],
-      __typename: [PacketComposition.TYPENAME],
-      rankOrder: [composition && composition.rankOrder || null],
-      taxonGroup: [composition && composition.taxonGroup || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      weight: [composition && composition.weight || null, null],
-      ratio1: [composition && composition.ratio1, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-      ratio2: [composition && composition.ratio2, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-      ratio3: [composition && composition.ratio3, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-      ratio4: [composition && composition.ratio4, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-      ratio5: [composition && composition.ratio5, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
-      ratio6: [composition && composition.ratio6, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])]
-    });
-
-
+        saleType: [sale && sale.saleType || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        rankOrder: [sale && sale.rankOrder || null],
+        subgroupCount: [sale && sale.subgroupCount || null, Validators.compose([SharedValidators.integer, Validators.min(0)])],
+        weight: [sale && sale.weight || null],
+        weightCalculated: [true],
+        averagePackagingPrice: [sale && sale.averagePackagingPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        averagePackagingPriceCalculated: [sale && sale.averagePackagingPriceCalculated || null],
+        totalPrice: [sale && sale.totalPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        totalPriceCalculated: [sale && sale.totalPriceCalculated || null],
+        productIdByTaxonGroup: [sale && sale.productIdByTaxonGroup || null]
+      },
+      {
+        validators: [
+          SharedValidators.propagateIfDirty('averagePackagingPrice', 'averagePackagingPriceCalculated', false),
+          SharedValidators.propagateIfDirty('averagePackagingPrice', 'totalPriceCalculated', true),
+          SharedValidators.propagateIfDirty('totalPrice', 'totalPriceCalculated', false),
+          SharedValidators.propagateIfDirty('totalPrice', 'averagePackagingPriceCalculated', true),
+        ]
+      });
   }
 }

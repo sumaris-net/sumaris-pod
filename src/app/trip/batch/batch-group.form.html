@@ -2,7 +2,7 @@
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
@@ -29,7 +29,8 @@
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                                 [tabindex]="tabindex+1"
                                 [required]="showTaxonName"
-                                [config]="autocompleteFields.taxonName">
+                                [config]="autocompleteFields.taxonName"
+                                [filter]="taxonNameFilter">
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>
@@ -106,6 +107,7 @@
                             [showWeight]="showChildrenWeight"
                             [showTotalIndividualCount]="showTotalIndividualCount"
                             [showIndividualCount]="showIndividualCount"
+                            [requiredWeight]="hasIndividualMeasure && showChildrenWeight"
                             [requiredSampleWeight]="hasIndividualMeasure && showChildrenWeight"
             ></app-batch-form>
           </ion-card-content>

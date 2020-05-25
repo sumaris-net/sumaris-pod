@@ -2,9 +2,15 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {environment, isNotNil} from '../../core/core.module';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNilOrBlank} from '../../shared/shared.module';
+import {
+  EditorDataServiceLoadOptions,
+  fadeInOutAnimation,
+  isNil,
+  isNotEmptyArray,
+  isNotNilOrBlank
+} from '../../shared/shared.module';
 import * as moment from "moment";
-import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/services/model";
+import {AcquisitionLevelCodes, PmfmStrategy, ProgramProperties} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
@@ -20,14 +26,18 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 import {isEmptyArray} from "../../shared/functions";
 import {OperationGroupTable} from "../operationgroup/operation-groups.table";
 import {MatAutocompleteConfigHolder, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
-import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
+import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
 import {Product} from "../services/model/product.model";
-import {LandedSaleForm} from "../sale/landed-sale.form";
 import {PacketsTable} from "../packet/packets.table";
 import {Packet} from "../services/model/packet.model";
 import {OperationGroup, Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
+import {fillRankOrder, isRankOrderValid} from "../services/model/base.model";
+import {SaleProductUtils} from "../services/model/sale-product.model";
+import {debounceTime, filter} from "rxjs/operators";
+import {Sale} from "../services/model/sale.model";
+import {ExpenseForm} from "../expense/expense.form";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -49,7 +59,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   showExpenseTab = false;
 
   autocompleteHelper: MatAutocompleteConfigHolder;
-  autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
+  autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
 
   // List of trip's metier, used to populate operation group's metier combobox
   $metiers = new BehaviorSubject<MetierRef[]>(null);
@@ -60,19 +70,17 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
   operationGroupAttributes = ['metier.label', 'metier.name'];
 
+  productSalePmfms: PmfmStrategy[];
+
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
-  @ViewChild('operationGroupTable', { static: true }) operationGroupTable: OperationGroupTable;
-
-  // @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
-  // @ViewChild('saleMeasurementsForm', {static: true}) saleMeasurementsForm: MeasurementsForm;
-
+  @ViewChild('operationGroupTable', {static: true}) operationGroupTable: OperationGroupTable;
   @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
-  // @ViewChild('saleTabGroup', {static: true}) saleTabGroup: MatTabGroup;
-
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
-  @ViewChild('packetsTable', { static: true }) packetsTable: PacketsTable;
-
+  @ViewChild('packetsTable', {static: true}) packetsTable: PacketsTable;
+  @ViewChild('expenseForm', {static: true}) expenseForm: ExpenseForm;
+  // @ViewChild('landedSaleForm', {static: true}) landedSaleForm: LandedSaleForm;
+  private _sale: Sale; // pending sale
 
   constructor(
     injector: Injector,
@@ -104,7 +112,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     // Watch program, to configure tables from program properties
     this.registerSubscription(
       this.onProgramChanged
-        .subscribe(program => {
+        .subscribe(async program => {
           if (this.debug) console.debug(`[landedTrip] Program ${program.label} loaded, with properties: `, program.properties);
           this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
           if (!this.tripForm.showObservers) {
@@ -136,8 +144,13 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       attributes: this.operationGroupAttributes
     });
 
-
-
+    // Update available operation groups for catches forms
+    this.registerSubscription(
+      this.operationGroupTable.dataSource.datasourceSubject.pipe(
+        debounceTime(400),
+        filter(() => !this.loading)
+      ).subscribe(operationGroups => this.$operationGroups.next(operationGroups))
+    );
 
     // Cascade refresh to operation tables
     this.registerSubscription(
@@ -145,7 +158,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
         this.operationGroupTable.onRefresh.emit();
         this.productsTable.onRefresh.emit();
         this.packetsTable.onRefresh.emit();
-        // this.landedSaleForm.onRefresh.emit(); TODO ? le onRefresh sur les sous tableaux ?
+        //this.landedSaleForm.onRefresh.emit();// TODO ? le onRefresh sur les sous tableaux ?
       })
     );
 
@@ -153,7 +166,8 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
   protected registerFormsAndTables() {
     this.registerForms([this.tripForm, this.measurementsForm,
-      // this.landedSaleForm, this.saleMeasurementsForm
+      // this.landedSaleForm //, this.saleMeasurementsForm
+      this.expenseForm
     ])
       .registerTables([this.operationGroupTable, this.productsTable, this.packetsTable]);
   }
@@ -257,8 +271,17 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     if (!isNew) {
       this.programSubject.next(data.program.label);
       this.$metiers.next(data.metiers);
+
+      // fixme trouver un meilleur moment pour charger les pmfms
+      this.productSalePmfms = await this.programService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
+
     }
-    this.measurementsForm.value = data && data.measurements || [];
+
+    // Trip measurements todo filter ????????
+    const tripMeasurements = data && data.measurements || [];
+    this.measurementsForm.value = tripMeasurements;
+    // Expenses
+    this.expenseForm.value = tripMeasurements;
 
     // Operations table
     const operationGroups = data && data.operationGroups || [];
@@ -272,26 +295,60 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       packets = packets.concat(operationGroup.packets);
     });
 
+    // Fix products and packets rank orders (reset if rank order are invalid, ie. from SIH)
+    if (!isRankOrderValid(products))
+      fillRankOrder(products);
+    if (!isRankOrderValid(packets))
+      fillRankOrder(packets);
+
+    // Sale
+    if (data && data.sale && this.productSalePmfms) {
+
+      // fix sale startDateTime
+      data.sale.startDateTime = !data.sale.startDateTime ? data.returnDateTime : data.sale.startDateTime;
+
+      // this.landedSaleForm.value = data.sale;
+      // keep sale object in safe place
+      this._sale = data.sale;
+
+      // Dispatch product and packet sales
+      if (isNotEmptyArray(data.sale.products)) {
+
+        // First, reset products and packets sales
+        products.forEach(product => product.saleProducts = []);
+        packets.forEach(packet => packet.saleProducts = []);
+
+        data.sale.products.forEach(saleProduct => {
+          if (isNil(saleProduct.batchId)) {
+            // = product
+            const productFound = products.find(product => SaleProductUtils.isSaleOfProduct(product, saleProduct, this.productSalePmfms));
+            if (productFound) {
+              productFound.saleProducts.push(saleProduct);
+            }
+          } else {
+            // = packet
+            const packetFound = packets.find(packet => SaleProductUtils.isSaleOfPacket(packet, saleProduct));
+            if (packetFound) {
+              packetFound.saleProducts.push(saleProduct);
+            }
+          }
+        });
+
+        // need fill products.saleProducts.rankOrder
+        products.forEach(p => fillRankOrder(p.saleProducts));
+      }
+    }
+
     // Products table
     this.productsTable.value = products;
 
     // Packets table
     this.packetsTable.value = packets;
 
-    // Sale
-    // this.landedSaleForm.value = data && data.sale;
-    // this.saleMeasurementsForm.value = data && data.sale && data.sale.measurements || [];
-
-    // todo set other tables
-  }
-
-  onOperationGroupChange() {
-    this.$operationGroups.next(this.operationGroupTable.value);
   }
 
   // todo attention à cette action
   async onOpenOperationGroup({id, row}) {
-
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       this.loading = true;
@@ -400,10 +457,23 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
     const operationGroups: OperationGroup[] = this.operationGroupTable.value || [];
 
+    // Get products and packets
+    const products = this.productsTable.value || [];
+    const packets = this.packetsTable.value || [];
+
+    // Restore sale
+    json.sale = this._sale && this._sale.asObject();
+    // Sale
+    // json.sale = this.landedSaleForm.value;
+    if (json.sale) {
+      // sale products won't be saved with sale directly
+      delete json.sale.products;
+    }
+
     // Affect in each operation group : products and packets
     operationGroups.forEach(operationGroup => {
-      operationGroup.products = (this.productsTable.value || []).filter(product => operationGroup.equals(product.parent as OperationGroup));
-      operationGroup.packets = (this.packetsTable.value || []).filter(packet => operationGroup.equals(packet.parent as OperationGroup));
+      operationGroup.products = products.filter(product => operationGroup.equals(product.parent as OperationGroup));
+      operationGroup.packets = packets.filter(packet => operationGroup.equals(packet.parent as OperationGroup));
     });
 
     json.operationGroups = operationGroups;
@@ -435,7 +505,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       saveOptions.withOperationGroup = true;
     }
 
-    // todo same for products, productsale, expense
+    // todo same for expenses
 
     return await super.save(event, {...options, ...saveOptions});
   }
@@ -463,26 +533,13 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
    * @param queryParams
    */
   protected async updateRoute(data: Trip, queryParams: any): Promise<boolean> {
-    const url = `${this.defaultBackHref}/trip/${data.id}`;
-    const title = await this.computeTitle(data);
-
-    this.addToPageHistory({
-      title,
-      path: url
-    });
-
-    return await this.router.navigateByUrl(url, {
+    return await this.router.navigateByUrl(`${this.defaultBackHref}/trip/${data.id}`, {
       replaceUrl: true,
       queryParams: this.queryParams
     });
   }
 
   protected addToPageHistory(page: HistoryPageReference) {
-
-    // workaround for #185
-    if (page.path.includes('/new'))
-      return;
-
     super.addToPageHistory({...page, icon: 'boat'});
   }
 
@@ -502,15 +559,6 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       // todo On each tables, confirm editing row
       // this.productTABLE.confirmEditCreate();
       // this.batchTABLE.confirmEditCreate();
-    }
-  }
-
-  onSaleTabChange($event: MatTabChangeEvent) {
-    super.onSubTabChange($event);
-    if (!this.loading) {
-      // todo On each tables, confirm editing row
-      // this.productsSAleTABLE.confirmEditCreate();
-      // this.batchSaleTABLE.confirmEditCreate();
     }
   }
 

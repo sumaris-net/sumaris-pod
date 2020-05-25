@@ -71,34 +71,34 @@
   </mat-boolean-field>
 
   <!-- date -->
-  <mat-date-time *ngSwitchCase="'date'" #matInput
-                 [formControl]="formControl"
-                 [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
-                 [floatLabel]="floatLabel"
-                 [required]="required"
-                 [readonly]="readonly"
-                 [displayTime]="false"
-                 [compact]="compact"
-                 [tabindex]="tabindex">
+  <mat-date-time-field *ngSwitchCase="'date'" #matInput
+                       [formControl]="formControl"
+                       [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
+                       [floatLabel]="floatLabel"
+                       [required]="required"
+                       [readonly]="readonly"
+                       [displayTime]="false"
+                       [compact]="compact"
+                       [tabindex]="tabindex">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
-  </mat-date-time>
+  </mat-date-time-field>
 
   <!-- date time -->
-  <mat-date-time *ngSwitchCase="'dateTime'"
-                 [formControl]="formControl"
-                 [placeholder]="compact ? ('COMMON.DATE_TIME_PLACEHOLDER'|translate): placeholder"
-                 [floatLabel]="floatLabel"
-                 [required]="required"
-                 [readonly]="readonly"
-                 [displayTime]="true"
-                 [compact]="compact"
-                 [tabindex]="tabindex">
+  <mat-date-time-field *ngSwitchCase="'dateTime'"
+                       [formControl]="formControl"
+                       [placeholder]="compact ? ('COMMON.DATE_TIME_PLACEHOLDER'|translate): placeholder"
+                       [floatLabel]="floatLabel"
+                       [required]="required"
+                       [readonly]="readonly"
+                       [displayTime]="true"
+                       [compact]="compact"
+                       [tabindex]="tabindex">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
-  </mat-date-time>
+  </mat-date-time-field>
 
   <!-- enum -->
   <mat-form-field *ngSwitchCase="'enum'" [floatLabel]="floatLabel">

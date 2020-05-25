@@ -60,8 +60,6 @@ export class ToolbarComponent implements OnInit {
 
   showSearchBar = false;
 
-  @ViewChild("backButton", { static: false }) backButton: IonBackButton;
-
   @ViewChild('searchbar', {static: true}) searchbar: IonSearchbar;
 
   constructor(
@@ -73,7 +71,7 @@ export class ToolbarComponent implements OnInit {
     // Listen progress bar service mode
     this.$progressBarMode = this.progressBarService.onProgressChanged
       .pipe(
-        startWith('none' as ProgressMode),
+        startWith<ProgressMode, ProgressMode>('none' as ProgressMode),
         debounceTime(100), // wait 100ms, to group changes
         distinctUntilChanged((mode1, mode2) => mode1 == mode2)
       );
@@ -115,6 +113,7 @@ export class ToolbarComponent implements OnInit {
   }
 
   doValidateTap(event: Event & { tapCount?: number; }) {
+    //FIXME console.log("TODO doValidateTap", event);
     if (!this.onValidateAndClose.observers.length) {
       this.onValidate.emit(event);
     }

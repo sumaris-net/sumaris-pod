@@ -2,18 +2,18 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {BehaviorSubject, defer, Observable} from 'rxjs';
 import {Person} from './model';
-import {DataService, LoadResult, TableDataService} from "../../shared/shared.module";
+import {DataService, LoadResult, SuggestionDataService, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/services/base.data-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {EntityUtils, StatusIds} from "../../core/services/model";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
-import {environment} from "../../core/core.module";
 import {fetchAllPagesWithProgress} from "../../shared/services/data-service.class";
 import {NetworkService} from "../../core/services/network.service";
 import {EntityStorage} from "../../core/services/entities-storage.service";
-//import {environment} from "../../../environments/environment";
+import {environment} from "../../../environments/environment";
+import {Beans, KeysEnum} from "../../shared/functions";
 
 export const PersonFragments = {
   person: gql`fragment PersonFragment on PersonVO {
@@ -50,8 +50,8 @@ const LoadAllQuery = gql`
 `;
 
 // Load persons query
-const LoadAllWithCountQuery = gql`
-  query PersonsWithCount($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: PersonFilterVOInput){
+const LoadAllWithTotalQuery = gql`
+  query PersonsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: PersonFilterVOInput){
     persons(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...PersonFragment
     }
@@ -60,13 +60,26 @@ const LoadAllWithCountQuery = gql`
   ${PersonFragments.person}
 `;
 
-export declare class PersonFilter {
+export class PersonFilter {
   email?: string;
   pubkey?: string;
   searchText?: string;
   statusIds?: number[];
   userProfiles?: string[];
+
+  static isEmpty(personFilter: PersonFilter|any): boolean {
+    return Beans.isEmpty(personFilter, PersonFilterKeys, {
+      blankStringLikeEmpty: true
+    });
+  }
 }
+export const PersonFilterKeys: KeysEnum<PersonFilter> = {
+  email: true,
+  pubkey: true,
+  searchText: true,
+  statusIds: true,
+  userProfiles: true,
+};
 
 const SavePersons: any = gql`
   mutation savePersons($persons:[PersonVOInput]){
@@ -83,7 +96,9 @@ const DeletePersons: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class PersonService extends BaseDataService<Person, PersonFilter> implements TableDataService<Person, PersonFilter>, DataService<Person, PersonFilter> {
+export class PersonService extends BaseDataService<Person, PersonFilter>
+  implements TableDataService<Person, PersonFilter>, DataService<Person, PersonFilter>,
+    SuggestionDataService<Person, PersonFilter> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -103,6 +118,7 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
    * @param sortBy
    * @param sortDirection
    * @param filter
+   * @param opts
    */
   watchAll(
     offset: number,
@@ -112,7 +128,7 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
     filter?: PersonFilter,
     opts?: {
       fetchPolicy?: WatchQueryFetchPolicy;
-      withCount?: boolean;
+      withTotal?: boolean;
     }
   ): Observable<LoadResult<Person>> {
 
@@ -121,13 +137,13 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
       size: size || 100,
       sortBy: sortBy || 'lastName',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: Beans.copy(filter, PersonFilter, PersonFilterKeys)
     };
 
     this._lastVariables.loadAll = variables;
     if (this._debug) console.debug("[person-service] Watching persons, using filter: ", variables);
 
-    const query = (!opts || opts.withCount !== false) ? LoadAllWithCountQuery : LoadAllQuery;
+    const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
 
     return this.graphql.watchQuery<{ persons: Person[]; personsCount: number }>({
       query,
@@ -157,7 +173,7 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
       size: size || 100,
       sortBy: sortBy || 'lastName',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: Beans.copy(filter, PersonFilter, PersonFilterKeys)
     };
 
     const debug = this._debug && (!opts || opts.debug !== false);
@@ -186,7 +202,7 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
     else {
       this._lastVariables.loadAll = variables;
 
-      const query = opts && opts.withTotal ? LoadAllWithCountQuery : LoadAllQuery;
+      const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
       loadResult = await this.graphql.query<{ persons: Person[]; personsCount: number }>({
         query,
         variables,
@@ -204,20 +220,18 @@ export class PersonService extends BaseDataService<Person, PersonFilter> impleme
     };
   }
 
-  async suggest(value: any, options?: {
-    statusIds?: number[],
-    userProfiles?: string[];
-  }): Promise<Person[]> {
+  async suggest(value: any, filter?: PersonFilter): Promise<Person[]> {
     if (EntityUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
       {
+        ...filter,
         searchText: value as string,
-        statusIds: options && options.statusIds || [StatusIds.ENABLE],
-        userProfiles: options && options.userProfiles
-      }, {
-        withTotal: false // not need
-      });
+        statusIds: filter && filter.statusIds || [StatusIds.ENABLE],
+        userProfiles: filter && filter.userProfiles
+      },
+      { withTotal: false /* total not need */ }
+      );
     return res.data;
   }
 

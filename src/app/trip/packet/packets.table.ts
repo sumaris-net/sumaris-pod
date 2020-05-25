@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {TableElement} from "angular4-material-table";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {Packet, PacketFilter, PacketUtils} from "../services/model/packet.model";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
@@ -13,7 +13,12 @@ import {AppTableDataSource, isNil} from "../../core/core.module";
 import {BehaviorSubject, Observable} from "rxjs";
 import {IWithProductsEntity} from "../services/model/base.model";
 import {PacketModal} from "./packet.modal";
-import {ProductFilter} from "../services/model/product.model";
+import {AcquisitionLevelCodes, IWithPacketsEntity, PmfmStrategy} from "../services/model/base.model";
+import {PacketSaleModal} from "../sale/packet-sale.modal";
+import {ProgramService} from "../../referential/services/program.service";
+import {isNotEmptyArray} from "../../shared/functions";
+import {SaleProductUtils} from "../services/model/sale-product.model";
+import {filterNotNil} from "../../shared/observables";
 
 @Component({
   selector: 'app-packets-table',
@@ -30,7 +35,7 @@ import {ProductFilter} from "../services/model/product.model";
 export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnInit {
 
   @Input() $parentFilter: Observable<any>;
-  @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
+  @Input() $parents: BehaviorSubject<IWithPacketsEntity<any>[]>;
   @Input() parentAttributes: string[];
 
   private _program: string;
@@ -38,6 +43,9 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   @Input()
   set program(value: string) {
     this._program = value;
+    if (value) {
+      this.loadPmfms();
+    }
   }
 
   get program(): string {
@@ -57,6 +65,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     return this._dirty || this.memoryDataService.dirty;
   }
 
+  private packetSalePmfms: PmfmStrategy[];
+
   constructor(
     protected injector: Injector,
     protected route: ActivatedRoute,
@@ -67,6 +77,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     protected settings: LocalSettingsService,
     protected validatorService: PacketValidatorService,
     protected memoryDataService: InMemoryTableDataService<Packet, PacketFilter>,
+    protected programService: ProgramService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, platform, location, modalCtrl, settings,
@@ -74,9 +85,9 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       RESERVED_START_COLUMNS
         .concat([
           'parent',
+          'rankOrder',
           'number',
-          'weight',
-          'composition'
+          'weight'
         ])
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<Packet, PacketFilter>(Packet, memoryDataService, validatorService, {
@@ -86,7 +97,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       }),
       null,
       injector
-      );
+    );
 
     this.i18nColumnPrefix = 'PACKET.LIST.';
     this.autoLoad = false; // waiting parent to be loaded
@@ -111,6 +122,11 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       this.setFilter(new PacketFilter(parentFilter));
     }));
 
+  }
+
+  private loadPmfms() {
+    this.programService.loadProgramPmfms(this.program, {acquisitionLevel: AcquisitionLevelCodes.PACKET_SALE})
+      .then(packetSalePmfms => this.packetSalePmfms = packetSalePmfms);
   }
 
   trackByFn(index: number, row: TableElement<Packet>): number {
@@ -141,8 +157,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   }
 
 
-  async onCompositionClick(row: TableElement<Packet>) {
-    // console.debug('onCompositionClick', row);
+  async onCompositionClick(event: MouseEvent, row: TableElement<Packet>) {
+    if (event) event.stopPropagation();
 
     const modal = await this.modalCtrl.create({
       component: PacketModal,
@@ -156,10 +172,12 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     modal.present();
     const res = await modal.onDidDismiss();
 
-    // console.debug( 'onCompositionClick dismiss:',  res);
-
     if (res && res.data) {
       row.validator.patchValue(res.data, {onlySelf: false, emitEvent: true});
+
+      // update sales
+      this.updateSaleProducts(row);
+
       this.markAsDirty();
     }
 
@@ -167,6 +185,40 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
   getComposition(row: TableElement<Packet>): string {
     return PacketUtils.getComposition(row.currentData);
+  }
+
+  updateSaleProducts(row: TableElement<Packet>) {
+    if (row && row.currentData) {
+      // update sales if any
+      if (isNotEmptyArray(row.currentData.saleProducts)) {
+        const updatedSaleProducts = SaleProductUtils.updateAggregatedSaleProducts(row.currentData, this.packetSalePmfms);
+        row.validator.patchValue({saleProducts: updatedSaleProducts}, {emitEvent: true});
+      }
+    }
+  }
+
+  async openPacketSale(event: MouseEvent, row: TableElement<Packet>) {
+    if (event) event.stopPropagation();
+
+    const modal = await this.modalCtrl.create({
+      component: PacketSaleModal,
+      componentProps: {
+        packet: row.currentData,
+        packetSalePmfms: this.packetSalePmfms
+      },
+      backdropDismiss: false,
+      cssClass: 'modal-large'
+    });
+
+    modal.present();
+    const res = await modal.onDidDismiss();
+
+    if (res && res.data) {
+      // patch saleProducts only
+      row.validator.patchValue({saleProducts: res.data.saleProducts}, {emitEvent: true});
+      this.markAsDirty();
+    }
+
   }
 
 }

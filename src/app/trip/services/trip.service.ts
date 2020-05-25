@@ -218,7 +218,8 @@ export class TripFilter {
   static isEmpty(tripFilter: TripFilter|any): boolean {
     return !tripFilter || (isNilOrBlank(tripFilter.programLabel) && isNilOrBlank(tripFilter.vesselId) && isNilOrBlank(tripFilter.locationId)
       && !tripFilter.startDate && !tripFilter.endDate
-      && isNil(tripFilter.recorderDepartmentId))
+      && isNil(tripFilter.recorderDepartmentId)
+      && isNil(tripFilter.recorderPersonId))
       // && !tripFilter.synchronizationStatus -- not included, because separated button
       ;
   }
@@ -242,21 +243,21 @@ export class TripFilter {
         return false;
       }
 
+      // Start/end period
+      const startDate = fromDateISOString(f.startDate);
+      const endDate = fromDateISOString(f.endDate);
+      if ((startDate && t.returnDateTime && startDate.isAfter(t.returnDateTime))
+        || (endDate && t.departureDateTime && endDate.add(1, 'day').isSameOrBefore(t.departureDateTime))) {
+        return false;
+      }
+
       // Recorder department
       if (isNotNil(f.recorderDepartmentId) && t.recorderDepartment && t.recorderDepartment.id !== f.recorderDepartmentId) {
         return false;
       }
 
       // Recorder person
-      if (isNotNil(f.recorderPersonId) && t.recorderPerson && t.recorderPerson.id !== f.recorderPersonId) {
-        return false;
-      }
-
-      // Start/end period
-      const startDate = fromDateISOString(f.startDate);
-      const endDate = fromDateISOString(f.endDate);
-      if ((startDate && t.returnDateTime && startDate.isAfter(t.returnDateTime))
-        || (endDate && t.departureDateTime && endDate.add(1, 'day').isSameOrBefore(t.departureDateTime))) {
+      if (isNotNil(f.recorderPersonId) && (!t.recorderPerson || t.recorderPerson.id !== f.recorderPersonId)) {
         return false;
       }
 
@@ -592,7 +593,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
    * @param entities
    * @param options
    */
-  async saveAll(entities: Trip[], options?: any): Promise<Trip[]> {
+  async saveAll(entities: Trip[], options?: TripServiceSaveOption): Promise<Trip[]> {
     if (!entities) return entities;
 
     const json = entities.map(t => {
@@ -619,7 +620,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
           .forEach(entity => {
             const savedEntity = data.saveTrips.find(t => entity.equals(t));
             if (savedEntity && savedEntity !== entity) {
-              this.copyIdAndUpdateDate(savedEntity, entity);
+              this.copyIdAndUpdateDate(savedEntity, entity, options);
             }
           });
       }
@@ -728,7 +729,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
            }
 
            // Copy id and update Date
-           this.copyIdAndUpdateDate(savedEntity, entity);
+           this.copyIdAndUpdateDate(savedEntity, entity, options);
 
            if (this._debug) console.debug(`[trip-service] Trip saved remotely in ${Date.now() - now}ms`, entity);
 
@@ -1298,30 +1299,35 @@ export class TripService extends RootDataService<Trip, TripFilter>
     await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
   }
 
-  copyIdAndUpdateDate(source: Trip | undefined, target: Trip) {
+  copyIdAndUpdateDate(source: Trip | undefined, target: Trip, options?: TripServiceSaveOption) {
     if (!source) return;
 
     // Update (id and updateDate), and control validation
     super.copyIdAndUpdateDate(source, target);
 
     // Update sale
-    if (target.sale && source.sale) {
+    if (source.sale && target.sale) {
       EntityUtils.copyIdAndUpdateDate(source.sale, target.sale);
       DataRootEntityUtils.copyControlAndValidationDate(source.sale, target.sale);
+
+      // For a landedTrip with operationGroups, copy directly sale's product, a reload must be done after service call
+      if (options && options.isLandedTrip && source.sale.products) {
+        target.sale.products = source.sale.products;
+      }
     }
 
     // Update gears
-    if (target.gears && source.gears) {
+    if (source.gears && target.gears) {
       target.gears.forEach(targetGear => {
         const sourceGear = source.gears.find(json => targetGear.equals(json));
         EntityUtils.copyIdAndUpdateDate(sourceGear, targetGear);
         DataRootEntityUtils.copyControlAndValidationDate(sourceGear, targetGear);
 
         // Update measurements
-        if (sourceGear && targetGear.measurements && sourceGear.measurements) {
+        if (sourceGear && sourceGear.measurements && targetGear.measurements) {
           targetGear.measurements.forEach(targetMeasurement => {
-            const savedMeasurement = sourceGear.measurements.find(m => targetMeasurement.equals(m));
-            EntityUtils.copyIdAndUpdateDate(savedMeasurement, targetMeasurement);
+            const sourceMeasurement = sourceGear.measurements.find(m => targetMeasurement.equals(m));
+            EntityUtils.copyIdAndUpdateDate(sourceMeasurement, targetMeasurement);
           });
         }
       });
@@ -1339,6 +1345,46 @@ export class TripService extends RootDataService<Trip, TripFilter>
       target.measurements.forEach(entity => {
         const savedMeasurement = source.measurements.find(m => entity.equals(m));
         EntityUtils.copyIdAndUpdateDate(savedMeasurement, entity);
+      });
+    }
+
+    // Update operation groups
+    if (source.operationGroups && target.operationGroups && options && options.withOperationGroup) {
+      target.operationGroups.forEach(targetOperationGroup => {
+        const sourceOperationGroup = source.operationGroups.find(json => targetOperationGroup.equals(json));
+        EntityUtils.copyIdAndUpdateDate(sourceOperationGroup, targetOperationGroup);
+
+        // Operation group's measurements
+        if (sourceOperationGroup && sourceOperationGroup.measurements && targetOperationGroup.measurements) {
+          targetOperationGroup.measurements.forEach(targetMeasurement => {
+            const sourceMeasurement = sourceOperationGroup.measurements.find(m => targetMeasurement.equals(m));
+            EntityUtils.copyIdAndUpdateDate(sourceMeasurement, targetMeasurement);
+          });
+        }
+
+        // Operation group's products
+        if (sourceOperationGroup && sourceOperationGroup.products && targetOperationGroup.products) {
+          targetOperationGroup.products.forEach(targetProduct => {
+            const sourceProduct = sourceOperationGroup.products.find(json => targetProduct.equals(json));
+            EntityUtils.copyIdAndUpdateDate(sourceProduct, targetProduct);
+          });
+        }
+
+        // Operation group's packets
+        if (sourceOperationGroup && sourceOperationGroup.packets && targetOperationGroup.packets) {
+          targetOperationGroup.packets.forEach(targetPacket => {
+            const sourcePacket = sourceOperationGroup.packets.find(json => targetPacket.equals(json));
+            EntityUtils.copyIdAndUpdateDate(sourcePacket, targetPacket);
+
+            // Packet's compositions
+            if (sourcePacket && sourcePacket.composition && targetPacket.composition) {
+              targetPacket.composition.forEach(targetComposition => {
+                const sourceComposition = sourcePacket.composition.find(json => targetComposition.equals(json));
+                EntityUtils.copyIdAndUpdateDate(sourceComposition, targetComposition);
+              });
+            }
+          });
+        }
       });
     }
   }

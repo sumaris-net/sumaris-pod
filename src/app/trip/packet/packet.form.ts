@@ -1,15 +1,15 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {AppForm} from "../../core/form/form.class";
 import {Packet, PacketComposition, PacketUtils} from "../services/model/packet.model";
-import {EntityUtils, IReferentialRef, UsageMode} from "../../core/services/model";
-import {DateAdapter} from "@angular/material";
+import {IReferentialRef, UsageMode} from "../../core/services/model";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PacketValidatorService} from "../services/validator/packet.validator";
 import {FormArrayHelper} from "../../core/form/form.utils";
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
-import {isEmptyArray, isNil, isNotEmptyArray, isNotNilOrNaN, round} from "../../shared/functions";
+import {isNil, isNotEmptyArray, isNotNilOrNaN, round} from "../../shared/functions";
 
 @Component({
   selector: 'app-packet-form',
@@ -19,13 +19,12 @@ import {isEmptyArray, isNil, isNotEmptyArray, isNotNilOrNaN, round} from "../../
 })
 export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
-  private readonly indexes = [1, 2, 3, 4, 5, 6];
   computing = false;
 
   compositionHelper: FormArrayHelper<PacketComposition>;
   compositionFocusIndex = -1;
 
-  get compositionsForm(): FormArray {
+  get compositionsFormArray(): FormArray {
     return this.form.controls.composition as FormArray;
   }
 
@@ -52,8 +51,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   get value(): any {
     const json = this.form.value;
 
-
-
     // Update rankOrder on composition
     if (json.composition && isNotEmptyArray(json.composition)) {
       for (let i = 0; i < json.composition.length; i++) {
@@ -61,14 +58,13 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
         json.composition[i].rankOrder = i + 1;
 
         // Fix ratio if empty
-        for (const index of this.indexes) {
+        for (const index of PacketComposition.indexes) {
           if (isNotNilOrNaN(json['sampledWeight' + index]) && isNil(json.composition[i]['ratio' + index])) {
             json.composition[i]['ratio' + index] = 0;
           }
         }
       }
     }
-
 
     return json;
   }
@@ -89,7 +85,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     super.ngOnInit();
 
     this.initCompositionHelper();
-
 
     this.usageMode = this.usageMode || this.settings.usageMode;
 
@@ -125,7 +120,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
       this.computeTaxonGroupWeight();
     }));
 
-    for (const i of this.indexes) {
+    for (const i of PacketComposition.indexes) {
       this.registerSubscription(this.form.controls['sampledWeight' + i].valueChanges.subscribe(() => {
         this.computeTotalWeight();
         this.computeTaxonGroupWeight();
@@ -146,7 +141,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     try {
       this.computing = true;
       const compositions: any[] = this.form.controls.composition.value || [];
-      for (const i of this.indexes) {
+      for (const i of PacketComposition.indexes) {
         const ratio = compositions.reduce((sum, current) => sum + current['ratio' + i], 0);
         this.form.controls['sampledRatio' + i].setValue(ratio > 0 ? ratio : null);
       }
@@ -162,11 +157,11 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     try {
       this.computing = true;
       const totalWeight = this.form.controls.weight.value || 0;
-      const compositions: FormGroup[] = this.asFormGroups(this.asFormGroup(this.form.controls.composition).controls) || [];
+      const compositions: FormGroup[] = this.compositionsFormArray.controls as FormGroup[] || [];
 
       for (const composition of compositions) {
         const ratios: number[] = [];
-        for (const i of this.indexes) {
+        for (const i of PacketComposition.indexes) {
           const ratio = composition.controls['ratio' + i].value;
           if (isNotNilOrNaN(ratio))
             ratios.push(ratio);
@@ -188,7 +183,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     try {
       this.computing = true;
       const sampledWeights: number[] = [];
-      for (const i of this.indexes) {
+      for (const i of PacketComposition.indexes) {
         const weight = this.form.controls['sampledWeight' + i].value;
         if (isNotNilOrNaN(weight))
           sampledWeights.push(weight);
@@ -211,7 +206,8 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
       PacketUtils.isPacketCompositionEquals,
       PacketUtils.isPacketCompositionEmpty,
       {
-        allowEmptyArray: false
+        allowEmptyArray: false,
+        validators: this.validatorService.getDefaultCompositionValidators()
       }
     );
     if (this.compositionHelper.size() === 0) {
@@ -229,10 +225,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   }
 
   asFormGroup(control): FormGroup {
-    return control;
-  }
-
-  asFormGroups(control): FormGroup[] {
     return control;
   }
 

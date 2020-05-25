@@ -9,7 +9,6 @@ import {
   ExtractionRow,
   ExtractionType
 } from "../services/extraction.model";
-import {MatExpansionPanel, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
@@ -25,6 +24,10 @@ import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Alerts} from "../../shared/alerts";
 import {PlatformService} from "../../core/services/platform.service";
+import {MatTable} from "@angular/material/table";
+import {MatPaginator} from "@angular/material/paginator";
+import {MatSort} from "@angular/material/sort";
+import {MatExpansionPanel} from "@angular/material/expansion";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';

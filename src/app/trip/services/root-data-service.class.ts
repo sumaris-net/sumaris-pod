@@ -1,6 +1,6 @@
 import {
   DataEntityAsObjectOptions,
-  DataRootEntity,
+  RootDataEntity,
   DataRootEntityUtils,
   Department,
   EntityUtils, isNil, MINIFY_OPTIONS,
@@ -17,7 +17,7 @@ import {Trip} from "./model/trip.model";
 import {ValidatorService} from "angular4-material-table";
 
 
-export abstract class RootDataService<T extends DataRootEntity<T>, F = any>
+export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
   extends BaseDataService<T, F>
   implements DataQualityService<T> {
 

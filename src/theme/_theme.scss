@@ -1,151 +1,26 @@
-@import '~@ionic/core/dist/collection/themes/ionic.theme.default';
 // --------------------------------------------------
-// Import material theme
+// Import globals (variables, functions and mixins)
 // --------------------------------------------------
-@import '~@angular/material/theming';
-// Plus imports for other components in your app.
-// Include the common styles for Angular Material. We include this here so that you only
-// have to load a single css file for Angular Material in your app.
-// Be sure that you only ever include this mixin once!
-@include mat-core();
-// Define the palettes for your theme using the Material Design palettes available in palette.scss
-// (imported above). For each palette, you can optionally specify a default, lighter, and darker
-// hue.
-// Angular material palette
-// Custom
-$accent: #ff4081;
-
-$mat-indigo-app: (
-  100: mix(#fff, $primary, 10%),
-  500: $primary,
-  900: mix(#000, $primary, 12%),
-  A100: mix(#fff, $accent, 10%),
-  A200: $accent,
-  A400: mix(#000, $accent, 12%),
-  A700: mix(#000, $accent, 24%),
-  contrast: (
-    50: $dark-primary-text,
-    100: $dark-primary-text,
-    200: $dark-primary-text,
-    300: $light-primary-text,
-    400: $light-primary-text,
-    500: $light-primary-text,
-    600: $light-primary-text,
-    700: $light-primary-text,
-    800: $light-primary-text,
-    900: $light-primary-text,
-    A100: $dark-primary-text,
-    A200: $light-primary-text,
-    A400: $light-primary-text,
-    A700: $light-primary-text
-  )
-);
-$mat-light-theme-background: (
-  status-bar: map_get($mat-grey, 300),
-  app-bar:    map_get($mat-grey, 100),
-  background: var(--background, map_get($mat-grey, 50)),
-  hover:      rgba(black, 0.04), // TODO(kara): check style with Material Design UX
-  card:       white,
-  dialog:     white,
-  disabled-button: rgba(black, 0.12),
-  raised-button: white,
-  focused-button: $dark-focused,
-  selected-button: map_get($mat-grey, 300),
-  selected-disabled-button: map_get($mat-grey, 400),
-  disabled-button-toggle: map_get($mat-grey, 200),
-  unselected-chip: map_get($mat-grey, 300),
-  disabled-list-option: map_get($mat-grey, 200),
-);
-
-// FIXME: Why loader toolbar is so dark ?
-$candy-app-primary: mat-palette($mat-indigo-app, 500, 100, 900);
-
-$candy-app-accent: mat-palette($mat-indigo-app, A200, A100, A400);
-// The warn palette is optional (defaults to red).
-$candy-app-warn: mat-palette($mat-red);
-// Create the theme object (a Sass map containing all of the palettes).
-$candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-app-warn);
-// Include theme styles for core and each component used in your app.
-// Alternatively, you can import and @include the theme mixins for each component
-// that you are using.
-@include angular-material-theme($candy-app-theme);
-
-
+@import "globals";
 // --------------------------------------------------
-// Import material icons
+// Import Ionic style
 // --------------------------------------------------
-@import '~material-design-icons/iconfont/material-icons.css';
-
+@import "ionic";
 // --------------------------------------------------
-// Force material to use ionic color
+// Import Ion Icons
 // --------------------------------------------------
-
-.mat-tab-group.mat-primary .mat-ink-bar, .mat-tab-nav-bar.mat-primary .mat-ink-bar {
-  background-color: var(--ion-color-primary, $primary);
-}
-// Button
-.mat-button.mat-primary, .mat-icon-button.mat-primary, .mat-stroked-button.mat-primary {
-  color: var(--ion-color-tertiary, $tertiary);
-}
-.mat-button.mat-secondary, .mat-icon-button.mat-secondary, .mat-stroked-button.mat-secondary {
-  color: var(--ion-color-secondary, $secondary);
-}
-
-// Badge
-.mat-badge-primary .mat-badge-content {
-  background-color: var(--ion-color-tertiary, $tertiary);
-}
-.mat-badge-accent .mat-badge-content {
-  background-color: var(--ion-color-accent, $accent);
-}
-.mat-badge-warn .mat-badge-content {
-  background-color: var(--ion-color-warning, $warning);
-}
-
-// Progress bar
-.mat-progress-bar {
-  --background-color: var(--ion-color-primary-tint, mix(#fff, $primary, 10%));
-  --progress-primary-color: var(--ion-color-secondary, $secondary);
-  --progress-secondary-color: var(--ion-color-secondary-shade, mix(#000, $secondary, 12%));
-
-  .mat-progress-bar-buffer {
-    background-color: var(--background-color);
-  }
-  .mat-progress-bar-primary.mat-progress-bar-fill:after  {
-    background-color: var(--progress-primary-color);
-  }
-  .mat-progress-bar-secondary.mat-progress-bar-fill:after {
-    background-color: var(--progress-secondary-color);
-  }
-}
-
-.mat-option {
-  padding-top: var(--padding-top, 0) !important;
-  padding-right: var(--padding-end, 16px) !important;
-  padding-bottom: var(--padding-bottom, 0) !important;
-  padding-left: var(--padding-start, 16px) !important;
-}
-
-.mat-action-row {
-  height: 46px;
-  padding-top: var(--padding-top, 16px) !important;
-  padding-right: var(--padding-end, 8px) !important;
-  padding-bottom: var(--padding-bottom, 16px) !important;
-  padding-left: var(--padding-start, 24px) !important;
-}
-
-.mat-action-row > ion-label.ion-padding,
-.mat-action-row > ion-label[padding] {
-  --padding-top: 4px;
-  --padding-end: 24px;
-  --padding-bottom: 4px;
-  --padding-start: 24px;
-  padding-top: var(--padding-top, 4px) !important;
-  padding-right: var(--padding-end, 24px) !important;
-  padding-bottom: var(--padding-bottom, 4px) !important;
-  padding-left: var(--padding-start, 24px) !important;
-}
-
-.mat-toolbar ion-item {
-  --ion-item-background: transparent;
-}
+$ionicons-font-path: '~ionicons/dist/fonts';
+@import "icons";
+// --------------------------------------------------
+// Import Fonts
+// --------------------------------------------------
+$roboto-font-path: '~roboto-fontface/fonts/roboto';
+@import "roboto";
+// --------------------------------------------------
+// Import responsive style
+// --------------------------------------------------
+@import "responsive";
+// --------------------------------------------------
+// Import material style
+// --------------------------------------------------
+@import "material";

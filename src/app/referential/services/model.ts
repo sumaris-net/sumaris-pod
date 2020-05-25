@@ -618,6 +618,38 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "true",
     type: 'boolean'
   },
+  TRIP_LATITUDE_SIGN: {
+    key: "sumaris.trip.operation.latitude.defaultSign",
+    label: "PROGRAM.OPTIONS.TRIP_LATITUDE_DEFAULT_SIGN",
+    type: 'enum',
+    values: [
+      {
+        key: '+',
+        value: 'N'
+      },
+      {
+        key: '-',
+        value: 'S'
+      }
+    ],
+    defaultValue: 'N'
+  },
+  TRIP_LONGITUDE_SIGN: {
+    key: "sumaris.trip.operation.longitude.defaultSign",
+    label: "PROGRAM.OPTIONS.TRIP_LONGITUDE_DEFAULT_SIGN",
+    type: 'enum',
+    values: [
+      {
+        key: '+',
+        value: 'E'
+      },
+      {
+        key: '-',
+        value: 'W'
+      }
+    ],
+    defaultValue: '-'
+  },
 
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: {
@@ -640,7 +672,7 @@ export const ProgramProperties: FormFieldDefinitionMap = {
         value: 'PROGRAM.OPTIONS.LOCATION_LEVEL_AUCTION'
       }
     ],
-    defaultValue: LocationLevelIds.PORT.toString(),
+    defaultValue: LocationLevelIds.PORT.toString()
   },
 
   // Landing
@@ -775,7 +807,7 @@ export class Program extends Entity<Program> {
 
 export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CATCH_BATCH'
   | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
-  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' ;
+  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' ;
 
 export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   TRIP: 'TRIP',
@@ -793,7 +825,9 @@ export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   OBSERVED_LOCATION: 'OBSERVED_LOCATION',
   OBSERVED_VESSEL: 'OBSERVED_VESSEL',
   PRODUCT: 'PRODUCT',
-  PRODUCT_SALE: 'PRODUCT_SALE'
+  PRODUCT_SALE: 'PRODUCT_SALE',
+  PACKET_SALE: 'PACKET_SALE',
+  EXPENSE: 'EXPENSE'
 };
 
 export class PmfmStrategy extends Entity<PmfmStrategy> {

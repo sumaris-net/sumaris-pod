@@ -29,30 +29,30 @@
   <!-- Control (only if local) -->
   <ion-button mat-icon-button *ngIf="canControl && !canSynchronize && !canTerminate"
               (click)="control($event)" expand="block" color="tertiary">
-    <ion-icon slot="start" name="checkmark"></ion-icon>&nbsp;
+    <ion-icon slot="start" name="checkmark" class="ion-float-start"></ion-icon>&nbsp;
     <ion-text translate>QUALITY.BTN_CONTROL</ion-text>
   </ion-button>
 
   <!-- Terminate -->
   <ion-button mat-icon-button *ngIf="canTerminate"
               (click)="terminate($event)" expand="block" color="tertiary">
-    <ion-icon slot="start" name="checkmark"></ion-icon>&nbsp;
+    <ion-icon slot="start" name="checkmark" class="ion-float-start"></ion-icon>&nbsp;
     <ion-text translate>QUALITY.BTN_TERMINATE</ion-text>
   </ion-button>
 
   <!-- synchronize -->
   <ion-button *ngIf="canSynchronize" (click)="synchronize($event)" expand="block" color="danger">
-    <ion-icon slot="start" name="cloud-upload"></ion-icon>
+    <ion-icon slot="start" name="cloud-upload" class="ion-float-start"></ion-icon>
     <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
   </ion-button>
 
 
   <ion-button *ngIf="canValidate" (click)="validate($event)" expand="block" color="success">
-    <ion-icon slot="start" name="checkmark-circle"></ion-icon>&nbsp;
+    <ion-icon slot="start" name="checkmark-circle" class="ion-float-start"></ion-icon>&nbsp;
     <ion-text translate>QUALITY.BTN_VALIDATE</ion-text>
   </ion-button>
-  <ion-button *ngIf="canUnvalidate" (click)="unvalidate($event)" expand="block" color="danger">
-    <ion-text translate>QUALITY.BTN_UNVALIDATE</ion-text>
+  <ion-button *ngIf="canUnvalidate" (click)="unvalidate($event)" expand="block" color="light">
+    <ion-text color="danger" translate>QUALITY.BTN_UNVALIDATE</ion-text>
   </ion-button>
 
 </p>
@@ -73,9 +73,9 @@
 
 
       <ion-button *ngIf="canQualify" [matMenuTriggerFor]="qualityFlagMenu" expand="block" color="tertiary">
-        <ion-icon name="ribbon" slot="start"></ion-icon>
+        <ion-icon name="ribbon" slot="start" class="ion-float-start"></ion-icon>
         <ion-text translate>QUALITY.BTN_QUALIFY</ion-text>
-        <ion-icon name="arrow-dropdown" slot="end"></ion-icon>
+        <ion-icon name="arrow-dropdown" slot="end" class="ion-float-end"></ion-icon>
       </ion-button>
 
       <!-- if already qualified -->
@@ -92,10 +92,10 @@
         </ion-label>
         <ion-button [matMenuTriggerFor]="qualityFlagMenu" expand="block"
                     [color]="qualityFlagToColor(data.qualityFlagId)">
-          <ion-icon name="ribbon" slot="start"></ion-icon>
+          <ion-icon name="ribbon" slot="start" class="ion-float-start"></ion-icon>
           <ion-text>
             {{getI18nQualityFlag(data.qualityFlagId, qualityFlags) | translate}}</ion-text>
-          <ion-icon name="arrow-dropdown" slot="end"></ion-icon>
+          <ion-icon name="arrow-dropdown" slot="end" class="ion-float-end"></ion-icon>
         </ion-button>
       </ng-container>
   </p>

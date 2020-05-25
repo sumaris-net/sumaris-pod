@@ -3,15 +3,15 @@ import {HistoryPageReference, LocalSettings, Peer, UsageMode} from "./model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
-import {isNotNil, toBoolean, toDateISOString} from "../../shared/functions";
+import {getPropertyByPath, isNotNil, isNotNilOrBlank, toBoolean, toDateISOString} from "../../shared/functions";
 import {environment} from "../../../environments/environment";
 import {Subject} from "rxjs";
-import {getPropertyByPath, isNotNilOrBlank} from "../../shared/functions";
 import {Platform} from "@ionic/angular";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import * as moment from "moment";
-import {debounceTime, filter, first, throttleTime} from "rxjs/operators";
-import {PlatformService} from "./platform.service";
+import {debounceTime, filter} from "rxjs/operators";
+import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
+
 export const SETTINGS_STORAGE_KEY = "settings";
 export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
 
@@ -48,7 +48,7 @@ export class LocalSettingsService {
     return this.data && this.data.locale || this.translate.currentLang || this.translate.defaultLang;
   }
 
-  get latLongFormat(): string {
+  get latLongFormat(): LatLongPattern {
     return this.data && this.data.latLongFormat || 'DDMM';
   }
 

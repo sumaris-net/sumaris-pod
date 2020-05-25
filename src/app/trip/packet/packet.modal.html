@@ -1,34 +1,11 @@
 <app-modal-toolbar modalName="PacketModal"
-                   [title]="'PACKET.COMPOSITION.TITLE'"
+                   [title]="$title | async"
                    [color]="'secondary'"
                    [showSpinner]="loading"
                    [canValidate]="!loading && valid"
                    (cancel)="cancel()"
                    (validate)="onSave($event)"
 ></app-modal-toolbar>
-<!--<ion-header>-->
-<!--  <ion-toolbar color="secondary">-->
-<!--    <ion-buttons slot="start">-->
-<!--      <ion-button (click)="cancel()"-->
-<!--                  visible-xs visible-sm visible-mobile>-->
-<!--        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>-->
-<!--      </ion-button>-->
-<!--    </ion-buttons>-->
-
-<!--    <ion-title>-->
-<!--      {{'PACKET.COMPOSITION.TITLE'|translate}}-->
-<!--    </ion-title>-->
-
-<!--    <ion-buttons slot="end">-->
-<!--      <ion-spinner *ngIf="loading"></ion-spinner>-->
-
-<!--      <ion-button visible-xs visible-sm visible-mobile-->
-<!--                  (click)="onSave($event)" *ngIf="!loading && valid">-->
-<!--        <ion-icon slot="icon-only" name="checkmark"></ion-icon>-->
-<!--      </ion-button>-->
-<!--    </ion-buttons>-->
-<!--  </ion-toolbar>-->
-<!--</ion-header>-->
 
 <ion-content class="ion-padding">
   <app-packet-form #packetForm></app-packet-form>

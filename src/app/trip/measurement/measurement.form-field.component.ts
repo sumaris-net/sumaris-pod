@@ -12,12 +12,12 @@ import {
   ViewChild
 } from '@angular/core';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {FloatLabelType} from "@angular/material";
+import {FloatLabelType} from "@angular/material/form-field";
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {AppFormUtils, isNil} from "../../core/core.module";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {filterNumberInput, focusInput, setTabIndex, toBoolean} from "../../shared/functions";
-import {asInputElement, InputElement} from "../../shared/material/focusable";
+import {InputElement} from "../../shared/material/focusable";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model";
 
 const noop = () => {
@@ -78,7 +78,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
     return this.settings.settings.latLongFormat || 'DDMM';
   }
 
-  @ViewChild('matInput', { static: false }) matInput: ElementRef;
+  @ViewChild('matInput') matInput: ElementRef;
 
   constructor(
     protected settings: LocalSettingsService,
@@ -100,7 +100,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
     this.formControl.setValidators(this.measurementValidatorService.getPmfmValidator(this.pmfm));
 
     if (this.listenStatusChanges) {
-      this.formControl.statusChanges.subscribe((status) => this.cd.markForCheck());
+      this.formControl.statusChanges.subscribe((_) => this.cd.markForCheck());
     }
     this.placeholder = this.placeholder || getPmfmName(this.pmfm, {withUnit: !this.compact});
     this.required = toBoolean(this.required, this.pmfm.required);
@@ -151,21 +151,19 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
     this.cd.markForCheck();
   }
 
-  public markAsTouched() {
+  markAsTouched() {
     if (this.formControl.touched) {
       this.cd.markForCheck();
       this._onTouchedCallback();
     }
   }
 
-
-
   filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) {
     if (event.keyCode === 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
       this.onKeypressEnter.emit(event);
       return;
     }
-    filterNumberInput(event, true);
+    filterNumberInput(event, allowDecimals);
   }
 
   filterAlphanumericalInput(event: KeyboardEvent) {

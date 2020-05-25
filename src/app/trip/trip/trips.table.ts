@@ -4,8 +4,11 @@ import {
   AppTable,
   AppTableDataSource,
   environment,
-  isNil, isNotNil,
-  personsToString, personToString, ReferentialRef,
+  isNil,
+  isNotNil,
+  personsToString,
+  personToString,
+  ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   StatusIds
@@ -162,7 +165,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       service: this.referentialRefService,
       filter: {
         entityName: 'Program'
-      }
+      },
+      mobile: this.mobile
     });
 
     // Locations combo (filter)
@@ -171,7 +175,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       filter: {
         entityName: 'Location',
         levelId: LocationLevelIds.PORT
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: vessels
@@ -188,7 +193,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       service: this.referentialRefService,
       filter: {
         entityName: 'Department'
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: recorder person
@@ -198,47 +204,45 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: personToString
+      displayWith: personToString,
+      mobile: this.mobile
     });
 
     // Update filter when changes
-    this.filterForm.valueChanges
-      .pipe(
-        debounceTime(250),
-        filter(() => this.filterForm.valid),
-        // Applying the filter
-        tap(json => {
-          this.setFilter({
-            programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
-            startDate: json.startDate,
-            endDate: json.endDate,
-            locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
-            vesselId:  json.vesselSnapshot && typeof json.vesselSnapshot === "object" && json.vesselSnapshot.id || undefined,
-            synchronizationStatus: json.synchronizationStatus || undefined,
-            recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
-            recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
-          }, {emitEvent: this.mobile || isNil(this.filter)});
-        }),
-        // Save filter in settings (after a debounce time)
-        debounceTime(1000),
-        tap(json => this.settings.savePageSetting(this.settingsId, json, TripsPageSettingsEnum.FILTER_KEY))
-      )
-      .subscribe();
+    this.registerSubscription(
+      this.filterForm.valueChanges
+        .pipe(
+          debounceTime(250),
+          filter(() => this.filterForm.valid),
+          // Applying the filter
+          tap(json => {
+            this.setFilter({
+              programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
+              startDate: json.startDate,
+              endDate: json.endDate,
+              locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
+              vesselId:  json.vesselSnapshot && typeof json.vesselSnapshot === "object" && json.vesselSnapshot.id || undefined,
+              synchronizationStatus: json.synchronizationStatus || undefined,
+              recorderDepartmentId: json.recorderDepartment && typeof json.recorderDepartment === "object" && json.recorderDepartment.id || undefined,
+              recorderPersonId: json.recorderPerson && typeof json.recorderPerson === "object" && json.recorderPerson.id || undefined
+            }, {emitEvent: this.mobile || isNil(this.filter)});
+          }),
+          // Save filter in settings (after a debounce time)
+          debounceTime(1000),
+          tap(json => this.settings.savePageSetting(this.settingsId, json, TripsPageSettingsEnum.FILTER_KEY))
+        )
+        .subscribe());
 
-    this.onRefresh.subscribe(() => {
-      this.filterForm.markAsUntouched();
-      this.filterForm.markAsPristine();
-      this.markForCheck();
-    });
+    this.registerSubscription(
+      this.onRefresh.subscribe(() => {
+        this.filterIsEmpty = TripFilter.isEmpty(this.filter);
+        this.filterForm.markAsUntouched();
+        this.filterForm.markAsPristine();
+        this.markForCheck();
+      }));
 
     // Restore filter from settings, or load all trips
     this.restoreFilterOrLoad();
-  }
-
-  setFilter(json: TripFilter, opts?: { emitEvent: boolean; }) {
-    super.setFilter(json, opts);
-
-    this.filterIsEmpty = TripFilter.isEmpty(json);
   }
 
   onNetworkStatusChanged(type: ConnectionType) {
@@ -392,6 +396,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   /* -- protected methods -- */
 
   protected async restoreFilterOrLoad() {
+    console.debug("[trips] Restoring filter from settings...");
     const json = this.settings.getPageSettings(this.settingsId, TripsPageSettingsEnum.FILTER_KEY);
 
     const synchronizationStatus = json && json.synchronizationStatus;
@@ -410,7 +415,10 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       }
       // No offline data: default load (online trips)
       else {
+        // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
         this.onRefresh.emit();
+        // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
+        this.filterForm.patchValue({}, {emitEvent: false});
       }
     }
     // Restore the filter (will apply it)

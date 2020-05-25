@@ -1,7 +1,9 @@
 <app-toolbar [title]="$title | async" color="primary"
-             [hasValidate]="!loading && enabled"
+             [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
+             [hasClose]="!loading && !dirty"
+             (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
   <ion-spinner *ngIf="loading"></ion-spinner>
@@ -46,13 +48,13 @@
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert" color="danger"
+        <ion-icon slot="end" name="alert-circle" color="danger"
                   *ngIf="error || (submitted && (opeForm.invalid || measurementsForm.invalid))"></ion-icon>
       </ng-template>
 
       <!-- error -->
       <ion-item *ngIf="error || opeForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
-        <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
         <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
       </ion-item>
 
@@ -61,7 +63,7 @@
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
             <!-- form -->
-            <form-operation #opeForm
+            <app-form-operation #opeForm
                             (onSubmit)="save($event)" [showError]="false"
                             [usageMode]="usageMode"
                             [tabindex]="1"
@@ -85,10 +87,10 @@
                   </ion-col>
                 </ion-row>
               </ion-grid>
-            </form-operation>
+            </app-form-operation>
           </ion-col>
           <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="!mobile && data?.updateDate">
-            <entity-metadata [value]="data"></entity-metadata>
+            <app-entity-metadata [value]="data"></app-entity-metadata>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -99,7 +101,7 @@
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_CATCH</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && catchBatchForm.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && catchBatchForm.invalid"></ion-icon>
       </ng-template>
 
       <!-- catch batch form -->
@@ -125,7 +127,7 @@
           <ng-template mat-tab-label>
             <mat-icon><ion-icon name="cube"></ion-icon></mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES</ion-label>
-            <ion-icon slot="end" name="alert" color="danger"
+            <ion-icon slot="end" name="alert-circle" color="danger"
                       *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
           </ng-template>
 
@@ -151,7 +153,7 @@
           <ng-template mat-tab-label>
             <mat-icon>assessment</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
-            <ion-icon slot="end" name="alert" color="danger"
+            <ion-icon slot="end" name="alert-circle" color="danger"
                       *ngIf="submitted && (subBatchesTable.invalid || false)"></ion-icon>
           </ng-template>
 
@@ -173,7 +175,7 @@
           <ng-template mat-tab-label>
             <mat-icon>room</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES</ion-label>
-            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
+            <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
           </ng-template>
 
           <table-sub-samples #individualReleaseTable [debug]="debug" acquisitionLevel="INDIVIDUAL_RELEASE"></table-sub-samples>
@@ -192,7 +194,7 @@
           <ng-template mat-tab-label>
             <mat-icon>timer</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST</ion-label>
-            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && samplesTable.invalid"></ion-icon>
+            <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && samplesTable.invalid"></ion-icon>
           </ng-template>
 
           <app-samples-table #samplesTable [debug]="debug"
@@ -214,7 +216,7 @@
           <ng-template mat-tab-label>
             <mat-icon>center_focus_strong</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_MONITORING</ion-label>
-            <ion-icon slot="end" name="alert" color="danger"
+            <ion-icon slot="end" name="alert-circle" color="danger"
                       *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
           </ng-template>
 
@@ -232,7 +234,7 @@
           <ng-template mat-tab-label>
             <mat-icon>room</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES</ion-label>
-            <ion-icon slot="end" name="alert" color="danger"
+            <ion-icon slot="end" name="alert-circle" color="danger"
                       *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
           </ng-template>
 
@@ -259,7 +261,7 @@
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 

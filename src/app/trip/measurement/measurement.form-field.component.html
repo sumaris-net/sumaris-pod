@@ -57,18 +57,18 @@
   </mat-form-field>
 
   <!-- duration -->
-  <mat-duration *ngSwitchCase="'duration'" #matInput
-                [formControl]="formControl"
-                [placeholder]="placeholder"
-                [floatLabel]="floatLabel"
-                [required]="required"
-                [readonly]="readonly"
-                [compact]="compact"
-                [tabindex]="tabindex">
+  <mat-duration-field *ngSwitchCase="'duration'" #matInput
+                      [formControl]="formControl"
+                      [placeholder]="placeholder"
+                      [floatLabel]="floatLabel"
+                      [required]="required"
+                      [readonly]="readonly"
+                      [compact]="compact"
+                      [tabindex]="tabindex">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
-  </mat-duration>
+  </mat-duration-field>
 
   <!-- boolean -->
   <mat-boolean-field *ngSwitchCase="'boolean'" #matInput
@@ -84,19 +84,19 @@
   </mat-boolean-field>
 
   <!-- date -->
-  <mat-date-time *ngSwitchCase="'date'" #matInput
-                 [formControl]="formControl"
-                 [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
-                 [floatLabel]="floatLabel"
-                 [required]="required"
-                 [readonly]="readonly"
-                 [displayTime]="displayTime()"
-                 [compact]="compact"
-                 [tabindex]="tabindex">
+  <mat-date-time-field *ngSwitchCase="'date'" #matInput
+                       [formControl]="formControl"
+                       [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
+                       [floatLabel]="floatLabel"
+                       [required]="required"
+                       [readonly]="readonly"
+                       [displayTime]="displayTime()"
+                       [compact]="compact"
+                       [tabindex]="tabindex">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
-  </mat-date-time>
+  </mat-date-time-field>
 
   <!-- qualitative value -->
   <mat-form-field-measurement-qv *ngSwitchCase="'qualitative_value'"
@@ -132,7 +132,7 @@
   </mat-form-field>
 
   <!-- latitude -->
-  <mat-latlong *ngSwitchCase="'latitude'"
+  <mat-latlong-field *ngSwitchCase="'latitude'"
                [floatLabel]="floatLabel"
                [formControl]="formControl"
                type="latitude"
@@ -143,10 +143,10 @@
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
-  </mat-latlong>
+  </mat-latlong-field>
 
   <!-- longitude -->
-  <mat-latlong *ngSwitchCase="'longitude'"
+  <mat-latlong-field *ngSwitchCase="'longitude'"
                [floatLabel]="floatLabel"
                [formControl]="formControl"
                type="longitude"
@@ -157,7 +157,7 @@
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
-  </mat-latlong>
+  </mat-latlong-field>
 
   <!-- other -->
   <div *ngSwitchDefault>

@@ -31,7 +31,7 @@
           <ion-icon matPrefix slot="start" name="calendar"></ion-icon>
         </mat-icon>
         <ion-label translate>OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TAB_LANDINGS</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="landingsTable.error"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="landingsTable.error"></ion-icon>
       </ng-template>
 
       <app-landings-table #landingsTable
@@ -51,7 +51,7 @@
           <ion-icon matPrefix slot="start" name="search"></ion-icon>
         </mat-icon>
         <ion-label translate>OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TAB_VESSELS</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="vesselsTable.error"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="vesselsTable.error"></ion-icon>
       </ng-template>
 
       <app-vessels-table #vesselsTable

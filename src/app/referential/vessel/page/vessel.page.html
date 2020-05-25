@@ -19,7 +19,7 @@
           </form-vessel>
         </ion-col>
         <ion-col size="12" size-sm="9" size-md="6" size-lg="4" size-xl="3" class="ion-no-padding">
-          <entity-metadata [value]="data">
+          <app-entity-metadata [value]="data">
             <!-- Vessel actions -->
             <mat-menu #selectTypeMenu="matMenu" xPosition="after">
               <button mat-menu-item translate (click)="editFeatures()">VESSEL.ACTION.EDIT_FEATURES</button>
@@ -29,14 +29,14 @@
               <button mat-menu-item translate (click)="editStatus()">VESSEL.ACTION.EDIT_STATUS</button>
             </mat-menu>
 
-            <ion-button color="tertiary" size="full" class="flex-margin"
+            <ion-button color="tertiary" expand="block"
                         [matMenuTriggerFor]="selectTypeMenu" [disabled]="!data || !canUserWrite(data)">
-              <ion-icon slot="start" name="create"></ion-icon>&nbsp;
+              <ion-icon slot="start" name="create" class="ion-float-start"></ion-icon>&nbsp;
               <ion-label translate>VESSEL.ACTION.EDIT</ion-label>
-              <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+              <mat-icon slot="end" class="ion-float-end">arrow_drop_down</mat-icon>
             </ion-button>
 
-          </entity-metadata>
+          </app-entity-metadata>
         </ion-col>
       </ion-row>
     </mat-tab>

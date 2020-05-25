@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, QueryList, ViewChildren} from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {AbstractControl, FormBuilder, FormControl} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
@@ -119,32 +119,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     this.hasIndividualMeasureControl.setValue(value);
   }
 
-  constructor(
-    protected measurementValidatorService: MeasurementsValidatorService,
-    protected dateAdapter: DateAdapter<Moment>,
-    protected formBuilder: FormBuilder,
-    protected programService: ProgramService,
-    protected platform: PlatformService,
-    protected cd: ChangeDetectorRef,
-    protected validatorService: BatchGroupValidatorService,
-    protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService
-  ) {
-    super(dateAdapter,
-      measurementValidatorService,
-      formBuilder,
-      programService,
-      platform,
-      cd,
-      validatorService,
-      referentialRefService,
-      settings);
-
-    // Default value
-    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
-    this.hasIndividualMeasureControl = new FormControl(false);
-  }
-
   ngOnInit() {
     super.ngOnInit();
 
@@ -157,6 +131,32 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         });
         this.markForCheck();
       });
+  }
+
+  constructor(
+    protected measurementValidatorService: MeasurementsValidatorService,
+    protected dateAdapter: DateAdapter<Moment>,
+    protected formBuilder: FormBuilder,
+    protected programService: ProgramService,
+    protected platform: PlatformService,
+    protected validatorService: BatchGroupValidatorService,
+    protected referentialRefService: ReferentialRefService,
+    protected settings: LocalSettingsService,
+    protected cd: ChangeDetectorRef
+  ) {
+    super(dateAdapter,
+      measurementValidatorService,
+      formBuilder,
+      programService,
+      platform,
+      validatorService,
+      referentialRefService,
+      settings,
+      cd);
+
+    // Default value
+    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
+    this.hasIndividualMeasureControl = new FormControl(false);
   }
 
   setValue(data: BatchGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
@@ -203,7 +203,10 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       // Then set value of each child form
       this.childrenForms.forEach((childForm, index) => {
         const childBatch = data.children[index] || new Batch();
+        childForm.showWeight = this.showChildrenWeight;
+        childForm.requiredWeight = this.showChildrenWeight && this.hasIndividualMeasure;
         childForm.requiredSampleWeight = this.showChildrenWeight && this.hasIndividualMeasure;
+        childForm.requiredIndividualCount = !this.showChildrenWeight && this.hasIndividualMeasure;
         childForm.setIsSampling(hasIndividualMeasure, {emitEvent: true});
         childForm.setValue(childBatch);
         if (this.enabled) {
@@ -291,6 +294,13 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         child.label = `${data.label}.${qv.label}`;
         child.measurementValues = child.measurementValues || {};
         child.measurementValues[this.qvPmfm.pmfmId.toString()] = '' + qv.id;
+
+        // Special case: when sampling on individual count only (e.g. RJB - Pocheteau)
+        const sampleBatch = BatchUtils.getSamplingChild(child);
+        if (sampleBatch && !form.showWeight && isNotNil(sampleBatch.individualCount) && isNotNil(child.individualCount)){
+          sampleBatch.samplingRatio = sampleBatch.individualCount / child.individualCount;
+          sampleBatch.samplingRatioText = `${sampleBatch.individualCount}/${child.individualCount}`;
+        }
         return child;
       });
     }

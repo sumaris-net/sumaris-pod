@@ -46,6 +46,10 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
     return this.landingForm.$pmfms.pipe(filter(isNotNil));
   }
 
+  get form(): FormGroup {
+    return this.landingForm.form;
+  }
+
   constructor(
     injector: Injector
   ) {
@@ -256,10 +260,6 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
     }).toPromise());
   }
 
-
-  protected get form(): FormGroup {
-    return this.landingForm.form;
-  }
 
   protected getFirstInvalidTabIndex(): number {
     return this.landingForm.invalid ? 0 : (this.samplesTable.invalid ? 1 : -1);

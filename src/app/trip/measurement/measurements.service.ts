@@ -1,17 +1,18 @@
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject, isObservable, Observable} from "rxjs";
 import {isNil, isNotNil, LoadResult, TableDataService} from "../../core/core.module";
 import {filter, first, map, switchMap} from "rxjs/operators";
 import {
   IEntityWithMeasurement,
-  MeasurementUtils,
   MeasurementValuesUtils,
   PMFM_ID_REGEXP
 } from "../../trip/services/model/measurement.model";
 import {EntityUtils} from "../../core/services/model";
 import {PmfmStrategy} from "../../referential/services/model";
-import {EventEmitter, Injector, Input} from "@angular/core";
+import {Directive, EventEmitter, Injector, Input} from "@angular/core";
 import {ProgramService} from "../../referential/referential.module";
+import {firstNotNilPromise} from "../../shared/observables";
 
+@Directive()
 export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> implements TableDataService<T, F> {
 
   private _program: string;
@@ -179,8 +180,9 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
     if (!pmfms) return undefined; // skip
 
     // Wait loaded
-    if (pmfms instanceof Observable) {
-      pmfms = await pmfms.pipe(filter(isNotNil), first()).toPromise();
+    if (isObservable<PmfmStrategy[]>(pmfms)) {
+      if (this.debug) console.debug("[meas-service] setPmfms(): waiting pmfms observable to emit...");
+      pmfms = await firstNotNilPromise(pmfms);
     }
 
     // Map

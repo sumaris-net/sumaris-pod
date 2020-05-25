@@ -1,20 +1,13 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {
-  AppEditorPage,
-  EntityUtils,
-  FormArrayHelper,
-  isNil
-} from "../../core/core.module";
-import {AggregationStrata, AggregationType, ExtractionColumn, ExtractionUtils} from "../services/extraction.model";
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {AppEditorPage, EntityUtils, isNil} from "../../core/core.module";
+import {AggregationType, ExtractionColumn, ExtractionUtils} from "../services/extraction.model";
+import {FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {ExtractionService} from "../services/extraction.service";
 import {Router} from "@angular/router";
 import {ValidatorService} from "angular4-material-table";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
-import {BehaviorSubject} from "rxjs";
 import {AggregationTypeForm} from "./aggregation-type.form";
-import {MatTable} from "@angular/material";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 

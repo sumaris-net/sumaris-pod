@@ -2,8 +2,17 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {TripValidatorService} from "../services/trip.validator";
 import {ModalController} from "@ionic/angular";
 import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material";
-import {AppForm, EntityUtils, FormArrayHelper, isNil, Person, personToString, StatusIds} from '../../core/core.module';
+import {DateAdapter} from "@angular/material/core";
+import {
+  AppForm,
+  EntityUtils,
+  FormArrayHelper,
+  isNil,
+  isNotNil,
+  Person,
+  personToString,
+  StatusIds
+} from '../../core/core.module';
 import {
   LocationLevelIds,
   ReferentialRefService,
@@ -14,14 +23,16 @@ import {
 import {UsageMode, UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {AbstractControl, FormArray, FormBuilder} from "@angular/forms";
+import {FormArray, FormBuilder} from "@angular/forms";
 import {PersonService} from "../../admin/services/person.service";
-import {toBoolean} from "../../shared/functions";
+import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
 import {Vessel} from "../../referential/services/model";
 import {MetierRef} from "../../referential/services/model/taxon.model";
-import {MetierRefService} from "../../referential/services/metier-ref.service";
+import {METIER_DEFAULT_FILTER, MetierRefFilter, MetierRefService} from "../../referential/services/metier-ref.service";
 import {Trip} from "../services/model/trip.model";
+import {ReferentialRefFilter} from "../../referential/services/referential-ref.service";
+import {debounceTime, filter} from "rxjs/operators";
 
 @Component({
   selector: 'form-trip',
@@ -36,9 +47,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
+  enableMetierFilter = false;
+  metierFilter: MetierRefFilter = METIER_DEFAULT_FILTER;
   metiersHelper: FormArrayHelper<MetierRef>;
   metierFocusIndex = -1;
-  metiersFiltered = false;
+  canFilterMetier = false;
   mobile: boolean;
 
   @Input() showComment = true;
@@ -140,10 +153,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       service: this.referentialRefService,
       attributes: programAttributes,
       // Increase default column size, for 'label'
-      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined),
-      filter: {
+      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+      filter: <ReferentialRefFilter>{
         entityName: 'Program'
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: vessels
@@ -179,24 +193,35 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     });
 
     // Combo: metiers
-    this.metiersFiltered = false;
-    this.registerAutocompleteField('metier', {
+    this.registerAutocompleteField<MetierRef>('metier', {
       service: this.metierRefService,
-      filter: this.metierFilter()
+      mobile: this.mobile
     });
 
+    // Update metier filter when form changed (if filter enable)
+    this.registerSubscription(
+      this.form.valueChanges
+        .pipe(
+          debounceTime(250),
+          filter(_ => this._showMetiers)
+        )
+        .subscribe((value) => this.updateMetierFilter(value))
+    );
   }
 
-  protected metierFilter(): any {
-    const defaultFilter = {statusId: StatusIds.ENABLE};
-    return this.metiersFiltered
-      ? {
-        ...defaultFilter,
-        date: this.form.controls['returnDateTime'].value,
-        vesselId: this.form.controls['vesselSnapshot'].value.id,
-        tripId: this.form.controls['id'].value
-      }
-      : defaultFilter;
+  toggleFilteredMetier() {
+    if (this.enableMetierFilter) {
+      this.enableMetierFilter = false;
+    }
+    else {
+      const value = this.form.value;
+      const date = value.returnDateTime || value.departureDateTime;
+      const vesselId = value.vesselSnapshot && value.vesselSnapshot.id;
+      this.enableMetierFilter = date && isNotNil(vesselId);
+    }
+
+    // Update the metier filter
+    this.updateMetierFilter();
   }
 
   setValue(value: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
@@ -325,6 +350,34 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       }
     } else if (this.metiersHelper.size() > 0) {
       this.metiersHelper.resize(0);
+    }
+  }
+
+  protected updateMetierFilter(value?: Trip) {
+    console.debug("[trip-form] Updating metier filter...");
+    value = value || this.form.value as Trip;
+    const programLabel = value.program && value.program.label;
+    const date = value.returnDateTime || value.departureDateTime;
+    const vesselId = value.vesselSnapshot && value.vesselSnapshot.id;
+    const canFilterMetier = date && isNotNilOrBlank(programLabel) && isNotNil(vesselId);
+
+    let metierFilter;
+    if (!this.enableMetierFilter || !canFilterMetier) {
+      metierFilter = METIER_DEFAULT_FILTER;
+    }
+    else {
+      metierFilter = {
+        ...METIER_DEFAULT_FILTER,
+        programLabel,
+        vesselId,
+        date,
+        tripId: value.id
+      };
+    }
+    if (this.canFilterMetier !== canFilterMetier || this.metierFilter !== metierFilter) {
+      this.canFilterMetier = canFilterMetier;
+      this.metierFilter = metierFilter;
+      this.markForCheck();
     }
   }
 

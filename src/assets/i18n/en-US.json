@@ -76,7 +76,8 @@
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
     "RESULT_COUNT": "{{count}} results",
-    "NO_RESULT": "No result",
+    "NO_RESULT": "No result",,
+    "MISSING": "Missing",
 
     "DISPLAYED_COLUMNS": "Displayed columns",
     "DISPLAYED_COLUMNS_DOTS": "Displayed columns...",
@@ -188,7 +189,7 @@
     "WELCOME_WEB": "Welcome to the {{appName}} web site!",
     "WELCOME_APP": "Welcome to the {{appName}} App!",
     "DESCRIPTION": "European shared database for management of skate stocks.",
-    "BTN_TRIPS": "Search trips",
+    "BTN_DATA_ENTRY": "{{name}} data entry",
     "REGISTER_HELP": "Registration is free. Join us today!",
     "NOT_THIS_ACCOUNT_QUESTION": "You are not <b>{{displayName}}</b>?",
     "BTN_DISCONNECT": "Disconnect this account",
@@ -337,8 +338,10 @@
     "RETURN_LOCATION": "Return port",
     "OBSERVER_PLACEHOLDER": "Observer #",
     "OBSERVERS": "Observers:",
-    "METIER_PLACEHOLDER": "Metier #",
+    "MAIN_METIER_PLACEHOLDER": "Main metier",
+    "SECONDARY_METIER_PLACEHOLDER": "Secondary metier #{{rank}}",
     "METIERS": "Metiers:",
+    "BTN_FILTER_METIER": "Restrict to already practiced metiers",
     "COMMENTS": "Comments",
     "QUALITY": "Form status",
     "TAB_GENERAL": "Details",
@@ -355,6 +358,10 @@
     "EDIT": {
       "TITLE": "{{vessel}} - Trip of {{departureDateTime}}",
       "OTHER_FEATURES": "Other features:"
+    },
+    "OPTIONS": {
+      "ENABLE": "Trips > Enable?",
+      "NAME": "Trips > Title (menu, etc.)"
     },
     "TABLE": {
       "TITLE": "Fishing trips",
@@ -373,7 +380,9 @@
         "END_DATE": "End period",
         "LOCATION": "Port (departure or return)",
         "VESSEL": "Vessel",
-        "SYNCHRONIZATION_STATUS": "Status"
+        "SYNCHRONIZATION_STATUS": "Status",
+        "RECORDER_DEPARTMENT": "Recorder depatrment",
+        "RECORDER_PERSON": "Recorder user"
       },
       "SYNCHRONIZATION_STATUS": {
         "DIRTY_HELP": "Unsynchronized trips",
@@ -391,14 +400,19 @@
       "VALIDATE_TRIP_ERROR": "Error while validating the trip",
       "UNVALIDATE_TRIP_ERROR": "Error while unvalidating the trip",
       "QUALIFY_TRIP_ERROR": "Error while qualify the trip",
-      "SYNCHRONIZE_TRIP_ERROR": "Synchronization error"
+      "SYNCHRONIZE_TRIP_ERROR": "Synchronization error",
+      "NO_PRACTICED_METIER_FOUND": "No practiced metier found"
     },
     "MEASUREMENT": {
-      "FEATURE_PLACEHOLDER": "Feature #{{rankOrder}}"
+      "FEATURE_PLACEHOLDER": "Feature #{{rankOrder}}",
+      "ERROR": {
+        "DUPLICATE_RANK_ORDER": "Number #{{rankOrder}} already exists. Unable to add it again."
+      }
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Comments",
       "RANK_ORDER": "#",
+      "SEARCH_EXISTING_BTN": "Search among the data already entered",
       "NEW": {
         "TITLE": "New gear"
       },
@@ -412,6 +426,12 @@
         "SELECT_ROW_HELP": "Select a row to edit it",
         "GEAR": "Gear",
         "COMMENTS": "Comments"
+      },
+      "SELECT_MODAL": {
+        "TITLE": "Existing gears"
+      },
+      "ERROR": {
+        "LOAD_PHYSICAL_GEARS_ERROR": "Erreur de chargement des engins."
       }
     },
     "OPERATION": {
@@ -477,7 +497,16 @@
         "TAXON_GROUP": "Commercial species (FAO)",
         "WEIGHT": "Weight (kg)",
         "INDIVIDUAL_COUNT": "Individual count",
-        "INDIVIDUAL_SAMPLING": "Sampling"
+        "INDIVIDUAL_SAMPLING": "Sampling",
+        "PRODUCT_SALE": "Sales"
+      },
+      "SALE": {
+        "TITLE": "Sale of {{taxonGroupLabel}}",
+        "SALE_TYPE": "Disposal",
+        "RATIO": "Ratio (%)",
+        "AVG_WEIGHT_PRICE": "Average weight price",
+        "AVG_PACKAGING_PRICE": "Average packaging price",
+        "TOTAL_PRICE": "Total price"
       }
     },
     "BATCH": {
@@ -528,6 +557,7 @@
         "SAMPLING_WEIGHT": "Sampling weight",
         "PARENT": "Species batch",
         "INDIVIDUAL_COUNT": "Nb indiv.",
+        "INDIVIDUAL_UNIT": "indiv.",
         "WEIGHT": "Weight (kg)",
         "COMMENTS": "Comments",
         "ESTIMATED_WEIGHT_QUESTION": "Estimated weight?",
@@ -689,22 +719,31 @@
     }
   },
   "PACKET": {
-    "NUMBER": "Packet number",
+    "LABEL": "Batch number",
+    "LABEL_VALUE": "Batch #{{rankOrder}}",
+    "NUMBER": "Packet count",
     "WEIGHT": "Calculated packets total weight (kg)",
     "SAMPLED_WEIGHTS": "Sampled weights (kg)",
     "SAMPLED_WEIGHT": "Packet #{{rankOrder}}",
     "SAMPLED_RATIO": "Composition %",
     "LIST": {
+      "LABEL": "Batch number",
+      "LABEL_VALUE": "Batch #{{rankOrder}}",
       "PARENT": "Effort",
-      "NUMBER": "Packets number",
+      "NUMBER": "Packets count",
       "WEIGHT": "Weight (kg)",
-      "COMPOSITION": "Composition"
+      "COMPOSITION": "Composition",
+      "PACKET_SALE": "Sales"
     },
     "COMPOSITION": {
-      "TITLE": "Packet composition",
+      "TITLE": "Packet composition of Batch #{{rankOrder}}",
       "TAXON_GROUP": "Commercial species (FAO)",
       "RATIO": "#{{rankOrder}} %",
       "WEIGHT": "Weight (kg)"
+    },
+    "SALE": {
+      "TITLE": "Sales of Batch #{{rankOrder}}",
+      "SALE_TYPE": "Sale type"
     }
   },
   "AUCTION_CONTROL": {
@@ -841,6 +880,48 @@
       "LABEL": "Code engin",
       "NAME": "Libellé engin"
     },
+    "PARAMETER": {
+      "TAB_GENERAL": "Details",
+      "TAB_QUALITATIVE_VALUE": "Qualitative value",
+      "TYPE": "Value type",
+      "NEW": {
+        "TITLE": "New parameter"
+      },
+      "EDIT": {
+        "TITLE": "Parameter {{label}} - {{name}}"
+      },
+      "TYPE_ENUM": {
+        "DOUBLE": "Numerical",
+        "STRING": "Alphanumerical",
+        "DATE": "Date",
+        "DATE_TIME": "Date/Time",
+        "QUALITATIVE_VALUE": "Qualitative values",
+        "BOOLEAN": "Boolean"
+      }
+    },
+    "PMFM": {
+      "TAB_GENERAL": "Details",
+      "TAB_QUALITATIVE_VALUE": "Qualitative values",
+      "TYPE": "Type",
+      "MIN_VALUE": "Min value",
+      "MAX_VALUE": "Max value",
+      "DEFAULT_VALUE": "Default value",
+      "MAXIMUM_NUMBER_DECIMALS": "Maximal number of decimals",
+      "SIGNIF_FIGURES_NUMBER": "Significant number of digits",
+      "PARAMETER": "Parameter",
+      "MATRIX": "Matrix",
+      "FRACTION": "Fraction",
+      "METHOD": "Data collecting method",
+      "UNIT": "Unit",
+      "BTN_ADD_PARAMETER": "Create a new parameter",
+      "BTN_OPEN_PARAMETER": "Open the parameter",
+      "NEW": {
+        "TITLE": "New PMFM"
+      },
+      "EDIT": {
+        "TITLE": "PMFM {{label}} - {{name}}"
+      }
+    },
     "LIST": {
       "TITLE": "Referential",
       "FILTER": {
@@ -913,7 +994,9 @@
       "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",
       "TRIP_METIERS_ENABLE": "Trip: Enter metiers?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
+      "TRIP_BATCH_AUTO_FILL": "Catch > Species batch: Auto-fill ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Catch > Species batch: Commercial species?",
+      "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Catch > Species batch: Commercial species without weight:",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Catch > Species batch: Scientific species?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Catch > Species batch: compute sampling nb indiv?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Individual measure: sort items on save?",
@@ -1115,6 +1198,7 @@
     }
   },
   "ERROR": {
+    "ALERT_HEADER": "Error",
     "FIELD_REQUIRED": "This field is required.",
     "FIELD_TOO_SHORT": "This field value is too short.",
     "FIELD_TOO_SHORT_WITH_LENGTH": "Value is too short (min {{minLength]] characters).",

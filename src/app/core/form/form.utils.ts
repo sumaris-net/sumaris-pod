@@ -1,4 +1,4 @@
-import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors} from "@angular/forms";
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
 import {
   filterNumberInput,
   isNil,
@@ -8,13 +8,15 @@ import {
   toDateISOString
 } from "../../shared/shared.module";
 import {isMoment} from "moment";
-import {Entity} from "../services/model";
+import {Entity, ObjectMap} from "../services/model";
 import {timer} from "rxjs";
 import {filter, first, tap} from "rxjs/operators";
 import {SharedValidators} from "../../shared/validator/validators";
+import {round} from "../../shared/functions";
 
 export {selectInputContent};
 
+// TODO continue to use this kind of declaration ?
 export class AppFormUtils {
   static copyForm2Entity = copyForm2Entity;
   static copyEntity2Form = copyEntity2Form;
@@ -36,6 +38,13 @@ export class AppFormUtils {
   static removeValueInArray = removeValueInArray;
   static resizeArray = resizeArray;
   static clearValueInArray = clearValueInArray;
+
+  // Calculated fields
+  static calculatedSuffix = 'Calculated';
+  static isControlHasInput = isControlHasInput;
+  static setCalculatedValue = setCalculatedValue;
+  static resetCalculatedValue = resetCalculatedValue;
+
 }
 
 /**
@@ -407,10 +416,31 @@ export function waitWhilePending<T extends {pending: boolean; }>(form: T, opts?:
     ).toPromise();
 }
 
+export function isControlHasInput(controls: ObjectMap<AbstractControl>, controlName: string): boolean {
+  // true if the control has a value and its 'calculated' control has the value 'false'
+  return controls[controlName].value && !toBoolean(controls[controlName + AppFormUtils.calculatedSuffix].value, false);
+}
+
+export function setCalculatedValue(controls: ObjectMap<AbstractControl>, controlName: string, value: number | undefined) {
+  // set value to control
+  controls[controlName].setValue(round(value));
+  // set 'calculated' control to 'true'
+  controls[controlName + AppFormUtils.calculatedSuffix].setValue(true);
+}
+
+export function resetCalculatedValue(controls: ObjectMap<AbstractControl>, controlName: string) {
+  if (!AppFormUtils.isControlHasInput(controls, controlName)) {
+    // set undefined only if control already calculated
+    AppFormUtils.setCalculatedValue(controls, controlName, undefined);
+  }
+}
+
+
 export class FormArrayHelper<T = Entity<any>> {
 
   private readonly arrayControl: FormArray;
   private _allowEmptyArray: boolean;
+  private readonly _validators: ValidatorFn[];
 
   get allowEmptyArray(): boolean {
     return this._allowEmptyArray;
@@ -429,6 +459,7 @@ export class FormArrayHelper<T = Entity<any>> {
     private isEmpty: (value: T) => boolean,
     options?: {
       allowEmptyArray: boolean;
+      validators?: ValidatorFn[];
     }
   ) {
 
@@ -439,6 +470,8 @@ export class FormArrayHelper<T = Entity<any>> {
       this.arrayControl = formBuilder.array([]);
       form.addControl(arrayName, this.arrayControl);
     }
+
+    this._validators = options && options.validators;
 
     // empty array not allow by default
     this.setAllowEmptyArray(toBoolean(options && options.allowEmptyArray, false));
@@ -500,6 +533,14 @@ export class FormArrayHelper<T = Entity<any>> {
     this.arrayControl.controls.forEach(c => c.enable(opts));
   }
 
+  forEach(ite: (control: AbstractControl) => void ) {
+    const size = this.size();
+    for(let i = 0; i < size; i++) {
+      const control = this.arrayControl.at(i);
+      if (control) ite(control);
+    }
+  }
+
   /* -- internal methods -- */
 
   protected setAllowEmptyArray(value: boolean) {
@@ -509,10 +550,10 @@ export class FormArrayHelper<T = Entity<any>> {
 
     // Set required (or reste) min length validator
     if (this._allowEmptyArray) {
-      this.arrayControl.setValidators(null);
+      this.arrayControl.setValidators(this._validators || null);
     }
     else {
-      this.arrayControl.setValidators(SharedValidators.requiredArrayMinLength(1));
+      this.arrayControl.setValidators((this._validators || []).concat(SharedValidators.requiredArrayMinLength(1)));
     }
   }
 }

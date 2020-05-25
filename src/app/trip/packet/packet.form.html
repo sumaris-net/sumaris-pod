@@ -2,14 +2,18 @@
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <ion-grid class="ion-margin-bottom">
 
-    <!--  NB packets  -->
     <ion-row>
+      <!--  empty col for alignment  -->
+      <ion-col>
+      </ion-col>
+
+      <!--  NB packets  -->
       <ion-col>
         <mat-form-field>
           <input matInput #packetNumber
@@ -175,7 +179,7 @@
     </ion-row>
 
     <!--  composition row  -->
-    <ion-row *ngFor="let compositionForm of compositionsForm?.controls; index as i; first as first">
+    <ion-row *ngFor="let compositionForm of compositionsFormArray?.controls; index as i; first as first">
 
       <ion-col size="4">
         <mat-autocomplete-field [formControl]="asFormGroup(compositionForm).controls.taxonGroup"
@@ -234,6 +238,7 @@
         </mat-form-field>
       </ion-col>
 
+      <!-- buttons -->
       <ion-col size="1" class="ion-align-self-center">
         <button type="button" mat-icon-button [tabindex]="tabindex+10+i*9+7" [disabled]="disabled"
                 [title]="'COMMON.BTN_ADD'|translate"
@@ -246,7 +251,6 @@
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
-
 
     </ion-row>
 

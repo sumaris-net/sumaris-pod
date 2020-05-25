@@ -1,0 +1,15 @@
+
+:host {
+  display: inline-block;
+  position: relative;
+}
+
+button[hidden] {
+  display: none;
+}
+
+// This try to copy style as .mat-select-arrow
+mat-icon.select-arrow {
+  color: rgba(0,0,0,0.47);
+  font-size: 150%;
+}

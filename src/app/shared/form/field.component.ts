@@ -12,7 +12,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {FloatLabelType} from "@angular/material";
+import {FloatLabelType} from "@angular/material/form-field";
 import {
   filterNumberInput,
   isNotNilOrBlank,
@@ -20,8 +20,7 @@ import {
   selectInputContent, toBoolean,
   toDateISOString
 } from "../../shared/functions";
-import {FormFieldDefinition} from "./field.model";
-import {DisplayFn} from "../material/material.autocomplete";
+import {FormFieldDefinition, DisplayFn} from "./field.model";
 import {TranslateService} from "@ngx-translate/core";
 import {getColorContrast} from "../graph/colors.utils";
 import {asInputElement} from "../material/focusable";
@@ -89,7 +88,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     return this.formControl.value;
   }
 
-  @ViewChild('matInput', { static: false }) matInput: ElementRef;
+  @ViewChild('matInput') matInput: ElementRef;
 
   constructor(
     protected translate: TranslateService,

@@ -45,14 +45,14 @@
                                 [placeholder]="'SALE.SALE_LOCATION'|translate"
                                 [config]="autocompleteFields.location"
                                 [tabindex]="tabindex+2">
-          <ion-icon matPrefix name="pin"></ion-icon>
+          <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="12" size-sm="auto">
-        <mat-date-time [placeholder]="'SALE.DATE_TIME'|translate" formControlName="startDateTime" [displayTime]="true"
-                       [tabindex]="tabindex+3"
-                       [required]="required">
-        </mat-date-time>
+        <mat-date-time-field [placeholder]="'SALE.DATE_TIME'|translate" formControlName="startDateTime" [displayTime]="true"
+                             [tabindex]="tabindex+3"
+                             [required]="required">
+        </mat-date-time-field>
       </ion-col>
     </ion-row>
 
@@ -63,7 +63,7 @@
                                 [placeholder]="'SALE.SALE_LOCATION'|translate"
                                 [config]="autocompleteFields.location"
                                 [tabindex]="tabindex+5">
-          <ion-icon matPrefix name="pin"></ion-icon>
+          <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>
@@ -74,9 +74,9 @@
         <ion-label class="ion-float-end" translate>SALE.START</ion-label>
       </ion-col>
       <ion-col *ngIf="showEndDateTime">
-        <mat-date-time [placeholder]="'SALE.START_DATE'|translate" formControlName="startDateTime" [displayTime]="true"
-                       [tabindex]="tabindex+6">
-        </mat-date-time>
+        <mat-date-time-field [placeholder]="'SALE.START_DATE'|translate" formControlName="startDateTime" [displayTime]="true"
+                             [tabindex]="tabindex+6">
+        </mat-date-time-field>
       </ion-col>
 
       <ion-col size="12" size-md="2" size-lg="3">
@@ -84,9 +84,9 @@
       </ion-col>
 
       <ion-col size="auto" *ngIf="showEndDateTime">
-        <mat-date-time [placeholder]="'SALE.END_DATE'|translate" formControlName="endDateTime" [displayTime]="true"
-                       [tabindex]="tabindex+7">
-        </mat-date-time>
+        <mat-date-time-field [placeholder]="'SALE.END_DATE'|translate" formControlName="endDateTime" [displayTime]="true"
+                             [tabindex]="tabindex+7">
+        </mat-date-time-field>
       </ion-col>
     </ion-row>
 

@@ -1,9 +1,10 @@
 import * as moment from "moment";
-import {isMoment, Moment} from "moment";
-import {asInputElement, FocusableElement, isInputElement} from "./material/focusable";
-import {ElementRef} from "@angular/core";
-import {environment} from "../../environments/environment";
-import {Duration} from "moment";
+import {Duration, isMoment, Moment} from "moment";
+import {selectInputRange, selectInputContent, filterNumberInput, focusInput, setTabIndex} from './inputs';
+
+// This function has moved to inputs.ts
+export {selectInputRange, selectInputContent, filterNumberInput, focusInput, setTabIndex};
+
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 export const DATE_UNIX_TIMESTAMP = 'X';
@@ -240,48 +241,7 @@ export function sort<T>(array: T[], attribute: string): T[] {
     });
 }
 
-export function selectInputContent(event: UIEvent) {
-  if (event.defaultPrevented) return false;
-  const input = (event.target as any);
-  if (input && typeof input.select === "function") {
 
-    // Nothing to select
-    if (isNilOrBlank(input.value)) return false;
-
-    try {
-      input.select();
-    } catch (err) {
-      console.error("Could not select input content", err);
-      return false;
-    }
-  }
-  return true;
-}
-
-export function filterNumberInput(event: KeyboardEvent, allowDecimals: boolean, decimalSeparator?: string) {
-  //input number entered or one of the 4 direction up, down, left and right
-  if ((event.which >= 48 && event.which <= 57) || (event.which >= 37 && event.which <= 40)) {
-    //console.debug('input number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
-    // OK
-  }
-  // Decimal separator
-  else if (allowDecimals && ((!decimalSeparator && (event.key === '.' || event.key === ','))
-    || (decimalSeparator && event.key === decimalSeparator))) {
-    //console.debug('input decimal separator entered :' + event.code);
-    // OK
-  } else {
-    //input command entered of delete, backspace or one of the 4 direction up, down, left and right, or negative sign
-    if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8 || event.keyCode == 9 || event.keyCode == 45) {
-      //console.debug('input command entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
-      // OK
-    }
-    // Cancel other keyboard events
-    else {
-      //console.debug('input not number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode + ' ' + event.code );
-      event.preventDefault();
-    }
-  }
-}
 
 export function getPropertyByPath(obj: any, path: string, defaultValue?: any): any {
   if (isNil(obj)) return undefined;
@@ -309,26 +269,6 @@ export function getPropertyByPathAsString(obj: any, path: string): string | unde
   return res && (typeof res === 'string' ? res : ('' + res));
 }
 
-export function focusInput(element: ElementRef) {
-  const inputElement = asInputElement(element);
-  if (inputElement)
-    inputElement.focus();
-  else {
-    console.warn("Trying to focus on this element:", element);
-  }
-}
-export function setTabIndex(element: ElementRef, tabIndex: number) {
-  if(isInputElement(element)) {
-    element.tabindex = tabIndex;
-  }
-  else if (element && isInputElement(element.nativeElement)) {
-    element.nativeElement.tabIndex = tabIndex;
-  }
-  else {
-    console.warn("Trying to change tabindex on this element:", element);
-  }
-}
-
 export function delay(ms: number): Promise<void> {
   return new Promise( resolve => setTimeout(resolve, ms) );
 }
@@ -338,4 +278,44 @@ export function round(value: number | undefined | null): number {
     return Math.round((value + Number.EPSILON) * 100) / 100;
   }
   return value;
+}
+
+export function equalsOrNil(value1: any, value2: any) {
+  return (value1 === value2) || (isNil(value1) && isNil(value2));
+}
+
+export declare type KeysEnum<T> = { [P in keyof Required<T>]: true };
+
+export class Beans {
+  /**
+   * Copy a source object, by including only properties of the given dataType.
+   * IMPORTANT: extra properties that are NOT in the targetClass are NOT copied.
+   * @param source The source object to copy
+   * @param dataType the class to use as target class
+   * @param keys The keys to copy. If empty, will copy only NOT optional properties from the dataType
+   */
+  static copy<T>(source: T, dataType: new() => T, keys?: KeysEnum<T>): T {
+    if (isNil(source)) return source;
+    const target = new dataType();
+    Object.keys(keys || target).forEach(key => {
+      target[key] = source[key];
+    });
+    return target;
+  }
+
+  /**
+   * Says if an object all all properties to nil
+   */
+  static isEmpty<T>(data: T, keys?: KeysEnum<T>, opts?: {
+    blankStringLikeEmpty?: boolean
+  }): boolean {
+    return isNil(data) || Object.keys(keys || data)
+      // Find index of the first NOT nil value
+      .findIndex(key => {
+        const value = data[key];
+        if (value && typeof value === 'object') return !Beans.isEmpty(value, null, opts); // Loop
+        if (opts && opts.blankStringLikeEmpty === true && typeof value === 'string') return isNotNilOrBlank(value);
+        return isNotNil(value);
+      }) === -1;
+  }
 }

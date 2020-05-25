@@ -52,7 +52,7 @@
           <ion-icon name="eye-off" *ngIf="type.statusId==2"></ion-icon>&nbsp;
         </div>
         <ion-label class="ion-text-wrap">{{type.name}}</ion-label>
-        <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+        <mat-icon slot="end">arrow_drop_down</mat-icon>
       </ion-button>
 
       <button mat-icon-button color="light" [title]="'COMMON.BTN_REFRESH'|translate"
@@ -99,7 +99,7 @@
                   *ngIf="!type?.isSpatial"
                   [title]="'EXTRACTION.BTN_AGGREGATE_HELP'|translate">
         <ion-label>{{'EXTRACTION.BTN_AGGREGATE'|translate}}</ion-label>
-        <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+        <mat-icon slot="end">arrow_drop_down</mat-icon>
       </ion-button>
 
       <button mat-icon-button [title]=" 'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">

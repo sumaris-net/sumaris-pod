@@ -1,0 +1,97 @@
+<!-- readonly -->
+<mat-form-field *ngIf="readonly; else writable">
+  <input matInput hidden type="text" readonly="true"
+         [formControl]="formControl">
+  <ion-text>{{formatFn(value, formatFnOptions)}}</ion-text>
+</mat-form-field>
+
+
+
+<!-- writable -->
+<ng-template #writable>
+  <div class="cdk-visually-hidden">
+    <div #suffix><ng-content select="[matSuffix]"></ng-content></div>
+  </div>
+
+  <ion-grid class="ion-no-padding">
+    <ion-row class="ion-no-padding no-wrap">
+      <ion-col class="ion-no-padding text">
+        <mat-form-field [floatLabel]="floatLabel"
+                        [class.mat-form-field-disabled]="formControl.disabled"
+                        [class.mat-form-field-invalid]="formControl.touched && formControl.invalid">
+
+          <mat-label *ngIf="placeholder">{{placeholder}}</mat-label>
+
+          <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>
+
+          <input matInput #inputElement
+                 type="text"
+                 autocomplete="off"
+                 [textMask]="textMaskConfig"
+                 [formControl]="textFormControl"
+                 [placeholder]="inputPlaceholder|translate"
+                 (keypress)="onKeypress($event)"
+                 (keydown.tab)="moveCaretToSeparator($event, true)"
+                 (keydown.shift.tab)="moveCaretToSeparator($event, false)"
+                 (focus)="_onFocus($event)"
+                 (blur)="_onBlur($event)"
+                 [required]="required"
+                 [tabindex]="tabindex">
+
+          <div *ngIf="!showSignControl" matSuffix #injectMatSuffix></div>
+
+          <!--<div matSuffix *ngIf="!showSignControl"><ng-content select="[matSuffix]"></ng-content></div>-->
+
+          <div class="mat-form-field-subscript mat-form-field-subscript-wrapper">
+
+            <!-- errors -->
+            <ng-container *ngIf="formControl.touched">
+              <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+              <mat-error *ngIf="formControl.hasError('latitude')" translate>ERROR.FIELD_NOT_VALID_LATITUDE</mat-error>
+              <mat-error *ngIf="formControl.hasError('longitude')" translate>ERROR.FIELD_NOT_VALID_LONGITUDE</mat-error>
+              <ng-content select="mat-error"></ng-content>
+            </ng-container>
+
+            <!-- mat hint -->
+            <div class="mat-form-field-hint-wrapper" [hidden]="formControl.invalid">
+              <div class="mat-form-field-hint-spacer"></div>
+              <ng-content select="mat-hint"></ng-content>
+            </div>
+          </div>
+        </mat-form-field>
+      </ion-col>
+
+      <!-- sign -->
+      <ion-col class="ion-no-padding sign" [ngSwitch]="type" *ngIf="showSignControl">
+
+          <!-- sign on latitude -->
+          <mat-form-field *ngSwitchCase="'latitude'"
+                          floatLabel="never"
+                          [class.mat-form-field-invalid]="formControl.touched && signFormControl.invalid">
+            <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.LAT_LONG.LAT_SIGN_PLACEHOLDER</mat-label>
+            <mat-select [formControl]="signFormControl"
+                        [tabindex]="tabindex+1">
+              <mat-option [value]="1">{{'COMMON.LAT_LONG.LAT_SIGN_N'|translate}}</mat-option>
+              <mat-option [value]="-1" >{{'COMMON.LAT_LONG.LAT_SIGN_S'|translate}}</mat-option>
+            </mat-select>
+
+            <div matSuffix #injectMatSuffix></div>
+          </mat-form-field>
+
+          <!-- sign on longitude -->
+          <mat-form-field floatLabel="never"
+                          *ngSwitchCase="'longitude'"
+                          [class.mat-form-field-invalid]="formControl.touched && signFormControl.invalid">
+            <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.LAT_LONG.LONG_SIGN_PLACEHOLDER</mat-label>
+            <mat-select [formControl]="signFormControl"
+                        [tabindex]="tabindex+2">
+              <mat-option [value]="1" translate>{{'COMMON.LAT_LONG.LONG_SIGN_E'|translate}}</mat-option>
+              <mat-option [value]="-1" translate>{{'COMMON.LAT_LONG.LONG_SIGN_W'|translate}}</mat-option>
+            </mat-select>
+
+            <div matSuffix #injectMatSuffix></div>
+          </mat-form-field>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ng-template>

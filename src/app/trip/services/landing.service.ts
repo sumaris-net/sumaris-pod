@@ -43,14 +43,15 @@ import {concatPromises} from "../../shared/observables";
 import {Moment} from "moment";
 
 
-export class LandingFilter /*extends TripFilter*/ {
+export class LandingFilter {
 
   programLabel?: string;
   vesselId?: number;
+  locationId?: number;
   startDate?: Date | Moment;
   endDate?: Date | Moment;
   recorderDepartmentId?: number;
-  locationId?: number;
+  recorderPersonId?: number;
   synchronizationStatus?: SynchronizationStatus;
 
   observedLocationId?: number;
@@ -59,6 +60,10 @@ export class LandingFilter /*extends TripFilter*/ {
   static isEmpty(landingFilter: LandingFilter|any): boolean {
     return !landingFilter || (
       isNil(landingFilter.observedLocationId) && isNil(landingFilter.tripId)
+      && isNilOrBlank(landingFilter.programLabel) && isNilOrBlank(landingFilter.vesselId) && isNilOrBlank(landingFilter.locationId)
+      && !landingFilter.startDate && !landingFilter.endDate
+      && isNil(landingFilter.recorderDepartmentId)
+      && isNil(landingFilter.recorderPersonId)
     );
   }
 
@@ -67,18 +72,32 @@ export class LandingFilter /*extends TripFilter*/ {
     return (t: T) => {
 
       // observedLocationId
-      if (isNotNil(f.observedLocationId) && f.observedLocationId !== t.observedLocationId)
-        return false;
+      if (isNotNil(f.observedLocationId) && f.observedLocationId !== t.observedLocationId) return false;
 
       // tripId
-      if (isNotNil(f.tripId) && f.tripId !== t.tripId)
-        return false;
+      if (isNotNil(f.tripId) && f.tripId !== t.tripId) return false;
+
+      // Vessel
+      if (isNotNil(f.vesselId) && t.vesselSnapshot && t.vesselSnapshot.id !== f.vesselId) return false;
+
+      // Location
+      if (isNotNil(f.locationId) && t.location && t.location.id !== f.locationId) return false;
 
       // Start/end period
       const startDate = fromDateISOString(f.startDate);
       const endDate = fromDateISOString(f.endDate);
       if ((startDate && t.dateTime && startDate.isAfter(t.dateTime))
         || (endDate && t.dateTime && endDate.add(1, 'day').isSameOrBefore(t.dateTime))) {
+        return false;
+      }
+
+      // Recorder department
+      if (isNotNil(f.recorderDepartmentId) && t.recorderDepartment && t.recorderDepartment.id !== f.recorderDepartmentId) {
+        return false;
+      }
+
+      // Recorder person
+      if (isNotNil(f.recorderPersonId) && (!t.recorderPerson || t.recorderPerson.id !== f.recorderPersonId)) {
         return false;
       }
 

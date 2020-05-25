@@ -39,8 +39,8 @@ const LoadAllQuery: any = gql`
   ${ReferentialFragments.referential}
 `;
 
-const LoadAllWithCountQuery: any = gql`
-  query ReferentialRefs($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+const LoadAllWithTotalQuery: any = gql`
+  query ReferentialRefsWithTotal($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       ...ReferentialFragment
     }
@@ -60,7 +60,7 @@ const LoadAllTaxonNamesQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class ReferentialRefService extends BaseDataService
-  implements SuggestionDataService<ReferentialRef> {
+  implements SuggestionDataService<ReferentialRef, ReferentialRefFilter> {
 
   private _importedEntities: string[];
 
@@ -93,7 +93,7 @@ export class ReferentialRefService extends BaseDataService
            opts?: {
              [key: string]: any;
              fetchPolicy?: FetchPolicy;
-             withCount?: boolean;
+             withTotal?: boolean;
            }): Observable<LoadResult<ReferentialRef>> {
 
     if (!filter || !filter.entityName) {
@@ -140,7 +140,7 @@ export class ReferentialRefService extends BaseDataService
     }
 
     else {
-      const query = (!opts || opts.withCount !== false) ? LoadAllWithCountQuery : LoadAllQuery;
+      const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
       $loadResult = this.graphql.watchQuery<{ referentials?: any[]; referentialsCount?: number }>({
         query,
         variables: variables,
@@ -174,7 +174,7 @@ export class ReferentialRefService extends BaseDataService
                   [key: string]: any;
                   fetchPolicy?: FetchPolicy;
                   debug?: boolean;
-                  withCount?: boolean;
+                  withTotal?: boolean;
                   transformToEntity?: boolean;
                 }): Promise<LoadResult<ReferentialRef>> {
 
@@ -190,7 +190,9 @@ export class ReferentialRefService extends BaseDataService
       entityName: entityName,
       offset: offset || 0,
       size: size || 100,
-      sortBy: sortBy || filter.searchAttribute || 'label',
+      sortBy: sortBy || filter.searchAttribute
+        || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
+        || 'label',
       sortDirection: sortDirection || 'asc',
       filter: {
         label: filter.label,
@@ -225,7 +227,7 @@ export class ReferentialRefService extends BaseDataService
 
     // Online mode: use graphQL
     else {
-      const query = (!opts || opts.withCount !== false) ? LoadAllWithCountQuery : LoadAllQuery;
+      const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
       loadResult = await this.graphql.query<{ referentials: any[]; referentialsCount: number }>({
         query,
         variables,
@@ -244,21 +246,13 @@ export class ReferentialRefService extends BaseDataService
     };
   }
 
-  async suggest(value: any, opts: {
-    entityName: string;
-    levelId?: number;
-    levelIds?: number[];
-    searchAttribute?: string;
-    statusId?: number;
-    statusIds?: number[];
-    searchJoin?: string;
-  }): Promise<ReferentialRef[]> {
+  async suggest(value: any, filter?: ReferentialRefFilter): Promise<ReferentialRef[]> {
     if (EntityUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
-    const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
-      { ...opts, searchText: value}, {
-        withCount: false // not need
-      });
+    const res = await this.loadAll(0, !value ? 30 : 10, null, null,
+      { ...filter, searchText: value},
+      { withTotal: false /* total not need */ }
+    );
     return res.data;
   }
 

@@ -1,0 +1,26 @@
+
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Material components</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+
+  <ion-list>
+    <ion-item tappable class="text-1x"
+              (click)="openPage('autocomplete')">
+      Autocomplete field
+    </ion-item>
+    <ion-item tappable class="text-1x" (click)="openPage('latlong')">
+      Lat/Long field
+    </ion-item>
+  </ion-list>
+
+</ion-content>

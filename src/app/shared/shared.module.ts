@@ -4,22 +4,12 @@ import {MaterialModule} from "./material/material.module";
 import {ReactiveFormsModule} from "@angular/forms";
 import {TranslateModule, TranslateService} from "@ngx-translate/core";
 import {IonicModule} from "@ionic/angular";
-import {AutofocusDirective} from "./directives/autofocus.directive";
 import {DateFormatPipe} from "./pipes/date-format.pipe";
-import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
 import {DateFromNowPipe} from "./pipes/date-from-now.pipe";
-import {LatitudeFormatPipe, LatLongFormatPipe, LongitudeFormatPipe} from "./pipes/latlong-format.pipe";
-import {NumberFormatPipe} from "./pipes/number-format.pipe";
-import {HighlightPipe} from "./pipes/highlight.pipe";
 import {ToolbarComponent} from "./toolbar/toolbar";
-import {MatDate} from "./material/material.date";
-import {MatDateTime} from "./material/material.datetime";
-import {MatLatLong} from "./material/material.latlong";
-import {MatBooleanField} from "./material/material.boolean";
-import {MatAutocompleteField} from "./material/material.autocomplete";
 import {TextMaskModule} from "angular2-text-mask";
-import {MAT_AUTOCOMPLETE_SCROLL_STRATEGY, MatPaginatorIntl} from "@angular/material";
-import {MatPaginatorI18n} from "./material/material.paginator-i18n";
+import {MatPaginatorIntl} from "@angular/material/paginator";
+import {MatPaginatorI18n} from "./material/paginator/material.paginator-i18n";
 import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
@@ -65,19 +55,16 @@ import {AppFormField} from "./form/field.component";
 import {NumpadComponent} from "./numpad/numpad";
 import {AudioProvider} from "./audio/audio";
 import {CloseScrollStrategy, Overlay} from '@angular/cdk/overlay';
-import {Hotkeys, HotkeysModule} from "./hotkeys/hotkeys.module";
-//import {FileTransfer} from "@ionic-native/file-transfer/ngx";
-//import {FileChooser} from "@ionic-native/file-chooser/ngx";
-//import {File} from "@ionic-native/file/ngx";
+import {Hotkeys, SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
 import {FileService} from "./file/file.service";
 import {HAMMER_GESTURE_CONFIG} from "@angular/platform-browser";
 import {AppGestureConfig} from "./gesture/gesture-config";
-import {FileSizePipe} from "./pipes/file-size.pipe";
-import {MatDuration} from "./material/material.duration";
-import {DurationPipe} from "./pipes/duration.pipe";
 import {ModalToolbarComponent} from "./toolbar/modal-toolbar";
 import {DragDropModule} from "@angular/cdk/drag-drop";
-import {MathAbsPipe} from "./pipes/math-abs.pipe";
+import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_AUTOCOMPLETE_SCROLL_STRATEGY} from "@angular/material/autocomplete";
+import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
+import {SharedDirectivesModule} from "./directives/directives.module";
+import {SharedPipesModule} from "./pipes/pipes.module";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -102,84 +89,40 @@ export {
 @NgModule({
   imports: [
     CommonModule,
-    MaterialModule,
-    ReactiveFormsModule,
-    TextMaskModule,
     IonicModule,
+    ReactiveFormsModule,
+    MaterialModule,
+    SharedDirectivesModule,
+    SharedPipesModule,
     TranslateModule.forChild(),
+    TextMaskModule,
     ColorPickerModule,
-    HotkeysModule,
+    SharedHotkeysModule,
     DragDropModule
   ],
   declarations: [
-    AutofocusDirective,
     ToolbarComponent,
     ModalToolbarComponent,
     NumpadComponent,
-    DateFormatPipe,
-    DateDiffDurationPipe,
-    DurationPipe,
-    DateFromNowPipe,
-    LatLongFormatPipe,
-    LatitudeFormatPipe,
-    LongitudeFormatPipe,
-    HighlightPipe,
-    NumberFormatPipe,
-    FileSizePipe,
-    MathAbsPipe,
-    MatDate,
-    MatDateTime,
-    MatDuration,
-    MatLatLong,
-    MatBooleanField,
-    MatAutocompleteField,
     AppFormField
   ],
   exports: [
-    MaterialModule,
     ReactiveFormsModule,
     IonicModule,
-    HotkeysModule,
-    AutofocusDirective,
+    MaterialModule,
+    SharedDirectivesModule,
+    SharedPipesModule,
+    SharedHotkeysModule,
     ToolbarComponent,
     ModalToolbarComponent,
     NumpadComponent,
-    DateFormatPipe,
-    DateFromNowPipe,
-    DateDiffDurationPipe,
-    DurationPipe,
-    LatLongFormatPipe,
-    LatitudeFormatPipe,
-    LongitudeFormatPipe,
-    HighlightPipe,
-    NumberFormatPipe,
-    FileSizePipe,
-    MathAbsPipe,
-    TextMaskModule,
     TranslateModule,
-    MatDate,
-    MatDateTime,
-    MatDuration,
-    MatLatLong,
-    MatBooleanField,
-    MatAutocompleteField,
     ColorPickerModule,
     AppFormField
   ],
   providers: [
-    DateFormatPipe,
-    DateFromNowPipe,
-    DateDiffDurationPipe,
-    LatLongFormatPipe,
-    LatitudeFormatPipe,
-    LongitudeFormatPipe,
-    HighlightPipe,
-    NumberFormatPipe,
     ProgressBarService,
     AudioProvider,
-    //File,
-    //FileTransfer,
-    //FileChooser,
     FileService,
     {provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService]},
     {
@@ -192,13 +135,15 @@ export {
       deps: [TranslateService]
     },
     // Configure hammer gesture
-    {
-      provide: HAMMER_GESTURE_CONFIG,
-      useClass: AppGestureConfig
-    },
+    {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
     // FIXME: try to force a custom overlay for autocomplete, because of there is a bug when using inside an ionic modal
     //{ provide: Overlay, useClass: Overlay},
     { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
+    { provide: MAT_SELECT_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
+    { provide: MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, useValue: {
+        autoActiveFirstOption: true
+      }
+    }
   ]
 })
 export class SharedModule {

@@ -15,7 +15,7 @@
   </button>
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
@@ -28,7 +28,7 @@
 
 <!-- error -->
 <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-  <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
@@ -76,6 +76,16 @@
     </mat-cell>
   </ng-container>
 
+  <!-- rankOrder (used for label) -->
+  <ng-container matColumnDef="rankOrder">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label translate>PACKET.LIST.LABEL</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-label>{{'PACKET.LIST.LABEL_VALUE' | translate : {rankOrder: row.currentData.rankOrder} }}</mat-label>
+    </mat-cell>
+  </ng-container>
+
   <!-- number -->
   <ng-container matColumnDef="number">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
@@ -96,27 +106,22 @@
     </mat-cell>
   </ng-container>
 
-  <!-- composition -->
-  <ng-container matColumnDef="composition">
-    <mat-header-cell *matHeaderCellDef>
-      <ion-label translate>PACKET.LIST.COMPOSITION</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <button mat-button
-              (click)="$event.preventDefault() || onCompositionClick(row)"
-              [title]="getComposition(row)"
-        >
-        <mat-icon>pie_chart</mat-icon>
-      </button>
-    </mat-cell>
-  </ng-container>
-
-
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+
+      <!-- composition always visible -->
+      <button mat-icon-button color="light"
+              [title]="getComposition(row)"
+              (click)="onCompositionClick($event, row)">
+        <mat-icon [matBadge]="row.currentData.composition && row.currentData.composition.length"
+                  [matBadgeHidden]="!row.currentData.composition || !row.currentData.composition.length"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">pie_chart</mat-icon>
+      </button>
 
       <!-- undo or delete  -->
       <button mat-icon-button color="light" *ngIf="row.validator.invalid"
@@ -136,6 +141,17 @@
               [title]="'COMMON.BTN_ADD'|translate"
               (click)="confirmAndAddRow($event, row)">
         <mat-icon>add</mat-icon>
+      </button>
+
+      <!-- packet sale -->
+      <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
+              [title]="'PACKET.LIST.PACKET_SALE'|translate"
+              (click)="openPacketSale($event, row)">
+        <mat-icon [matBadge]="row.currentData.saleProducts && row.currentData.composition && (row.currentData.saleProducts.length / row.currentData.composition.length).toString()"
+                  [matBadgeHidden]="!row.currentData.saleProducts || !row.currentData.saleProducts.length || !row.currentData.composition || !row.currentData.composition.length"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">local_offer</mat-icon>
       </button>
 
     </mat-cell>

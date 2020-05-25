@@ -1,0 +1,131 @@
+<form class="form-container" [formGroup]="form" >
+
+  <!-- error -->
+  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <!-- Global -->
+  <ion-grid class="ion-no-padding ion-padding-top">
+    <ion-row>
+      <ion-col size="12" size-md="2" size-lg="3">
+        <ion-label class="ion-float-end" translate>TRIP.EXPENSE.TOTAL_ESTIMATION</ion-label>
+      </ion-col>
+      <ion-col>
+        <app-form-measurements #globalMeasurementsForm
+                               entityName="VesselUseMeasurement"
+                               [debug]="debug"
+                               [tabindex]="0">
+        </app-form-measurements>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+
+  <mat-tab-group #expenseTabGroup animationDuration="0s" dynamicHeight>
+
+    <!-- SUB-TAB: fluid -->
+    <mat-tab label="{{'TRIP.EXPENSE.TAB_FLUID'|translate}}">
+      <ng-template mat-tab-label>
+        <ion-label translate>TRIP.EXPENSE.TAB_FLUID</ion-label>
+        <ion-icon slot="end" name="alert" color="danger"
+                  *ngIf="(fuelMeasurementsForm.dirty && fuelMeasurementsForm.invalid)
+                        || (engineOilMeasurementsForm.dirty && engineOilMeasurementsForm.invalid)
+                        || (hydraulicOilMeasurementsForm.dirty && hydraulicOilMeasurementsForm.invalid)"></ion-icon>
+      </ng-template>
+      <ion-grid class="ion-no-padding ion-padding-top">
+        <ion-row>
+          <ion-col size="12" size-md="2" size-lg="3">
+            <ion-label class="ion-float-end" translate>TRIP.EXPENSE.FUEL</ion-label>
+          </ion-col>
+          <ion-col>
+            <app-form-measurements #fuelMeasurementsForm
+                                   entityName="VesselUseMeasurement"
+                                   [debug]="debug"
+                                   [tabindex]="10">
+            </app-form-measurements>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="12" size-md="2" size-lg="3">
+            <ion-label class="ion-float-end" translate>TRIP.EXPENSE.ENGINE_OIL</ion-label>
+          </ion-col>
+          <ion-col>
+            <app-form-measurements #engineOilMeasurementsForm
+                                   entityName="VesselUseMeasurement"
+                                   [debug]="debug"
+                                   [tabindex]="10">
+            </app-form-measurements>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="12" size-md="2" size-lg="3">
+            <ion-label class="ion-float-end" translate>TRIP.EXPENSE.HYDRAULIC_OIL</ion-label>
+          </ion-col>
+          <ion-col>
+            <app-form-measurements #hydraulicOilMeasurementsForm
+                                   entityName="VesselUseMeasurement"
+                                   [debug]="debug"
+                                   [tabindex]="10">
+            </app-form-measurements>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </mat-tab>
+    <!-- SUB-TAB: ice -->
+    <mat-tab label="{{'TRIP.EXPENSE.TAB_ICE'|translate}}">
+      <ng-template mat-tab-label>
+        <ion-label translate>TRIP.EXPENSE.TAB_ICE</ion-label>
+        <ion-icon slot="end" name="alert" color="danger"
+                  *ngIf="iceMeasurementsForm.invalid && iceMeasurementsForm.dirty"></ion-icon>
+      </ng-template>
+      <ion-grid class="ion-no-padding ion-padding-top">
+        <ion-row>
+          <ion-col size="12" size-md="2" size-lg="3">
+          </ion-col>
+          <ion-col>
+            <app-form-measurements #iceMeasurementsForm
+                                   entityName="VesselUseMeasurement"
+                                   [debug]="debug"
+                                   [tabindex]="30">
+            </app-form-measurements>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </mat-tab>
+    <!-- SUB-TAB: misc -->
+    <mat-tab label="{{'TRIP.EXPENSE.TAB_MISC'|translate}}">
+      <ng-template mat-tab-label>
+        <ion-label translate>TRIP.EXPENSE.TAB_MISC</ion-label>
+        <ion-icon slot="end" name="alert" color="danger"
+                  *ngIf="miscMeasurementsForm.invalid && miscMeasurementsForm.dirty"></ion-icon>
+      </ng-template>
+      <ion-grid class="ion-no-padding ion-padding-top">
+        <ion-row>
+          <ion-col size="12" size-md="2" size-lg="3">
+          </ion-col>
+          <ion-col>
+            <app-form-measurements #miscMeasurementsForm
+                                   entityName="VesselUseMeasurement"
+                                   [debug]="debug"
+                                   [tabindex]="40">
+            </app-form-measurements>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </mat-tab>
+    <!-- SUB-TAB: misc -->
+    <mat-tab label="{{'TRIP.EXPENSE.TAB_BAIT'|translate}}">
+      <ng-template mat-tab-label>
+        <ion-label translate>TRIP.EXPENSE.TAB_BAIT</ion-label>
+<!--        <ion-icon slot="end" name="alert" color="danger"-->
+<!--                  *ngIf="baitMeasurementsForm.invalid && baitMeasurementsForm.dirty"></ion-icon>-->
+      </ng-template>
+    </mat-tab>
+
+
+  </mat-tab-group>
+
+
+</form>

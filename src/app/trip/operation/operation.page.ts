@@ -9,7 +9,7 @@ import {HistoryPageReference, UsageMode} from '../../core/services/model';
 import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {AcquisitionLevelCodes, PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
 import {BehaviorSubject, Subject} from 'rxjs';
-import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
+import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {debounceTime, distinctUntilChanged, filter, first, map, startWith, switchMap} from "rxjs/operators";
 import {FormGroup, Validators} from "@angular/forms";
 import * as moment from "moment";
@@ -198,7 +198,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
               samplingTypeControl.valueChanges
                 .pipe(
                   debounceTime(400),
-                  startWith(samplingTypeControl.value),
+                  startWith<any, any>(samplingTypeControl.value),
                   filter(EntityUtils.isNotEmpty),
                   map(qv => qv.label),
                   distinctUntilChanged()
@@ -238,7 +238,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
               isSamplingControl.valueChanges
                 .pipe(
                   debounceTime(400),
-                  startWith(isSamplingControl.value),
+                  startWith<any, any>(isSamplingControl.value),
                   filter(isNotNil),
                   distinctUntilChanged()
                 )
@@ -281,7 +281,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
               tripProgressControl.valueChanges
                 .pipe(
                   debounceTime(400),
-                  startWith(tripProgressControl.value),
+                  startWith<any, any>(tripProgressControl.value),
                   filter(isNotNil),
                   distinctUntilChanged()
                 )
@@ -306,6 +306,8 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
       this.onProgramChanged
         .subscribe(program => {
           if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
+          this.opeForm.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
+          this.opeForm.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
           this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
           this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
 
@@ -649,7 +651,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   }
 
   protected addToPageHistory(page: HistoryPageReference) {
-    super.addToPageHistory({ ...page, icon: 'pin'});
+    super.addToPageHistory({ ...page, icon: 'navigate'});
   }
 
   protected async setAutoFillSpecies(enable: boolean) {

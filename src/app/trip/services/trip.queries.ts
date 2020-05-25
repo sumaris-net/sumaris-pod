@@ -151,9 +151,7 @@ export const DataFragments = {
     individualCount
     subgroupCount
     weight
-    weightMethod {
-      ...ReferentialFragment
-    }
+    weightCalculated
     comments
     updateDate
     taxonGroup {

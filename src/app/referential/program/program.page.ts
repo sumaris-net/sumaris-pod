@@ -1,14 +1,7 @@
-import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {
-  AppEditorPage,
-  EntityUtils,
-  environment,
-  FormArrayHelper,
-  isNil,
-  isNotNil
-} from "../../core/core.module";
+import {AppEditorPage, EntityUtils, FormArrayHelper, isNil} from "../../core/core.module";
 import {Program, ProgramProperties, referentialToString} from "../services/model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
@@ -16,7 +9,6 @@ import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "./strategies.table";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 import {EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
-import {MatTabChangeEvent} from "@angular/material";
 import {AccountService} from "../../core/services/account.service";
 
 @Component({
@@ -156,7 +148,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     this.form.patchValue(json, {emitEvent: false});
 
     // strategies
-    this.strategiesTable.value = data.strategies.slice(); // force update
+    this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
 
     this.markAsPristine();
   }

@@ -6,9 +6,6 @@ import {FormBuilder, Validators} from "@angular/forms";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {SharedValidators} from "../../../shared/validator/validators";
 
-/*
-fixme j'aimerais bien utiliser ce validateur en enfant de PacketValidatorService, mais j'ai une erreur d'injection...
- */
 @Injectable()
 export class PacketCompositionValidatorService
   extends DataEntityValidatorService<PacketComposition> implements ValidatorService {
@@ -21,8 +18,7 @@ export class PacketCompositionValidatorService
   }
 
   getFormGroupConfig(data?: PacketComposition, opts?: DataEntityValidatorOptions): { [p: string]: any } {
-    return this.formBuilder.group(
-      Object.assign(
+    return Object.assign(
         super.getFormGroupConfig(data, opts),
         {
           __typename: [PacketComposition.TYPENAME],
@@ -35,6 +31,6 @@ export class PacketCompositionValidatorService
           ratio4: [data && data.ratio4, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
           ratio5: [data && data.ratio5, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])],
           ratio6: [data && data.ratio6, Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)])]
-        }));
+        });
   }
 }

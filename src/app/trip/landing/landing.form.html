@@ -58,13 +58,13 @@
                                 [config]="autocompleteFields.location"
                                 [tabindex]="tabindex+1"
                                 required>
-          <ion-icon matPrefix name="pin"></ion-icon>
+          <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="12" size-sm="auto" *ngIf="showDateTime">
-        <mat-date-time [placeholder]="'LANDING.DATE_TIME'|translate" formControlName="dateTime"
-                       [displayTime]="true" [required]="true">
-        </mat-date-time>
+        <mat-date-time-field [placeholder]="'LANDING.DATE_TIME'|translate" formControlName="dateTime"
+                             [displayTime]="true" [required]="true">
+        </mat-date-time-field>
       </ion-col>
     </ion-row>
 
@@ -112,7 +112,7 @@
         <!-- pmfms -->
         <mat-form-field-measurement *ngFor="let pmfm of $pmfms | async; index as i;"
                                     [pmfm]="pmfm"
-                                    [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                    [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                     [compact]="compact"
                                     [tabindex]="50 + i*2"
                                     [floatLabel]="floatLabel">

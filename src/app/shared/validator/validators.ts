@@ -1,10 +1,10 @@
-import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
+import {AbstractControl, Form, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
-import {fromDateISOString, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, toDateISOString} from "../functions";
+import {fromDateISOString, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, isNotNilOrNaN, toDateISOString} from "../functions";
 import {Moment} from "moment";
 import {DateFormatPipe} from "../shared.module";
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {MomentDateAdapter} from "@angular/material-moment-adapter";
 import {PipeTransform} from "@angular/core";
 
@@ -22,7 +22,7 @@ export class SharedValidators {
   static latitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
     if (isNotNil(value) && (value < -90 || value > 90)) {
-      return {validLatitude: true};
+      return { latitude: true };
     }
     return null;
   }
@@ -30,7 +30,7 @@ export class SharedValidators {
   static longitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
     if (isNotNil(value) && (value < -180 || value > 180)) {
-      return { validLongitude: true };
+      return { longitude: true };
     }
     return null;
   }
@@ -49,6 +49,48 @@ export class SharedValidators {
       return { entity: true };
     }
     return null;
+  }
+
+  /**
+   * Validate uniqueness of an entity in a FormArray
+   * @param controlName the name of the control in FormArray
+   */
+  static uniqueEntity(controlName: string): ValidatorFn {
+    return (group: FormArray): ValidationErrors | null => {
+      const controls: AbstractControl[] = [];
+      if (group.length) {
+        // gather controls in array with valid entity
+        for (const control of group.controls) {
+          const fromGroup = control as FormGroup;
+          if (fromGroup.controls[controlName]) {
+            const value = fromGroup.controls[controlName].value;
+            if (!!value && !!value.id)
+              controls.push(fromGroup.controls[controlName]);
+          }
+        }
+        // get occurrences of entity by id
+        const occurrences = controls.reduce((acc, control) => {
+          const id = control.value.id;
+          acc[id] ? acc[id]++ : acc[id] = 1;
+          return acc;
+        } , {});
+        // get controls with value occurrences > 1
+        const error = {uniqueEntity: true};
+        let returnError = false;
+        controls.filter(control => occurrences[control.value.id] > 1)
+          .forEach(control => {
+                let errors: ValidationErrors = control.errors || {};
+                errors = {...errors, ...error};
+                control.setErrors(errors);
+                control.markAsTouched({onlySelf: true});
+                returnError = true;
+          });
+        if (returnError)
+          return error;
+      }
+      controls.forEach(control => SharedValidators.clearError(control, 'uniqueEntity'));
+      return null;
+    };
   }
 
   static empty(control: FormControl): ValidationErrors | null {
@@ -175,10 +217,12 @@ export class SharedValidators {
     };
   }
 
-  static requiredIf(fieldName: string, anotherFieldToCheck: string): ValidatorFn {
+  static requiredIf(fieldName: string, anotherFieldToCheck: string|AbstractControl): ValidatorFn {
     return (group: FormGroup): ValidationErrors | null => {
       const control = group.get(fieldName);
-      if (isNil(control.value) && isNotNil(group.get(anotherFieldToCheck).value)) {
+      const anotherControl = (anotherFieldToCheck instanceof AbstractControl) ? anotherFieldToCheck : group.get(anotherFieldToCheck);
+      if (!anotherControl) throw new Error('Unable to find field to check!');
+      if (isNil(control.value) && isNotNil(anotherControl.value)) {
         const error = { required: true};
         control.setErrors(error);
         return error;
@@ -227,4 +271,48 @@ export class SharedValidators {
       return null;
     };
   }
+
+  /**
+   * Validate the sum of control values in an FormArray not overflow the max value
+   *
+   * @param controlName the name of the control in FormArray
+   * @param max the maximum value
+   */
+  static validSumMaxValue(controlName: string, max: number): ValidatorFn {
+    return (group: FormArray): ValidationErrors | null => {
+      const controls: AbstractControl[] = [];
+      if (group.length) {
+        for (const control of group.controls) {
+          const fromGroup = control as FormGroup;
+          if (fromGroup.controls[controlName] && isNotNilOrNaN(fromGroup.controls[controlName].value)) {
+            controls.push(fromGroup.controls[controlName]);
+          }
+        }
+        if (controls.reduce((sum, control) => sum + control.value , 0) > max) {
+          const error = {sumMaxValue: true};
+          controls.forEach(control => {
+            let errors: ValidationErrors = control.errors || {};
+            errors = {...errors, ...error};
+            control.setErrors(errors);
+            control.markAsTouched({onlySelf: true});
+          });
+          return error;
+        }
+      }
+      controls.forEach(control => SharedValidators.clearError(control, 'sumMaxValue'));
+      return null;
+    };
+  }
+
+  static propagateIfDirty(fieldName: string, fieldNameToPropagate: string, valueToPropagate: any): ValidatorFn {
+    return (group: FormGroup): null => {
+      const control = group.get(fieldName);
+      const controlToPropagate = group.get(fieldNameToPropagate);
+      if (control.dirty && controlToPropagate.value !== valueToPropagate) {
+        controlToPropagate.setValue(valueToPropagate);
+      }
+      return null;
+    };
+  }
+
 }

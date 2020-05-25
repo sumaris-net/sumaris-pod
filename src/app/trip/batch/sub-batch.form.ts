@@ -10,10 +10,9 @@ import {
   QueryList,
   ViewChildren
 } from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
 import {Batch} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {DateAdapter, MatSelect} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/forms";
@@ -21,7 +20,7 @@ import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {EntityUtils, UsageMode} from "../../core/services/model";
-import {debounceTime, distinctUntilKeyChanged, delay, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
+import {debounceTime, delay, distinctUntilKeyChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
 import {
   AcquisitionLevelCodes,
   isNil,
@@ -31,13 +30,7 @@ import {
   QualitativeLabels
 } from "../../referential/services/model";
 import {BehaviorSubject, combineLatest} from "rxjs";
-import {
-  getPropertyByPath,
-  isNilOrBlank,
-  isNotNilOrBlank,
-  startsWithUpperCase,
-  toBoolean
-} from "../../shared/functions";
+import {getPropertyByPath, isNilOrBlank, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PlatformService} from "../../core/services/platform.service";
@@ -327,7 +320,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     this.registerSubscription(
       this.enableIndividualCountControl.valueChanges
         .pipe(
-          startWith(this.enableIndividualCountControl.value)
+          startWith<any, any>(this.enableIndividualCountControl.value)
         )
         .subscribe((enable) => {
           const individualCountControl = this.form.get('individualCount');
@@ -346,7 +339,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   async doNewParentClick(event: UIEvent) {
-    if (!this.onNewParentClick) return;
+    if (!this.onNewParentClick) return; // No callback: skip
     const res = await this.onNewParentClick();
 
     if (res && res instanceof Batch) {
@@ -551,8 +544,14 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     data.parent = this._availableParents.find(p => Batch.equals(p, parentInfo));
 
-    // Get the parent of the praent (e.g. if parent is a sample batch)
-    if (!data.parent.hasTaxonNameOrGroup && data.parent.parent && data.parent.parent.hasTaxonNameOrGroup) {
+    // Parent not found
+    if (!data.parent) {
+      // Force to allow parent selection
+      this.showParent = this.showParent || true;
+    }
+
+    // Get the parent of the parent (e.g. if parent is a sample batch)
+    else if (!data.parent.hasTaxonNameOrGroup && data.parent.parent && data.parent.parent.hasTaxonNameOrGroup) {
       data.parent = data.parent.parent;
     }
   }

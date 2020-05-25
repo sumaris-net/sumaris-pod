@@ -1,7 +1,7 @@
-import {EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {AbstractControl, FormGroup} from "@angular/forms";
+import { EventEmitter, Input, OnDestroy, OnInit, Output, Directive } from '@angular/core';
+import {FormGroup} from "@angular/forms";
 import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material";
+import {DateAdapter} from "@angular/material/core";
 import {Subscription} from 'rxjs';
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {AppFormUtils} from "./form.utils";
@@ -12,6 +12,7 @@ import {
 } from "../../shared/material/material.autocomplete";
 import {LocalSettingsService} from "../services/local-settings.service";
 
+@Directive()
 export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   private _subscription = new Subscription();
@@ -216,12 +217,13 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   /* -- protected methods -- */
 
-  protected registerSubscription(sub: Subscription) {
-    this._subscription.add(sub);
+  protected registerSubscription(sub: Subscription): Subscription {
+    return this._subscription.add(sub);
   }
 
-  protected registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions) {
-    return this.autocompleteHelper.add(fieldName, options);
+  protected registerAutocompleteField<T = any, F = any>(fieldName: string,
+                                                        opts?: MatAutocompleteFieldAddOptions<T, F>): MatAutocompleteFieldConfig<T, F> {
+    return this.autocompleteHelper.add(fieldName, opts);
   }
 
   protected markForCheck() {

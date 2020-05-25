@@ -119,9 +119,9 @@
       <ion-label translate>TRIP.SAMPLE.TABLE.SAMPLE_DATE</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" class="mat-cell-date-time">
-      <mat-date-time floatLabel="never" [formControl]="row.validator.controls.sampleDate"
-                     [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-                     [compact]="true" [readonly]="!row.editing" [required]="true"></mat-date-time>
+      <mat-date-time-field floatLabel="never" [formControl]="row.validator.controls.sampleDate"
+                           [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
+                           [compact]="true" [readonly]="!row.editing" [required]="true"></mat-date-time-field>
     </mat-cell>
   </ng-container>
 

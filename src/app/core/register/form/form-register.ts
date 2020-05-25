@@ -11,7 +11,7 @@ import {
 } from "@angular/forms";
 import {AccountService, RegisterData} from "../../services/account.service";
 import {Account, referentialToString} from "../../services/model";
-import {MatHorizontalStepper} from "@angular/material";
+import {MatHorizontalStepper} from "@angular/material/stepper";
 import {Observable, Subscription, timer} from "rxjs";
 import {AccountValidatorService} from "../../services/account.validator";
 import {environment} from "../../../../environments/environment";

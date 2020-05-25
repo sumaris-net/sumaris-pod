@@ -10,7 +10,7 @@ import {
   toDateISOString
 } from "../../shared/shared.module";
 import {isEmptyArray, noTrailingSlash} from "../../shared/functions";
-import {FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
+import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 
 export {
   joinPropertiesPath,
@@ -113,6 +113,11 @@ export const ConfigOptions: FormFieldDefinitionMap = {
         value: 'COMMON.DD_PLACEHOLDER'
       }
     ]
+  },
+  TESTING: {
+    key: 'sumaris.testing.enable',
+    label: 'CONFIGURATION.OPTIONS.TESTING',
+    type: 'boolean',
   },
   VESSEL_DEFAULT_STATUS: {
     key: 'sumaris.vessel.status.default',
@@ -228,6 +233,7 @@ export function hasUpperOrEqualsProfile(actualProfiles: string[], expectedProfil
   return expectedProfileIndex !== -1 && getMainProfileIndex(actualProfiles) <= expectedProfileIndex;
 }
 
+
 export declare interface Cloneable<T> {
   clone(): Cloneable<T>;
 }
@@ -251,6 +257,15 @@ export function personsToString(data: Person[], separator?: string): string {
     return index ? (result + separator + personToString(person)) : personToString(person);
   }, '');
 }
+
+
+/* Base */
+
+// todo: replace interfaces from '[key: string]: ?' to ObjectMap<?>, when possible ...
+export interface ObjectMap<O = any> { [key: string]: O; }
+
+
+/* Entities */
 
 export interface EntityAsObjectOptions {
   minify?: boolean;
@@ -287,7 +302,7 @@ export abstract class Entity<T> implements Cloneable<T> {
 
 export class EntityUtils {
   static isNotEmpty(obj: any | Entity<any>): boolean {
-    return !!obj && obj['id'];
+    return !!obj && obj['id'] !== null && obj['id'] !== undefined;
   }
 
   static isNotEmptyEntity<T extends Entity<any>>(obj: any | Entity<any>): obj is T {
@@ -384,16 +399,23 @@ export class EntityUtils {
       return (a, b) => {
         const valueA = isNotNil(a) && a[sortBy] || undefined;
         const valueB = isNotNil(b) && b[sortBy] || undefined;
-        return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+        return EntityUtils.compare(valueA, valueB, after);
       };
     }
     else {
       return (a, b) => {
         const valueA = EntityUtils.getPropertyByPath(a, sortBy);
         const valueB = EntityUtils.getPropertyByPath(b, sortBy);
-        return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+        return EntityUtils.compare(valueA, valueB, after);
       };
     }
+  }
+
+  static compare(value1: {id: number} | any, value2: {id: number} | any, direction: 1 | -1): number {
+    if (EntityUtils.isNotEmptyEntity(value1) && EntityUtils.isNotEmptyEntity(value2)) {
+      return EntityUtils.equals(value1, value2) ? 0 : (value1.id > value2.id ? direction : (-1 * direction));
+    }
+    return value1 === value2 ? 0 : (value1 > value2 ? direction : (-1 * direction));
   }
 
   static filter<T extends Entity<T> | any>(data: T[],
@@ -738,10 +760,31 @@ export class Configuration extends Software<Configuration> {
 
     return this;
   }
+
+  getPropertyAsBoolean(definition: FormFieldDefinition): boolean {
+    const value = this.getProperty(definition);
+    return isNotNil(value) ? (value && value !== "false") : undefined;
+  }
+
+  getPropertyAsNumbers(definition: FormFieldDefinition): number[] {
+    const value = this.getProperty(definition);
+    return value && value.split(',').map(parseInt) || undefined;
+  }
+
+  getPropertyAsStrings(definition: FormFieldDefinition): string[] {
+    const value = this.getProperty(definition);
+    return value && value.split(',') || undefined;
+  }
+
+  getProperty<T = string>(definition: FormFieldDefinition): T {
+    return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : (definition.defaultValue || undefined);
+  }
 }
 
 
 export class Person extends Entity<Person> implements Cloneable<Person> {
+
+  static TYPENAME = 'PersonVO';
 
   static fromObject(source: any): Person {
     if (!source || source instanceof Person) return source;
@@ -764,7 +807,7 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
   constructor() {
     super();
     this.department = null;
-    this.__typename = 'PersonVO';
+    this.__typename = Person.TYPENAME;
   }
 
   clone(): Person {
@@ -783,7 +826,9 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     if (options && options.minify)  {
       return {
         id: this.id,
-        __typename: options.keepTypename && this.__typename || undefined
+        __typename: options.keepTypename && this.__typename || undefined,
+        firstName: this.firstName,
+        lastName: this.lastName
       };
     }
     const target: any = super.asObject(options);
@@ -936,9 +981,11 @@ export class Account extends Person {
    * Convert into a Person. This will fill __typename with a right value, for data cache
    */
   asPerson(): Person {
-    return Person.fromObject(this.asObject({
+    const person = Person.fromObject(this.asObject({
       keepTypename: true // This is need for the department object
     }));
+    person.__typename = Person.TYPENAME; // Do not keep AccountVO as typename
+    return person;
   }
 
 }

@@ -52,12 +52,21 @@
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
     "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
 
-    "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
-    "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",
-    "DD_PLACEHOLDER": "+DD.DDD°",
-    "DDDMMSS_PLACEHOLDER": "DD° MM' SS\" E|W",
-    "DDDMM_PLACEHOLDER": "DD° MM.MMM' E|W",
-    "DDD_PLACEHOLDER": "+DD.DDD°",
+    "LAT_LONG": {
+      "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
+      "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",
+      "DD_PLACEHOLDER": "+DD.DDD°",
+      "DDDMMSS_PLACEHOLDER": "DD° MM' SS\" E|W",
+      "DDDMM_PLACEHOLDER": "DD° MM.MMM' E|W",
+      "DDD_PLACEHOLDER": "+DD.DDD°",
+      "LAT_SIGN_PLACEHOLDER": "N|S",
+      "LAT_SIGN_N": "N",
+      "LAT_SIGN_S": "S",
+      "LONG_SIGN_PLACEHOLDER": "E|W",
+      "LONG_SIGN_E": "E",
+      "LONG_SIGN_W": "W"
+    },
+
 
     "METADATA": "Métadonnées :",
 
@@ -144,7 +153,8 @@
       },
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Statut par défaut pour un nouveau navire"
-      }
+      },
+      "TESTING": "Mode développeur ?"
     },
     "CACHE": {
       "NAME": "Nom",
@@ -157,6 +167,7 @@
   },
   "MENU": {
     "HOME": "Accueil",
+    "TESTING": "Mode développeur",
     "TRIPS": "Marées",
     "DATA_ENTRY_DIVIDER": "Saisie de données",
     "EXTRACTION_DIVIDER": "Extractions",
@@ -189,7 +200,7 @@
     "WELCOME_WEB": "Bienvenue sur le site web {{appName}} !",
     "WELCOME_APP": "Bienvenue sur l'application {{appName}} !",
     "DESCRIPTION": "Base de données européenne partagée<br/>pour la gestion des stocks de raies.",
-    "BTN_TRIPS": "Recherche de marées",
+    "BTN_DATA_ENTRY": "Saisie des {{name}}",
     "REGISTER_HELP": "L'inscription est gratuite. Rejoignez-nous dès aujourd'hui !",
     "NOT_THIS_ACCOUNT_QUESTION": "Vous n'êtes pas <b>{{displayName}}</b> ?",
     "BTN_DISCONNECT": "Déconnecter ce compte",
@@ -338,9 +349,10 @@
     "RETURN_LOCATION": "Port de retour",
     "OBSERVER_PLACEHOLDER": "Observateur #",
     "OBSERVERS": "Observateurs :",
-    "METIER_PLACEHOLDER": "Métier #",
+    "MAIN_METIER_PLACEHOLDER": "Métier principal",
+    "SECONDARY_METIER_PLACEHOLDER": "Métier secondaire #{{rank}}",
     "METIERS": "Métiers:",
-    "METIERS_FILTER": "Filtrer les métiers",
+    "BTN_FILTER_METIER": "Restreindre aux métiers déjà pratiqués",
     "COMMENTS": "Commentaires",
     "QUALITY": "État de saisie",
     "TAB_GENERAL": "Détails",
@@ -359,8 +371,8 @@
       "OTHER_FEATURES": "Caractéristiques :"
     },
     "OPTIONS": {
-      "ENABLE": "Marée > Activer ?",
-      "NAME": "Marée > Titre (menu, etc.)"
+      "ENABLE": "Marées > Activer ?",
+      "NAME": "Marées > Titre (menu, etc.)"
     },
     "TABLE": {
       "TITLE": "Marées",
@@ -399,7 +411,8 @@
       "VALIDATE_TRIP_ERROR": "Erreur lors de la validation de la marée",
       "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée",
       "QUALIFY_TRIP_ERROR": "Erreur lors de la qualification de la marée",
-      "SYNCHRONIZE_TRIP_ERROR": "Synchronisation impossible"
+      "SYNCHRONIZE_TRIP_ERROR": "Synchronisation impossible",
+      "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé"
     },
     "MEASUREMENT": {
       "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}",
@@ -410,7 +423,7 @@
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
       "RANK_ORDER": "#",
-      "SEARCH_EXISTING_BTN": "Chercher parmi les engins existants",
+      "SEARCH_EXISTING_BTN": "Chercher parmi les données déjà saisis",
       "NEW": {
         "TITLE": "Nouvel engin"
       },
@@ -454,7 +467,8 @@
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
-        "OTHER_FEATURES": "Caractéristiques :"
+        "OTHER_FEATURES": "Caractéristiques :",
+        "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin"
       },
       "LIST": {
         "PHYSICAL_GEAR": "Engin utilisé",
@@ -495,7 +509,16 @@
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "WEIGHT": "Poids (kg)",
         "INDIVIDUAL_COUNT": "Nombre individus",
-        "INDIVIDUAL_SAMPLING": "Echantillonage"
+        "INDIVIDUAL_SAMPLING": "Echantillonage",
+        "PRODUCT_SALE": "Ventes"
+      },
+      "SALE": {
+        "TITLE": "Vente de {{taxonGroupLabel}}",
+        "SALE_TYPE": "Type de vente",
+        "RATIO": "Ratio (%)",
+        "AVG_WEIGHT_PRICE": "Prix moyen / poids",
+        "AVG_PACKAGING_PRICE": "Prix moyen / conditionnement",
+        "TOTAL_PRICE": "Prix total"
       }
     },
     "BATCH": {
@@ -708,22 +731,31 @@
     }
   },
   "PACKET": {
+    "LABEL": "Numéro de lot",
+    "LABEL_VALUE": "Lot #{{rankOrder}}",
     "NUMBER": "Nombre de paquets",
     "WEIGHT": "Poids total des paquets calculé (kg)",
     "SAMPLED_WEIGHTS": "Poids des échantillons (kg)",
     "SAMPLED_WEIGHT": "Paquet #{{rankOrder}}",
     "SAMPLED_RATIO": "Composition %",
     "LIST": {
+      "LABEL": "Numéro de lot",
+      "LABEL_VALUE": "Lot #{{rankOrder}}",
       "PARENT": "Effort",
       "NUMBER": "Nombre de paquets",
       "WEIGHT": "Poids (kg)",
-      "COMPOSITION": "Composition"
+      "COMPOSITION": "Composition",
+      "PACKET_SALE": "Ventes"
     },
     "COMPOSITION": {
-      "TITLE": "Composition du paquet",
+      "TITLE": "Composition du Lot #{{rankOrder}}",
       "TAXON_GROUP": "Espèce commerciale (FAO)",
       "RATIO": "#{{rankOrder}} %",
       "WEIGHT": "Poids (kg)"
+    },
+    "SALE": {
+      "TITLE": "Ventes du Lot #{{rankOrder}}",
+      "SALE_TYPE": "Type de vente"
     }
   },
   "AUCTION_CONTROL": {
@@ -893,7 +925,7 @@
       "FRACTION": "Fraction",
       "METHOD": "Méthode de collecte",
       "UNIT": "Unité",
-      "BTN_ADD_PARAMETER": "Nouveau paramètre",
+      "BTN_ADD_PARAMETER": "Créer un nouveau paramètre",
       "BTN_OPEN_PARAMETER": "Ouvrir le paramètre",
       "NEW": {
         "TITLE": "Nouveau PSFM"
@@ -959,8 +991,8 @@
     "TAB_GENERAL": "Détails",
     "TAB_STRATEGIES": "Stratégies",
     "TAB_ACCESS_RIGHTS": "Droits d'accès",
-    "PROPERTIES_DIVIDER": "Paramètres du programme :",
-    "PROPERTY_KEY": "Paramètre",
+    "PROPERTIES_DIVIDER": "Options de configuration :",
+    "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "NEW": {
@@ -970,21 +1002,23 @@
       "TITLE": "Programme {{label}} - {{name}}"
     },
     "OPTIONS": {
-      "TRIP_SALE_ENABLE": "Marée : Saisir la vente ?",
-      "TRIP_OBSERVERS_ENABLE": "Marée : Saisir les observateurs ?",
-      "TRIP_METIERS_ENABLE": "Marée : Saisir les métiers ?",
-      "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin : Saisir le numéro d'engin ?",
-      "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce : Auto-remplisage ?",
-      "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce : Espèces commerciales ?",
-      "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce : Espèces commerciales sans poids:",
-      "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce : Espèces scientiques ?",
-      "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce : calcul auto nb indiv. échantillonné ?",
+      "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
+      "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
+      "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
+      "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
+      "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplisage ?",
+      "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",
+      "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces commerciales sans poids :",
+      "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce: Espèces scientiques ?",
+      "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: calcul auto nb indiv. échantillonné ?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : réordonné à la sauvegarde ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : saisir nb indiv. ?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Capture > Echantillon : Espèces commerciales ?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Capture > Echantillon : Espèces scientiques ?",
       "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Capture > Test de survie : Espèces scientiques ?",
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Capture > Test de survie : Espèces commerciales ?",
+      "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Direction par défaut :",
+      "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Direction par défaut :",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation sur site > Date de fin ?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation sur site > Niveau du lieu",
       "LOCATION_LEVEL_PORT": "Ports",

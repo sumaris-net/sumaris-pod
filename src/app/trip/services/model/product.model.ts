@@ -1,20 +1,9 @@
 import {EntityUtils, isNotNil} from "../../../core/core.module";
-import {ReferentialRef} from "../../../core/services/model";
+import {ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model";
 import {DataEntity, DataEntityAsObjectOptions, IWithProductsEntity, NOT_MINIFY_OPTIONS} from "./base.model";
-import {
-  IEntityWithMeasurement,
-  IMeasurementValue, MeasurementFormValues,
-  MeasurementModelValues,
-  MeasurementUtils,
-  MeasurementValuesUtils
-} from "./measurement.model";
-import {isNotNilOrBlank} from "../../../shared/functions";
-import {ReferentialAsObjectOptions} from "../../../core/services/model";
+import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from "./measurement.model";
+import {equalsOrNil, isNotNilOrBlank} from "../../../shared/functions";
 import {DataFilter} from "../../../shared/services/memory-data-service.class";
-
-export declare interface ProductWeight extends IMeasurementValue {
-  unit?: 'kg';
-}
 
 export class ProductFilter implements DataFilter<Product> {
 
@@ -65,11 +54,12 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   individualCount: number;
   subgroupCount: number;
   taxonGroup: ReferentialRef;
-  weight: ProductWeight;
-  weightMethod: ReferentialRef;
+  weight: number;
+  weightCalculated: boolean;
   saleType: ReferentialRef;
 
   measurementValues: MeasurementFormValues;
+  saleProducts: Product[];
 
   operationId: number;
   saleId: number;
@@ -89,10 +79,10 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.subgroupCount = null;
     this.taxonGroup = null;
     this.weight = null;
-    this.weightMethod = null;
     this.saleType = null;
 
     this.measurementValues = {};
+    this.saleProducts = [];
     this.operationId = null;
     this.saleId = null;
     this.landingId = null;
@@ -101,21 +91,21 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   }
 
   clone(): Product {
-    const target = new Product();
-    target.fromObject(this.asObject());
-    return target;
+    return Product.fromObject(this.asObject());
   }
 
   asObject(opts?: DataEntityAsObjectOptions): any {
     const target = super.asObject(opts);
 
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true} as ReferentialAsObjectOptions) || undefined;
-    target.weightMethod = this.weightMethod && this.weightMethod.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true}) || undefined;
     target.saleType = this.saleType && this.saleType.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
 
     // target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
 
+    target.saleProducts = this.saleProducts && this.saleProducts.map(s => s.asObject(opts)) || [];
+
+    delete target.parent;
     return target;
   }
 
@@ -128,7 +118,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.subgroupCount = isNotNilOrBlank(source.subgroupCount) ? parseFloat(source.subgroupCount) : null;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
     this.weight = source.weight || undefined;
-    this.weightMethod = source.weightMethod && ReferentialRef.fromObject(source.weightMethod) || undefined;
+    this.weightCalculated = source.weightCalculated || false;
     this.saleType = source.saleType && ReferentialRef.fromObject(source.saleType) || undefined;
 
     this.parent = source.parent;
@@ -137,10 +127,24 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.landingId = source.landingId;
     this.batchId = source.batchId;
 
-    // Get all measurements values
-    this.measurementValues = source.measurementValues;
+    // Get all measurements values (by copy)
+    this.measurementValues = source.measurementValues && {...source.measurementValues};
+
+    this.saleProducts = source.saleProducts && source.saleProducts.map(saleProduct => Product.fromObject(saleProduct)) || [];
 
     return this;
   }
 
+  /**
+   * This equals function should also works with SaleProduct
+   * @param other
+   */
+  equals(other: Product): boolean {
+    return super.equals(other)
+      || (
+        this.taxonGroup.equals(other.taxonGroup) && this.rankOrder === other.rankOrder
+        && equalsOrNil(this.individualCount, other.individualCount) && equalsOrNil(this.weight, other.weight)
+        && equalsOrNil(this.subgroupCount, other.subgroupCount) && EntityUtils.equals(this.saleType, other.saleType)
+      );
+  }
 }

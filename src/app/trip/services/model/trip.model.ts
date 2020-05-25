@@ -9,7 +9,7 @@ import {Moment} from "moment/moment";
 import {
   DataEntity,
   DataEntityAsObjectOptions,
-  DataRootEntity,
+  RootDataEntity,
   DataRootVesselEntity,
   IWithObserversEntity, IWithPacketsEntity, IWithProductsEntity,
   NOT_MINIFY_OPTIONS,
@@ -96,9 +96,18 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.gears = this.gears && this.gears.map(p => p && p.asObject(options)) || undefined;
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(options)) || undefined;
     target.observers = this.observers && this.observers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
-    target.metiers = this.metiers && this.metiers.map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
+
+    // Metiers
+    target.metiers = this.metiers && this.metiers.filter(isNotNil).map(p => p && p.asObject({...options, ...NOT_MINIFY_OPTIONS})) || undefined;
+    if (isEmptyArray(target.metiers)) delete target.metiers; // Clean is empty, for compat with previous version
+
+    // Operations
     target.operations = this.operations && this.operations.map(o => o.asObject(options)) || undefined;
-    target.operationGroups = this.operationGroups && this.operationGroups.map(o => o.asObject(options)) || undefined;
+
+    // Operation groups
+    target.operationGroups = this.operationGroups && this.operationGroups.filter(isNotNil).map(o => o.asObject(options)) || undefined;
+    if (isEmptyArray(target.operationGroups)) delete target.operationGroups; // Clean if empty, for compat with previous version
+
     return target;
   }
 
@@ -142,7 +151,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   }
 }
 
-export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntityWithMeasurement<PhysicalGear> {
+export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntityWithMeasurement<PhysicalGear> {
 
   static TYPENAME = 'PhysicalGearVO';
 
@@ -334,16 +343,25 @@ export class Operation extends DataEntity<Operation> {
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
     target.fishingEndDateTime = toDateISOString(this.fishingEndDateTime);
 
-    // Fill end date, using start date (can be null if ON FIELD mode)
     target.endDateTime = target.endDateTime || target.startDateTime;
-    if (target.endPosition && (target.endPosition.latitude || target.endPosition.longitude)) {
-      target.endPosition.dateTime = target.endPosition.dateTime || target.fishingEndDateTime || target.endDateTime;
+
+    // If end position is valid (has latitude AND longitude)
+    if (target.endPosition && target.endPosition.latitude && target.endPosition.longitude) {
+
+      // Fill end date, using start date (if on FIELD mode, can be null, but Pod has NOT NULL constraint)
+      if (!target.endPosition.dateTime) {
+        // Create a copy
+        target.endPosition = target.endPosition.clone();
+        target.endPosition.dateTime = target.endPosition.dateTime || target.fishingEndDateTime || target.endDateTime;
+      }
+    }
+    // Invalid position (missing latitude or longitude - allowed in on FIELD mode): remove it
+    else {
+      delete target.endPosition;
     }
 
-    target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/} as ReferentialAsObjectOptions) || undefined;
-
     // Create an array of position, instead of start/end
-    target.positions = [this.startPosition, this.endPosition]
+    target.positions = [target.startPosition, target.endPosition]
       .filter(p => p && p.dateTime)
       .map(p => p && p.asObject(opts)) || undefined;
     delete target.startPosition;
@@ -359,6 +377,9 @@ export class Operation extends DataEntity<Operation> {
       target.physicalGear = this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
       delete target.physicalGear.measurementValues;
     }
+
+    // Metier
+    target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/} as ReferentialAsObjectOptions) || undefined;
 
     // Measurements
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;

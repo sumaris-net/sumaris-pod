@@ -1,5 +1,6 @@
 import {MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../material/material.autocomplete";
 
+export declare type DisplayFn = (obj: any) => string;
 
 export declare type FormFieldType = 'integer' | 'double' | 'boolean' | 'string' | 'enum' | 'color' | 'peer' | 'entity';
 

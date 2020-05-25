@@ -143,6 +143,9 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
         }
         return {max: {max: totalWeight}} as ValidationErrors;
       }
+      else {
+        SharedValidators.clearError(samplingWeightValueControl, 'max');
+      }
 
       // Update sampling ratio
       const computedSamplingRatioPct = Math.round(100 * samplingWeight / totalWeight);

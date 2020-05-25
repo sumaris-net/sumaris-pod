@@ -1,30 +1,20 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {AbstractControl, FormArray, FormGroup} from "@angular/forms";
-import {
-  AppEditorPage,
-  EntityUtils,
-  environment,
-  isNil, isNotNil,
-  joinPropertiesPath,
-  Referential,
-  ReferentialRef
-} from "../../core/core.module";
+import {AbstractControl, FormGroup} from "@angular/forms";
+import {AppEditorPage, EntityUtils, environment, isNil, joinPropertiesPath} from "../../core/core.module";
 import {referentialToString} from "../services/model";
 import {ReferentialForm} from "../form/referential.form";
 import {PmfmValidatorService} from "../services/validator/pmfm.validator";
-import {changeCaseToUnderscore, EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
+import {EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {Parameter, Pmfm} from "../services/model/pmfm.model";
-import {ReferentialService} from "../services/referential.service";
 import {PmfmService} from "../services/pmfm.service";
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
+import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {ReferentialRefService} from "../services/referential-ref.service";
-import {MatAutocomplete} from "@angular/material";
 import {MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {ParameterService} from "../services/parameter.service";
-import {debounceTime, filter, mergeMap} from "rxjs/operators";
-import {BehaviorSubject, Observable, Subject} from "rxjs";
+import {filter, mergeMap} from "rxjs/operators";
+import {Observable} from "rxjs";
 
 @Component({
   selector: 'app-pmfm',
