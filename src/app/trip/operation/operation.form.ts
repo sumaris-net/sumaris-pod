@@ -192,7 +192,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   protected async onPhysicalGearChanged(physicalGear) {
     const metierControl = this.form.get('metier');
     const physicalGearControl = this.form.get('physicalGear');
-    console.log("onPhysicalGearChanged")
 
     const hasPhysicalGear = EntityUtils.isNotEmpty(physicalGear);
     const gears = this._physicalGearsSubject.getValue() || this._trip && this._trip.gears;

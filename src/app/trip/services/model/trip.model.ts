@@ -347,7 +347,6 @@ export class Operation extends DataEntity<Operation> {
 
     // If end position is valid (has latitude AND longitude)
     if (target.endPosition && target.endPosition.latitude && target.endPosition.longitude) {
-      console.log('TODO: check end position OK');
 
       // Fill end date, using start date (if on FIELD mode, can be null, but Pod has NOT NULL constraint)
       if (!target.endPosition.dateTime) {
