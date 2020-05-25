@@ -250,6 +250,7 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
 
     // DEBUG
     // console.debug("strValue: " + strValue)
+    console.debug("sign: " + sign)
 
     this.textFormControl.patchValue(strValue, {emitEvent: false});
     this.signFormControl.patchValue(sign, {emitEvent: false});
@@ -330,22 +331,27 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
 
     // Apply the default sign, when pattern is DD and field is empty
     if (isNil(this.value)) {
-      if (this.defaultSign && isNil(this.value) && this.pattern === 'DD') {
-
+      if (this.defaultSign) {
         // Compute the text value, using the default sign
         const defaultSign = this.defaultSign === '-' ? -1 : 1;
-        let valueStr = this.formatFn(defaultSign, {...this.formatFnOptions, placeholderChar: this.placeholderChar})
-        valueStr = valueStr && valueStr.replace('1', this.placeholderChar);
 
-        // Wait end of focus animation (label should move to top)
-        setTimeout(() => {
-          // Set the value
-          this.inputElement.nativeElement.value = valueStr;
+        if (this.pattern === 'DD') {
+          let valueStr = this.formatFn(defaultSign, {...this.formatFnOptions, placeholderChar: this.placeholderChar})
+          valueStr = valueStr && valueStr.replace('1', this.placeholderChar);
 
-          // Move cursor after the sign
-          const caretIndex = (this.type === 'latitude') ? 2 : 1;
-          selectInputRange(event.target, caretIndex);
-        }, 250);
+          // Wait end of focus animation (label should move to top)
+          setTimeout(() => {
+            // Set the value
+            this.inputElement.nativeElement.value = valueStr;
+
+            // Move cursor after the sign
+            const caretIndex = (this.type === 'latitude') ? 2 : 1;
+            selectInputRange(event.target, caretIndex);
+          }, 250);
+        }
+        else {
+          this.signFormControl.setValue(defaultSign);
+        }
       }
     }
 

@@ -198,7 +198,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @Input() i18nPrefix = 'REFERENTIAL.';
 
-  @Input() noResultMessage: 'COMMON.NO_RESULT';
+  @Input() noResultMessage = 'COMMON.NO_RESULT';
 
   @Input('class') classList: string;
 

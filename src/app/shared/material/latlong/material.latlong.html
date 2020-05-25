@@ -84,7 +84,7 @@
                           [class.mat-form-field-invalid]="formControl.touched && signFormControl.invalid">
             <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.LAT_LONG.LONG_SIGN_PLACEHOLDER</mat-label>
             <mat-select [formControl]="signFormControl"
-                        [tabindex]="tabindex+1">
+                        [tabindex]="tabindex+2">
               <mat-option [value]="1" translate>{{'COMMON.LAT_LONG.LONG_SIGN_E'|translate}}</mat-option>
               <mat-option [value]="-1" translate>{{'COMMON.LAT_LONG.LONG_SIGN_W'|translate}}</mat-option>
             </mat-select>
