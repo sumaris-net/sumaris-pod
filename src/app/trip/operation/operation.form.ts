@@ -163,8 +163,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
    * Get the position by GPS sensor
    * @param fieldName
    */
-  async fillPosition(fieldName: string) {
+  async onFillPositionClick(event: UIEvent, fieldName: string) {
 
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation(); // Avoid focus into the longitude field
+    }
     const positionGroup = this.form.controls[fieldName];
     if (positionGroup && positionGroup instanceof FormGroup) {
       const coords = await this.getGeoCoordinates();
@@ -201,7 +205,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     });
   }
 
-  copyPosition(source: string, target: string) {
+  copyPosition(event: UIEvent, source: string, target: string) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     const value = this.form.get(source).value;
 
     this.form.get(target).patchValue({

@@ -10,29 +10,14 @@
   <ion-grid class="ion-no-padding" *ngIf="showParent">
     <ion-row class="ion-no-padding">
       <ion-col class="ion-no-padding">
-        <!-- parent, if desktop -->
-        <mat-autocomplete-field #matInput *ngIf="!mobile; else parentMobile"
+        <mat-autocomplete-field #matInput
                                 formControlName="parent"
                                 [placeholder]="'TRIP.BATCH.EDIT.PARENT'|translate"
                                 [config]="autocompleteFields.parent"
                                 [required]="true"
-                                [tabindex]="tabindex">
+                                [tabindex]="tabindex"
+                                [mobile]="mobile">
         </mat-autocomplete-field>
-
-        <!-- parent, if mobile (use a mat-select)  -->
-        <ng-template #parentMobile>
-          <mat-form-field>
-            <mat-select #matInput formControlName="parent"
-                        [placeholder]="'TRIP.BATCH.EDIT.PARENT'|translate"
-                        [tabindex]="tabindex"
-                        required>
-              <mat-option *ngFor="let item of availableParents" [value]="item">
-                {{autocompleteFields.parent.displayWith(item)}}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="form.controls.parent.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          </mat-form-field>
-        </ng-template>
       </ion-col>
       <ion-col size="auto" class="ion-no-padding" *ngIf="onNewParentClick">
         <button mat-icon-button tabindex="-1" [title]="'COMMON.BTN_ADD'|translate"

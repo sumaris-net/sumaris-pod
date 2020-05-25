@@ -52,12 +52,21 @@
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
     "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
 
-    "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
-    "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",
-    "DD_PLACEHOLDER": "+DD.DDD°",
-    "DDDMMSS_PLACEHOLDER": "DD° MM' SS\" E|W",
-    "DDDMM_PLACEHOLDER": "DD° MM.MMM' E|W",
-    "DDD_PLACEHOLDER": "+DD.DDD°",
+    "LAT_LONG": {
+      "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
+      "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",
+      "DD_PLACEHOLDER": "+DD.DDD°",
+      "DDDMMSS_PLACEHOLDER": "DD° MM' SS\" E|W",
+      "DDDMM_PLACEHOLDER": "DD° MM.MMM' E|W",
+      "DDD_PLACEHOLDER": "+DD.DDD°",
+      "LAT_SIGN_PLACEHOLDER": "N|S",
+      "LAT_SIGN_N": "N",
+      "LAT_SIGN_S": "S",
+      "LONG_SIGN_PLACEHOLDER": "E|W",
+      "LONG_SIGN_E": "E",
+      "LONG_SIGN_W": "W"
+    },
+
 
     "METADATA": "Métadonnées :",
 

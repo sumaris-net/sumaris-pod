@@ -2,14 +2,7 @@
   display: inline-block;
   width: 100%;
   position: relative;
-
-  [no-padding] {
-    --ion-grid-column-padding: 0;
-  }
-
-  [nowrap] {
-    flex-wrap: nowrap;
-  }
+  --ion-grid-column-padding: 0;
 
 }
 
@@ -29,6 +22,9 @@ mat-form-field {
   }
 }
 
+ion-row.no-wrap {
+  flex-wrap: nowrap;
+}
 ion-col.day {
   min-width: 100px;
 

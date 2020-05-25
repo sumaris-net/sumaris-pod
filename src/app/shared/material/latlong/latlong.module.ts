@@ -11,6 +11,7 @@ import {SharedPipesModule} from "../../pipes/pipes.module";
 import {MatLatLongField} from "./material.latlong";
 import {ReactiveFormsModule} from "@angular/forms";
 import {TextMaskModule} from "angular2-text-mask";
+import {MatSelectModule} from "@angular/material/select";
 
 @NgModule({
   imports: [
@@ -24,7 +25,8 @@ import {TextMaskModule} from "angular2-text-mask";
     MatIconModule,
     MatButtonModule,
     TextMaskModule,
-    TranslateModule.forChild()
+    TranslateModule.forChild(),
+    MatSelectModule
   ],
   exports: [
     MatLatLongField

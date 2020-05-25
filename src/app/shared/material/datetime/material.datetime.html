@@ -7,7 +7,7 @@
 <!-- writable + time -->
 <ng-template #writable >
   <ion-grid *ngIf="displayTime else writableNoTime" class="ion-no-padding">
-    <ion-row class="ion-no-padding" [formGroup]="form" nowrap>
+    <ion-row class="ion-no-padding no-wrap" [formGroup]="form">
 
       <!-- day -->
       <ion-col class="day ion-no-padding">
