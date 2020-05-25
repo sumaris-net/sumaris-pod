@@ -41,7 +41,7 @@
                   *ngIf="showSubBatchesCallback && form.hasIndividualMeasure"
                   fill="clear" color="tertiary" expand="full"
                   (click)="onShowSubBatchesButtonClick($event)">
-        <mat-icon slot="start" >assessment</mat-icon>
+        <mat-icon slot="start">assessment</mat-icon>
         <ion-label>
           <span translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</span>
           <span *ngIf="data.observedIndividualCount">&nbsp;({{data.observedIndividualCount}})</span>

@@ -2,7 +2,7 @@
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
@@ -67,7 +67,7 @@
       </ion-col>
     </ion-row>
 
-    <!-- Weight -->
+    <!-- Total weight -->
     <ion-row *ngIf="defaultWeightPmfm && showWeight">
       <ion-col class="ion-no-padding">
         <mat-form-field-measurement #matInput
@@ -77,7 +77,8 @@
                                     [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
                                     [compact]="compact"
                                     [tabindex]="tabindex+28"
-                                    [listenStatusChanges]="true">
+                                    [listenStatusChanges]="true"
+                                    [required]="requiredWeight">
         </mat-form-field-measurement>
 
       </ion-col>

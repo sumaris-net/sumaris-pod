@@ -302,7 +302,7 @@ export abstract class Entity<T> implements Cloneable<T> {
 
 export class EntityUtils {
   static isNotEmpty(obj: any | Entity<any>): boolean {
-    return !!obj && obj['id'];
+    return !!obj && obj['id'] !== null && obj['id'] !== undefined;
   }
 
   static isNotEmptyEntity<T extends Entity<any>>(obj: any | Entity<any>): obj is T {
