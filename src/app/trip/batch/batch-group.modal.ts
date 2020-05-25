@@ -238,9 +238,9 @@ export class BatchGroupModal implements OnInit, OnDestroy {
       (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
 
     if (showTotalIndividualCount !== this.showTotalIndividualCount) {
-      this.showChildrenSampleBatch = !showTotalIndividualCount;
-      this.showChildrenWeight = !showTotalIndividualCount;
       this.showTotalIndividualCount = showTotalIndividualCount;
+      this.showChildrenWeight = !showTotalIndividualCount; // Hide weight
+      this.showChildrenSampleBatch = !showTotalIndividualCount;
       this.markForCheck();
     }
   }

@@ -41,6 +41,7 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
   protected _requiredWeight = false;
   protected _showWeight = true;
   protected _requiredSampleWeight = false;
+  protected _requiredIndividualCount = false;
 
   defaultWeightPmfm: PmfmStrategy;
   weightPmfms: PmfmStrategy[];
@@ -127,6 +128,18 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
 
   get requiredWeight(): boolean {
     return this._requiredWeight;
+  }
+
+  @Input()
+  set requiredIndividualCount(value: boolean) {
+    if (this._requiredIndividualCount !== value) {
+      this._requiredIndividualCount = value;
+      this.onUpdateControls();
+    }
+  }
+
+  get requiredIndividualCount(): boolean {
+    return this._requiredIndividualCount;
   }
 
   constructor(
@@ -310,9 +323,7 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
           const childWeightPmfm = childJson.weight.estimated && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
           childJson.measurementValues[childWeightPmfm.pmfmId.toString()] = childJson.weight.value;
         }
-        else if (isNotNilOrNaN(childJson.samplingRatio) && json){
 
-        }
         childJson.weight = undefined;
 
         // Convert measurements
@@ -470,6 +481,11 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
         this.weightForm.setValidators(Validators.compose([
           SharedValidators.requiredIf('value', samplingForm.get('weight.value'))
         ]));
+      }
+
+      // If sampling weight is required, make batch weight required also
+      if (this._requiredIndividualCount) {
+        this.form.get('individualCount').setValidators(Validators.required);
       }
     }
 

@@ -203,7 +203,10 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       // Then set value of each child form
       this.childrenForms.forEach((childForm, index) => {
         const childBatch = data.children[index] || new Batch();
+        childForm.showWeight = this.showChildrenWeight;
+        childForm.requiredWeight = this.showChildrenWeight && this.hasIndividualMeasure;
         childForm.requiredSampleWeight = this.showChildrenWeight && this.hasIndividualMeasure;
+        childForm.requiredIndividualCount = !this.showChildrenWeight && this.hasIndividualMeasure;
         childForm.setIsSampling(hasIndividualMeasure, {emitEvent: true});
         childForm.setValue(childBatch);
         if (this.enabled) {
@@ -291,6 +294,13 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         child.label = `${data.label}.${qv.label}`;
         child.measurementValues = child.measurementValues || {};
         child.measurementValues[this.qvPmfm.pmfmId.toString()] = '' + qv.id;
+
+        // Special case: when sampling on individual count only (e.g. RJB - Pocheteau)
+        const sampleBatch = BatchUtils.getSamplingChild(child);
+        if (sampleBatch && !form.showWeight && isNotNil(sampleBatch.individualCount) && isNotNil(child.individualCount)){
+          sampleBatch.samplingRatio = sampleBatch.individualCount / child.individualCount;
+          sampleBatch.samplingRatioText = `${sampleBatch.individualCount}/${child.individualCount}`;
+        }
         return child;
       });
     }
