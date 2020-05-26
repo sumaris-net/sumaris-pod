@@ -230,7 +230,7 @@ export class MenuComponent implements OnInit {
   }
 
   async menuClose(): Promise<boolean> {
-    return this.menu.close('menu');
+    return this.menu.close('left');
   }
 
   async openAboutModal(event) {

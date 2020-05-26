@@ -12,7 +12,8 @@
         <ion-grid>
           <ion-row>
             <ion-col size="4">
-              <div class="user-avatar" [class.primary]="!account?.avatar" [ngStyle]="{'background-image':'url('+(account?.avatar||'./assets/img/person.png')+')'}"
+              <div class="user-avatar" [class.primary]="!account?.avatar"
+                   [style.background-image]="'url('+(account?.avatar||'./assets/img/person.png')+')'"
                    [routerLink]="['/account']"
                    routerDirection="root"
                    routerLinkActive="ion-color-primary"
