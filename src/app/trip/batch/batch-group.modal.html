@@ -26,15 +26,12 @@
 <ion-content cdkTrapFocus class="ion-padding">
 
   <app-batch-group-form #form
-                  [acquisitionLevel]="acquisitionLevel"
-                  [program]="program"
-                  [showTaxonGroup]="showTaxonGroup"
-                  [showTaxonName]="showTaxonName"
-                  [showChildrenWeight]="showChildrenWeight"
-                  [showChildrenSampleBatch]="showChildrenSampleBatch"
-                  [showTotalIndividualCount]="showTotalIndividualCount"
-                  [showIndividualCount]="showIndividualCount"
-                  (onSubmit)="close($event)">
+                        [acquisitionLevel]="acquisitionLevel"
+                        [program]="program"
+                        [showTaxonGroup]="showTaxonGroup"
+                        [showTaxonName]="showTaxonName"
+                        [taxonGroupsNoWeight]="taxonGroupsNoWeight"
+                        (onSubmit)="close($event)">
 
       <!-- open individual modal -->
       <ion-button afterSpeciesButtons mat-button

@@ -224,7 +224,8 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
     if (this.suffixDiv) {
       this.suffixInjections.find(item => {
         item.nativeElement.append(this.suffixDiv.nativeElement);
-        return true;
+        this.suffixDiv.nativeElement.classList.remove('cdk-visually-hidden');
+        return true; // take only the first injection point
       });
     }
   }
@@ -250,7 +251,7 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
 
     // DEBUG
     // console.debug("strValue: " + strValue)
-    console.debug("sign: " + sign)
+    // console.debug("sign: " + sign)
 
     this.textFormControl.patchValue(strValue, {emitEvent: false});
     this.signFormControl.patchValue(sign, {emitEvent: false});

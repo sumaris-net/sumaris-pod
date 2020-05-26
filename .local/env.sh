@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export NODE_OPTIONS=--max-old-space-size=8192 # Avoid Javascript memory heap space
+
 #export ANDROID_NDK_VERSION=r19c
 #export ANDROID_SDK_VERSION=r29.0.2
 #export ANDROID_SDK_TOOLS_VERSION=4333796

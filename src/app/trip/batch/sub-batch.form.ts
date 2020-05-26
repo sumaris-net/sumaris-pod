@@ -20,7 +20,17 @@ import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {EntityUtils, UsageMode} from "../../core/services/model";
-import {debounceTime, delay, distinctUntilKeyChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
+import {
+  debounceTime,
+  delay,
+  distinctUntilKeyChanged,
+  filter,
+  mergeMap,
+  skip,
+  startWith,
+  tap,
+  throttleTime
+} from "rxjs/operators";
 import {
   AcquisitionLevelCodes,
   isNil,
@@ -231,6 +241,12 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     const parentControl = this.form.get('parent');
 
+    this.registerAutocompleteField('taxonName', {
+      items: this.$taxonNames.asObservable(),
+      showAllOnFocus: true,
+      mobile: this.mobile
+    });
+
     // Mobile
     if (this.mobile) {
 
@@ -289,10 +305,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // Desktop
     else {
-      this.registerAutocompleteField('taxonName', {
-        items: this.$taxonNames.asObservable(),
-        showAllOnFocus: true
-      });
 
       // Reset taxon name combo when parent changed
       this.registerSubscription(

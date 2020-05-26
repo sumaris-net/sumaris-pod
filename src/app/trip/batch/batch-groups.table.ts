@@ -229,7 +229,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
     const taxonGroups = (await this.programService.loadTaxonGroups(this.program) || [])
       // Filter on expected labels (as prefix)
-      .filter(taxonGroup => !includedLabels || includedLabels.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
+      .filter(taxonGroup => !includedLabels || taxonGroup.label && includedLabels.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
       // Sort using order configure in the taxon group column
       .sort(propertiesPathComparator(sortAttributes));
 
@@ -584,11 +584,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
-        showChildrenSampleBatch: true,
-        showChildrenWeight: true,
-        showTotalIndividualCount: false,
         taxonGroupsNoWeight: this.taxonGroupsNoWeight,
-        showIndividualCount: false,
         showSubBatchesCallback: onOpenSubBatchesFromModal
       },
       keyboardClose: true,

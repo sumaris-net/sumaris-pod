@@ -119,7 +119,7 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     if (!batch.weight) return null;
 
     const sampleBatch = BatchUtils.getSamplingChild(batch);
-    if (!sampleBatch) return null;
+    if (!sampleBatch || !sampleBatch.weight) return null;
 
     const totalWeight = batch.weight.value;
     const samplingRatioPct = sampleBatch.samplingRatio;

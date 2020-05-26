@@ -52,12 +52,20 @@
     "DATE_PLACEHOLDER": "dd/mm/yyyy",
     "DATE_TIME_PLACEHOLDER": "dd/mm/yyyy hh:mm",
 
-    "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
-    "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",
-    "DD_PLACEHOLDER": "+DD.DDD°",
-    "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\" E|W",
-    "DDDMM_PLACEHOLDER": "DDD° MM.MMM' E|W",
-    "DDD_PLACEHOLDER": "+DDD.DDD°",
+    "LAT_LONG": {
+      "DDMMSS_PLACEHOLDER": "DD° MM' SS\"",
+      "DDMM_PLACEHOLDER": "DD° MM.MMM'",
+      "DD_PLACEHOLDER": "+DD.DDD°",
+      "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\"",
+      "DDDMM_PLACEHOLDER": "DDD° MM.MMM'",
+      "DDD_PLACEHOLDER": "+DDD.DDD°",
+      "LAT_SIGN_PLACEHOLDER": "N|S",
+      "LAT_SIGN_N": "N",
+      "LAT_SIGN_S": "S",
+      "LONG_SIGN_PLACEHOLDER": "E|W",
+      "LONG_SIGN_E": "E",
+      "LONG_SIGN_W": "W"
+    },
 
     "METADATA": "Metadata:",
 
@@ -144,7 +152,8 @@
       },
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Default status for new vessel"
-      }
+      },
+      "TESTING": "Developer mode ?"
     },
     "CACHE": {
       "NAME": "Name",
@@ -157,6 +166,7 @@
   },
   "MENU": {
     "HOME": "Home",
+    "TESTING": "Developer mode",
     "TRIPS": "Trips",
     "DATA_ENTRY_DIVIDER": "Data entry",
     "EXTRACTION_DIVIDER": "Extractions",
@@ -456,7 +466,8 @@
         "GEAR_AND_TARGETED_SPECIES": "Gear / Target species:",
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
-        "OTHER_FEATURES": "Other features:"
+        "OTHER_FEATURES": "Other features:",
+        "NO_TARGET_SPECIES_FOUND": "No species for this gear"
       },
       "LIST": {
         "PHYSICAL_GEAR": "Used gear",
@@ -1005,6 +1016,8 @@
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Catch > Sample: Scientific species?",
       "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Catch > Survival test: Scientific species?",
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Catch > Survival test: Commercial species?",
+      "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Default direction:",
+      "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Default direction:",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation > End date?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation > Location level",
       "LOCATION_LEVEL_PORT": "Ports",

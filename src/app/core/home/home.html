@@ -62,12 +62,12 @@
       <ion-grid>
         <ion-row>
           <ion-col>
-            <ion-label class="ion-text-wrap">
+            <ion-text class="ion-text-wrap">
               <b [innerHTML]="'HOME.DOWNLOAD_APP_TITLE'| translate: {appName: appInstallName, platform: appPlatformName}"></b><br/>
               <small [innerHTML]="'HOME.DOWNLOAD_APP_HELP'|translate"></small>
-            </ion-label>
+            </ion-text>
           </ion-col>
-          <ion-col size="auto" >
+          <ion-col size="auto">
             <!-- Display App download link -->
             <ion-button color="tertiary" class="ion-float-end"
                         (click)="downloadApp($event)">
@@ -87,14 +87,13 @@
             class="main ion-no-margin"
             @slideUpDownAnimation>
     <ion-card-content class="ion-no-padding">
-      <ion-grid class="ion-no-padding">
+      <ion-grid>
         <ion-row>
           <ion-col>
-            <ion-label class="ion-text-wrap">
-              <b [innerHTML]="'NETWORK.INFO.OFFLINE'| translate"></b>
-              <br/>
+            <ion-text class="ion-text-wrap">
+              <b [innerHTML]="'NETWORK.INFO.OFFLINE'| translate"></b><br/>
               <small [innerHTML]="'NETWORK.INFO.OFFLINE_HELP'|translate"></small>
-            </ion-label>
+            </ion-text>
           </ion-col>
           <ion-col size="auto">
             <!-- Retry button -->

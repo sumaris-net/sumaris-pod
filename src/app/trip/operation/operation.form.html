@@ -80,8 +80,7 @@
                 <button type="button" mat-icon-button matSuffix
                         [hidden]="enableGeolocation || form.controls.startPosition.invalid"
                         (click)="copyPosition($event,'startPosition', 'endPosition')"
-                        [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate"
-                        [tabindex]="tabindex+9">
+                        [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
                   <mat-icon>arrow_downward</mat-icon>
                 </button>
               </mat-latlong-field>

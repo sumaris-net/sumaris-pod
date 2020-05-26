@@ -15,8 +15,7 @@ cd ${PROJECT_DIR}
 
 # Run the build
 echo "Building Android application..."
-#${IONIC_CMD} cordova build android --warning-mode=none --color $*
-${NG_CMD} run app:ionic-cordova-build --platform=android $*
+ionic cordova build android --warning-mode=none --color $*
 [[ $? -ne 0 ]] && exit 1
 
 echo "Running Android application..."

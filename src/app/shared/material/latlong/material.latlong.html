@@ -9,13 +9,10 @@
 
 <!-- writable -->
 <ng-template #writable>
-  <div class="cdk-visually-hidden">
-    <div #suffix><ng-content select="[matSuffix]"></ng-content></div>
-  </div>
 
   <ion-grid class="ion-no-padding">
     <ion-row class="ion-no-padding no-wrap">
-      <ion-col class="ion-no-padding text">
+      <ion-col class="text ion-no-padding">
         <mat-form-field [floatLabel]="floatLabel"
                         [class.mat-form-field-disabled]="formControl.disabled"
                         [class.mat-form-field-invalid]="formControl.touched && formControl.invalid">
@@ -62,7 +59,7 @@
       </ion-col>
 
       <!-- sign -->
-      <ion-col class="ion-no-padding sign" [ngSwitch]="type" *ngIf="showSignControl">
+      <ion-col class="sign ion-no-padding" [ngSwitch]="type" *ngIf="showSignControl">
 
           <!-- sign on latitude -->
           <mat-form-field *ngSwitchCase="'latitude'"
@@ -94,4 +91,9 @@
       </ion-col>
     </ion-row>
   </ion-grid>
+
+  <div class="cdk-visually-hidden">
+    <div #suffix><ng-content select="[matSuffix]"></ng-content></div>
+  </div>
+
 </ng-template>

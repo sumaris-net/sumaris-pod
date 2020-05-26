@@ -1,9 +1,15 @@
 :host {
-  min-width: 125px;
   display: inline-block;
   width: 100%;
+  min-width: 140px;
   position: relative;
   --ion-grid-column-padding: 0;
+}
+
+mat-form-field {
+  .datetime-md {
+    padding: 0 !important;
+  }
 }
 
 ion-row {
@@ -13,8 +19,8 @@ ion-row {
     min-width: 80px;
   }
   ion-col.sign {
-    min-width: 45px;
-    max-width: 55px;
+    min-width: 60px;
+    max-width: 70px;
   }
 }
 

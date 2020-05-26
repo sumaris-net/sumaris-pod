@@ -129,7 +129,7 @@
                   <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unitLabel}})</small>
                 </ion-label>
               </mat-header-cell>
-              <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
+              <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate" class="mat-column-pmfm">
                 <span [innerHTML]="measurementValueToString(row.currentData.measurementValues[pmfm.pmfmId], pmfm)"></span>
               </mat-cell>
             </ng-container>
