@@ -250,7 +250,7 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
 
     // DEBUG
     // console.debug("strValue: " + strValue)
-    console.debug("sign: " + sign)
+    // console.debug("sign: " + sign)
 
     this.textFormControl.patchValue(strValue, {emitEvent: false});
     this.signFormControl.patchValue(sign, {emitEvent: false});

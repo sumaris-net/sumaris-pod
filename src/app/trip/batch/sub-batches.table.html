@@ -76,7 +76,7 @@
             <ion-label *ngIf="!loading">#</ion-label>
             <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
           </mat-header-cell>
-          <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
+          <mat-cell *matCellDef="let row"><ion-label>{{ row.currentData?.rankOrder }}</ion-label></mat-cell>
         </ng-container>
 
         <!-- parent -->
@@ -122,7 +122,7 @@
               <small *ngIf="pmfm.hasUnit"><br/>({{pmfm.unitLabel}})</small>
             </ion-label>
           </mat-header-cell>
-          <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
+          <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate" >
             <mat-form-field-measurement floatLabel="never"
                                         [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
                                         [pmfm]="pmfm"
