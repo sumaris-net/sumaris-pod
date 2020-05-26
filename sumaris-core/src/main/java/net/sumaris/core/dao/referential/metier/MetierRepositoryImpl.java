@@ -38,6 +38,7 @@ import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +82,8 @@ public class MetierRepositoryImpl
         final boolean enableSearchOnJoin = (searchJoinProperty != null);
 
         // Create page (do NOT sort if searchJoin : will be done later)
-        Pageable page = getPageable(offset, size, enableSearchOnJoin ? null : sortAttribute, enableSearchOnJoin ? null : sortDirection);
+        boolean sortingOutsideQuery = enableSearchOnJoin && !ReferentialVO.Fields.ID.equals(sortAttribute);
+        Pageable page = getPageable(offset, size, !sortingOutsideQuery ? sortAttribute : null, !sortingOutsideQuery ? sortDirection : null);
 
         // Create the query
         TypedQuery<Metier> query = createQueryByFilter(filter, page);
@@ -105,7 +107,7 @@ public class MetierRepositoryImpl
                 return target;
             })
             // If join search: sort using a comparator (sort was skipped in query)
-            .sorted(enableSearchOnJoin ? Beans.naturalComparator(sortAttribute, sortDirection) : Beans.unsortedComparator())
+            .sorted(sortingOutsideQuery ? Beans.naturalComparator(sortAttribute, sortDirection) : Beans.unsortedComparator())
             .collect(Collectors.toList());
     }
 
