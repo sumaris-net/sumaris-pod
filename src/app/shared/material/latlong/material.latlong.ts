@@ -224,7 +224,8 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
     if (this.suffixDiv) {
       this.suffixInjections.find(item => {
         item.nativeElement.append(this.suffixDiv.nativeElement);
-        return true;
+        this.suffixDiv.nativeElement.classList.remove('cdk-visually-hidden');
+        return true; // take only the first injection point
       });
     }
   }

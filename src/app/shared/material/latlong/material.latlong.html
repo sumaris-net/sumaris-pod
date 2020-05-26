@@ -9,9 +9,6 @@
 
 <!-- writable -->
 <ng-template #writable>
-  <div class="cdk-visually-hidden">
-    <div #suffix><ng-content select="[matSuffix]"></ng-content></div>
-  </div>
 
   <ion-grid class="ion-no-padding">
     <ion-row class="ion-no-padding no-wrap">
@@ -94,4 +91,9 @@
       </ion-col>
     </ion-row>
   </ion-grid>
+
+  <div class="cdk-visually-hidden" #suffix>
+    <ng-content select="[matSuffix]"></ng-content>
+  </div>
+
 </ng-template>

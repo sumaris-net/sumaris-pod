@@ -53,11 +53,11 @@
     "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
 
     "LAT_LONG": {
-      "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
-      "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",
+      "DDMMSS_PLACEHOLDER": "DD° MM' SS\"",
+      "DDMM_PLACEHOLDER": "DD° MM.MMM'",
       "DD_PLACEHOLDER": "+DD.DDD°",
-      "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\" E|W",
-      "DDDMM_PLACEHOLDER": "DDD° MM.MMM' E|W",
+      "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\"",
+      "DDDMM_PLACEHOLDER": "DDD° MM.MMM'",
       "DDD_PLACEHOLDER": "+DDD.DDD°",
       "LAT_SIGN_PLACEHOLDER": "N|S",
       "LAT_SIGN_N": "N",

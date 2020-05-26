@@ -631,8 +631,7 @@ export const ProgramProperties: FormFieldDefinitionMap = {
         key: '-',
         value: 'S'
       }
-    ],
-    defaultValue: 'N'
+    ]
   },
   TRIP_LONGITUDE_SIGN: {
     key: "sumaris.trip.operation.longitude.defaultSign",
@@ -647,8 +646,7 @@ export const ProgramProperties: FormFieldDefinitionMap = {
         key: '-',
         value: 'W'
       }
-    ],
-    defaultValue: '-'
+    ]
   },
 
   // Observed location
