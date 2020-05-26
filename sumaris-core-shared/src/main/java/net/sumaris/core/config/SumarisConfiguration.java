@@ -762,11 +762,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.INIT_STATISTICAL_RECTANGLES.getKey());
     }
 
-    @Deprecated
-    public boolean isPreserveHistoricalMeasurements() {
-        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.PRESERVE_HISTORICAL_MEASUREMENTS.getKey());
-    }
-
     public boolean enableBatchHashOptimization() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_BATCH_HASH_OPTIMIZATION.getKey());
     }
