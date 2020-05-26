@@ -241,28 +241,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     const parentControl = this.form.get('parent');
 
-    // Reset taxon name combo when parent changed
-    this.registerSubscription(
-      parentControl.valueChanges
-        .pipe(
-          // Warn: skip the first trigger (ignore set value)
-          filter(() => !this.loadingValue),
-          debounceTime(250),
-          filter(parent => EntityUtils.isNotEmpty(parent) && this.form.enabled),
-          distinctUntilKeyChanged('label'),
-          mergeMap(() => this.suggestTaxonNames())
-        )
-        .subscribe((taxonNames) => {
-          this.$taxonNames.next(taxonNames);
-          if (taxonNames.length === 1) {
-            taxonNameControl.patchValue(taxonNames[0], {emitEVent: false});
-          }
-          else {
-            taxonNameControl.reset(null, {emitEVent: false});
-            //taxonNameControl.markAsPristine({onlySelf: true});
-          }
-        }));
-
     this.registerAutocompleteField('taxonName', {
       items: this.$taxonNames.asObservable(),
       showAllOnFocus: true,
@@ -275,15 +253,15 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       this.ready().then(() => {
         let currentParenLabel;
 
-        // // Compute taxon names when parent has changed
-        // parentControl.valueChanges
-        //   // Compute taxon names when parent has changed
-        //   .pipe(
-        //     filter(parent => isNotNilOrBlank(parent) && isNotNilOrBlank(parent.label) && currentParenLabel !== parent.label),
-        //     tap(parent => currentParenLabel = parent.label),
-        //     mergeMap((_) => this.suggestTaxonNames())
-        //   )
-        //   .subscribe(items => this.$taxonNames.next(items));
+        // Compute taxon names when parent has changed
+        parentControl.valueChanges
+          // Compute taxon names when parent has changed
+          .pipe(
+            filter(parent => isNotNilOrBlank(parent) && isNotNilOrBlank(parent.label) && currentParenLabel !== parent.label),
+            tap(parent => currentParenLabel = parent.label),
+            mergeMap((_) => this.suggestTaxonNames())
+          )
+          .subscribe(items => this.$taxonNames.next(items));
 
         // Update taxonName when need
         let lastTaxonName: TaxonNameRef;
@@ -328,8 +306,27 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     // Desktop
     else {
 
-
-
+      // Reset taxon name combo when parent changed
+      this.registerSubscription(
+        parentControl.valueChanges
+          .pipe(
+            // Warn: skip the first trigger (ignore set value)
+            skip(1),
+            debounceTime(250),
+            filter(parent => EntityUtils.isNotEmpty(parent) && this.form.enabled),
+            distinctUntilKeyChanged('label'),
+            mergeMap(() => this.suggestTaxonNames())
+          )
+          .subscribe((taxonNames) => {
+            this.$taxonNames.next(taxonNames);
+            if (taxonNames.length === 1) {
+              taxonNameControl.patchValue(taxonNames[0], {emitEVent: false});
+            }
+            else {
+              taxonNameControl.reset(null, {emitEVent: false});
+              //taxonNameControl.markAsPristine({onlySelf: true});
+            }
+          }));
     }
 
     this.registerSubscription(
