@@ -17,11 +17,11 @@ if [[ "_" == "_${CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL}" ]]; then
 fi
 
 echo "Preparing Android environment:"
-echo " - using Android SDK: ${ANDROID_SDK_ROOT}"
-echo " - using Android SDK tools: ${ANDROID_SDK_TOOLS_ROOT}"
-echo " - using Gradle: ${GRADLE_HOME}"
-echo " - using Java: ${JAVA_HOME}"
-echo " - project dir: ${PROJECT_DIR}"
+echo "        Root: ${PROJECT_DIR}"
+echo "      NodeJS: version ${NODE_VERSION} with options: ${NODE_OPTIONS}"
+echo " Android SDK: ${ANDROID_SDK_ROOT} with SDK tools: ${ANDROID_SDK_TOOLS_ROOT}"
+echo "      Gradle: ${GRADLE_HOME}"
+echo "        Java: ${JAVA_HOME}"
 
 # Make sure javac exists
 JAVAC_PATH=$(which javac)
@@ -69,4 +69,4 @@ else
   echo "No directory '${PROJECT_DIR}/.local/android' found. Please create it, with a file 'release-signing.properties' for release signing"
 fi
 
- echo "Environment is ready!"
+echo "Android environment is ready!"

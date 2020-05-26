@@ -16,11 +16,7 @@ cd ${PROJECT_DIR}
 
 # Run the build
 echo "Running cordova build..."
-npm run build.android.prod
-# This is equivalent to
-#ionic cordova build android --warning-mode=none --release
-# TODO: try this :
-#ionic cordova build android --warning-mode=none --color --prod --release --optimizejs --minifyjs --minifycss
+ionic cordova build android --prod --release --warning-mode=none --color
 
 [[ $? -ne 0 ]] && exit 1
 

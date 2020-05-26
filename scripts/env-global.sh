@@ -13,7 +13,8 @@ if [[ ! -f "${PROJECT_DIR}/package.json" ]]; then
 fi;
 
 echo "Preparing project environment.."
-NODEJS_VERSION=10
+NODE_VERSION=10
+NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
 
 #ANDROID_NDK_VERSION=r19c
 ANDROID_SDK_VERSION=r29.0.2
@@ -28,9 +29,7 @@ ANDROID_OUTPUT_APK_PREFIX=app
 
 PROJECT_NAME=sumaris-app
 
-NODE_CMD="node --max-old-space-size=8192"
-IONIC_CMD="${NODE_CMD} ./node_modules/.bin/ionic"
-NG_CMD="${NODE_CMD} ./node_modules/.bin/ng"
+
 
 # /!\ WARN can be define in your <project>/.local/env.sh file
 #JAVA_HOME=
@@ -87,10 +86,10 @@ PATH=${ANDROID_SDK_TOOLS_ROOT}/bin:${GRADLE_HOME}/bin:${JAVA_HOME}/bin$:$PATH
 export PATH \
   PROJECT_DIR \
   JAVA_HOME \
+  NODE_OPTIONS \
   ANDROID_SDK_ROOT \
   ANDROID_SDK_TOOLS_ROOT \
   CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL
-
 
 # Node JS
 export NVM_DIR="$HOME/.nvm"
@@ -100,11 +99,11 @@ if [[ -d "${NVM_DIR}" ]]; then
     . ${NVM_DIR}/nvm.sh
 
     # Switch to expected version
-    nvm use ${NODEJS_VERSION}
+    nvm use ${NODE_VERSION}
 
     # Or install it
     if [[ $? -ne 0 ]]; then
-        nvm install ${NODEJS_VERSION}
+        nvm install ${NODE_VERSION}
         [[ $? -ne 0 ]] && exit 1
     fi
 else
