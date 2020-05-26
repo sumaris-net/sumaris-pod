@@ -87,13 +87,24 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     }
   ];
 
+  private _defaultTaxonGroups: string[];
   protected modalCtrl: ModalController;
 
   weightMethodForm: FormGroup;
   estimatedWeightPmfm: PmfmStrategy;
   dynamicColumns: ColumnDefinition[];
 
-  @Input() defaultTaxonGroups: string[];
+
+  @Input() set defaultTaxonGroups(value: string[]) {
+    //if (this._defaultTaxonGroups !== value) {
+      this._defaultTaxonGroups = value;
+      this.markForCheck();
+    //}
+  }
+
+  get defaultTaxonGroups(): string[] {
+    return this._defaultTaxonGroups;
+  }
 
   @Input() taxonGroupsNoWeight: string[];
 
@@ -231,7 +242,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     this.disable();
 
     try {
-      const defaultTaxonGroups = opts && opts.defaultTaxonGroups || this.defaultTaxonGroups || null;
+      const defaultTaxonGroups = opts && opts.defaultTaxonGroups || this._defaultTaxonGroups || null;
       console.debug("[batch-group-table] Auto fill table, using options:", opts);
 
       // Read existing taxonGroup
@@ -588,6 +599,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
           return onOpenSubBatchesFromModal(parent); // loop
         }, 100);
       }
+
+      this.markAsLoading();
 
       await this.onSubBatchesClick(null, this.editedRow, {
         showParent: false // Web come from the parent modal, so the parent field can be hidden

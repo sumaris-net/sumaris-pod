@@ -332,10 +332,8 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
           this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
 
           // Autofill batch group table (e.g. with taxon groups found in strategies)
-          if (this.isNewData) {
-            const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
-            this.setAutoFillSpecies(autoFillBatch);
-          }
+          const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
+          this.setAutoFillSpecies(autoFillBatch);
         })
     );
   }
@@ -661,7 +659,11 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   }
 
   protected async setAutoFillSpecies(enable: boolean) {
-    if (!this.showBatchTables || !this.batchGroupsTable.showTaxonGroupColumn || !enable) return; // Skip
+    if (!this.showBatchTables || !this.batchGroupsTable.showTaxonGroupColumn || !enable) {
+      // Reset table's default taxon groups
+      this.batchGroupsTable.defaultTaxonGroups = null;
+      return; // Skip
+    }
 
     if (this.debug) console.debug("[operation] Check if can auto fill species...");
     let includeTaxonGroups: string[];
@@ -671,8 +673,8 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     if (qvMeasurement && EntityUtils.isNotEmpty(qvMeasurement.qualitativeValue)) {
 
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
-      const pmfms = await this.programService.loadProgramPmfms(this.programSubject.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
-      const pmfm = (pmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
+      const tripPmfms = await this.programService.loadProgramPmfms(this.programSubject.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
+      const pmfm = (tripPmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
       const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
 
       // Transform QV.label has a list of TaxonGroup.label
@@ -684,9 +686,12 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
       }
     }
 
-    // Ask table to auto fill
-    if (isNotEmptyArray(includeTaxonGroups)) {
-      this.batchGroupsTable.defaultTaxonGroups = includeTaxonGroups;
+    // Set table's default taxon groups
+    this.batchGroupsTable.defaultTaxonGroups = includeTaxonGroups;
+    this.markForCheck();
+
+    // If new data, auto fill the table
+    if (this.isNewData) {
       await this.batchGroupsTable.autoFillTable();
     }
   }
