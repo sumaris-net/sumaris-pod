@@ -16,14 +16,13 @@ cd ${PROJECT_DIR}
 
 # Run the build
 echo "Running cordova build..."
-
-ionic cordova build android --warning-mode=none --color --prod --release
+npm run build.android.prod
+# This is equivalent to
+#ionic cordova build android --warning-mode=none --release
 # TODO: try this :
 #ionic cordova build android --warning-mode=none --color --prod --release --optimizejs --minifyjs --minifycss
 
-if [[ $? -ne 0 ]]; then
-  exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 # Signature
 KEYSTORE_FILE=${PROJECT_DIR}/.local/Sumaris.keystore
