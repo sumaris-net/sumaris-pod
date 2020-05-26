@@ -4,7 +4,7 @@ import {BatchGroupValidatorService} from "../services/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
 import {isNil, isNotEmptyArray, isNotNil, toFloat, toInt} from "../../shared/functions";
-import {MethodIds, PmfmStrategy, QualityFlagIds} from "../../referential/services/model";
+import {EntityUtils, MethodIds, PmfmStrategy, QualityFlagIds} from "../../referential/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {environment} from "../../../environments/environment";
 import {MeasurementFormValues, MeasurementValuesUtils} from "../services/model/measurement.model";
@@ -18,6 +18,7 @@ import {FormFieldDefinition} from "../../shared/form/field.model";
 import {firstFalsePromise} from "../../shared/observables";
 import {BatchGroup, BatchGroupUtils} from "../services/model/batch-group.model";
 import {emit} from "cluster";
+import {Sample} from "../services/model/sample.model";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
@@ -91,6 +92,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   weightMethodForm: FormGroup;
   estimatedWeightPmfm: PmfmStrategy;
   dynamicColumns: ColumnDefinition[];
+
+  @Input() defaultTaxonGroups: string[];
 
   @Input() taxonGroupsNoWeight: string[];
 
@@ -218,25 +221,45 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
    * Allow to fill table (e.g. with taxon groups found in strategies) - #176
    * @params opts.includeTaxonGroups : include taxon label
    */
-  async autoFillTable(opts?: {includeTaxonGroups?: string[]; }) {
+  async autoFillTable(opts?: {defaultTaxonGroups?: string[]; }) {
     // Wait table is ready
     if (this.loading || !this.program) {
       await firstFalsePromise(this.$loading);
     }
-    console.debug("[batch-group-table] Auto fill table, using options:", opts);
+    if (!this.confirmEditCreate()) return;
 
-    const includedLabels = opts && opts.includeTaxonGroups || null;
-    const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
-    const taxonGroups = (await this.programService.loadTaxonGroups(this.program) || [])
-      // Filter on expected labels (as prefix)
-      .filter(taxonGroup => !includedLabels || taxonGroup.label && includedLabels.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
-      // Sort using order configure in the taxon group column
-      .sort(propertiesPathComparator(sortAttributes));
+    this.disable();
 
-    for (const taxonGroup of taxonGroups) {
-      const batch = new BatchGroup();
-      batch.taxonGroup = taxonGroup;
-      await this.addEntityToTable(batch);
+    try {
+      const defaultTaxonGroups = opts && opts.defaultTaxonGroups || this.defaultTaxonGroups || null;
+      console.debug("[batch-group-table] Auto fill table, using options:", opts);
+
+      // Read existing taxonGroup
+      const rowsTaxonGroups = (await this.dataSource.getRows() || []).map(r => r.currentData)
+        .map(batch => batch.taxonGroup)
+        .filter(isNotNil);
+
+      const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
+      const taxonGroups = (await this.programService.loadTaxonGroups(this.program) || [])
+        // Filter on expected labels (as prefix)
+        .filter(taxonGroup => !defaultTaxonGroups || taxonGroup.label && defaultTaxonGroups.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
+        // Exclude species that already exists in table
+        .filter(taxonGroup => !rowsTaxonGroups.find(tg => EntityUtils.equals(tg, taxonGroup)))
+        // Sort using order configure in the taxon group column
+        .sort(propertiesPathComparator(sortAttributes));
+
+      for (const taxonGroup of taxonGroups) {
+        const batch = new BatchGroup();
+        batch.taxonGroup = taxonGroup;
+        await this.addEntityToTable(batch);
+      }
+
+    } catch (err) {
+      console.error(err && err.message || err);
+      this.error = err && err.message || err;
+    }
+    finally {
+      this.enable();
     }
   }
 

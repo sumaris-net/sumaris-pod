@@ -552,6 +552,7 @@
         }
       },
       "TABLE": {
+        "BTN_AUTO_FILL": "Remplissage automatique des espèces",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures individuelles",
         "BTN_BURST_INPUT": "Mode rafale",
         "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",

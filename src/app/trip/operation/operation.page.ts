@@ -6,7 +6,13 @@ import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {AppEditorPage, AppTableUtils, EntityUtils, environment} from '../../core/core.module';
 import {CatchBatchForm} from '../catch/catch.form';
 import {HistoryPageReference, UsageMode} from '../../core/services/model';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
+import {
+  EditorDataServiceLoadOptions,
+  fadeInOutAnimation,
+  isNil,
+  isNotEmptyArray,
+  isNotNil
+} from '../../shared/shared.module';
 import {AcquisitionLevelCodes, PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
@@ -658,7 +664,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     if (!this.showBatchTables || !this.batchGroupsTable.showTaxonGroupColumn || !enable) return; // Skip
 
     if (this.debug) console.debug("[operation] Check if can auto fill species...");
-    const options = {includeTaxonGroups: undefined};
+    let includeTaxonGroups: string[];
 
     // Retrieve the trip measurements on SELF_SAMPLING_PROGRAM, if any
     const qvMeasurement = (this.trip.measurements || []).find(m => m.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
@@ -671,7 +677,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
 
       // Transform QV.label has a list of TaxonGroup.label
       if (qualitativeValue && qualitativeValue.label) {
-        options.includeTaxonGroups = qualitativeValue.label
+        includeTaxonGroups = qualitativeValue.label
           .split(/[^\w]+/) // Split by separator (= not a word)
           .filter(isNotNilOrBlank)
           .map(label => label.trim().toUpperCase());
@@ -679,7 +685,10 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     }
 
     // Ask table to auto fill
-    await this.batchGroupsTable.autoFillTable(options);
+    if (isNotEmptyArray(includeTaxonGroups)) {
+      this.batchGroupsTable.defaultTaxonGroups = includeTaxonGroups;
+      await this.batchGroupsTable.autoFillTable();
+    }
   }
 
   protected async updateRoute(data: Operation, queryParams: any): Promise<boolean> {

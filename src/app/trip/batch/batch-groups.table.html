@@ -14,6 +14,10 @@
     (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
+  <button mat-icon-button color="light" *ngIf="!selection.hasValue() && enabled" [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL'|translate"
+          (click)="autoFillTable()">
+    <mat-icon>control_point_duplicate</mat-icon>
+  </button>
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
