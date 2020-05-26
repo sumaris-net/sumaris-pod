@@ -15,9 +15,7 @@
     <!-- TAB: general -->
     <mat-tab label="{{'OBSERVED_LOCATION.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
-        <mat-icon>
-          <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
-        </mat-icon>
+        <mat-icon>information-circle</mat-icon>
         <ion-label translate>OBSERVED_LOCATION.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && observedLocationForm.invalid"></ion-icon>
       </ng-template>
