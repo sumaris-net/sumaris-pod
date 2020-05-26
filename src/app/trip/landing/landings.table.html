@@ -158,7 +158,7 @@
       <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1 && tripEditor"
               [title]="'COMMON.BTN_EDIT'|translate"
               (click)="confirmAndEditTrip($event, row)">
-        <mat-icon>arrow_forward</mat-icon>
+        <ion-icon name="boat" slot="icon-only" [color]="row.currentData.tripId ? undefined : 'medium'"></ion-icon>
       </button>
     </mat-cell>
   </ng-container>

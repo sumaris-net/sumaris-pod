@@ -776,6 +776,27 @@
       }
     }
   },
+  "EXPENSE": {
+    "TOTAL_ESTIMATION": "Estimation des dépenses totales :",
+    "TAB_FLUID": "Fluides",
+    "FLUID": {
+      "ENGINE_OIL": "Huile moteur :",
+      "HYDRAULIC_OIL": "Huile hydraulique :"
+    },
+    "TAB_MISC": "Autre dépenses",
+    "MISC": {
+      "OTHER": "Frais annexes :"
+    },
+    "TAB_ICE": "Glace",
+    "ICE": {
+      "AMOUNT": "Quantité de glace",
+      "TYPE": "Unité"
+    },
+    "TAB_BAIT": "Appâts",
+    "BAIT": {
+
+    }
+  },
   "QUALITY": {
     "BTN_CONTROL": "Controler la saisie",
     "BTN_TERMINATE": "Terminer la saisie",

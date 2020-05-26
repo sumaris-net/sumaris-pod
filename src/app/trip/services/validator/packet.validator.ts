@@ -6,8 +6,6 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
 import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.validator";
 import {Packet, PacketComposition} from "../model/packet.model";
 import {PacketCompositionValidatorService} from "./packet-composition.validator";
-import {Product} from "../model/product.model";
-import {SaleProduct} from "../model/sale-product.model";
 
 export interface PacketValidatorOptions extends DataEntityValidatorOptions {
   withComposition?: boolean;

@@ -96,6 +96,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       injector.get(TripService));
     this.idAttribute = 'tripId';
     // this.defaultBackHref = "/trips";
+    this.tabCount = 4;
 
     this.autocompleteHelper = new MatAutocompleteConfigHolder(this.settings && {
       getUserAttributes: (a, b) => this.settings.getFieldDisplayAttributes(a, b)
@@ -221,6 +222,12 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       console.debug(`[landedTrip-page] Loading vessel {${vesselId}}...`);
       data.vesselSnapshot = await this.vesselService.load(vesselId, {fetchPolicy: 'cache-first'});
     }
+    // Get the landing id
+    if (isNotNil(queryParams['landing'])) {
+      const landingId = +queryParams['landing'];
+      console.debug(`[landedTrip-page] Get landing id {${landingId}}...`);
+      data.landingId = landingId;
+    }
 
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
@@ -231,7 +238,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
   protected async getObservedLocationById(observedLocationId: number): Promise<ObservedLocation> {
 
-    // Load parent landing
+    // Load parent observed location
     if (isNotNil(observedLocationId)) {
       console.debug(`[landedTrip-page] Loading parent observed location ${observedLocationId}...`);
       return this.observedLocationService.load(observedLocationId, {fetchPolicy: "cache-first"});
@@ -453,7 +460,8 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     json.vesselSnapshot = this.data.vesselSnapshot;
 
     // json.sale = !this.saleForm.empty ? this.saleForm.value : null;
-    json.measurements = this.measurementsForm.value;
+    // Concat trip and expense measurements
+    json.measurements = (this.measurementsForm.value || []).concat(this.expenseForm.value);
 
     const operationGroups: OperationGroup[] = this.operationGroupTable.value || [];
 

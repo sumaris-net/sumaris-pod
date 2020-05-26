@@ -110,13 +110,13 @@ export class Measurement extends DataEntity<Measurement> {
 
 export class MeasurementUtils {
 
-  static initAllMeasurements(source: Measurement[], pmfms: PmfmStrategy[], entityName: MeasurementType): Measurement[] {
+  static initAllMeasurements(source: Measurement[], pmfms: PmfmStrategy[], entityName: MeasurementType, keepRankOrder: boolean): Measurement[] {
     // Work on a copy, to be able to reduce the array
     let rankOrder = 1;
     return (pmfms || []).map(pmfm => {
       const measurement = (source || []).find(m => m.pmfmId === pmfm.pmfmId) || new Measurement();
       measurement.pmfmId = pmfm.pmfmId; // apply the pmfm (need for new object)
-      measurement.rankOrder = rankOrder++;
+      measurement.rankOrder = keepRankOrder ? measurement.rankOrder : rankOrder++;
 
       // Need by GraphQL cache
       measurement.entityName = measurement.entityName || entityName;

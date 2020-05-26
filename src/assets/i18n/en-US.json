@@ -765,6 +765,27 @@
       }
     }
   },
+  "EXPENSE": {
+    "TOTAL_ESTIMATION": "Total expenses estimation:",
+    "TAB_FLUID": "Fluids",
+    "FLUID": {
+      "ENGINE_OIL": "Engine oil:",
+      "HYDRAULIC_OIL": "Hydraulic oil:"
+    },
+    "TAB_MISC": "Other",
+    "MISC": {
+      "OTHER": "Additional costs:"
+    },
+    "TAB_ICE": "Ice",
+    "ICE": {
+      "AMOUNT": "Ice quantity",
+      "TYPE": "Unit"
+    },
+    "TAB_BAIT": "Baits",
+    "BAIT": {
+
+    }
+  },
   "QUALITY": {
     "BTN_CONTROL": "Control input",
     "BTN_TERMINATE": "Complete input",

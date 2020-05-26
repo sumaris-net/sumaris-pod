@@ -45,6 +45,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   loadingPmfms = true; // Important, must be true
   $loadingControls = new BehaviorSubject<boolean>(true);
   applyingValue = false;
+  keepRankOrder = false;
 
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
 
@@ -130,7 +131,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
               protected settings: LocalSettingsService,
               protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, formBuilder.group({}), settings);
+    super(dateAdapter, measurementValidatorService.getFormGroup([]), settings);
 
     // TODO: DEV only
     //this.debug = true;
@@ -166,7 +167,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     }
 
     const pmfms = this.$pmfms.getValue();
-    this.data = MeasurementUtils.initAllMeasurements(data, pmfms, this.entityName);
+    this.data = MeasurementUtils.initAllMeasurements(data, pmfms, this.entityName, this.keepRankOrder);
 
     const json = MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(this.data), pmfms);
 

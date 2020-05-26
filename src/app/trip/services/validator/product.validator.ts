@@ -9,7 +9,6 @@ import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.val
 import {MeasurementsValidatorService} from "../measurement.validator";
 import {Product} from "../model/product.model";
 import {OperationGroup} from "../model/trip.model";
-import {SaleProduct} from "../model/sale-product.model";
 
 export interface ProductValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
