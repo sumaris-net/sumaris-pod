@@ -78,7 +78,7 @@
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
                 <button type="button" mat-icon-button matSuffix
-                        [class.cdk-visually-hidden]="enableGeolocation || form.controls.startPosition.invalid"
+                        [hidden]="enableGeolocation || form.controls.startPosition.invalid"
                         (click)="copyPosition($event,'startPosition', 'endPosition')"
                         [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
                   <mat-icon>arrow_downward</mat-icon>
