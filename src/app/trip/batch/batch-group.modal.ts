@@ -51,14 +51,6 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() showTaxonName = true;
 
-  @Input() showChildrenWeight = true;
-
-  @Input() showChildrenSampleBatch = true;
-
-  @Input() showIndividualCount = true;
-
-  @Input() showTotalIndividualCount = false;
-
   @Input() taxonGroupsNoWeight: string[];
 
   @Input() qvPmfm: PmfmStrategy;
@@ -127,22 +119,13 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     // Update title each time value changes
     this.computeTitle(data);
 
-    this.computeShowTotalIndividualCount(data);
-
-    // Listen form changes
+    // Update title each time value changes
     this._subscription.add(
       this.form.valueChanges
         .pipe(
           throttleTime(500)
         )
-        .subscribe((batch) => {
-
-          // Update title each time value changes
-          this.computeTitle(batch);
-
-          this.computeShowTotalIndividualCount(batch);
-        })
-    );
+        .subscribe((batch) => this.computeTitle(batch)));
 
     // Wait that form are ready (because of safeSetValue()) then mark as pristine
     setTimeout(() => {
@@ -227,21 +210,6 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     else {
       const label = BatchUtils.parentToString(data);
       this.$title.next(await this.translate.get('TRIP.BATCH.EDIT.TITLE', {label}).toPromise());
-    }
-  }
-
-  protected async computeShowTotalIndividualCount(data?: Batch) {
-    data = data || this.data;
-    // Generally, individual count are not need, on a root species batch, because filled in sub-batches,
-    // but some species (e.g. RJB) can have no weight.
-    const showTotalIndividualCount = data && EntityUtils.isNotEmpty(data.taxonGroup) &&
-      (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
-
-    if (showTotalIndividualCount !== this.showTotalIndividualCount) {
-      this.showTotalIndividualCount = showTotalIndividualCount;
-      this.showChildrenWeight = !showTotalIndividualCount; // Hide weight
-      this.showChildrenSampleBatch = !showTotalIndividualCount;
-      this.markForCheck();
     }
   }
 

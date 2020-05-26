@@ -584,11 +584,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
-        showChildrenSampleBatch: true,
-        showChildrenWeight: true,
-        showTotalIndividualCount: false,
         taxonGroupsNoWeight: this.taxonGroupsNoWeight,
-        showIndividualCount: false,
         showSubBatchesCallback: onOpenSubBatchesFromModal
       },
       keyboardClose: true,
