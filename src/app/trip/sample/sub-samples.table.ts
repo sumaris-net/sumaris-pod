@@ -7,7 +7,7 @@ import {isNil, isNotNil} from "../../shared/functions";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {UsageMode} from "../../core/services/model";
-import {filterNotNil} from "../../shared/observables";
+import {filterNotNil, firstFalsePromise} from "../../shared/observables";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {Sample} from "../services/model/sample.model";
 
@@ -104,6 +104,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     this.memoryDataService = (this.dataService as InMemoryTableDataService<Sample, SubSampleFilter>);
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
+    // TODO: override openDetailModal(), then uncomment :
+    // this.inlineEdition = !this.mobile;
     this.inlineEdition = true;
 
     //this.debug = false;
@@ -152,10 +154,13 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   }
 
   async autoFillTable() {
-    if (this.loading || this.disabled) return;
-    if (!this.confirmEditCreate()) return;
+    // Wait table is loaded
+    if (this.loading) {
+      await firstFalsePromise(this.loadingSubject);
+    }
+    if (this.disabled || !this.confirmEditCreate()) return; // Skip when disabled or still editing a row
 
-    this.disable();
+    this.markAsLoading();
 
     try {
       const rows = await this.dataSource.getRows();
@@ -178,7 +183,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
         }));
 
       for (const sample of newSamples) {
-        await this.addSampleToTable(sample);
+        await this.addEntityToTable(sample);
       }
 
     } catch (err) {
@@ -186,7 +191,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
       this.error = err && err.message || err;
     }
     finally {
-      this.enable();
+      this.markAsLoaded();
     }
   }
 
@@ -275,32 +280,6 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   protected sortData(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {
     sortBy = (sortBy !== 'parent') && sortBy || 'parent.rankOrder'; // Replace parent by its rankOrder
     return this.memoryDataService.sort(data, sortBy, sortDirection);
-  }
-
-  protected async addSampleToTable(newSample: Sample): Promise<TableElement<Sample>> {
-    console.debug("[sub-sample-table] Adding new sample", newSample);
-
-    const row = await this.addRowToTable();
-    if (!row) throw new Error("Could not add row to table");
-
-    // Override rankOrder (keep computed value)
-    newSample.rankOrder = row.currentData.rankOrder;
-
-    this.normalizeEntityToRow(newSample, row);
-
-    // Affect new row
-    if (row.validator) {
-      row.validator.patchValue(newSample, {emitEvent: false});
-      this.confirmEditCreate(null, row);
-      row.validator.markAsDirty();
-    } else {
-      row.currentData = newSample;
-      this.confirmEditCreate(null, row);
-    }
-
-    this.markAsDirty();
-
-    return row;
   }
 
   protected async suggestParent(value: any): Promise<any[]> {

@@ -28,14 +28,16 @@ import {SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
-
-export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
-export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
+import {MatDialog} from "@angular/material/dialog";
 
 export interface SampleFilter {
   operationId?: number;
   landingId?: number;
 }
+
+export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
+export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
+
 
 @Component({
   selector: 'app-samples-table',
@@ -117,8 +119,10 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.referentialRefService = injector.get(ReferentialRefService);
     this.memoryDataService = (this.dataService as InMemoryTableDataService<Sample, SampleFilter>);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
-    this._acquisitionLevel = AcquisitionLevelCodes.SAMPLE; // Default value, can be override by subclasses
-    this.inlineEdition = true;
+    this.inlineEdition = !this.mobile;
+
+    // Set default value
+    this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE; // Default value, can be override by subclasses
 
     //this.debug = false;
     this.debug = !environment.production;
@@ -142,8 +146,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
-      showAllOnFocus: true
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
     });
 
     // Taxon name combo
@@ -215,9 +218,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    const sample = await this.openDetailModal();
-    if (sample) {
-      await this.addSampleToTable(sample);
+    const data = await this.openDetailModal();
+    if (data) {
+      await this.addEntityToTable(data);
     }
     return true;
   }
@@ -227,7 +230,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     const updatedData = await this.openDetailModal(data);
     if (updatedData) {
-      await this.addSampleToTable(updatedData, row);
+      await this.updateEntityToTable(updatedData, row);
     }
     return true;
   }
@@ -246,8 +249,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         program: this.program,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
-        value: sample.clone(), // Do a copy, because edition can be cancelled
-        isNew: isNew,
+        value: isNew ? sample : sample.clone(), // Do a copy, because edition can be cancelled
+        isNew,
         showLabel: this.showLabelColumn,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
@@ -264,37 +267,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     if (data && this.debug) console.debug("[samples-table] Modal result: ", data);
 
     return (data instanceof Sample) ? data : undefined;
-  }
-
-  protected async addSampleToTable(sample: Sample, row?: TableElement<Sample>): Promise<TableElement<Sample>> {
-    if (this.debug) console.debug("[samples-table] Adding new sample", sample);
-
-    // Create a new row, if need
-    if (!row) {
-      row = await this.addRowToTable();
-      if (!row) throw new Error("Could not add row t table");
-
-      // Use the generated rankOrder
-      sample.rankOrder = row.currentData.rankOrder;
-
-    }
-
-    // Adapt measurement values to row
-    this.normalizeEntityToRow(sample, row);
-
-    // Affect new row
-    if (row.validator) {
-      row.validator.patchValue(sample);
-      row.validator.markAsDirty();
-    }
-    else {
-      row.currentData = sample;
-    }
-
-    this.confirmEditCreate(null, row);
-    this.markAsDirty();
-
-    return row;
   }
 
   referentialToString = referentialToString;

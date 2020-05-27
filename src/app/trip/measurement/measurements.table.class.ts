@@ -138,7 +138,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.pageSize = 10000; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
     this.autoLoad = false; // must wait pmfms to be load
-    this.loading = false;
+    this.setLoading(false, {emitEvent: false});
 
     this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, options && {
       mapPmfms: options.mapPmfms

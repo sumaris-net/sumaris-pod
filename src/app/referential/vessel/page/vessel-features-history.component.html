@@ -14,8 +14,7 @@
     <!-- Id Column -->
     <ng-container matColumnDef="id">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
-        <span *ngIf="!loading">#</span>
-        <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+        <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
     </ng-container>

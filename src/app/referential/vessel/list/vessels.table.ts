@@ -144,8 +144,8 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     this.restoreFilterOrLoad();
   }
 
-  async openNewRowDetail(): Promise<any> {
-    if (this.loading) return Promise.resolve();
+  async openNewRowDetail(): Promise<boolean> {
+    if (this.loading) return Promise.resolve(false);
 
     const modal = await this.modalCtrl.create({ component: VesselModal });
     // if new vessel added, refresh the table

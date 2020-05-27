@@ -12,12 +12,13 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-spinner *ngIf="loading" color="light"></ion-spinner>
+      <app-loading-spinner [loading]="loadingSubject|async" color="light">
+        <ion-button (click)="close($event)"
+                    visible-xs visible-sm visible-mobile>
+          <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+        </ion-button>
+      </app-loading-spinner>
 
-      <ion-button *ngIf="!loading" (click)="close($event)"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
-      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>

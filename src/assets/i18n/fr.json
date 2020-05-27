@@ -590,7 +590,8 @@
       },
       "EDIT": {
         "TITLE": "Echantillon {{label}}",
-        "TAXON_GROUP": "Espèce commerciale (FAO)"
+        "TAXON_GROUP": "Espèce commerciale (FAO)",
+        "TAXON_NAME": "Espèce scientifique (FAO)"
       },
       "TABLE": {
         "LABEL": "Lot",

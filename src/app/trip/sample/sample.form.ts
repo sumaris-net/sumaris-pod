@@ -75,11 +75,13 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
+      mobile: this.mobile
     });
     // Taxon name combo
     this.registerAutocompleteField('taxonName', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
+      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
+      mobile: this.mobile
     });
 
     this.focusFieldName = !this.mobile && ((this.showLabel && 'label')

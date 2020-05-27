@@ -40,6 +40,8 @@ export class SampleModal implements OnInit {
 
   @Input() showTaxonName = true;
 
+  @Input showLabel = false;
+
   @Input() title: string;
 
   @Input()
@@ -150,7 +152,7 @@ export class SampleModal implements OnInit {
     }
     else {
       // Label can be optional (e.g. in auction control)
-      const label = data.label || ('#' + data.rankOrder);
+      const label = this.showLabel && data.label || ('#' + data.rankOrder);
       this.$title.next(await this.translate.get('TRIP.SAMPLE.EDIT.TITLE', {label}).toPromise());
     }
   }

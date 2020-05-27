@@ -65,6 +65,7 @@ import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_AUTOCOMPLETE_SCROLL_STRATEGY} from
 import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
 import {SharedDirectivesModule} from "./directives/directives.module";
 import {SharedPipesModule} from "./pipes/pipes.module";
+import {AppLabelSpinner} from "./form/label-spinner";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -104,7 +105,8 @@ export {
     ToolbarComponent,
     ModalToolbarComponent,
     NumpadComponent,
-    AppFormField
+    AppFormField,
+    AppLabelSpinner
   ],
   exports: [
     ReactiveFormsModule,
@@ -118,7 +120,8 @@ export {
     NumpadComponent,
     TranslateModule,
     ColorPickerModule,
-    AppFormField
+    AppFormField,
+    AppLabelSpinner
   ],
   providers: [
     ProgressBarService,

@@ -30,7 +30,6 @@ import {UsageMode} from "../../core/services/model";
 import {SubBatchesModal} from "./sub-batches.modal";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {BatchModal} from "./batch.modal";
-import {MatDialog} from '@angular/material/dialog';
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Batch} from "../services/model/batch.model";
 import {Operation} from "../services/model/trip.model";
@@ -122,8 +121,6 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
   @Output()
   onSubBatchesChanges = new EventEmitter<Batch[]>();
 
-  private matDialog: MatDialog;
-
   constructor(
     injector: Injector,
     protected validatorService: ValidatorService,
@@ -136,17 +133,16 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
       validatorService,
       {
         prependNewElements: false,
-        suppressErrors: true,
+        suppressErrors: environment.production,
         reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
         reservedEndColumns: BATCH_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       }
     );
-    this.referentialRefService = injector.get(ReferentialRefService);
     this.cd = injector.get(ChangeDetectorRef);
+    this.referentialRefService = injector.get(ReferentialRefService);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
     this.inlineEdition = !this.mobile;
-    this.matDialog = injector.get(MatDialog);
 
     // Set default value
     this.showCommentsColumn = false;
@@ -181,7 +177,9 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
-    const data = await this.openDetailModal(new this.dataType(), {isNew: true});
+    if (!this.allowRowDetail) return false;
+
+    const data = await this.openDetailModal();
     if (data) {
       await this.addEntityToTable(data);
     }
@@ -213,15 +211,21 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     return true;
   }
 
-  async openDetailModal(batch?: Batch, opts?: {isNew?: boolean}): Promise<T | undefined> {
+  async openDetailModal(batch?: Batch): Promise<T | undefined> {
+    const isNew = !batch;
+    if (isNew) {
+      batch = new this.dataType();
+      await this.onNewEntity(batch);
+    }
+
     const modal = await this.modalCtrl.create({
       component: BatchModal,
       componentProps: {
         program: this.program,
         acquisitionLevel: this.acquisitionLevel,
-        value: batch,
-        isNew: opts && opts.isNew || false,
         disabled: this.disabled,
+        value: isNew ? batch : batch.clone(), // Do a copy, because edition can be cancelled
+        isNew,
         qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
@@ -238,6 +242,7 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
+
     return (data instanceof Batch) ? data as T : undefined;
   }
 
