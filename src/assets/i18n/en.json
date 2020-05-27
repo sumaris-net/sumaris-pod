@@ -778,7 +778,8 @@
     }
   },
   "EXPENSE": {
-    "TOTAL_ESTIMATION": "Total expenses estimation:",
+    "TOTAL_ESTIMATION": "Total estimated expenses:",
+    "TOTAL_CALCULATED": "Total calculated expenses:",
     "TAB_FLUID": "Fluids",
     "FLUID": {
       "ENGINE_OIL": "Engine oil:",

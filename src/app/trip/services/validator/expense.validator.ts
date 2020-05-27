@@ -11,7 +11,7 @@ export class ExpenseValidatorService extends MeasurementsValidatorService {
     return Object.assign(
       super.getFormGroupConfig(data, opts),
       {
-        totalCalculated: [null],
+        calculatedTotal: [null],
         iceAmount: [null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
         iceType: [null, SharedValidators.entity]
       }
@@ -30,17 +30,11 @@ export class ExpenseValidatorService extends MeasurementsValidatorService {
     );
   }
 
-  updateFormGroup(form: FormGroup, opts?: MeasurementsValidatorOptions) {
-    super.updateFormGroup(form, opts);
-
-
-  }
-
   protected fillDefaultOptions(opts?: MeasurementsValidatorOptions): MeasurementsValidatorOptions {
     opts = super.fillDefaultOptions(opts);
 
     // add expense fields as protected attributes
-    opts.protectedAttributes.push('iceAmount', 'iceType');
+    opts.protectedAttributes.push('calculatedTotal', 'iceAmount', 'iceType');
 
     return opts;
   }

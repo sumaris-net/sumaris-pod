@@ -779,6 +779,7 @@
   },
   "EXPENSE": {
     "TOTAL_ESTIMATION": "Estimation des dépenses totales :",
+    "TOTAL_CALCULATED": "Total des dépenses saisis :",
     "TAB_FLUID": "Fluides",
     "FLUID": {
       "ENGINE_OIL": "Huile moteur :",

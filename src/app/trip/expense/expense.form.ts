@@ -33,7 +33,7 @@ class TupleValue {
 export class ExpenseForm extends MeasurementsForm implements OnInit {
 
   mobile: boolean;
-  $totalPmfm = new BehaviorSubject<PmfmStrategy>(undefined);
+  $estimatedTotalPmfm = new BehaviorSubject<PmfmStrategy>(undefined);
   $fuelTypePmfm = new BehaviorSubject<PmfmStrategy>(undefined);
   $fuelPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   fuelTuple: ObjectMap<TupleValue> = undefined;
@@ -45,6 +45,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit {
   $iceTypePmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   $baitPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   $miscPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  totalPmfms: PmfmStrategy[];
   calculating = false;
 
   constructor(
@@ -70,28 +71,31 @@ export class ExpenseForm extends MeasurementsForm implements OnInit {
       this.ready().then(() => {
         const expensePmfms: PmfmStrategy[] = pmfms.slice();
         // dispatch pmfms
-        this.$totalPmfm.next(remove(expensePmfms, this.mapTotalPmfm));
-        this.$fuelTypePmfm.next(remove(expensePmfms, this.mapFuelTypePmfm));
+        this.$estimatedTotalPmfm.next(remove(expensePmfms, this.isEstimatedTotalPmfm));
+        this.$fuelTypePmfm.next(remove(expensePmfms, this.isFuelTypePmfm));
 
-        this.$fuelPmfms.next(removeAll(expensePmfms, this.mapFuelPmfms));
+        this.$fuelPmfms.next(removeAll(expensePmfms, this.isFuelPmfm));
         this.fuelTuple = this.getValidTuple(this.$fuelPmfms.getValue());
         this.registerTupleSubscription(this.fuelTuple);
 
-        this.$engineOilPmfms.next(removeAll(expensePmfms, this.mapEngineOilPmfms));
+        this.$engineOilPmfms.next(removeAll(expensePmfms, this.isEngineOilPmfm));
         this.engineOilTuple = this.getValidTuple(this.$engineOilPmfms.getValue());
         this.registerTupleSubscription(this.engineOilTuple);
 
-        this.$hydraulicOilPmfms.next(removeAll(expensePmfms, this.mapHydraulicPmfms));
+        this.$hydraulicOilPmfms.next(removeAll(expensePmfms, this.isHydraulicPmfm));
         this.hydraulicOilTuple = this.getValidTuple(this.$hydraulicOilPmfms.getValue());
         this.registerTupleSubscription(this.hydraulicOilTuple);
 
-        this.initIcePmfms(removeAll(expensePmfms, this.mapIcePmfms));
+        this.initIcePmfms(removeAll(expensePmfms, this.isIcePmfm));
 
 
-        this.$baitPmfms.next(removeAll(expensePmfms, this.mapBaitPmfms));
+        this.$baitPmfms.next(removeAll(expensePmfms, this.isBaitPmfm));
         // remaining pmfms go to miscellaneous part
         this.$miscPmfms.next(expensePmfms);
 
+
+        // register total pmfms for calculated total
+        this.registerTotalSubscription(pmfms.filter(pmfm => this.isTotalPmfm(pmfm) && !this.isEstimatedTotalPmfm(pmfm)))
 
       });
 
@@ -146,6 +150,8 @@ export class ExpenseForm extends MeasurementsForm implements OnInit {
     const iceAmount = iceType && this.form.get(iceType.pmfmId.toString()).value || undefined;
     this.form.patchValue({iceAmount: iceAmount, iceType: iceType});
 
+    // compute total
+    this.calculateTotal();
   }
 
 
@@ -154,7 +160,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit {
       Object.keys(tuple).forEach(pmfmId => {
         this.registerSubscription(this.form.get(pmfmId).valueChanges
           .pipe(
-            filter(_ => !this.applyingValue && !this.calculating),
+            filter(() => !this.applyingValue && !this.calculating),
             debounceTime(250)
           )
           .subscribe(value => {
@@ -265,32 +271,27 @@ export class ExpenseForm extends MeasurementsForm implements OnInit {
     }
   }
 
-  mapTotalPmfm(pmfm: PmfmStrategy): boolean {
-    return pmfm.label === 'TOTAL_COST';
+  registerTotalSubscription(totalPmfms: PmfmStrategy[]) {
+    if (isNotEmptyArray(totalPmfms)) {
+      this.totalPmfms = totalPmfms;
+      totalPmfms.forEach(totalPmfm => {
+        this.registerSubscription(this.form.get(totalPmfm.pmfmId.toString()).valueChanges
+          .pipe(
+            filter(() => !this.applyingValue),
+            debounceTime(250)
+          )
+          .subscribe(() => this.calculateTotal())
+        );
+      });
+    }
   }
 
-  mapFuelTypePmfm(pmfm: PmfmStrategy): boolean {
-    return pmfm.label === 'FUEL_TYPE';
-  }
-
-  mapFuelPmfms(pmfm: PmfmStrategy): boolean {
-    return pmfm.label.startsWith('FUEL_');
-  }
-
-  mapEngineOilPmfms(pmfm: PmfmStrategy): boolean {
-    return pmfm.label.startsWith('ENGINE_OIL_');
-  }
-
-  mapHydraulicPmfms(pmfm: PmfmStrategy): boolean {
-    return pmfm.label.startsWith('HYDRAULIC_OIL_');
-  }
-
-  mapIcePmfms(pmfm: PmfmStrategy): boolean {
-    return pmfm.label.startsWith('ICE_');
-  }
-
-  mapBaitPmfms(pmfm: PmfmStrategy): boolean {
-    return pmfm.label.startsWith('BAIT_');
+  private calculateTotal() {
+    let total = 0;
+    (this.totalPmfms || []).forEach(totalPmfm => {
+      total += this.form.get(totalPmfm.pmfmId.toString()).value;
+    });
+    this.form.patchValue({calculatedTotal: total});
   }
 
   getValidTuple(pmfms: PmfmStrategy[]): ObjectMap<TupleValue> {
@@ -307,6 +308,34 @@ export class ExpenseForm extends MeasurementsForm implements OnInit {
       }
     }
     return {};
+  }
+
+  isEstimatedTotalPmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label === 'TOTAL_COST';
+  }
+
+  isFuelTypePmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label === 'FUEL_TYPE';
+  }
+
+  isFuelPmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label.startsWith('FUEL_');
+  }
+
+  isEngineOilPmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label.startsWith('ENGINE_OIL_');
+  }
+
+  isHydraulicPmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label.startsWith('HYDRAULIC_OIL_');
+  }
+
+  isIcePmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label.startsWith('ICE_');
+  }
+
+  isBaitPmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label.startsWith('BAIT_');
   }
 
   isQuantityPmfm(pmfm: PmfmStrategy): boolean {
@@ -339,4 +368,5 @@ export class ExpenseForm extends MeasurementsForm implements OnInit {
 
   filterNumberInput = filterNumberInput;
   selectInputContent = selectInputContent;
+
 }
