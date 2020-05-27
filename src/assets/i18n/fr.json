@@ -53,12 +53,12 @@
     "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
 
     "LAT_LONG": {
-      "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
-      "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",
+      "DDMMSS_PLACEHOLDER": "DD° MM' SS\"",
+      "DDMM_PLACEHOLDER": "DD° MM.MMM'",
       "DD_PLACEHOLDER": "+DD.DDD°",
-      "DDDMMSS_PLACEHOLDER": "DD° MM' SS\" E|W",
-      "DDDMM_PLACEHOLDER": "DD° MM.MMM' E|W",
-      "DDD_PLACEHOLDER": "+DD.DDD°",
+      "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\"",
+      "DDDMM_PLACEHOLDER": "DDD° MM.MMM'",
+      "DDD_PLACEHOLDER": "+DDD.DDD°",
       "LAT_SIGN_PLACEHOLDER": "N|S",
       "LAT_SIGN_N": "N",
       "LAT_SIGN_S": "S",
@@ -67,8 +67,7 @@
       "LONG_SIGN_W": "W"
     },
 
-
-    "METADATA": "Métadonnées :",
+    "METADATA": "Metadata:",
 
     "DAY_UNIT": "j",
     "DATE": "Date",
@@ -467,7 +466,8 @@
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
-        "OTHER_FEATURES": "Caractéristiques :"
+        "OTHER_FEATURES": "Caractéristiques :",
+        "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin"
       },
       "LIST": {
         "PHYSICAL_GEAR": "Engin utilisé",
@@ -552,6 +552,7 @@
         }
       },
       "TABLE": {
+        "BTN_AUTO_FILL": "Remplissage automatique des espèces",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures individuelles",
         "BTN_BURST_INPUT": "Mode rafale",
         "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
@@ -1022,21 +1023,23 @@
       "TITLE": "Programme {{label}} - {{name}}"
     },
     "OPTIONS": {
-      "TRIP_SALE_ENABLE": "Marée : Saisir la vente ?",
-      "TRIP_OBSERVERS_ENABLE": "Marée : Saisir les observateurs ?",
-      "TRIP_METIERS_ENABLE": "Marée : Saisir les métiers ?",
-      "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin : Saisir le numéro d'engin ?",
-      "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce : Auto-remplisage ?",
-      "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce : Espèces commerciales ?",
-      "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce : Espèces commerciales sans poids:",
-      "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce : Espèces scientiques ?",
-      "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce : calcul auto nb indiv. échantillonné ?",
+      "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
+      "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
+      "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
+      "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
+      "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplisage ?",
+      "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",
+      "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces commerciales sans poids :",
+      "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce: Espèces scientiques ?",
+      "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: calcul auto nb indiv. échantillonné ?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : réordonné à la sauvegarde ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : saisir nb indiv. ?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Capture > Echantillon : Espèces commerciales ?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Capture > Echantillon : Espèces scientiques ?",
       "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Capture > Test de survie : Espèces scientiques ?",
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Capture > Test de survie : Espèces commerciales ?",
+      "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Direction par défaut :",
+      "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Direction par défaut :",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation sur site > Date de fin ?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation sur site > Niveau du lieu",
       "LOCATION_LEVEL_PORT": "Ports",

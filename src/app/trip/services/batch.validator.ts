@@ -119,7 +119,7 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     if (!batch.weight) return null;
 
     const sampleBatch = BatchUtils.getSamplingChild(batch);
-    if (!sampleBatch) return null;
+    if (!sampleBatch || !sampleBatch.weight) return null;
 
     const totalWeight = batch.weight.value;
     const samplingRatioPct = sampleBatch.samplingRatio;
@@ -142,6 +142,9 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
           samplingWeightValueControl.setErrors({...samplingWeightValueControl.errors, max: {max: totalWeight} }, opts);
         }
         return {max: {max: totalWeight}} as ValidationErrors;
+      }
+      else {
+        SharedValidators.clearError(samplingWeightValueControl, 'max');
       }
 
       // Update sampling ratio

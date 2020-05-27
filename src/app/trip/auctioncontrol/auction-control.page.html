@@ -12,16 +12,14 @@
     <!-- TAB: general -->
     <mat-tab label="{{'LANDING.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
-        <mat-icon>
-          <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
-        </mat-icon>
+        <mat-icon>information-circle</mat-icon>
         <ion-label translate>LANDING.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && landingForm.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && landingForm.invalid"></ion-icon>
       </ng-template>
 
       <!-- error -->
       <ion-item *ngIf="landingForm.error||error" visible-xs visible-sm visible-mobile lines="none">
-        <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
         <ion-label color="danger" class="error" [innerHTML]="(landingForm.error||error) | translate"></ion-label>
       </ion-item>
 
@@ -54,7 +52,7 @@
           <ion-icon matPrefix slot="start" name="flag"></ion-icon>
         </mat-icon>
         <ion-label translate>AUCTION_CONTROL.TAB_SAMPLES</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
       <div class="ion-no-padding">
@@ -77,7 +75,7 @@
 
         <!-- error -->
         <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
         </ion-item>
 
@@ -107,7 +105,7 @@
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 

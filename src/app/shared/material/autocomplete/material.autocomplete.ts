@@ -198,7 +198,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @Input() i18nPrefix = 'REFERENTIAL.';
 
-  @Input() noResultMessage: 'COMMON.NO_RESULT';
+  @Input() noResultMessage = 'COMMON.NO_RESULT';
 
   @Input('class') classList: string;
 
@@ -280,8 +280,8 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this.displayColumnNames = this.displayColumnNames || this.config.columnNames;
       this.displayWith = this.displayWith || this.config.displayWith;
       this.mobile = toBoolean(this.mobile, this.config.mobile);
-      this.showAllOnFocus = toBoolean(this.showAllOnFocus, toBoolean(this.config.showAllOnFocus, this.mobile));
-      this.showPanelOnFocus = toBoolean(this.showPanelOnFocus, toBoolean(this.config.showPanelOnFocus, this.mobile));
+      this.showAllOnFocus = toBoolean(this.showAllOnFocus, toBoolean(this.config.showAllOnFocus, true));
+      this.showPanelOnFocus = toBoolean(this.showPanelOnFocus, toBoolean(this.config.showPanelOnFocus, true));
     }
 
     // Default values
@@ -402,7 +402,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this.onBlur
        .pipe(
          // Skip if no implicit value, or has already a value
-         filter(_ => this.searchable && !this._implicitValue)
+         filter(_ => this.searchable && this._implicitValue)
        )
        .subscribe( (_) => {
           // When leave component without object, use implicit value if :

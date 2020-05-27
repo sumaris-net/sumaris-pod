@@ -4,15 +4,10 @@ import {MeasurementValuesForm} from "../measurement/measurement-values.form.clas
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {
-  EntityUtils,
-  IReferentialRef,
-  referentialToString,
-  UsageMode
-} from "../../core/services/model";
+import {EntityUtils, referentialToString, UsageMode} from "../../core/services/model";
 import {debounceTime, filter, first} from "rxjs/operators";
 import {
   AcquisitionLevelCodes,
@@ -27,10 +22,11 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
 import {AppFormUtils, FormArrayHelper} from "../../core/core.module";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {isNilOrBlank, isNotNilOrBlank, isNotNilOrNaN, toBoolean, toNumber} from "../../shared/functions";
+import {isNotNilOrBlank, isNotNilOrNaN, toBoolean} from "../../shared/functions";
 import {BatchValidatorService} from "../services/batch.validator";
 import {firstNotNilPromise} from "../../shared/observables";
 import {PlatformService} from "../../core/services/platform.service";
+import {SharedValidators} from "../../shared/validator/validators";
 
 @Component({
   selector: 'app-batch-form',
@@ -42,8 +38,10 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
   implements OnInit, OnDestroy {
 
   protected $initialized = new BehaviorSubject<boolean>(false);
-  protected _requiredSampleWeight = false;
+  protected _requiredWeight = false;
   protected _showWeight = true;
+  protected _requiredSampleWeight = false;
+  protected _requiredIndividualCount = false;
 
   defaultWeightPmfm: PmfmStrategy;
   weightPmfms: PmfmStrategy[];
@@ -109,15 +107,39 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
   }
 
   @Input()
-  set requiredSampleWeight(required: boolean) {
-    if (this._requiredSampleWeight !== required) {
-      this._requiredSampleWeight = required;
+  set requiredSampleWeight(value: boolean) {
+    if (this._requiredSampleWeight !== value) {
+      this._requiredSampleWeight = value;
       this.onUpdateControls();
     }
   }
 
   get requiredSampleWeight(): boolean {
     return this._requiredSampleWeight;
+  }
+
+  @Input()
+  set requiredWeight(value: boolean) {
+    if (this._requiredWeight !== value) {
+      this._requiredWeight = value;
+      this.onUpdateControls();
+    }
+  }
+
+  get requiredWeight(): boolean {
+    return this._requiredWeight;
+  }
+
+  @Input()
+  set requiredIndividualCount(value: boolean) {
+    if (this._requiredIndividualCount !== value) {
+      this._requiredIndividualCount = value;
+      this.onUpdateControls();
+    }
+  }
+
+  get requiredIndividualCount(): boolean {
+    return this._requiredIndividualCount;
   }
 
   constructor(
@@ -135,7 +157,7 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
       validatorService.getFormGroup(null, {
         withWeight: true,
         rankOrderRequired: false, // Allow to be set by parent component
-        labelRequired: false, // Allow to be set by parent component
+        labelRequired: false // Allow to be set by parent component
       }),
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
@@ -301,9 +323,7 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
           const childWeightPmfm = childJson.weight.estimated && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
           childJson.measurementValues[childWeightPmfm.pmfmId.toString()] = childJson.weight.value;
         }
-        else if (isNotNilOrNaN(childJson.samplingRatio) && json){
 
-        }
         childJson.weight = undefined;
 
         // Convert measurements
@@ -454,6 +474,18 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
       } else {
         // No data: disable sampling
         this.setIsSampling(false);
+      }
+
+      // If sampling weight is required, make batch weight required also
+      if (this._requiredSampleWeight) {
+        this.weightForm.setValidators(Validators.compose([
+          SharedValidators.requiredIf('value', samplingForm.get('weight.value'))
+        ]));
+      }
+
+      // If sampling weight is required, make batch weight required also
+      if (this._requiredIndividualCount) {
+        this.form.get('individualCount').setValidators(Validators.required);
       }
     }
 

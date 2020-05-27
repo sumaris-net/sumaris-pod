@@ -9,13 +9,10 @@
 
 <!-- writable -->
 <ng-template #writable>
-  <div class="cdk-visually-hidden">
-    <div #suffix><ng-content select="[matSuffix]"></ng-content></div>
-  </div>
 
   <ion-grid class="ion-no-padding">
     <ion-row class="ion-no-padding no-wrap">
-      <ion-col class="ion-no-padding text">
+      <ion-col class="text ion-no-padding">
         <mat-form-field [floatLabel]="floatLabel"
                         [class.mat-form-field-disabled]="formControl.disabled"
                         [class.mat-form-field-invalid]="formControl.touched && formControl.invalid">
@@ -62,7 +59,7 @@
       </ion-col>
 
       <!-- sign -->
-      <ion-col class="ion-no-padding sign" [ngSwitch]="type" *ngIf="showSignControl">
+      <ion-col class="sign ion-no-padding" [ngSwitch]="type" *ngIf="showSignControl">
 
           <!-- sign on latitude -->
           <mat-form-field *ngSwitchCase="'latitude'"
@@ -84,7 +81,7 @@
                           [class.mat-form-field-invalid]="formControl.touched && signFormControl.invalid">
             <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.LAT_LONG.LONG_SIGN_PLACEHOLDER</mat-label>
             <mat-select [formControl]="signFormControl"
-                        [tabindex]="tabindex+1">
+                        [tabindex]="tabindex+2">
               <mat-option [value]="1" translate>{{'COMMON.LAT_LONG.LONG_SIGN_E'|translate}}</mat-option>
               <mat-option [value]="-1" translate>{{'COMMON.LAT_LONG.LONG_SIGN_W'|translate}}</mat-option>
             </mat-select>
@@ -94,4 +91,9 @@
       </ion-col>
     </ion-row>
   </ion-grid>
+
+  <div class="cdk-visually-hidden">
+    <div #suffix><ng-content select="[matSuffix]"></ng-content></div>
+  </div>
+
 </ng-template>

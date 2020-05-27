@@ -618,6 +618,36 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "true",
     type: 'boolean'
   },
+  TRIP_LATITUDE_SIGN: {
+    key: "sumaris.trip.operation.latitude.defaultSign",
+    label: "PROGRAM.OPTIONS.TRIP_LATITUDE_DEFAULT_SIGN",
+    type: 'enum',
+    values: [
+      {
+        key: '+',
+        value: 'N'
+      },
+      {
+        key: '-',
+        value: 'S'
+      }
+    ]
+  },
+  TRIP_LONGITUDE_SIGN: {
+    key: "sumaris.trip.operation.longitude.defaultSign",
+    label: "PROGRAM.OPTIONS.TRIP_LONGITUDE_DEFAULT_SIGN",
+    type: 'enum',
+    values: [
+      {
+        key: '+',
+        value: 'E'
+      },
+      {
+        key: '-',
+        value: 'W'
+      }
+    ]
+  },
 
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: {
@@ -640,7 +670,7 @@ export const ProgramProperties: FormFieldDefinitionMap = {
         value: 'PROGRAM.OPTIONS.LOCATION_LEVEL_AUCTION'
       }
     ],
-    defaultValue: LocationLevelIds.PORT.toString(),
+    defaultValue: LocationLevelIds.PORT.toString()
   },
 
   // Landing

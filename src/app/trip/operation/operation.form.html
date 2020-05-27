@@ -30,7 +30,9 @@
                                 [placeholder]="'TRIP.OPERATION.LIST.TARGET_SPECIES'|translate"
                                 [config]="autocompleteFields.taxonGroup"
                                 [tabindex]="tabindex+1"
-                                [required]="true">
+                                [required]="true"
+                                [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'"
+        >
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>
@@ -52,21 +54,23 @@
                                    [startDate]="trip?.departureDateTime">
               </mat-date-time-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
+            <ion-col size="6" size-lg="4" [formGroup]="form.controls.startPosition">
               <mat-latlong-field formControlName="latitude" type="latitude"
-                           [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
-                           [latLongPattern]="latLongFormat"
-                           [tabindex]="tabindex+3"
-                           [required]="true">
+                                 [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
+                                 [latLongPattern]="latLongFormat"
+                                 [tabindex]="tabindex+4"
+                                 [required]="true"
+                                 [defaultSign]="defaultLatitudeSign">
               </mat-latlong-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
+            <ion-col size="6" size-lg="4" [formGroup]="form.controls.startPosition">
               <mat-latlong-field formControlName="longitude"
-                           type="longitude"
-                           [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
-                           [latLongPattern]="latLongFormat"
-                           [tabindex]="tabindex+4"
-                           [required]="true">
+                                 type="longitude"
+                                 [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
+                                 [latLongPattern]="latLongFormat"
+                                 [tabindex]="tabindex+6"
+                                 [required]="true"
+                                 [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event,'startPosition')"
                         tabindex="-1"
@@ -76,8 +80,7 @@
                 <button type="button" mat-icon-button matSuffix
                         [hidden]="enableGeolocation || form.controls.startPosition.invalid"
                         (click)="copyPosition($event,'startPosition', 'endPosition')"
-                        [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate"
-                        [tabindex]="tabindex+6">
+                        [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
                   <mat-icon>arrow_downward</mat-icon>
                 </button>
               </mat-latlong-field>
@@ -99,7 +102,7 @@
             <ion-col size="12" size-lg="4" *ngIf="form.controls.endDateTime as endDateTimeControl">
               <mat-date-time-field [formControl]="endDateTimeControl"
                                    [placeholder]="'COMMON.DATE'|translate"
-                                   [tabindex]="tabindex+6"
+                                   [tabindex]="tabindex+10"
                                    [startDate]="form.controls.startDateTime.value"
                                    [required]="!isOnFieldMode">
 
@@ -111,20 +114,21 @@
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']">
               <mat-latlong-field formControlName="latitude"
-                           type="latitude"
-                           [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
-                           [latLongPattern]="latLongFormat"
-                           [tabindex]="tabindex+8"
-                           [required]="!isOnFieldMode">
+                                 type="latitude"
+                                 [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
+                                 [latLongPattern]="latLongFormat"
+                                 [tabindex]="tabindex+12"
+                                 [required]="!isOnFieldMode"
+                                 [defaultSign]="defaultLatitudeSign">
               </mat-latlong-field>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']">
-              <mat-latlong-field formControlName="longitude"
-                           type="longitude"
-                           [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
-                           [latLongPattern]="latLongFormat"
-                           [tabindex]="tabindex+9"
-                           [required]="!isOnFieldMode">
+              <mat-latlong-field formControlName="longitude" type="longitude"
+                                 [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
+                                 [latLongPattern]="latLongFormat"
+                                 [tabindex]="tabindex+15"
+                                 [required]="!isOnFieldMode"
+                                 [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event, 'endPosition')"
                         tabindex="-1"

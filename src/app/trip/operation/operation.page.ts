@@ -6,7 +6,13 @@ import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {AppEditorPage, AppTableUtils, EntityUtils, environment} from '../../core/core.module';
 import {CatchBatchForm} from '../catch/catch.form';
 import {HistoryPageReference, UsageMode} from '../../core/services/model';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
+import {
+  EditorDataServiceLoadOptions,
+  fadeInOutAnimation,
+  isNil,
+  isNotEmptyArray,
+  isNotNil
+} from '../../shared/shared.module';
 import {AcquisitionLevelCodes, PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
@@ -306,6 +312,8 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
       this.onProgramChanged
         .subscribe(program => {
           if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
+          this.opeForm.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
+          this.opeForm.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
           this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
           this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
 
@@ -324,10 +332,8 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
           this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
 
           // Autofill batch group table (e.g. with taxon groups found in strategies)
-          if (this.isNewData) {
-            const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
-            this.setAutoFillSpecies(autoFillBatch);
-          }
+          const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
+          this.setAutoFillSpecies(autoFillBatch);
         })
     );
   }
@@ -653,31 +659,41 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   }
 
   protected async setAutoFillSpecies(enable: boolean) {
-    if (!this.showBatchTables || !this.batchGroupsTable.showTaxonGroupColumn || !enable) return; // Skip
+    if (!this.showBatchTables || !this.batchGroupsTable.showTaxonGroupColumn || !enable) {
+      // Reset table's default taxon groups
+      this.batchGroupsTable.defaultTaxonGroups = null;
+      return; // Skip
+    }
 
     if (this.debug) console.debug("[operation] Check if can auto fill species...");
-    const options = {includeTaxonGroups: undefined};
+    let includeTaxonGroups: string[];
 
     // Retrieve the trip measurements on SELF_SAMPLING_PROGRAM, if any
     const qvMeasurement = (this.trip.measurements || []).find(m => m.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
     if (qvMeasurement && EntityUtils.isNotEmpty(qvMeasurement.qualitativeValue)) {
 
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
-      const pmfms = await this.programService.loadProgramPmfms(this.programSubject.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
-      const pmfm = (pmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
+      const tripPmfms = await this.programService.loadProgramPmfms(this.programSubject.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});
+      const pmfm = (tripPmfms || []).find(pmfm => pmfm.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
       const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
 
       // Transform QV.label has a list of TaxonGroup.label
       if (qualitativeValue && qualitativeValue.label) {
-        options.includeTaxonGroups = qualitativeValue.label
+        includeTaxonGroups = qualitativeValue.label
           .split(/[^\w]+/) // Split by separator (= not a word)
           .filter(isNotNilOrBlank)
           .map(label => label.trim().toUpperCase());
       }
     }
 
-    // Ask table to auto fill
-    await this.batchGroupsTable.autoFillTable(options);
+    // Set table's default taxon groups
+    this.batchGroupsTable.defaultTaxonGroups = includeTaxonGroups;
+    this.markForCheck();
+
+    // If new data, auto fill the table
+    if (this.isNewData) {
+      await this.batchGroupsTable.autoFillTable();
+    }
   }
 
   protected async updateRoute(data: Operation, queryParams: any): Promise<boolean> {

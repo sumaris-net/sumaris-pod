@@ -31,12 +31,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   enableGeolocation: boolean;
   latLongFormat: string;
+
   mobile: boolean;
 
   @Input() showComment = true;
   @Input() showError = true;
 
   @Input() usageMode: UsageMode;
+
+  @Input() defaultLatitudeSign: '+'|'-';
+  @Input() defaultLongitudeSign: '+'|'-';
 
   get trip() {
     return this._trip;
@@ -113,49 +117,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       mobile: this.mobile
     });
 
-    // Listen physical gear, to enablme/disable metier
-    const metierControl = this.form.get('metier');
-    const physicalGearControl = this.form.get('physicalGear');
+    // Listen physical gear, to enable/disable metier
     this.registerSubscription(
-      physicalGearControl.valueChanges
+      this.form.get('physicalGear').valueChanges
         .pipe(
           distinctUntilChanged(EntityUtils.equals)
         )
-        .subscribe(async (physicalGear) => {
-
-          const hasPhysicalGear = EntityUtils.isNotEmpty(physicalGear);
-          const gears = this._physicalGearsSubject.getValue() || this._trip && this._trip.gears;
-          // Use same trip's gear Object (if found)
-          if (hasPhysicalGear && isNotEmptyArray(gears)) {
-            physicalGear = (gears || []).find(g => g.id === physicalGear.id);
-            physicalGearControl.patchValue(physicalGear, {emitEvent: false});
-          }
-
-          const enableMetier = hasPhysicalGear && this.form.enabled && isNotEmptyArray(gears);
-          if (enableMetier) {
-            metierControl.enable();
-          }
-          else {
-            metierControl.disable();
-          }
-
-          if (hasPhysicalGear) {
-
-            // Refresh metiers
-            const metiers = await this.loadMetiers(physicalGear);
-            this._metiersSubject.next(metiers);
-
-            const metier = metierControl.value;
-            if (EntityUtils.isNotEmpty(metier)) {
-              // Find new reference, by label (WARN: because of searchJoin, label = taxonGroup.label)
-              const updatedMetier = (metiers || []).find(m => m.label === metier.label);
-              // Update the metier, if not found (=reset) or ID changed
-              if (!updatedMetier || !EntityUtils.equals(metier, updatedMetier)) {
-                metierControl.setValue(updatedMetier);
-              }
-            }
-          }
-        })
+        .subscribe((physicalGear) => this.onPhysicalGearChanged(physicalGear))
     );
   }
 
@@ -220,6 +188,49 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   /* -- protected methods -- */
+
+  protected async onPhysicalGearChanged(physicalGear) {
+    const metierControl = this.form.get('metier');
+    const physicalGearControl = this.form.get('physicalGear');
+
+    const hasPhysicalGear = EntityUtils.isNotEmpty(physicalGear);
+    const gears = this._physicalGearsSubject.getValue() || this._trip && this._trip.gears;
+    // Use same trip's gear Object (if found)
+    if (hasPhysicalGear && isNotEmptyArray(gears)) {
+      physicalGear = (gears || []).find(g => g.id === physicalGear.id);
+      physicalGearControl.patchValue(physicalGear, {emitEvent: false});
+    }
+
+    // Change metier status, if need
+    const enableMetier = hasPhysicalGear && this.form.enabled && isNotEmptyArray(gears);
+    if (enableMetier) {
+      if (metierControl.disabled) metierControl.enable();
+    }
+    else {
+      if (metierControl.enabled) metierControl.disable();
+    }
+
+    if (hasPhysicalGear) {
+
+      // Refresh metiers
+      const metiers = await this.loadMetiers(physicalGear);
+      this._metiersSubject.next(metiers);
+
+      const metier = metierControl.value;
+      if (EntityUtils.isNotEmpty(metier)) {
+        // Find new reference, by ID
+        let updatedMetier = (metiers || []).find(m => m.id === metier.id);
+
+        // If not found : retry using the label (WARN: because of searchJoin, label = taxonGroup.label)
+        updatedMetier = updatedMetier || (metiers || []).find(m => m.label === metier.label);
+
+        // Update the metier, if not found (=reset) or ID changed
+        if (!updatedMetier || !EntityUtils.equals(metier, updatedMetier)) {
+          metierControl.setValue(updatedMetier);
+        }
+      }
+    }
+  }
 
   protected async loadMetiers(physicalGear?: PhysicalGear|any): Promise<ReferentialRef[]> {
 

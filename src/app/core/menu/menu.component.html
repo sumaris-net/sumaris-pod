@@ -12,12 +12,14 @@
         <ion-grid>
           <ion-row>
             <ion-col size="4">
-              <div class="user-avatar" [class.primary]="!account?.avatar" [ngStyle]="{'background-image':'url('+(account?.avatar||'./assets/img/person.png')+')'}"
-                   [routerLink]="['/account']"
-                   routerDirection="root"
-                   routerLinkActive="ion-color-primary"
-                   (click)="menuClose()">
-              </div>
+              <button type="button" mat-flat-button
+                      class="user-avatar" [class.primary]="!account?.avatar"
+                      [style.background-image]="'url('+(account?.avatar||'./assets/img/person.png')+')'"
+                      [routerLink]="['/account']"
+                      routerDirection="root"
+                      routerLinkActive="ion-color-primary"
+                      (click)="menuClose()">
+              </button>
             </ion-col>
             <ion-col size="8" class="user-logo">
               <img *ngIf="logo" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}"  width="108px;"/>
@@ -26,13 +28,13 @@
           </ion-row>
           <ion-row class="ion-no-padding">
 
-            <button mat-button
-                        [routerLink]="['/account']"
-                        routerDirection="root"
-                        routerLinkActive="ion-color-primary"
-                        (click)="menuClose()">
-              <ion-label color="primary" class="ion-text-wrap">
-                <h3 full class="no-margin username">
+            <button type="button" mat-button
+                    [routerLink]="['/account']"
+                    routerDirection="root"
+                    routerLinkActive="ion-color-primary"
+                    (click)="menuClose()">
+              <ion-label color="primary" class="ion-text-wrap ion-text-start">
+                <h3 class="no-margin username">
                   <b>{{account?.firstName}} {{account?.lastName}}</b>
                 </h3>
                 <h4>{{account?.email}}</h4>

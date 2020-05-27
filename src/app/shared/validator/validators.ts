@@ -217,10 +217,12 @@ export class SharedValidators {
     };
   }
 
-  static requiredIf(fieldName: string, anotherFieldToCheck: string): ValidatorFn {
+  static requiredIf(fieldName: string, anotherFieldToCheck: string|AbstractControl): ValidatorFn {
     return (group: FormGroup): ValidationErrors | null => {
       const control = group.get(fieldName);
-      if (isNil(control.value) && isNotNil(group.get(anotherFieldToCheck).value)) {
+      const anotherControl = (anotherFieldToCheck instanceof AbstractControl) ? anotherFieldToCheck : group.get(anotherFieldToCheck);
+      if (!anotherControl) throw new Error('Unable to find field to check!');
+      if (isNil(control.value) && isNotNil(anotherControl.value)) {
         const error = { required: true};
         control.setErrors(error);
         return error;
