@@ -146,15 +146,15 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
     // Home buttons
     { provide: APP_HOME_BUTTONS, useValue: [
         // Data entry
-        { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER', cssClass: 'visible-mobile'},
+        { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
         { title: 'MENU.TRIPS', path: '/trips',
-          icon: 'navigate', cssClass: 'visible-mobile',
+          icon: 'navigate',
           profile: 'USER',
           ifProperty: 'sumaris.trip.enable',
           titleProperty: 'sumaris.trip.name'
         },
         { title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
-          matIcon: 'verified_user', cssClass: 'visible-mobile',
+          matIcon: 'verified_user',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name'

@@ -1,7 +1,5 @@
 import {NgModule} from "@angular/core";
 import {RouterModule, Routes} from "@angular/router";
-import {MaterialModule} from "./material/material.module";
-import {MaterialTestingModule} from "./material/testing/material.testing.module";
 
 
 const routes: Routes = [
@@ -18,13 +16,10 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    MaterialModule,
-    RouterModule.forChild(routes),
-    MaterialTestingModule
+    RouterModule.forChild(routes)
   ],
   exports: [
-    RouterModule,
-    MaterialTestingModule
+    RouterModule
   ]
 })
 export class SharedTestingModule {

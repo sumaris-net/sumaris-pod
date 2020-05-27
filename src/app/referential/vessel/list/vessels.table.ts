@@ -4,7 +4,7 @@ import {
   AppTable,
   AppTableDataSource,
   environment,
-  isNil,
+  isNil, isNotNil,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../../../core/core.module";
@@ -148,11 +148,15 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     if (this.loading) return Promise.resolve(false);
 
     const modal = await this.modalCtrl.create({ component: VesselModal });
+
+    await modal.present();
+
+    const {data} = await modal.onDidDismiss();
+
     // if new vessel added, refresh the table
-    modal.onDidDismiss().then(res => {
-      if (res) this.onRefresh.emit();
-    });
-    return modal.present();
+    if (isNotNil(data)) this.onRefresh.emit();
+
+    return true;
   }
 
   referentialToString = referentialToString;

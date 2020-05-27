@@ -1,6 +1,6 @@
 import {NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
-import {MaterialModule} from "./material/material.module";
+import {SharedMaterialModule} from "./material/material.module";
 import {ReactiveFormsModule} from "@angular/forms";
 import {TranslateModule, TranslateService} from "@ngx-translate/core";
 import {IonicModule} from "@ionic/angular";
@@ -52,7 +52,6 @@ import {InputElement} from "./material/focusable";
 import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
 import {AppFormField} from "./form/field.component";
-import {NumpadComponent} from "./numpad/numpad";
 import {AudioProvider} from "./audio/audio";
 import {CloseScrollStrategy, Overlay} from '@angular/cdk/overlay';
 import {Hotkeys, SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
@@ -65,7 +64,7 @@ import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_AUTOCOMPLETE_SCROLL_STRATEGY} from
 import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
 import {SharedDirectivesModule} from "./directives/directives.module";
 import {SharedPipesModule} from "./pipes/pipes.module";
-import {AppLabelSpinner} from "./form/label-spinner";
+import {AppLoadingSpinner} from "./form/loading-spinner";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -92,7 +91,7 @@ export {
     CommonModule,
     IonicModule,
     ReactiveFormsModule,
-    MaterialModule,
+    SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
     TranslateModule.forChild(),
@@ -104,24 +103,22 @@ export {
   declarations: [
     ToolbarComponent,
     ModalToolbarComponent,
-    NumpadComponent,
     AppFormField,
-    AppLabelSpinner
+    AppLoadingSpinner
   ],
   exports: [
     ReactiveFormsModule,
     IonicModule,
-    MaterialModule,
+    SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
     SharedHotkeysModule,
     ToolbarComponent,
     ModalToolbarComponent,
-    NumpadComponent,
     TranslateModule,
     ColorPickerModule,
     AppFormField,
-    AppLabelSpinner
+    AppLoadingSpinner
   ],
   providers: [
     ProgressBarService,

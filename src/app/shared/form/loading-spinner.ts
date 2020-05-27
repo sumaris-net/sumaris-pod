@@ -9,7 +9,7 @@ import {Component, Input} from "@angular/core";
     </ng-template>
   `
 })
-export class AppLabelSpinner  {
+export class AppLoadingSpinner  {
   @Input() loading = false;
   @Input() color: string | undefined = 'secondary';
   @Input() name: 'bubbles' | 'circles' | 'circular' | 'crescent' | 'dots' | 'lines' | 'lines-small' | undefined;

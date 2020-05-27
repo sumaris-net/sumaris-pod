@@ -40,7 +40,7 @@ export class SampleModal implements OnInit {
 
   @Input() showTaxonName = true;
 
-  @Input showLabel = false;
+  @Input() showLabel = false;
 
   @Input() title: string;
 

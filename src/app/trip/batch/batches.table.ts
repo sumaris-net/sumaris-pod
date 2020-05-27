@@ -211,7 +211,7 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     return true;
   }
 
-  async openDetailModal(batch?: Batch): Promise<T | undefined> {
+  async openDetailModal(batch?: T): Promise<T | undefined> {
     const isNew = !batch;
     if (isNew) {
       batch = new this.dataType();
