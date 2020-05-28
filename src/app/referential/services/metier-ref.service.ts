@@ -117,7 +117,7 @@ export class MetierRefService extends BaseDataService
     };
 
     const now = debug && Date.now();
-    if (debug) console.debug(`[metier-ref-service] Loading Metiers...`, variables);
+    if (debug) console.debug(`[metier-ref-service] Loading Metier items...`, variables);
 
     // Offline mode: read from the entities storage
     let loadResult: { metiers: any[]; metiersCount: number };

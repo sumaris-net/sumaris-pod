@@ -184,6 +184,8 @@ export class ReferentialRefService extends BaseDataService
     }
 
     const entityName = filter.entityName;
+    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
+
     const debug = this._debug && (!opts || opts.debug !== false);
 
     const variables: any = {
@@ -205,14 +207,16 @@ export class ReferentialRefService extends BaseDataService
       }
     };
 
+
+
     const now = debug && Date.now();
-    if (debug) console.debug(`[referential-ref-service] Loading ${entityName} items...`, variables);
+    if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items...`, variables);
 
     // Offline mode: read from the entities storage
     let loadResult: { referentials: any[]; referentialsCount: number };
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      loadResult = await this.entities.loadAll(filter.entityName + 'VO',
+      loadResult = await this.entities.loadAll(uniqueEntityName + 'VO',
         {
           ...variables,
           filter: this.createSearchFilterFn(filter)
@@ -239,7 +243,13 @@ export class ReferentialRefService extends BaseDataService
     const data = (!opts || opts.transformToEntity !== false) ?
       (loadResult && loadResult.referentials || []).map(ReferentialRef.fromObject) :
       (loadResult && loadResult.referentials || []) as ReferentialRef[];
-    if (debug) console.debug(`[referential-ref-service] ${entityName} items loaded in ${Date.now() - now}ms`);
+
+    // Force entity name (is searchJoin)
+    if (filter.entityName !== uniqueEntityName) {
+      data.forEach(item => item.entityName = uniqueEntityName);
+    }
+
+    if (debug) console.debug(`[referential-ref-service] ${uniqueEntityName} items loaded in ${Date.now() - now}ms`);
     return {
       data: data,
       total: loadResult.referentialsCount
@@ -362,7 +372,7 @@ export class ReferentialRefService extends BaseDataService
                                               statusIds?: number[];
                                             }) {
 
-    const entityNames = opts && opts.entityNames || ['Location', 'Gear', 'Metier', 'TaxonGroup', 'TaxonName', 'Department', 'QualityFlag', 'SaleType', 'VesselType'];
+    const entityNames = opts && opts.entityNames || ['Location', 'Gear', 'Metier', 'MetierTaxonGroup', 'TaxonGroup', 'TaxonName', 'Department', 'QualityFlag', 'SaleType', 'VesselType'];
 
     const statusIds = opts && opts.statusIds || [StatusIds.ENABLE, StatusIds.TEMPORARY];
 
@@ -402,7 +412,10 @@ export class ReferentialRefService extends BaseDataService
             logPrefix);
           break;
         case 'Metier':
-          filter = {entityName, statusIds, searchJoin: 'TaxonGroup' };
+          filter = {entityName, statusIds};
+          break;
+        case 'MetierTaxonGroup':
+          filter = {entityName: 'Metier', statusIds, searchJoin: 'TaxonGroup' };
           break;
         case 'TaxonGroup':
           filter = {entityName, statusIds, levelIds: [TaxonGroupIds.FAO] };

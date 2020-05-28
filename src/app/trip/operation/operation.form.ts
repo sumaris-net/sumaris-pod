@@ -237,11 +237,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     // No gears selected: skip
     if (EntityUtils.isEmpty(physicalGear)) return undefined;
 
+    const gear = physicalGear && physicalGear.gear;
+    console.debug('[operation-form] Loading Metier ref items for the gear: ' + (gear && gear.label));
+
     const res = await this.referentialRefService.loadAll(0, 100, null,null,
       {
         entityName: "Metier",
         searchJoin: "TaxonGroup",
-        levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || undefined
+        levelId: gear && gear.id || undefined
       },
       {
         withTotal: false
