@@ -546,6 +546,12 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "false",
     type: 'boolean'
   },
+  TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL: {
+    key: 'sumaris.trip.onboard.measurements.optional',
+    label: "PROGRAM.OPTIONS.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE: {
     key: "sumaris.trip.gear.rankOrder.enable",
     label: "PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE",
