@@ -27,6 +27,7 @@
     "BTN_REFRESH": "Rafraichir",
     "BTN_SEARCH": "Rechercher",
     "BTN_NEXT": "Suivant",
+    "BTN_NEXT_SHORT": "Suiv.",
     "BTN_BACK": "Retour",
     "BTN_SEND": "Envoyer",
     "BTN_OPTIONS": "Options",
@@ -41,6 +42,7 @@
     "BTN_INIT_OFFLINE_MODE": "Activer le mode hors-ligne",
     "CREATED_ON": "Créé le ",
     "COMMENTS": "Commentaires",
+    "BTN_DECIMAL_SEPARATOR": ",",
     "EMPTY_OPTION": "(Vide)",
 
     "DATE_PATTERN": "DD/MM/YYYY",

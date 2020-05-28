@@ -76,7 +76,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
   protected _tabindex: number;
   protected keyboardHideDelay: number;
 
-  mobile: boolean;
   form: FormGroup;
   displayPattern: string;
   dayPattern: string;
@@ -84,6 +83,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
   locale: string;
   dayMask = DAY_MASK;
   hourMask = HOUR_MASK;
+
+  @Input() mobile: boolean;
 
   @Input() disabled = false;
 
@@ -439,6 +440,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
   onTimePickerKeyup(event: KeyboardEvent) {
     if (!this.timePicker) return;
+    console.log(event);
     if (event.key === 'Enter') {
       // Format hour
       let hour: number | string = this.timePicker.selectedHour.time;

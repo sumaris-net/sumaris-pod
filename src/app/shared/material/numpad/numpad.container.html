@@ -1,0 +1,31 @@
+<div class="numpad-backdrop-overlay"
+     (click)="overlayClick($event)"
+     [@numpadBackdrop]="backdropState">
+</div>
+<div class="numpad-overlay">
+  <mat-numpad-content [appendToInput]="appendToInput"
+                      [inputElement]="inputElement" cdkTrapFocus>
+    <div class="numpad {{position}}"
+         [class.panel]="appendToInput"
+         [@numpadPanelExpansion]="panelState"
+         (@numpadPanelExpansion.done)="animationDone($event)"
+         [@numpadFadeIn]="modalState"
+         (@numpadFadeIn.done)="animationDone($event)">
+      <ion-grid>
+        <ion-row *ngFor="let row of filteredKeymap | async">
+          <ion-col size="{{12/columnCount}}" *ngFor="let item of row">
+            <ion-button mat-button expand="block"
+                        *ngIf="item"
+                        [color]="item.color || 'secondary'"
+                        (click)="onButtonClick($event, item)">
+              <ion-icon *ngIf="item.icon; else label" slot="icon-only" [name]="item.icon"></ion-icon>
+              <ng-template #label>
+              <ion-label>{{ (item.label || item.key) | translate }}</ion-label>
+              </ng-template>
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+  </mat-numpad-content>
+</div>

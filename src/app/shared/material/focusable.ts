@@ -3,6 +3,7 @@ import {ElementRef} from "@angular/core";
 export declare interface FocusableElement {
   focus();
 }
+
 export declare interface InputElement {
   focus();
   tabindex?: number;
@@ -37,9 +38,6 @@ export function tabindexComparator(a, b) {
   return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
 }
 
-export declare interface FocusableElement {
-  focus();
-}
 
 export function setTabIndex(input: any, tabindex: number) {
   if (input instanceof HTMLInputElement) {

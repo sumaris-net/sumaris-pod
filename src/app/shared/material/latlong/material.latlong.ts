@@ -458,7 +458,5 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
-  moveInputCaretToSeparator = moveInputCaretToSeparator;
 }
 

@@ -35,8 +35,7 @@ import {SharedMatLatLongModule} from "./latlong/material.latlong.module";
 import {SharedMatDateTimeModule} from "./datetime/datetime.module";
 import {SharedMatDurationModule} from "./duration/duration.module";
 import {SharedMatBooleanModule} from "./boolean/boolean.module";
-import {SharedMatNumpadModule} from "./numpad/material.numpad.module";
-import {TranslateModule} from "@ngx-translate/core";
+import {SharedMatNumpadModule} from "./numpad/numpad.module";
 
 export { fadeInAnimation, slideInOutAnimation, InputElement };
 

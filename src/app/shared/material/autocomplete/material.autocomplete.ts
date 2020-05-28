@@ -423,6 +423,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
     this._implicitValue = undefined;
+    this.$inputItems.complete();
   }
 
   /**

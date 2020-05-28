@@ -1,6 +1,6 @@
 <!-- readonly -->
 <mat-form-field *ngIf="readonly else writable">
-  <input matInput hidden type="text" readonly="true" [formControl]="formControl">
+  <input matInput hidden type="text" readonly [formControl]="formControl">
   <ion-text>{{formControl.value|dateFormat: {pattern: displayPattern} }}</ion-text>
 </mat-form-field>
 
@@ -88,15 +88,10 @@
 
           <input matInput #matInput type="text"
                  formControlName="hour"
-                 *ngIf="mobile"
-                 (click)="openTimePickerIfMobile($event)"
-                 readonly>
-
-          <input matInput type="text"
-                 formControlName="hour"
-                 hidden
+                 [class.cdk-visually-hidden]="!mobile"
                  [ngxTimepicker]="timePicker"
-                 [format]="24">
+                 [format]="24"
+                 >
 
           <button matSuffix type="button" mat-icon-button
                   tabindex="-1"
@@ -115,15 +110,13 @@
 
           <ngx-material-timepicker #timePicker [@.disabled]="true"
                                    (timeSet)="onTimePickerChange($event)"
-                                   [ESC]="false"
+                                   [ESC]="!mobile"
                                    [defaultTime]="'00:00'"
                                    [cancelBtnTmpl]="timePickerCancelButton"
                                    [confirmBtnTmpl]="timePickerOkButton"
-                                   [preventOverlayClick]="false"
+                                   [preventOverlayClick]="mobile"
                                    [enableKeyboardInput]="false"
-                                   [disableAnimation]="true"
-                                   (keyup.escape)="onTimePickerKeyup($event)"
-                                   (keyup.enter)="onTimePickerKeyup($event)">
+                                   [disableAnimation]="true">
             <!-- cancel button -->
             <ng-template #timePickerCancelButton>
               <ion-button fill="clear" color="dark">

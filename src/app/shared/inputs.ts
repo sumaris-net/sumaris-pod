@@ -52,7 +52,7 @@ export function getCaretPosition(input: any): number {
   return -1;
 }
 
-export function moveInputCaretToSeparator(event: KeyboardEvent, separator: string, searchForward?: boolean) {
+export function moveInputCaretToSeparator(event: KeyboardEvent, separator: string, forward?: boolean) {
   if (event.defaultPrevented || !separator) return false;
   const input = (event.target as any);
   if (!input) return true;
@@ -80,56 +80,14 @@ export function moveInputCaretToSeparator(event: KeyboardEvent, separator: strin
       //console.debug("Text after cursor: ", value.substr(caretPosition));
       //console.debug("Next separator at: ", value.indexOf(separator, caretPosition));
 
-      searchForward = searchForward !== false;
+      forward = forward !== false;
 
-      const separatorIndex = (searchForward ? value.indexOf(separator, caretPosition) : value.lastIndexOf(separator, caretPosition));
-      if (separatorIndex !== -1 && ((searchForward && separatorIndex + 1 < value.length)
-        || (!searchForward && separatorIndex > 0))) {
+      const separatorIndex = (forward ? value.indexOf(separator, caretPosition) : value.lastIndexOf(separator, caretPosition));
+      if (separatorIndex !== -1 && ((forward && separatorIndex + 1 < value.length)
+        || (!forward && separatorIndex > 0))) {
         if (input.setSelectionRange) {
           // Move after the next separator
-          if (selectInputRange(input, separatorIndex + (searchForward ? 1 : -1))) {
-            // Stop the keyboard event
-            event.preventDefault();
-            event.stopPropagation();
-          }
-        }
-      }
-    }
-  } catch (err) {
-    console.error("Could not move caret to next separator", err);
-    return false;
-  }
-  return true;
-}
-
-export function moveInputCaretToPreviousPart(event: UIEvent, separator: string) {
-  if (event.defaultPrevented || !separator) return false;
-  const input = (event.target as any);
-  if (!input) return true;
-
-  const caretPosition = getCaretPosition(input);
-  if (caretPosition == -1) return true; // Caret pos not found: skip
-
-  // Get input value
-  const value = input.value;
-
-  // No content: skip
-  if (isNilOrBlank(value)) return false;
-
-  try {
-
-    if (value && caretPosition < value.length) {
-      // DEBUG
-      //console.debug("Input text value: ", value);
-      //console.debug("Cursor at: ", caretPosition);
-      //console.debug("Text after cursor: ", value.substr(caretPosition));
-      //console.debug("Next separator at: ", value.indexOf(separator, caretPosition));
-
-      const separatorIndex = value.indexOf(separator, caretPosition);
-      if (separatorIndex !== -1 && separatorIndex + 1 < value.length) {
-        if (input.setSelectionRange) {
-          // Move after the next separator
-          if (selectInputRange(input, separatorIndex + 1)) {
+          if (selectInputRange(input, separatorIndex + (forward ? 1 : -1))) {
             // Stop the keyboard event
             event.preventDefault();
             event.stopPropagation();

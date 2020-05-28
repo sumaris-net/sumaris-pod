@@ -1,5 +1,6 @@
 import {Component, OnInit} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {SharedValidators} from "../../../validator/validators";
 
 
 @Component({
@@ -16,8 +17,9 @@ export class NumpadTestPage implements OnInit {
   ) {
     this.form = formBuilder.group({
       empty: [null, Validators.required],
-      fill: [null, Validators.required],
+      integer: [null, Validators.compose([Validators.required, SharedValidators.integer])],
       disable: [null, Validators.required],
+      datetime: [null]
     });
 
     this.form.get('disable').disable();
@@ -35,11 +37,11 @@ export class NumpadTestPage implements OnInit {
   async loadData() {
     const data = {
       empty: null,
-      fill: 99.99,
+      integer: 99,
       disable: -111.11
     };
 
-    this.form.setValue(data);
+    this.form.patchValue(data);
   }
 
   doSubmit(event) {

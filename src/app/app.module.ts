@@ -1,6 +1,6 @@
 import "./vendor";
 
-import {APP_BASE_HREF} from "@angular/common";
+import {APP_BASE_HREF, CommonModule} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule} from "@angular/core";
 import {IonicModule} from "@ionic/angular";
@@ -45,7 +45,7 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
     AppComponent
   ],
   imports: [
-    AppRoutingModule,
+    CommonModule,
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
@@ -53,6 +53,7 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
     CacheModule.forRoot(),
     LeafletModule.forRoot(),
     // functional modules
+    AppRoutingModule,
     CoreModule,
     TripModule,
     IonicStorageModule.forRoot({
