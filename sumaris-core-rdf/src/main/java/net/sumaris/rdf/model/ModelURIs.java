@@ -46,6 +46,10 @@ public class ModelURIs {
             // TaxRef (MNHN)
             .put("taxref", "http://taxref.mnhn.fr/lod/")
             .put("taxrefprop", "http://taxref.mnhn.fr/lod/property/")
+
+            // Data catalog
+            .put("dcat", "http://www.w3.org/ns/dcat")
+
             .build();
 
     public static final Map<String, String> RDF_URL_BY_PREFIX = ImmutableMap.<String, String>builder()
@@ -76,6 +80,10 @@ public class ModelURIs {
 
             // Sandre
             .put("apt", "http://owl.sandre.eaufrance.fr/apt/2.1/sandre_fmt_owl_apt.owl")
+
+            // Data Catalog
+            .put("dcat", "http://www.w3.org/ns/dcat")
+
             .build();
 
     public static String getClassUri(Resource schema, Class clazz) {
