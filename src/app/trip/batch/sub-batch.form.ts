@@ -324,7 +324,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
             }
             else {
               taxonNameControl.reset(null, {emitEVent: false});
-              //taxonNameControl.markAsPristine({onlySelf: true});
             }
           }));
     }
