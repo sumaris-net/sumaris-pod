@@ -17,12 +17,12 @@ export declare interface BatchWeight extends IMeasurementValue {
 }
 
 
-export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<Batch>, ITreeItemEntity<Batch> {
+export class Batch<T = Batch> extends DataEntity<T> implements IEntityWithMeasurement<T>, ITreeItemEntity<T> {
 
   static TYPENAME = 'BatchVO';
   static SAMPLING_BATCH_SUFFIX = '.%';
 
-  static fromObject(source: any, opts?: { withChildren: boolean; }): Batch {
+  static fromObject(source: any, opts?: { withChildren?: boolean; }): Batch {
     const target = new Batch();
     target.fromObject(source, opts);
     return target;
@@ -133,10 +133,10 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     this.weight = null;
   }
 
-  clone(): Batch {
+  clone(opts?: { withChildren?: boolean; }): T {
     const target = new Batch();
-    target.fromObject(this.asObject());
-    return target;
+    target.fromObject(this.asObject(opts), opts);
+    return target as T;
   }
 
   asObject(opts?: DataEntityAsObjectOptions & {withChildren?: boolean}): any {
@@ -165,7 +165,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     return target;
   }
 
-  fromObject(source: any, opts?: { withChildren: boolean; }): Batch {
+  fromObject(source: any, opts?: { withChildren?: boolean; }): T {
     super.fromObject(source);
     this.label = source.label;
     this.rankOrder = +source.rankOrder;
@@ -191,14 +191,14 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
       this.measurementValues = MeasurementUtils.toMeasurementValues(measurements);
     }
 
-    if (source.children && opts && opts.withChildren) {
+    if (source.children && (!opts || opts.withChildren !== false)) {
       this.children = source.children.map(child => Batch.fromObject(child, opts));
     }
 
-    return this;
+    return this as T;
   }
 
-  equals(other: Batch): boolean {
+  equals(other: T): boolean {
     // equals by ID
     return super.equals(other)
       // Or by functional attributes
@@ -277,7 +277,7 @@ export class BatchUtils {
     const samplingLabel = parent.label + Batch.SAMPLING_BATCH_SUFFIX;
 
     const samplingChild = (parent.children || []).find(b => b.label === samplingLabel) || new Batch();
-    const isNew = !samplingChild.label;
+    const isNew = !samplingChild.label && true;
 
     if (isNew) {
       samplingChild.rankOrder = 1;
@@ -360,40 +360,6 @@ export class BatchUtils {
     return rootBatches;
   }
 
-  static normalizeEntityToForm(batch: Batch,
-                               pmfms: PmfmStrategy[],
-                               opts?: {
-                                 withChildren: boolean;
-                                 form: FormGroup;
-                                 formBuilder: FormBuilder;
-                                 createForm: (value?: Batch) => AbstractControl;
-                                 onlyExistingPmfms?: boolean;
-                               }) {
-    if (!batch) return;
-
-    MeasurementValuesUtils.normalizeEntityToForm(batch, pmfms, opts && opts.form, {
-      onlyExistingPmfms: opts && opts.onlyExistingPmfms
-    });
-
-    if (batch.children && opts && opts.withChildren) {
-      const childrenFormHelper = new FormArrayHelper<Batch>(
-        opts.formBuilder,
-        opts.form,
-        'children',
-        (value) => opts.createForm(value),
-        (v1, v2) => false /*comparision not need*/,
-        (value) => isNil(value),
-        {allowEmptyArray: true}
-      );
-      childrenFormHelper.resize(batch.children.length);
-
-      batch.children.forEach((child, index) => {
-        // Recursive call, on each children
-        BatchUtils.normalizeEntityToForm(child, pmfms,
-          Object.assign(opts, {form: childrenFormHelper.at(index) as FormGroup}));
-      });
-    }
-  }
 
   /**
    * Compute individual count, from individual measures

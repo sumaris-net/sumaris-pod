@@ -301,12 +301,14 @@ export abstract class Entity<T> implements Cloneable<T> {
 }
 
 export class EntityUtils {
-  static isNotEmpty(obj: any | Entity<any>): boolean {
-    return !!obj && obj['id'] !== null && obj['id'] !== undefined;
+  // Check that the object has a NOT nil attribute (ID by default)
+  static isNotEmpty(obj: any | Entity<any>, checkedAttribute?: string): boolean {
+    return !!obj && obj[checkedAttribute||'id'] !== null && obj[checkedAttribute||'id'] !== undefined;
   }
 
-  static isNotEmptyEntity<T extends Entity<any>>(obj: any | Entity<any>): obj is T {
-    return !!obj && obj['id'] !== null && obj['id'] !== undefined;
+  // Check that the object has a NOT nil attribute (ID by default)
+  static isNotEmptyEntity<T extends Entity<any>>(obj: any | Entity<any>, checkedAttribute?: string): obj is T {
+    return !!obj && obj[checkedAttribute||'id'] !== null && obj[checkedAttribute||'id'] !== undefined;
   }
 
   static isEmpty(obj: any | Entity<any>): boolean {

@@ -157,8 +157,8 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     await this.viewCtrl.dismiss();
   }
 
-  async close(event?: UIEvent): Promise<BatchGroup | undefined> {
-    if (this.loading) return; // avoid many call
+  async save(): Promise<BatchGroup | undefined> {
+    if (this.loading) return undefined; // avoid many call
 
     this.loading = true;
 
@@ -177,27 +177,36 @@ export class BatchGroupModal implements OnInit, OnDestroy {
         this.form.markAsTouched({emitEvent: true});
 
         this.loading = false;
-        return;
+        return undefined;
       }
 
     }
 
     // Save table content
-    const data = this.form.value;
+    this.data = this.form.value;
 
-    await this.viewCtrl.dismiss(data);
-
-    return data;
+    return this.data;
   }
 
-  async onShowSubBatchesButtonClick(event: UIEvent) {
+  async close(event?: UIEvent): Promise<BatchGroup | undefined> {
+
+    const savedBatch = await this.save();
+    if (!savedBatch) return;
+
+    await this.viewCtrl.dismiss(savedBatch);
+
+    return savedBatch;
+  }
+
+  async onShowSubBatchesButtonClick(event?: UIEvent) {
     if (!this.showSubBatchesCallback) return; // Skip
 
-    // Close
-    const batch = await this.close(event);
+    // Save
+    const savedBatch = await this.close();
+    if (!savedBatch) return;
 
-    // Only if close() succeed, execute the callback
-    if (batch) this.showSubBatchesCallback(batch);
+    // Execute the callback
+    this.showSubBatchesCallback(savedBatch);
   }
 
   /* -- protected methods -- */

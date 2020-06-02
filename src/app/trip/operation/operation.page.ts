@@ -6,13 +6,7 @@ import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {AppEditorPage, AppTableUtils, EntityUtils, environment} from '../../core/core.module';
 import {CatchBatchForm} from '../catch/catch.form';
 import {HistoryPageReference, UsageMode} from '../../core/services/model';
-import {
-  EditorDataServiceLoadOptions,
-  fadeInOutAnimation,
-  isNil,
-  isNotEmptyArray,
-  isNotNil
-} from '../../shared/shared.module';
+import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {AcquisitionLevelCodes, PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
@@ -30,7 +24,6 @@ import {isNotNilOrBlank} from "../../shared/functions";
 import {filterNotNil, firstNotNil} from "../../shared/observables";
 import {Operation, Trip} from "../services/model/trip.model";
 import {BatchGroup} from "../services/model/batch-group.model";
-import {SelectPhysicalGearModal} from "../physicalgear/select-physicalgear.modal";
 
 @Component({
   selector: 'app-operation-page',
@@ -629,6 +622,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
       await this.subBatchesTable.save();
 
       // get batches
+      console.warn("TODO: better implementation, without using subBatchesTable");
       const batches = BatchUtils.prepareRootBatchesForSaving(this.batchGroupsTable.value, this.subBatchesTable.value, this.batchGroupsTable.qvPmfm);
       data.catchBatch.children = batches;
     } else {

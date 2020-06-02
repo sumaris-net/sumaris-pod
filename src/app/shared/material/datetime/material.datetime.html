@@ -7,7 +7,7 @@
 <!-- writable + time -->
 <ng-template #writable >
   <ion-grid *ngIf="displayTime else writableNoTime" class="ion-no-padding">
-    <ion-row class="ion-no-padding no-wrap" [formGroup]="form">
+    <ion-row class="ion-no-padding no-wrap" [formGroup]="form" nowrap>
 
       <!-- day -->
       <ion-col class="day ion-no-padding">
@@ -88,10 +88,15 @@
 
           <input matInput #matInput type="text"
                  formControlName="hour"
-                 [class.cdk-visually-hidden]="!mobile"
+                 *ngIf="mobile"
+                 (click)="openTimePickerIfMobile($event)"
+                 readonly>
+
+          <input matInput type="text"
+                 formControlName="hour"
+                 hidden
                  [ngxTimepicker]="timePicker"
-                 [format]="24"
-                 >
+                 [format]="24">
 
           <button matSuffix type="button" mat-icon-button
                   tabindex="-1"

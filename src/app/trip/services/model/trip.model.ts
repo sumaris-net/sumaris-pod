@@ -385,13 +385,13 @@ export class Operation extends DataEntity<Operation> {
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
 
     // Samples
-    target.samples = this.samples && this.samples.map(s => s.asObject(opts)) || undefined;
+    target.samples = this.samples && this.samples.map(s => s.asObject({...opts, withChildren: true})) || undefined;
 
     // Batch
     if (target.catchBatch) {
-      // Serialize batches in tree (will keep only children arrays, and removed parentId and parent)
+      // Serialize batches into a tree (will keep only children arrays, and removed parentId and parent)
       if (!opts || opts.batchAsTree !== false) {
-        target.catchBatch = this.catchBatch && this.catchBatch.asObject(opts) || undefined;
+        target.catchBatch = this.catchBatch && this.catchBatch.asObject({...opts, withChildren: true}) || undefined;
       }
       // Serialize as batches array (this will fill parentId, and remove children and parent properties)
       else {
@@ -437,7 +437,7 @@ export class Operation extends DataEntity<Operation> {
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
 
     // Samples
-    this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
+    this.samples = source.samples && source.samples.map(source => Sample.fromObject(source, {withChildren: true})) || undefined;
 
     // Batches
     this.catchBatch = source.catchBatch && !source.batches ?

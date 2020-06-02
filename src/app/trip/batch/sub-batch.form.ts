@@ -22,7 +22,7 @@ import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {EntityUtils, UsageMode} from "../../core/services/model";
 import {
   debounceTime,
-  delay,
+  delay, distinctUntilChanged,
   distinctUntilKeyChanged,
   filter,
   mergeMap,
@@ -167,7 +167,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   @ViewChildren(MeasurementFormField) measurementFormFields: QueryList<MeasurementFormField>;
-  @ViewChildren('matInput', {read: true}) matInputs: QueryList<ElementRef>;
+  @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -227,25 +227,24 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       .concat(!this.showTaxonName ? this.settings.getFieldDisplayAttributes('taxonName').map(attr => 'taxonName.' + attr) : []);
 
     // Parent combo
+    const parentControl = this.form.get('parent');
     this.registerAutocompleteField('parent', {
       suggestFn: (value: any, options?: any) => this.suggestParents(value, options),
       attributes: ['rankOrder'].concat(this._parentAttributes),
       showAllOnFocus: true
     });
 
-    // Add required validator on TaxonName
+    // Taxon name
     const taxonNameControl = this.form.get('taxonName');
     if (this.showTaxonName) {
+      // Add required validator on TaxonName
       taxonNameControl.setValidators(Validators.compose([SharedValidators.entity, Validators.required]));
     }
-
-    const parentControl = this.form.get('parent');
-
     this.registerAutocompleteField('taxonName', {
       items: this.$taxonNames.asObservable(),
-      showAllOnFocus: true,
       mobile: this.mobile
     });
+
 
     // Mobile
     if (this.mobile) {
@@ -313,8 +312,9 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
             // Warn: skip the first trigger (ignore set value)
             skip(1),
             debounceTime(250),
-            filter(parent => EntityUtils.isNotEmpty(parent) && this.form.enabled),
-            distinctUntilKeyChanged('label'),
+            // Ignore changes if parent is not an entity (WARN: we use 'label' because id can be null, when not saved yet)
+            filter(parent => this.form.enabled && EntityUtils.isNotEmpty(parent, 'label')),
+            distinctUntilChanged(Batch.equals),
             mergeMap(() => this.suggestTaxonNames())
           )
           .subscribe((taxonNames) => {
@@ -346,8 +346,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
         }));
 
     this.ngInitExtension();
-
-    //this.updateTabIndex();
   }
 
   async doNewParentClick(event: UIEvent) {
@@ -361,8 +359,22 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
 
   focusFirstEmpty(event?: UIEvent) {
+    // DEBUG
+    //console.debug("[sub-batch-form] Focusing on first empty #matInput field...");
+
+    // Cancelling event (e.g. when emitted by (keydown.tab) )
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     // Focus to first input
     this.matInputs
+      // DEBUG
+      //.map(element => {
+      //  console.debug("[sub-batch-form] Found #matInput:", element);
+      //  return element;
+      // })
         // Transform to input
       .map(element => isInputElement(element) ? element : (isInputElement(element.nativeElement) ? element.nativeElement : undefined))
         // Exclude parent field, if not empty
@@ -484,9 +496,10 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   protected suggestTaxonNames(value?: any, options?: any): Promise<TaxonNameRef[]> {
-    const parent = this.form && this.form.get('parent').value;
+    const parent = this.parent;
     if (isNil(parent)) return Promise.resolve([]);
-    if (this.debug) console.debug(`[sub-batch-form] Searching taxon name {${value || '*'}}...`);
+    //if (this.debug)
+      console.debug(`[sub-batch-form] Searching taxon name {${value || '*'}}...`);
     return this.programService.suggestTaxonNames(value,
       {
         program: this.program,

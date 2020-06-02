@@ -1,4 +1,4 @@
-<form class="form-container" [formGroup]="form" >
+<form class="form-container" [formGroup]="form" (keydown.tab)="focusFirstEmpty($event)">
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
@@ -50,13 +50,15 @@
   </mat-form-field-measurement-qv>
 
   <!-- Taxon name -->
-  <div *ngIf="showTaxonName">
-    <mat-autocomplete-field #matInput  *ngIf="!mobile || freezeTaxonName; else taxonNameMobile"
+  <div [class.cdk-visually-hidden]="!showTaxonName">
+
+    <!-- desktop -->
+    <mat-autocomplete-field #matInput *ngIf="!mobile || freezeTaxonName; else taxonNameMobile"
                             formControlName="taxonName"
                             [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                             [config]="autocompleteFields.taxonName"
                             [tabindex]="tabindex+2"
-                            [required]="true">
+                            [required]="showTaxonName">
       <!-- checkbox to freeze value -->
       <mat-checkbox  matSuffix
                      [formControl]="freezeTaxonNameControl"
@@ -67,6 +69,7 @@
       </mat-checkbox>
     </mat-autocomplete-field>
 
+    <!-- mobile (use buttons) -->
     <ng-template #taxonNameMobile>
       <mat-form-field floatLabel="always"
                       *ngIf="$taxonNames | async as taxonNames; else loadingTaxonNames"

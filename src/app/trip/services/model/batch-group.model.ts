@@ -1,7 +1,7 @@
 import {DataEntityAsObjectOptions} from "./base.model";
 import {Batch, BatchUtils} from "./batch.model";
 
-export class BatchGroup extends Batch {
+export class BatchGroup extends Batch<BatchGroup> {
 
   // Number of individual observed (by individual measure)
   observedIndividualCount: number;
@@ -24,19 +24,19 @@ export class BatchGroup extends Batch {
     super();
   }
 
-  clone(): BatchGroup {
+  clone(opts?: { withChildren?: boolean; }): BatchGroup {
     const target = new BatchGroup();
-    target.fromObject(this.asObject());
+    target.fromObject(this.asObject(opts), opts);
     return target;
   }
 
-  fromObject(source: any, opts?: { withChildren: boolean; }): BatchGroup {
+  fromObject(source: any, opts?: { withChildren?: boolean; }): BatchGroup {
     super.fromObject(source, opts);
     this.observedIndividualCount = source.observedIndividualCount;
     return this;
   }
 
-  asObject(opts?: DataEntityAsObjectOptions & { withChildren?: boolean }): any {
+  asObject(opts?: DataEntityAsObjectOptions & { withChildren?: boolean; }): any {
     const target = super.asObject(opts);
     if (opts && opts.minify === true) {
       delete target.observedIndividualCount;

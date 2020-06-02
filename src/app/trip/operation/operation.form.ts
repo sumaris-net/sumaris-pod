@@ -105,7 +105,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     // Combo: physicalGears
     this.registerAutocompleteField('physicalGear', {
       items: this._physicalGearsSubject.asObservable(),
-      //suggestFn: (value, options) => this.suggestPhysicalGear(value, options),
       attributes: ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key)),
       mobile: this.mobile
     });
@@ -113,7 +112,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
       items: this._metiersSubject.asObservable(),
-      //suggestFn: (value, options) => this.suggestTargetSpecies(value, options),
       mobile: this.mobile
     });
 

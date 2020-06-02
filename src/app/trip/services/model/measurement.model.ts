@@ -102,7 +102,7 @@ export class Measurement extends DataEntity<Measurement> {
     return super.equals(other)
       || (
         // Same [pmfmId, rankOrder]
-        (this.pmfmId && other.pmfmId && this.rankOrder === other.rankOrder)
+        (this.pmfmId === other.pmfmId && this.rankOrder === other.rankOrder)
       );
   }
 

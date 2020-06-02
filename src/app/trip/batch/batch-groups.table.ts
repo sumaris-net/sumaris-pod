@@ -140,8 +140,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }
 
   constructor(
-    injector: Injector,
-    protected animationCtrl: AnimationController
+    injector: Injector
   ) {
     super(injector,
       injector.get(ValidatorService),
@@ -611,7 +610,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   };
 
   async openDetailModal(batch?: BatchGroup): Promise<BatchGroup | undefined> {
-    const isNew = !batch;
+    const isNew = !batch && true;
     if (isNew) {
       batch = new BatchGroup();
       await this.onNewEntity(batch);
@@ -619,38 +618,13 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     this.markAsLoading();
 
-    /*
-    TODO: enable animation slide
-    const enterAnimation = (baseEl: any) => {
-      const backdropAnimation = this.animationCtrl.create()
-        .addElement(baseEl.querySelector('ion-backdrop')!)
-        .fromTo('opacity', '0.01', 'var(--backdrop-opacity)');
-
-      const wrapperAnimation = this.animationCtrl.create()
-        .addElement(baseEl.querySelector('.modal-wrapper')!)
-        .keyframes([
-          { offset: 0, opacity: '0', transform: 'scale(0)' },
-          { offset: 1, opacity: '1', transform: 'scale(1)' }
-        ]);
-
-      return this.animationCtrl.create()
-        .addElement(baseEl)
-        .easing('ease-out')
-        .duration(500)
-        .addAnimation([backdropAnimation, wrapperAnimation]);
-    }
-
-    const leaveAnimation = (baseEl: any) => {
-      return enterAnimation(baseEl).direction('reverse');
-    }*/
-
     const modal = await this.modalCtrl.create({
       component: BatchGroupModal,
       componentProps: {
         program: this.program,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
-        value: isNew ? batch : batch.clone(), // Do a copy, because edition can be cancelled
+        value: batch,
         isNew,
         qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
@@ -671,7 +645,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // Exit if empty
     if (!(data instanceof BatchGroup)) {
-      return undefined;
+      return undefined; // Exit if empty
     }
 
     return data;

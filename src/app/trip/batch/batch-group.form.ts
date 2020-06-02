@@ -139,7 +139,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     this.registerSubscription(
       this.form.valueChanges
         .pipe(
-          throttleTime(500)
+          //throttleTime(500)
         )
         .subscribe((batch) => this.computeShowTotalIndividualCount(batch)));
   }
@@ -190,7 +190,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       data.children = this.qvPmfm.qualitativeValues.map((qv, index) => {
 
         // Find existing child, or create a new one
-        const child = (data.children || []).find(c => +(c.measurementValues[this.qvPmfm.pmfmId]) === qv.id)
+        const child = (data.children || []).find(c => +(c.measurementValues[this.qvPmfm.pmfmId]) == qv.id)
           || new Batch();
 
         // Make sure label and rankOrder are correct

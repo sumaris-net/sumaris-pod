@@ -18,9 +18,9 @@ export class Sample extends RootDataEntity<Sample>
 
   static TYPENAME = 'SampleVO';
 
-  static fromObject(source: any): Sample {
+  static fromObject(source: any, opts?: { withChildren?: boolean; }): Sample {
     const res = new Sample();
-    res.fromObject(source);
+    res.fromObject(source, opts);
     return res;
   }
 
@@ -63,23 +63,23 @@ export class Sample extends RootDataEntity<Sample>
     this.individualCount = null;
   }
 
-  clone(): Sample {
+  clone(opts?: { withChildren?: boolean; }): Sample {
     const target = new Sample();
-    target.fromObject(this.asObject());
+    target.fromObject(this.asObject(opts), opts);
     return target;
   }
 
-  asObject(options?: DataEntityAsObjectOptions): any {
-    const target = super.asObject(options);
+  asObject(opts?: DataEntityAsObjectOptions & {withChildren?: boolean}): any {
+    const target = super.asObject(opts);
     target.sampleDate = toDateISOString(this.sampleDate);
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...options, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
-    target.taxonName = this.taxonName && this.taxonName.asObject({ ...options, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
-    target.children = this.children && this.children.map(c => c.asObject(options)) || undefined;
-    target.measurementValues = MeasurementValuesUtils.asObject( this.measurementValues, options);
+    target.children = this.children && (!opts || opts.withChildren !== false) && this.children.map(c => c.asObject(opts)) || undefined;
+    target.measurementValues = MeasurementValuesUtils.asObject( this.measurementValues, opts);
 
-    if (options && options.minify) {
+    if (opts && opts.minify) {
       // Parent not need, as the tree will be used by pod
       delete target.parent;
       delete target.parentId;
@@ -88,7 +88,7 @@ export class Sample extends RootDataEntity<Sample>
     return target;
   }
 
-  fromObject(source: any): Sample {
+  fromObject(source: any, opts?: {withChildren?: boolean}): Sample {
     super.fromObject(source);
     this.label = source.label;
     this.rankOrder = source.rankOrder;
@@ -104,6 +104,10 @@ export class Sample extends RootDataEntity<Sample>
     this.batchId = source.batchId;
     this.operationId = source.operationId;
     this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
+
+    if (source.children && (!opts || opts.withChildren !== false)) {
+      this.children = source.children.map(child => Sample.fromObject(child, opts));
+    }
 
     return this;
   }

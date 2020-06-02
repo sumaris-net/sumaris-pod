@@ -34,6 +34,7 @@ import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Batch} from "../services/model/batch.model";
 import {Operation} from "../services/model/trip.model";
 import {Landing} from "../services/model/landing.model";
+import {BatchGroup} from "../services/model/batch-group.model";
 
 export interface BatchFilter {
   operationId?: number;
@@ -186,9 +187,7 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     return true;
   }
 
-
   protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
-
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
@@ -212,11 +211,13 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
   }
 
   async openDetailModal(batch?: T): Promise<T | undefined> {
-    const isNew = !batch;
+    const isNew = !batch && true;
     if (isNew) {
       batch = new this.dataType();
       await this.onNewEntity(batch);
     }
+
+    this.markAsLoading();
 
     const modal = await this.modalCtrl.create({
       component: BatchModal,
@@ -224,7 +225,7 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
         program: this.program,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
-        value: isNew ? batch : batch.clone(), // Do a copy, because edition can be cancelled
+        value: batch,
         isNew,
         qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
@@ -242,8 +243,14 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
+    this.markAsLoaded();
 
-    return (data instanceof Batch) ? data as T : undefined;
+    // Exit if empty
+    if (!(data instanceof Batch)) {
+      return undefined;
+    }
+
+    return data as T;
   }
 
   async onSubBatchesClick(event: UIEvent, row: TableElement<T>, opts?: {
@@ -380,10 +387,6 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
 
     // Remove weight pmfms
     return pmfms.filter(p => !p.isWeight);
-  }
-
-  protected getSubBatches(batch: Batch): Batch[] {
-    return batch.children;
   }
 
   protected async onNewEntity(data: T): Promise<void> {
