@@ -323,7 +323,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     const row = await super.addEntityToTable(newBatch);
 
     // Highlight the row, few seconds
-    this.onRowChanged(row);
+    if (row) this.onRowChanged(row);
+
+    // Clean editedRow
+    this.editedRow = null;
 
     return row;
   }
@@ -333,6 +336,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     // Highlight the row, few seconds
     if (updatedRow) this.onRowChanged(updatedRow);
+
+    // Clean editedRow
+    this.editedRow = null;
 
     return updatedRow;
   }

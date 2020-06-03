@@ -286,7 +286,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     // Update existing row
     else {
-      this.updateEntityToTable(subBatch, row);
+      await this.updateEntityToTable(subBatch, row);
     }
   }
 
@@ -569,19 +569,28 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       // Already exists: increment individual count
       if (row) {
         if (row.validator) {
-          const control = row.validator.controls.individualCount;
+          const control = row.validator.get('individualCount');
           control.setValue((control.value || 0) + newBatch.individualCount);
         } else {
           row.currentData.individualCount = (row.currentData.individualCount || 0) + newBatch.individualCount;
           this.markForCheck();
         }
         this.markAsDirty();
+
+        // restore the edited row (link in super.addEntityToTable() )
+        this.editedRow = row;
+
         return row;
       }
     }
 
     // The batch does not exists: add it tp the table
-    return super.addEntityToTable(newBatch);
+    const res = await super.addEntityToTable(newBatch);
+
+    // Remove editedRow (should not be keep here)
+    this.editedRow = null;
+
+    return res;
   }
 
   protected async setAvailableParents(parents: Batch[], opts?: { emitEvent?: boolean; linkDataToParent?: boolean; }) {
