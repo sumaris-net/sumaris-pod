@@ -286,6 +286,11 @@ export function equalsOrNil(value1: any, value2: any) {
 
 export declare type KeysEnum<T> = { [P in keyof Required<T>]: true };
 
+export function uncapitalizeFirstLetter(value: string) {
+  if (!value || value.length === 0) return value;
+  return value.substr(0,1).toLowerCase() + value.substr(1);
+}
+
 export class Beans {
   /**
    * Copy a source object, by including only properties of the given dataType.

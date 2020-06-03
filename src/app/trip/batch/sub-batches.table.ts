@@ -29,7 +29,7 @@ import {
   startsWithUpperCase,
   toBoolean
 } from "../../shared/functions";
-import {UsageMode} from "../../core/services/model";
+import {ReferentialUtils, UsageMode} from "../../core/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {Batch, BatchUtils} from "../services/model/batch.model";
@@ -230,7 +230,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
           if (!this.editedRow) return; // Should never occur
           const row = this.editedRow;
           const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
-          if (EntityUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
+          if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
             if (controls[PmfmIds.DISCARD_REASON]) {
               if (row.validator.enabled) {
                 controls[PmfmIds.DISCARD_REASON].enable();
@@ -438,7 +438,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   }
 
   protected async suggestParent(value: any): Promise<any[]> {
-    if (EntityUtils.isNotEmpty(value)) {
+    if (EntityUtils.isNotEmpty(value, 'label')) {
       return [value];
     }
     value = (typeof value === "string" && value !== "*") && value || undefined;
@@ -561,73 +561,28 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     const pmfms = this.$pmfms.getValue() || [];
     MeasurementValuesUtils.normalizeEntityToForm(newBatch, pmfms);
 
-    let row = undefined;
-
-    // Try to find an identical sub-batch
+    // If individual count column is shown (can be greater than 1)
     if (this.showIndividualCount) {
-      const rows = await this.dataSource.getRows();
-      row = rows.find(r => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));
-    }
+      // Try to find an identical sub-batch
+      const row = (await this.dataSource.getRows()).find(r => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));
 
-    // Already exists: increment individual count
-    if (row) {
-      if (row.validator) {
-        const control = row.validator.controls.individualCount;
-        control.setValue((control.value || 0) + newBatch.individualCount);
-        control.markAsDirty();
-      } else {
-        row.currentData.individualCount = (row.currentData.individualCount || 0) + newBatch.individualCount;
-        this.markForCheck();
+      // Already exists: increment individual count
+      if (row) {
+        if (row.validator) {
+          const control = row.validator.controls.individualCount;
+          control.setValue((control.value || 0) + newBatch.individualCount);
+        } else {
+          row.currentData.individualCount = (row.currentData.individualCount || 0) + newBatch.individualCount;
+          this.markForCheck();
+        }
+        this.markAsDirty();
+        return row;
       }
     }
 
-    // New batch: add to table
-    else {
-      row = await this.addRowToTable();
-      if (!row) throw new Error("Could not add row t table");
-
-      // Keep rankOrder, then make sure to entity (e.g. label should be computed)
-      newBatch.rankOrder = row.currentData.rankOrder;
-      await this.onNewEntity(newBatch);
-
-      // Affect new row
-      if (row.validator) {
-        row.validator.patchValue(newBatch);
-        this.confirmEditCreate(null, row);
-        row.validator.markAsDirty();
-      } else {
-        row.currentData = newBatch;
-        this.confirmEditCreate(null, row);
-      }
-    }
-    this.markAsDirty();
-    return row;
+    // The batch does not exists: add it tp the table
+    return super.addEntityToTable(newBatch);
   }
-
-  protected updateEntityToTable(updatedBatch: Batch, row: TableElement<Batch>): boolean {
-    if (this.debug) console.debug("[batches-table] Updating batch to table:", updatedBatch);
-
-    // Adapt measurement values to row
-    this.normalizeEntityToRow(updatedBatch, row);
-
-    // Update the row
-    if (!row.editing && row.validator) {
-      row.validator.patchValue(updatedBatch);
-      row.validator.markAsDirty();
-    }
-    else {
-      row.currentData = updatedBatch;
-    }
-
-    if (this.confirmEditCreate(null, row)) {
-      this.markAsDirty();
-      return true;
-    }
-    return false;
-  }
-
-
-
 
   protected async setAvailableParents(parents: Batch[], opts?: { emitEvent?: boolean; linkDataToParent?: boolean; }) {
     opts = opts || {emitEvent: true, linkDataToParent: true};

@@ -10,6 +10,7 @@ import {StrategiesTable} from "./strategies.table";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 import {EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
+import {ReferentialUtils} from "../../core/services/model";
 
 @Component({
   selector: 'app-program',
@@ -119,7 +120,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   protected canUserWrite(data: Program): boolean {
     // TODO : check user is in program managers
     return (this.isNewData && this.accountService.isAdmin())
-      || (EntityUtils.isNotEmpty(data) && this.accountService.isSupervisor());
+      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
 
   }
 

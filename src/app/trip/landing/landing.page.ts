@@ -5,7 +5,7 @@ import * as moment from "moment";
 import {LandingForm} from "./landing.form";
 import {PmfmStrategy, ProgramProperties} from "../../referential/services/model";
 import {SamplesTable} from "../sample/samples.table";
-import {UsageMode} from "../../core/services/model";
+import {ReferentialUtils, UsageMode} from "../../core/services/model";
 import {LandingService} from "../services/landing.service";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
@@ -146,7 +146,7 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
 
     // Copy not fetched data
     if (this.parent) {
-      data.program = EntityUtils.isNotEmpty(data.program) && data.program || this.parent.program;
+      data.program = ReferentialUtils.isNotEmpty(data.program) && data.program || this.parent.program;
       data.observers = isNotEmptyArray(data.observers) && data.observers || this.parent.observers;
 
       if (this.parent instanceof ObservedLocation) {

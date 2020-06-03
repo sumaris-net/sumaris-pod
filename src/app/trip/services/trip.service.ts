@@ -135,7 +135,7 @@ export const TripFragments = {
       ...LightPersonFragment
     }
     metiers {
-      ...LightMetierFragment
+      ...MetierFragment
     }
   }
   ${Fragments.lightDepartment}
@@ -145,7 +145,7 @@ export const TripFragments = {
   ${Fragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${PhysicalGearFragments.physicalGear}
-  ${Fragments.lightMetier},
+  ${Fragments.metier},
   ${SaleFragments.lightSale}
   `,
   landedTrip: gql`fragment LandedTripFragment on TripVO {
@@ -190,7 +190,7 @@ export const TripFragments = {
       ...LightPersonFragment
     }
     metiers {
-      ...LightMetierFragment
+      ...MetierFragment
     }
     operationGroups {
       ...OperationGroupFragment
@@ -205,7 +205,7 @@ export const TripFragments = {
   ${Fragments.referential}
   ${Fragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${Fragments.lightMetier}
+  ${Fragments.metier}
   ${OperationGroupFragment.operationGroup}
   ${SaleFragments.sale}
   `

@@ -1,11 +1,14 @@
 import {
   DataEntity,
   DataEntityAsObjectOptions,
-  EntityUtils,
   isNil,
-  isNotNil, IWithPacketsEntity, NOT_MINIFY_OPTIONS, ReferentialRef, referentialToString
+  isNotNil,
+  IWithPacketsEntity,
+  NOT_MINIFY_OPTIONS,
+  ReferentialRef,
+  referentialToString
 } from "./base.model";
-import {ReferentialAsObjectOptions} from "../../../core/services/model";
+import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model";
 import {DataFilter} from "../../../shared/services/memory-data-service.class";
 import {Product} from "./product.model";
 import {equalsOrNil, isNotNilOrNaN} from "../../../shared/functions";
@@ -202,7 +205,7 @@ export class PacketUtils {
 
   static isPacketCompositionEquals(composition1: PacketComposition, composition2: PacketComposition): boolean {
     return (composition1 === composition2) || (isNil(composition1) && isNil(composition2)) || (
-      composition1 && composition2 && EntityUtils.equals(composition1.taxonGroup, composition2.taxonGroup)
+      composition1 && composition2 && ReferentialUtils.equals(composition1.taxonGroup, composition2.taxonGroup)
       && composition1.ratio1 === composition2.ratio1
       && composition1.ratio2 === composition2.ratio2
       && composition1.ratio3 === composition2.ratio3

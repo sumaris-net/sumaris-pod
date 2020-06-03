@@ -24,6 +24,7 @@ import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {AcquisitionLevelType} from "../../referential/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Alerts} from "../../shared/alerts";
+import {Batch} from "../services/model/batch.model";
 
 
 export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {

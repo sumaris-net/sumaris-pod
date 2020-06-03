@@ -9,7 +9,12 @@ import {PmfmStrategy, ReferentialRef} from "../../../referential/services/model"
 import {Moment} from "moment/moment";
 import {DataEntityAsObjectOptions, RootDataEntity} from "./base.model";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {ITreeItemEntity, NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model";
+import {
+  ITreeItemEntity,
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
+  ReferentialUtils
+} from "../../../core/services/model";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 
 
@@ -137,8 +142,8 @@ export class SampleUtils {
       return parent.measurementValues[opts.pmfm.pmfmId];
     }
 
-    const hasTaxonGroup = EntityUtils.isNotEmpty(parent.taxonGroup) ;
-    const hasTaxonName = EntityUtils.isNotEmpty(parent.taxonName);
+    const hasTaxonGroup = ReferentialUtils.isNotEmpty(parent.taxonGroup) ;
+    const hasTaxonName = ReferentialUtils.isNotEmpty(parent.taxonName);
     // Display only taxon name, if no taxon group or same label
     if (hasTaxonName && (!hasTaxonGroup || parent.taxonGroup.label === parent.taxonName.label)) {
       return referentialToString(parent.taxonName, opts.taxonNameAttributes);

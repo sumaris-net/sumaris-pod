@@ -13,11 +13,11 @@ import {
   toInt,
   toNumber
 } from "../../shared/functions";
-import {EntityUtils, MethodIds, PmfmStrategy, QualityFlagIds} from "../../referential/services/model";
+import {MethodIds, PmfmStrategy, QualityFlagIds} from "../../referential/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {environment} from "../../../environments/environment";
 import {MeasurementFormValues, MeasurementValuesUtils} from "../services/model/measurement.model";
-import {AnimationController, ModalController} from "@ionic/angular";
+import {ModalController} from "@ionic/angular";
 import {Batch, BatchUtils, BatchWeight} from "../services/model/batch.model";
 import {ColumnItem, TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
@@ -25,6 +25,7 @@ import {BatchGroupModal} from "./batch-group.modal";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {firstFalsePromise} from "../../shared/observables";
 import {BatchGroup} from "../services/model/batch-group.model";
+import {ReferentialUtils} from "../../core/services/model";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
@@ -261,7 +262,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         // Filter on expected labels (as prefix)
         .filter(taxonGroup => !defaultTaxonGroups || taxonGroup.label && defaultTaxonGroups.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
         // Exclude species that already exists in table
-        .filter(taxonGroup => !rowsTaxonGroups.find(tg => EntityUtils.equals(tg, taxonGroup)))
+        .filter(taxonGroup => !rowsTaxonGroups.find(tg => ReferentialUtils.equals(tg, taxonGroup)))
         // Sort using order configure in the taxon group column
         .sort(propertiesPathComparator(sortAttributes));
 
@@ -739,7 +740,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
         const qvChildren = children.filter(c => {
           const qvValue = c.measurementValues[this.qvPmfm.pmfmId];
-          return qvValue && qvValue.id === qv.id;
+          return qvValue && qvValue.id == qv.id;
         });
         const samplingIndividualCount = BatchUtils.sumObservedIndividualCount(qvChildren);
         const qvOffset = (qvIndex * BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length);

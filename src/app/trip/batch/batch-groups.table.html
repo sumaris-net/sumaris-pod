@@ -62,7 +62,7 @@
                      [class.odd]="isQvOdd(col)"
                      [class.hidden-mobile]="col.rankOrder % 5 !== 0"
                      [class.show]="col.rankOrder % 5 === 0">
-      <mat-label float-center class="ion-text-wrap" *ngIf="col.rankOrder % 5 === 0">
+      <mat-label  class="ion-text-wrap ion-align-self-center" *ngIf="col.rankOrder % 5 === 0">
         <span>{{qvPmfm.qualitativeValues[col.qvIndex].name}}</span><br/>
         <mat-checkbox *ngIf="weightMethodForm"
                       [formControl]="weightMethodForm.controls[col.qvIndex]"

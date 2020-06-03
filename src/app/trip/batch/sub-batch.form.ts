@@ -19,7 +19,7 @@ import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/form
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
-import {EntityUtils, UsageMode} from "../../core/services/model";
+import {EntityUtils, ReferentialUtils, UsageMode} from "../../core/services/model";
 import {
   debounceTime,
   delay, distinctUntilChanged,
@@ -281,13 +281,13 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
               if (items && items.length === 1) {
                 index = 0;
               }
-              else if (EntityUtils.isNotEmpty(lastTaxonName)) {
+              else if (ReferentialUtils.isNotEmpty(lastTaxonName)) {
                 index = items.findIndex(v => TaxonNameRef.equalsOrSameReferenceTaxon(v, lastTaxonName));
               }
               newTaxonName = (index !== -1) ? items[index] : null;
 
               // Apply to form, if need
-              if (!EntityUtils.equals(lastTaxonName, newTaxonName)) {
+              if (!ReferentialUtils.equals(lastTaxonName, newTaxonName)) {
                 taxonNameControl.setValue(newTaxonName, {emitEvent: false});
                 lastTaxonName = newTaxonName;
                 this.markAsDirty();
@@ -377,7 +377,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
         // Transform to input
       .map(element => isInputElement(element) ? element : (isInputElement(element.nativeElement) ? element.nativeElement : undefined))
         // Exclude parent field, if not empty
-      .filter((input, index) => !(index === 0 && this.showParent && EntityUtils.isNotEmpty(this.parent)))
+      .filter((input, index) => !(index === 0 && this.showParent && EntityUtils.isNotEmpty(this.parent, 'label')))
         // Exclude nil value
       .filter(input => isNotNil(input) && isNilOrBlank(input.value)
         // Exclude QV with buttons
@@ -464,7 +464,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
         .pipe(delay(200))
         .subscribe((value) => {
 
-          if (EntityUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
+          if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
             if (this.form.enabled) {
               discardReasonControl.enable();
             }
@@ -481,7 +481,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   protected async suggestParents(value: any, options?: any): Promise<Batch[]> {
     // Has select a valid parent: return the parent
-    if (EntityUtils.isNotEmpty(value)) return [value];
+    if (EntityUtils.isNotEmpty(value, 'label')) return [value];
     value = (typeof value === "string" && value !== "*") && value || undefined;
     if (isNilOrBlank(value)) return this._availableParents; // All
     const ucValueParts = value.trim().toUpperCase().split(" ", 1);

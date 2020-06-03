@@ -10,7 +10,7 @@ import {FormGroup} from "@angular/forms";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {ModalController} from "@ionic/angular";
 import {environment} from "../../core/core.module";
-import {HistoryPageReference} from "../../core/services/model";
+import {HistoryPageReference, ReferentialUtils} from "../../core/services/model";
 import {SelectVesselsModal} from "./vessels/select-vessel.modal";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {Landing} from "../services/model/landing.model";
@@ -227,7 +227,7 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
       programLabel: this.data.program && this.data.program.label,
       startDate,
       endDate,
-      locationId: EntityUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined
+      locationId: ReferentialUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined
     };
 
     const modal = await this.modalCtrl.create({

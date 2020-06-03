@@ -6,7 +6,7 @@ import {isNotEmptyArray, isNotNil, LoadResult} from "../../shared/shared.module"
 import {BaseDataService, EntityUtils, environment, Referential, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {ReferentialRef} from "../../core/services/model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model";
 
 import {FetchPolicy} from "apollo-client";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
@@ -244,7 +244,7 @@ export class ReferentialRefService extends BaseDataService
       (loadResult && loadResult.referentials || []).map(ReferentialRef.fromObject) :
       (loadResult && loadResult.referentials || []) as ReferentialRef[];
 
-    // Force entity name (is searchJoin)
+    // Force entity name (if searchJoin)
     if (filter.entityName !== uniqueEntityName) {
       data.forEach(item => item.entityName = uniqueEntityName);
     }
@@ -257,7 +257,7 @@ export class ReferentialRefService extends BaseDataService
   }
 
   async suggest(value: any, filter?: ReferentialRefFilter): Promise<ReferentialRef[]> {
-    if (EntityUtils.isNotEmpty(value)) return [value];
+    if (ReferentialUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, null, null,
       { ...filter, searchText: value},
@@ -337,7 +337,7 @@ export class ReferentialRefService extends BaseDataService
     searchAttribute?: string;
     taxonGroupId?: number;
   }): Promise<TaxonNameRef[]> {
-    if (EntityUtils.isNotEmpty(value)) return [value];
+    if (ReferentialUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     return await this.loadAllTaxonNames(0, !value ? 30 : 10, undefined, undefined,
       {

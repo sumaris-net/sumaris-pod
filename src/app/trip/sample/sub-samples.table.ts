@@ -302,7 +302,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   }
 
   protected async suggestParent(value: any): Promise<any[]> {
-    if (EntityUtils.isNotEmpty(value)) {
+    if (EntityUtils.isNotEmpty(value, 'label')) {
       return [value];
     }
     value = (typeof value === "string" && value !== "*") && value || undefined;

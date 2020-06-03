@@ -5,7 +5,7 @@ import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {AppEditorPage, AppTableUtils, EntityUtils, environment} from '../../core/core.module';
 import {CatchBatchForm} from '../catch/catch.form';
-import {HistoryPageReference, UsageMode} from '../../core/services/model';
+import {HistoryPageReference, ReferentialUtils, UsageMode} from '../../core/services/model';
 import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {AcquisitionLevelCodes, PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
 import {BehaviorSubject, Subject} from 'rxjs';
@@ -120,7 +120,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     this.registerSubscription(
       this.samplesTable.dataSource.datasourceSubject
         .pipe(
-          debounceTime(400),
+          debounceTime(500),
           // skip if loading
           filter(() => !this.loading)
         )
@@ -198,7 +198,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
                 .pipe(
                   debounceTime(400),
                   startWith<any, any>(samplingTypeControl.value),
-                  filter(EntityUtils.isNotEmpty),
+                  filter(ReferentialUtils.isNotEmpty),
                   map(qv => qv.label),
                   distinctUntilChanged()
                 )
@@ -363,7 +363,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     data.trip = trip;
 
     // Replace physical gear by the real entity
-    data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear)) || data.physicalGear;
+    data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
 
     this.defaultBackHref = trip ? '/trips/' + trip.id  + '?tab=2' : undefined;
   }
@@ -618,12 +618,22 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
 
     // Save batch sampling tables
     if (this.showBatchTables) {
-      await this.batchGroupsTable.save();
-      await this.subBatchesTable.save();
+      let batches;
+      if (this.mobile) {
+        await this.batchGroupsTable.save();
 
-      // get batches
-      console.warn("TODO: better implementation, without using subBatchesTable");
-      const batches = BatchUtils.prepareRootBatchesForSaving(this.batchGroupsTable.value, this.subBatchesTable.value, this.batchGroupsTable.qvPmfm);
+        // get batches
+        console.warn("TODO: When mobile=true, should use a better implementation (e.g. without using subBatchesTable)");
+        await this.subBatchesTable.save();
+
+        batches = BatchUtils.prepareRootBatchesForSaving(this.batchGroupsTable.value, this.subBatchesTable.value, this.batchGroupsTable.qvPmfm);
+      }
+      else {
+        await this.batchGroupsTable.save();
+        await this.subBatchesTable.save();
+
+        batches = BatchUtils.prepareRootBatchesForSaving(this.batchGroupsTable.value, this.subBatchesTable.value, this.batchGroupsTable.qvPmfm);
+      }
       data.catchBatch.children = batches;
     } else {
       data.catchBatch.children = undefined;
@@ -664,7 +674,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
 
     // Retrieve the trip measurements on SELF_SAMPLING_PROGRAM, if any
     const qvMeasurement = (this.trip.measurements || []).find(m => m.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
-    if (qvMeasurement && EntityUtils.isNotEmpty(qvMeasurement.qualitativeValue)) {
+    if (qvMeasurement && ReferentialUtils.isNotEmpty(qvMeasurement.qualitativeValue)) {
 
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
       const tripPmfms = await this.programService.loadProgramPmfms(this.programSubject.getValue(), {acquisitionLevel: AcquisitionLevelCodes.TRIP});

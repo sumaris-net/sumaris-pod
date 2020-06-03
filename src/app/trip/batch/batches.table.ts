@@ -34,7 +34,6 @@ import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Batch} from "../services/model/batch.model";
 import {Operation} from "../services/model/trip.model";
 import {Landing} from "../services/model/landing.model";
-import {BatchGroup} from "../services/model/batch-group.model";
 
 export interface BatchFilter {
   operationId?: number;
@@ -65,7 +64,7 @@ export const DATA_TYPE_ACCESSOR = new InjectionToken<new() => Batch>('BatchesTab
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = BatchFilter> extends AppMeasurementsTable<T, F>
+export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilter = BatchFilter> extends AppMeasurementsTable<T, F>
   implements OnInit, OnDestroy {
 
   protected _initialPmfms: PmfmStrategy[];
@@ -325,7 +324,8 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
       if (this.debug) console.debug("[batches-table] Sub-batches modal: user cancelled");
     }
     else {
-      if (this.debug) console.debug("[batches-table] Sub-batches modal result: ", data);
+      //if (this.debug)
+        console.debug("[batches-table] Sub-batches modal result: ", data);
       this.onSubBatchesChanges.emit(data);
     }
 

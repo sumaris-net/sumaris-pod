@@ -1,4 +1,4 @@
-import {EntityUtils, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../../core/core.module";
+import {Entity, EntityUtils, isNil, isNotNil, referentialToString} from "../../../core/core.module";
 import {
   AcquisitionLevelCodes,
   PmfmStrategy,
@@ -8,16 +8,26 @@ import {
 import {DataEntity, DataEntityAsObjectOptions, NOT_MINIFY_OPTIONS} from "./base.model";
 import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {isNilOrBlank, isNotEmptyArray, isNotNilOrBlank, toNumber} from "../../../shared/functions";
-import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {ITreeItemEntity, ReferentialAsObjectOptions} from "../../../core/services/model";
+import {IEntity, ITreeItemEntity, ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model";
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
 }
 
+export interface BatchAsObjectOptions extends DataEntityAsObjectOptions {
+  withChildren?: boolean;
+}
 
-export class Batch<T = Batch> extends DataEntity<T> implements IEntityWithMeasurement<T>, ITreeItemEntity<T> {
+export interface BatchFromObjectOptions {
+  withChildren?: boolean;
+}
+
+export class Batch<T extends Batch<any> = Batch<any>,
+  O extends BatchAsObjectOptions = BatchAsObjectOptions,
+  F extends BatchFromObjectOptions = BatchFromObjectOptions>
+  extends DataEntity<T, O, F>
+  implements IEntityWithMeasurement<T>, ITreeItemEntity<Batch<any>> {
 
   static TYPENAME = 'BatchVO';
   static SAMPLING_BATCH_SUFFIX = '.%';
@@ -59,8 +69,8 @@ export class Batch<T = Batch> extends DataEntity<T> implements IEntityWithMeasur
    */
   static treeAsObjectArray(source: Batch,
                            opts?: DataEntityAsObjectOptions & {
-                              parent?: any;
-                            }): any[] {
+                             parent?: any;
+                           }): any[] {
     if (!source) return null;
 
     // Convert entity into object, WITHOUT children (will be add later)
@@ -82,7 +92,7 @@ export class Batch<T = Batch> extends DataEntity<T> implements IEntityWithMeasur
       [target]) || undefined;
   }
 
-  public static equals(b1: Batch | any, b2: Batch | any): boolean {
+  static equals(b1: Batch | any, b2: Batch | any): boolean {
     return b1 && b2 && ((isNotNil(b1.id) && b1.id === b2.id)
       // Or by functional attributes
       || (b1.rankOrder === b2.rankOrder
@@ -108,8 +118,8 @@ export class Batch<T = Batch> extends DataEntity<T> implements IEntityWithMeasur
 
   operationId: number;
   parentId: number;
-  parent: Batch;
-  children: Batch[];
+  parent: Batch<T>;
+  children: Batch<T>[];
 
   constructor() {
     super();
@@ -133,13 +143,13 @@ export class Batch<T = Batch> extends DataEntity<T> implements IEntityWithMeasur
     this.weight = null;
   }
 
-  clone(opts?: { withChildren?: boolean; }): T {
+  clone(): T {
     const target = new Batch();
-    target.fromObject(this.asObject(opts), opts);
+    target.fromObject(this.asObject());
     return target as T;
   }
 
-  asObject(opts?: DataEntityAsObjectOptions & {withChildren?: boolean}): any {
+  asObject(opts?: O): any {
     const parent = this.parent;
     this.parent = null; // avoid parent conversion
     const target = super.asObject(opts);
@@ -165,7 +175,7 @@ export class Batch<T = Batch> extends DataEntity<T> implements IEntityWithMeasur
     return target;
   }
 
-  fromObject(source: any, opts?: { withChildren?: boolean; }): T {
+  fromObject(source: any, opts?: F) {
     super.fromObject(source);
     this.label = source.label;
     this.rankOrder = +source.rankOrder;
@@ -194,8 +204,6 @@ export class Batch<T = Batch> extends DataEntity<T> implements IEntityWithMeasur
     if (source.children && (!opts || opts.withChildren !== false)) {
       this.children = source.children.map(child => Batch.fromObject(child, opts));
     }
-
-    return this as T;
   }
 
   equals(other: T): boolean {
@@ -212,10 +220,9 @@ export class Batch<T = Batch> extends DataEntity<T> implements IEntityWithMeasur
   }
 
   get hasTaxonNameOrGroup(): boolean {
-    return (EntityUtils.isNotEmpty(this.taxonName) || EntityUtils.isNotEmpty(this.taxonGroup)) && true;
+    return (ReferentialUtils.isNotEmpty(this.taxonName) || ReferentialUtils.isNotEmpty(this.taxonGroup)) && true;
   }
 }
-
 
 export class BatchUtils {
 
@@ -229,8 +236,8 @@ export class BatchUtils {
     if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.pmfmId])) {
       return MeasurementValuesUtils.valueToString(parent.measurementValues[opts.pmfm.pmfmId], opts.pmfm);
     }
-    const hasTaxonGroup = EntityUtils.isNotEmpty(parent.taxonGroup);
-    const hasTaxonName = EntityUtils.isNotEmpty(parent.taxonName);
+    const hasTaxonGroup = ReferentialUtils.isNotEmpty(parent.taxonGroup);
+    const hasTaxonName = ReferentialUtils.isNotEmpty(parent.taxonName);
     // Display only taxon name, if no taxon group or same label
     if (hasTaxonName && (!hasTaxonGroup || parent.taxonGroup.label === parent.taxonName.label)) {
       return referentialToString(parent.taxonName, opts.taxonNameAttributes);
@@ -262,8 +269,8 @@ export class BatchUtils {
   }
 
   public static canMergeSubBatch(b1: Batch, b2: Batch, pmfms: PmfmStrategy[]): boolean {
-    return EntityUtils.equals(b1.parent, b2.parent)
-      && EntityUtils.equals(b1.taxonName, b2.taxonName)
+    return EntityUtils.equals(b1.parent, b2.parent, 'label')
+      && ReferentialUtils.equals(b1.taxonName, b2.taxonName)
       && MeasurementValuesUtils.equalsPmfms(b1.measurementValues, b2.measurementValues, pmfms);
   }
 
@@ -431,7 +438,7 @@ export class BatchUtils {
 
   /**
    * Sum individual count, onlly on batch with measure
-   * @param batch
+   * @param batches
    */
   static sumObservedIndividualCount(batches: Batch[]): number {
     return (batches || [])

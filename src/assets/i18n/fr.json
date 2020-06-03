@@ -1008,7 +1008,7 @@
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
-      "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Marée: Rendre toutes les caractéritiques optionelles, en saisie terrain ?",
+      "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Marée: Caractéritiques optionelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplisage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",

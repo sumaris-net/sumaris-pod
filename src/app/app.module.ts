@@ -51,7 +51,7 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
     HttpClientModule,
     IonicModule.forRoot(),
     CacheModule.forRoot(),
-    LeafletModule.forRoot(),
+    LeafletModule,
     // functional modules
     AppRoutingModule,
     CoreModule,
@@ -106,7 +106,7 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
         // Data entry
         {title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
         {title: 'MENU.TRIPS', path: '/trips',
-          icon: 'navigate',
+          matIcon: 'explore',
           profile: 'USER',
           ifProperty: 'sumaris.trip.enable',
           titleProperty: 'sumaris.trip.name'
@@ -122,7 +122,7 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
         // Data extraction
         {title: 'MENU.EXTRACTION_DIVIDER', profile: 'SUPERVISOR'},
         {title: 'MENU.TRIPS', path: '/extraction/table', icon: 'cloud-download', profile: 'SUPERVISOR'},
-        {title: 'MENU.MAP', path: '/extraction/map', icon: 'globe', profile: 'SUPERVISOR'},
+        {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', profile: 'SUPERVISOR'},
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
@@ -149,7 +149,7 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
         // Data entry
         { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
         { title: 'MENU.TRIPS', path: '/trips',
-          icon: 'navigate',
+          matIcon: 'explore',
           profile: 'USER',
           ifProperty: 'sumaris.trip.enable',
           titleProperty: 'sumaris.trip.name'

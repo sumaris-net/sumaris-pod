@@ -20,6 +20,7 @@ import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PhysicalGear} from "../services/model/trip.model";
 import {DateAdapter} from "@angular/material/core";
+import {ReferentialUtils} from "../../core/services/model";
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -99,7 +100,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
     this.form.get('gear').valueChanges
       .pipe(
-        filter(value => EntityUtils.isNotEmpty(value) && !this.loading)
+        filter(value => ReferentialUtils.isNotEmpty(value) && !this.loading)
       )
       .subscribe(value => {
         this.data.gear = value;
@@ -108,7 +109,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   }
 
   setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
-    if (data && EntityUtils.isNotEmpty(data.gear)) {
+    if (data && ReferentialUtils.isNotEmpty(data.gear)) {
       this.gear = data.gear.label;
     }
     super.setValue(data, opts);
@@ -122,7 +123,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   protected async safeSetValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }): Promise<void> {
 
-    if (data && EntityUtils.isNotEmpty(data.gear)) {
+    if (data && ReferentialUtils.isNotEmpty(data.gear)) {
       this.gear = data.gear.label;
     }
 

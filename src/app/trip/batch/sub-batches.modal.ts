@@ -319,8 +319,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return Math.max(await super.getMaxRankOrder(), this._previousMaxRankOrder || this._initialMaxRankOrder);
   }
 
-  protected async addBatchToTable(newBatch: Batch): Promise<TableElement<Batch>> {
-    const row = await super.addBatchToTable(newBatch);
+  protected async addEntityToTable(newBatch: Batch): Promise<TableElement<Batch>> {
+    const row = await super.addEntityToTable(newBatch);
 
     // Highlight the row, few seconds
     this.onRowChanged(row);
@@ -328,13 +328,13 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return row;
   }
 
-  protected updateRowFromBatch(updatedBatch: Batch, row: TableElement<Batch>): boolean {
-    const res = super.updateRowFromBatch(updatedBatch, row);
+  protected async updateEntityToTable(updatedBatch: Batch, row: TableElement<Batch>):  Promise<TableElement<Batch>> {
+    const updatedRow = await super.updateEntityToTable(updatedBatch, row);
 
     // Highlight the row, few seconds
-    this.onRowChanged(row);
+    if (updatedRow) this.onRowChanged(updatedRow);
 
-    return res;
+    return updatedRow;
   }
 
   protected onInvalidForm() {

@@ -14,6 +14,7 @@ import {VesselFilter, VesselFragments} from "./vessel-service";
 import {BehaviorSubject, defer, Observable} from "rxjs";
 import {NetworkService} from "../../core/services/network.service";
 import {EntityStorage} from "../../core/services/entities-storage.service";
+import {ReferentialUtils} from "../../core/services/model";
 
 export const VesselSnapshotFragments = {
   lightVesselSnapshot: gql`fragment LightVesselSnapshotFragment on VesselSnapshotVO {
@@ -160,7 +161,7 @@ export class VesselSnapshotService
   }
 
   async suggest(value: any, filter?: VesselFilter): Promise<VesselSnapshot[]> {
-    if (EntityUtils.isNotEmpty(value)) return [value];
+    if (ReferentialUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
       {

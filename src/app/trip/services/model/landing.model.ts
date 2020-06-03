@@ -1,7 +1,6 @@
 import {
   DataEntityAsObjectOptions,
   DataRootVesselEntity,
-  EntityUtils,
   fromDateISOString,
   IWithObserversEntity,
   NOT_MINIFY_OPTIONS,
@@ -12,7 +11,7 @@ import {
 import {Moment} from "moment";
 import {MeasurementValuesUtils} from "./measurement.model";
 import {Sample} from "./sample.model";
-import {ReferentialAsObjectOptions} from "../../../core/services/model";
+import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model";
 
 /**
  * Landing entity
@@ -104,7 +103,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
         // Same date
         && (this.dateTime === other.dateTime)
         // Same location
-        && EntityUtils.equals(this.location, other.location)
+        && ReferentialUtils.equals(this.location, other.location)
       );
   }
 }

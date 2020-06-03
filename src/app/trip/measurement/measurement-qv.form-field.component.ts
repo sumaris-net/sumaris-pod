@@ -32,6 +32,7 @@ import {focusInput, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean
 import {AppFormUtils} from "../../core/core.module";
 import {InputElement} from "../../shared/material/focusable";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {ReferentialUtils} from "../../core/services/model";
 
 @Component({
   selector: 'mat-form-field-measurement-qv',
@@ -160,7 +161,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
           this.formControl.valueChanges
             .pipe(
               takeUntil(this._onDestroy),
-              filter(EntityUtils.isEmpty),
+              filter(ReferentialUtils.isEmpty),
               map(value => suggestFromArray(this._sortedQualitativeValues, value, {
                 searchAttributes: this.searchAttributes
               })),
@@ -255,7 +256,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     return item.id;
   }
 
-  compareWith = EntityUtils.equals;
+  compareWith = ReferentialUtils.equals;
 
   selectInputContent = AppFormUtils.selectInputContent;
   entityToString = entityToString;

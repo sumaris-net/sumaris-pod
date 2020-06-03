@@ -377,7 +377,7 @@ export class GraphqlService {
       const values = proxy.readQuery(opts);
 
       if (values && values[propertyName]) {
-        const existingIndex = (values[propertyName] || []).findIndex(v => EntityUtils.equals(newValue, v));
+        const existingIndex = (values[propertyName] || []).findIndex(v => EntityUtils.equals(newValue, v, 'id'));
         if (existingIndex !== -1) {
           values[propertyName].splice(existingIndex, 1, newValue);
         }

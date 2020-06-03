@@ -1,6 +1,6 @@
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {Entity, isNotNil, LoadResult, TableDataService} from "../../core/core.module";
-import {EntityUtils} from "../../core/services/model";
+import {EntityUtils, IEntity} from "../../core/services/model";
 import {filter, mergeMap} from "rxjs/operators";
 import {isNotEmptyArray} from "../functions";
 
@@ -12,13 +12,13 @@ export interface InMemoryTableDataServiceOptions<T, F> {
   onFilter?: (data: T[], filter: F) => T[] | Promise<T[]>;
 }
 
-export class DataFilter<T extends Entity<T>> {
+export class DataFilter<T extends IEntity<T>> {
   test(data: T): boolean {
     return true;
   }
 }
 
-export class InMemoryTableDataService<T extends Entity<T>, F extends DataFilter<T> | any = DataFilter<T>> implements TableDataService<T, F> {
+export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter<T> | any = DataFilter<T>> implements TableDataService<T, F> {
 
   private _onDataChange = new Subject();
   private _dataSubject = new BehaviorSubject<LoadResult<T>>(undefined);
@@ -188,7 +188,7 @@ export class InMemoryTableDataService<T extends Entity<T>, F extends DataFilter<
   }
 
   protected equals(d1: T, d2: T): boolean {
-    return d1 && d1.equals ? d1.equals(d2) : EntityUtils.equals(d1, d2);
+    return d1 && d1.equals ? d1.equals(d2) : EntityUtils.equals(d1, d2, 'id');
   }
 }
 

@@ -126,7 +126,8 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       if (this._useValidator) {
         dataToSave = [];
         data = rows.map(row => {
-          const currentData = new this.dataConstructor().fromObject(row.currentData) as T;
+          const currentData = new this.dataConstructor() as T;
+          currentData.fromObject(row.currentData);
           // Filter to keep only dirty row
           if (onlyDirtyRows && row.validator.dirty) dataToSave.push(currentData);
           return currentData;

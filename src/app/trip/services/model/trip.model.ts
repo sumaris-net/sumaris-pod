@@ -24,7 +24,7 @@ import {
   MeasurementValuesUtils
 } from "./measurement.model";
 import {Sale} from "./sale.model";
-import {MetierRef} from "../../../referential/services/model/taxon.model";
+import {Metier} from "../../../referential/services/model/taxon.model";
 import {isEmptyArray} from "../../../shared/functions";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
@@ -59,7 +59,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   gears: PhysicalGear[];
   measurements: Measurement[];
   observers: Person[];
-  metiers: MetierRef[];
+  metiers: ReferentialRef[];
   operations?: Operation[];
   operationGroups?: OperationGroup[];
 
@@ -125,7 +125,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    this.metiers = source.metiers && source.metiers.map(MetierRef.fromObject) || [];
+    this.metiers = source.metiers && source.metiers.map(ReferentialRef.fromObject) || [];
     this.operationGroups = source.operationGroups && source.operationGroups.map(OperationGroup.fromObject) || [];
 
     // Remove fake dates (e.g. if returnDateTime = departureDateTime)
@@ -309,7 +309,7 @@ export class Operation extends DataEntity<Operation> {
   startPosition: VesselPosition;
   endPosition: VesselPosition;
 
-  metier: MetierRef;
+  metier: Metier;
   physicalGear: PhysicalGear;
   tripId: number;
   trip: Trip;
@@ -415,7 +415,7 @@ export class Operation extends DataEntity<Operation> {
     this.fishingStartDateTime = fromDateISOString(source.fishingStartDateTime);
     this.fishingEndDateTime = fromDateISOString(source.fishingEndDateTime);
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
-    this.metier = source.metier && MetierRef.fromObject(source.metier, true/*Copy taxonGroup label/name*/) || undefined;
+    this.metier = source.metier && Metier.fromObject(source.metier, {useChildAttributes: 'TaxonGroup'}) || undefined;
     if (source.startPosition || source.endPosition) {
       this.startPosition = source.startPosition && VesselPosition.fromObject(source.startPosition);
       this.endPosition = source.endPosition && VesselPosition.fromObject(source.endPosition);
@@ -486,7 +486,7 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
   rankOrderOnPeriod: number;
   hasCatch: boolean;
 
-  metier: MetierRef;
+  metier: Metier;
   physicalGear: PhysicalGear;
   tripId: number;
   trip: Trip;
@@ -560,7 +560,7 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
     this.comments = source.comments;
     this.tripId = source.tripId;
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
-    this.metier = source.metier && MetierRef.fromObject(source.metier, false) || undefined;
+    this.metier = source.metier && Metier.fromObject(source.metier) || undefined;
     this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
 
     // Measurements

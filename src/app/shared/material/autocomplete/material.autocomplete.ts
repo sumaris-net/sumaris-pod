@@ -379,8 +379,12 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         this.$inputItems.asObservable()
           .pipe(
             map(items => this.formControl.value)
+          ),
+        this._$filter.asObservable()
+          .pipe(
+            map(items => this.formControl.value)
           )
-      );
+    );
 
 
     this.filteredItems$ = updateFilteredItemsEvents$

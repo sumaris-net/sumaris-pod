@@ -5,18 +5,19 @@ import {Moment} from "moment";
 import {AbstractControl, FormBuilder, FormControl} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {AcquisitionLevelCodes, EntityUtils, isNotNil, PmfmStrategy, PmfmUtils} from "../../referential/services/model";
+import {AcquisitionLevelCodes, isNotNil, PmfmStrategy, PmfmUtils} from "../../referential/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AppFormUtils} from "../../core/core.module";
 import {BatchGroupValidatorService} from "../services/batch-group.validator";
 import {BehaviorSubject} from "rxjs";
 import {BatchForm} from "./batch.form";
-import {filter, switchMap, throttleTime} from "rxjs/operators";
+import {filter, switchMap} from "rxjs/operators";
 import {PlatformService} from "../../core/services/platform.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {fadeInAnimation} from "../../shared/shared.module";
 import {BatchGroup} from "../services/model/batch-group.model";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
+import {ReferentialUtils} from "../../core/services/model";
 
 @Component({
   selector: 'app-batch-group-form',
@@ -326,7 +327,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     data = data || this.data;
     // Generally, individual count are not need, on a root species batch, because filled in sub-batches,
     // but some species (e.g. RJB) can have no weight.
-    const showTotalIndividualCount = data && EntityUtils.isNotEmpty(data.taxonGroup) &&
+    const showTotalIndividualCount = data && ReferentialUtils.isNotEmpty(data.taxonGroup) &&
       (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
 
     if (showTotalIndividualCount !== this.showTotalIndividualCount) {

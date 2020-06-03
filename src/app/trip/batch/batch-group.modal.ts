@@ -22,6 +22,7 @@ import {PlatformService} from "../../core/services/platform.service";
 import {environment} from "../../../environments/environment";
 import {Alerts} from "../../shared/alerts";
 import {BatchGroup} from "../services/model/batch-group.model";
+import {ReferentialUtils} from "../../core/services/model";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -171,7 +172,9 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     if (this.invalid) {
 
       // DO not allow to close, if no taxon group nor a taxon name has been set
-      if (EntityUtils.isEmpty(this.form.form.get('taxonGroup').value) && EntityUtils.isEmpty(this.form.form.get('taxonName').value)) {
+      const taxonGroup = this.form.form.get('taxonGroup').value;
+      const taxonName = this.form.form.get('taxonName').value;
+      if (ReferentialUtils.isEmpty(taxonGroup) && ReferentialUtils.isEmpty(taxonName)) {
         this.form.error = "COMMON.FORM.HAS_ERROR";
         if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
         this.form.markAsTouched({emitEvent: true});

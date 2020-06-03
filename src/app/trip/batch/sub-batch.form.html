@@ -31,7 +31,7 @@
 
   <!-- QV pmfm -->
   <mat-form-field-measurement-qv #matInput
-                                 *ngIf="!($loadingControls|async) && qvPmfm"
+                                 *ngIf="!($loadingControls | async) && qvPmfm"
                                  [pmfm]="qvPmfm"
                                  [style]="mobile? 'button' : 'autocomplete'"
                                  [formControl]="form.get('measurementValues.' + qvPmfm.pmfmId.toString())"

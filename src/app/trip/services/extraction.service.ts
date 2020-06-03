@@ -22,6 +22,7 @@ import {GraphqlService} from "../../core/services/graphql.service";
 import {FeatureCollection} from "geojson";
 import {Fragments} from "./trip.queries";
 import {SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
+import {ReferentialUtils} from "../../core/services/model";
 
 
 export const ExtractionFragments = {
@@ -632,7 +633,7 @@ export class ExtractionService extends BaseDataService {
       entity.label = `${entity.label}-${Date.now()}`;
 
       // Recorder department
-      entity.recorderDepartment = EntityUtils.isNotEmpty(entity.recorderDepartment) ? entity.recorderDepartment : this.accountService.department;
+      entity.recorderDepartment = ReferentialUtils.isNotEmpty(entity.recorderDepartment) ? entity.recorderDepartment : this.accountService.department;
 
       // Recorder person
       entity.recorderPerson = entity.recorderPerson || this.accountService.person;

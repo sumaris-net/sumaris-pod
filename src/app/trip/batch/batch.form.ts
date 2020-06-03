@@ -7,7 +7,7 @@ import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {EntityUtils, referentialToString, UsageMode} from "../../core/services/model";
+import {EntityUtils, referentialToString, ReferentialUtils, UsageMode} from "../../core/services/model";
 import {debounceTime, filter, first} from "rxjs/operators";
 import {
   AcquisitionLevelCodes,
@@ -34,7 +34,7 @@ import {SharedValidators} from "../../shared/validator/validators";
   styleUrls: ['batch.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
+export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementValuesForm<T>
   implements OnInit, OnDestroy {
 
   protected $initialized = new BehaviorSubject<boolean>(false);
@@ -403,7 +403,7 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
   protected updateTaxonNameFilter(opts?: {taxonGroup?: any}) {
 
     // If taxonGroup exists: taxon group must be filled first
-    if (this.showTaxonGroup && EntityUtils.isEmpty(opts && opts.taxonGroup)) {
+    if (this.showTaxonGroup && ReferentialUtils.isEmpty(opts && opts.taxonGroup)) {
       this.taxonNameFilter = {
         program: 'NONE' /*fake program, will cause empty array*/
       };
@@ -523,7 +523,7 @@ export class BatchForm<T extends Batch = Batch> extends MeasurementValuesForm<T>
       form,
       'children',
       (value) => this.validatorService.getFormGroup(value, {withWeight: true}),
-      (v1, v2) => EntityUtils.equals(v1, v2),
+      (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
       (value) => isNil(value),
       {allowEmptyArray: true}
     );
