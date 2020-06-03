@@ -149,7 +149,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
 
     //this.debug = false;
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {

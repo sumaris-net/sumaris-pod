@@ -162,7 +162,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
 
     // -- For DEV only
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   onLoad(data: BatchGroup[]): BatchGroup[] {

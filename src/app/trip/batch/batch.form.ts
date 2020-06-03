@@ -172,7 +172,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.childrenFormHelper = this.getChildrenFormHelper(this.form);
 
     // for DEV only
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {

@@ -105,7 +105,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     this.showParentColumn = false;
 
     // TODO: for DEV only ---
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
 
   }
 
