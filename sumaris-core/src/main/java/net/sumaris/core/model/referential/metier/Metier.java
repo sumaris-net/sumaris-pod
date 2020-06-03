@@ -24,13 +24,17 @@ package net.sumaris.core.model.referential.metier;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  *  Métier, qui peut etre un métier de peche ou non.
@@ -76,4 +80,5 @@ public class Metier implements IItemReferentialEntity {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonGroup.class)
     @JoinColumn(name = "taxon_group_fk")
     private TaxonGroup taxonGroup;
+
 }

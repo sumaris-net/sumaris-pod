@@ -592,7 +592,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
             if (StringUtils.isNotBlank(searchAttribute) && BeanUtils.getPropertyDescriptor(entityClass, searchAttribute) != null) {
                 searchTextClause = builder.or(
                         builder.isNull(searchAnyMatchParam),
-                        builder.like(builder.upper(entityRoot.get(searchAttribute)), builder.upper(searchAsPrefixParam))
+                        builder.like(builder.upper(Daos.composePath(entityRoot, searchAttribute)), builder.upper(searchAsPrefixParam))
                 );
             }
             else if (IItemReferentialEntity.class.isAssignableFrom(entityClass)) {

@@ -22,18 +22,25 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import lombok.experimental.SuperBuilder;
 
 import java.util.Date;
 
 @Data
 @FieldNameConstants
+@NoArgsConstructor
+@AllArgsConstructor
 public class MetierFilterVO extends ReferentialFilterVO {
 
     // options used for predocumentation
     private Date date;
     private Integer vesselId;
+    private String programLabel;
     private Integer tripId; // optional
 
 }

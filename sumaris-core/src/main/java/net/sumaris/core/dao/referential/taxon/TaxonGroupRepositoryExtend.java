@@ -22,20 +22,44 @@ package net.sumaris.core.dao.referential.taxon;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.data.IEntityConverter;
+import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
+import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
+import javax.persistence.criteria.JoinType;
 import java.util.Date;
 import java.util.List;
 
 @NoRepositoryBean
 public interface TaxonGroupRepositoryExtend
-    extends IEntityConverter<TaxonGroup, TaxonGroupVO> {
+    extends IEntityConverter<TaxonGroup, TaxonGroupVO>, ReferentialSpecifications {
+
+    default Specification<TaxonGroup> hasType(Integer taxonGroupTypeId) {
+        if (taxonGroupTypeId == null) return null;
+        return (root, query, cb) -> cb.equal(
+                root.get(TaxonGroup.Fields.TAXON_GROUP_TYPE).get(Status.Fields.ID),
+                taxonGroupTypeId);
+    }
+
+    default Specification<TaxonGroup> inGearIds(Integer[] gearIds) {
+        if (ArrayUtils.isEmpty(gearIds)) return null;
+        return (root, query, cb) -> cb.in(
+                root.joinList(TaxonGroup.Fields.METIERS, JoinType.INNER)
+                        .join(Metier.Fields.GEAR, JoinType.INNER)
+                        .get(Gear.Fields.ID))
+                .value(ImmutableList.copyOf(gearIds));
+    }
 
     void updateTaxonGroupHierarchies();
 

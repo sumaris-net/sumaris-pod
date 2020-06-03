@@ -2,6 +2,15 @@
 
 mkdir -p .local
 
+### Control that the script is run on `dev` branch
+branch=`git rev-parse --abbrev-ref HEAD`
+if [[ ! "$branch" = "master" ]];
+then
+  echo ">> This script must be run under \`master\` branch"
+  exit 1
+fi
+
+
 RELEASE_OPTS="-DskipTests -Denv=hsqldb"
 
 # Rollback previous release, if need

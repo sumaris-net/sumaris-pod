@@ -76,9 +76,6 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
     private PhysicalGearRepository physicalGearRepository;
 
     @Autowired
-    private TaxonGroupRepository taxonGroupDao;
-
-    @Autowired
     private MetierRepository metierDao;
 
     @Override
@@ -309,8 +306,9 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
                 Integer rankOrder = source.getPhysicalGear().getRankOrder();
                 physicalGearId = target.getTrip().getPhysicalGears()
                         .stream()
-                        .filter(g -> g.getRankOrder() == rankOrder)
-                        .map(g -> g.getId()).findFirst().orElse(null);
+                        .filter(g -> rankOrder != null && Objects.equals(g.getRankOrder(), rankOrder))
+                        .map(PhysicalGear::getId)
+                        .findFirst().orElse(null);
                 if (physicalGearId == null) {
                     throw new DataIntegrityViolationException("An operation use a unknown PhysicalGear with rankOrder=" + source.getPhysicalGear().getRankOrder());
                 }

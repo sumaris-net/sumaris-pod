@@ -23,23 +23,92 @@ package net.sumaris.core.dao.referential.metier;
  */
 
 import net.sumaris.core.dao.data.IEntityConverter;
+import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
+import javax.persistence.criteria.*;
+import java.util.Date;
 import java.util.List;
 
 @NoRepositoryBean
 public interface MetierRepositoryExtend
-    extends IEntityConverter<Metier, MetierVO> {
+        extends IEntityConverter<Metier, MetierVO>, ReferentialSpecifications {
+
+    String PROGRAM_LABEL_PARAMETER = "programLabel";
+    String TRIP_ID_PARAMETER = "tripId";
+    String VESSEL_ID_PARAMETER = "vesselId";
+    String START_DATE_PARAMETER = "startDate";
+    String END_DATE_PARAMETER = "endDate";
+
+
+    default Specification<Metier> inGearIds(Integer[] gearIds) {
+        return inLevelIds(Metier.Fields.GEAR, gearIds);
+    }
+
+    default Specification<Metier> alreadyPraticedMetier(Integer vesselId) {
+
+        if (vesselId == null) return null;
+
+        return (root, query, builder) -> {
+
+            Root<Trip> trips = query.from(Trip.class);
+            Join<Trip, Operation> operations = trips.join(Trip.Fields.OPERATIONS, JoinType.INNER);
+
+            ParameterExpression<String> programLabelParameter = builder.parameter(String.class, PROGRAM_LABEL_PARAMETER);
+            ParameterExpression<Date> startDateParam = builder.parameter(Date.class, START_DATE_PARAMETER);
+            ParameterExpression<Date> endDateParam = builder.parameter(Date.class, END_DATE_PARAMETER);
+            ParameterExpression<Integer> tripIdParameter = builder.parameter(Integer.class, TRIP_ID_PARAMETER);
+
+            Predicate result = builder.and(
+                    // Link metier to operation
+                    builder.equal(operations.get(Operation.Fields.METIER), root.get(Metier.Fields.ID)),
+                    // Vessel
+                    builder.equal(trips.get(Trip.Fields.VESSEL).get(Vessel.Fields.ID), vesselId),
+                    // Date
+                    builder.not(
+                            builder.or(
+                                    builder.greaterThan(trips.get(Trip.Fields.DEPARTURE_DATE_TIME), endDateParam),
+                                    builder.lessThan(trips.get(Trip.Fields.RETURN_DATE_TIME), startDateParam)
+                            )
+                    ),
+
+                    // Program
+                    builder.or(
+                            builder.isNull(programLabelParameter),
+                            builder.equal(trips.get(Trip.Fields.PROGRAM).get(Program.Fields.LABEL), programLabelParameter)
+                    ),
+                    // Excluded trip
+                    builder.or(
+                            builder.isNull(tripIdParameter),
+                            builder.notEqual(trips.get(Trip.Fields.ID), tripIdParameter)
+                    )
+            );
+
+
+            // Exclude given tripId
+//            if (tripId != null) {
+//                result = builder.and(result,
+//                        builder.notEqual(trips.get(Trip.Fields.ID), tripId));
+//            }
+            return result;
+        };
+    }
 
     List<MetierVO> findByFilter(
-        ReferentialFilterVO filter,
-        int offset,
-        int size,
-        String sortAttribute,
-        SortDirection sortDirection);
+            ReferentialFilterVO filter,
+            int offset,
+            int size,
+            String sortAttribute,
+            SortDirection sortDirection);
 
 }

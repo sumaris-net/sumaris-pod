@@ -26,10 +26,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
+import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -64,8 +64,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static net.sumaris.core.dao.referential.taxon.TaxonGroupSpecifications.*;
 
 public class TaxonGroupRepositoryImpl
     extends ReferentialRepositoryImpl<TaxonGroup, TaxonGroupVO, ReferentialFilterVO>
@@ -349,9 +347,8 @@ public class TaxonGroupRepositoryImpl
         Integer[] gearIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} :
             filter.getLevelIds();
 
-        return Specification.where(
-            ReferentialSpecifications.<TaxonGroup>searchText(filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER))
-            .and(hasType(TaxonGroupTypeId.METIER_SPECIES.getId()))
+        return Specification.where(hasType(TaxonGroupTypeId.METIER_SPECIES.getId()))
+            .and(searchText(filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER))
             .and(inStatusIds(filter.getStatusIds()))
             .and(inGearIds(gearIds));
 
