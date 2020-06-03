@@ -38,7 +38,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   filterForm: FormGroup;
   $entity = new BehaviorSubject<{ id: string, label: string, level?: string, levelLabel?: string }>(undefined);
   $entities = new BehaviorSubject<{ id: string, label: string, level?: string, levelLabel?: string }[]>(undefined);
-  levels: Observable<ReferentialRef[]>;
+  levels: Observable<Referential[]>;
   statusList = DefaultStatusList;
   statusById: any;
   filterIsEmpty = true;

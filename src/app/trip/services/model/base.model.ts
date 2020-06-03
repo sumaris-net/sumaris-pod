@@ -29,7 +29,13 @@ import {
 } from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
 import {IWithProgramEntity} from "../../../referential/services/model";
-import {EntityAsObjectOptions, MINIFY_OPTIONS, NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model";
+import {
+  EntityAsObjectOptions,
+  IEntity,
+  MINIFY_OPTIONS,
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions
+} from "../../../core/services/model";
 import {Product} from "./product.model";
 import {Packet} from "./packet.model";
 
@@ -68,24 +74,24 @@ export function isRankOrderValid(values: { rankOrder: number }[]): boolean {
 
 /* -- Data entity -- */
 
-export interface IWithRecorderDepartmentEntity<T> extends Entity<T> {
+export interface IWithRecorderDepartmentEntity<T> extends IEntity<T> {
   recorderDepartment: Department|ReferentialRef|Referential;
 }
 
-export interface IWithRecorderPersonEntity<T> extends Entity<T> {
+export interface IWithRecorderPersonEntity<T> extends IEntity<T> {
   recorderPerson: Person;
 }
 
-export interface IWithVesselSnapshotEntity<T> extends Entity<T> {
+export interface IWithVesselSnapshotEntity<T> extends IEntity<T> {
   vesselSnapshot: VesselSnapshot;
 }
-export interface IWithObserversEntity<T> extends Entity<T> {
+export interface IWithObserversEntity<T> extends IEntity<T> {
   observers: Person[];
 }
-export interface IWithProductsEntity<T> extends Entity<T> {
+export interface IWithProductsEntity<T> extends IEntity<T> {
   products: Product[];
 }
-export interface IWithPacketsEntity<T> extends Entity<T> {
+export interface IWithPacketsEntity<T> extends IEntity<T> {
   packets: Packet[];
 }
 
@@ -116,7 +122,11 @@ export const SAVE_AS_OBJECT_OPTIONS: DataEntityAsObjectOptions = {
   keepSynchronizationStatus: false
 };
 
-export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDepartmentEntity<T> {
+
+export abstract class DataEntity<T extends DataEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
+  extends Entity<T, O>
+  implements IWithRecorderDepartmentEntity<T> {
+
   recorderDepartment: Department;
   controlDate: Moment;
   qualificationDate: Moment;
@@ -128,9 +138,9 @@ export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDe
     this.recorderDepartment = null;
   }
 
-  asObject(options?: DataEntityAsObjectOptions): any {
-    const target = super.asObject(options);
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
+  asObject(opts?: O): any {
+    const target = super.asObject(opts);
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts) || undefined;
     target.controlDate = toDateISOString(this.controlDate);
     target.qualificationDate = toDateISOString(this.qualificationDate);
     target.qualificationComments = this.qualificationComments || undefined;
@@ -138,18 +148,15 @@ export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDe
     return target;
   }
 
-  fromObject(source: any): DataEntity<T> {
+  fromObject(source: any, opts?: F) {
     super.fromObject(source);
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     this.controlDate = fromDateISOString(source.controlDate);
     this.qualificationDate = fromDateISOString(source.qualificationDate);
     this.qualificationComments = source.qualificationComments;
     this.qualityFlagId = source.qualityFlagId;
-    return this;
   }
-
 }
-
 
 export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED';
 export const SynchronizationStatusEnum = {
@@ -159,7 +166,10 @@ export const SynchronizationStatusEnum = {
   DELETED: 'DELETED'
 };
 
-export abstract class RootDataEntity<T> extends DataEntity<T> implements IWithRecorderPersonEntity<T>, IWithProgramEntity<T> {
+export abstract class RootDataEntity<T extends RootDataEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
+  extends DataEntity<T, O, F>
+  implements IWithRecorderPersonEntity<T>, IWithProgramEntity<T> {
+
   creationDate: Moment;
   validationDate: Moment;
   comments: string = null;
@@ -176,7 +186,7 @@ export abstract class RootDataEntity<T> extends DataEntity<T> implements IWithRe
     this.program = null;
   }
 
-  asObject(options?: DataEntityAsObjectOptions): any {
+  asObject(options?: O): any {
     const target = super.asObject(options);
     target.creationDate = toDateISOString(this.creationDate);
     target.validationDate = toDateISOString(this.validationDate);
@@ -191,20 +201,21 @@ export abstract class RootDataEntity<T> extends DataEntity<T> implements IWithRe
     return target;
   }
 
-  fromObject(source: any): RootDataEntity<T> {
-    super.fromObject(source);
+
+  fromObject(source: any, opts?: F) {
+    super.fromObject(source, opts);
     this.comments = source.comments;
     this.creationDate = fromDateISOString(source.creationDate);
     this.validationDate = fromDateISOString(source.validationDate);
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
     this.program = source.program && ReferentialRef.fromObject(source.program);
     this.synchronizationStatus = source.synchronizationStatus;
-    return this;
   }
 }
 
+export abstract class DataRootVesselEntity<T extends DataRootVesselEntity<any>, O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
+  extends RootDataEntity<T, O, F> implements IWithVesselSnapshotEntity<T> {
 
-export abstract class DataRootVesselEntity<T> extends RootDataEntity<T> implements IWithVesselSnapshotEntity<T> {
   vesselSnapshot: VesselSnapshot;
 
   protected constructor() {
@@ -212,16 +223,15 @@ export abstract class DataRootVesselEntity<T> extends RootDataEntity<T> implemen
     this.vesselSnapshot = null;
   }
 
-  asObject(options?: EntityAsObjectOptions): any {
+  asObject(options?: O): any {
     const target = super.asObject(options);
     target.vesselSnapshot = this.vesselSnapshot && this.vesselSnapshot.asObject({ ...options, ...NOT_MINIFY_OPTIONS }) || undefined;
     return target;
   }
 
-  fromObject(source: any): DataRootVesselEntity<T> {
+  fromObject(source: any, opts?: F) {
     super.fromObject(source);
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
-    return this;
   }
 }
 

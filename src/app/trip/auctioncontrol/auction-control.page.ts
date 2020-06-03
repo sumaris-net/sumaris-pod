@@ -17,7 +17,7 @@ import {AuctionControlValidators} from "../services/validator/auction-control.va
 import {ModalController} from "@ionic/angular";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {fadeInOutAnimation} from "../../shared/shared.module";
-import {HistoryPageReference} from "../../core/services/model";
+import {HistoryPageReference, ReferentialUtils} from "../../core/services/model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 
 @Component({
@@ -89,7 +89,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
                     .pipe(
                       startWith(control.value),
                       map(qv => {
-                        return EntityUtils.isNotEmpty(qv)
+                        return ReferentialUtils.isNotEmpty(qv)
                         && taxonGroups.find(tg => tg.label === qv.label)
                         || undefined;
                       })
@@ -105,7 +105,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
             taxonGroup.entityName = 'TaxonGroup';
           }
           this.samplesTable.defaultTaxonGroup = taxonGroup;
-          this.samplesTable.showTaxonGroupColumn = EntityUtils.isEmpty(taxonGroup);
+          this.samplesTable.showTaxonGroupColumn = ReferentialUtils.isEmpty(taxonGroup);
           this.samplesTable.program = this.data.program && this.data.program.label;
           //this.samplesTable.markForCheck();
         })
@@ -199,7 +199,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       }).toPromise() || '';
 
     // new data
-    if (!data || (isNil(data.id) && EntityUtils.isEmpty(data.vesselSnapshot))) {
+    if (!data || (isNil(data.id) && ReferentialUtils.isEmpty(data.vesselSnapshot))) {
       return titlePrefix + (await this.translate.get('AUCTION_CONTROL.NEW.TITLE').toPromise());
     }
 

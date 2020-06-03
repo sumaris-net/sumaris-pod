@@ -30,7 +30,6 @@ import {UsageMode} from "../../core/services/model";
 import {SubBatchesModal} from "./sub-batches.modal";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {BatchModal} from "./batch.modal";
-import {MatDialog} from '@angular/material/dialog';
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Batch} from "../services/model/batch.model";
 import {Operation} from "../services/model/trip.model";
@@ -65,7 +64,7 @@ export const DATA_TYPE_ACCESSOR = new InjectionToken<new() => Batch>('BatchesTab
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = BatchFilter> extends AppMeasurementsTable<T, F>
+export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilter = BatchFilter> extends AppMeasurementsTable<T, F>
   implements OnInit, OnDestroy {
 
   protected _initialPmfms: PmfmStrategy[];
@@ -122,8 +121,6 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
   @Output()
   onSubBatchesChanges = new EventEmitter<Batch[]>();
 
-  private matDialog: MatDialog;
-
   constructor(
     injector: Injector,
     protected validatorService: ValidatorService,
@@ -136,24 +133,23 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
       validatorService,
       {
         prependNewElements: false,
-        suppressErrors: true,
+        suppressErrors: environment.production,
         reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
         reservedEndColumns: BATCH_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       }
     );
-    this.referentialRefService = injector.get(ReferentialRefService);
     this.cd = injector.get(ChangeDetectorRef);
+    this.referentialRefService = injector.get(ReferentialRefService);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
     this.inlineEdition = !this.mobile;
-    this.matDialog = injector.get(MatDialog);
 
     // Set default value
     this.showCommentsColumn = false;
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
 
     //this.debug = false;
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -181,16 +177,16 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
-    const data = await this.openDetailModal(new this.dataType(), {isNew: true});
+    if (!this.allowRowDetail) return false;
+
+    const data = await this.openDetailModal();
     if (data) {
       await this.addEntityToTable(data);
     }
     return true;
   }
 
-
   protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
-
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
@@ -213,15 +209,23 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     return true;
   }
 
-  async openDetailModal(batch?: Batch, opts?: {isNew?: boolean}): Promise<T | undefined> {
+  async openDetailModal(batch?: T): Promise<T | undefined> {
+    const isNew = !batch && true;
+    if (isNew) {
+      batch = new this.dataType();
+      await this.onNewEntity(batch);
+    }
+
+    this.markAsLoading();
+
     const modal = await this.modalCtrl.create({
       component: BatchModal,
       componentProps: {
         program: this.program,
         acquisitionLevel: this.acquisitionLevel,
-        value: batch,
-        isNew: opts && opts.isNew || false,
         disabled: this.disabled,
+        value: batch,
+        isNew,
         qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
@@ -238,7 +242,14 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
-    return (data instanceof Batch) ? data as T : undefined;
+    this.markAsLoaded();
+
+    // Exit if empty
+    if (!(data instanceof Batch)) {
+      return undefined;
+    }
+
+    return data as T;
   }
 
   async onSubBatchesClick(event: UIEvent, row: TableElement<T>, opts?: {
@@ -313,7 +324,8 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
       if (this.debug) console.debug("[batches-table] Sub-batches modal: user cancelled");
     }
     else {
-      if (this.debug) console.debug("[batches-table] Sub-batches modal result: ", data);
+      //if (this.debug)
+        console.debug("[batches-table] Sub-batches modal result: ", data);
       this.onSubBatchesChanges.emit(data);
     }
 
@@ -375,10 +387,6 @@ export class BatchesTable<T extends Batch = Batch, F extends BatchFilter = Batch
 
     // Remove weight pmfms
     return pmfms.filter(p => !p.isWeight);
-  }
-
-  protected getSubBatches(batch: Batch): Batch[] {
-    return batch.children;
   }
 
   protected async onNewEntity(data: T): Promise<void> {

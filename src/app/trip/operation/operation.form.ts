@@ -4,7 +4,7 @@ import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {AppForm, fromDateISOString, IReferentialRef, isNotNil, ReferentialRef} from '../../core/core.module';
 import {EntityUtils, ReferentialRefService} from '../../referential/referential.module';
-import {UsageMode} from "../../core/services/model";
+import {ReferentialUtils, UsageMode} from "../../core/services/model";
 import {FormGroup} from "@angular/forms";
 import * as moment from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -16,6 +16,7 @@ import {SharedValidators} from "../../shared/validator/validators";
 import {Operation, PhysicalGear, Trip} from "../services/model/trip.model";
 import {BehaviorSubject} from "rxjs";
 import {distinctUntilChanged} from "rxjs/operators";
+import {METIER_DEFAULT_FILTER} from "../../referential/services/metier.service";
 
 @Component({
   selector: 'app-form-operation',
@@ -105,7 +106,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     // Combo: physicalGears
     this.registerAutocompleteField('physicalGear', {
       items: this._physicalGearsSubject.asObservable(),
-      //suggestFn: (value, options) => this.suggestPhysicalGear(value, options),
       attributes: ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key)),
       mobile: this.mobile
     });
@@ -113,7 +113,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
       items: this._metiersSubject.asObservable(),
-      //suggestFn: (value, options) => this.suggestTargetSpecies(value, options),
       mobile: this.mobile
     });
 
@@ -121,10 +120,20 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.registerSubscription(
       this.form.get('physicalGear').valueChanges
         .pipe(
-          distinctUntilChanged(EntityUtils.equals)
+          distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'id'))
         )
         .subscribe((physicalGear) => this.onPhysicalGearChanged(physicalGear))
     );
+  }
+
+  setValue(data: Operation, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+    // Use label and name from metier.taxonGroup
+    if (data && data.metier) {
+      data.metier = data.metier.clone(); // Leave original object unchanged
+      data.metier.label = data.metier.taxonGroup && data.metier.taxonGroup.label || data.metier.label;
+      data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
+    }
+    super.setValue(data, opts);
   }
 
   /**
@@ -144,7 +153,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
     // Set also the end date time
     if (fieldName === 'endPosition') {
-      this.form.controls['endDateTime'].setValue(moment(), {emitEvent: false, onlySelf: true});
+      this.form.get('endDateTime').setValue(moment(), {emitEvent: false, onlySelf: true});
     }
     this.form.markAsDirty({onlySelf: true});
     this.form.updateValueAndValidity();
@@ -193,7 +202,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     const metierControl = this.form.get('metier');
     const physicalGearControl = this.form.get('physicalGear');
 
-    const hasPhysicalGear = EntityUtils.isNotEmpty(physicalGear);
+    const hasPhysicalGear = EntityUtils.isNotEmpty(physicalGear, 'id');
     const gears = this._physicalGearsSubject.getValue() || this._trip && this._trip.gears;
     // Use same trip's gear Object (if found)
     if (hasPhysicalGear && isNotEmptyArray(gears)) {
@@ -217,7 +226,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       this._metiersSubject.next(metiers);
 
       const metier = metierControl.value;
-      if (EntityUtils.isNotEmpty(metier)) {
+      if (ReferentialUtils.isNotEmpty(metier)) {
         // Find new reference, by ID
         let updatedMetier = (metiers || []).find(m => m.id === metier.id);
 
@@ -225,7 +234,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         updatedMetier = updatedMetier || (metiers || []).find(m => m.label === metier.label);
 
         // Update the metier, if not found (=reset) or ID changed
-        if (!updatedMetier || !EntityUtils.equals(metier, updatedMetier)) {
+        if (!updatedMetier || !ReferentialUtils.equals(metier, updatedMetier)) {
           metierControl.setValue(updatedMetier);
         }
       }
@@ -235,17 +244,22 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   protected async loadMetiers(physicalGear?: PhysicalGear|any): Promise<ReferentialRef[]> {
 
     // No gears selected: skip
-    if (EntityUtils.isEmpty(physicalGear)) return undefined;
+    if (EntityUtils.isEmpty(physicalGear, 'id')) return undefined;
+
+    const gear = physicalGear && physicalGear.gear;
+    console.debug('[operation-form] Loading Metier ref items for the gear: ' + (gear && gear.label));
 
     const res = await this.referentialRefService.loadAll(0, 100, null,null,
       {
         entityName: "Metier",
+        ...METIER_DEFAULT_FILTER,
         searchJoin: "TaxonGroup",
-        levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || undefined
+        levelId: gear && gear.id || undefined
       },
       {
         withTotal: false
       });
+
     return res.data;
   }
 

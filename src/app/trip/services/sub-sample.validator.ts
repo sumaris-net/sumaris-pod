@@ -22,7 +22,7 @@ export class SubSampleValidatorService implements ValidatorService {
       updateDate: [data && data.updateDate || null],
       rankOrder: [toNumber(data && data.rankOrder, null), Validators.required],
       label: [data && data.label || null, Validators.required],
-      parent: [data && data.parent || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      parent: [data && data.parent || null, Validators.compose([Validators.required, SharedValidators.object])],
       comments: [data && data.comments || null]
     });
   }

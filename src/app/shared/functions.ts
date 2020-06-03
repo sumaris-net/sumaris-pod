@@ -1,9 +1,5 @@
 import * as moment from "moment";
-import {Duration, isMoment, Moment} from "moment";
-import {selectInputRange, selectInputContent, filterNumberInput, focusInput, setTabIndex} from './inputs';
-
-// This function has moved to inputs.ts
-export {selectInputRange, selectInputContent, filterNumberInput, focusInput, setTabIndex};
+import {Duration, isMoment, Moment} from "moment"
 
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
@@ -285,6 +281,11 @@ export function equalsOrNil(value1: any, value2: any) {
 }
 
 export declare type KeysEnum<T> = { [P in keyof Required<T>]: true };
+
+export function uncapitalizeFirstLetter(value: string) {
+  if (!value || value.length === 0) return value;
+  return value.substr(0,1).toLowerCase() + value.substr(1);
+}
 
 export class Beans {
   /**

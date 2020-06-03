@@ -125,7 +125,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
   async openDetailModal(gear?: PhysicalGear): Promise<PhysicalGear | undefined> {
 
-    const isNew = !gear;
+    const isNew = !gear && true;
     if (isNew) {
       gear = new PhysicalGear();
       await this.onNewEntity(gear);

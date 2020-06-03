@@ -503,7 +503,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   public setError(err: any) {
-    console.error("[data-editor] " + err && err.message || err);
+    console.error("[data-editor] " + err && err.message || err, err);
     let userMessage = err && err.message && this.translate.instant(err.message) || err;
 
     // Add details error (if any) under the main message

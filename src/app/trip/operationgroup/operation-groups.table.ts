@@ -1,25 +1,14 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit, Output
-} from "@angular/core";
-import {environment, referentialToString} from "../../core/core.module";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {environment, ReferentialRef, referentialToString} from "../../core/core.module";
 import {Platform} from "@ionic/angular";
 import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
 import {OperationFilter} from "../services/operation.service";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {OperationGroupValidatorService} from "../services/validator/operation-group.validator";
-import {MetierRef} from "../../referential/services/model/taxon.model";
 import {BehaviorSubject} from "rxjs";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {MetierRefService} from "../../referential/services/metier-ref.service";
+import {MetierService} from "../../referential/services/metier.service";
 import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
@@ -57,14 +46,14 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     return this._dirty || this.memoryDataService.dirty;
   }
 
-  @Input() $metiers: BehaviorSubject<MetierRef[]>;
+  @Input() $metiers: BehaviorSubject<ReferentialRef[]>;
 
   constructor(
     injector: Injector,
     protected platform: Platform,
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryTableDataService<OperationGroup, OperationFilter>,
-    protected metierRefService: MetierRefService,
+    protected metierService: MetierService,
     protected cd: ChangeDetectorRef
   ) {
     super(injector,
@@ -150,7 +139,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
       if (!operationGroup.physicalGear || operationGroup.physicalGear.gear.id !== operationGroup.metier.gear.id) {
 
         // First, load the Metier (with children)
-        const metier = await this.metierRefService.load(operationGroup.metier.id);
+        const metier = await this.metierService.load(operationGroup.metier.id);
 
         // create new physical gear if missing
         const physicalGear = new PhysicalGear();

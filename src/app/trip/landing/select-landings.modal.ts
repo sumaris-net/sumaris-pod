@@ -4,6 +4,7 @@ import {ModalController} from "@ionic/angular";
 import {LandingFilter} from "../services/landing.service";
 import {AcquisitionLevelCodes, AcquisitionLevelType, isNotNil} from "../../referential/services/model";
 import {Landing} from "../services/model/landing.model";
+import {Observable} from "rxjs";
 
 @Component({
   selector: 'app-select-landings-modal',
@@ -17,6 +18,10 @@ export class SelectLandingsModal implements OnInit {
   @Input() filter: LandingFilter = {};
   @Input() acquisitionLevel: AcquisitionLevelType;
   @Input() program: string;
+
+  get loadingSubject(): Observable<boolean> {
+    return this.table.loadingSubject;
+  }
 
   constructor(
     protected viewCtrl: ModalController,

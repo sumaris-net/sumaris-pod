@@ -25,11 +25,10 @@ import {
   isNil,
   isNilOrBlank,
   isNotNil,
-  selectInputContent,
   startsWithUpperCase,
-  toBoolean
+  toBoolean, toNumber
 } from "../../shared/functions";
-import {UsageMode} from "../../core/services/model";
+import {ReferentialUtils, UsageMode} from "../../core/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {Batch, BatchUtils} from "../services/model/batch.model";
@@ -37,6 +36,7 @@ import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SubBatchForm} from "./sub-batch.form";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {SubBatchModal} from "./sub-batch.modal";
+import {selectInputContent} from "../../shared/inputs";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -72,10 +72,9 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   implements OnInit, OnDestroy {
 
 
+  private _qvPmfm: PmfmStrategy;
   private _parentSubscription: Subscription;
   private _availableParents: Batch[] = [];
-  private _qvPmfm: PmfmStrategy;
-
   protected _availableSortedParents: Batch[] = [];
 
   protected cd: ChangeDetectorRef;
@@ -211,6 +210,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     this.setShowColumn('comments', this.showCommentsColumn);
 
+    // Parent combo
     this.registerAutocompleteField('parent', {
       suggestFn: (value: any, options?: any) => this.suggestParent(value),
       showAllOnFocus: true
@@ -230,7 +230,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
           if (!this.editedRow) return; // Should never occur
           const row = this.editedRow;
           const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
-          if (EntityUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
+          if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
             if (controls[PmfmIds.DISCARD_REASON]) {
               if (row.validator.enabled) {
                 controls[PmfmIds.DISCARD_REASON].enable();
@@ -281,12 +281,12 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     // Add batch to table
     if (!row) {
-      await this.addBatchToTable(subBatch);
+      await this.addEntityToTable(subBatch);
     }
 
     // Update existing row
     else {
-      this.updateRowFromBatch(subBatch, row);
+      await this.updateEntityToTable(subBatch, row);
     }
   }
 
@@ -296,12 +296,47 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     }
 
     for (const b of batches) {
-      await this.addBatchToTable(b);
+      await this.addEntityToTable(b);
     }
   }
 
+  async setValueFromParent(parents: Batch[], qvPmfm?: PmfmStrategy) {
 
-  /* -- protected method -- */
+    this.qvPmfm = qvPmfm;
+    const subBatches = BatchUtils.prepareSubBatchesForTable(parents, this.acquisitionLevel, qvPmfm);
+
+    await this.setAvailableParents(parents, {emitEvent: false, linkDataToParent: false});
+
+    this.value = subBatches;
+  }
+
+  markAsPristine(opts?: {onlySelf?: boolean}) {
+    super.markAsPristine();
+    if (this.form) this.form.markAsPristine(opts);
+  }
+
+  markAsUntouched() {
+    super.markAsUntouched();
+    if (this.form) this.form.markAsUntouched();
+  }
+
+  enable() {
+    super.enable();
+
+    if (this.showForm && this.form && this.form.disabled) {
+      this.form.enable();
+    }
+  }
+
+  disable() {
+    super.disable();
+
+    if (this.showForm && this.form && this.form.enabled) {
+      this.form.disable();
+    }
+  }
+
+  /* -- protected methods -- */
 
   protected setValue(data: Batch[]) {
     this.memoryDataService.value = data;
@@ -309,6 +344,10 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
   protected getValue(): Batch[] {
     return this.memoryDataService.value;
+  }
+
+  protected prepareEntityToSave(batch: Batch) {
+    // Override by subclasses
   }
 
   protected updateParentAutocomplete() {
@@ -380,9 +419,10 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       this.form.enable(opts);
     }
 
-    if (opts && toBoolean(opts.focusFirstEmpty, false)) {
+
+    if (opts && opts.focusFirstEmpty === true) {
       setTimeout(() => {
-        this.form.focusFirstEmpty();
+        this.form.focusFirstEmptyInput();
         this.form.markAsPristine({onlySelf: true});
         this.form.markAsUntouched({onlySelf: true});
       });
@@ -397,50 +437,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     }
   }
 
-  async setValueFromParent(parents: Batch[], qvPmfm?: PmfmStrategy) {
-
-    this.qvPmfm = qvPmfm;
-    const subBatches = BatchUtils.prepareSubBatchesForTable(parents, this.acquisitionLevel, qvPmfm);
-
-    await this.setAvailableParents(parents, {emitEvent: false, linkDataToParent: false});
-
-    this.value = subBatches;
-  }
-
-  markAsPristine(opts?: {onlySelf?: boolean}) {
-    super.markAsPristine();
-    if (this.form) this.form.markAsPristine(opts);
-  }
-
-  markAsUntouched() {
-    super.markAsUntouched();
-    if (this.form) this.form.markAsUntouched();
-  }
-
-  enable() {
-    super.enable();
-
-    if (this.showForm && this.form && this.form.disabled) {
-      this.form.enable();
-    }
-  }
-
-  disable() {
-    super.disable();
-
-    if (this.showForm && this.form && this.form.enabled) {
-      this.form.disable();
-    }
-  }
-
-  /* -- protected methods -- */
-
-  protected prepareEntityToSave(batch: Batch) {
-    // Override by subclasses
-  }
-
   protected async suggestParent(value: any): Promise<any[]> {
-    if (EntityUtils.isNotEmpty(value)) {
+    if (EntityUtils.isNotEmpty(value, 'label')) {
       return [value];
     }
     value = (typeof value === "string" && value !== "*") && value || undefined;
@@ -488,85 +486,13 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
-    const newBatch = await this.openDetailModal();
-    if (newBatch) {
-      await this.addBatchToTable(newBatch);
+    if (!this.allowRowDetail) return false;
+
+    const data = await this.openDetailModal();
+    if (data) {
+      await this.addEntityToTable(data);
     }
     return true;
-  }
-
-  protected async addBatchToTable(newBatch: Batch): Promise<TableElement<Batch>> {
-    if (this.debug) console.debug("[batches-table] Adding batch to table:", newBatch);
-
-    // Make sure individual count if init
-    newBatch.individualCount = isNotNil(newBatch.individualCount) ? newBatch.individualCount : 1;
-
-    const pmfms = this.$pmfms.getValue() || [];
-    MeasurementValuesUtils.normalizeEntityToForm(newBatch, pmfms);
-
-    let row = undefined;
-
-    // Try to find an identical sub-batch
-    if (this.showIndividualCount) {
-      const rows = await this.dataSource.getRows();
-      row = rows.find(r => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));
-    }
-
-    // Already exists: increment individual count
-    if (row) {
-      if (row.validator) {
-        const control = row.validator.controls.individualCount;
-        control.setValue((control.value || 0) + newBatch.individualCount);
-        control.markAsDirty();
-      } else {
-        row.currentData.individualCount = (row.currentData.individualCount || 0) + newBatch.individualCount;
-        this.markForCheck();
-      }
-    }
-
-    // New batch: add to table
-    else {
-      row = await this.addRowToTable();
-      if (!row) throw new Error("Could not add row t table");
-
-      // Keep rankOrder, then make sure to entity (e.g. label should be computed)
-      newBatch.rankOrder = row.currentData.rankOrder;
-      await this.onNewEntity(newBatch);
-
-      // Affect new row
-      if (row.validator) {
-        row.validator.patchValue(newBatch);
-        this.confirmEditCreate(null, row);
-        row.validator.markAsDirty();
-      } else {
-        row.currentData = newBatch;
-        this.confirmEditCreate(null, row);
-      }
-    }
-    this.markAsDirty();
-    return row;
-  }
-
-  protected updateRowFromBatch(updatedBatch: Batch, row: TableElement<Batch>): boolean {
-    if (this.debug) console.debug("[batches-table] Updating batch to table:", updatedBatch);
-
-    // Adapt measurement values to row
-    this.normalizeEntityToRow(updatedBatch, row);
-
-    // Update the row
-    if (!row.editing && row.validator) {
-      row.validator.patchValue(updatedBatch);
-      row.validator.markAsDirty();
-    }
-    else {
-      row.currentData = updatedBatch;
-    }
-
-    if (this.confirmEditCreate(null, row)) {
-      this.markAsDirty();
-      return true;
-    }
-    return false;
   }
 
   protected async openRow(id: number, row: TableElement<Batch>): Promise<boolean> {
@@ -578,30 +504,26 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       return true;
     }
 
-    const batch = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
-    const updatedBatch = await this.openDetailModal(batch);
+    const data = this.getRowEntity(row, true);
 
-    // Update row in table
-    if (updatedBatch) {
-      return this.updateRowFromBatch(updatedBatch, row);
+    // Prepare entity measurement values
+    this.prepareEntityToSave(data);
+
+    const updatedData = await this.openDetailModal(data);
+    if (updatedData) {
+      await this.updateEntityToTable(updatedData, row);
     }
-
-    return false;
+    else {
+      this.editedRow = null;
+    }
+    return true;
   }
 
   async openDetailModal(batch?: Batch): Promise<Batch | undefined> {
-
-    const isNew = !batch;
+    const isNew = !batch && true;
     if (isNew) {
       batch = new Batch();
       await this.onNewEntity(batch);
-    }
-    else {
-      // Do a copy, because edition can be cancelled
-      batch = batch.clone();
-
-      // Prepare entity measurement values
-      this.prepareEntityToSave(batch);
     }
 
     const modal = await this.modalCtrl.create({
@@ -628,6 +550,47 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
     return (data instanceof Batch) ? data : undefined;
+  }
+
+  protected async addEntityToTable(newBatch: Batch): Promise<TableElement<Batch>> {
+    if (this.debug) console.debug("[batches-table] Adding batch to table:", newBatch);
+
+    // Make sure individual count if init
+    newBatch.individualCount = isNotNil(newBatch.individualCount) ? newBatch.individualCount : 1;
+
+    const pmfms = this.$pmfms.getValue() || [];
+    MeasurementValuesUtils.normalizeEntityToForm(newBatch, pmfms);
+
+    // If individual count column is shown (can be greater than 1)
+    if (this.showIndividualCount) {
+      // Try to find an identical sub-batch
+      const row = (await this.dataSource.getRows()).find(r => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));
+
+      // Already exists: increment individual count
+      if (row) {
+        if (row.validator) {
+          const control = row.validator.get('individualCount');
+          control.setValue((control.value || 0) + newBatch.individualCount);
+        } else {
+          row.currentData.individualCount = (row.currentData.individualCount || 0) + newBatch.individualCount;
+          this.markForCheck();
+        }
+        this.markAsDirty();
+
+        // restore the edited row (link in super.addEntityToTable() )
+        this.editedRow = row;
+
+        return row;
+      }
+    }
+
+    // The batch does not exists: add it tp the table
+    const res = await super.addEntityToTable(newBatch);
+
+    // Remove editedRow (should not be keep here)
+    this.editedRow = null;
+
+    return res;
   }
 
   protected async setAvailableParents(parents: Batch[], opts?: { emitEvent?: boolean; linkDataToParent?: boolean; }) {
@@ -709,8 +672,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     let hasRemovedItem = false;
     const data = rows
       .filter(row => {
-        const batch = row.currentData;
-        const parentId = batch.parentId || (batch.parent && batch.parent.id);
+        const item = row.currentData;
+        const parentId = item.parentId || (item.parent && item.parent.id);
 
         let parent;
         if (isNotNil(parentId)) {
@@ -719,8 +682,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
         }
         // No parent, search by taxonGroup+taxonName
         else {
-          const parentTaxonGroupId = batch.parent && batch.parent.taxonGroup && batch.parent.taxonGroup.id;
-          const parentTaxonNameId = batch.parent && batch.parent.taxonName && batch.parent.taxonName.id;
+          const parentTaxonGroupId = item.parent && item.parent.taxonGroup && item.parent.taxonGroup.id;
+          const parentTaxonNameId = item.parent && item.parent.taxonName && item.parent.taxonName.id;
           if (isNil(parentTaxonGroupId) && isNil(parentTaxonNameId)) {
             parent = undefined; // remove link to parent
           } else {
@@ -731,10 +694,10 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
         }
 
         if (parent || row.editing) {
-          if (batch.parent !== parent) {
-            batch.parent = parent;
+          if (item.parent !== parent) {
+            item.parent = parent;
             // If row use a validator, force update
-            if (!row.editing && row.validator) row.validator.patchValue(batch, {emitEvent: false});
+            if (!row.editing && row.validator) row.validator.patchValue(item, {emitEvent: false});
           }
           return true; // Keep only rows with a parent (or in editing mode)
         }
@@ -748,7 +711,6 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     if (hasRemovedItem) {
       this.value = data;
     }
-    //this.markForCheck();
   }
 
   protected sortData(data: Batch[], sortBy?: string, sortDirection?: string): Batch[] {

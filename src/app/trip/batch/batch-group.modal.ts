@@ -22,6 +22,7 @@ import {PlatformService} from "../../core/services/platform.service";
 import {environment} from "../../../environments/environment";
 import {Alerts} from "../../shared/alerts";
 import {BatchGroup} from "../services/model/batch-group.model";
+import {ReferentialUtils} from "../../core/services/model";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -98,7 +99,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     this.mobile = platform.mobile;
 
     // TODO: for DEV only
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -157,8 +158,8 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     await this.viewCtrl.dismiss();
   }
 
-  async close(event?: UIEvent): Promise<BatchGroup | undefined> {
-    if (this.loading) return; // avoid many call
+  async save(): Promise<BatchGroup | undefined> {
+    if (this.loading) return undefined; // avoid many call
 
     this.loading = true;
 
@@ -171,33 +172,44 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     if (this.invalid) {
 
       // DO not allow to close, if no taxon group nor a taxon name has been set
-      if (EntityUtils.isEmpty(this.form.form.get('taxonGroup').value) && EntityUtils.isEmpty(this.form.form.get('taxonName').value)) {
+      const taxonGroup = this.form.form.get('taxonGroup').value;
+      const taxonName = this.form.form.get('taxonName').value;
+      if (ReferentialUtils.isEmpty(taxonGroup) && ReferentialUtils.isEmpty(taxonName)) {
         this.form.error = "COMMON.FORM.HAS_ERROR";
         if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
         this.form.markAsTouched({emitEvent: true});
 
         this.loading = false;
-        return;
+        return undefined;
       }
 
     }
 
     // Save table content
-    const data = this.form.value;
+    this.data = this.form.value;
 
-    await this.viewCtrl.dismiss(data);
-
-    return data;
+    return this.data;
   }
 
-  async onShowSubBatchesButtonClick(event: UIEvent) {
+  async close(event?: UIEvent): Promise<BatchGroup | undefined> {
+
+    const savedBatch = await this.save();
+    if (!savedBatch) return;
+
+    await this.viewCtrl.dismiss(savedBatch);
+
+    return savedBatch;
+  }
+
+  async onShowSubBatchesButtonClick(event?: UIEvent) {
     if (!this.showSubBatchesCallback) return; // Skip
 
-    // Close
-    const batch = await this.close(event);
+    // Save
+    const savedBatch = await this.close();
+    if (!savedBatch) return;
 
-    // Only if close() succeed, execute the callback
-    if (batch) this.showSubBatchesCallback(batch);
+    // Execute the callback
+    this.showSubBatchesCallback(savedBatch);
   }
 
   /* -- protected methods -- */

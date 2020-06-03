@@ -18,18 +18,16 @@ import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, t
 import {SuggestFn, SuggestionDataService} from "../../services/data-service.class";
 import {
   changeCaseToUnderscore,
-  focusInput,
   getPropertyByPath,
   isNil,
   isNilOrBlank,
   isNotNil,
   isNotNilOrBlank,
   joinPropertiesPath,
-  selectInputContent,
   suggestFromArray,
   toBoolean
 } from "../../functions";
-import {InputElement} from "../focusable";
+import {InputElement, focusInput, selectInputContent} from "../../inputs";
 import {firstNotNilPromise} from "../../observables";
 import {DisplayFn} from "../../form/field.model";
 import {FloatLabelType} from "@angular/material/form-field";
@@ -379,8 +377,12 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         this.$inputItems.asObservable()
           .pipe(
             map(items => this.formControl.value)
+          ),
+        this._$filter.asObservable()
+          .pipe(
+            map(items => this.formControl.value)
           )
-      );
+    );
 
 
     this.filteredItems$ = updateFilteredItemsEvents$
@@ -423,6 +425,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
     this._implicitValue = undefined;
+    this.$inputItems.complete();
   }
 
   /**

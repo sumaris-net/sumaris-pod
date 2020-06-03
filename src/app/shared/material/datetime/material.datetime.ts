@@ -29,12 +29,13 @@ import {TranslateService} from "@ngx-translate/core";
 import {Moment} from "moment/moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
 import {SharedValidators} from '../../validator/validators';
-import {delay, isNil, isNilOrBlank, setTabIndex, toBoolean, toDateISOString} from "../../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {first} from "rxjs/operators";
-import {InputElement, isFocusableElement} from "../focusable";
+import {InputElement, setTabIndex} from "../../inputs";
+import {isFocusableElement} from "../../focusable";
 import {BehaviorSubject} from "rxjs";
 import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
+import {delay, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -76,7 +77,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
   protected _tabindex: number;
   protected keyboardHideDelay: number;
 
-  mobile: boolean;
   form: FormGroup;
   displayPattern: string;
   dayPattern: string;
@@ -84,6 +84,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
   locale: string;
   dayMask = DAY_MASK;
   hourMask = HOUR_MASK;
+
+  @Input() mobile: boolean;
 
   @Input() disabled = false;
 
@@ -439,6 +441,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
   onTimePickerKeyup(event: KeyboardEvent) {
     if (!this.timePicker) return;
+    console.log(event);
     if (event.key === 'Enter') {
       // Format hour
       let hour: number | string = this.timePicker.selectedHour.time;

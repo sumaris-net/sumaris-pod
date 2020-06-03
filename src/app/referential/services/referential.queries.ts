@@ -90,13 +90,6 @@ export const ReferentialFragments = {
     }
     __typename
   }`,
-  lightMetier:  gql`fragment LightMetierFragment on MetierVO {
-    id
-    label
-    name
-    entityName
-    __typename
-  }`,
   metier:  gql`fragment MetierFragment on MetierVO {
     id
     label

@@ -1,9 +1,29 @@
-import { AfterViewInit, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild, Directive } from "@angular/core";
+import {
+  AfterViewInit,
+  Directive,
+  EventEmitter,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild
+} from "@angular/core";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {MatTable} from "@angular/material/table";
-import {EMPTY, merge, Observable, of, Subject, Subscription} from 'rxjs';
-import {catchError, filter, mergeMap, startWith, switchMap, takeUntil} from "rxjs/operators";
+import {BehaviorSubject, EMPTY, merge, Observable, of, Subject, Subscription} from 'rxjs';
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  mergeMap,
+  startWith,
+  switchMap,
+  takeUntil,
+  tap
+} from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
 import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
@@ -62,7 +82,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   excludesColumns = new Array<String>();
   displayedColumns: string[];
   resultsLength: number;
-  loading = true;
+  loadingSubject = new BehaviorSubject<boolean>(true);
   error: string;
   isRateLimitReached = false;
   selection = new SelectionModel<TableElement<T>>(true, []);
@@ -76,15 +96,15 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
   // Table options
   autoLoad = true;
-  @Input() readOnly = false;
   inlineEdition = false;
   focusFirstColumn = false;
   confirmBeforeDelete = false;
   saveBeforeDelete: boolean;
   saveBeforeSort: boolean;
 
-  @Input()
-  debug = false;
+  @Input() debug = false;
+
+  @Input() readOnly = false;
 
   @Input() set filter(value: F) {
     this.setFilter(value);
@@ -94,19 +114,11 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     return this._filter;
   }
 
-  @ViewChild(MatTable, {static: true}) table: MatTable<T>;
-  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
-  @ViewChild(MatSort, {static: true}) sort: MatSort;
-
   @Output() onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>();
 
   @Output() onNewRow: EventEmitter<void> = new EventEmitter<void>();
 
   @Output() onStartEditingRow = new EventEmitter<TableElement<T>>();
-
-  get $loading(): Observable<boolean> {
-    return this.dataSource.loadingSubject.asObservable();
-  }
 
   @Output()
   get dirty(): boolean {
@@ -127,7 +139,6 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   get pending(): boolean {
     return this.editedRow && this.editedRow.editing ? (this.editedRow.validator && this.editedRow.validator.pending) : false;
   }
-
 
   disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     if (!this._initialized || !this.table) return;
@@ -150,24 +161,30 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   }
 
   markAsDirty(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
-    this._dirty = true;
-    if (!opts || opts.emitEvent !== false) {
-      this.markForCheck();
+    if (this._dirty !== true) {
+      this._dirty = true;
+      if (!opts || opts.emitEvent !== false) {
+        this.markForCheck();
+      }
     }
   }
 
   markAsPristine(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
-    this._dirty = false;
-    if (!opts || opts.emitEvent !== false) {
-      this.markForCheck();
+    if (this._dirty !== false) {
+      this._dirty = false;
+      if (!opts || opts.emitEvent !== false) {
+        this.markForCheck();
+      }
     }
   }
 
   markAsUntouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
-    this._dirty = false;
-    this.editedRow = null;
-    if (!opts || opts.emitEvent !== false) {
-      this.markForCheck();
+    if (this._dirty !== false || this.editedRow) {
+      this._dirty = false;
+      this.editedRow = null;
+      if (!opts || opts.emitEvent !== false) {
+        this.markForCheck();
+      }
     }
   }
 
@@ -180,6 +197,22 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     }
   }
 
+  markAsLoading(opts?: {emitEvent?: boolean}) {
+    this.setLoading(true, opts);
+  }
+
+  markAsLoaded(opts?: {emitEvent?: boolean}) {
+    this.setLoading(false, opts);
+  }
+
+  get loading(): boolean {
+    return this.loadingSubject.getValue();
+  }
+
+  get loaded(): boolean {
+    return !this.loadingSubject.getValue();
+  }
+
   enableSort() {
     if (this.sort) this.sort.disabled = false;
   }
@@ -187,6 +220,10 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   disableSort() {
     if (this.sort) this.sort.disabled = true;
   }
+
+  @ViewChild(MatTable, {static: true}) table: MatTable<T>;
+  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
+  @ViewChild(MatSort, {static: true}) sort: MatSort;
 
   protected constructor(
     protected route: ActivatedRoute,
@@ -337,12 +374,18 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       this._dataSourceSubscription.unsubscribe();
       this._subscription.remove(this._dataSourceSubscription);
     }
+    this._dataSourceSubscription = this.dataSource.loadingSubject
+        .pipe(
+            distinctUntilChanged(),
 
-    this._dataSourceSubscription = new Subscription();
-    this._dataSourceSubscription.add(this.$loading.subscribe(loading => {
-      this.loading = loading;
-      this.markForCheck();
-    }));
+            // If changed to True: propagate as soon as possible
+            tap((loading) => loading && !this.loadingSubject.getValue() && this.loadingSubject.next(true)),
+
+            // If changed to False: wait 250ms before propagate (to make sure the spinner has been displayed)
+            debounceTime(250),
+            tap(loading => !loading && this.loadingSubject.getValue() && this.loadingSubject.next(false))
+        )
+        .subscribe();
 
     this._subscription.add(this._dataSourceSubscription);
   }
@@ -451,6 +494,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
   /** Whether the number of selected elements matches the total number of rows. */
   isAllSelected() {
+    console.log('isAllSelected. lengths', this.selection.selected.length, this.resultsLength);
     return this.selection.selected.length === this.resultsLength;
   }
 
@@ -754,23 +798,14 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     // Should be override by subclasses, depending on ChangeDetectionStrategy
   }
 
-  protected markAsLoading() {
-    if (this.dataSource) {
-      this.dataSource.loadingSubject.next(true);
-    }
-    else {
-      this.loading = true;
-      this.markForCheck();
-    }
-  }
+  protected setLoading(value: boolean, opts?: {emitEvent?: boolean}) {
+    if (this.loadingSubject.getValue() !== value)  {
 
-  protected markAsLoaded() {
-    if (this.dataSource) {
-      this.dataSource.loadingSubject.next(false);
-    }
-    else {
-      this.loading = false;
-      this.markForCheck();
+      this.loadingSubject.next(value);
+
+      if (!opts || opts.emitEvent !== false) {
+        this.markForCheck();
+      }
     }
   }
 

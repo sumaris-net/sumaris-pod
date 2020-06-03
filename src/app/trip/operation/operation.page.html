@@ -116,7 +116,7 @@
 
       <!-- tab group for batches -->
       <mat-tab-group #batchTabGroup
-                     [hidden]="!showBatchTables"
+                     [class.cdk-visually-hidden]="!showBatchTables"
                      [class.mat-tab-group-no-header]="mobile"
                      [(selectedIndex)]="selectedBatchTabIndex"
                      (selectedTabChange)="onBatchTabChange($event)"
@@ -185,7 +185,7 @@
       <!-- tab group for survival test -->
       <mat-tab-group #sampleTabGroup
                      animationDuration="0s"
-                     [hidden]="!showSampleTables"
+                     [class.cdk-visually-hidden]="!showSampleTables"
                      [(selectedIndex)]="selectedSampleTabIndex"
                      (selectedTabChange)="onSampleTabChange($event)">
 

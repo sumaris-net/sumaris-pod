@@ -53,9 +53,7 @@
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
-        <mat-icon>
-          <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
-        </mat-icon>
+        <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger"
                   *ngIf="submitted && (tripForm.invalid || measurementsForm.invalid)"></ion-icon>

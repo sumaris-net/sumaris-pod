@@ -1,20 +1,21 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
-import {BaseDataService, EntityUtils, environment, Referential, StatusIds} from "../../core/core.module";
+import {BaseDataService, EntityUtils, environment, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {FetchPolicy} from "apollo-client";
 import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {MetierRef} from "./model/taxon.model";
+import {Metier} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {ReferentialFragments} from "./referential.queries";
 import {ReferentialRefFilter} from "./referential-ref.service";
 import {Moment} from "moment";
+import {ReferentialUtils} from "../../core/services/model";
 
-export type MetierRefFilter = Partial<ReferentialRefFilter> & {
+export type MetierFilter = Partial<ReferentialRefFilter> & {
 
   programLabel?: string;
   date?: Date | Moment;
@@ -22,18 +23,18 @@ export type MetierRefFilter = Partial<ReferentialRefFilter> & {
   tripId?: number;
 };
 
-export const METIER_DEFAULT_FILTER: MetierRefFilter = {statusId: StatusIds.ENABLE};
+export const METIER_DEFAULT_FILTER: MetierFilter = {statusId: StatusIds.ENABLE};
 
 const LoadAllQuery: any = gql`
-  query MetiersRefs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: MetierFilterVOInput){
+  query Metiers($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: MetierFilterVOInput){
     metiers(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...LightMetierFragment
+      ...ReferentialFragment
     }
   }
-  ${ReferentialFragments.lightMetier}
+  ${ReferentialFragments.referential}
 `;
 const LoadQuery: any = gql`
-  query MetiersRef($id: Int!){
+  query Metier($id: Int!){
     metier(id: $id){
       ...MetierFragment
     }
@@ -42,8 +43,8 @@ const LoadQuery: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class MetierRefService extends BaseDataService
-  implements SuggestionDataService<MetierRef, ReferentialRefFilter> {
+export class MetierService extends BaseDataService
+  implements SuggestionDataService<Metier, MetierFilter> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -57,19 +58,19 @@ export class MetierRefService extends BaseDataService
     this._debug = !environment.production;
   }
 
-  async load(id: number, options?: any): Promise<MetierRef> {
+  async load(id: number, options?: any): Promise<Metier> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[metier-ref-service] Loading Metier #${id}...`);
 
-    const data = await this.graphql.query<{ metier: MetierRef }>({
+    const data = await this.graphql.query<{ metier: Metier }>({
       query: LoadQuery,
       variables: {id: id},
       fetchPolicy: options && options.fetchPolicy || undefined
     });
 
     if (data && data.metier) {
-      const metier = MetierRef.fromObject(data.metier);
+      const metier = Metier.fromObject(data.metier, {useChildAttributes: false});
       if (metier && this._debug) console.debug(`[metier-ref-service] Metier #${id} loaded in ${Date.now() - now}ms`, metier);
       return metier;
     }
@@ -80,13 +81,13 @@ export class MetierRefService extends BaseDataService
                 size: number,
                 sortBy?: string,
                 sortDirection?: string,
-                filter?: MetierRefFilter,
+                filter?: MetierFilter,
                 opts?: {
                   [key: string]: any;
                   fetchPolicy?: FetchPolicy;
                   debug?: boolean;
                   transformToEntity?: boolean;
-                }): Promise<LoadResult<MetierRef>> {
+                }): Promise<LoadResult<Metier>> {
 
     if (!filter) {
       console.error("[metier-ref-service] Missing filter");
@@ -105,7 +106,6 @@ export class MetierRefService extends BaseDataService
         name: filter.name,
         searchText: filter.searchText,
         searchAttribute: filter.searchAttribute,
-        searchJoin: filter.searchJoin,
         levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
         statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE]),
         // Predoc filter
@@ -117,7 +117,7 @@ export class MetierRefService extends BaseDataService
     };
 
     const now = debug && Date.now();
-    if (debug) console.debug(`[metier-ref-service] Loading Metiers...`, variables);
+    if (debug) console.debug(`[metier-ref-service] Loading Metier items...`, variables);
 
     // Offline mode: read from the entities storage
     let loadResult: { metiers: any[]; metiersCount: number };
@@ -148,8 +148,8 @@ export class MetierRefService extends BaseDataService
     }
 
     const data = (!opts || opts.transformToEntity !== false) ?
-      (loadResult && loadResult.metiers || []).map(value => MetierRef.fromObject(value, false)) :
-      (loadResult && loadResult.metiers || []) as MetierRef[];
+      (loadResult && loadResult.metiers || []).map(value => Metier.fromObject(value, {useChildAttributes: false})) :
+      (loadResult && loadResult.metiers || []) as Metier[];
     if (debug) console.debug(`[metier-ref-service] Metiers loaded in ${Date.now() - now}ms`);
     return {
       data: data,
@@ -157,8 +157,8 @@ export class MetierRefService extends BaseDataService
     };
   }
 
-  async suggest(value: any, filter?: MetierRefFilter): Promise<MetierRef[]> {
-    if (EntityUtils.isNotEmpty(value)) return [value];
+  async suggest(value: any, filter?: MetierFilter): Promise<Metier[]> {
+    if (ReferentialUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
       {...filter, searchText: value},
@@ -170,7 +170,7 @@ export class MetierRefService extends BaseDataService
 
   /* -- protected methods -- */
 
-  protected createSearchFilterFn<T extends MetierRef>(f: Partial<MetierRefFilter>): (T) => boolean {
+  protected createSearchFilterFn<T extends Metier>(f: Partial<MetierFilter>): (T) => boolean {
 
     const filterFns: ((T) => boolean)[] = [];
 

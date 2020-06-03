@@ -27,6 +27,7 @@
     "BTN_REFRESH": "Rafraichir",
     "BTN_SEARCH": "Rechercher",
     "BTN_NEXT": "Suivant",
+    "BTN_NEXT_SHORT": "Suiv.",
     "BTN_BACK": "Retour",
     "BTN_SEND": "Envoyer",
     "BTN_OPTIONS": "Options",
@@ -41,6 +42,7 @@
     "BTN_INIT_OFFLINE_MODE": "Activer le mode hors-ligne",
     "CREATED_ON": "Créé le ",
     "COMMENTS": "Commentaires",
+    "BTN_DECIMAL_SEPARATOR": ",",
     "EMPTY_OPTION": "(Vide)",
 
     "DATE_PATTERN": "DD/MM/YYYY",
@@ -552,6 +554,7 @@
         }
       },
       "TABLE": {
+        "BTN_AUTO_FILL": "Remplissage automatique des espèces",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures individuelles",
         "BTN_BURST_INPUT": "Mode rafale",
         "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
@@ -589,7 +592,8 @@
       },
       "EDIT": {
         "TITLE": "Echantillon {{label}}",
-        "TAXON_GROUP": "Espèce commerciale (FAO)"
+        "TAXON_GROUP": "Espèce commerciale (FAO)",
+        "TAXON_NAME": "Espèce scientifique (FAO)"
       },
       "TABLE": {
         "LABEL": "Lot",
@@ -1004,6 +1008,7 @@
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
+      "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Marée: Caractéritiques optionelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplisage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",

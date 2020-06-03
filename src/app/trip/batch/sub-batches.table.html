@@ -73,8 +73,7 @@
         <!-- rankOrder Column = id -->
         <ng-container matColumnDef="id">
           <mat-header-cell *matHeaderCellDef mat-sort-header>
-            <ion-label *ngIf="!loading">#</ion-label>
-            <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+            <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
           </mat-header-cell>
           <mat-cell *matCellDef="let row"><ion-label>{{ row.currentData?.rankOrder }}</ion-label></mat-cell>
         </ng-container>
@@ -215,15 +214,15 @@
     </ion-col>
 
     <!-- form -->
-    <ion-col size="12" size-md="3" [hidden]="!showForm" class="ion-padding">
+    <ion-col size="12" size-md="3" [hidden]="!showForm" class="ion-padding" >
       <ion-label color="primary" class="ion-padding-bottom">
         <span translate>TRIP.BATCH.EDIT.INDIVIDUAL.BURST_FORM_TITLE</span>
       </ion-label>
 
       <app-sub-batch-form #form
                           [debug]="debug"
-                          [acquisitionLevel]="acquisitionLevel"
                           [program]="program"
+                          [acquisitionLevel]="acquisitionLevel"
                           [pmfms]="$pmfms|async"
                           [qvPmfm]="qvPmfm"
                           [showParent]="true"
@@ -232,7 +231,6 @@
                           [displayParentPmfm]="displayParentPmfm"
                           (onSubmit)="doSubmitForm($event)"
                           [tabindex]="tabindex">
-
         <!-- Reset form button -->
         <ion-button endButton class="ion-float-end"
                     fill="clear" color="dark"

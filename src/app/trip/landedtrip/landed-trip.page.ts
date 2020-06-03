@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment, isNotNil} from '../../core/core.module';
+import {environment, isNotNil, ReferentialRef} from '../../core/core.module';
 import {
   EditorDataServiceLoadOptions,
   fadeInOutAnimation,
@@ -17,7 +17,6 @@ import {NetworkService} from "../../core/services/network.service";
 import {LandingService} from "../services/landing.service";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
-import {MetierRef} from "../../referential/services/model/taxon.model";
 import {TripService, TripServiceSaveOption} from "../services/trip.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model";
 import {EntityStorage} from "../../core/services/entities-storage.service";
@@ -38,6 +37,7 @@ import {SaleProductUtils} from "../services/model/sale-product.model";
 import {debounceTime, filter} from "rxjs/operators";
 import {Sale} from "../services/model/sale.model";
 import {ExpenseForm} from "../expense/expense.form";
+import {Metier} from "../../referential/services/model/taxon.model";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -62,7 +62,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
 
   // List of trip's metier, used to populate operation group's metier combobox
-  $metiers = new BehaviorSubject<MetierRef[]>(null);
+  $metiers = new BehaviorSubject<ReferentialRef[]>(null);
 
   // List of trip's operation groups, use to populate product filter
   $operationGroups = new BehaviorSubject<OperationGroup[]>(null);
@@ -123,7 +123,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
             this.data.metiers = []; // make sure to reset data metiers, if any
           } else {
             this.tripForm.metiersForm.valueChanges.subscribe(value => {
-              const metiers = ((value || []) as MetierRef[]).filter(metier => isNotNilOrBlank(metier));
+              const metiers = ((value || []) as ReferentialRef[]).filter(metier => isNotNilOrBlank(metier));
               if (JSON.stringify(metiers) !== JSON.stringify(this.$metiers.value || [])) {
                 if (this.debug) console.debug('[landedTrip-page] metiers array has changed', metiers);
                 this.$metiers.next(metiers);

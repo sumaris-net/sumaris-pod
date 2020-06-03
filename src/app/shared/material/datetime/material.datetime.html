@@ -1,13 +1,13 @@
 <!-- readonly -->
 <mat-form-field *ngIf="readonly else writable">
-  <input matInput hidden type="text" readonly="true" [formControl]="formControl">
+  <input matInput hidden type="text" readonly [formControl]="formControl">
   <ion-text>{{formControl.value|dateFormat: {pattern: displayPattern} }}</ion-text>
 </mat-form-field>
 
 <!-- writable + time -->
 <ng-template #writable >
   <ion-grid *ngIf="displayTime else writableNoTime" class="ion-no-padding">
-    <ion-row class="ion-no-padding no-wrap" [formGroup]="form">
+    <ion-row class="ion-no-padding no-wrap" [formGroup]="form" nowrap>
 
       <!-- day -->
       <ion-col class="day ion-no-padding">
@@ -115,15 +115,13 @@
 
           <ngx-material-timepicker #timePicker [@.disabled]="true"
                                    (timeSet)="onTimePickerChange($event)"
-                                   [ESC]="false"
+                                   [ESC]="!mobile"
                                    [defaultTime]="'00:00'"
                                    [cancelBtnTmpl]="timePickerCancelButton"
                                    [confirmBtnTmpl]="timePickerOkButton"
-                                   [preventOverlayClick]="false"
+                                   [preventOverlayClick]="mobile"
                                    [enableKeyboardInput]="false"
-                                   [disableAnimation]="true"
-                                   (keyup.escape)="onTimePickerKeyup($event)"
-                                   (keyup.enter)="onTimePickerKeyup($event)">
+                                   [disableAnimation]="true">
             <!-- cancel button -->
             <ng-template #timePickerCancelButton>
               <ion-button fill="clear" color="dark">

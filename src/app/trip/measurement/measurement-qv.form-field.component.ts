@@ -16,7 +16,6 @@ import {merge, Observable, of} from 'rxjs';
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
 import {
   entityToString,
-  EntityUtils,
   PmfmIds,
   PmfmStrategy,
   ReferentialRef,
@@ -28,10 +27,11 @@ import {FloatLabelType} from "@angular/material/form-field";
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {focusInput, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean} from "../../shared/functions";
+import {isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean} from "../../shared/functions";
 import {AppFormUtils} from "../../core/core.module";
-import {InputElement} from "../../shared/material/focusable";
+import {focusInput, InputElement} from "../../shared/inputs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {ReferentialUtils} from "../../core/services/model";
 
 @Component({
   selector: 'mat-form-field-measurement-qv',
@@ -57,7 +57,6 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   onShowDropdown = new EventEmitter<UIEvent>(true);
   mobile = false;
   selectedIndex = -1;
-  disabled: boolean;
   _tabindex: number;
 
   get nativeElement(): any {
@@ -100,8 +99,12 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     return this._tabindex;
   }
 
-  @Output('keypress.enter')
-  onKeypressEnter: EventEmitter<any> = new EventEmitter<any>();
+  get disabled(): boolean {
+    return this.formControl.disabled;
+  }
+
+  @Output('keyup.enter')
+  onPressEnter: EventEmitter<any> = new EventEmitter<any>();
 
   @Output()
   onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
@@ -116,15 +119,15 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   ) {
     this.mobile = platform.mobile;
 
-    // Set default style
-    this.style = this.mobile ? 'select' : 'autocomplete';
+
   }
 
   ngOnInit() {
+    // Set defaults
+    this.style = this.style || (this.mobile ? 'select' : 'autocomplete');
 
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement-qv>.");
-    this.disabled = !this.formControl.enabled;
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
     this.pmfm.qualitativeValues = this.pmfm.qualitativeValues || [];
@@ -160,7 +163,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
           this.formControl.valueChanges
             .pipe(
               takeUntil(this._onDestroy),
-              filter(EntityUtils.isEmpty),
+              filter(ReferentialUtils.isEmpty),
               map(value => suggestFromArray(this._sortedQualitativeValues, value, {
                 searchAttributes: this.searchAttributes
               })),
@@ -179,10 +182,11 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
           takeUntil(this._onDestroy)
         )
         .subscribe(() => {
-          if (this.disabled !== this.formControl.disabled) {
+          /*if (this.disabled !== this.formControl.disabled) {
             this.disabled = !this.disabled;
             this.markForCheck();
-          }
+          }*/
+          this.markForCheck();
         });
     }
   }
@@ -255,7 +259,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     return item.id;
   }
 
-  compareWith = EntityUtils.equals;
+  compareWith = ReferentialUtils.equals;
 
   selectInputContent = AppFormUtils.selectInputContent;
   entityToString = entityToString;

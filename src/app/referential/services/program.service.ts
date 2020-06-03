@@ -37,6 +37,7 @@ import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {EntityStorage} from "../../core/services/entities-storage.service";
+import {ReferentialUtils} from "../../core/services/model";
 
 export declare class ProgramFilter {
   searchText?: string;
@@ -515,7 +516,7 @@ export class ProgramService extends BaseDataService
     if (isNilOrBlank(label)) return false;
 
     const program = await this.loadByLabel(label, {toEntity: false});
-    return EntityUtils.isNotEmpty(program);
+    return ReferentialUtils.isNotEmpty(program);
   }
 
   async loadByLabel(label: string, opts?: {
@@ -829,7 +830,7 @@ export class ProgramService extends BaseDataService
     if (!data) return false;
 
     // If the user is the recorder: can write
-    if (data.recorderPerson && this.accountService.isLogin() && this.accountService.account.equals(data.recorderPerson)) {
+    if (data.recorderPerson && this.accountService.isLogin() && this.accountService.account.asPerson().equals(data.recorderPerson)) {
       return true;
     }
 

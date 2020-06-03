@@ -368,8 +368,9 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     if (isEmptyArray(tripIds)) return; // Nothing to sync
 
+    this.markAsLoading();
+
     try {
-      this.loading = true;
       await concatPromises(tripIds.map(tripId => () => this.service.synchronizeById(tripId)));
       this.selection.clear();
 

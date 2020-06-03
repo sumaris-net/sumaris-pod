@@ -1,5 +1,5 @@
 <app-toolbar [title]="'OBSERVED_LOCATION.TABLE.TITLE'|translate" color="primary" (onValidate)="save()"
-             [hasValidate]="($loading|async) && dirty"
+             [hasValidate]="(loadingSubject|async) && dirty"
              [canGoBack]="false">
 </app-toolbar>
 
@@ -123,7 +123,7 @@
 
     <mat-action-row>
       <!-- Counter  -->
-      <ion-label [hidden]="($loading|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'"
+      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'"
                  class="ion-padding">
         {{ (resultsLength ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (resultsLength |
           numberFormat)} }}
@@ -167,7 +167,7 @@
     <!-- Id Column -->
     <ng-container matColumnDef="id">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
-        <span *ngIf="!($loading|async); else loadingSpinner">#</span>
+        <span *ngIf="!(loadingSubject|async); else loadingSpinner">#</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
     </ng-container>

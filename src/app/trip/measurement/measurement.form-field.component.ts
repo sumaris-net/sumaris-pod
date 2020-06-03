@@ -16,8 +16,9 @@ import {FloatLabelType} from "@angular/material/form-field";
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {AppFormUtils, isNil} from "../../core/core.module";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {filterNumberInput, focusInput, setTabIndex, toBoolean} from "../../shared/functions";
-import {InputElement} from "../../shared/material/focusable";
+import {toBoolean} from "../../shared/functions";
+import {filterNumberInput, focusInput, setTabIndex} from "../../shared/inputs";
+import {InputElement} from "../../shared/inputs";
 import {getPmfmName, PmfmStrategy} from "../../referential/services/model";
 
 const noop = () => {
@@ -50,7 +51,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
 
   @Input() readonly = false;
 
-  @Input() disabled = false;
+  @Input() hidden = false;
 
   @Input() formControl: FormControl;
 
@@ -67,8 +68,8 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges: boolean;
 
-  @Output('keypress.enter')
-  onKeypressEnter: EventEmitter<any> = new EventEmitter<any>();
+  @Output('keyup.enter')
+  onPressEnter: EventEmitter<any> = new EventEmitter<any>();
 
   get value(): any {
     return this.formControl.value;
@@ -76,6 +77,10 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
 
   get latLongFormat(): string {
     return this.settings.settings.latLongFormat || 'DDMM';
+  }
+
+  get disabled(): boolean {
+    return this.formControl.disabled;
   }
 
   @ViewChild('matInput') matInput: ElementRef;
@@ -109,7 +114,10 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
 
     // Compute the field type (use special case for Latitude/Longitude)
     let type = this.pmfm.type;
-    if (type === "double") {
+    if (this.hidden) {
+      type = "hidden";
+    }
+    else if (type === "double") {
       if (this.pmfm.label === "LATITUDE") {
         type = "latitude";
       } else if (this.pmfm.label === "LONGITUDE") {
@@ -146,9 +154,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
   }
 
   setDisabledState(isDisabled: boolean): void {
-    if (this.disabled === isDisabled) return;
-    this.disabled = isDisabled;
-    this.cd.markForCheck();
+
   }
 
   markAsTouched() {
@@ -158,24 +164,19 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
     }
   }
 
-  filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) {
-    if (event.keyCode === 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
-      this.onKeypressEnter.emit(event);
-      return;
-    }
-    filterNumberInput(event, allowDecimals);
-  }
+  filterNumberInput = filterNumberInput;
 
   filterAlphanumericalInput(event: KeyboardEvent) {
-    if (event.keyCode === 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
-      this.onKeypressEnter.emit(event);
-      return;
-    }
-    // Add features (e.g. check against a pattern)
+    // TODO: Add features (e.g. check against a regexp/pattern ?)
   }
 
   focus() {
-    focusInput(this.matInput);
+    if (this.hidden) {
+      console.warn("Cannot focus an hidden measurement field!")
+    }
+    else {
+      focusInput(this.matInput);
+    }
   }
 
   displayTime(): boolean {

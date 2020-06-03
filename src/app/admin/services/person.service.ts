@@ -7,7 +7,7 @@ import {BaseDataService} from "../../core/services/base.data-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {EntityUtils, StatusIds} from "../../core/services/model";
+import {EntityUtils, ReferentialUtils, StatusIds} from "../../core/services/model";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {fetchAllPagesWithProgress} from "../../shared/services/data-service.class";
 import {NetworkService} from "../../core/services/network.service";
@@ -221,7 +221,7 @@ export class PersonService extends BaseDataService<Person, PersonFilter>
   }
 
   async suggest(value: any, filter?: PersonFilter): Promise<Person[]> {
-    if (EntityUtils.isNotEmpty(value)) return [value];
+    if (ReferentialUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
       {

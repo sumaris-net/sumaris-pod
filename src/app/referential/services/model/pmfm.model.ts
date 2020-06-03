@@ -124,13 +124,8 @@ export class Parameter extends Referential<Parameter> {
 
   clone(): Parameter {
     const target = new Parameter();
-    this.copy(target);
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.clone()) || undefined;
-    return target;
-  }
-
-  copy(target: Parameter): Parameter {
     target.fromObject(this);
+    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.clone()) || undefined;
     return target;
   }
 

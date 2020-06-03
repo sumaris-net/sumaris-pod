@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
-import {AppEditorPage, EntityUtils, environment, isNil, joinPropertiesPath} from "../../core/core.module";
+import {AppEditorPage, environment, isNil, joinPropertiesPath} from "../../core/core.module";
 import {referentialToString} from "../services/model";
 import {ReferentialForm} from "../form/referential.form";
 import {PmfmValidatorService} from "../services/validator/pmfm.validator";
@@ -15,6 +15,7 @@ import {MatAutocompleteFieldConfig} from "../../shared/material/material.autocom
 import {ParameterService} from "../services/parameter.service";
 import {filter, mergeMap} from "rxjs/operators";
 import {Observable} from "rxjs";
+import {ReferentialUtils} from "../../core/services/model";
 
 @Component({
   selector: 'app-pmfm',
@@ -39,7 +40,7 @@ export class PmfmPage extends AppEditorPage<Pmfm> implements OnInit {
   }
 
   get hasMatrix(): boolean {
-    return EntityUtils.isNotEmpty(this.matrix);
+    return ReferentialUtils.isNotEmpty(this.matrix);
   }
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
@@ -174,7 +175,7 @@ export class PmfmPage extends AppEditorPage<Pmfm> implements OnInit {
     // Check fraction
     this.$parameter = this.form.get('parameter').valueChanges
         .pipe(
-          filter(EntityUtils.isNotEmpty),
+          filter(ReferentialUtils.isNotEmpty),
           mergeMap(p => this.parameterService.load(p.id))
         );
   }
@@ -191,7 +192,7 @@ export class PmfmPage extends AppEditorPage<Pmfm> implements OnInit {
   protected canUserWrite(data: Pmfm): boolean {
     // TODO : check user is in pmfm managers
     return (this.isNewData && this.accountService.isAdmin())
-      || (EntityUtils.isNotEmpty(data) && this.accountService.isSupervisor());
+      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
 
   }
 

@@ -1,5 +1,5 @@
-import {EntityUtils, isNotNil} from "../../../core/core.module";
-import {ReferentialAsObjectOptions, ReferentialRef} from "../../../core/services/model";
+import {isNotNil} from "../../../core/core.module";
+import {ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils} from "../../../core/services/model";
 import {DataEntity, DataEntityAsObjectOptions, IWithProductsEntity, NOT_MINIFY_OPTIONS} from "./base.model";
 import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from "./measurement.model";
 import {equalsOrNil, isNotNilOrBlank} from "../../../shared/functions";
@@ -44,7 +44,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
         // same operation
         && ((!p1.operationId && !p2.operationId) || p1.operationId === p2.operationId)
         // same taxon group
-        && EntityUtils.equals(p1.taxonGroup, p2.taxonGroup)
+        && ReferentialUtils.equals(p1.taxonGroup, p2.taxonGroup)
       ));
   }
 
@@ -144,7 +144,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
       || (
         this.taxonGroup.equals(other.taxonGroup) && this.rankOrder === other.rankOrder
         && equalsOrNil(this.individualCount, other.individualCount) && equalsOrNil(this.weight, other.weight)
-        && equalsOrNil(this.subgroupCount, other.subgroupCount) && EntityUtils.equals(this.saleType, other.saleType)
+        && equalsOrNil(this.subgroupCount, other.subgroupCount) && ReferentialUtils.equals(this.saleType, other.saleType)
       );
   }
 }

@@ -1,6 +1,6 @@
 import "./vendor";
 
-import {APP_BASE_HREF} from "@angular/common";
+import {APP_BASE_HREF, CommonModule} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule} from "@angular/core";
 import {IonicModule} from "@ionic/angular";
@@ -45,14 +45,15 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
     AppComponent
   ],
   imports: [
-    AppRoutingModule,
+    CommonModule,
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
     IonicModule.forRoot(),
     CacheModule.forRoot(),
-    LeafletModule.forRoot(),
+    LeafletModule,
     // functional modules
+    AppRoutingModule,
     CoreModule,
     TripModule,
     IonicStorageModule.forRoot({
@@ -105,7 +106,7 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
         // Data entry
         {title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
         {title: 'MENU.TRIPS', path: '/trips',
-          icon: 'navigate',
+          matIcon: 'explore',
           profile: 'USER',
           ifProperty: 'sumaris.trip.enable',
           titleProperty: 'sumaris.trip.name'
@@ -121,7 +122,7 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
         // Data extraction
         {title: 'MENU.EXTRACTION_DIVIDER', profile: 'SUPERVISOR'},
         {title: 'MENU.TRIPS', path: '/extraction/table', icon: 'cloud-download', profile: 'SUPERVISOR'},
-        {title: 'MENU.MAP', path: '/extraction/map', icon: 'globe', profile: 'SUPERVISOR'},
+        {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', profile: 'SUPERVISOR'},
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
@@ -146,15 +147,15 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
     // Home buttons
     { provide: APP_HOME_BUTTONS, useValue: [
         // Data entry
-        { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER', cssClass: 'visible-mobile'},
+        { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
         { title: 'MENU.TRIPS', path: '/trips',
-          icon: 'navigate', cssClass: 'visible-mobile',
+          matIcon: 'explore',
           profile: 'USER',
           ifProperty: 'sumaris.trip.enable',
           titleProperty: 'sumaris.trip.name'
         },
         { title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
-          matIcon: 'verified_user', cssClass: 'visible-mobile',
+          matIcon: 'verified_user',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name'

@@ -235,7 +235,7 @@ export function hasUpperOrEqualsProfile(actualProfiles: string[], expectedProfil
 
 
 export declare interface Cloneable<T> {
-  clone(): Cloneable<T>;
+  clone(): T;
 }
 
 export function entityToString(obj: Entity<any> | any, properties?: string[]): string | undefined {
@@ -273,14 +273,25 @@ export interface EntityAsObjectOptions {
   keepLocalId?: boolean; // true by default
 }
 
-export abstract class Entity<T> implements Cloneable<T> {
+export interface IEntity<T, O extends EntityAsObjectOptions = EntityAsObjectOptions> extends Cloneable<T> {
+  id: number;
+  updateDate: Date | Moment;
+  __typename: string;
+  equals(other: T): boolean;
+  clone(): T;
+  asObject(opts?: O): any;
+  fromObject(source: any);
+}
+
+export abstract class Entity<T extends IEntity<any, any>, O extends EntityAsObjectOptions = EntityAsObjectOptions> implements IEntity<T, O> {
+
   id: number;
   updateDate: Date | Moment;
   __typename: string;
 
-  abstract clone(): Entity<T>;
+  abstract clone(): T;
 
-  asObject(opts?: EntityAsObjectOptions): any {
+  asObject(opts?: O): any {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.__typename;
     if (target.id < 0 && (!opts || opts.keepLocalId === false)) delete target.id;
@@ -288,32 +299,37 @@ export abstract class Entity<T> implements Cloneable<T> {
     return target;
   }
 
-  fromObject(source: any): Entity<T> {
+  fromObject(source: any) {
     this.id = (source.id || source.id === 0) ? source.id : undefined;
     this.updateDate = fromDateISOString(source.updateDate);
     this.__typename = source.__typename || this.__typename; // Keep original type (can be set in constructor)
-    return this;
   }
 
-  equals(other: Entity<T>): boolean {
+  equals(other: T): boolean {
     return other && this.id === other.id;
   }
 }
 
 export class EntityUtils {
-  static isNotEmpty(obj: any | Entity<any>): boolean {
-    return !!obj && obj['id'] !== null && obj['id'] !== undefined;
+  // Check that the object has a NOT nil attribute (ID by default)
+  static isNotEmpty(obj: any | IEntity<any>, checkedAttribute: string): boolean {
+    return !!obj && obj[checkedAttribute] !== null && obj[checkedAttribute] !== undefined;
   }
 
-  static isNotEmptyEntity<T extends Entity<any>>(obj: any | Entity<any>): obj is T {
-    return !!obj && obj['id'] !== null && obj['id'] !== undefined;
+  // Check that the object has a NOT nil attribute (ID by default)
+  static isNotEmptyEntity<T extends IEntity<any>>(obj: any | IEntity<any>, checkedAttribute: string): obj is T {
+    return !!obj && obj[checkedAttribute] !== null && obj[checkedAttribute] !== undefined;
   }
 
-  static isEmpty(obj: any | Entity<any>): boolean {
-    return !obj || obj['id'] === null || obj['id'] === undefined;
+  static isEmpty(obj: any | IEntity<any>, checkedAttribute: string): boolean {
+    return !obj || obj[checkedAttribute] === null || obj[checkedAttribute] === undefined;
   }
 
-  static getPropertyByPath(obj: any | Entity<any>, path: string): any {
+  static equals(o1: IEntity<any>, o2: IEntity<any>, checkAttribute: string): boolean {
+    return (o1 === o2) || (isNil(o1) && isNil(o2))  || (o1 && o2 && o1[checkAttribute] === o2[checkAttribute]);
+  }
+
+  static getPropertyByPath(obj: any | IEntity<any>, path: string): any {
     if (isNil(obj)) return undefined;
     const i = path.indexOf('.');
     if (i === -1) {
@@ -361,11 +377,7 @@ export class EntityUtils {
     }, {});
   }
 
-  static equals(o1: Entity<any>, o2: Entity<any>): boolean {
-    return (o1 === o2) || (isNil(o1) && isNil(o2))  || (o1 && o2 && o1.id === o2.id);
-  }
-
-  static copyIdAndUpdateDate(source: Entity<any> | undefined, target: Entity<any>, opts?: { creationDate?: boolean; }) {
+  static copyIdAndUpdateDate(source: IEntity<any> | undefined, target: IEntity<any>, opts?: { creationDate?: boolean; }) {
     if (!source) return;
 
     // Update (id and updateDate)
@@ -378,7 +390,7 @@ export class EntityUtils {
     }
   }
 
-  static async fillLocalIds<T extends Entity<T>>(items: T[], sequenceFactory: (firstEntity: T, incrementSize: number) => Promise<number>) {
+  static async fillLocalIds<T extends IEntity<T>>(items: T[], sequenceFactory: (firstEntity: T, incrementSize: number) => Promise<number>) {
     const newItems = (items || []).filter(item => isNil(item.id) || item.id === 0);
     if (isEmptyArray(newItems)) return;
     // Get the sequence
@@ -388,11 +400,11 @@ export class EntityUtils {
     newItems.forEach(item => item.id = --currentId);
   }
 
-  static sort<T extends Entity<T> | any>(data: T[], sortBy?: string, sortDirection?: string): T[] {
+  static sort<T extends IEntity<T> | any>(data: T[], sortBy?: string, sortDirection?: string): T[] {
     return data.sort(this.sortComparator(sortBy, sortDirection));
   }
 
-  static sortComparator<T extends Entity<T> | any>(sortBy?: string, sortDirection?: string): (a: T, b: T) => number {
+  static sortComparator<T extends IEntity<T> | any>(sortBy?: string, sortDirection?: string): (a: T, b: T) => number {
     const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
     const isSimplePath = !sortBy || sortBy.indexOf('.') === -1;
     if (isSimplePath) {
@@ -411,21 +423,22 @@ export class EntityUtils {
     }
   }
 
-  static compare(value1: {id: number} | any, value2: {id: number} | any, direction: 1 | -1): number {
-    if (EntityUtils.isNotEmptyEntity(value1) && EntityUtils.isNotEmptyEntity(value2)) {
-      return EntityUtils.equals(value1, value2) ? 0 : (value1.id > value2.id ? direction : (-1 * direction));
+  static compare(value1: any, value2: any, direction: 1 | -1, checkAttribute?: string): number {
+    checkAttribute = checkAttribute || 'id';
+    if (EntityUtils.isNotEmptyEntity(value1, checkAttribute) && EntityUtils.isNotEmptyEntity(value2, checkAttribute)) {
+      return EntityUtils.equals(value1, value2, checkAttribute) ? 0 : (value1[checkAttribute] > value2[checkAttribute] ? direction : (-1 * direction));
     }
     return value1 === value2 ? 0 : (value1 > value2 ? direction : (-1 * direction));
   }
 
-  static filter<T extends Entity<T> | any>(data: T[],
+  static filter<T extends IEntity<T> | any>(data: T[],
                                            searchAttribute: string,
                                            searchText: string): T[] {
     const filterFn = this.searchTextFilter(searchAttribute, searchText);
     return data.filter(filterFn);
   }
 
-  static searchTextFilter<T extends Entity<T> | any>(searchAttribute: string | string[],
+  static searchTextFilter<T extends IEntity<T> | any>(searchAttribute: string | string[],
                                                      searchText: string): (T) => boolean {
     if (isNilOrBlank(searchAttribute) || isNilOrBlank(searchText)) return undefined; // filter not need
 
@@ -480,23 +493,23 @@ export class EntityUtils {
 }
 
 
-export declare interface ITreeItemEntity<T extends Entity<T>> {
+export declare interface ITreeItemEntity<T extends IEntity<T>> {
   parentId: number;
   parent: T;
   children: T[];
 }
 
-
 /* -- Referential -- */
 
 
-export class Referential<T = Referential<any>> extends Entity<T> implements IReferentialRef {
+export class Referential<T extends Referential<any> = Referential<any>, O extends ReferentialAsObjectOptions = ReferentialAsObjectOptions>
+    extends Entity<T, O> implements IReferentialRef {
 
-  static fromObject(source: any): Referential {
+  static fromObject(source: any): Referential<any> {
     if (!source || source instanceof Referential) return source;
-    const res = new Referential();
+    const res = new Referential<any>();
     res.fromObject(source);
-    return res;
+    return res as Referential;
   }
 
   label: string;
@@ -527,30 +540,27 @@ export class Referential<T = Referential<any>> extends Entity<T> implements IRef
     this.entityName = data && data.entityName;
   }
 
-  clone(): Referential<T> {
-    return this.copy(new Referential<T>());
-  }
-
-  copy(target: Referential<T>): Referential<T> {
+  clone(): T {
+    const target = new Referential<any>() as T;
     target.fromObject(this);
     return target;
   }
 
-  asObject(options?: ReferentialAsObjectOptions): any {
-    if (options && options.minify) {
+  asObject(opts?: O): any {
+    if (opts && opts.minify) {
       return {
         id: this.id,
-        entityName: options.keepEntityName && this.entityName || undefined, // Don't keep by default
-        __typename: options.keepTypename && this.__typename || undefined
+        entityName: opts.keepEntityName && this.entityName || undefined, // Don't keep by default
+        __typename: opts.keepTypename && this.__typename || undefined
       };
     }
-    const target: any = super.asObject(options);
+    const target: any = super.asObject(opts);
     target.creationDate = toDateISOString(this.creationDate);
-    if (options && options.keepTypename === false) delete target.entityName;
+    if (opts && opts.keepTypename === false) delete target.entityName;
     return target;
   }
 
-  fromObject(source: any): Entity<T> {
+  fromObject(source: any) {
     super.fromObject(source);
     this.label = source.label;
     this.name = source.name;
@@ -562,12 +572,31 @@ export class Referential<T = Referential<any>> extends Entity<T> implements IRef
     this.parentId = source.parentId;
     this.creationDate = fromDateISOString(source.creationDate);
     this.entityName = source.entityName;
-    return this;
   }
 
-  equals(other: Referential<T>): boolean {
+  equals(other: T): boolean {
     return super.equals(other) && this.entityName === other.entityName;
   }
+}
+
+export class ReferentialUtils {
+  static isNotEmpty(obj: any | Referential<any> | ReferentialRef): boolean {
+    // A referential entity should always have a 'id' filled (can be negative is local and temporary)
+    return EntityUtils.isNotEmpty(obj, 'id');
+  }
+
+  static isNotEmptyReferential<T extends Referential<any> | ReferentialRef>(obj: any | Referential<any> | ReferentialRef): obj is T {
+    return EntityUtils.isNotEmpty(obj, 'id');
+  }
+
+  static isEmpty(obj: any | Referential<any> | ReferentialRef): boolean {
+    return EntityUtils.isEmpty(obj, 'id');
+  }
+
+  static equals(o1: any | Referential<any> | ReferentialRef, o2: any | Referential<any> | ReferentialRef): boolean {
+    return EntityUtils.equals(o1, o2, 'id');
+  }
+
 }
 
 export declare interface IReferentialRef {
@@ -599,12 +628,15 @@ export const SAVE_AS_OBJECT_OPTIONS: ReferentialAsObjectOptions = {
   keepLocalId: false
 };
 
-export class ReferentialRef<T = any> extends Entity<T> implements IReferentialRef {
+export class ReferentialRef<T extends ReferentialRef<any> = ReferentialRef<any>,
+    O extends ReferentialAsObjectOptions = ReferentialAsObjectOptions>
+    extends Entity<T, O>
+    implements IReferentialRef {
 
-  static fromObject(source: any): ReferentialRef<any> {
+  static fromObject<T extends ReferentialRef<any> = ReferentialRef<any>>(source: any): T {
     if (!source) return source;
-    if (source instanceof ReferentialRef) return source.clone();
-    const res = new ReferentialRef();
+    if (source instanceof ReferentialRef) return source.clone() as T;
+    const res = new ReferentialRef<any>() as T;
     res.fromObject(source);
     return res;
   }
@@ -625,38 +657,32 @@ export class ReferentialRef<T = any> extends Entity<T> implements IReferentialRe
     this.name = data && data.name;
   }
 
-  clone(): any {
-    const target = new ReferentialRef();
-    this.copy(target);
-    return target;
-  }
-
-  copy(target: ReferentialRef<T>): ReferentialRef<T> {
+  clone(): T {
+    const target = new ReferentialRef() as T;
     target.fromObject(this);
     return target;
   }
 
-  asObject(options?: ReferentialAsObjectOptions): any {
-    if (options && options.minify) {
+  asObject(opts?: O): any {
+    if (opts && opts.minify) {
       return {
         id: this.id,
-        entityName: options.keepEntityName && this.entityName || undefined, // Don't keep by default
-        __typename: options.keepTypename && this.__typename || undefined
+        entityName: opts.keepEntityName && this.entityName || undefined, // Don't keep by default
+        __typename: opts.keepTypename && this.__typename || undefined
       };
     }
-    const target: any = super.asObject(options);
-    if (options && options.keepEntityName === false) delete target.entityName;
+    const target: any = super.asObject(opts);
+    if (opts && opts.keepEntityName === false) delete target.entityName;
 
     return target;
   }
 
-  fromObject(source: any): Entity<T> {
+  fromObject(source: any) {
     super.fromObject(source);
     this.label = source.label;
     this.name = source.name;
     this.statusId = source.statusId;
     this.entityName = source.entityName;
-    return this;
   }
 }
 
@@ -664,11 +690,11 @@ export class ReferentialRef<T = any> extends Entity<T> implements IReferentialRe
 /* -- Software & Configuration -- */
 
 
-export class Software<T> extends Entity<T> {
+export class Software<T extends Software<any> = Software<any>> extends Entity<T> {
 
- static fromObject(source: Software<any>): Software<any> {
+ static fromObject(source: any): Software {
     if (!source || source instanceof Software) return source;
-    const res = new Software<any>();
+    const res = new Software();
     res.fromObject(source);
     return res;
   }
@@ -683,11 +709,8 @@ export class Software<T> extends Entity<T> {
     super();
   }
 
-  clone(): Software<T> {
-    return this.copy(new Software<T>());
-  }
-
-  copy(target: Software<T>): Software<T> {
+  clone(): T {
+    const target = new Software() as T;
     target.fromObject(this);
     return target;
   }
@@ -699,7 +722,7 @@ export class Software<T> extends Entity<T> {
     return target;
   }
 
-  fromObject(source: any): Software<T> {
+  fromObject(source: any) {
     super.fromObject(source);
     this.label = source.label;
     this.name = source.name;
@@ -711,8 +734,6 @@ export class Software<T> extends Entity<T> {
     } else {
       this.properties = source.properties;
     }
-
-    return this;
   }
 }
 
@@ -750,15 +771,13 @@ export class Configuration extends Software<Configuration> {
     return target;
   }
 
-  fromObject(source: any): Configuration {
+  fromObject(source: any) {
     super.fromObject(source);
     this.smallLogo = source.smallLogo;
     this.largeLogo = source.largeLogo;
     this.backgroundImages = source.backgroundImages;
     if (source.partners)
       this.partners = (source.partners || []).map(Department.fromObject);
-
-    return this;
   }
 
   getPropertyAsBoolean(definition: FormFieldDefinition): boolean {
@@ -782,7 +801,7 @@ export class Configuration extends Software<Configuration> {
 }
 
 
-export class Person extends Entity<Person> implements Cloneable<Person> {
+export class Person<T extends Person<any> = Person<any>> extends Entity<T, ReferentialAsObjectOptions> {
 
   static TYPENAME = 'PersonVO';
 
@@ -810,39 +829,33 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     this.__typename = Person.TYPENAME;
   }
 
-  clone(): Person {
-    const target = new Person();
-    this.copy(target);
+  clone(): T {
+    const target = new Person() as T;
+    target.fromObject(this);
     return target;
   }
 
-  copy(target: Person) {
-    Object.assign(target, this);
-    target.department = this.department.clone();
-    target.profiles = this.profiles && this.profiles.slice(0) || undefined;
-  }
-
-  asObject(options?: ReferentialAsObjectOptions): any {
-    if (options && options.minify)  {
+  asObject(opts?: ReferentialAsObjectOptions): any {
+    if (opts && opts.minify)  {
       return {
         id: this.id,
-        __typename: options.keepTypename && this.__typename || undefined,
+        __typename: opts.keepTypename && this.__typename || undefined,
         firstName: this.firstName,
         lastName: this.lastName
       };
     }
-    const target: any = super.asObject(options);
-    target.department = this.department && this.department.asObject(options) || undefined;
+    const target: any = super.asObject(opts);
+    target.department = this.department && this.department.asObject(opts) || undefined;
     target.profiles = this.profiles && this.profiles.slice(0) || [];
     // Set profile list from the main profile
     target.profiles = this.mainProfile && [this.mainProfile] || target.profiles || ['GUEST'];
     target.creationDate = toDateISOString(this.creationDate);
 
-    if (!options || options.minify !== true) target.mainProfile = getMainProfile(target.profiles);
+    if (!opts || opts.minify !== true) target.mainProfile = getMainProfile(target.profiles);
     return target;
   }
 
-  fromObject(source: any): Person {
+  fromObject(source: any) {
     super.fromObject(source);
     this.firstName = source.firstName;
     this.lastName = source.lastName;
@@ -858,11 +871,10 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
       this.profiles = this.profiles.concat(source.mainProfile);
     }
     this.mainProfile = getMainProfile(this.profiles);
-    return this;
   }
 }
 
-export class Department extends Referential implements Cloneable<Department> {
+export class Department extends Referential<Department> {
 
   logo: string;
   siteUrl: string;
@@ -880,10 +892,7 @@ export class Department extends Referential implements Cloneable<Department> {
   }
 
   clone(): Department {
-    return this.copy(new Department());
-  }
-
-  copy(target: Department): Department {
+    const target = new Department();
     target.fromObject(this);
     return target;
   }
@@ -893,24 +902,24 @@ export class Department extends Referential implements Cloneable<Department> {
     return target;
   }
 
-  fromObject(source: any): Department {
+  fromObject(source: any) {
     super.fromObject(source);
     this.logo = source.logo;
     this.siteUrl = source.siteUrl;
     delete this.entityName; // not need
-    return this;
   }
 }
 
-export class UserSettings extends Entity<UserSettings> implements Cloneable<UserSettings> {
+export class UserSettings extends Entity<UserSettings> {
   locale: string;
   latLongFormat: string;
   content: {};
   nonce: string;
 
   clone(): UserSettings {
-    const res = Object.assign(new UserSettings(), this);
-    return res;
+    const target = new UserSettings();
+    target.fromObject(this);
+    return target;
   }
 
   asObject(options?: EntityAsObjectOptions): any {
@@ -919,7 +928,7 @@ export class UserSettings extends Entity<UserSettings> implements Cloneable<User
     return res;
   }
 
-  fromObject(source: any): UserSettings {
+  fromObject(source: any) {
     super.fromObject(source);
     this.locale = source.locale;
     this.latLongFormat = source.latLongFormat;
@@ -929,18 +938,16 @@ export class UserSettings extends Entity<UserSettings> implements Cloneable<User
       this.content = source.content && JSON.parse(source.content) || {};
     }
     this.nonce = source.nonce;
-    return this;
   }
 }
 
 /**
  * A user account
  */
-export class Account extends Person {
+export class Account extends Person<Account> {
 
   static fromObject(source: any): Account {
-    if (!source) return null;
-    if (source instanceof Account) return source;
+    if (!source || source instanceof Account) return source;
     const result = new Account();
     result.fromObject(source);
     return result;
@@ -955,12 +962,7 @@ export class Account extends Person {
 
   clone(): Account {
     const target = new Account();
-    super.copy(target);
-    return target;
-  }
-
-  copy(target: Account): Account {
-    super.copy(target);
+    target.fromObject(this);
     target.settings = this.settings && this.settings.clone() || undefined;
     return target;
   }
@@ -971,10 +973,9 @@ export class Account extends Person {
     return target;
   }
 
-  fromObject(source: any): Account {
+  fromObject(source: any) {
     super.fromObject(source);
     source.settings && this.settings.fromObject(source.settings);
-    return this;
   }
 
   /**
@@ -1031,10 +1032,7 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
   }
 
   clone(): Peer {
-    return this.copy(new Peer());
-  }
-
-  copy(target: Peer): Peer {
+    const target = new Peer();
     target.fromObject(this);
     return target;
   }
@@ -1044,7 +1042,7 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
     return target;
   }
 
-  fromObject(source: any): Entity<Peer> {
+  fromObject(source: any) {
     super.fromObject(source);
     this.dns = source.dns || source.host;
     this.ipv4 = source.ipv4;
@@ -1053,7 +1051,6 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
     this.pubkey = source.pubkey;
     this.useSsl = source.useSsl || (this.port === 443);
     this.path = source.path || '';
-    return this;
   }
 
   equals(other: Peer): boolean {

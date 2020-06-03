@@ -140,9 +140,10 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     }
 
     const entityName = filter.entityName;
+    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
 
     const variables: any = {
-      entityName: entityName,
+      entityName,
       offset: offset || 0,
       size: size || 100,
       sortBy: sortBy || 'label',
@@ -158,8 +159,9 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       }
     };
 
+
     const now = new Date();
-    if (this._debug) console.debug(`[referential-service] Loading ${entityName}...`, variables);
+    if (this._debug) console.debug(`[referential-service] Loading ${uniqueEntityName}...`, variables);
 
     // Saving variables, to be able to update the cache when saving or deleting
     this._lastVariables.loadAll = variables;
@@ -174,8 +176,8 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       .pipe(
         map(({referentials, referentialsCount}) => {
           const data = (referentials || []).map(Referential.fromObject);
-          data.forEach(r => r.entityName = entityName);
-          if (this._debug) console.debug(`[referential-service] ${entityName} loaded in ${new Date().getTime() - now.getTime()}ms`, data);
+          data.forEach(r => r.entityName = uniqueEntityName);
+          if (this._debug) console.debug(`[referential-service] ${uniqueEntityName} loaded in ${new Date().getTime() - now.getTime()}ms`, data);
           return {
             data: data,
             total: referentialsCount
@@ -203,6 +205,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     }
 
     const entityName = filter.entityName;
+    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
     const debug = this._debug && (!opts || opts.debug !== false);
 
     const variables: any = {
@@ -223,7 +226,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     };
 
     const now = Date.now();
-    if (debug) console.debug(`[referential-service] Loading ${entityName} items...`, variables);
+    if (debug) console.debug(`[referential-service] Loading ${uniqueEntityName} items...`, variables);
 
     const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
     const res = await this.graphql.query<{ referentials: any[]; referentialsCount: number }>({
@@ -235,8 +238,8 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     const data = (!opts || opts.toEntity !== false) ?
       (res && res.referentials || []).map(Referential.fromObject) :
       (res && res.referentials || []) as Referential[];
-    data.forEach(r => r.entityName = entityName);
-    if (debug) console.debug(`[referential-service] ${entityName} items loaded in ${Date.now() - now}ms`);
+    data.forEach(r => r.entityName = uniqueEntityName);
+    if (debug) console.debug(`[referential-service] ${uniqueEntityName} items loaded in ${Date.now() - now}ms`);
     return {
       data: data,
       total: res.referentialsCount
@@ -252,7 +255,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
 
     const entityName = entities[0].entityName;
     if (!entityName) {
-      console.error("[referential-service] Could not save referentials: missing entityName");
+      console.error("[referential-service] Could not save referential: missing entityName");
       throw { code: ErrorCodes.SAVE_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIALS_ERROR" };
     }
 

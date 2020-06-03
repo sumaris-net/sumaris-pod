@@ -3,11 +3,11 @@ import {base58, CryptoService, KeyPair} from "./crypto.service";
 import {
   Account,
   Department,
-  EntityUtils,
   getMainProfile,
   hasUpperOrEqualsProfile,
   Person,
   Referential,
+  ReferentialUtils,
   StatusIds,
   UsageMode,
   UserProfileLabel,
@@ -355,7 +355,7 @@ export class AccountService extends BaseDataService {
   }
 
   public canUserWriteDataForDepartment(recorderDepartment: Referential | any): boolean {
-    if (EntityUtils.isEmpty(recorderDepartment)) {
+    if (ReferentialUtils.isEmpty(recorderDepartment)) {
       if (!this.isAdmin())
         console.warn("Unable to check if user has right: invalid recorderDepartment", recorderDepartment);
       return this.isAdmin();
@@ -546,7 +546,7 @@ export class AccountService extends BaseDataService {
       this.data.mainProfile = getMainProfile(account.profiles);
 
       if (this.data.account) {
-        account.copy(this.data.account);
+        account.fromObject(this.data.account);
       }
       else {
         this.data.account = account;
