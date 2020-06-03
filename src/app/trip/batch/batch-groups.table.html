@@ -285,7 +285,7 @@
                 *ngIf="mobile && row.currentData.observedIndividualCount"
                 color="primary"
                 [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
-                (click)="onSubBatchesClick($event, row)">
+                (click)="onSubBatchesClick($event, row, {showParent: false})">
           <mat-icon [matBadge]="row.currentData.observedIndividualCount"
                     [matBadgeHidden]="!row.currentData.observedIndividualCount"
                     matBadgeColor="accent"

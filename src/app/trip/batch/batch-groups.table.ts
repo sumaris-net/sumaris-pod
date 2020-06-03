@@ -604,7 +604,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     await this.onSubBatchesClick(null, this.editedRow, {
       showParent: false, // action triggered from the parent batch modal, so the parent field can be hidden
-      hideLoading: false
+      emitLoaded: false
     });
 
     return await this.openRow(null, this.editedRow); // Reopen the detail modal
@@ -694,7 +694,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     this.updateColumns();
   }
 
-  async onSubBatchesClick(event: UIEvent, row: TableElement<BatchGroup>, opts?: { showParent?: boolean; hideLoading?: boolean; }): Promise<Batch[] | undefined> {
+  async onSubBatchesClick(event: UIEvent, row: TableElement<BatchGroup>, opts?: { showParent?: boolean; emitLoaded?: boolean; }): Promise<Batch[] | undefined> {
     // Loading spinner
     this.markAsLoading();
 
@@ -709,7 +709,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     }
     finally {
       // Hide loading
-      if (!opts || opts.hideLoading !== false) {
+      if (!opts || opts.emitLoaded !== false) {
         this.markAsLoaded();
       }
     }
