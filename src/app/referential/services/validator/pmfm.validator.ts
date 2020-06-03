@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {Pmfm} from "../model/pmfm.model";
 import {ReferentialValidatorService} from "../referential.validator";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
 import {toNumber} from "../../../shared/functions";
 import {Sale} from "../../../trip/services/model/sale.model";
 import {SaleValidatorOptions} from "../../../trip/services/sale.validator";
@@ -40,7 +40,7 @@ export class PmfmValidatorService extends ReferentialValidatorService<Pmfm> {
   getFormGroupOptions(data?: Pmfm, opts?: any): { [key: string]: any } {
     return {
       validator: Validators.compose([
-        SharedValidators.requiredIf('fraction', 'matrix')
+        SharedFormGroupValidators.requiredIf('fraction', 'matrix')
       ])
     };
   }

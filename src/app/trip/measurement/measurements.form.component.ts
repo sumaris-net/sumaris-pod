@@ -280,7 +280,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   }
 
-  setPmfms(pmfms: PmfmStrategy[]) {
+  protected setPmfms(pmfms: PmfmStrategy[]) {
     this.loadingPmfms = false;
     this.$pmfms.next(pmfms);
   }

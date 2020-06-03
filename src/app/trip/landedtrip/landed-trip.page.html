@@ -144,7 +144,7 @@
               <ion-label class="ion-float-end" translate>TRIP.LANDED_CATCH.OPERATION_GROUP_FILTER</ion-label>
             </ion-col>
             <ion-col>
-              <mat-autocomplete-field floatLabel="never" clearable="true"
+              <mat-autocomplete-field floatLabel="never" [clearable]="true"
                 [placeholder]="'COMMON.EMPTY_OPTION'|translate"
                 [config]="autocompleteFields.operationGroupFilter"
                 formControlName="operationGroup">

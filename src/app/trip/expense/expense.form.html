@@ -30,7 +30,7 @@
       <ion-col>
         <mat-form-field [class.computed]="true">
           <input matInput
-                 [formControl]="form.get('calculatedTotal')"
+                 formControlName="calculatedTotal"
                  readonly>
         </mat-form-field>
       </ion-col>
@@ -149,60 +149,56 @@
 
     <!-- SUB-TAB: ice -->
     <mat-tab label="{{'EXPENSE.TAB_ICE'|translate}}">
-      <ion-grid class="ion-no-padding ion-padding-top form-container">
-        <ng-container *ngIf="$iceTypePmfms | async">
-          <ion-row>
-            <ion-col size="12" size-md="2" size-lg="3">
-            </ion-col>
-            <ion-col>
-              <!-- ice amount -->
-              <mat-form-field>
-                <input matInput
-                       type="number"
-                       autocomplete="off" [min]="0"
-                       decimal="true"
-                       [placeholder]="'EXPENSE.ICE.AMOUNT' | translate"
-                       [step]="0.1"
-                       (keypress)="filterNumberInput($event, true)"
-                       [formControl]="form.get('iceAmount')"
-                       [tabIndex]="tabindex+4"
-                       (click)="selectInputContent($event)">
-                <mat-error *ngIf="form.get('iceAmount').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-                <mat-error *ngIf="form.get('iceAmount').hasError('min')">
-                  {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:form.get('iceAmount').errors['min'] }}</mat-error>
-                <mat-error *ngIf="form.get('iceAmount').hasError('maxDecimals')">
-                  {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS')| translate:{max: 2} }}</mat-error>
-              </mat-form-field>
-            </ion-col>
-            <ion-col>
-              <mat-autocomplete-field clearable="true"
-                                      [placeholder]="'EXPENSE.ICE.TYPE'|translate"
-                                      [config]="autocompleteFields.iceType"
-                                      formControlName="iceType">
-              </mat-autocomplete-field>
-              <mat-error *ngIf="form.get('iceType').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-            </ion-col>
-          </ion-row>
-        </ng-container>
-        <ng-container *ngIf="$iceTotalPmfm | async; let iceTotalPmfm">
-          <ion-row>
-            <ion-col size="12" size-md="2" size-lg="3">
-            </ion-col>
-            <ion-col>
-              <mat-form-field-measurement [pmfm]="iceTotalPmfm"
-                                          [formControlName]="iceTotalPmfm.pmfmId.toString()"
-                                          [hidden]="iceTotalPmfm.hidden"
-                                          [compact]="compact"
-                                          [tabindex]="tabindex+2">
-              </mat-form-field-measurement>
-            </ion-col>
-          </ion-row>
-        </ng-container>
-      </ion-grid>
+        <app-typed-expense-form #iceExpenseForm
+                                expenseType="ice"
+                                entityName="VesselUseMeasurement"
+                                [program]="program"
+                                acquisitionLevel="ICE_EXPENSE"
+                                [forceOptional]="forceOptional"
+                                [compact]="compact"
+                                [debug]="debug"
+                                [tabindex]="tabindex+4"
+        >
+        </app-typed-expense-form>
     </mat-tab>
 
     <!-- SUB-TAB: bait -->
     <mat-tab label="{{'EXPENSE.TAB_BAIT'|translate}}">
+
+      <ion-grid class="ion-no-padding ion-padding-top form-container">
+        <ion-row *ngFor="let baitForm of baitsFormArray?.controls; index as i; first as first">
+          <ion-col>
+            <ion-card>
+              <app-typed-expense-form #baitExpenseForm
+                                      expenseType="bait"
+                                      [rankOrder]="i + 1"
+                                      entityName="VesselUseMeasurement"
+                                      [program]="program"
+                                      acquisitionLevel="BAIT_EXPENSE"
+                                      [forceOptional]="forceOptional"
+                                      [compact]="compact"
+                                      [debug]="debug"
+                                      [tabindex]="tabindex+4+i*3"
+              >
+              </app-typed-expense-form>
+            </ion-card>
+          </ion-col>
+          <!-- buttons -->
+          <ion-col size="1" class="ion-align-self-center">
+            <button type="button" mat-icon-button [tabindex]="tabindex+4+i*3+1" [disabled]="disabled"
+                    [title]="'COMMON.BTN_ADD'|translate"
+                    (click)="addBait()">
+              <mat-icon>add</mat-icon>
+            </button>
+            <button type="button" mat-icon-button [tabindex]="tabindex+4+i*3+2" [disabled]="disabled"
+                    [title]="'COMMON.BTN_DELETE'|translate"
+                    (click)="removeBait(i)">
+              <mat-icon>close</mat-icon>
+            </button>
+          </ion-col>
+        </ion-row>
+
+      </ion-grid>
 
     </mat-tab>
 

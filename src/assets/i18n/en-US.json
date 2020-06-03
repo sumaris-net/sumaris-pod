@@ -792,11 +792,12 @@
     "TAB_ICE": "Ice",
     "ICE": {
       "AMOUNT": "Ice quantity",
-      "TYPE": "Unit"
+      "PACKAGING": "Packaging"
     },
     "TAB_BAIT": "Baits",
     "BAIT": {
-
+      "AMOUNT": "Bait amount",
+      "PACKAGING": "Packaging"
     }
   },
   "QUALITY": {

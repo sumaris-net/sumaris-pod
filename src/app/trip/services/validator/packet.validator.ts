@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.validator";
 import {Packet, PacketComposition} from "../model/packet.model";
@@ -68,7 +68,7 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
     if (opts.withSaleProducts) {
       const saleValidators = [];
       if (formGroup.controls.number.value) {
-        saleValidators.push(SharedValidators.validSumMaxValue('subgroupCount', formGroup.controls.number.value));
+        saleValidators.push(SharedFormArrayValidators.validSumMaxValue('subgroupCount', formGroup.controls.number.value));
       }
       if (saleValidators.length) {
         formGroup.controls.saleProducts.setValidators(saleValidators);
@@ -87,7 +87,7 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
 
   getDefaultCompositionValidators(): ValidatorFn[] {
     return [
-      SharedValidators.uniqueEntity('taxonGroup')
+      SharedFormArrayValidators.uniqueEntity('taxonGroup')
     ];
   }
 
@@ -116,10 +116,10 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
       },
       {
         validators: [
-          SharedValidators.propagateIfDirty('averagePackagingPrice', 'averagePackagingPriceCalculated', false),
-          SharedValidators.propagateIfDirty('averagePackagingPrice', 'totalPriceCalculated', true),
-          SharedValidators.propagateIfDirty('totalPrice', 'totalPriceCalculated', false),
-          SharedValidators.propagateIfDirty('totalPrice', 'averagePackagingPriceCalculated', true),
+          SharedFormGroupValidators.propagateIfDirty('averagePackagingPrice', 'averagePackagingPriceCalculated', false),
+          SharedFormGroupValidators.propagateIfDirty('averagePackagingPrice', 'totalPriceCalculated', true),
+          SharedFormGroupValidators.propagateIfDirty('totalPrice', 'totalPriceCalculated', false),
+          SharedFormGroupValidators.propagateIfDirty('totalPrice', 'averagePackagingPriceCalculated', true),
         ]
       });
   }

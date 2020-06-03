@@ -487,9 +487,6 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     json.operationGroups = operationGroups;
     json.gears = operationGroups.map(operationGroup => operationGroup.physicalGear);
 
-
-    // todo affect others tables
-
     return json;
   }
 
@@ -513,7 +510,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       saveOptions.withOperationGroup = true;
     }
 
-    // todo same for expenses
+    // todo same for other tables
 
     return await super.save(event, {...options, ...saveOptions});
   }
@@ -523,14 +520,15 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
    * Get the first invalid tab
    */
   protected getFirstInvalidTabIndex(): number {
-    const tab0Invalid = this.tripForm.invalid || this.measurementsForm.invalid;
-    return 0; // test
+    const invalidTabs: boolean[] = [
+      this.tripForm.invalid || this.measurementsForm.invalid,
+      this.operationGroupTable.invalid,
+      this.productsTable.invalid || this.packetsTable.invalid,
+      this.expenseForm.invalid
+    ];
 
-
-    // const tab1Invalid = !tab0Invalid && this.physicalGearTable.invalid;
-    // const tab2Invalid = !tab1Invalid && this.operationTable.invalid;
-
-    // return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
+    const firstInvalidTab = invalidTabs.indexOf(true);
+    return firstInvalidTab > -1 ? firstInvalidTab : this.selectedTabIndex;
   }
 
   /**

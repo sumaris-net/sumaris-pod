@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormGroup, Validators, FormBuilder} from "@angular/forms";
-import {SharedValidators} from "../../shared/validator/validators";
+import {SharedFormGroupValidators, SharedValidators} from "../../shared/validator/validators";
 import {Sample} from "./model/sample.model";
 import {toNumber} from "../../shared/functions";
 
@@ -37,8 +37,8 @@ export class SampleValidatorService implements ValidatorService {
       children: this.formBuilder.array([])
     }, {
       validators: [
-        SharedValidators.requiredIfEmpty('taxonGroup', 'taxonName'),
-        SharedValidators.requiredIfEmpty('taxonName', 'taxonGroup')
+        SharedFormGroupValidators.requiredIfEmpty('taxonGroup', 'taxonName'),
+        SharedFormGroupValidators.requiredIfEmpty('taxonName', 'taxonGroup')
       ]
     });
   }

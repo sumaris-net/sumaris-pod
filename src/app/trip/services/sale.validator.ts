@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "../../shared/validator/validators";
+import {SharedFormGroupValidators, SharedValidators} from "../../shared/validator/validators";
 import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from "./validator/base.validator";
 import {toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -54,8 +54,8 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
   getFormGroupOptions(data?: Sale, opts?: SaleValidatorOptions): { [key: string]: any } {
     return {
       validator: Validators.compose([
-        SharedValidators.requiredIf('saleLocation', 'saleType'),
-        SharedValidators.requiredIf('startDateTime', 'saleType')
+        SharedFormGroupValidators.requiredIf('saleLocation', 'saleType'),
+        SharedFormGroupValidators.requiredIf('startDateTime', 'saleType')
       ])
     };
   }

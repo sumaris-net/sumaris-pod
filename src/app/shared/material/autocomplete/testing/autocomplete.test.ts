@@ -117,5 +117,8 @@ export class AutocompleteTestPage implements OnInit {
   /* -- protected methods -- */
 
 
+  stringify(value: any) {
+    return JSON.stringify(value);
+  }
 }
 

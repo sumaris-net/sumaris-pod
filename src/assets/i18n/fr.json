@@ -792,11 +792,12 @@
     "TAB_ICE": "Glace",
     "ICE": {
       "AMOUNT": "Quantité de glace",
-      "TYPE": "Unité"
+      "PACKAGING": "Unité"
     },
     "TAB_BAIT": "Appâts",
     "BAIT": {
-
+      "AMOUNT": "Quantité d'appât",
+      "PACKAGING": "Unité"
     }
   },
   "QUALITY": {
