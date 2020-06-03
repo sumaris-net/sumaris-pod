@@ -1,9 +1,5 @@
 import * as moment from "moment";
-import {Duration, isMoment, Moment} from "moment";
-import {selectInputRange, selectInputContent, filterNumberInput, focusInput, setTabIndex} from './inputs';
-
-// This function has moved to inputs.ts
-export {selectInputRange, selectInputContent, filterNumberInput, focusInput, setTabIndex};
+import {Duration, isMoment, Moment} from "moment"
 
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';

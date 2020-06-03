@@ -41,12 +41,12 @@
       <ion-col *ngFor="let pmfm of $pmfms | async; index as i;"
                size="12" class="ion-no-padding">
 
-        <!-- qualitative value (force 'button' style, on mobile)-->
-        <ng-container *ngIf="pmfm.isQualitative; else otherField">
+        <!-- If mobile + qualitative value: force 'button' style -->
+        <ng-container *ngIf="mobile && pmfm.isQualitative; else otherField">
           <mat-form-field-measurement-qv #matInput
-                                         [hidden]="pmfm.hidden"
                                          [pmfm]="pmfm"
-                                         [style]="mobile? 'button' : 'autocomplete'"
+                                         [hidden]="pmfm.hidden"
+                                         [style]="'button'"
                                          [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                          [compact]="compact"
                                          [tabindex]="tabindex+2 + i*2">

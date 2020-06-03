@@ -1,14 +1,7 @@
-import {asInputElement, isInputElement} from "./material/focusable";
-import {ElementRef} from "@angular/core";
+import {ElementRef, QueryList} from "@angular/core";
+import {FocusableElement, isFocusableElement} from "./focusable";
+import {isNil, isNilOrBlank, isNotEmptyArray, isNotNil, toBoolean, toNumber} from "./functions";
 
-// Copy from functions.ts (to avoid a circular reference)
-
-function isNilOrBlank<T>(obj: T | null | undefined): boolean {
-  return obj === undefined || obj === null || (typeof obj === 'string' && obj.trim() === "");
-}
-function isNotNil<T>(obj: T | null | undefined): boolean {
-  return obj !== undefined && obj !== null;
-}
 
 export function selectInputContent(event: UIEvent) {
   if (event.defaultPrevented) return false;
@@ -135,6 +128,7 @@ export function focusInput(element: ElementRef) {
     console.warn("Trying to focus on this element:", element);
   }
 }
+
 export function setTabIndex(element: ElementRef, tabIndex: number) {
   if(isInputElement(element)) {
     element.tabindex = tabIndex;
@@ -146,3 +140,129 @@ export function setTabIndex(element: ElementRef, tabIndex: number) {
     console.warn("Trying to change tabindex on this element:", element);
   }
 }
+
+export interface InputElement extends FocusableElement {
+  tabindex?: number;
+  tabIndex?: number;
+  hidden?: boolean;
+  disabled?: boolean;
+  value: any;
+}
+export function isInputElement(object: any): object is InputElement {
+  return isFocusableElement(object)
+    && ('value' in object
+      // has value is not always set (neither tabindex) check on 2 properties with a logical OR
+      || ('tabindex' in object || 'tabIndex' in object));
+}
+
+export function asInputElement(object: ElementRef): InputElement|undefined {
+  if (object) {
+    if (isInputElement(object)) return object;
+    if (object.nativeElement && isInputElement(object.nativeElement)) return object.nativeElement;
+  }
+  return undefined;
+}
+
+export function tabindexComparator(a: InputElement, b: InputElement) {
+  const valueA = a.tabindex || a.tabIndex;
+  const valueB = b.tabindex || b.tabIndex;
+  return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
+}
+
+export interface CanGainFocusOptions {
+  minTabindex?: number;
+  maxTabindex?: number;
+  excludeEmptyInput?: boolean;
+}
+
+export interface GetFocusableInputOptions extends CanGainFocusOptions {
+  sortByTabIndex?: boolean;
+  debug?: boolean;
+}
+
+export function canHaveFocus(input: InputElement, opts?: CanGainFocusOptions): boolean {
+  if (!input) return false;
+  // Exclude disabled element
+  return !toBoolean(input.disabled, false)
+    // Exclude hidden element
+    && !toBoolean(input.hidden, false)
+    // Exclude minTabIndex < element.tabIndex
+    && (isNil(opts.minTabindex) || toNumber(input.tabIndex, input.tabindex) > opts.minTabindex)
+    // Exclude maxTabIndex > element.tabIndex
+    && (isNil(opts.maxTabindex) || toNumber(input.tabIndex, input.tabindex) < opts.maxTabindex)
+    // Exclude nil input value
+    && (!opts.excludeEmptyInput || isNilOrBlank(input.value));
+}
+
+export function getFocusableInputElements(elements: QueryList<ElementRef>, opts?: GetFocusableInputOptions): InputElement[] {
+  opts = {sortByTabIndex: false, excludeEmptyInput: false, ...opts};
+
+  // Focus to first input
+  const filteredElements: InputElement[] = elements
+
+    // Transform to input
+    .map(asInputElement)
+
+    .filter(input => {
+      const included = canHaveFocus(input, opts);
+      // DEBUG
+      if (input && opts.debug) console.debug(`[inputs] Focusable input {canFocus: ${included}, tabIndex: ${input.tabIndex||input.tabindex}}`, input);
+      return included;
+    })
+
+  // Sort by tabIndex
+  if (opts.sortByTabIndex) {
+    return filteredElements.sort(tabindexComparator);
+  }
+
+  return filteredElements;
+
+}
+
+
+export function focusNextInput(event: UIEvent|undefined, elements: QueryList<ElementRef>, opts?: GetFocusableInputOptions): boolean {
+
+  // Cancelling event (e.g. when emitted by (keydown.tab) )
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  // Get current index
+  const minTabindex = event && isInputElement(event.target) ? (event.target.tabIndex || event.target.tabindex) : undefined;
+
+  // Get focusable input elements
+  const focusableInputs: InputElement[] = getFocusableInputElements(elements, {minTabindex: minTabindex, ...opts});
+
+  if (isNotEmptyArray(focusableInputs)) {
+    // Focus on first inputs
+    focusableInputs[0].focus();
+    return true;
+  }
+
+  return false;
+}
+
+export function focusPreviousInput(event: UIEvent|undefined, elements: QueryList<ElementRef>, opts?: GetFocusableInputOptions): boolean {
+
+  // Cancelling event (e.g. when emitted by (keydown.tab) )
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  // Get current index
+  const maxTabindex = event && isInputElement(event.target) ? (event.target.tabIndex || event.target.tabindex) : undefined;
+
+  // Get focusable input elements
+  const focusableInputs: InputElement[] = getFocusableInputElements(elements, {maxTabindex: maxTabindex, ...opts});
+
+  if (isNotEmptyArray(focusableInputs)) {
+    // Focus on last inputs
+    focusableInputs[focusableInputs.length -1].focus();
+    return true;
+  }
+
+  return false;
+}
+

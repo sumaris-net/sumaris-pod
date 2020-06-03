@@ -14,8 +14,8 @@ import {
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormBuilder} from "@angular/forms";
-import {isNotNil, selectInputContent} from "../../shared/functions";
-import {InputElement} from "../../shared/material/focusable";
+import {isNotNil} from "../../shared/functions";
+import {InputElement, selectInputContent} from "../../shared/inputs";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PhysicalGear} from "../services/model/trip.model";

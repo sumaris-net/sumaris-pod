@@ -10,8 +10,10 @@ import {
   OnDestroy,
   OnInit,
   Optional,
-  Output, QueryList,
-  ViewChild, ViewChildren
+  Output,
+  QueryList,
+  ViewChild,
+  ViewChildren
 } from '@angular/core';
 import {Platform} from '@ionic/angular';
 import {FloatLabelType} from '@angular/material/form-field';
@@ -36,9 +38,9 @@ import {
 } from './latlong.utils';
 import {DEFAULT_PLACEHOLDER_CHAR} from '../../constants';
 import {filter} from "rxjs/operators";
-import {isNil, isNotNil, isNotNilOrBlank, selectInputContent, selectInputRange} from "../../functions";
+import {isNil, isNotNil, isNotNilOrBlank} from "../../functions";
+import {getCaretPosition, moveInputCaretToSeparator, selectInputContent, selectInputRange} from "../../inputs";
 import {Subscription} from "rxjs";
-import {getCaretPosition, moveInputCaretToSeparator} from "../../inputs";
 import {TextMaskConfig} from "angular2-text-mask";
 
 const MASKS: {

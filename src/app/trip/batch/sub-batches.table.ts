@@ -25,9 +25,8 @@ import {
   isNil,
   isNilOrBlank,
   isNotNil,
-  selectInputContent,
   startsWithUpperCase,
-  toBoolean
+  toBoolean, toNumber
 } from "../../shared/functions";
 import {ReferentialUtils, UsageMode} from "../../core/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
@@ -37,6 +36,7 @@ import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SubBatchForm} from "./sub-batch.form";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {SubBatchModal} from "./sub-batch.modal";
+import {selectInputContent} from "../../shared/inputs";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -422,7 +422,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     if (opts && opts.focusFirstEmpty === true) {
       setTimeout(() => {
-        this.form.focusFirstEmpty();
+        this.form.focusFirstEmptyInput();
         this.form.markAsPristine({onlySelf: true});
         this.form.markAsUntouched({onlySelf: true});
       });

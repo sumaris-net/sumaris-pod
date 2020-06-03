@@ -19,18 +19,8 @@ import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/form
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
-import {EntityUtils, ReferentialUtils, UsageMode} from "../../core/services/model";
-import {
-  debounceTime,
-  delay, distinctUntilChanged,
-  distinctUntilKeyChanged,
-  filter,
-  mergeMap,
-  skip,
-  startWith,
-  tap,
-  throttleTime
-} from "rxjs/operators";
+import {EntityUtils, ReferentialRef, ReferentialUtils, UsageMode} from "../../core/services/model";
+import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
 import {
   AcquisitionLevelCodes,
   isNil,
@@ -40,14 +30,26 @@ import {
   QualitativeLabels
 } from "../../referential/services/model";
 import {BehaviorSubject, combineLatest} from "rxjs";
-import {getPropertyByPath, isNilOrBlank, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "../../shared/functions";
+import {
+  getPropertyByPath,
+  isNilOrBlank,
+  isNotNilOrBlank,
+  startsWithUpperCase,
+  toBoolean,
+  toNumber
+} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppFormUtils} from "../../core/core.module";
 import {MeasurementFormField} from "../measurement/measurement.form-field.component";
-import {MeasurementQVFormField} from "../measurement/measurement-qv.form-field.component";
-import {isInputElement, tabindexComparator} from "../../shared/material/focusable";
+import {
+  asInputElement,
+  focusNextInput,
+  focusPreviousInput,
+  GetFocusableInputOptions,
+  isInputElement
+} from "../../shared/inputs";
 import {SharedValidators} from "../../shared/validator/validators";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 
@@ -167,7 +169,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   @ViewChildren(MeasurementFormField) measurementFormFields: QueryList<MeasurementFormField>;
-  @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
+  @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -356,50 +358,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
-
-  focusFirstEmpty(event?: UIEvent) {
-    // DEBUG
-    //console.debug("[sub-batch-form] Focusing on first empty #matInput field...");
-
-    // Cancelling event (e.g. when emitted by (keydown.tab) )
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    // Focus to first input
-    this.matInputs
-      // DEBUG
-      //.map(element => {
-      //  console.debug("[sub-batch-form] Found #matInput:", element);
-      //  return element;
-      // })
-        // Transform to input
-      .map(element => isInputElement(element) ? element : (isInputElement(element.nativeElement) ? element.nativeElement : undefined))
-        // Exclude parent field, if not empty
-      .filter((input, index) => !(index === 0 && this.showParent && EntityUtils.isNotEmpty(this.parent, 'label')))
-        // Exclude nil value
-      .filter(input => isNotNil(input) && isNilOrBlank(input.value)
-        // Exclude QV with buttons
-        && !(this.mobile && input instanceof MeasurementQVFormField))
-      // Order by tabindex
-      .sort(tabindexComparator)
-      .find(input => {
-        input.focus();
-        return true; // stop
-      });
-  }
-
-  doSubmitLastMeasurementField(event: KeyboardEvent) {
-    if (!this.enableIndividualCount) {
-      this.doSubmit(event);
-    }
-    else {
-      // Focus to last (=individual count input)
-      this.matInputs.last.nativeElement.focus();
-    }
-  }
-
   setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean; }) {
     // Replace parent with value from availableParents
     if (!opts || opts.linkToParent !== false) {
@@ -444,6 +402,46 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
+  onTaxonNameButtonClick(event: UIEvent|undefined, value: TaxonNameRef, minTabindex: number) {
+    this.form.get('taxonName').setValue(value);
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.focusNextInput(null, {minTabindex});
+  }
+
+  focusFirstEmptyInput(event?: UIEvent): boolean {
+    return focusNextInput(event, this.inputFields, {
+      excludeEmptyInput: true,
+      minTabindex: -1,
+      debug: this.debug
+    });
+  }
+
+  focusNextInput(event: UIEvent, opts?: Partial<GetFocusableInputOptions>): boolean {
+    return focusNextInput(event, this.inputFields, {debug: this.debug, ...opts});
+  }
+
+  focusPreviousInput(event: UIEvent, opts?: Partial<GetFocusableInputOptions>): boolean {
+    return focusPreviousInput(event, this.inputFields, {debug: this.debug, ...opts});
+  }
+
+  focusNextInputOrSubmit(event: UIEvent, isLastPmfm: boolean) {
+
+    if (isLastPmfm) {
+      if (this.enableIndividualCount) {
+        // Focus to last (=individual count input)
+        this.inputFields.last.nativeElement.focus();
+        return true;
+      }
+
+      this.doSubmit(event);
+      return true;
+    }
+
+    return this.focusNextInput(event);
+  }
 
   selectInputContent = AppFormUtils.selectInputContent;
   filterNumberInput = AppFormUtils.filterNumberInput;

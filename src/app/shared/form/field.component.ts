@@ -13,17 +13,11 @@ import {
 } from '@angular/core';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {FloatLabelType} from "@angular/material/form-field";
-import {
-  filterNumberInput,
-  isNotNilOrBlank,
-  joinPropertiesPath,
-  selectInputContent, toBoolean,
-  toDateISOString
-} from "../../shared/functions";
-import {FormFieldDefinition, DisplayFn} from "./field.model";
+import {isNotNilOrBlank, joinPropertiesPath, toBoolean, toDateISOString} from "../../shared/functions";
+import {DisplayFn, FormFieldDefinition} from "./field.model";
 import {TranslateService} from "@ngx-translate/core";
 import {getColorContrast} from "../graph/colors.utils";
-import {asInputElement} from "../material/focusable";
+import {asInputElement, filterNumberInput, selectInputContent} from "../inputs";
 
 const noop = () => {
 };
@@ -45,7 +39,6 @@ export class AppFormField implements OnInit, ControlValueAccessor {
 
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
-  protected disabling = false;
   private _definition: FormFieldDefinition;
 
   type: string;

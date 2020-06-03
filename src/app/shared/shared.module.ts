@@ -24,7 +24,6 @@ import {
 import {
   changeCaseToUnderscore,
   delay,
-  filterNumberInput,
   fromDateISOString,
   isNil,
   isNilOrBlank,
@@ -34,7 +33,6 @@ import {
   joinPropertiesPath,
   nullIfUndefined,
   propertyComparator,
-  selectInputContent,
   sort,
   startsWithUpperCase,
   toBoolean,
@@ -42,13 +40,13 @@ import {
   toFloat,
   toInt
 } from "./functions";
+import {filterNumberInput, InputElement, selectInputContent} from "./inputs";
 import {
   fadeInAnimation,
   fadeInOutAnimation,
   slideInOutAnimation,
   slideUpDownAnimation
 } from "./material/material.animations";
-import {InputElement} from "./material/focusable";
 import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
 import {AppFormField} from "./form/field.component";

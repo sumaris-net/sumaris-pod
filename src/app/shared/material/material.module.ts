@@ -2,7 +2,6 @@ import {NgModule, Type} from "@angular/core";
 import {CdkTableModule} from "@angular/cdk/table";
 
 import {fadeInAnimation, slideInOutAnimation} from './material.animations';
-import {InputElement} from './focusable';
 import {A11yModule} from "@angular/cdk/a11y";
 import {OverlayModule} from "@angular/cdk/overlay";
 import {ScrollingModule} from "@angular/cdk/scrolling";
@@ -36,6 +35,7 @@ import {SharedMatDateTimeModule} from "./datetime/datetime.module";
 import {SharedMatDurationModule} from "./duration/duration.module";
 import {SharedMatBooleanModule} from "./boolean/boolean.module";
 import {SharedMatNumpadModule} from "./numpad/numpad.module";
+import {InputElement} from "../inputs";
 
 export { fadeInAnimation, slideInOutAnimation, InputElement };
 
