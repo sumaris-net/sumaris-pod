@@ -546,7 +546,7 @@ export class AccountService extends BaseDataService {
       this.data.mainProfile = getMainProfile(account.profiles);
 
       if (this.data.account) {
-        account.fromObject(this.data.account);
+        this.data.account.fromObject(account);
       }
       else {
         this.data.account = account;
