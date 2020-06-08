@@ -278,6 +278,9 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   removeBait(index: number) {
     this.removingBait = true;
+    if (!this.baitsHelper.allowEmptyArray && this.baitsHelper.size() === 1) {
+      this.baitForms.first.value = [];
+    }
     this.baitsHelper.removeAt(index);
   }
 
