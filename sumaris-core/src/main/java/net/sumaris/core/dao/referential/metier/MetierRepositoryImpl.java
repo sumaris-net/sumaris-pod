@@ -78,7 +78,8 @@ public class MetierRepositoryImpl
         Preconditions.checkNotNull(filter);
 
         // Prepare query parameters
-        String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
+        String searchJoinClass = filter.getSearchJoin();
+        String searchJoinProperty = searchJoinClass != null ? StringUtils.uncapitalize(searchJoinClass) : null;
         final boolean enableSearchOnJoin = (searchJoinProperty != null);
 
         // Create page (do NOT sort if searchJoin : will be done later)
@@ -96,13 +97,17 @@ public class MetierRepositoryImpl
             .map(source -> {
                 MetierVO target = this.toVO(source);
 
-                // Copy join search to label/name
                 if (enableSearchOnJoin) {
+                    // Copy join search to label/name
                     Object joinSource = Beans.getProperty(source, searchJoinProperty);
                     if (joinSource instanceof IItemReferentialEntity) {
                         target.setLabel(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.LABEL));
                         target.setName(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.NAME));
                     }
+
+                    // Override the entityName, to make sure client cache will NOT mixed Metier and Metier+searchJoin
+                    target.setEntityName(target.getEntityName() + searchJoinClass);
+
                 }
                 return target;
             })
