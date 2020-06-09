@@ -28,7 +28,7 @@ import com.google.common.collect.Lists;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.vo.IValueObject;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.dao.RdfModelDao;
 import net.sumaris.rdf.dao.cache.RdfCacheConfiguration;

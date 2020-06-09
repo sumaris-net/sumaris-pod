@@ -23,15 +23,11 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.IValueObject;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.data.DataFetchOptions;
-import org.springframework.data.annotation.QueryAnnotation;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import java.io.Serializable;
-import java.util.Date;
 
 @NoRepositoryBean
 public interface IEntityConverter<E extends IEntity<? extends Serializable>, V extends IValueObject<? extends Serializable>> {

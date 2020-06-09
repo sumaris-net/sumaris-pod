@@ -23,9 +23,7 @@ package net.sumaris.core.vo.referential;
  */
 
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.referential.IWithStatusEntity;
-import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.vo.IValueObject;
+import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.util.Date;
 
