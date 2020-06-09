@@ -25,7 +25,7 @@ public interface ReferentialRepository<
     V extends IReferentialVO,
     F extends Serializable
     >
-    extends SumarisJpaRepository<E, Integer> {
+    extends SumarisJpaRepository<E, Integer, V> {
 
     List<V> findAll(@Nullable F filter);
 
