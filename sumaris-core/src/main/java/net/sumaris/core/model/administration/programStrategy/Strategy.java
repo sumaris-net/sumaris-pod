@@ -97,4 +97,10 @@ public class Strategy implements IItemReferentialEntity {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<AppliedStrategy> appliedStrategies = new ArrayList<>();
 
+    public String toString() {
+        return String.format("Strategy{id=%s, label=%s, programId=%s}",
+                id,
+                label,
+                program.getId());
+    }
 }

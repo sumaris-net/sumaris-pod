@@ -30,6 +30,7 @@ public class RdfFormat extends Lang {
     // RDF binary - see https://jena.apache.org/documentation/io/rdf-binary.html
     public static RdfFormat RDFTHRIFT = new RdfFormat( Lang.RDFTHRIFT, RdfMediaType.TEXT_TURTLE);
 
+    public static RdfFormat OWL = new RdfFormat("OWL", RdfMediaType.APPLICATION_XML, ImmutableList.of("owl"));
     public static RdfFormat VOWL = new RdfFormat("VOWL", RdfMediaType.APPLICATION_WEBVOWL, ImmutableList.of("json", "vowl"));
 
     public static Collection<RdfFormat> allValues = ImmutableList.of(RDF, JSON, N3, NTRIPLES, NQUADS, TRIG, TRIX, JSONLD, TURTLE, RDFTHRIFT, VOWL);
@@ -94,9 +95,10 @@ public class RdfFormat extends Lang {
                 return Optional.of(TURTLE);
             case "THRIFT":
                 return Optional.of(RDFTHRIFT);
+            case "OWL":
+                return Optional.of(OWL);
             case "VOWL":
                 return Optional.of(VOWL);
-
         }
         return Optional.empty();
     }
@@ -139,6 +141,8 @@ public class RdfFormat extends Lang {
             case "application/rdf+x-thrift":
             case "application/vnd.apache.thrift.binary": // See https://stackoverflow.com/questions/4844482/is-there-a-commonly-used-mime-type-for-thrift
                 return Optional.of(RDFTHRIFT);
+            case "application/xml+owl":
+                return Optional.of(OWL);
             case "application/vowl":
             case "text/vowl":
                 return Optional.of(VOWL);
@@ -169,8 +173,6 @@ public class RdfFormat extends Lang {
                     return Optional.of(TRIX);
                 case "trig":
                     return Optional.of(TRIG);
-                case "vowl":
-                    return Optional.of(VOWL);
                 case "n3":
                     return Optional.of(N3);
                 case "nt":
@@ -182,6 +184,10 @@ public class RdfFormat extends Lang {
                 case "nquads":
                 case "n-quads":
                     return Optional.of(NQUADS);
+                case "owl":
+                    return Optional.of(OWL);
+                case "vowl":
+                    return Optional.of(VOWL);
             }
         }
 

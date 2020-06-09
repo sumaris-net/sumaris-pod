@@ -119,6 +119,7 @@
     <hibernate-spatial.version>5.4.12.Final</hibernate-spatial.version>
     <hibernate-validator.version>6.1.0.Final</hibernate-validator.version>
     <spring.version>5.1.10.RELEASE</spring.version>
+    <spring-web.version>5.0.7.RELEASE</spring-web.version>
     <spring-data.version>2.1.11.RELEASE</spring-data.version>
     <querydsl.version>4.2.2</querydsl.version>
     <aspectj.version>1.8.14</aspectj.version>
@@ -153,8 +154,9 @@
     <liquibase-hibernate.version>3.8</liquibase-hibernate.version>
 
     <!-- rdf -->
-    <jena.version>3.13.1</jena.version>
+    <jena.version>3.14.0</jena.version>
     <owl2vowl.version>0.3.5</owl2vowl.version>
+    <ontapi.version>2.0.0</ontapi.version>
 
     <!-- unit test -->
     <jmock.version>2.9.0</jmock.version>
@@ -725,6 +727,16 @@
         <groupId>org.springframework</groupId>
         <artifactId>spring-beans</artifactId>
         <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-web</artifactId>
+        <version>${spring-web.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-webmvc</artifactId>
+        <version>${spring-web.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.data</groupId>

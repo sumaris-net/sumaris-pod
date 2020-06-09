@@ -22,6 +22,9 @@
 
 package net.sumaris.rdf.util;
 
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
 import com.google.common.base.Preconditions;
 import de.uni_stuttgart.vis.vowl.owl2vowl.Owl2Vowl;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -39,6 +42,8 @@ import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.vocabulary.*;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -291,6 +296,19 @@ public class ModelUtils {
      * @return a ontology model
      */
     public static Model loadModelByUri(String iri, RdfFormat format) {
+
+        // Special case for OWL file format (not supported by Jena)
+        if (format == RdfFormat.OWL) {
+            try {
+                OntologyManager ontManager = OntManagers.createONT();
+                Ontology onto = ontManager.loadOntology(IRI.create(iri));
+                com.github.owlcs.ontapi.jena.model.OntModel ontModel = onto.asGraphModel();
+                //ontModel.write(System.out);
+                return ontModel;
+            } catch(OWLOntologyCreationException e) {
+                throw new SumarisTechnicalException("Cannot parse model from IRI: " + iri, e);
+            }
+        }
 
         try {
             Model model = ModelFactory.createDefaultModel();

@@ -104,4 +104,10 @@ public class Program implements IItemReferentialEntity {
     public int hashCode() {
         return Objects.hash(label);
     }
+
+    public String toString() {
+        return String.format("Program{id=%s, label=%s}",
+                id,
+                label);
+    }
 }

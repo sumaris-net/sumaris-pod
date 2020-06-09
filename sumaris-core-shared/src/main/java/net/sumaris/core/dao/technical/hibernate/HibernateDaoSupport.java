@@ -185,7 +185,7 @@ public abstract class HibernateDaoSupport {
     protected <T> List<T> loadAll(Class<? extends T> clazz, Collection<? extends Serializable> ids, boolean failedIfMissing) {
 
         List result = getEntityManager().createQuery(String.format("from %s where id in (:id)", clazz.getSimpleName()))
-                .setParameter("ids", ids)
+                .setParameter("id", ids)
                 .getResultList();
         if (failedIfMissing && result.size() != ids.size()) {
             throw new DataIntegrityViolationException(String.format("Unable to load entities %s from ids. Expected %s entities, but found %s entities.",

@@ -26,12 +26,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
-import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -44,9 +42,11 @@ import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
@@ -54,9 +54,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.criteria.*;
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -192,12 +192,12 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
 
     @Override
     public List<TaxonGroupStrategyVO> getTaxonGroupStrategies(int strategyId) {
-        return getTaxonGroups(load(Strategy.class, strategyId));
+        return getTaxonGroupStrategies(load(Strategy.class, strategyId));
     }
 
     @Override
     public List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId) {
-        return getTaxonNames(load(Strategy.class, strategyId));
+        return getTaxonNameStrategies(load(Strategy.class, strategyId));
     }
 
 
@@ -227,10 +227,10 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
         }
 
         // Taxon groups
-        target.setTaxonGroups(getTaxonGroups(source));
+        target.setTaxonGroups(getTaxonGroupStrategies(source));
 
         // Taxon names
-        target.setTaxonNames(getTaxonNames(source));
+        target.setTaxonNames(getTaxonNameStrategies(source));
 
         // Pmfm strategies
         if (CollectionUtils.isNotEmpty(source.getPmfmStrategies())) {
@@ -443,7 +443,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
     /* -- protected method -- */
 
     protected void toEntity(StrategyVO source, Strategy target, boolean copyIfNull) {
-
+        EntityManager em = getEntityManager();
 
         Beans.copyProperties(source, target);
 
@@ -492,9 +492,31 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                 }
             }
             else {
-                // TODO
-                //Beans.splitByPro(source.getTaxonGroups(), TaxonGroupStrategyVO::)
-                //target.setTaxonGroups(loadAllAsSet(TaxonGroup.class, taxonGroupIds, true));
+                Map<Integer, TaxonGroupStrategy> existingEntities = Beans.splitByProperty(target.getTaxonGroups(),
+                        TaxonGroupStrategy.Fields.TAXON_GROUP + "." + TaxonGroup.Fields.ID);
+                Daos.replaceEntities(target.getTaxonGroups(), source.getTaxonGroups(),
+                        (childSource) -> {
+                            Integer taxonGroupId = childSource.getTaxonGroup() != null ? childSource.getTaxonGroup().getId() : null;
+                            if (taxonGroupId == null) throw new DataIntegrityViolationException("Missing taxonGroup.id in a TaxonGroupStrategyVO");
+                            TaxonGroupStrategy childTarget = existingEntities.remove(taxonGroupId);
+                            boolean isNew = childTarget == null;
+                            if (isNew) {
+                                childTarget = new TaxonGroupStrategy();
+                                childTarget.setTaxonGroup(load(TaxonGroup.class, taxonGroupId));
+                                childTarget.setStrategy(target);
+                            }
+                            childTarget.setPriorityLevel(childSource.getPriorityLevel());
+                            if (isNew) {
+                                em.persist(childTarget);
+                            }
+                            else {
+                                em.merge(childTarget);
+                            }
+                            return childTarget;
+                        });
+                if (MapUtils.isNotEmpty(existingEntities)) {
+                    existingEntities.values().forEach(childToRemove -> em.remove(childToRemove));
+                }
             }
         }
 
@@ -511,7 +533,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
         }
     }
 
-    protected List<TaxonNameStrategyVO> getTaxonNames(Strategy source) {
+    protected List<TaxonNameStrategyVO> getTaxonNameStrategies(Strategy source) {
         if (CollectionUtils.isEmpty(source.getReferenceTaxons())) return null;
 
         return source.getReferenceTaxons()
@@ -534,7 +556,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                 .collect(Collectors.toList());
     }
 
-    protected List<TaxonGroupStrategyVO> getTaxonGroups(Strategy source) {
+    protected List<TaxonGroupStrategyVO> getTaxonGroupStrategies(Strategy source) {
         if (CollectionUtils.isEmpty(source.getTaxonGroups())) return null;
         return source.getTaxonGroups()
                 .stream()

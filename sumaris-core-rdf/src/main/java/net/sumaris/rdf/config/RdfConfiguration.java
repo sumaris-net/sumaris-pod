@@ -46,8 +46,7 @@ import java.util.Objects;
 @Configuration
 @ConditionalOnProperty(
         prefix = "rdf",
-        name = {"enabled"},
-        matchIfMissing = true)
+        name = {"enabled"})
 public class RdfConfiguration  {
     /**
      * Logger.
