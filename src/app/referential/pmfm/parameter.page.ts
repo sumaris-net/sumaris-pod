@@ -46,7 +46,6 @@ export class ParameterPage extends AppEditorPage<Parameter> implements OnInit {
     protected accountService: AccountService,
     protected validatorService: ParameterValidatorService,
     protected parameterService: ParameterService,
-    protected referentialService: ReferentialService,
     protected referentialRefService: ReferentialRefService
   ) {
     super(injector,

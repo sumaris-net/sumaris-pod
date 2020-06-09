@@ -88,23 +88,31 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   selection = new SelectionModel<TableElement<T>>(true, []);
   editedRow: TableElement<T> = undefined;
   onRefresh = new EventEmitter<any>();
-  i18nColumnPrefix = 'COMMON.';
   settingsId: string;
   autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
 
   mobile: boolean;
 
   // Table options
-  autoLoad = true;
-  inlineEdition = false;
-  focusFirstColumn = false;
-  confirmBeforeDelete = false;
-  saveBeforeDelete: boolean;
-  saveBeforeSort: boolean;
+  @Input() i18nColumnPrefix = 'COMMON.';
+  @Input() autoLoad = true;
+  @Input() inlineEdition;
+  @Input() focusFirstColumn = false;
+  @Input() confirmBeforeDelete = false;
+  @Input() saveBeforeDelete: boolean;
+  @Input() saveBeforeSort: boolean;
 
   @Input() debug = false;
 
   @Input() readOnly = false;
+
+  @Input() set dataSource(value: AppTableDataSource<T, F>) {
+    this.setDatasource(value);
+  }
+
+  get dataSource(): AppTableDataSource<T, F> {
+    return this._dataSource;
+  }
 
   @Input() set filter(value: F) {
     this.setFilter(value);
@@ -114,11 +122,17 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     return this._filter;
   }
 
+
+
   @Output() onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>();
 
-  @Output() onNewRow: EventEmitter<void> = new EventEmitter<void>();
+  @Output() onNewRow = new EventEmitter<any>();
 
   @Output() onStartEditingRow = new EventEmitter<TableElement<T>>();
+
+  @Output() onConfirmEditCreateRow = new EventEmitter<TableElement<T>>();
+
+  @Output() onCancelOrDeleteRow = new EventEmitter<TableElement<T>>();
 
   @Output()
   get dirty(): boolean {
@@ -233,7 +247,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected columns: string[],
-    public dataSource?: AppTableDataSource<T, F>,
+    protected _dataSource?: AppTableDataSource<T, F>,
     private _filter?: F,
     injector?: Injector
   ) {
@@ -253,7 +267,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
     // Set defaults
     this.readOnly = toBoolean(this.readOnly, false); // read/write by default
-    this.inlineEdition = this.inlineEdition && !this.readOnly; // force to false when readonly
+    this.inlineEdition = !this.readOnly && toBoolean(this.inlineEdition, false); // force to false when readonly
     this.saveBeforeDelete = toBoolean(this.saveBeforeDelete, !this.readOnly); // force to false when readonly
     this.saveBeforeSort = toBoolean(this.saveBeforeSort, !this.readOnly); // force to false when readonly
 
@@ -292,15 +306,15 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
             this._dirty = false;
             this.selection.clear();
             this.editedRow = undefined;
-            if (any === 'skip' || !this.dataSource) {
+            if (any === 'skip' || !this._dataSource) {
               return of(undefined);
             }
-            if (!this.dataSource) {
+            if (!this._dataSource) {
               if (this.debug) console.debug("[table] Skipping data load: no dataSource defined");
               return of(undefined);
             }
             if (this.debug) console.debug("[table] Calling dataSource.watchAll()...");
-            return this.dataSource.watchAll(
+            return this._dataSource.watchAll(
               this.paginator && this.paginator.pageIndex * this.paginator.pageSize || 0,
               this.paginator && this.paginator.pageSize || this.pageSize || DEFAULT_PAGE_SIZE,
               this.sort && this.sort.active,
@@ -329,8 +343,8 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
         this.markForCheck();
       });
 
-    // Listen datasource events
-    if (this.dataSource) this.listenDatasource(this.dataSource);
+    // Listen dataSource events
+    if (this._dataSource) this.listenDatasource(this._dataSource);
   }
 
   ngAfterViewInit() {
@@ -351,9 +365,11 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   }
 
   setDatasource(datasource: AppTableDataSource<T, F>) {
-    if (this.dataSource) throw new Error("[table] dataSource already set !");
-    this.dataSource = datasource;
-    if (this._initialized) this.listenDatasource(datasource);
+    if (this._dataSource) throw new Error("[table] dataSource already set !");
+    if (datasource && this._dataSource != datasource) {
+      this._dataSource = datasource;
+      if (this._initialized) this.listenDatasource(datasource);
+    }
   }
 
   setFilter(filter: F, opts?: { emitEvent: boolean; }) {
@@ -374,7 +390,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       this._dataSourceSubscription.unsubscribe();
       this._subscription.remove(this._dataSourceSubscription);
     }
-    this._dataSourceSubscription = this.dataSource.loadingSubject
+    this._dataSourceSubscription = this._dataSource.loadingSubject
         .pipe(
             distinctUntilChanged(),
 
@@ -425,7 +441,8 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       }
       // If edit finished, forget edited row
       if (row === this.editedRow) {
-        this.editedRow = undefined;
+        this.editedRow = undefined; // unselect row
+        this.onConfirmEditCreateRow.next(row);
         this.markAsDirty();
       }
     }
@@ -434,9 +451,10 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
   cancelOrDelete(event: any, row: TableElement<T>) {
     this.editedRow = undefined; // unselect row
+    this.onCancelOrDeleteRow.next(row);
     event.stopPropagation();
 
-    this.dataSource.cancelOrDelete(row);
+    this._dataSource.cancelOrDelete(row);
 
     // If delete (if new row): update counter
     if (row.id === -1) {
@@ -451,7 +469,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
     // Use modal if inline edition is disabled
     if (!this.inlineEdition) {
-      this.openNewRowDetail();
+      this.openNewRowDetail(event);
       return false;
     }
 
@@ -470,14 +488,14 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       throw {code: ErrorCodes.TABLE_READ_ONLY, message: 'ERROR.TABLE_READ_ONLY'};
     }
 
-    this.error = undefined;
+    this.resetError();
     if (!this.confirmEditCreate()) {
       throw {code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR'};
     }
 
     if (this.debug) console.debug("[table] Calling dataSource.save()...");
     try {
-      const isOK = await this.dataSource.save();
+      const isOK = await this._dataSource.save();
       if (isOK) this._dirty = false;
       return isOK;
     } catch (err) {
@@ -504,7 +522,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     if (this.isAllSelected()) {
       this.selection.clear();
     } else {
-      const rows = await this.dataSource.getRows();
+      const rows = await this._dataSource.getRows();
       rows.forEach(row => this.selection.select(row));
     }
   }
@@ -539,7 +557,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       .sort((a, b) => a.id > b.id ? -1 : 1);
 
     try {
-      await this.dataSource.deleteAll(rowsToDelete);
+      await this._dataSource.deleteAll(rowsToDelete);
       this.resultsLength -= rowsToDelete.length;
       this.selection.clear();
       this.editedRow = undefined;
@@ -558,7 +576,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     }
 
     if (!row.editing && !this.loading) {
-      this.dataSource.startEdit(row);
+      this._dataSource.startEdit(row);
     }
     this.editedRow = row;
     this.onStartEditingRow.emit(row);
@@ -611,11 +629,11 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     });
   }
 
-  protected async openNewRowDetail(): Promise<boolean> {
+  protected async openNewRowDetail(event?: any): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
     if (this.onNewRow.observers.length) {
-      this.onNewRow.emit();
+      this.onNewRow.emit(event);
       return true;
     }
 
@@ -711,8 +729,8 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
   protected async addRowToTable(): Promise<TableElement<T>> {
     this.focusFirstColumn = true;
-    await this.dataSource.asyncCreateNew();
-    this.editedRow = this.dataSource.getRow(-1);
+    await this._dataSource.asyncCreateNew();
+    this.editedRow = this._dataSource.getRow(-1);
     // Emit start editing event
     this.onStartEditingRow.emit(this.editedRow);
     this._dirty = true;
@@ -823,6 +841,16 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       return;
     }
     return Toasts.show(this.toastController, this.translate, opts);
+  }
+
+  /**
+   * Reset error
+   */
+  protected resetError() {
+    if (this.error) {
+      this.error = undefined;
+      this.markForCheck();
+    }
   }
 }
 

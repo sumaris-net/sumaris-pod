@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {isNotEmptyArray, isNotNil, LoadResult} from "../../shared/shared.module";
+import {isNotEmptyArray, isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService, EntityUtils, environment, Referential, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
@@ -60,7 +60,8 @@ const LoadAllTaxonNamesQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class ReferentialRefService extends BaseDataService
-  implements SuggestionDataService<ReferentialRef, ReferentialRefFilter> {
+  implements SuggestionDataService<ReferentialRef, ReferentialRefFilter>,
+      TableDataService<ReferentialRef, ReferentialRefFilter> {
 
   private _importedEntities: string[];
 
@@ -109,15 +110,7 @@ export class ReferentialRefService extends BaseDataService
       size: size || 100,
       sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: {
-        label: filter.label,
-        name: filter.name,
-        searchText: filter.searchText,
-        searchAttribute: filter.searchAttribute,
-        searchJoin: filter.searchJoin,
-        levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
-        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
-      }
+      filter: ReferentialFilter.asPodObject(filter)
     };
 
     let now = this._debug && Date.now();
@@ -270,7 +263,7 @@ export class ReferentialRefService extends BaseDataService
                           size: number,
                           sortBy?: string,
                           sortDirection?: string,
-                          filter?: Partial<TaxonNameRefFilter>,
+                          filter?: TaxonNameRefFilter,
                           opts?: {
                             [key: string]: any;
                             fetchPolicy?: FetchPolicy;
@@ -361,6 +354,14 @@ export class ReferentialRefService extends BaseDataService
       });
 
     return progress.asObservable();
+  }
+
+  saveAll(data: ReferentialRef[], options?: any): Promise<ReferentialRef[]> {
+    throw new Error('Not implemented yet');
+  }
+
+  deleteAll(data: ReferentialRef[], options?: any): Promise<any> {
+    throw new Error('Not implemented yet');
   }
 
   /* -- protected methods -- */

@@ -237,17 +237,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   protected initObserversHelper() {
     if (isNil(this._showObservers)) return; // skip if not loading yet
-
     this.observersHelper = new FormArrayHelper<Person>(
-      this.formBuilder,
-      this.form,
-      'observers',
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
       (person) => this.validatorService.getObserverControl(person),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
-      {
-        allowEmptyArray: !this._showObservers
-      }
+      {allowEmptyArray: !this._showObservers}
     );
 
     if (this._showObservers) {

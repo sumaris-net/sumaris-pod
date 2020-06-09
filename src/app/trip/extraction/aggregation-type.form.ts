@@ -65,10 +65,9 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
       settings);
 
     // Stratum
+    this.stratumFormArray = this.form.controls.stratum as FormArray;
     this.stratumHelper = new FormArrayHelper<AggregationStrata>(
-      this.formBuilder,
-      this.form,
-      'stratum',
+      this.stratumFormArray,
       (strata) => validatorService.getStrataFormGroup(strata),
       (v1, v2) => (!v1 && !v2) || (v1 && v2 && v1.label === v2.label),
       ReferentialUtils.isEmpty,
@@ -76,7 +75,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
         allowEmptyArray: false
       }
     );
-    this.stratumFormArray = this.form.controls.stratum as FormArray;
+
 
   }
 

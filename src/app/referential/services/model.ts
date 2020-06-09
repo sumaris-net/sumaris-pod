@@ -8,7 +8,7 @@ import {
   fromDateISOString,
   isNil,
   isNotNil,
-  joinPropertiesPath,
+  joinPropertiesPath, MINIFY_OPTIONS,
   NOT_MINIFY_OPTIONS,
   Person,
   PropertiesMap,
@@ -22,9 +22,9 @@ import {
 import {Moment} from "moment/moment";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
-import {isNilOrBlank} from "../../shared/functions";
+import {isNilOrBlank, toNumber} from "../../shared/functions";
 import {PredefinedColors} from "@ionic/core";
-import {PmfmType} from "./model/pmfm.model";
+import {Pmfm, PmfmType} from "./model/pmfm.model";
 import {IEntity, ReferentialUtils} from "../../core/services/model";
 
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
@@ -725,6 +725,12 @@ export class Program extends Entity<Program> {
   creationDate: Moment;
   statusId: number;
   properties: PropertiesMap;
+
+  gearClassification: ReferentialRef;
+  taxonGroupType: ReferentialRef;
+  locationClassifications: ReferentialRef[];
+  locations: ReferentialRef[];
+
   strategies: Strategy[];
 
   constructor(data?: {
@@ -754,6 +760,12 @@ export class Program extends Entity<Program> {
     const target: any = super.asObject(options);
     target.creationDate = toDateISOString(this.creationDate);
     target.properties = this.properties;
+    target.gearClassification = this.gearClassification && this.gearClassification.asObject(options);
+    target.taxonGroupType = this.taxonGroupType && this.taxonGroupType.asObject(options);
+    target.locationClassifications = this.locationClassifications  && this.locationClassifications.map(item => item.asObject(options)) || [];
+    target.locations = this.locations && this.locations.map(item => item.asObject(options)) || [];
+
+    target.strategies = this.strategies && this.strategies.map(s => s.asObject({...options, ...NOT_MINIFY_OPTIONS}));
     return target;
   }
 
@@ -770,6 +782,11 @@ export class Program extends Entity<Program> {
     } else {
       this.properties = source.properties;
     }
+    this.gearClassification = source.gearClassification && ReferentialRef.fromObject(source.gearClassification);
+    this.taxonGroupType = source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType);
+    this.locationClassifications = source.locationClassifications  && source.locationClassifications.map(ReferentialRef.fromObject) || [];
+    this.locations = source.locations && source.locations.map(ReferentialRef.fromObject) || [];
+
     this.strategies = (source.strategies || []).map(Strategy.fromObject);
   }
 
@@ -831,7 +848,9 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     return res;
   }
 
+  pmfm: Pmfm;
   pmfmId: number;
+
   methodId: number;
   label: string;
   name: string;
@@ -867,6 +886,8 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
+    target.pmfmId = toNumber(this.pmfmId, this.pmfm && this.pmfm.id);
+    delete target.pmfm;
     return target;
   }
 
@@ -874,6 +895,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     super.fromObject(source);
 
     this.pmfmId = source.pmfmId;
+    this.pmfm = source.pmfm && Pmfm.fromObject(source.pmfm);
     this.methodId = source.methodId;
     this.label = source.label;
     this.name = source.name;
@@ -948,8 +970,8 @@ export class Strategy extends Entity<Strategy> {
   pmfmStrategies: PmfmStrategy[];
 
   gears: any[];
-  taxonGroups: any[]; // TODO use TaxonGroupStrategyRef ?
-  taxonNames: any[];
+  taxonGroups: TaxonGroupStrategy[];
+  taxonNames: TaxonNameStrategy[];
 
   programId: number;
 
@@ -980,8 +1002,8 @@ export class Strategy extends Entity<Strategy> {
     target.creationDate = toDateISOString(this.creationDate);
     target.pmfmStrategies = this.pmfmStrategies && this.pmfmStrategies.map(s => s.asObject({ ...options, ...NOT_MINIFY_OPTIONS }));
     target.gears = this.gears && this.gears.map(s => s.asObject(options));
-    target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject(options));
-    target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject(options));
+    target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject({ ...options, ...NOT_MINIFY_OPTIONS }));
+    target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject({ ...options, ...NOT_MINIFY_OPTIONS }));
     return target;
   }
 
@@ -996,17 +1018,8 @@ export class Strategy extends Entity<Strategy> {
     this.pmfmStrategies = source.pmfmStrategies && source.pmfmStrategies.map(PmfmStrategy.fromObject) || [];
     this.gears = source.gears && source.gears.map(ReferentialRef.fromObject) || [];
     // Taxon groups, sorted by priority level
-    this.taxonGroups = source.taxonGroups && (source.taxonGroups as { priorityLevel: number; taxonGroup: any; }[])
-      // FIXME: priority Level is not always set, in the DB
-      //.sort(propertyComparator('priorityLevel'))
-      //.sort(propertyPathComparator('taxonGroup.label'))
-        .map(item => TaxonGroupRef.fromObject(item.taxonGroup))  || [];
-    // Taxon names, sorted by priority level
-    this.taxonNames = source.taxonNames && (source.taxonNames as { priorityLevel: number; taxonName: any; }[])
-      // FIXME: priority Level is not always set, in the DB
-      //.sort(propertyComparator('priorityLevel'))
-      //.sort(propertyPathComparator('taxonName.name'))
-      .map(item => TaxonNameRef.fromObject(item.taxonName)) || [];
+    this.taxonGroups = source.taxonGroups && source.taxonGroups.map(TaxonGroupStrategy.fromObject) || [];
+    this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameStrategy.fromObject) || [];
   }
 
   equals(other: Strategy): boolean {
@@ -1018,6 +1031,60 @@ export class Strategy extends Entity<Strategy> {
         // Same program
         && ((!this.programId && !other.programId) || this.programId === other.programId)
       );
+  }
+}
+
+export class TaxonGroupStrategy {
+
+  strategyId: number;
+  priorityLevel: number;
+  taxonGroup: TaxonGroupRef;
+
+  static fromObject(source: any): TaxonGroupStrategy {
+    if (!source || source instanceof TaxonGroupStrategy) return source;
+    const res = new TaxonGroupStrategy();
+    res.fromObject(source);
+    return res;
+  }
+
+  asObject(opts?: ReferentialAsObjectOptions): any {
+    const target: any = Object.assign({}, this); //= {...this};
+    if (!opts || opts.keepTypename !== true) delete target.__typename;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...MINIFY_OPTIONS });
+    return target;
+  }
+
+  fromObject(source: any) {
+    this.strategyId = source.strategyId;
+    this.priorityLevel = source.priorityLevel;
+    this.taxonGroup = source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup);
+  }
+}
+
+export class TaxonNameStrategy {
+
+  strategyId: number;
+  priorityLevel: number;
+  taxonName: TaxonNameRef;
+
+  static fromObject(source: any): TaxonNameStrategy {
+    if (!source || source instanceof TaxonNameStrategy) return source;
+    const res = new TaxonNameStrategy();
+    res.fromObject(source);
+    return res;
+  }
+
+  asObject(opts?: ReferentialAsObjectOptions): any {
+    const target: any = Object.assign({}, this); //= {...this};
+    if (!opts || opts.keepTypename !== true) delete target.__typename;
+    target.taxonGroup = this.taxonName && this.taxonName.asObject({ ...opts, ...MINIFY_OPTIONS });
+    return target;
+  }
+
+  fromObject(source: any) {
+    this.strategyId = source.strategyId;
+    this.priorityLevel = source.priorityLevel;
+    this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName);
   }
 }
 

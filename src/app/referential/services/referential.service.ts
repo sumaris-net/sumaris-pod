@@ -26,7 +26,7 @@ export class ReferentialFilter {
   levelId?: number;
   levelIds?: number[];
 
-  searchJoin?: string; // If search is on a sub entity (e.g. Metier can esearch on TaxonGroup)
+  searchJoin?: string; // If search is on a sub entity (e.g. Metier can search on TaxonGroup)
   searchText?: string;
   searchAttribute?: string;
 
@@ -34,6 +34,23 @@ export class ReferentialFilter {
     return Beans.isEmpty(f, ReferentialFilterKeys, {
       blankStringLikeEmpty: true
     });
+  }
+
+  /**
+   * Clean a filter, before sending to the pod (e.g remove 'levelId', 'statusId')
+   * @param filter
+   */
+  static asPodObject(filter: ReferentialFilter): any {
+    if (!filter) return filter;
+    return {
+      label: filter.label,
+      name: filter.name,
+      searchText: filter.searchText,
+      searchAttribute: filter.searchAttribute,
+      searchJoin: filter.searchJoin,
+      levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
+      statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
+    };
   }
 }
 export const ReferentialFilterKeys: KeysEnum<ReferentialFilter> = {
@@ -148,17 +165,8 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       size: size || 100,
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: {
-        label: filter.label,
-        name: filter.name,
-        searchText: filter.searchText,
-        searchAttribute: filter.searchAttribute,
-        searchJoin: filter.searchJoin,
-        levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
-        statusIds: isNotNil(filter.statusId) ?  [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
-      }
+      filter: ReferentialFilter.asPodObject(filter)
     };
-
 
     const now = new Date();
     if (this._debug) console.debug(`[referential-service] Loading ${uniqueEntityName}...`, variables);
@@ -214,15 +222,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       size: size || 100,
       sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: {
-        label: filter.label,
-        name: filter.name,
-        searchText: filter.searchText,
-        searchAttribute: filter.searchAttribute,
-        searchJoin: filter.searchJoin,
-        levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
-        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
-      }
+      filter: ReferentialFilter.asPodObject(filter)
     };
 
     const now = Date.now();
@@ -322,11 +322,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       size: 2,
       sortBy: 'id',
       sortDirection: 'asc',
-      filter: {
-        label,
-        levelIds: filter && (isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds),
-        statusIds: filter && (isNotNil(filter.statusId) ? [filter.statusId] : filter.statusIds)
-      }
+      filter: ReferentialFilter.asPodObject(filter)
     };
 
     const res = await this.graphql.query<{ referentials: any }>({

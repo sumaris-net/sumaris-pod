@@ -52,7 +52,9 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
       return false;
     }
 
-    if (this.debug) console.debug("[tab-page] Detected " + event.type, event);
+    // DEBUG
+    //if (this.debug)
+      console.debug("[tab-page] Detected " + event.type, event);
 
     let selectTabIndex = this.selectedTabIndex;
     switch (event.type) {

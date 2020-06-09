@@ -45,6 +45,7 @@ export class ConfigurationPage extends SoftwarePage<Configuration> {
 
     // default values
     this.defaultBackHref = null;
+    this.tabCount=2;
 
     //this.debug = !environment.production;
   }

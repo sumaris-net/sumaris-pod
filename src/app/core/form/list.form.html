@@ -1,0 +1,59 @@
+
+<!-- Properties -->
+<ion-list *ngIf="!loading; else listSkeleton"
+          class="ion-no-padding" >
+  <!-- Add buttons -->
+  <ion-button color="light" *ngIf="formArray?.length === 0 && onNewItem.observers.length > 0"
+              [title]="'COMMON.BTN_ADD'|translate"
+              (click)="onNewClick($event)">
+    <ion-icon slot="start" name="add"></ion-icon>
+    <ion-label translate>COMMON.BTN_ADD</ion-label>
+  </ion-button>
+
+  <ion-item *ngFor="let itemControl of itemControls; index as i; last as last">
+    <ion-label>{{displayWith(itemControl.value)}}</ion-label>
+
+    <!-- buttons -->
+    <ion-buttons slot="end">
+      <ion-button fill="clear" *ngIf="last && onNewItem.observers.length > 0" (click)="onNewClick($event)">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" (click)="helper.removeAt(i)">
+        <ion-icon name="trash"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-item>
+</ion-list>
+
+<ng-template #listSkeleton>
+
+  <ion-list>
+    <ng-container *ngTemplateOutlet="itemSkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="itemSkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="itemSkeleton"></ng-container>
+  </ion-list>
+
+</ng-template>
+
+<ng-template #itemSkeleton>
+
+  <ion-item>
+    <ion-label>
+      <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+    </ion-label>
+
+    <!-- buttons -->
+    <ion-buttons>
+<!--
+      <ion-button fill="clear"  [disabled]="true">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+-->
+      <ion-button fill="clear" [disabled]="true">
+        <ion-icon name="trash"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+  </ion-item>
+
+</ng-template>

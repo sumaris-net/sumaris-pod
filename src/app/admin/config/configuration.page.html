@@ -167,7 +167,7 @@
     <mat-tab label="{{'CONFIGURATION.TAB_CACHE'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>
-          <ion-icon matPrefix slot="start" name="stats"></ion-icon>
+          <ion-icon matPrefix slot="start" name="stats-chart"></ion-icon>
         </mat-icon>
         <ion-label translate>CONFIGURATION.TAB_CACHE</ion-label>
       </ng-template>
@@ -178,7 +178,10 @@
           <mat-icon>refresh</mat-icon>
         </button>
 
-        <div class="toolbar-spacer"></div>
+        <!-- title -->
+        <ion-text class="toolbar-spacer ion-text-center" >
+          <h3 translate>CONFIGURATION.CACHE_TITLE</h3>
+        </ion-text>
 
         <button mat-icon-button *ngIf="enabled"
                 [matMenuTriggerFor]="optionsMenu"
@@ -194,91 +197,79 @@
         </button>
       </mat-menu>
 
-      <div class="ion-padding">
+      <div class="">
 
-        <ion-grid class="ion-no-padding">
+        <ion-grid class="ion-no-padding cache">
 
-          <ion-row class="ion-no-padding">
-            <ion-col class="ion-no-padding ion-padding-top">
-
-              <!-- cache divider-->
-              <h3>
-                <ion-text translate>CONFIGURATION.CACHE_DIVIDER</ion-text>
-              </h3>
-
-              <ion-grid>
-                <b>
-                  <ion-row>
-                    <ion-col size="12" size-lg="6">
-                      <ion-label translate>CONFIGURATION.CACHE.NAME</ion-label>
-                    </ion-col>
-                    <ion-col>
-                      <ion-label translate>CONFIGURATION.CACHE.SIZE</ion-label>
-                    </ion-col>
-                    <ion-col>
-                      <ion-label translate>CONFIGURATION.CACHE.HEAP_SIZE</ion-label>
-                    </ion-col>
-                    <ion-col>
-                      <ion-label translate>CONFIGURATION.CACHE.OFF_HEAP_SIZE</ion-label>
-                    </ion-col>
-                    <ion-col>
-                      <ion-label translate>CONFIGURATION.CACHE.DISK_SIZE</ion-label>
-                    </ion-col>
-                    <ion-col size="1">
-                    </ion-col>
-                  </ion-row>
-                </b>
-                <b>
-                  <ion-row *ngIf="cacheStatisticTotal | async as total">
-                    <ion-col size="12" size-lg="6">
-                      <ion-label class="ion-text-wrap" translate>CONFIGURATION.CACHE.TOTAL</ion-label>
-                    </ion-col>
-                    <ion-col>
-                      <ion-label>{{total.size}}</ion-label>
-                    </ion-col>
-                    <ion-col>
-                      <ion-label>{{total.heapSize | fileSize}}</ion-label>
-                    </ion-col>
-                    <ion-col>
-                      <ion-label>{{total.offHeapSize | fileSize}}</ion-label>
-                    </ion-col>
-                    <ion-col>
-                      <ion-label>{{total.diskSize | fileSize}}</ion-label>
-                    </ion-col>
-                    <ion-col size="1">
-                    </ion-col>
-                  </ion-row>
-                </b>
-                <ion-row *ngFor="let stat of cacheStatistics | async">
-                  <ion-col size="12" size-lg="6">
-                    <ion-label class="ion-text-wrap">{{stat.name}}</ion-label>
-                  </ion-col>
-                  <ion-col>
-                    <ion-label>{{stat.size}}</ion-label>
-                  </ion-col>
-                  <ion-col>
-                    <ion-label>{{stat.heapSize | fileSize}}</ion-label>
-                  </ion-col>
-                  <ion-col>
-                    <ion-label>{{stat.offHeapSize | fileSize}}</ion-label>
-                  </ion-col>
-                  <ion-col>
-                    <ion-label>{{stat.diskSize | fileSize}}</ion-label>
-                  </ion-col>
-                  <ion-col size="1">
-                    <button [title]="'COMMON.BTN_CLEAR'|translate" mat-icon-button (click)="clearCache($event, stat.name)">
-                      <mat-icon>
-                        <ion-icon name="trash"></ion-icon>
-                      </mat-icon>
-                    </button>
-                  </ion-col>
-                </ion-row>
-              </ion-grid>
-
-
+          <!-- header -->
+          <ion-row class="mat-header-row">
+            <ion-col size="12" size-lg="6" class="mat-header-cell">
+              <ion-label translate>CONFIGURATION.CACHE.NAME</ion-label>
+            </ion-col>
+            <ion-col class="mat-header-cell">
+              <ion-label translate>CONFIGURATION.CACHE.SIZE</ion-label>
+            </ion-col>
+            <ion-col class="mat-header-cell">
+              <ion-label translate>CONFIGURATION.CACHE.HEAP_SIZE</ion-label>
+            </ion-col>
+            <ion-col class="mat-header-cell">
+              <ion-label translate>CONFIGURATION.CACHE.OFF_HEAP_SIZE</ion-label>
+            </ion-col>
+            <ion-col class="mat-header-cell">
+              <ion-label translate>CONFIGURATION.CACHE.DISK_SIZE</ion-label>
+            </ion-col>
+            <ion-col size="1">
             </ion-col>
           </ion-row>
 
+          <!-- total -->
+          <ion-row *ngIf="cacheStatisticTotal | async as total" class="computed mat-row odd">
+            <ion-col size="12" size-lg="6">
+              <ion-label class="ion-text-wrap" translate>CONFIGURATION.CACHE.TOTAL</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{total.size}}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{total.heapSize | fileSize}}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{total.offHeapSize | fileSize}}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{total.diskSize | fileSize}}</ion-label>
+            </ion-col>
+            <ion-col size="1">
+            </ion-col>
+          </ion-row>
+
+          <!-- details -->
+          <ion-row *ngFor="let stat of cacheStatistics | async; odd as odd"
+                   class="mat-row"
+                   [class.odd]="odd">
+            <ion-col size="12" size-lg="6">
+              <ion-label class="ion-text-wrap">{{stat.name}}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{stat.size}}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{stat.heapSize | fileSize}}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{stat.offHeapSize | fileSize}}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{stat.diskSize | fileSize}}</ion-label>
+            </ion-col>
+            <ion-col size="1">
+              <ion-button [title]="'COMMON.BTN_CLEAR'|translate"
+                          fill="clear"
+                          (click)="clearCache($event, stat.name)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </ion-col>
+          </ion-row>
         </ion-grid>
 
       </div>

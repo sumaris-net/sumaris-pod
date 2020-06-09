@@ -126,6 +126,7 @@ export const ReferentialFragments = {
     fractionId
     methodId
     levelId: parameterId
+    entityName
     __typename
   }`,
   fullPmfm: gql`fragment FullPmfmFragment on PmfmVO {

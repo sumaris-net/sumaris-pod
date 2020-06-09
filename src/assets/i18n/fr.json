@@ -119,7 +119,7 @@
     "PROPERTY_VALUE": "Valeur",
     "BTN_ADD_PROPERTY": "Ajouter une option",
     "BTN_CLEAR_CACHE": "Vider le cache serveur",
-    "CACHE_DIVIDER": "Statistique du cache server",
+    "CACHE_TITLE": "Statistique du cache serveur",
     "NEW": {
       "TITLE": "Nouvelle configuration"
     },
@@ -994,7 +994,10 @@
     "TAB_GENERAL": "Détails",
     "TAB_STRATEGIES": "Stratégies",
     "TAB_ACCESS_RIGHTS": "Droits d'accès",
-    "PROPERTIES_DIVIDER": "Options de configuration :",
+    "TAB_PROPERTIES": "Options",
+    "TAXON_GROUP_TYPE": "Référentiel des espèces commerciales",
+    "GEAR_CLASSIFICATION": "Référentiel engins",
+    "LOCATION_CLASSIFICATION": "Référentiel lieux",
     "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
@@ -1035,7 +1038,26 @@
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?"
     },
     "STRATEGY": {
-
+      "LOCATIONS": "Lieux",
+      "LOCATIONS_HELP": "Lieux d'application de la stratégie",
+      "GEARS": "Engins",
+      "GEARS_HELP": "Engins utilisés",
+      "TAXON_GROUPS": "Espèces commerciales",
+      "TAXON_GROUPS_HELP": "",
+      "TAXON_NAMES": "Espèces scientifiques",
+      "TAXON_NAMES_HELP": "",
+      "PMFM_STRATEGY": {
+        "ACQUISITION_LEVEL": "Niveau d'acquisition",
+        "RANK_ORDER": "Ordre",
+        "PMFM": "PMFM",
+        "IS_MANDATORY": "Obligatoire ?",
+        "ACQUISITION_NUMBER": "Nombre d'acquisition",
+        "MIN_VALUE": "Min",
+        "MAX_VALUE": "Max",
+        "TABLE": {
+          "TITLE": "Paramètres collectés"
+        }
+      }
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Erreur lors de chargement du programme",

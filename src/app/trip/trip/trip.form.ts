@@ -307,9 +307,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Create helper, if need
     if (!this.observersHelper) {
       this.observersHelper = new FormArrayHelper<Person>(
-        this.formBuilder,
-        this.form,
-        'observers',
+        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
         (person) => this.validatorService.getObserverControl(person),
         ReferentialUtils.equals,
         ReferentialUtils.isEmpty,
@@ -338,9 +336,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     if (isNil(this._showMetiers)) return; // skip if not loading yet
 
     this.metiersHelper = new FormArrayHelper<ReferentialRef>(
-      this.formBuilder,
-      this.form,
-      'metiers',
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'metiers'),
       (metier) => this.validatorService.getMetierControl(metier),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,

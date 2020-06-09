@@ -51,8 +51,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'lengthOverAll',
         'grossTonnageGt',
         'basePortLocation',
-        'comments']
-      ,
+        'comments'],
       new AppTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselFeaturesService, vesselFeaturesValidator, {
         prependNewElements: false,
         suppressErrors: environment.production,

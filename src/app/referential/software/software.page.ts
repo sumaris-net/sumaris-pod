@@ -55,9 +55,7 @@ export class SoftwarePage<T extends Software<T> = Software<any>> extends AppEdit
 
     this.form = validatorService.getFormGroup();
     this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
-      injector.get(FormBuilder),
-      this.form,
-      'properties',
+      this.form.get('properties') as FormArray,
       (value) => validatorService.getPropertyFormGroup(value),
       (v1, v2) => (!v1 && !v2) || v1.key === v2.key,
       (value) => isNil(value) || (isNil(value.key) && isNil(value.value)),

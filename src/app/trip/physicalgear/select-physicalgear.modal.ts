@@ -7,7 +7,6 @@ import {isNotNil, toBoolean} from "../../shared/functions";
 import {AcquisitionLevelCodes} from "../services/model/base.model";
 import {AcquisitionLevelType} from "../../referential/services/model";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {MeasurementsDataService} from "../measurement/measurements.service";
 import {TableDataService} from "../../shared/services/data-service.class";
 import {Observable} from "rxjs";
 

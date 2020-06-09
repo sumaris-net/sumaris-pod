@@ -217,9 +217,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     if (isNil(this._showObservers)) return; // skip if not loading yet
 
     this.observersHelper = new FormArrayHelper<Person>(
-      this.formBuilder,
-      this.form,
-      'observers',
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
       (person) => this.validatorService.getObserverControl(person),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,

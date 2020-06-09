@@ -17,7 +17,11 @@ import {
   environment,
   IReferentialRef,
   LoadResult,
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
   ReferentialRef,
+  ReferentialUtils,
+  SAVE_AS_OBJECT_OPTIONS,
   TableDataService
 } from "../../core/core.module";
 import {ErrorCodes} from "./errors";
@@ -37,7 +41,7 @@ import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {EntityStorage} from "../../core/services/entities-storage.service";
-import {ReferentialUtils} from "../../core/services/model";
+
 
 export declare class ProgramFilter {
   searchText?: string;
@@ -85,6 +89,18 @@ const ProgramFragments = {
       creationDate
       statusId
       properties
+      taxonGroupType {
+        ...ReferentialFragment
+      }
+      gearClassification {
+        ...ReferentialFragment
+      }
+      locationClassifications {
+        ...ReferentialFragment
+      }
+      locations {
+        ...ReferentialFragment
+      }
       strategies {
         ...StrategyFragment
       }
@@ -171,6 +187,7 @@ const ProgramFragments = {
   }`,
   pmfmStrategy: gql`
     fragment PmfmStrategyFragment on PmfmStrategyVO {
+      id
       acquisitionLevel
       rankOrder
       isMandatory
@@ -306,8 +323,6 @@ const ProgramCacheKeys = {
   TAXON_NAME_BY_GROUP: 'programTaxonNameByGroup',
   TAXON_NAMES: 'taxonNameByGroup'
 };
-
-const cacheBuster$ = new Subject<void>();
 
 @Injectable({providedIn: 'root'})
 export class ProgramService extends BaseDataService
@@ -800,7 +815,7 @@ export class ProgramService extends BaseDataService
 
     // Fill default properties
     this.fillDefaultProperties(data);
-    const json = data.asObject({minify: false /* keep all properties */});
+    const json = this.asObject(data, SAVE_AS_OBJECT_OPTIONS);
 
     const now = Date.now();
     if (this._debug) console.debug("[program-service] Saving program...", json);
@@ -853,6 +868,14 @@ export class ProgramService extends BaseDataService
   }
 
   /* -- protected methods -- */
+
+  protected asObject(source: Program, opts?: ReferentialAsObjectOptions): any {
+    return source.asObject(
+      <ReferentialAsObjectOptions>{
+        ...opts,
+        ...NOT_MINIFY_OPTIONS, // Force NOT minify, because program is a referential that can be minify in just an ID
+      });
+  }
 
   protected async doExecuteImport(progression: BehaviorSubject<number>,
                                   maxProgression: number,

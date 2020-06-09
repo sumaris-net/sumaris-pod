@@ -518,10 +518,13 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   selectInputContent = AppFormUtils.selectInputContent;
 
   protected getChildrenFormHelper(form: FormGroup): FormArrayHelper<Batch> {
+    let arrayControl = form.get('children') as FormArray;
+    if (!arrayControl) {
+      arrayControl = this.formBuilder.array([]);
+      form.addControl('children', arrayControl);
+    }
     return new FormArrayHelper<Batch>(
-      this.formBuilder,
-      form,
-      'children',
+      arrayControl,
       (value) => this.validatorService.getFormGroup(value, {withWeight: true}),
       (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
       (value) => isNil(value),

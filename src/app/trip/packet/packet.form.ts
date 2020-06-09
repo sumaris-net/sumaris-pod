@@ -199,9 +199,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
   initCompositionHelper() {
     this.compositionHelper = new FormArrayHelper<PacketComposition>(
-      this.formBuilder,
-      this.form,
-      'composition',
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'composition'),
       (composition) => this.validatorService.getCompositionControl(composition),
       PacketUtils.isPacketCompositionEquals,
       PacketUtils.isPacketCompositionEmpty,

@@ -505,9 +505,9 @@ export declare interface ITreeItemEntity<T extends IEntity<T>> {
 export class Referential<T extends Referential<any> = Referential<any>, O extends ReferentialAsObjectOptions = ReferentialAsObjectOptions>
     extends Entity<T, O> implements IReferentialRef {
 
-  static fromObject(source: any): Referential<any> {
+  static fromObject(source: any): Referential {
     if (!source || source instanceof Referential) return source;
-    const res = new Referential<any>();
+    const res = new Referential();
     res.fromObject(source);
     return res as Referential;
   }
