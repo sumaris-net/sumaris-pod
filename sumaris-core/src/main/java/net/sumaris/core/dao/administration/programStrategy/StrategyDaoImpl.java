@@ -37,9 +37,9 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
-import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
@@ -54,6 +54,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.criteria.*;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -405,7 +406,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
             lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
         }
 
-        strategyVOToEntity(source, entity, true);
+        toEntity(source, entity, true);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -441,7 +442,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
 
     /* -- protected method -- */
 
-    protected void strategyVOToEntity(StrategyVO source, Strategy target, boolean copyIfNull) {
+    protected void toEntity(StrategyVO source, Strategy target, boolean copyIfNull) {
 
 
         Beans.copyProperties(source, target);
@@ -466,6 +467,48 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
             }
         }
 
+        // Gears
+        List<Integer> gearIds = CollectionUtils.isNotEmpty(source.getGearIds()) ?
+                source.getGearIds() :
+                (CollectionUtils.isNotEmpty(source.getGears()) ?
+                        Beans.collectIds(source.getGears()) :
+                        null);
+        if (copyIfNull || CollectionUtils.isNotEmpty(gearIds)) {
+            if (CollectionUtils.isEmpty(gearIds)) {
+                if (target.getGears() != null) {
+                    target.getGears().clear();
+                }
+            }
+            else {
+                target.setGears(loadAllAsSet(Gear.class, gearIds, true));
+            }
+        }
+
+        // Taxon Group strategy
+        if (copyIfNull || CollectionUtils.isNotEmpty(source.getTaxonGroups())) {
+            if (CollectionUtils.isEmpty(source.getTaxonGroups())) {
+                if (target.getTaxonGroups() != null) {
+                    target.getTaxonGroups().clear();
+                }
+            }
+            else {
+                // TODO
+                //Beans.splitByPro(source.getTaxonGroups(), TaxonGroupStrategyVO::)
+                //target.setTaxonGroups(loadAllAsSet(TaxonGroup.class, taxonGroupIds, true));
+            }
+        }
+
+        // Taxon Names strategy
+        if (copyIfNull || CollectionUtils.isNotEmpty(source.getTaxonNames())) {
+            if (CollectionUtils.isEmpty(source.getTaxonNames())) {
+                if (target.getReferenceTaxons() != null) {
+                    target.getReferenceTaxons().clear();
+                }
+            }
+            else {
+                // TODO
+            }
+        }
     }
 
     protected List<TaxonNameStrategyVO> getTaxonNames(Strategy source) {

@@ -182,8 +182,8 @@ public class RootDataRepositoryImpl<
     /* -- protected method -- */
 
     @Override
-    protected void onAfterSaveEntity(V vo, E savedEntity, Timestamp newUpdateDate, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, newUpdateDate, isNew);
+    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
 
         if (isNew) {
             vo.setCreationDate(savedEntity.getCreationDate());

@@ -22,15 +22,22 @@
 
 package net.sumaris.core.service.referential.pmfm;
 
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmDao;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service("pmfmService")
 public class PmfmServiceImpl implements PmfmService {
@@ -39,6 +46,17 @@ public class PmfmServiceImpl implements PmfmService {
 
     @Autowired
     protected PmfmDao pmfmDao;
+
+    @Autowired
+    protected ReferentialDao referentialDao;
+
+    @Override
+    public List<PmfmVO> findByFilter(ReferentialFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        return referentialDao.streamByFilter(Pmfm.class, filter, offset, size, sortAttribute, sortDirection)
+                .map(pmfmDao::toVO)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
 
     @Override
     public Optional<PmfmVO> findByLabel(final String label) {

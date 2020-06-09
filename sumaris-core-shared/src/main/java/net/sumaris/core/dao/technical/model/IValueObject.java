@@ -1,4 +1,4 @@
-package net.sumaris.core.vo;
+package net.sumaris.core.dao.technical.model;
 
 /*-
  * #%L
@@ -21,8 +21,6 @@ package net.sumaris.core.vo;
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-
-import net.sumaris.core.dao.technical.model.IEntity;
 
 import java.io.Serializable;
 

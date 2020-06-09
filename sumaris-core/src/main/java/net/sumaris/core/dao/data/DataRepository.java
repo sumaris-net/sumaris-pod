@@ -46,7 +46,7 @@ public interface DataRepository<
         V extends IDataVO<ID>,
         F extends Serializable
         >
-        extends SumarisJpaRepository<E, ID> {
+        extends SumarisJpaRepository<E, ID, V> {
 
 
     // From a filter
@@ -90,11 +90,4 @@ public interface DataRepository<
 
     V qualify(V vo);
 
-//    V toVO(E entity);
-//
-//    void toEntity(V source, E target, boolean copyIfNull);
-//
-//    V createVO();
-//
-//    Class<V> getVOClass();
 }

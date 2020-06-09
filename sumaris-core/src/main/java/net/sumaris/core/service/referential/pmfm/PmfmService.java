@@ -22,13 +22,20 @@
 
 package net.sumaris.core.service.referential.pmfm;
 
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Transactional
 public interface PmfmService {
+
+    @Transactional(readOnly = true)
+    List<PmfmVO> findByFilter(ReferentialFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
     @Transactional(readOnly = true)
     Optional<PmfmVO> findByLabel(final String label);

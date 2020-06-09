@@ -22,12 +22,17 @@ package net.sumaris.core.dao.technical.jpa;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import com.querydsl.jpa.impl.JPAQuery;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Beans;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
@@ -50,14 +55,16 @@ import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @NoRepositoryBean
-public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
-        extends SimpleJpaRepository<T, ID>
-        implements SumarisJpaRepository<T, ID> {
+public class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>>
+        extends SimpleJpaRepository<E, ID>
+        implements SumarisJpaRepository<E, ID, V> {
 
     private boolean debugEntityLoad = false;
 
@@ -67,7 +74,7 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
     private DataSource dataSource;
 
     // There are two constructors to choose from, either can be used.
-    public SumarisJpaRepositoryImpl(Class<T> domainClass, EntityManager entityManager) {
+    public SumarisJpaRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         super(domainClass, entityManager);
 
         // This is the recommended method for accessing inherited class dependencies.
@@ -76,7 +83,7 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
     }
 
     @Override
-    public T createEntity() {
+    public E createEntity() {
         try {
             return getDomainClass().newInstance();
         } catch (Exception e) {
@@ -126,7 +133,65 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
         return entity;
     }
 
+    @Override
+    public V save(V vo) {
+        E entity = toEntity(vo);
+
+        boolean isNew = entity.getId() == null;
+
+        E savedEntity = save(entity);
+
+        // Update VO
+        onAfterSaveEntity(vo, savedEntity, entity.getId() == null);
+
+        return vo;
+    }
+
+    public E toEntity(V vo) {
+        Preconditions.checkNotNull(vo);
+        E entity;
+        if (vo.getId() != null) {
+            entity = getOne(vo.getId());
+        } else {
+            entity = createEntity();
+        }
+
+        toEntity(vo, entity, true);
+
+        return entity;
+    }
+
+    public void toEntity(V source, E target, boolean copyIfNull) {
+        Beans.copyProperties(source, target);
+    }
+
+    public V toVO(E source) {
+        V target = createVO();
+        toVO(source, target, true);
+        return target;
+    }
+
+    public void toVO(E source, V target, boolean copyIfNull) {
+        Beans.copyProperties(source, target);
+    }
+
+    public V createVO() {
+        try {
+            return getVOClass().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Class<V> getVOClass() {
+        throw new NotImplementedException("Not implemented yet. Should be override by subclass");
+    }
+
     /* -- protected method -- */
+
+    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
+        vo.setId(savedEntity.getId());
+    }
 
     protected EntityManager getEntityManager() {
         return entityManager;
