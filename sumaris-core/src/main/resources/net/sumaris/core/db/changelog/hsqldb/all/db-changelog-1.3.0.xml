@@ -307,5 +307,100 @@
     </insert>
   </changeSet>
 
+  <!-- add Missing TAXON_GROUP for 'ADAP-MER' -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-310" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP where TAXON_GROUP_TYPE_FK=2 AND LABEL IN ('RJB_1', 'RJB_2')</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="TAXON_GROUP">
+      <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_SEQ"/>
+      <column name="LABEL">RJB_1</column>
+      <column name="NAME">Petit pocheteau gris</column>
+      <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+      <column name="PARENT_TAXON_GROUP_FK" valueNumeric="1004"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
+      <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+      <column name="START_DATE">2019-01-01 00:00:00</column>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='RJB_1')"/>
+      <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE LABEL='RJB_1')"/>
+    </insert>
+    <insert tableName="TAXON_GROUP">
+      <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_SEQ"/>
+      <column name="LABEL">RJB_2</column>
+      <column name="NAME">Grand pocheteau gris</column>
+      <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+      <column name="PARENT_TAXON_GROUP_FK" valueNumeric="1004"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
+      <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+      <column name="START_DATE">2019-01-01 00:00:00</column>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='RJB_2')"/>
+      <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE LABEL='RJB_2')"/>
+    </insert>
+  </changeSet>
+
+  <!-- add Close previous 'RJB' association -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-311" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP_HISTORICAL_RECORD where TAXON_GROUP_FK=1014 AND END_DATE IS NULL</sqlCheck>
+      </and>
+    </preConditions>
+    <sql endDelimiter=";">
+      update TAXON_GROUP_HISTORICAL_RECORD set END_DATE='2018-12-31 00:00:00' where TAXON_GROUP_FK=1014 AND REFERENCE_TAXON_FK=1014;
+    </sql>
+  </changeSet>
+
+  <!-- add Missing TAXON_GROUP_STRATEGY for 'ADAP-MER' -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-312" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP_STRATEGY where STRATEGY_FK=10</sqlCheck>
+      </and>
+    </preConditions>
+    <!-- MNZ-->
+    <insert tableName="TAXON_GROUP_STRATEGY">
+      <column name="STRATEGY_FK" valueNumeric="10"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='MNZ')"/>
+      <column name="PRIORITY_LEVEL" valueNumeric="1"/>
+    </insert>
+    <!-- HAD -->
+    <insert tableName="TAXON_GROUP_STRATEGY">
+      <column name="STRATEGY_FK" valueNumeric="10"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='HAD')"/>
+      <column name="PRIORITY_LEVEL" valueNumeric="1"/>
+    </insert>
+    <!-- COD -->
+    <insert tableName="TAXON_GROUP_STRATEGY">
+      <column name="STRATEGY_FK" valueNumeric="10"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='COD')"/>
+      <column name="PRIORITY_LEVEL" valueNumeric="1"/>
+    </insert>
+    <!-- RJB_1 -->
+    <insert tableName="TAXON_GROUP_STRATEGY">
+      <column name="STRATEGY_FK" valueNumeric="10"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='RJB_1')"/>
+      <column name="PRIORITY_LEVEL" valueNumeric="1"/>
+    </insert>
+    <!-- RJB_2 -->
+    <insert tableName="TAXON_GROUP_STRATEGY">
+      <column name="STRATEGY_FK" valueNumeric="10"/>
+      <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='RJB_2')"/>
+      <column name="PRIORITY_LEVEL" valueNumeric="1"/>
+    </insert>
+  </changeSet>
+
 
 </databaseChangeLog>
