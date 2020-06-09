@@ -70,7 +70,8 @@
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
       <column name="LABEL">1.2.6</column>
       <column name="DESCRIPTION">
-          - Add tables PROGRAM2LOCATION_CLASSIF;
+          - Add tables PROGRAM2LOCATION and PROGRAM2LOCATION_CLASSIF;
+          - Add missing parameter and PMFM, need by PacketService
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
