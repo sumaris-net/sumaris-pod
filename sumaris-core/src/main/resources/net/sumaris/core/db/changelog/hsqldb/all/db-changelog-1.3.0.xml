@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/all/db-changelog-1.3.0.xml">
+
+  <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+  <property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+  <!-- add Parameter 'SAMPLING_RATIO' -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-301">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PARAMETER where LABEL='SAMPLING_RATIO'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="parameter">
+      <column name="ID" valueComputed="NEXT VALUE FOR PARAMETER_SEQ"/>
+      <column name="LABEL">SAMPLING_RATIO</column>
+      <column name="NAME">Ratio d'echantillonnage</column>
+      <column name="IS_BOOLEAN" valueNumeric="0"/>
+      <column name="IS_QUALITATIVE" valueNumeric="0"/>
+      <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+  <!-- add PMFM 'BATCH_ESTIMATED_RATIO' -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-302" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PMFM where LABEL='BATCH_ESTIMATED_RATIO'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="pmfm">
+      <column name="ID" valueComputed="NEXT VALUE FOR PMFM_SEQ"/>
+      <column name="LABEL">BATCH_ESTIMATED_RATIO</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SAMPLING_RATIO')"/>
+      <column name="UNIT_FK" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="MATRIX_FK" valueNumeric="1"/>
+      <column name="METHOD_FK" valueNumeric="3"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+  <!-- add Parameter 'BATCH_SORTING' -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-303">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PARAMETER where LABEL='BATCH_SORTING'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="parameter">
+      <column name="ID" valueComputed="NEXT VALUE FOR PARAMETER_SEQ"/>
+      <column name="LABEL">BATCH_SORTING</column>
+      <column name="NAME">Vrac/Hors Vrac</column>
+      <column name="IS_BOOLEAN" valueNumeric="0"/>
+      <column name="IS_QUALITATIVE" valueNumeric="1"/>
+      <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+  <!-- add PMFM 'BATCH_SORTING' -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-304">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PMFM where LABEL='BATCH_SORTING'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="pmfm">
+      <column name="ID" valueComputed="NEXT VALUE FOR PMFM_SEQ"/>
+      <column name="LABEL">BATCH_SORTING</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='BATCH_SORTING')"/>
+      <column name="MATRIX_FK" valueNumeric="1"/>
+      <column name="METHOD_FK" valueNumeric="2"/>
+      <column name="UNIT_FK" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+</databaseChangeLog>
