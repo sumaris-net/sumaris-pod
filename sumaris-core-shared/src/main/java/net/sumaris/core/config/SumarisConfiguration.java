@@ -188,6 +188,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         applicationConfig.setOption(
                 SumarisConfigurationOption.BASEDIR.getKey(),
                 appBasedir.getAbsolutePath());
+
+        if (log.isDebugEnabled())
+            log.debug(applicationConfig.getPrintableConfig(null, 4));
+
     }
 
     /**
