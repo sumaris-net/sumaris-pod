@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
  */
 @NoRepositoryBean
 public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V extends IDataVO<ID>, F extends Serializable>
-    extends SumarisJpaRepositoryImpl<E, ID>
+    extends SumarisJpaRepositoryImpl<E, ID, V>
     implements DataRepository<E, ID, V, F> {
 
     /**
@@ -175,7 +175,7 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         E savedEntity = save(entity);
 
         // Update VO
-        onAfterSaveEntity(vo, savedEntity, newUpdateDate, entity.getId() == null);
+        onAfterSaveEntity(vo, savedEntity, entity.getId() == null);
 
         return vo;
     }
@@ -268,21 +268,6 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         return vo;
     }
 
-
-    public E toEntity(V vo) {
-        Preconditions.checkNotNull(vo);
-        E entity;
-        if (vo.getId() != null) {
-            entity = getOne(vo.getId());
-        } else {
-            entity = createEntity();
-        }
-
-        toEntity(vo, entity, true);
-
-        return entity;
-    }
-
     public void toEntity(V source, E target, boolean copyIfNull) {
         DataDaos.copyDataProperties(getEntityManager(), source, target, copyIfNull, getCopyExcludeProperties());
     }
@@ -328,18 +313,6 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         }
     }
 
-    public V createVO() {
-        try {
-            return getVOClass().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Class<V> getVOClass() {
-        throw new NotImplementedException("Not implemented yet. Should be override by subclass");
-    }
-
     @Override
     public Specification<E> toSpecification(@Nullable F filter) {
         throw new NotImplementedException("Not implemented yet. Should be override by subclass");
@@ -347,12 +320,10 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
     /* -- protected methods -- */
 
-    protected void onAfterSaveEntity(V vo, E savedEntity, Timestamp newUpdateDate, boolean isNew) {
+    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
         vo.setId(savedEntity.getId());
-        vo.setUpdateDate(newUpdateDate);
+        vo.setUpdateDate(savedEntity.getUpdateDate());
     }
-
-
 
     protected boolean isCheckUpdateDate() {
         return checkUpdateDate;

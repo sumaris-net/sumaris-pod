@@ -206,17 +206,14 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
 
     @Override
-    public List<ReferentialVO> findByFilter(final String entityName,
+    public <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
                                             ReferentialFilterVO filter,
                                             int offset,
                                             int size,
                                             String sortAttribute,
                                             SortDirection sortDirection) {
-        Preconditions.checkNotNull(entityName, "Missing entityName argument");
-        Preconditions.checkNotNull(filter);
-
-        // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        Preconditions.checkNotNull(entityClass, "Missing 'entityClass' argument");
+        Preconditions.checkNotNull(filter, "Missing 'filter' argument");
 
         return createFindQuery(entityClass,
                 filter,
@@ -224,9 +221,30 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                 sortDirection,
                 null
         )
-        .setFirstResult(offset)
-        .setMaxResults(size)
-        .getResultStream()
+                .setFirstResult(offset)
+                .setMaxResults(size)
+                .getResultStream();
+    }
+
+    @Override
+    public List<ReferentialVO> findByFilter(final String entityName,
+                                            ReferentialFilterVO filter,
+                                            int offset,
+                                            int size,
+                                            String sortAttribute,
+                                            SortDirection sortDirection) {
+        Preconditions.checkNotNull(entityName, "Missing entityName argument");
+
+        // Get entity class from entityName
+        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+
+        return streamByFilter(entityClass,
+                filter,
+                offset,
+                size,
+                sortAttribute,
+                sortDirection
+        )
         .map(s -> toReferentialVO(entityName, s))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());

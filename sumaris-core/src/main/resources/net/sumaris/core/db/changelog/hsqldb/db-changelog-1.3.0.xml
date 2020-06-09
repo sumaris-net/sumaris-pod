@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.3.0.xml">
+
+  <!-- add PROGRAM2LOCATION_CLASSIF -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897856-1">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="PROGRAM2LOCATION_CLASSIF"/>
+      </not>
+    </preConditions>
+    <createTable tableName="PROGRAM2LOCATION_CLASSIF">
+      <column name="PROGRAM_FK" type="INT">
+        <constraints foreignKeyName="PROGRAM2LOCATION_CLASSIF_PROG_FKC" referencedTableName="PROGRAM" referencedColumnNames="ID"/>
+      </column>
+      <column name="LOCATION_CLASSIFICATION_FK" type="INT">
+        <constraints foreignKeyName="PROGRAM2LOCATION_CLASSIF_FKC" referencedTableName="LOCATION_CLASSIFICATION" referencedColumnNames="ID"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <!-- add PROGRAM2LOCATION_CLASSIF -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897856-2">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="PROGRAM2LOCATION"/>
+      </not>
+    </preConditions>
+    <createTable tableName="PROGRAM2LOCATION">
+      <column name="PROGRAM_FK" type="INT">
+        <constraints foreignKeyName="PROGRAM2LOCATION_PROG_FKC" referencedTableName="PROGRAM" referencedColumnNames="ID"/>
+      </column>
+      <column name="LOCATION_FK" type="INT">
+        <constraints foreignKeyName="PROGRAM2LOCATION_FKC" referencedTableName="LOCATION" referencedColumnNames="ID"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='1.3.0'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">1.3.0</column>
+      <column name="DESCRIPTION">
+          - Add tables PROGRAM2LOCATION_CLASSIF;
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

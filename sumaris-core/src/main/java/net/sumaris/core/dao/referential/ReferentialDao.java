@@ -32,6 +32,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
@@ -39,6 +40,7 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface ReferentialDao {
 
@@ -57,6 +59,13 @@ public interface ReferentialDao {
     List<ReferentialVO> getAllLevels(String entityName);
 
     ReferentialVO getLevelById(String entityName, int levelId);
+
+    <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
+                                                        ReferentialFilterVO filter,
+                                                        int offset,
+                                                        int size,
+                                                        String sortAttribute,
+                                                        SortDirection sortDirection);
 
     List<ReferentialVO> findByFilter(String entityName,
                                      ReferentialFilterVO filter,

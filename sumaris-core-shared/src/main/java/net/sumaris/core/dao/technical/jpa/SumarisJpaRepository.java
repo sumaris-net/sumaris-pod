@@ -22,6 +22,8 @@ package net.sumaris.core.dao.technical.jpa;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
@@ -32,7 +34,7 @@ import java.io.Serializable;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @NoRepositoryBean
-public interface SumarisJpaRepository<T, ID extends Serializable> extends JpaRepository<T, ID> {
+public interface SumarisJpaRepository<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>> extends JpaRepository<E, ID> {
 
     <C extends Serializable> C load(Class<C> clazz, Serializable id);
 
@@ -40,5 +42,7 @@ public interface SumarisJpaRepository<T, ID extends Serializable> extends JpaRep
 
     <C extends Serializable> C get(Class<? extends C> clazz, Serializable id, LockModeType lockModeType);
 
-    T createEntity();
+    E createEntity();
+
+    V save(V vo);
 }

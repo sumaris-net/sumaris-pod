@@ -31,6 +31,8 @@ public class ProgramFetchOptions {
 
     private boolean withProperties;
 
+    private boolean withLocations;
+
     private boolean withStrategies;
 
 }
