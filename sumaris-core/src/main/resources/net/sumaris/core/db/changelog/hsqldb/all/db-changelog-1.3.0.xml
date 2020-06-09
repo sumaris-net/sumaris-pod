@@ -93,6 +93,34 @@
     </insert>
   </changeSet>
 
+  <!-- add qualitaive values for  'BATCH_SORTING' -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-303-1">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM qualitative_value where PARAMETER_FK = (SELECT ID FROM PARAMETER WHERE LABEL='BATCH_SORTING')</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="qualitative_value">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+      <column name="LABEL">VRAC</column>
+      <column name="NAME">Vrac</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='BATCH_SORTING')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="qualitative_value">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+      <column name="LABEL">H-VRAC</column>
+      <column name="NAME">Hors Vrac</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='BATCH_SORTING')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
   <!-- add PMFM 'BATCH_SORTING' -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-304">
     <preConditions onFail="MARK_RAN">
@@ -113,5 +141,171 @@
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
     </insert>
   </changeSet>
+
+  <!-- add Parameter 'SELF_SAMPLING_PROGRAM' -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-305">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PARAMETER where LABEL='SELF_SAMPLING_PROGRAM'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="parameter">
+      <column name="ID" valueComputed="NEXT VALUE FOR PARAMETER_SEQ"/>
+      <column name="LABEL">SELF_SAMPLING_PROGRAM</column>
+      <column name="NAME">Type d'auto-echantillonnage</column>
+      <column name="IS_BOOLEAN" valueNumeric="0"/>
+      <column name="IS_QUALITATIVE" valueNumeric="1"/>
+      <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+  <!-- add qualitaive values for  'BATCH_SORTING' -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-306">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM qualitative_value where PARAMETER_FK = (SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="qualitative_value">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+      <column name="LABEL">MNZ/HAD</column>
+      <column name="NAME">Baudroie/Eglegin</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="qualitative_value">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+      <column name="LABEL">MNZ</column>
+      <column name="NAME">Baudroie</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="qualitative_value">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+      <column name="LABEL">HAD</column>
+      <column name="NAME">Eglefin</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="qualitative_value">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+      <column name="LABEL">COD</column>
+      <column name="NAME">Cabillaud</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="qualitative_value">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+      <column name="LABEL">COD/HAD</column>
+      <column name="NAME">Cabillaud/Eglefin</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="qualitative_value">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+      <column name="LABEL">MNZ/HAD/RJB</column>
+      <column name="NAME">Baudroie/Eglefin/Pocheteaux</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="qualitative_value">
+      <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+      <column name="LABEL">RJB</column>
+      <column name="NAME">Pocheteaux</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+  <!-- add methods 'OBSERVED_BY_FISHERMAN' and 'DECLARED_BY_FISHERMAN'  -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-307" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM METHOD where LABEL IN ('OBSERVED_BY_FISHERMAN', 'DECLARED_BY_FISHERMAN')</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="method">
+      <column name="ID" valueNumeric="5"/>
+      <column name="LABEL">OBSERVED_BY_FISHERMAN</column>
+      <column name="NAME">Observed by a fisherman</column>
+      <column name="IS_CALCULATED" valueNumeric="0"/>
+      <column name="IS_ESTIMATED" valueNumeric="1"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+    <insert tableName="method">
+      <column name="ID" valueNumeric="6"/>
+      <column name="LABEL">DECLARED_BY_FISHERMAN</column>
+      <column name="NAME">Declared by a fisherman</column>
+      <column name="IS_CALCULATED" valueNumeric="0"/>
+      <column name="IS_ESTIMATED" valueNumeric="1"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+  <!-- add method 'AUCTION'   -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-308">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM METHOD where LABEL = 'AUCTION'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="method">
+      <column name="ID" valueNumeric="261"/>
+      <column name="LABEL">AUCTION</column>
+      <column name="NAME">Emitted by an auction</column>
+      <column name="IS_CALCULATED" valueNumeric="0"/>
+      <column name="IS_ESTIMATED" valueNumeric="1"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+  <!-- add PMFM 'SELF_SAMPLING_PROGRAM' -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-309" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM PMFM where LABEL='SELF_SAMPLING_PROGRAM'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="pmfm">
+      <column name="ID" valueNumeric="28"/>
+      <column name="LABEL">SELF_SAMPLING_PROGRAM</column>
+      <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+      <column name="MATRIX_FK" valueNumeric="4"/>
+      <column name="METHOD_FK" valueNumeric="5"/>
+      <column name="UNIT_FK" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
 
 </databaseChangeLog>

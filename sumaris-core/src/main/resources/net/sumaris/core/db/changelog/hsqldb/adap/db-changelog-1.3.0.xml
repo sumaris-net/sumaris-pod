@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.3.0.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Add PMFM_STRATEGY 'SELF_SAMPLING_PROGRAM' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-400" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PMFM_STRATEGY WHERE STRATEGY_FK=10
+                    AND PMFM_FK = (SELECT ID FROM PMFM WHERE LABEL = 'SELF_SAMPLING_PROGRAM' )</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PMFM_STRATEGY_SEQ"/>
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+            <column name="ACQUISITION_LEVEL_FK" valueNumeric="1"/>
+            <column name="RANK_ORDER" valueNumeric="3"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="1"/>
+        </insert>
+    </changeSet>
+
+
+</databaseChangeLog>
