@@ -34,13 +34,24 @@ import java.io.Serializable;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @NoRepositoryBean
-public interface SumarisJpaRepository<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>> extends JpaRepository<E, ID> {
+public interface SumarisJpaRepository<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>>
+    extends JpaRepository<E, ID> {
 
     <C extends Serializable> C load(Class<C> clazz, Serializable id);
 
     <C extends Serializable> C get(Class<? extends C> clazz, Serializable id);
 
     <C extends Serializable> C get(Class<? extends C> clazz, Serializable id, LockModeType lockModeType);
+
+    V toVO(E source);
+
+    E toEntity(V source);
+
+    void toEntity(V source, E target, boolean copyIfNull);
+
+    V createVO();
+
+    Class<V> getVOClass();
 
     E createEntity();
 

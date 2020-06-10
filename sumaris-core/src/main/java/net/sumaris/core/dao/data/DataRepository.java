@@ -27,7 +27,6 @@ import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
-import net.sumaris.core.vo.data.TripVO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -89,5 +88,9 @@ public interface DataRepository<
     V unvalidate(V vo);
 
     V qualify(V vo);
+
+    V toVO(E source, DataFetchOptions fetchOptions);
+
+    void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull);
 
 }

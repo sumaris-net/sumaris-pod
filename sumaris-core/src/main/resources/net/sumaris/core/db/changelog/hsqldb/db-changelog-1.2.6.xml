@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.2.6.xml">
+
+	<!--  add DISTANCE_TO_COAST_GRADIENT table-->
+	<changeSet author="ludovic.pecquot@e-is.pro" id="1591686957118-1">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="DISTANCE_TO_COAST_GRADIENT"/>
+			</not>
+		</preConditions>
+		<createTable tableName="DISTANCE_TO_COAST_GRADIENT">
+			<column name="ID" type="INT">
+				<constraints primaryKey="true" primaryKeyName="DISTANCE_TO_COAST_GRADIENT_PK"/>
+			</column>
+			<column name="STATUS_FK" type="INT">
+				<constraints nullable="false" foreignKeyName="DISTANCE_TO_COAST_GRADIENT_STATUS_FKC" referencedTableName="STATUS" referencedColumnNames="ID"/>
+			</column>
+			<column name="CREATION_DATE" type="TIMESTAMP">
+				<constraints nullable="false"/>
+			</column>
+			<column name="UPDATE_DATE" type="TIMESTAMP"/>
+			<column name="LABEL" type="VARCHAR(50)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="NAME" type="VARCHAR(100)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="DESCRIPTION" type="VARCHAR(255)"/>
+			<column name="COMMENTS" type="VARCHAR(2000)"/>
+			<column name="RANK_ORDER" type="INT">
+				<constraints nullable="false"/>
+			</column>
+		</createTable>
+		<createSequence sequenceName="DISTANCE_TO_COAST_GRADIENT_SEQ" incrementBy="1"/>
+	</changeSet>
+
+	<!--  add DEPTH_GRADIENT table-->
+	<changeSet author="ludovic.pecquot@e-is.pro" id="1591686957118-2">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="DEPTH_GRADIENT"/>
+			</not>
+		</preConditions>
+		<createTable tableName="DEPTH_GRADIENT">
+			<column name="ID" type="INT">
+				<constraints primaryKey="true" primaryKeyName="DEPTH_GRADIENT_PK"/>
+			</column>
+			<column name="STATUS_FK" type="INT">
+				<constraints nullable="false" foreignKeyName="DEPTH_GRADIENT_STATUS_FKC" referencedTableName="STATUS" referencedColumnNames="ID"/>
+			</column>
+			<column name="CREATION_DATE" type="TIMESTAMP">
+				<constraints nullable="false"/>
+			</column>
+			<column name="UPDATE_DATE" type="TIMESTAMP"/>
+			<column name="LABEL" type="VARCHAR(50)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="NAME" type="VARCHAR(100)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="DESCRIPTION" type="VARCHAR(255)"/>
+			<column name="COMMENTS" type="VARCHAR(2000)"/>
+			<column name="RANK_ORDER" type="INT">
+				<constraints nullable="false"/>
+			</column>
+		</createTable>
+		<createSequence sequenceName="DEPTH_GRADIENT_SEQ" incrementBy="1"/>
+	</changeSet>
+
+	<!--  add NEARBY_SPECIFIC_AREA table-->
+	<changeSet author="ludovic.pecquot@e-is.pro" id="1591686957118-3">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="NEARBY_SPECIFIC_AREA"/>
+			</not>
+		</preConditions>
+		<createTable tableName="NEARBY_SPECIFIC_AREA">
+			<column name="ID" type="INT">
+				<constraints primaryKey="true" primaryKeyName="NEARBY_SPECIFIC_AREA_PK"/>
+			</column>
+			<column name="STATUS_FK" type="INT">
+				<constraints nullable="false" foreignKeyName="NEARBY_SPECIFIC_AREA_STATUS_FKC" referencedTableName="STATUS" referencedColumnNames="ID"/>
+			</column>
+			<column name="CREATION_DATE" type="TIMESTAMP">
+				<constraints nullable="false"/>
+			</column>
+			<column name="UPDATE_DATE" type="TIMESTAMP"/>
+			<column name="LABEL" type="VARCHAR(50)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="NAME" type="VARCHAR(100)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="DESCRIPTION" type="VARCHAR(255)"/>
+			<column name="COMMENTS" type="VARCHAR(2000)"/>
+		</createTable>
+		<createSequence sequenceName="NEARBY_SPECIFIC_AREA_SEQ" incrementBy="1"/>
+	</changeSet>
+
+	<!-- add FISHING_AREA table -->
+	<changeSet author="ludovic.pecquot@e-is.pro" id="1591686957118-4">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="FISHING_AREA"/>
+			</not>
+		</preConditions>
+		<createTable tableName="FISHING_AREA">
+			<column name="ID" type="INT">
+				<constraints primaryKey="true" primaryKeyName="FISHING_AREA_PK"/>
+			</column>
+			<column name="QUALIFICATION_DATE" type="TIMESTAMP"/>
+			<column name="QUALIFICATION_COMMENTS" type="VARCHAR(2000)"/>
+			<column name="QUALITY_FLAG_FK" type="INT">
+				<constraints foreignKeyName="FISHING_AREA_QUALITY_FLAG_FKC" referencedTableName="QUALITY_FLAG" referencedColumnNames="ID"/>
+			</column>
+			<column name="LOCATION_FK" type="INT">
+				<constraints foreignKeyName="FISHING_AREA_LOCATION_FKC" referencedTableName="LOCATION" referencedColumnNames="ID"/>
+			</column>
+			<column name="DISTANCE_TO_COAST_GRADIENT_FK" type="INT">
+				<constraints foreignKeyName="FISHING_AREA_DISTANCE_TO_COAST_GRADIENT_FKC" referencedTableName="DISTANCE_TO_COAST_GRADIENT" referencedColumnNames="ID"/>
+			</column>
+			<column name="DEPTH_GRADIENT_FK" type="INT">
+				<constraints foreignKeyName="FISHING_AREA_DEPTH_GRADIENT_FKC" referencedTableName="DEPTH_GRADIENT" referencedColumnNames="ID"/>
+			</column>
+			<column name="NEARBY_SPECIFIC_AREA_FK" type="INT">
+				<constraints foreignKeyName="FISHING_AREA_NEARBY_SPECIFIC_AREA_FKC" referencedTableName="NEARBY_SPECIFIC_AREA" referencedColumnNames="ID"/>
+			</column>
+			<column name="OPERATION_FK" type="INT">
+				<constraints foreignKeyName="FISHING_AREA_OPERATION_FKC" referencedTableName="OPERATION" referencedColumnNames="ID"/>
+			</column>
+		</createTable>
+		<createSequence sequenceName="FISHING_AREA_SEQ" incrementBy="50"/>
+	</changeSet>
+
+
+	<!-- update SYSTEM_VERSION -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1591686957118-200" runOnChange="true">
+		<delete tableName="SYSTEM_VERSION">
+			<where>LABEL='1.2.6'</where>
+		</delete>
+		<insert tableName="SYSTEM_VERSION">
+			<column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+			<column name="LABEL">1.2.6</column>
+			<column name="DESCRIPTION">
+				- Add tables FISHING_AREA, DEPTH_GRADIENT, DISTANCE_TO_COAST_GRADIENT and NEARBY_SPECIFIC_AREA
+			</column>
+			<column name="CREATION_DATE" valueComputed="sysdate"/>
+			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+			<column name="COMMENTS">
+			</column>
+		</insert>
+	</changeSet>
+
+</databaseChangeLog>

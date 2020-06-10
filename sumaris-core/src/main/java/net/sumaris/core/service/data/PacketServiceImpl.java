@@ -61,12 +61,17 @@ public class PacketServiceImpl implements PacketService, DatabaseSchemaListener 
 
     @PostConstruct
     protected void init() {
+        initPmfms();
         databaseSchemaDao.addListener(this);
     }
 
     @Override
     public void onSchemaUpdated(SchemaUpdatedEvent event) {
-        // TODO: allow to start service, even some PMFM are missing
+        // allow to start service, even some PMFM are missing
+        initPmfms();
+    }
+
+    private void initPmfms() {
         // (e.g. use findByLabel())
         this.calculatedWeightPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_CALCULATED_WEIGHT.getLabel()).getId();
         this.measuredWeightPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_MEASURED_WEIGHT.getLabel()).getId();

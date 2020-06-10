@@ -47,6 +47,8 @@ public class ReferentialVO implements IReferentialVO {
     //@EqualsAndHashCode.Exclude
     private Integer levelId;
 
+    private Integer rankOrder;
+
     // Metadata
     //@EqualsAndHashCode.Exclude
     private String entityName;

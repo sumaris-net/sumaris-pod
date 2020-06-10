@@ -49,6 +49,9 @@ public class OperationGroupServiceImpl implements OperationGroupService {
     @Autowired
     protected PacketService packetService;
 
+    @Autowired
+    protected FishingAreaService fishingAreaService;
+
     @Override
     public List<MetierVO> getMetiersByTripId(int tripId) {
         return operationGroupDao.getMetiersByTripId(tripId);
@@ -213,8 +216,18 @@ public class OperationGroupServiceImpl implements OperationGroupService {
             source.setPackets(savedPackets);
         }
 
+        // Save fishing areas
+        if (source.getFishingAreas() != null) {
+
+            source.getFishingAreas().forEach(fishingArea -> fillDefaultProperties(source, fishingArea));
+            fishingAreaService.saveAllByOperationId(source.getId(), source.getFishingAreas());
+        }
     }
 
+    private void fillDefaultProperties(OperationGroupVO source, FishingAreaVO fishingArea) {
+
+        fishingArea.setOperationId(source.getId());
+    }
 
     protected void fillDefaultProperties(OperationGroupVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
         if (measurement == null) return;

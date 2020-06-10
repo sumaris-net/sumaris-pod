@@ -85,6 +85,9 @@ public class TripVO implements IRootDataVO<Integer>,
     private List<OperationGroupVO> operationGroups;
 
     @EqualsAndHashCode.Exclude
+    private FishingAreaVO fishingArea;
+
+    @EqualsAndHashCode.Exclude
     private List<MeasurementVO> measurements; // vessel_use_measurement
     private Map<Integer, String> measurementValues; // vessel_use_measurement
 

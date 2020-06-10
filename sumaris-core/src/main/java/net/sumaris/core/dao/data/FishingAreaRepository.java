@@ -22,27 +22,14 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IValueObject;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import org.springframework.data.repository.NoRepositoryBean;
+import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
+import net.sumaris.core.model.data.FishingArea;
+import net.sumaris.core.vo.data.FishingAreaVO;
 
-import java.io.Serializable;
+import java.util.List;
 
-@NoRepositoryBean
-public interface IEntityConverter<E extends IEntity<? extends Serializable>, V extends IValueObject<? extends Serializable>> {
-
-    V toVO(E source);
-
-    V toVO(E source, DataFetchOptions fetchOptions);
-
-    void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull);
-
-    E toEntity(V source);
-
-    void toEntity(V source, E target, boolean copyIfNull);
-
-    V createVO();
-
-    Class<V> getVOClass();
+public interface FishingAreaRepository
+    extends SumarisJpaRepository<FishingArea, Integer, FishingAreaVO>, FishingAreaRepositoryExtend
+{
+    List<FishingArea> getAllByOperationId(int operationId);
 }

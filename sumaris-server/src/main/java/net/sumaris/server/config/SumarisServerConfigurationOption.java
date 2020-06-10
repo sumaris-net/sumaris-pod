@@ -61,7 +61,7 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     REGISTRATION_CONFIRM_URL(
             "sumaris.server.account.register.confirm.url",
             n("sumaris.config.option.server.account.register.confirm.url.description"),
-            "${server.url}/confirm/{email}/{code}",
+            "${server.url}/api/confirmEmail/?email={email}&code={code}",
             String.class,
             false),
 

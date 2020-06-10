@@ -152,4 +152,10 @@ public class Operation implements IDataEntity<Integer>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Product.class, mappedBy = Product.Fields.OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Product> products = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = FishingArea.class, mappedBy = FishingArea.Fields.OPERATION)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<FishingArea> fishingAreas = new ArrayList<>();
+
+
 }

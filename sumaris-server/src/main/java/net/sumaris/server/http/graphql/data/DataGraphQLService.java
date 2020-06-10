@@ -113,6 +113,9 @@ public class DataGraphQLService {
     @Autowired
     private PacketService packetService;
 
+    @Autowired
+    private FishingAreaService fishingAreaService;
+
     /* -- Vessel -- */
 
     @GraphQLQuery(name = "vesselSnapshots", description = "Search in vessel snapshots")
@@ -938,6 +941,31 @@ public class DataGraphQLService {
         }
         return measurementService.getOperationGearUseMeasurementsMap(operationGroup.getId());
     }
+
+
+    // Fishing area
+
+    @GraphQLQuery(name = "fishingArea", description = "Get trip's fishing area")
+    public FishingAreaVO getTripFishingArea(@GraphQLContext TripVO trip) {
+        return fishingAreaService.getByFishingTripId(trip.getId());
+    }
+
+    @GraphQLQuery(name = "fishingAreas", description = "Get operation's fishing areas")
+    public List<FishingAreaVO> getOperationFishingAreas(@GraphQLContext OperationVO operation) {
+        if (operation.getFishingAreas() != null) {
+            return operation.getFishingAreas();
+        }
+        return fishingAreaService.getAllByOperationId(operation.getId());
+    }
+
+    @GraphQLQuery(name = "fishingAreas", description = "Get operation group's fishing areas")
+    public List<FishingAreaVO> getOperationGroupFishingAreas(@GraphQLContext OperationGroupVO operationGroup) {
+        if (operationGroup.getFishingAreas() != null) {
+            return operationGroup.getFishingAreas();
+        }
+        return fishingAreaService.getAllByOperationId(operationGroup.getId());
+    }
+
 
     // Sale
     @GraphQLQuery(name = "measurements", description = "Get sale measurements")
