@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.*;
@@ -35,6 +34,7 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
@@ -486,50 +486,17 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
 
         // Taxon Group strategy
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getTaxonGroups())) {
-            if (CollectionUtils.isEmpty(source.getTaxonGroups())) {
-                if (target.getTaxonGroups() != null) {
-                    target.getTaxonGroups().clear();
-                }
-            }
-            else {
-                Map<Integer, TaxonGroupStrategy> existingEntities = Beans.splitByProperty(target.getTaxonGroups(),
-                        TaxonGroupStrategy.Fields.TAXON_GROUP + "." + TaxonGroup.Fields.ID);
-                Daos.replaceEntities(target.getTaxonGroups(), source.getTaxonGroups(),
-                        (childSource) -> {
-                            Integer taxonGroupId = childSource.getTaxonGroup() != null ? childSource.getTaxonGroup().getId() : null;
-                            if (taxonGroupId == null) throw new DataIntegrityViolationException("Missing taxonGroup.id in a TaxonGroupStrategyVO");
-                            TaxonGroupStrategy childTarget = existingEntities.remove(taxonGroupId);
-                            boolean isNew = childTarget == null;
-                            if (isNew) {
-                                childTarget = new TaxonGroupStrategy();
-                                childTarget.setTaxonGroup(load(TaxonGroup.class, taxonGroupId));
-                                childTarget.setStrategy(target);
-                            }
-                            childTarget.setPriorityLevel(childSource.getPriorityLevel());
-                            if (isNew) {
-                                em.persist(childTarget);
-                            }
-                            else {
-                                em.merge(childTarget);
-                            }
-                            return childTarget;
-                        });
-                if (MapUtils.isNotEmpty(existingEntities)) {
-                    existingEntities.values().forEach(childToRemove -> em.remove(childToRemove));
-                }
-            }
+            saveTaxonGroupStrategiesByStrategy(source.getTaxonGroups(), target);
         }
 
-        // Taxon Names strategy
+        // Reference Names strategy
         if (copyIfNull || CollectionUtils.isNotEmpty(source.getTaxonNames())) {
-            if (CollectionUtils.isEmpty(source.getTaxonNames())) {
-                if (target.getReferenceTaxons() != null) {
-                    target.getReferenceTaxons().clear();
-                }
-            }
-            else {
-                // TODO
-            }
+            saveReferenceTaxonStrategiesByStrategy(source.getTaxonNames(), target);
+        }
+
+        // Pmfm Strategies
+        if (copyIfNull || CollectionUtils.isNotEmpty(source.getPmfmStrategies())) {
+            savePmfmStrategiesByStrategy(source.getPmfmStrategies(), target);
         }
     }
 
@@ -580,5 +547,85 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                     return target;
                 })
                 .collect(Collectors.toList());
+    }
+
+    protected void saveTaxonGroupStrategiesByStrategy(List<TaxonGroupStrategyVO> sources, Strategy target) {
+        EntityManager em = getEntityManager();
+
+        // Remember existing entities
+        Map<Integer, TaxonGroupStrategy> sourcesToRemove = Beans.splitByProperty(target.getTaxonGroups(),
+                TaxonGroupStrategy.Fields.TAXON_GROUP + "." + TaxonGroup.Fields.ID);
+
+        // Save each taxon group strategy
+        List<TaxonGroupStrategy> result = Beans.getStream(sources).map(taxonGroupStrategy -> {
+            Integer taxonGroupId = taxonGroupStrategy.getTaxonGroup() != null ? taxonGroupStrategy.getTaxonGroup().getId() : null;
+            if (taxonGroupId == null) throw new DataIntegrityViolationException("Missing taxonGroup.id in a TaxonGroupStrategyVO");
+            TaxonGroupStrategy childTarget = sourcesToRemove.remove(taxonGroupId);
+            boolean isNew = childTarget == null;
+            if (isNew) {
+                childTarget = new TaxonGroupStrategy();
+                childTarget.setTaxonGroup(load(TaxonGroup.class, taxonGroupId));
+                childTarget.setStrategy(target);
+            }
+            childTarget.setPriorityLevel(taxonGroupStrategy.getPriorityLevel());
+            if (isNew) {
+                em.persist(childTarget);
+            }
+            else {
+                em.merge(childTarget);
+            }
+            return childTarget;
+        }).collect(Collectors.toList());
+
+        // Update the target strategy
+        target.setTaxonGroups(result);
+
+        // Remove unused entities
+        if (MapUtils.isNotEmpty(sourcesToRemove)) {
+            sourcesToRemove.values().forEach(em::remove);
+        }
+    }
+
+    protected void saveReferenceTaxonStrategiesByStrategy(List<TaxonNameStrategyVO> sources, Strategy target) {
+        EntityManager em = getEntityManager();
+
+        // Remember existing entities
+        Map<Integer, ReferenceTaxonStrategy> sourcesToRemove = Beans.splitByProperty(target.getReferenceTaxons(),
+                ReferenceTaxonStrategy.Fields.REFERENCE_TAXON + "." + ReferenceTaxon.Fields.ID);
+
+        // Save each reference taxon strategy
+        List<ReferenceTaxonStrategy> result = Beans.getStream(sources).map(referenceTaxonStrategy -> {
+            Integer referenceTaxonId = referenceTaxonStrategy.getReferenceTaxonId() != null ? referenceTaxonStrategy.getReferenceTaxonId() :
+                    (referenceTaxonStrategy.getTaxonName() != null ? referenceTaxonStrategy.getTaxonName().getReferenceTaxonId() : null);
+            if (referenceTaxonId == null) throw new DataIntegrityViolationException("Missing referenceTaxon.id in a ReferenceTaxonStrategyVO");
+            ReferenceTaxonStrategy childTarget = sourcesToRemove.remove(referenceTaxonId);
+            boolean isNew = childTarget == null;
+            if (isNew) {
+                childTarget = new ReferenceTaxonStrategy();
+                childTarget.setReferenceTaxon(load(ReferenceTaxon.class, referenceTaxonId));
+                childTarget.setStrategy(target);
+            }
+            childTarget.setPriorityLevel(referenceTaxonStrategy.getPriorityLevel());
+            if (isNew) {
+                em.persist(childTarget);
+            }
+            else {
+                em.merge(childTarget);
+            }
+            return childTarget;
+        }).collect(Collectors.toList());
+
+        // Update the target strategy
+        target.setReferenceTaxons(result);
+
+        // Remove unused entities
+        if (MapUtils.isNotEmpty(sourcesToRemove)) {
+            sourcesToRemove.values().forEach(em::remove);
+        }
+    }
+
+
+    protected void savePmfmStrategiesByStrategy(List<PmfmStrategyVO> sources, Strategy target) {
+
     }
 }

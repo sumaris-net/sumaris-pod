@@ -26,12 +26,16 @@ import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
 
 public interface StrategyDao {
 
+    @Cacheable(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, key = "#programId * #fetchOptions.hashCode()")
     List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions);
 
     @Cacheable(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, key = "#strategyId", unless = "#result == null")
@@ -47,10 +51,28 @@ public interface StrategyDao {
 
     PmfmStrategyVO toPmfmStrategyVO(PmfmStrategy source, boolean copyPmfmValue);
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true),
+                    @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, allEntries = true)
+            }
+    )
     List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true),
+                    @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, key = "#source.id", condition = "#source.id != null")
+            }
+    )
     StrategyVO save(StrategyVO source);
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true),
+                    @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, key = "#id")
+            }
+    )
     void delete(int id);
 
 }

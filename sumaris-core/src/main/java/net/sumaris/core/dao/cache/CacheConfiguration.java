@@ -101,6 +101,11 @@ public class CacheConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean strategiesByProgramId() {
+        return Caches.createHeapCache(ehcache(), CacheNames.STRATEGIES_BY_PROGRAM_ID, 1500, 1500, 100);
+    }
+
+    @Bean
     public EhCacheFactoryBean pmfmByStrategyIdCache() {
         return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_STRATEGY_ID, 1500, 1500, 100);
     }
