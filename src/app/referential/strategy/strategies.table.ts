@@ -13,10 +13,11 @@ import {InMemoryTableDataService} from "../../shared/services/memory-data-servic
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {isEmptyArray} from "../../shared/functions";
+import {isEmptyArray, toBoolean} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {DefaultStatusList} from "../../core/services/model";
+import {AppInMemoryTable} from "../../core/table/memory-table.class";
 
 export declare interface StrategyFilter {
 }
@@ -34,7 +35,7 @@ export declare interface StrategyFilter {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implements OnInit, OnDestroy {
+export class StrategiesTable extends AppInMemoryTable<Strategy, StrategyFilter> implements OnInit, OnDestroy {
 
   statusList = DefaultStatusList;
   statusById: any;
@@ -42,36 +43,14 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
   @Input() canEdit = false;
   @Input() canDelete = false;
 
-  set value(data: Strategy[]) {
-    const firstCall = isEmptyArray(this.memoryDataService.value);
-    this.memoryDataService.value = data;
-    if (firstCall) {
-      this.onRefresh.emit();
-    }
-  }
-
-  get value(): Strategy[] {
-    return this.memoryDataService.value;
-  }
-
-  get dirty(): boolean {
-    return this._dirty || this.memoryDataService.dirty;
-  }
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: Platform,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected accountService: AccountService,
-    protected settings: LocalSettingsService,
-    protected validatorService: ValidatorService,
+    protected injector: Injector,
     protected memoryDataService: InMemoryTableDataService<Strategy, StrategyFilter>,
-    protected cd: ChangeDetectorRef,
-    protected injector: Injector
+    protected validatorService: ValidatorService,
+    protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       // columns
       RESERVED_START_COLUMNS
         .concat([
@@ -81,13 +60,15 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
           'status',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Strategy, StrategyFilter>(Strategy, memoryDataService, validatorService),
-      {},
-      injector);
+      Strategy,
+      memoryDataService,
+      validatorService,
+      null,
+      {});
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.autoLoad = false; // waiting parent to load
-    this.inlineEdition = true;
+
     this.confirmBeforeDelete = true;
 
     // Fill statusById
@@ -98,16 +79,15 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
   }
 
   ngOnInit() {
+    this.inlineEdition = toBoolean(this.inlineEdition, true);
     super.ngOnInit();
+
+    console.log("TODO check inlineEdition:" + this.inlineEdition);
   }
 
-  async deleteSelection(confirm?: boolean): Promise<void> {
 
-    await super.deleteSelection(confirm);
-
-    if (confirm) {
-      this._dirty = true;
-    }
+  setValue(value: Strategy[]) {
+    super.setValue(value);
   }
 
   referentialToString = referentialToString;

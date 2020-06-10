@@ -8,7 +8,7 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS, StatusIds
 } from "../../core/core.module";
-import {Referential} from "../services/model";
+import {PmfmStrategy, Referential} from "../services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
@@ -19,6 +19,8 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {DefaultStatusList} from "../../core/services/model";
 import {ReferentialValidatorService} from "../services/referential.validator";
 import {ReferentialFilter} from "../services/referential.service";
+import {AppInMemoryTable} from "../../core/table/memory-table.class";
+import {PmfmStrategyFilter} from "../strategy/pmfm-strategies.table";
 
 
 @Component({
@@ -34,7 +36,7 @@ import {ReferentialFilter} from "../services/referential.service";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReferentialTable extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
+export class ReferentialTable extends AppInMemoryTable<Referential, ReferentialFilter> {
 
   statusList = DefaultStatusList;
   statusById: any;
@@ -53,21 +55,6 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
   @Input() canEdit = false;
   @Input() canDelete = false;
 
-  set value(data: Referential[]) {
-    const firstCall = isEmptyArray(this.memoryDataService.value);
-    this.memoryDataService.value = data;
-    if (firstCall) {
-      this.onRefresh.emit();
-    }
-  }
-
-  get value(): Referential[] {
-    return this.memoryDataService.value;
-  }
-
-  get dirty(): boolean {
-    return this._dirty || this.memoryDataService.dirty;
-  }
 
   constructor(
     protected route: ActivatedRoute,
@@ -82,7 +69,7 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
     protected cd: ChangeDetectorRef,
     protected injector: Injector
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       // columns
       RESERVED_START_COLUMNS
         .concat([
@@ -92,15 +79,17 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
           'status',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Referential, ReferentialFilter>(Referential, memoryDataService, validatorService, {
+      Referential,
+      memoryDataService,
+      validatorService,
+      {
         onRowCreated: (row) => this.onRowCreated(row),
         prependNewElements: false,
         suppressErrors: true
-      }),
+      },
       {
         entityName: 'Program'
-      },
-      injector);
+      });
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.autoLoad = false; // waiting parent to load
@@ -112,10 +101,6 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
     this.statusList.forEach((status) => this.statusById[status.id] = status);
 
     this.debug = !environment.production;
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
   }
 
   async deleteSelection(confirm?: boolean): Promise<void> {

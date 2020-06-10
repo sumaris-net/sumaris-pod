@@ -1,7 +1,7 @@
-import {DataEntityAsObjectOptions} from "./base.model";
-import {Batch, BatchUtils} from "./batch.model";
+import {DataEntityAsObjectOptions, Entity} from "./base.model";
+import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
 
-export class BatchGroup extends Batch {
+export class BatchGroup extends Batch<BatchGroup> {
 
   // Number of individual observed (by individual measure)
   observedIndividualCount: number;
@@ -14,7 +14,7 @@ export class BatchGroup extends Batch {
     return target;
   }
 
-  static fromObject(source: any, opts?: { withChildren: boolean; }): BatchGroup {
+  static fromObject(source: any, opts?: BatchFromObjectOptions): BatchGroup {
     const target = new BatchGroup();
     target.fromObject(source, opts);
     return target;
@@ -30,18 +30,17 @@ export class BatchGroup extends Batch {
     return target;
   }
 
-  fromObject(source: any, opts?: { withChildren: boolean; }): BatchGroup {
-    super.fromObject(source, opts);
-    this.observedIndividualCount = source.observedIndividualCount;
-    return this;
-  }
-
-  asObject(opts?: DataEntityAsObjectOptions & { withChildren?: boolean }): any {
+  asObject(opts?: BatchAsObjectOptions): any {
     const target = super.asObject(opts);
     if (opts && opts.minify === true) {
       delete target.observedIndividualCount;
     }
     return target;
+  }
+
+  fromObject(source: any, opts?: BatchFromObjectOptions) {
+    super.fromObject(source, opts);
+    this.observedIndividualCount = source.observedIndividualCount;
   }
 }
 

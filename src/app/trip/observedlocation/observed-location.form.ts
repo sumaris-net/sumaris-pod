@@ -23,7 +23,7 @@ import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormArray, FormBuilder} from "@angular/forms";
-import {UserProfileLabel} from "../../core/services/model";
+import {ReferentialUtils, UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {toBoolean} from "../../shared/functions";
 import {ObservedLocation} from "../services/model/observed-location.model";
@@ -134,7 +134,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       this.form.get('program').valueChanges
         .pipe(
           debounceTime(250),
-          filter(EntityUtils.isNotEmpty),
+          filter(ReferentialUtils.isNotEmpty),
           pluck('label'),
           distinctUntilChanged()
         )
@@ -217,12 +217,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     if (isNil(this._showObservers)) return; // skip if not loading yet
 
     this.observersHelper = new FormArrayHelper<Person>(
-      this.formBuilder,
-      this.form,
-      'observers',
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
       (person) => this.validatorService.getObserverControl(person),
-      EntityUtils.equals,
-      EntityUtils.isEmpty,
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
       {
         allowEmptyArray: !this._showObservers
       }

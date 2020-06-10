@@ -51,7 +51,7 @@
   <!-- id -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label *ngIf="!($loading|async); else loadingSpinner">#</ion-label>
+      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{row.currentData.rankOrder}}</ion-text>
@@ -161,7 +161,3 @@
   <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled"
            (click)="clickRow($event, row)"></mat-row>
 </mat-table>
-
-<ng-template #loadingSpinner>
-  <ion-spinner [ngClass]="{'center':true}"></ion-spinner>
-</ng-template>

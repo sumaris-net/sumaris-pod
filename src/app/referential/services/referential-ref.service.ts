@@ -2,11 +2,11 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {isNotEmptyArray, isNotNil, LoadResult} from "../../shared/shared.module";
+import {isNotEmptyArray, isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService, EntityUtils, environment, Referential, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {ReferentialRef} from "../../core/services/model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model";
 
 import {FetchPolicy} from "apollo-client";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
@@ -60,7 +60,8 @@ const LoadAllTaxonNamesQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class ReferentialRefService extends BaseDataService
-  implements SuggestionDataService<ReferentialRef, ReferentialRefFilter> {
+  implements SuggestionDataService<ReferentialRef, ReferentialRefFilter>,
+      TableDataService<ReferentialRef, ReferentialRefFilter> {
 
   private _importedEntities: string[];
 
@@ -109,15 +110,7 @@ export class ReferentialRefService extends BaseDataService
       size: size || 100,
       sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: {
-        label: filter.label,
-        name: filter.name,
-        searchText: filter.searchText,
-        searchAttribute: filter.searchAttribute,
-        searchJoin: filter.searchJoin,
-        levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
-        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
-      }
+      filter: ReferentialFilter.asPodObject(filter)
     };
 
     let now = this._debug && Date.now();
@@ -184,6 +177,8 @@ export class ReferentialRefService extends BaseDataService
     }
 
     const entityName = filter.entityName;
+    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
+
     const debug = this._debug && (!opts || opts.debug !== false);
 
     const variables: any = {
@@ -205,14 +200,16 @@ export class ReferentialRefService extends BaseDataService
       }
     };
 
+
+
     const now = debug && Date.now();
-    if (debug) console.debug(`[referential-ref-service] Loading ${entityName} items...`, variables);
+    if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items...`, variables);
 
     // Offline mode: read from the entities storage
     let loadResult: { referentials: any[]; referentialsCount: number };
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      loadResult = await this.entities.loadAll(filter.entityName + 'VO',
+      loadResult = await this.entities.loadAll(uniqueEntityName + 'VO',
         {
           ...variables,
           filter: this.createSearchFilterFn(filter)
@@ -239,7 +236,13 @@ export class ReferentialRefService extends BaseDataService
     const data = (!opts || opts.transformToEntity !== false) ?
       (loadResult && loadResult.referentials || []).map(ReferentialRef.fromObject) :
       (loadResult && loadResult.referentials || []) as ReferentialRef[];
-    if (debug) console.debug(`[referential-ref-service] ${entityName} items loaded in ${Date.now() - now}ms`);
+
+    // Force entity name (if searchJoin)
+    if (filter.entityName !== uniqueEntityName) {
+      data.forEach(item => item.entityName = uniqueEntityName);
+    }
+
+    if (debug) console.debug(`[referential-ref-service] ${uniqueEntityName} items loaded in ${Date.now() - now}ms`);
     return {
       data: data,
       total: loadResult.referentialsCount
@@ -247,7 +250,7 @@ export class ReferentialRefService extends BaseDataService
   }
 
   async suggest(value: any, filter?: ReferentialRefFilter): Promise<ReferentialRef[]> {
-    if (EntityUtils.isNotEmpty(value)) return [value];
+    if (ReferentialUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, null, null,
       { ...filter, searchText: value},
@@ -260,7 +263,7 @@ export class ReferentialRefService extends BaseDataService
                           size: number,
                           sortBy?: string,
                           sortDirection?: string,
-                          filter?: Partial<TaxonNameRefFilter>,
+                          filter?: TaxonNameRefFilter,
                           opts?: {
                             [key: string]: any;
                             fetchPolicy?: FetchPolicy;
@@ -327,7 +330,7 @@ export class ReferentialRefService extends BaseDataService
     searchAttribute?: string;
     taxonGroupId?: number;
   }): Promise<TaxonNameRef[]> {
-    if (EntityUtils.isNotEmpty(value)) return [value];
+    if (ReferentialUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     return await this.loadAllTaxonNames(0, !value ? 30 : 10, undefined, undefined,
       {
@@ -353,6 +356,14 @@ export class ReferentialRefService extends BaseDataService
     return progress.asObservable();
   }
 
+  saveAll(data: ReferentialRef[], options?: any): Promise<ReferentialRef[]> {
+    throw new Error('Not implemented yet');
+  }
+
+  deleteAll(data: ReferentialRef[], options?: any): Promise<any> {
+    throw new Error('Not implemented yet');
+  }
+
   /* -- protected methods -- */
 
   protected async executeImportWithProgress(progression: BehaviorSubject<number>,
@@ -362,7 +373,7 @@ export class ReferentialRefService extends BaseDataService
                                               statusIds?: number[];
                                             }) {
 
-    const entityNames = opts && opts.entityNames || ['Location', 'Gear', 'Metier', 'TaxonGroup', 'TaxonName', 'Department', 'QualityFlag', 'SaleType', 'VesselType'];
+    const entityNames = opts && opts.entityNames || ['Location', 'Gear', 'Metier', 'MetierTaxonGroup', 'TaxonGroup', 'TaxonName', 'Department', 'QualityFlag', 'SaleType', 'VesselType'];
 
     const statusIds = opts && opts.statusIds || [StatusIds.ENABLE, StatusIds.TEMPORARY];
 
@@ -402,7 +413,10 @@ export class ReferentialRefService extends BaseDataService
             logPrefix);
           break;
         case 'Metier':
-          filter = {entityName, statusIds, searchJoin: 'TaxonGroup' };
+          filter = {entityName, statusIds};
+          break;
+        case 'MetierTaxonGroup':
+          filter = {entityName: 'Metier', statusIds, searchJoin: 'TaxonGroup' };
           break;
         case 'TaxonGroup':
           filter = {entityName, statusIds, levelIds: [TaxonGroupIds.FAO] };

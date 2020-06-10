@@ -1,10 +1,7 @@
 import {NgModule, Type} from "@angular/core";
 import {CdkTableModule} from "@angular/cdk/table";
-import {MatDatepickerModule} from '@angular/material/datepicker';
-import {MatMomentDateModule} from '@angular/material-moment-adapter';
 
 import {fadeInAnimation, slideInOutAnimation} from './material.animations';
-import {InputElement} from './focusable';
 import {A11yModule} from "@angular/cdk/a11y";
 import {OverlayModule} from "@angular/cdk/overlay";
 import {ScrollingModule} from "@angular/cdk/scrolling";
@@ -33,10 +30,12 @@ import {MatBadgeModule} from "@angular/material/badge";
 import {MatSlideToggleModule} from "@angular/material/slide-toggle";
 import {MatDialogModule} from "@angular/material/dialog";
 import {SharedMatAutocompleteModule} from "./autocomplete/autocomplete.module";
-import {SharedMatLatLongModule} from "./latlong/latlong.module";
+import {SharedMatLatLongModule} from "./latlong/material.latlong.module";
 import {SharedMatDateTimeModule} from "./datetime/datetime.module";
 import {SharedMatDurationModule} from "./duration/duration.module";
 import {SharedMatBooleanModule} from "./boolean/boolean.module";
+import {SharedMatNumpadModule} from "./numpad/numpad.module";
+import {InputElement} from "../inputs";
 
 export { fadeInAnimation, slideInOutAnimation, InputElement };
 
@@ -76,13 +75,14 @@ const modules: Array<Type<any> | any[]> = [
   SharedMatLatLongModule,
   SharedMatDateTimeModule,
   SharedMatDurationModule,
-  SharedMatBooleanModule
+  SharedMatBooleanModule,
+  SharedMatNumpadModule
 ];
 
 @NgModule({
   imports: modules,
   exports: modules
 })
-export class MaterialModule {
+export class SharedMaterialModule {
 }
 

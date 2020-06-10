@@ -1,0 +1,13 @@
+<div [appendNumpadToInput]="inputElement" *ngIf="appendToInput; else modal">
+    <!--suppress HtmlUnknownAttribute -->
+    <ng-container *ngTemplateOutlet="content"></ng-container>
+</div>
+
+<ng-template #modal>
+    <!--suppress HtmlUnknownAttribute -->
+    <ng-container *ngTemplateOutlet="content"></ng-container>
+</ng-template>
+
+<ng-template #content>
+    <ng-content></ng-content>
+</ng-template>

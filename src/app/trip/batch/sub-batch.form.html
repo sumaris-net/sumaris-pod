@@ -1,5 +1,6 @@
 <form class="form-container" [formGroup]="form" >
 
+  <!-- (keydown.tab)="focusNextInput($event)" (keydown.shift.tab)="focusPreviousInput($event)" -->
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -10,13 +11,15 @@
   <ion-grid class="ion-no-padding" *ngIf="showParent">
     <ion-row class="ion-no-padding">
       <ion-col class="ion-no-padding">
-        <mat-autocomplete-field #matInput
+        <mat-autocomplete-field #inputField
                                 formControlName="parent"
                                 [placeholder]="'TRIP.BATCH.EDIT.PARENT'|translate"
                                 [config]="autocompleteFields.parent"
                                 [required]="true"
+                                [mobile]="mobile"
                                 [tabindex]="tabindex"
-                                [mobile]="mobile">
+                                (keydown.tab)="focusNextInput($event)"
+                                (keydown.enter)="focusNextInput($event)">
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="auto" class="ion-no-padding" *ngIf="onNewParentClick">
@@ -30,14 +33,16 @@
   </ion-grid>
 
   <!-- QV pmfm -->
-  <mat-form-field-measurement-qv #matInput
-                                 *ngIf="!($loadingControls|async) && qvPmfm"
+  <mat-form-field-measurement-qv #inputField
+                                 *ngIf="!($loadingControls | async) && qvPmfm"
                                  [pmfm]="qvPmfm"
                                  [style]="mobile? 'button' : 'autocomplete'"
-                                 [formControl]="form.get('measurementValues.' + qvPmfm.pmfmId.toString())"
+                                 [formControl]="measurementFormGroup.controls[qvPmfm.pmfmId.toString()]"
                                  [floatLabel]="floatLabel"
                                  [compact]="compact"
-                                 [tabindex]="tabindex+1">
+                                 [tabindex]="tabindex+1"
+                                 (keydown.tab)="focusNextInput($event)"
+                                 (keydown.enter)="focusNextInput($event)">
     <!-- checkbox to freeze -->
     <mat-checkbox  matSuffix
                    *ngIf="!mobile"
@@ -50,13 +55,17 @@
   </mat-form-field-measurement-qv>
 
   <!-- Taxon name -->
-  <div *ngIf="showTaxonName">
-    <mat-autocomplete-field #matInput  *ngIf="!mobile || freezeTaxonName; else taxonNameMobile"
+  <ng-container *ngIf="showTaxonName">
+
+    <!-- Taxon name (desktop) -->
+    <mat-autocomplete-field #inputField *ngIf="!mobile || freezeTaxonName; else taxonNameMobile"
                             formControlName="taxonName"
                             [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                             [config]="autocompleteFields.taxonName"
+                            [required]="true"
                             [tabindex]="tabindex+2"
-                            [required]="true">
+                            (keydown.tab)="focusNextInput($event)"
+                            (keydown.enter)="focusNextInput($event)">
       <!-- checkbox to freeze value -->
       <mat-checkbox  matSuffix
                      [formControl]="freezeTaxonNameControl"
@@ -67,6 +76,7 @@
       </mat-checkbox>
     </mat-autocomplete-field>
 
+    <!-- Taxon name (mobile: use buttons) -->
     <ng-template #taxonNameMobile>
       <mat-form-field floatLabel="always"
                       *ngIf="$taxonNames | async as taxonNames; else loadingTaxonNames"
@@ -79,12 +89,12 @@
         <ion-grid class="ion-no-padding" *ngIf="taxonNames.length > 1; else defaultTaxonName">
           <ion-row class="ion-no-padding">
             <ion-col *ngFor="let item of taxonNames; index as i;">
-              <ion-button #matInput
+              <ion-button mat-button #inputField
                           style="width: 100%;"
                           class="mat-form-field-button"
                           [color]="selectedTaxonNameIndex === -1 ? 'danger' : (selectedTaxonNameIndex === i ? 'accent' : 'light')"
-                          (click)="form.controls.taxonName.setValue(item)"
-                          (keyup.enter)="form.controls.taxonName.setValue(item)"
+                          (click)="onTaxonNameButtonClick($event, item, tabindex + 19)"
+                          (keyup.enter)="onTaxonNameButtonClick($event, item, tabindex + 19)"
                           [tabindex]="tabindex + 3 + i">
                 {{item.name || item.label}}
               </ion-button>
@@ -119,40 +129,38 @@
       <ng-template #loadingTaxonNames>
         <mat-form-field floatLabel="auto">
           <input matInput type="text"
-                 [disabled]="true"
                  [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                  required>
         </mat-form-field>
       </ng-template>
     </ng-template>
-  </div>
+  </ng-container>
 
   <!-- pmfms -->
   <div *ngIf="$pmfms | async as pmfms; else loadingSpinner">
 
     <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
-      <!-- qualitative value (force 'button' style, on mobile)-->
-      <mat-form-field-measurement-qv #matInput
-                                     *ngIf="pmfm.isQualitative; else otherField"
-                                     [hidden]="pmfm.hidden"
+      <!-- If mobile, force 'button' style for qualitative value PMFMs -->
+      <mat-form-field-measurement-qv #inputField
+                                     *ngIf="mobile && !pmfm.hidden && pmfm.isQualitative; else otherField"
                                      [pmfm]="pmfm"
-                                     [style]="mobile? 'button' : 'autocomplete'"
-                                     [sortAttribute]="mobile ? ['name'] : undefined"
-                                     [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
+                                     [style]="'button'"
+                                     [sortAttribute]="['name']"
+                                     [formControl]="measurementFormGroup.controls[pmfm.pmfmId.toString()]"
                                      [compact]="compact"
-                                     (keyup.enter)="last && doSubmitLastMeasurementField($event)"
-                                     [tabindex]="tabindex + 20 + i">
+                                     [tabindex]="tabindex + 20 + i*2"
+                                     (keyup.enter)="focusNextInput($event)">
       </mat-form-field-measurement-qv>
 
-      <!-- NOT qualitative value -->
+      <!-- NOT mobile and qualitative value -->
       <ng-template #otherField>
-        <mat-form-field-measurement #matInput
+        <mat-form-field-measurement #inputField
                                     [pmfm]="pmfm"
                                     [hidden]="pmfm.hidden"
-                                    [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
+                                    [formControl]="measurementFormGroup.controls[pmfm.pmfmId.toString()]"
                                     [compact]="compact"
-                                    (keyup.enter)="last && doSubmitLastMeasurementField($event)"
-                                    [tabindex]="tabindex + 20 + i">
+                                    (keyup.enter)="focusNextInputOrSubmit($event, last)"
+                                    [tabindex]="tabindex + 20 + i*2">
         </mat-form-field-measurement>
       </ng-template>
     </ng-container>
@@ -164,7 +172,7 @@
       <ion-col class="ion-no-padding">
         <!-- Individual count -->
         <mat-form-field *ngIf="showIndividualCount">
-          <input matInput #matInput
+          <input matInput #inputField
                  autocomplete="off"
                  formControlName="individualCount"
                  min="1"
@@ -216,5 +224,5 @@
 </form>
 
 <ng-template #loadingSpinner>
-  <ion-spinner float-center></ion-spinner>
+  <ion-spinner class="ion-align-self-center"></ion-spinner>
 </ng-template>

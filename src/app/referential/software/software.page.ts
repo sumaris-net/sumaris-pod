@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ActivatedRouteSnapshot} from "@angular/router";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {Configuration, EntityUtils, Software} from '../../core/services/model';
+import {EntityUtils, Software} from '../../core/services/model';
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 import {PlatformService} from "../../core/services/platform.service";
@@ -11,7 +11,6 @@ import {ReferentialForm} from "../form/referential.form";
 import {SoftwareService} from "../services/software.service";
 import {SoftwareValidatorService} from "../services/software.validator";
 import {ConfigService} from "../../core/services/config.service";
-import {ValidatorService} from "angular4-material-table";
 
 
 @Component({
@@ -56,9 +55,7 @@ export class SoftwarePage<T extends Software<T> = Software<any>> extends AppEdit
 
     this.form = validatorService.getFormGroup();
     this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
-      injector.get(FormBuilder),
-      this.form,
-      'properties',
+      this.form.get('properties') as FormArray,
       (value) => validatorService.getPropertyFormGroup(value),
       (v1, v2) => (!v1 && !v2) || v1.key === v2.key,
       (value) => isNil(value) || (isNil(value.key) && isNil(value.value)),
@@ -112,7 +109,7 @@ export class SoftwarePage<T extends Software<T> = Software<any>> extends AppEdit
 
   /* -- protected methods -- */
 
-  protected canUserWrite(data: Configuration): boolean {
+  protected canUserWrite(data: T): boolean {
     return this.accountService.isAdmin();
   }
 
@@ -140,7 +137,7 @@ export class SoftwarePage<T extends Software<T> = Software<any>> extends AppEdit
     super.loadFromRoute(route);
   }
 
-  protected setValue(data: Configuration) {
+  protected setValue(data: T) {
     if (!data) return; // Skip
 
     const json = data.asObject();
@@ -164,7 +161,7 @@ export class SoftwarePage<T extends Software<T> = Software<any>> extends AppEdit
     return json;
   }
 
-  protected computeTitle(data: Configuration): Promise<string> {
+  protected computeTitle(data: T): Promise<string> {
     // new data
     if (!data || isNil(data.id)) {
       return this.translate.get('CONFIGURATION.NEW.TITLE').toPromise();

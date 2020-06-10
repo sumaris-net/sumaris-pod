@@ -18,7 +18,7 @@
                (blur)="_onBlur($event)"
                [required]="required"
                [tabindex]="_tabindex"
-               (keyup.enter)="this.onKeypressEnter.emit($event)">
+               (keyup.enter)="this.onPressEnter.emit($event)">
 
         <button mat-button matSuffix mat-icon-button tabindex="-1"
                 type="button"
@@ -69,7 +69,9 @@
                   [formControl]="formControl"
                   (blur)="_onBlur($event)"
                   [tabindex]="_tabindex"
-                  [compareWith]="compareWith">
+                  [compareWith]="compareWith"
+                  (keyup.enter)="this.onPressEnter.emit($event)"
+      >
         <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
 
         <!-- header -->
@@ -122,7 +124,7 @@
              [formControl]="formControl"
              [placeholder]="placeholder"
              [required]="required">
-      <ion-grid class="ion-no-padding" *ngIf="!disabled; else disabledLabel">
+      <ion-grid class="ion-no-padding" *ngIf="!formControl.disabled; else disabledLabel">
         <ion-row class="ion-no-padding">
           <ion-col *ngFor="let item of pmfm.qualitativeValues; index as i; trackBy: getQvId">
             <ion-button style="width: 100%;"

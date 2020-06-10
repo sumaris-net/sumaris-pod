@@ -70,9 +70,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     super(dateAdapter, validatorService.getFormGroup(), settings);
 
     this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
-      this.formBuilder,
-      this.form,
-      'properties',
+      this.form.get('properties') as FormArray,
       (value) => this.validatorService.getPropertyFormGroup(value),
       (v1, v2) => (!v1 && !v2) || (v1.key === v2.key),
       (value) =>  isNil(value) || (isNil(value.key) && isNil(value.value)),

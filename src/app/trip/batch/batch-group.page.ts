@@ -64,7 +64,7 @@ export class BatchGroupPage extends AppEditorPage<BatchGroup, any> implements On
     this.idAttribute = 'batchId';
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {

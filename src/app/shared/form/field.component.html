@@ -11,6 +11,7 @@
            pattern="-?[0-9]*"
            step="1"
            [placeholder]="placeholder"
+           (keyup.enter)="onKeyupEnter.emit($event)"
            (keypress)="filterNumberInput($event, false)"
            [formControl]="formControl"
            [required]="required"
@@ -106,7 +107,7 @@
                 [placeholder]="placeholder"
                 [required]="required"
                 [tabindex]="tabindex"
-                (keyup.enter)="onKeypressEnter.emit($event)">
+                (keyup.enter)="onKeyupEnter.emit($event)">
       <mat-option *ngFor="let item of definition.values" [value]="item.key">{{ item.value | translate }}</mat-option>
     </mat-select>
 
@@ -147,7 +148,7 @@
            [tabIndex]="tabindex"
            (click)="selectInputContent($event)"
            (keypress)="filterAlphanumericalInput($event)"
-           (keyup.enter)="onKeypressEnter.emit($event)">
+           (keyup.enter)="onKeyupEnter.emit($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>

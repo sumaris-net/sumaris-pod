@@ -3,6 +3,7 @@ import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {EntityUtils, Program} from "../model";
 
 import {ValidatorService} from "angular4-material-table";
+import {SharedValidators} from "../../../shared/validator/validators";
 
 @Injectable()
 export class ProgramValidatorService implements ValidatorService {
@@ -26,6 +27,10 @@ export class ProgramValidatorService implements ValidatorService {
       name: [data && data.name || null, Validators.required],
       description: [data && data.description || null, Validators.maxLength(255)],
       comments: [data && data.comments || null, Validators.maxLength(2000)],
+      taxonGroupType: [data && data.taxonGroupType || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      gearClassification: [data && data.gearClassification || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      locationClassifications: this.formBuilder.array([]),
+      locations: this.formBuilder.array([]),
       properties: this.getPropertiesArray(data && data.properties)
     });
   }

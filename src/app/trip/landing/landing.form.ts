@@ -13,10 +13,12 @@ import {
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {
-  AcquisitionLevelCodes, LocationLevelIds,
+  AcquisitionLevelCodes,
+  LocationLevelIds,
   ProgramService,
   ReferentialRefService,
-  VesselModal, VesselSnapshot
+  VesselModal,
+  VesselSnapshot
 } from '../../referential/referential.module';
 import {LandingValidatorService} from "../services/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
@@ -24,7 +26,7 @@ import {MeasurementValuesForm} from "../measurement/measurement-values.form.clas
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
-import {UserProfileLabel} from "../../core/services/model";
+import {ReferentialUtils, UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -70,7 +72,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   get empty(): any {
     const value = this.value;
-    return EntityUtils.isEmpty(value.location)
+    return ReferentialUtils.isEmpty(value.location)
       && (!value.dateTime)
       && (!value.comments || !value.comments.length);
   }
@@ -138,7 +140,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.form.get('program').valueChanges
         .pipe(
           debounceTime(250),
-          filter(EntityUtils.isNotEmpty),
+          filter(ReferentialUtils.isNotEmpty),
           pluck('label'),
           distinctUntilChanged()
         )
@@ -235,17 +237,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   protected initObserversHelper() {
     if (isNil(this._showObservers)) return; // skip if not loading yet
-
     this.observersHelper = new FormArrayHelper<Person>(
-      this.formBuilder,
-      this.form,
-      'observers',
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
       (person) => this.validatorService.getObserverControl(person),
-      EntityUtils.equals,
-      EntityUtils.isEmpty,
-      {
-        allowEmptyArray: !this._showObservers
-      }
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {allowEmptyArray: !this._showObservers}
     );
 
     if (this._showObservers) {

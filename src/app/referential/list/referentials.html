@@ -127,7 +127,7 @@
 
     <mat-action-row>
       <!-- Counter  -->
-      <ion-label [hidden]="($loading|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'"
+      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'"
                  class="ion-padding">
         {{ (resultsLength ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (resultsLength |
           numberFormat)} }}
@@ -169,8 +169,7 @@
     <!-- Id column -->
     <ng-container matColumnDef="id">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
-        <ion-label *ngIf="!loading">#</ion-label>
-        <ion-spinner [ngClass]="{ 'center':true}" *ngIf="loading"></ion-spinner>
+        <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
     </ng-container>
@@ -314,7 +313,7 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile *ngIf="canEdit && !canOpenDetail">
-  <form-buttons-bar (onCancel)="onRefresh.emit()" (onSave)="save()" [disabled]="loading || !dirty">
+  <form-buttons-bar (onCancel)="onRefresh.emit()" (onSave)="save()" [disabled]="(loadingSubject|async) || !dirty">
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>

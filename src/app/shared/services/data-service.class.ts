@@ -36,7 +36,7 @@ export declare interface DataService<T, F> {
   deleteAll(data: T[], options?: any): Promise<any>;
 }
 
-export interface EditorDataServiceLoadOptions {
+export declare interface EditorDataServiceLoadOptions {
   fetchPolicy?: FetchPolicy;
   [key: string]: any;
 }

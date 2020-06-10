@@ -51,6 +51,7 @@ import {
   EntityUtils,
   IReferentialRef,
   joinPropertiesPath,
+  MINIFY_OPTIONS,
   NOT_MINIFY_OPTIONS,
   Person,
   personsToString,
@@ -60,9 +61,10 @@ import {
   ReferentialAsObjectOptions,
   ReferentialRef,
   referentialToString,
-  StatusIds,
+  ReferentialUtils,
   SAVE_AS_OBJECT_OPTIONS,
-  SAVE_LOCALLY_AS_OBJECT_OPTIONS
+  SAVE_LOCALLY_AS_OBJECT_OPTIONS,
+  StatusIds
 } from './services/model';
 // import ngx-translate and the http loader
 import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -74,6 +76,10 @@ import {LocalSettingsValidatorService} from "./services/local-settings.validator
 import {LocalSettingsService} from "./services/local-settings.service";
 import {AppEditorPage} from "./form/editor-page.class";
 import {EntityStorage} from "./services/entities-storage.service";
+import {IonicModule} from "@ionic/angular";
+import {CacheModule} from "ionic-cache";
+import {AppPropertiesForm} from "./form/properties.form";
+import {AppListForm} from "./form/list.form";
 
 export {
   environment,
@@ -117,7 +123,9 @@ export {
   AppTableUtils,
   EntityAsObjectOptions,
   PropertiesMap,
+  ReferentialUtils,
   ReferentialAsObjectOptions,
+  MINIFY_OPTIONS,
   NOT_MINIFY_OPTIONS,
   SAVE_AS_OBJECT_OPTIONS,
   SAVE_LOCALLY_AS_OBJECT_OPTIONS
@@ -139,7 +147,12 @@ export function HttpLoaderFactory(http: HttpClient) {
     AppGraphQLModule,
     SharedModule,
     ReactiveFormsModule,
-    IonicStorageModule.forRoot(),
+    IonicModule.forRoot(),
+    CacheModule.forRoot(),
+    IonicStorageModule.forRoot({
+      name: 'sumaris',
+      driverOrder: ['indexeddb', 'sqlite', 'websql']
+    }),
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -169,7 +182,9 @@ export function HttpLoaderFactory(http: HttpClient) {
     MenuComponent,
     TableSelectColumnsComponent,
     EntityMetadataComponent,
-    FormButtonsBarComponent
+    FormButtonsBarComponent,
+    AppPropertiesForm,
+    AppListForm
   ],
   exports: [
     CommonModule,
@@ -185,22 +200,9 @@ export function HttpLoaderFactory(http: HttpClient) {
     MenuComponent,
     ReactiveFormsModule,
     TranslateModule,
-    AboutModal
-  ],
-  entryComponents: [
     AboutModal,
-
-    // Auth & Register
-    RegisterModal,
-    AuthModal,
-
-    // Network
-    SelectPeerModal,
-
-    // Components
-    TableSelectColumnsComponent,
-    EntityMetadataComponent,
-    FormButtonsBarComponent,
+    AppPropertiesForm,
+    AppListForm
   ],
   providers: [
     LocalSettingsService,

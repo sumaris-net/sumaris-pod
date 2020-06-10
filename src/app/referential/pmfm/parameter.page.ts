@@ -13,6 +13,7 @@ import {ParameterService} from "../services/parameter.service";
 import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {ReferentialTable} from "../list/referential.table";
+import {ReferentialUtils} from "../../core/services/model";
 
 @Component({
   selector: 'app-parameter',
@@ -45,7 +46,6 @@ export class ParameterPage extends AppEditorPage<Parameter> implements OnInit {
     protected accountService: AccountService,
     protected validatorService: ParameterValidatorService,
     protected parameterService: ParameterService,
-    protected referentialService: ReferentialService,
     protected referentialRefService: ReferentialRefService
   ) {
     super(injector,
@@ -93,7 +93,7 @@ export class ParameterPage extends AppEditorPage<Parameter> implements OnInit {
 
   protected canUserWrite(data: Parameter): boolean {
     return (this.isNewData && this.accountService.isAdmin())
-      || (EntityUtils.isNotEmpty(data) && this.accountService.isSupervisor());
+      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
 
   }
 

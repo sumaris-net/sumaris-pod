@@ -13,17 +13,11 @@ import {
 } from '@angular/core';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {FloatLabelType} from "@angular/material/form-field";
-import {
-  filterNumberInput,
-  isNotNilOrBlank,
-  joinPropertiesPath,
-  selectInputContent, toBoolean,
-  toDateISOString
-} from "../../shared/functions";
-import {FormFieldDefinition, DisplayFn} from "./field.model";
+import {isNotNilOrBlank, joinPropertiesPath, toBoolean, toDateISOString} from "../../shared/functions";
+import {DisplayFn, FormFieldDefinition} from "./field.model";
 import {TranslateService} from "@ngx-translate/core";
 import {getColorContrast} from "../graph/colors.utils";
-import {asInputElement} from "../material/focusable";
+import {asInputElement, filterNumberInput, selectInputContent} from "../inputs";
 
 const noop = () => {
 };
@@ -45,7 +39,6 @@ export class AppFormField implements OnInit, ControlValueAccessor {
 
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
-  protected disabling = false;
   private _definition: FormFieldDefinition;
 
   type: string;
@@ -81,8 +74,8 @@ export class AppFormField implements OnInit, ControlValueAccessor {
 
   @Input() tabindex: number;
 
-  @Output('keypress.enter')
-  onKeypressEnter: EventEmitter<any> = new EventEmitter<any>();
+  @Output('keyup.enter')
+  onKeyupEnter: EventEmitter<any> = new EventEmitter<any>();
 
   get value(): any {
     return this.formControl.value;
@@ -158,17 +151,9 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     }
   }
 
-  filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) {
-    if (event.keyCode === 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
-      this.onKeypressEnter.emit(event);
-      return;
-    }
-    filterNumberInput(event, allowDecimals);
-  }
-
   filterAlphanumericalInput(event: KeyboardEvent) {
-    if (event.keyCode === 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
-      this.onKeypressEnter.emit(event);
+    if (event.keyCode === 13 /*=Enter*/ && this.onKeyupEnter.observers.length) {
+      this.onKeyupEnter.emit(event);
       return;
     }
     // Add features (e.g. check against a pattern)
@@ -178,6 +163,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     if (this.matInput) this.matInput.nativeElement.focus();
   }
 
+  filterNumberInput = filterNumberInput;
   selectInputContent = selectInputContent;
 
   getDisplayValueFn(definition: FormFieldDefinition): DisplayFn {

@@ -8,7 +8,7 @@ import {
   fromDateISOString,
   isNil,
   isNotNil,
-  joinPropertiesPath,
+  joinPropertiesPath, MINIFY_OPTIONS,
   NOT_MINIFY_OPTIONS,
   Person,
   PropertiesMap,
@@ -22,9 +22,10 @@ import {
 import {Moment} from "moment/moment";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
-import {isNilOrBlank} from "../../shared/functions";
+import {isNilOrBlank, toNumber} from "../../shared/functions";
 import {PredefinedColors} from "@ionic/core";
-import {PmfmType} from "./model/pmfm.model";
+import {Pmfm, PmfmType} from "./model/pmfm.model";
+import {IEntity, ReferentialUtils} from "../../core/services/model";
 
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 export const LocationLevelIds = {
@@ -173,7 +174,7 @@ export function statusToColor(statusId: number): PredefinedColors {
   }
 }
 
-export interface IWithProgramEntity<T> extends Entity<T> {
+export interface IWithProgramEntity<T> extends IEntity<T> {
   program: Referential | any;
   recorderPerson?: Person;
   recorderDepartment: Referential | any;
@@ -191,8 +192,8 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
 
   static fromVessel(source: Vessel): VesselSnapshot {
     if (!source) return undefined;
-    const res = new VesselSnapshot();
-    res.fromObject({
+    const target = new VesselSnapshot();
+    target.fromObject({
       id: source.id,
       vesselType: source.vesselType,
       vesselStatusId: source.statusId,
@@ -206,7 +207,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
       registrationEndDate: source.registration && source.registration.endDate,
       registrationLocation: source.registration && source.registration.registrationLocation
     });
-    return res;
+    return target;
   }
 
   vesselType: ReferentialRef;
@@ -242,17 +243,12 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
 
   clone(): VesselSnapshot {
     const target = new VesselSnapshot();
-    this.copy(target);
+    target.fromObject(this);
     target.vesselType = this.vesselType && this.vesselType.clone() || undefined;
     target.basePortLocation = this.basePortLocation && this.basePortLocation.clone() || undefined;
     target.registrationLocation = this.registrationLocation && this.registrationLocation.clone() || undefined;
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.clone() || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.clone() || undefined;
-    return target;
-  }
-
-  copy(target: VesselSnapshot): VesselSnapshot {
-    target.fromObject(this);
     return target;
   }
 
@@ -273,7 +269,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     return target;
   }
 
-  fromObject(source: any): VesselSnapshot {
+  fromObject(source: any) {
     super.fromObject(source);
     this.exteriorMarking = source.exteriorMarking;
     this.registrationCode = source.registrationCode;
@@ -295,7 +291,6 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     this.registrationLocation = source.registrationLocation && ReferentialRef.fromObject(source.registrationLocation);
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
-    return this;
   }
 }
 
@@ -356,7 +351,7 @@ export class Vessel extends Entity<Vessel> {
     return target;
   }
 
-  fromObject(source: any): Vessel {
+  fromObject(source: any) {
     super.fromObject(source);
     this.statusId = source.statusId;
     this.creationDate = fromDateISOString(source.creationDate);
@@ -365,7 +360,6 @@ export class Vessel extends Entity<Vessel> {
     this.registration = source.registration && VesselRegistration.fromObject(source.registration);
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
-    return this;
   }
 
   equals(other: Vessel): boolean {
@@ -439,7 +433,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     return target;
   }
 
-  fromObject(source: any): VesselFeatures {
+  fromObject(source: any) {
     super.fromObject(source);
     this.exteriorMarking = source.exteriorMarking;
     this.name = source.name;
@@ -456,7 +450,6 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.basePortLocation = source.basePortLocation && ReferentialRef.fromObject(source.basePortLocation);
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
-    return this;
   }
 
   get empty(): boolean {
@@ -508,7 +501,7 @@ export class VesselRegistration extends Entity<VesselRegistration> {
     return target;
   }
 
-  fromObject(source: any): VesselRegistration {
+  fromObject(source: any) {
     super.fromObject(source);
     this.registrationCode = source.registrationCode;
     this.intRegistrationCode = source.intRegistrationCode;
@@ -516,12 +509,11 @@ export class VesselRegistration extends Entity<VesselRegistration> {
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.registrationLocation = source.registrationLocation && ReferentialRef.fromObject(source.registrationLocation) || undefined;
-    return this;
   }
 
   get empty(): boolean {
     return isNil(this.id) && isNilOrBlank(this.registrationCode) && isNilOrBlank(this.intRegistrationCode)
-      && EntityUtils.isEmpty(this.registrationLocation)
+      && ReferentialUtils.isEmpty(this.registrationLocation)
       && isNil(this.startDate);
   }
 }
@@ -543,6 +535,12 @@ export const ProgramProperties: FormFieldDefinitionMap = {
   TRIP_METIERS_ENABLE: {
     key: "sumaris.trip.metiers.enable",
     label: "PROGRAM.OPTIONS.TRIP_METIERS_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL: {
+    key: 'sumaris.trip.onboard.measurements.optional',
+    label: "PROGRAM.OPTIONS.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL",
     defaultValue: "false",
     type: 'boolean'
   },
@@ -579,7 +577,7 @@ export const ProgramProperties: FormFieldDefinitionMap = {
   TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE: {
     key: "sumaris.trip.operation.batch.individualCount.compute",
     label: "PROGRAM.OPTIONS.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE",
-    defaultValue: "false",
+    defaultValue: "true",
     type: 'boolean'
   },
   TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE: {
@@ -727,6 +725,12 @@ export class Program extends Entity<Program> {
   creationDate: Moment;
   statusId: number;
   properties: PropertiesMap;
+
+  gearClassification: ReferentialRef;
+  taxonGroupType: ReferentialRef;
+  locationClassifications: ReferentialRef[];
+  locations: ReferentialRef[];
+
   strategies: Strategy[];
 
   constructor(data?: {
@@ -741,10 +745,7 @@ export class Program extends Entity<Program> {
   }
 
   clone(): Program {
-    return this.copy(new Program());
-  }
-
-  copy(target: Program): Program {
+    const target = new Program();
     target.fromObject(this);
     return target;
   }
@@ -759,10 +760,16 @@ export class Program extends Entity<Program> {
     const target: any = super.asObject(options);
     target.creationDate = toDateISOString(this.creationDate);
     target.properties = this.properties;
+    target.gearClassification = this.gearClassification && this.gearClassification.asObject(options);
+    target.taxonGroupType = this.taxonGroupType && this.taxonGroupType.asObject(options);
+    target.locationClassifications = this.locationClassifications  && this.locationClassifications.map(item => item.asObject(options)) || [];
+    target.locations = this.locations && this.locations.map(item => item.asObject(options)) || [];
+
+    target.strategies = this.strategies && this.strategies.map(s => s.asObject({...options, ...NOT_MINIFY_OPTIONS}));
     return target;
   }
 
-  fromObject(source: any): Entity<Program> {
+  fromObject(source: any) {
     super.fromObject(source);
     this.label = source.label;
     this.name = source.name;
@@ -775,8 +782,12 @@ export class Program extends Entity<Program> {
     } else {
       this.properties = source.properties;
     }
+    this.gearClassification = source.gearClassification && ReferentialRef.fromObject(source.gearClassification);
+    this.taxonGroupType = source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType);
+    this.locationClassifications = source.locationClassifications  && source.locationClassifications.map(ReferentialRef.fromObject) || [];
+    this.locations = source.locations && source.locations.map(ReferentialRef.fromObject) || [];
+
     this.strategies = (source.strategies || []).map(Strategy.fromObject);
-    return this;
   }
 
   equals(other: Program): boolean {
@@ -839,7 +850,9 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     return res;
   }
 
+  pmfm: Pmfm;
   pmfmId: number;
+
   methodId: number;
   label: string;
   name: string;
@@ -867,26 +880,24 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   clone(): PmfmStrategy {
     const target = new PmfmStrategy();
-    this.copy(target);
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.clone()) || undefined;
-    return target;
-  }
-
-  copy(target: PmfmStrategy): PmfmStrategy {
     target.fromObject(this);
+    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.clone()) || undefined;
     return target;
   }
 
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
+    target.pmfmId = toNumber(this.pmfmId, this.pmfm && this.pmfm.id);
+    delete target.pmfm;
     return target;
   }
 
-  fromObject(source: any): PmfmStrategy {
+  fromObject(source: any) {
     super.fromObject(source);
 
     this.pmfmId = source.pmfmId;
+    this.pmfm = source.pmfm && Pmfm.fromObject(source.pmfm);
     this.methodId = source.methodId;
     this.label = source.label;
     this.name = source.name;
@@ -902,7 +913,6 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     this.acquisitionLevel = source.acquisitionLevel;
     this.gears = source.gears || [];
     this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject) || [];
-    return this;
   }
 
   get required(): boolean {
@@ -962,8 +972,8 @@ export class Strategy extends Entity<Strategy> {
   pmfmStrategies: PmfmStrategy[];
 
   gears: any[];
-  taxonGroups: any[]; // TODO use TaxonGroupStrategyRef ?
-  taxonNames: any[];
+  taxonGroups: TaxonGroupStrategy[];
+  taxonNames: TaxonNameStrategy[];
 
   programId: number;
 
@@ -983,10 +993,7 @@ export class Strategy extends Entity<Strategy> {
   }
 
   clone(): Strategy {
-    return this.copy(new Strategy());
-  }
-
-  copy(target: Strategy): Strategy {
+    const target = new Strategy();
     target.fromObject(this);
     return target;
   }
@@ -997,12 +1004,12 @@ export class Strategy extends Entity<Strategy> {
     target.creationDate = toDateISOString(this.creationDate);
     target.pmfmStrategies = this.pmfmStrategies && this.pmfmStrategies.map(s => s.asObject({ ...options, ...NOT_MINIFY_OPTIONS }));
     target.gears = this.gears && this.gears.map(s => s.asObject(options));
-    target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject(options));
-    target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject(options));
+    target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject({ ...options, ...NOT_MINIFY_OPTIONS }));
+    target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject({ ...options, ...NOT_MINIFY_OPTIONS }));
     return target;
   }
 
-  fromObject(source: any): Strategy {
+  fromObject(source: any) {
     super.fromObject(source);
     this.label = source.label;
     this.name = source.name;
@@ -1013,18 +1020,8 @@ export class Strategy extends Entity<Strategy> {
     this.pmfmStrategies = source.pmfmStrategies && source.pmfmStrategies.map(PmfmStrategy.fromObject) || [];
     this.gears = source.gears && source.gears.map(ReferentialRef.fromObject) || [];
     // Taxon groups, sorted by priority level
-    this.taxonGroups = source.taxonGroups && (source.taxonGroups as { priorityLevel: number; taxonGroup: any; }[])
-      // FIXME: priority Level is not always set, in the DB
-      //.sort(propertyComparator('priorityLevel'))
-      //.sort(propertyPathComparator('taxonGroup.label'))
-        .map(item => TaxonGroupRef.fromObject(item.taxonGroup))  || [];
-    // Taxon names, sorted by priority level
-    this.taxonNames = source.taxonNames && (source.taxonNames as { priorityLevel: number; taxonName: any; }[])
-      // FIXME: priority Level is not always set, in the DB
-      //.sort(propertyComparator('priorityLevel'))
-      //.sort(propertyPathComparator('taxonName.name'))
-      .map(item => TaxonNameRef.fromObject(item.taxonName)) || [];
-    return this;
+    this.taxonGroups = source.taxonGroups && source.taxonGroups.map(TaxonGroupStrategy.fromObject) || [];
+    this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameStrategy.fromObject) || [];
   }
 
   equals(other: Strategy): boolean {
@@ -1039,7 +1036,59 @@ export class Strategy extends Entity<Strategy> {
   }
 }
 
+export class TaxonGroupStrategy {
 
+  strategyId: number;
+  priorityLevel: number;
+  taxonGroup: TaxonGroupRef;
+
+  static fromObject(source: any): TaxonGroupStrategy {
+    if (!source || source instanceof TaxonGroupStrategy) return source;
+    const res = new TaxonGroupStrategy();
+    res.fromObject(source);
+    return res;
+  }
+
+  asObject(opts?: ReferentialAsObjectOptions): any {
+    const target: any = Object.assign({}, this); //= {...this};
+    if (!opts || opts.keepTypename !== true) delete target.__typename;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...MINIFY_OPTIONS });
+    return target;
+  }
+
+  fromObject(source: any) {
+    this.strategyId = source.strategyId;
+    this.priorityLevel = source.priorityLevel;
+    this.taxonGroup = source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup);
+  }
+}
+
+export class TaxonNameStrategy {
+
+  strategyId: number;
+  priorityLevel: number;
+  taxonName: TaxonNameRef;
+
+  static fromObject(source: any): TaxonNameStrategy {
+    if (!source || source instanceof TaxonNameStrategy) return source;
+    const res = new TaxonNameStrategy();
+    res.fromObject(source);
+    return res;
+  }
+
+  asObject(opts?: ReferentialAsObjectOptions): any {
+    const target: any = Object.assign({}, this); //= {...this};
+    if (!opts || opts.keepTypename !== true) delete target.__typename;
+    target.taxonGroup = this.taxonName && this.taxonName.asObject({ ...opts, ...MINIFY_OPTIONS });
+    return target;
+  }
+
+  fromObject(source: any) {
+    this.strategyId = source.strategyId;
+    this.priorityLevel = source.priorityLevel;
+    this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName);
+  }
+}
 
 export class PmfmUtils {
 

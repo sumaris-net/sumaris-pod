@@ -28,9 +28,6 @@ import {LeafletModule} from "@asymmetrik/ngx-leaflet";
     ExtractionMapPage,
     ExtractionCriteriaForm
   ],
-  entryComponents: [
-    AggregationTypeSelectModal
-  ],
   providers: [
     ExtractionCriteriaValidatorService
   ],

@@ -1,5 +1,13 @@
 <ng-container [ngSwitch]="type">
 
+  <!-- hidden -->
+  <mat-form-field *ngSwitchCase="'hidden'" [floatLabel]="floatLabel" class="cdk-visually-hidden">
+    <input matInput type="text" hidden
+           [placeholder]="placeholder"
+           [formControl]="formControl"
+           [required]="required">
+  </mat-form-field>
+
   <!-- integer -->
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
     <input matInput #matInput
@@ -9,6 +17,7 @@
            pattern="[0-9]*"
            step="1"
            [placeholder]="placeholder"
+           (keydown.enter)="onPressEnter.emit($event)"
            (keypress)="filterNumberInput($event, false)"
            [formControl]="formControl"
            [required]="required"
@@ -38,6 +47,7 @@
            decimal="true"
            [placeholder]="placeholder"
            [step]="numberInputStep"
+           (keyup.enter)="onPressEnter.emit($event)"
            (keypress)="filterNumberInput($event, true)"
            [formControl]="formControl"
            [required]="required"
@@ -99,7 +109,7 @@
   </mat-date-time-field>
 
   <!-- qualitative value -->
-  <mat-form-field-measurement-qv *ngSwitchCase="'qualitative_value'"
+  <mat-form-field-measurement-qv *ngSwitchCase="'qualitative_value'" #matInput
                                  [pmfm]="pmfm"
                                  [formControl]="formControl"
                                  [floatLabel]="floatLabel"
@@ -108,7 +118,7 @@
                                  [readonly]="readonly"
                                  [compact]="compact"
                                  [tabindex]="tabindex"
-                                 (keypress.enter)="onKeypressEnter.emit($event)">
+                                 (keyup.enter)="onPressEnter.emit($event)">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
@@ -124,7 +134,7 @@
            [tabIndex]="tabindex"
            (click)="selectInputContent($event)"
            (keypress)="filterAlphanumericalInput($event)"
-           (keyup.enter)="onKeypressEnter.emit($event)">
+           (keyup.enter)="onPressEnter.emit($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>

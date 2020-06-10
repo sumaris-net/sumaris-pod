@@ -7,9 +7,10 @@ import {isNil, isNotNil} from "../../shared/functions";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {UsageMode} from "../../core/services/model";
-import {filterNotNil} from "../../shared/observables";
+import {filterNotNil, firstFalsePromise} from "../../shared/observables";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {Sample} from "../services/model/sample.model";
+import {Batch} from "../services/model/batch.model";
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -65,11 +66,11 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   }
 
   set value(data: Sample[]) {
-    this.memoryDataService.value = data;
+    this.setValue(data);
   }
 
   get value(): Sample[] {
-    return this.memoryDataService.value;
+    return this.getValue();
   }
 
   get isOnFieldMode(): boolean {
@@ -104,6 +105,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     this.memoryDataService = (this.dataService as InMemoryTableDataService<Sample, SubSampleFilter>);
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
+    // TODO: override openDetailModal(), then uncomment :
+    // this.inlineEdition = !this.mobile;
     this.inlineEdition = true;
 
     //this.debug = false;
@@ -152,10 +155,13 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   }
 
   async autoFillTable() {
-    if (this.loading || this.disabled) return;
-    if (!this.confirmEditCreate()) return;
+    // Wait table is loaded
+    if (this.loading) {
+      await firstFalsePromise(this.loadingSubject);
+    }
+    if (this.disabled || !this.confirmEditCreate()) return; // Skip when disabled or still editing a row
 
-    this.disable();
+    this.markAsLoading();
 
     try {
       const rows = await this.dataSource.getRows();
@@ -178,7 +184,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
         }));
 
       for (const sample of newSamples) {
-        await this.addSampleToTable(sample);
+        await this.addEntityToTable(sample);
       }
 
     } catch (err) {
@@ -186,12 +192,24 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
       this.error = err && err.message || err;
     }
     finally {
-      this.enable();
+      this.markAsLoaded();
     }
   }
 
+
   /* -- protected methods -- */
 
+  protected setValue(data: Sample[]) {
+    this.memoryDataService.value = data;
+  }
+
+  protected getValue(): Sample[] {
+    return this.memoryDataService.value;
+  }
+
+  protected prepareEntityToSave(sample: Sample) {
+    // Override by subclasses
+  }
 
   protected async onNewEntity(data: Sample): Promise<void> {
     console.debug("[sample-table] Initializing new row data...");
@@ -221,7 +239,9 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
 
     data.forEach(s => {
       const parentId = s.parentId || (s.parent && s.parent.id);
-      s.parent = isNotNil(parentId) ? this._availableParents.find(p => p.id === parentId) : null;
+      const parentLabel = (s.parent && s.parent.label);
+      s.parent = this._availableParents.find(p => (isNotNil(parentId) && p.id === parentId) || (parentLabel && p.label === parentLabel)) || null;
+      if (!s.parent) console.warn("[sub-samples-table] linkDataToParent() - Could not found parent for sub-sample:", s);
     });
   }
 
@@ -239,37 +259,41 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
         const item = row.currentData;
         const parentId = item.parentId || (item.parent && item.parent.id);
 
-        // No parent, search from attributes
-        if (isNil(parentId)) {
+        let parent;
+        if (isNotNil(parentId)) {
+          // Update the parent, by id
+          parent = this._availableParents.find(p => p.id === parentId);
+        }
+        // No parent, search from tag ID
+        else {
           const parentTagId = item.parent && item.parent.measurementValues && item.parent.measurementValues[PmfmIds.TAG_ID];
           if (isNil(parentTagId)) {
-            item.parent = undefined; // remove link to parent
-            return true; // not yet a parent: keep (.e.g new row)
+            parent = undefined; // remove link to parent
           }
-          // Update the parent, by tagId
-          item.parent = this._availableParents.find(p => (p && p.measurementValues && p.measurementValues[PmfmIds.TAG_ID]) === parentTagId);
+          else {
+            // Update the parent, by tagId
+            parent = this._availableParents.find(p => (p && p.measurementValues && p.measurementValues[PmfmIds.TAG_ID]) === parentTagId);
+          }
+        }
 
-        } else {
-          // Update the parent, by id
-          item.parent = this._availableParents.find(p => p.id === parentId);
+        if (parent || row.editing) {
+          if (item.parent !== parent) {
+            item.parent = parent;
+            // If row use a validator, force update
+            if (!row.editing && row.validator) row.validator.patchValue(item, {emitEvent: false});
+          }
+          return true; // Keep only rows with a parent (or in editing mode)
         }
 
         // Could not found the parent anymore (parent has been delete)
-        if (!item.parent) {
-          hasRemovedItem = true;
-          return false;
-        }
-
-        if (!row.editing) row.currentData = item;
-
-        return true; // Keep only if sample still have a parent
+        hasRemovedItem = true;
+        return false;
       })
       .map(r => r.currentData);
 
     if (hasRemovedItem) {
       this.value = data;
     }
-    //this.markForCheck();
   }
 
   protected sortData(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {
@@ -277,34 +301,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     return this.memoryDataService.sort(data, sortBy, sortDirection);
   }
 
-  protected async addSampleToTable(newSample: Sample): Promise<TableElement<Sample>> {
-    console.debug("[sub-sample-table] Adding new sample", newSample);
-
-    const row = await this.addRowToTable();
-    if (!row) throw new Error("Could not add row to table");
-
-    // Override rankOrder (keep computed value)
-    newSample.rankOrder = row.currentData.rankOrder;
-
-    this.normalizeEntityToRow(newSample, row);
-
-    // Affect new row
-    if (row.validator) {
-      row.validator.patchValue(newSample, {emitEvent: false});
-      this.confirmEditCreate(null, row);
-      row.validator.markAsDirty();
-    } else {
-      row.currentData = newSample;
-      this.confirmEditCreate(null, row);
-    }
-
-    this.markAsDirty();
-
-    return row;
-  }
-
   protected async suggestParent(value: any): Promise<any[]> {
-    if (EntityUtils.isNotEmpty(value)) {
+    if (EntityUtils.isNotEmpty(value, 'label')) {
       return [value];
     }
     value = (typeof value === "string" && value !== "*") && value || undefined;

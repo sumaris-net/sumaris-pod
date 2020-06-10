@@ -35,7 +35,7 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
     if (!entity) return false;
 
     // If the user is the recorder: can write
-    if (entity.recorderPerson && this.accountService.account.equals(entity.recorderPerson)) {
+    if (entity.recorderPerson && this.accountService.account.asPerson().equals(entity.recorderPerson)) {
       return true;
     }
 

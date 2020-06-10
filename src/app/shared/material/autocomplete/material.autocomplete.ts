@@ -18,20 +18,18 @@ import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, t
 import {SuggestFn, SuggestionDataService} from "../../services/data-service.class";
 import {
   changeCaseToUnderscore,
-  focusInput,
   getPropertyByPath,
   isNil,
   isNilOrBlank,
   isNotNil,
   isNotNilOrBlank,
   joinPropertiesPath,
-  selectInputContent,
   suggestFromArray,
   toBoolean
 } from "../../functions";
-import {InputElement} from "../focusable";
+import {focusInput, InputElement, selectInputContent} from "../../inputs";
 import {firstNotNilPromise} from "../../observables";
-import {DisplayFn} from "../../form/field.model";
+import {CompareWithFn, DisplayFn} from "../../form/field.model";
 import {FloatLabelType} from "@angular/material/form-field";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
@@ -48,8 +46,10 @@ export declare interface MatAutocompleteFieldConfig<T = any, F = any> {
   columnSizes?: (number|'auto'|undefined)[];
   columnNames?: (string|undefined)[];
   displayWith?: DisplayFn;
+  compareWith?: CompareWithFn;
   showAllOnFocus?: boolean;
   showPanelOnFocus?: boolean;
+  class?: string;
   mobile?: boolean;
 }
 
@@ -91,6 +91,7 @@ export class MatAutocompleteConfigHolder {
       ...options.filter
     };
     const displayWith = options.displayWith || ((obj) => obj && joinPropertiesPath(obj, attributesOrFn));
+    const compareWith = options.compareWith || ((o1: any, o2: any) => o1 && o2 && o1.id === o2.id);
 
     const config: MatAutocompleteFieldConfig = {
       attributes: attributesOrFn,
@@ -98,6 +99,7 @@ export class MatAutocompleteConfigHolder {
       items: options.items,
       filter,
       displayWith,
+      compareWith,
       columnSizes: options.columnSizes,
       columnNames: options.columnNames,
       showAllOnFocus: options.showAllOnFocus,
@@ -282,6 +284,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this.mobile = toBoolean(this.mobile, this.config.mobile);
       this.showAllOnFocus = toBoolean(this.showAllOnFocus, toBoolean(this.config.showAllOnFocus, true));
       this.showPanelOnFocus = toBoolean(this.showPanelOnFocus, toBoolean(this.config.showPanelOnFocus, true));
+      this.classList = this.classList || this.config.class;
     }
 
     // Default values
@@ -379,8 +382,12 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         this.$inputItems.asObservable()
           .pipe(
             map(items => this.formControl.value)
+          ),
+        this._$filter.asObservable()
+          .pipe(
+            map(items => this.formControl.value)
           )
-      );
+    );
 
 
     this.filteredItems$ = updateFilteredItemsEvents$
@@ -423,6 +430,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
     this._implicitValue = undefined;
+    this.$inputItems.complete();
   }
 
   /**

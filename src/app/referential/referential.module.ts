@@ -43,7 +43,7 @@ import {ReferentialForm} from "./form/referential.form";
 import {ProgramPage} from "./program/program.page";
 import {ProgramValidatorService} from "./services/validator/program.validator";
 import {StrategyValidatorService} from "./services/validator/strategy.validator";
-import {StrategiesTable} from "./program/strategies.table";
+import {StrategiesTable} from "./strategy/strategies.table";
 import {SoftwarePage} from "./software/software.page";
 import {VesselFeaturesHistoryComponent} from "./vessel/page/vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel/page/vessel-registration-history.component";
@@ -60,6 +60,10 @@ import {ParameterPage} from "./pmfm/parameter.page";
 import {ParameterValidatorService} from "./services/validator/parameter.validator";
 import {ReferentialTable} from "./list/referential.table";
 import {ReferentialRoutingModule} from "./referential-routing.module";
+import {PmfmStrategiesTable} from "./strategy/pmfm-strategies.table";
+import {PmfmStrategyValidatorService} from "./services/validator/pmfm-strategy.validator";
+import {SelectReferentialModal} from "./list/select-referential.modal";
+import {ReferentialRefTable} from "./list/referential-ref.table";
 
 export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
@@ -87,12 +91,15 @@ export {
     VesselModal,
     ProgramPage,
     StrategiesTable,
+    PmfmStrategiesTable,
     SoftwarePage,
     VesselFeaturesHistoryComponent,
     VesselRegistrationHistoryComponent,
     ParameterPage,
     PmfmPage,
-    ReferentialTable
+    ReferentialTable,
+    ReferentialRefTable,
+    SelectReferentialModal
   ],
   exports: [
     ReferentialsPage,
@@ -104,10 +111,14 @@ export {
     SoftwarePage,
     VesselsPage,
     ParameterPage,
-    PmfmPage
+    PmfmPage,
+    ReferentialRefTable,
+    SelectReferentialModal
   ],
   entryComponents: [
-    VesselModal
+    VesselModal,
+    ReferentialRefTable,
+    SelectReferentialModal
   ],
   providers: [
     ReferentialRefService,
@@ -120,9 +131,9 @@ export {
     VesselRegistrationValidatorService,
     ProgramValidatorService,
     StrategyValidatorService,
+    PmfmStrategyValidatorService,
     SoftwareService,
     SoftwareValidatorService,
-
     PmfmService,
     PmfmValidatorService,
     ParameterService,

@@ -62,7 +62,7 @@
                      [class.odd]="isQvOdd(col)"
                      [class.hidden-mobile]="col.rankOrder % 5 !== 0"
                      [class.show]="col.rankOrder % 5 === 0">
-      <mat-label float-center class="ion-text-wrap" *ngIf="col.rankOrder % 5 === 0">
+      <mat-label  class="ion-text-wrap ion-align-self-center" *ngIf="col.rankOrder % 5 === 0">
         <span>{{qvPmfm.qualitativeValues[col.qvIndex].name}}</span><br/>
         <mat-checkbox *ngIf="weightMethodForm"
                       [formControl]="weightMethodForm.controls[col.qvIndex]"
@@ -115,8 +115,7 @@
   <!-- rankOrder Column = id -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label *ngIf="!loading">#</ion-label>
-      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-label>{{ row.currentData?.rankOrder }}</ion-label>
@@ -286,7 +285,7 @@
                 *ngIf="mobile && row.currentData.observedIndividualCount"
                 color="primary"
                 [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
-                (click)="onSubBatchesClick($event, row)">
+                (click)="onSubBatchesClick($event, row, {showParent: false})">
           <mat-icon [matBadge]="row.currentData.observedIndividualCount"
                     [matBadgeHidden]="!row.currentData.observedIndividualCount"
                     matBadgeColor="accent"

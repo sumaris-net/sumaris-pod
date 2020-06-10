@@ -8,7 +8,6 @@ import {filter} from "rxjs/operators";
 @Component({
     selector: 'form-buttons-bar',
     templateUrl: './form-buttons-bar.component.html',
-    //host: { '(window:keydown)': 'onHotkeys($event)' },
     styleUrls: ['./form-buttons-bar.component.scss']
 })
 export class FormButtonsBarComponent implements OnDestroy{

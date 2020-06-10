@@ -58,11 +58,12 @@ function dataIdFromObjectDebug (object: Object): string {
   switch (object['__typename']) {
 
     // For generic VO: add entityName in the cache key (to distinguish by entity)
-    case 'ReferentialVO':
     case 'MetierVO':
     case 'PmfmVO':
     case 'TaxonGroupVO':
     case 'TaxonNameVO':
+    case 'LocationVO':
+    case 'ReferentialVO':
     case 'MeasurementVO':
       if (object['entityName'] && isNotNil(object['id'])) {
         return object['entityName'] + 'VO' + ':' + object['id'];

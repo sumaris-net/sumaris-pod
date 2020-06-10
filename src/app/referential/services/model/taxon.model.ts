@@ -1,6 +1,6 @@
-import {Entity, isNil, ReferentialRef, IReferentialRef, toDateISOString, EntityUtils} from "../../../core/core.module";
-import {MeasurementUtils} from "../../../trip/services/model/measurement.model";
-import {ReferentialAsObjectOptions} from "../../../core/services/model";
+import {Entity, IReferentialRef, isNil, Referential, ReferentialRef} from "../../../core/core.module";
+import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model";
+import {uncapitalizeFirstLetter} from "../../../shared/functions";
 
 
 export const TaxonGroupIds = {
@@ -30,7 +30,7 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
   }
 
   static equalsOrSameReferenceTaxon(v1: TaxonNameRef, v2: TaxonNameRef): boolean {
-    return EntityUtils.equals(v1, v2) || (v1 && v2 && v1.referenceTaxonId === v2.referenceTaxonId);
+    return ReferentialUtils.equals(v1, v2) || (v1 && v2 && v1.referenceTaxonId === v2.referenceTaxonId);
   }
 
   label: string;
@@ -143,19 +143,17 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef> implements IReferential
   }
 }
 
-export class MetierRef extends ReferentialRef<MetierRef> {
+export interface MetierFromObjectOptions {
+  useChildAttributes?: false | 'TaxonGroup' | 'Gear';
+}
 
-  static fromObject(source: any, useTaxonGroupLabelAndName?: boolean): MetierRef {
-    if (isNil(source)) return null;
-    const res = new MetierRef();
-    res.fromObject(source);
+export class Metier extends Referential<Metier> {
 
-    // Copy some attributes from the target species
-    if (useTaxonGroupLabelAndName && res.taxonGroup) {
-      res.label = res.taxonGroup.label || res.label;
-      res.name = res.taxonGroup.name || res.name;
-    }
-    return res;
+  static fromObject(source: any, opts?: MetierFromObjectOptions): Metier {
+    if (isNil(source) || source instanceof Metier) return source;
+    const target = new Metier();
+    target.fromObject(source, opts);
+    return target;
   }
 
   gear: ReferentialRef;
@@ -166,33 +164,41 @@ export class MetierRef extends ReferentialRef<MetierRef> {
     this.taxonGroup = null;
   }
 
-  clone(): MetierRef {
-    return this.copy(new MetierRef());
-  }
-
-  copy(target: MetierRef): MetierRef {
+  clone(): Metier {
+    const target = new Metier();
     target.fromObject(this);
     return target;
   }
 
-  fromObject(source: any): Entity<MetierRef> {
-    super.fromObject(source);
-    this.entityName = source.entityName || 'MetierVO';
-    this.gear = source.gear && ReferentialRef.fromObject(source.gear);
-    this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup);
-    return this;
-  }
+  asObject(opts?: ReferentialAsObjectOptions): any {
+    const target = super.asObject(opts);
+    if (!opts || opts.minify !== true) {
+      target.gear = this.gear && this.gear.asObject(opts) || undefined;
 
-  asObject(options?: ReferentialAsObjectOptions): any {
-    const target = super.asObject(options);
-    if (!options || options.minify !== true) {
-      target.gear = this.gear && this.gear.asObject(options) || undefined;
-      // Fixme gear entityName here
-      if (target.gear)
-        target.gear.entityName = 'GearVO';
+      if (target.gear && !target.gear.entityName) {
+        // Fixme gear entityName here
+        console.warn('Missing gear.entityName in Metier instance', this);
+        target.gear.entityName = 'Gear';
+      }
 
-      target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(options) || undefined;
+      target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(opts) || undefined;
     }
     return target;
+  }
+
+  fromObject(source: any, opts?: MetierFromObjectOptions) {
+    super.fromObject(source);
+    this.entityName = source.entityName || 'Metier';
+    this.gear = source.gear && ReferentialRef.fromObject(source.gear);
+    this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup);
+
+    // Copy label/name from child (TaxonGroup or Gear)
+    if (opts && opts.useChildAttributes) {
+      const childKey = uncapitalizeFirstLetter(opts.useChildAttributes);
+      if (source[childKey]) {
+        this.label = source[childKey].label || this.label;
+        this.name = source[childKey].name || this.name;
+      }
+    }
   }
 }

@@ -36,6 +36,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;
+  forceMeasurementAsOptional = false;
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
 
@@ -82,6 +83,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
             this.data.metiers = []; // make sure to reset data metiers, if any
           }
           this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
+          this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
         })
     );
 

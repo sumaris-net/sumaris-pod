@@ -52,8 +52,7 @@
   <!-- Id column -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label *ngIf="!loading">#</ion-label>
-      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
   </ng-container>
@@ -175,8 +174,11 @@
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-           [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing" (click)="clickRow($event, row)"></mat-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;"
+           [class.mat-row-error]="row.validator.invalid"
+           [class.mat-row-dirty]="row.validator.dirty"
+           [class.mat-row-disabled]="!row.editing"
+           (click)="clickRow($event, row)"></mat-row>
 
 </mat-table>
 

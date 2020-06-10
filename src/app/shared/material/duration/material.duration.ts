@@ -25,9 +25,10 @@ import {
 import {TranslateService} from "@ngx-translate/core";
 import {Moment} from "moment/moment";
 import {DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
-import {isNil, setTabIndex, toBoolean, toDuration} from "../../functions";
+import {isNil, toBoolean, toDuration} from "../../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
-import {InputElement, isFocusableElement} from "../focusable";
+import {InputElement, setTabIndex} from "../../inputs";
+import {isFocusableElement} from "../../focusable";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,

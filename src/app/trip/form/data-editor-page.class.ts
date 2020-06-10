@@ -9,7 +9,7 @@ import {ProgramService} from "../../referential/services/program.service";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {AppEditorPage} from "../../core/form/editor-page.class";
-import {HistoryPageReference} from "../../core/services/model";
+import {HistoryPageReference, ReferentialUtils} from "../../core/services/model";
 import {RootDataEntity} from "../services/model/base.model";
 
 
@@ -93,7 +93,7 @@ export abstract class AppDataEditorPage<T extends RootDataEntity<T>, S extends E
       // Listen program changes (only if new data)
       this.registerSubscription(this.form.controls['program'].valueChanges
         .subscribe(program => {
-          if (EntityUtils.isNotEmpty(program)) {
+          if (ReferentialUtils.isNotEmpty(program)) {
             console.debug("[root-data-editor] Propagate program change: " + program.label);
             this.programSubject.next(program.label);
           }

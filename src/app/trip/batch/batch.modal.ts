@@ -78,7 +78,7 @@ export class BatchModal implements OnInit {
     this.mobile = platform.mobile;
 
     // TODO: for DEV only
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
 

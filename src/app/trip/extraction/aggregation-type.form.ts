@@ -9,6 +9,7 @@ import {arraySize} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {ReferentialUtils} from "../../core/services/model";
 
 @Component({
   selector: 'app-aggregation-type-form',
@@ -64,18 +65,17 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
       settings);
 
     // Stratum
+    this.stratumFormArray = this.form.controls.stratum as FormArray;
     this.stratumHelper = new FormArrayHelper<AggregationStrata>(
-      this.formBuilder,
-      this.form,
-      'stratum',
+      this.stratumFormArray,
       (strata) => validatorService.getStrataFormGroup(strata),
       (v1, v2) => (!v1 && !v2) || (v1 && v2 && v1.label === v2.label),
-      EntityUtils.isEmpty,
+      ReferentialUtils.isEmpty,
       {
         allowEmptyArray: false
       }
     );
-    this.stratumFormArray = this.form.controls.stratum as FormArray;
+
 
   }
 

@@ -1,16 +1,56 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {EntityUtils, isNil, isNotNil, StatusIds} from "./model";
-import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/shared.module";
+import {EntityUtils, isNil, isNotNil, Program, ReferentialRef, StatusIds} from "./model";
+import {
+  EditorDataService,
+  EditorDataServiceLoadOptions, LoadResult,
+  SuggestionDataService,
+  TableDataService
+} from "../../shared/shared.module";
 import {BaseDataService, SAVE_AS_OBJECT_OPTIONS} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {environment} from "../../../environments/environment";
-import {ReferentialService} from "./referential.service";
+import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {Pmfm} from "./model/pmfm.model";
 import {Observable, of} from "rxjs";
 import {ReferentialFragments} from "./referential.queries";
+import {map} from "rxjs/operators";
+import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
+import {ProgramFilter} from "./program.service";
+import {ReferentialUtils} from "../../core/services/model";
+import {ReferentialRefFilter} from "./referential-ref.service";
+
+const LoadAllQuery: any = gql`
+  query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+    pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...PmfmFragment
+    }
+  }
+  ${ReferentialFragments.pmfm}
+`;
+const LoadAllWithDetailsQuery: any = gql`
+  query PmfmsWithDetails($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+    pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...FullPmfmFragment
+    }
+    referentialsCount(entityName: "Pmfm", filter: $filter)
+  }
+  ${ReferentialFragments.fullPmfm}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.fullParameter}
+`;
+const LoadAllWithTotalQuery: any = gql`
+  query PmfmsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+    pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...PmfmFragment
+    }
+    referentialsCount(entityName: "Pmfm", filter: $filter)
+  }
+  ${ReferentialFragments.pmfm}
+`;
 
 const LoadQuery: any = gql`
   query Pmfm($label: String, $id: Int){
@@ -36,8 +76,15 @@ const SaveQuery: any = gql`
   ${ReferentialFragments.fullParameter}
 `;
 
+export class PmfmFilter extends ReferentialFilter {
+  entityName: 'Pmfm';
+}
+
 @Injectable({providedIn: 'root'})
-export class PmfmService extends BaseDataService implements EditorDataService<Pmfm> {
+export class PmfmService extends BaseDataService implements EditorDataService<Pmfm, PmfmFilter>,
+  TableDataService<Pmfm, PmfmFilter>,
+  SuggestionDataService<Pmfm, PmfmFilter>
+{
 
   constructor(
     protected graphql: GraphqlService,
@@ -141,6 +188,123 @@ export class PmfmService extends BaseDataService implements EditorDataService<Pm
     // TODO
     console.warn("TODO: implement listen changes on pmfm");
     return of();
+  }
+
+  watchAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: string,
+    filter?: PmfmFilter,
+    opts?: {
+      fetchPolicy?: WatchQueryFetchPolicy;
+      withTotal?: boolean;
+    }
+  ): Observable<LoadResult<Pmfm>> {
+    const variables: any = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || 'label',
+      sortDirection: sortDirection || 'asc',
+      filter: PmfmFilter.asPodObject(filter)
+    };
+    const now = Date.now();
+    if (this._debug) console.debug("[pmfm-service] Watching pmfms using options:", variables);
+
+    const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
+    return this.graphql.watchQuery<{ pmfms: any[], referentialsCount?: number }>({
+      query,
+      variables,
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || undefined
+    })
+      .pipe(
+        map(res => {
+            const data = (res && res.pmfms || []).map(Pmfm.fromObject);
+            if (this._debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`, data);
+            return {
+              data: data,
+              total: res.referentialsCount
+            };
+          }
+        )
+      );
+  }
+
+  /**
+   * Load pmfms
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param filter
+   */
+  async loadAll(offset: number,
+                size: number,
+                sortBy?: string,
+                sortDirection?: string,
+                filter?: PmfmFilter,
+                opts?: {
+                  query?: any,
+                  fetchPolicy?: FetchPolicy;
+                  withTotal?: boolean;
+                  withDetails?: boolean;
+                  toEntity?: boolean;
+                  debug?: boolean;
+                }): Promise<LoadResult<Pmfm>> {
+
+    opts = opts || {};
+    const variables: any = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || 'label',
+      sortDirection: sortDirection || 'asc',
+      filter: PmfmFilter.asPodObject(filter)
+    };
+    const debug = this._debug && (opts.debug !== false);
+    const now = debug && Date.now();
+    if (debug) console.debug("[pmfm-service] Loading pmfms... using options:", variables);
+
+    const query = opts.query ? opts.query : (
+      opts.withDetails ? LoadAllWithDetailsQuery : (
+        opts.withTotal ? LoadAllWithTotalQuery : LoadAllQuery
+      )
+    );
+    const res = await this.graphql.query<{ pmfms: any[], referentialsCount?: number }>({
+      query,
+      variables,
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || undefined
+    });
+
+    const data = (!opts || opts.toEntity !== false) ?
+      (res && res.pmfms || []).map(Pmfm.fromObject) :
+      (res && res.pmfms || []) as Pmfm[];
+    if (debug) console.debug(`[pmfm-service] Pmfms loaded in ${Date.now() - now}ms`);
+    return {
+      data: data,
+      total: res.referentialsCount
+    };
+
+  }
+
+  async saveAll(data: Pmfm[], options?: any): Promise<Pmfm[]> {
+    if (!data) return data;
+    return await Promise.all(data.map((pmfm) => this.save(pmfm, options)));
+  }
+
+  deleteAll(data: Pmfm[], options?: any): Promise<any> {
+    throw new Error("Not implemented yet");
+  }
+
+  async suggest(value: any, filter?: PmfmFilter): Promise<Pmfm[]> {
+    if (ReferentialUtils.isNotEmpty(value)) return [value];
+    value = (typeof value === "string" && value !== '*') && value || undefined;
+    const res = await this.loadAll(0, !value ? 30 : 10, null, null,
+      { ...filter, searchText: value},
+      { withTotal: false /* total not need */ }
+    );
+    return res.data;
   }
 
   /* -- protected methods -- */

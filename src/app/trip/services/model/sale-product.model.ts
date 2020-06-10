@@ -6,7 +6,7 @@ import {Product} from "./product.model";
 import {Packet, PacketUtils} from "./packet.model";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {AbstractControl} from "@angular/forms";
-import {ObjectMap} from "../../../core/services/model";
+import {ObjectMap, ReferentialUtils} from "../../../core/services/model";
 
 export class SaleProduct extends Product {
 
@@ -71,7 +71,7 @@ export class SaleProductUtils {
 
   static isSaleProductEquals(saleProduct1: SaleProduct, saleProduct2: SaleProduct): boolean {
     return (saleProduct1 === saleProduct2) || (isNil(saleProduct1) && isNil(saleProduct2)) || (
-      saleProduct1 && saleProduct2 && EntityUtils.equals(saleProduct1.saleType, saleProduct2.saleType)
+      saleProduct1 && saleProduct2 && ReferentialUtils.equals(saleProduct1.saleType, saleProduct2.saleType)
       && saleProduct1.rankOrder === saleProduct2.rankOrder
     );
   }
@@ -124,7 +124,7 @@ export class SaleProductUtils {
       const saleProduct = this.productToSaleProduct(product, pmfms);
 
       // Valid saleProduct
-      if (EntityUtils.isEmpty(saleProduct.taxonGroup))
+      if (ReferentialUtils.isEmpty(saleProduct.taxonGroup))
         throw new Error('this saleProduct has no taxonGroup');
 
       // aggregate weight price to packaging price

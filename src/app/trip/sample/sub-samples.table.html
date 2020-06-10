@@ -55,8 +55,7 @@
   <!-- rankOrder Column = id -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label *ngIf="!loading">#</ion-label>
-      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>

@@ -155,9 +155,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
 
   private initSalesHelper() {
     this.salesHelper = new FormArrayHelper<SaleProduct>(
-      this.formBuilder,
-      this.form,
-      'saleProducts',
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'saleProducts'),
       (saleProduct) => this.validatorService.getSaleProductControl(saleProduct),
       SaleProductUtils.isSaleProductEquals,
       SaleProductUtils.isSaleProductEmpty,

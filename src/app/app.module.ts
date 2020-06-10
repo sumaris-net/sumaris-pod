@@ -1,9 +1,8 @@
 import "./vendor";
 
-import {APP_BASE_HREF} from "@angular/common";
+import {APP_BASE_HREF, CommonModule} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule} from "@angular/core";
-import {IonicModule} from "@ionic/angular";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
 import {DATE_ISO_PATTERN} from "./core/constants";
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
@@ -20,24 +19,19 @@ import {CoreModule} from "./core/core.module";
 import {environment} from "../environments/environment";
 import {HttpClientModule} from "@angular/common/http";
 import {HTTP} from "@ionic-native/http/ngx";
-import {LeafletModule} from "@asymmetrik/ngx-leaflet";
 import {Camera} from "@ionic-native/camera/ngx";
-import {CacheModule} from "ionic-cache";
 import {Network} from "@ionic-native/network/ngx";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
 import {APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
 import {ConfigOptions, LocalSettings} from "./core/services/model";
-import {ReferentialModule} from "./referential/referential.module";
 import {TripModule} from "./trip/trip.module";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {APP_CONFIG_OPTIONS, ConfigService} from "./core/services/config.service";
 import {TripConfigOptions} from "./trip/services/config/trip.config";
 import {IonicStorageModule} from "@ionic/storage";
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
-import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS} from "@angular/material/autocomplete";
 import {APP_MENU_ITEMS} from "./core/menu/menu.component";
 import {APP_HOME_BUTTONS} from "./core/home/home";
-import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
 
 
 @NgModule({
@@ -45,14 +39,12 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
     AppComponent
   ],
   imports: [
-    AppRoutingModule,
+    CommonModule,
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
-    IonicModule.forRoot(),
-    CacheModule.forRoot(),
-    LeafletModule.forRoot(),
     // functional modules
+    AppRoutingModule,
     CoreModule,
     TripModule,
     IonicStorageModule.forRoot({
@@ -105,7 +97,7 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
         // Data entry
         {title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
         {title: 'MENU.TRIPS', path: '/trips',
-          icon: 'navigate',
+          matIcon: 'explore',
           profile: 'USER',
           ifProperty: 'sumaris.trip.enable',
           titleProperty: 'sumaris.trip.name'
@@ -121,7 +113,7 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
         // Data extraction
         {title: 'MENU.EXTRACTION_DIVIDER', profile: 'SUPERVISOR'},
         {title: 'MENU.TRIPS', path: '/extraction/table', icon: 'cloud-download', profile: 'SUPERVISOR'},
-        {title: 'MENU.MAP', path: '/extraction/map', icon: 'globe', profile: 'SUPERVISOR'},
+        {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', profile: 'SUPERVISOR'},
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
@@ -146,15 +138,15 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
     // Home buttons
     { provide: APP_HOME_BUTTONS, useValue: [
         // Data entry
-        { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER', cssClass: 'visible-mobile'},
+        { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
         { title: 'MENU.TRIPS', path: '/trips',
-          icon: 'navigate', cssClass: 'visible-mobile',
+          matIcon: 'explore',
           profile: 'USER',
           ifProperty: 'sumaris.trip.enable',
           titleProperty: 'sumaris.trip.name'
         },
         { title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
-          matIcon: 'verified_user', cssClass: 'visible-mobile',
+          matIcon: 'verified_user',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name'

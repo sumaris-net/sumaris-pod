@@ -14,7 +14,7 @@ import {FloatLabelType} from '@angular/material/form-field';
 import {ControlValueAccessor, FormBuilder, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {isNil, isNotNil} from '../../functions';
-import {InputElement} from "../focusable";
+import {InputElement} from "../../inputs";
 import {MatRadioButton, MatRadioChange} from "@angular/material/radio";
 import {MatCheckbox, MatCheckboxChange} from "@angular/material/checkbox";
 

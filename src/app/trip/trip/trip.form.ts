@@ -5,12 +5,12 @@ import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {
   AppForm,
-  EntityUtils,
   FormArrayHelper,
   isNil,
   isNotNil,
   Person,
   personToString,
+  ReferentialRef,
   StatusIds
 } from '../../core/core.module';
 import {
@@ -20,7 +20,7 @@ import {
   VesselModal,
   VesselSnapshot
 } from "../../referential/referential.module";
-import {UsageMode, UserProfileLabel} from "../../core/services/model";
+import {ReferentialUtils, UsageMode, UserProfileLabel} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {FormArray, FormBuilder} from "@angular/forms";
@@ -28,11 +28,16 @@ import {PersonService} from "../../admin/services/person.service";
 import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
 import {Vessel} from "../../referential/services/model";
-import {MetierRef} from "../../referential/services/model/taxon.model";
-import {METIER_DEFAULT_FILTER, MetierRefFilter, MetierRefService} from "../../referential/services/metier-ref.service";
+import {Metier} from "../../referential/services/model/taxon.model";
+import {METIER_DEFAULT_FILTER, MetierFilter} from "../../referential/services/metier.service";
 import {Trip} from "../services/model/trip.model";
 import {ReferentialRefFilter} from "../../referential/services/referential-ref.service";
 import {debounceTime, filter} from "rxjs/operators";
+
+const TRIP_METIER_DEFAULT_FILTER: MetierFilter = {
+  entityName: 'Metier',
+  ...METIER_DEFAULT_FILTER
+};
 
 @Component({
   selector: 'form-trip',
@@ -48,8 +53,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
   enableMetierFilter = false;
-  metierFilter: MetierRefFilter = METIER_DEFAULT_FILTER;
-  metiersHelper: FormArrayHelper<MetierRef>;
+  metierFilter: MetierFilter = TRIP_METIER_DEFAULT_FILTER;
+  metiersHelper: FormArrayHelper<ReferentialRef>;
   metierFocusIndex = -1;
   canFilterMetier = false;
   mobile: boolean;
@@ -126,7 +131,6 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     protected validatorService: TripValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
-    protected metierRefService: MetierRefService,
     protected personService: PersonService,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
@@ -193,8 +197,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     });
 
     // Combo: metiers
-    this.registerAutocompleteField<MetierRef>('metier', {
-      service: this.metierRefService,
+    const metierAttributes = this.settings.getFieldDisplayAttributes('metier');
+    this.registerAutocompleteField<ReferentialRef>('metier', {
+      service: this.referentialRefService,
+      // Increase default column size, for 'label'
+      columnSizes: metierAttributes.map(a => a === 'label' ? 3 : undefined/*auto*/),
       mobile: this.mobile
     });
 
@@ -300,12 +307,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Create helper, if need
     if (!this.observersHelper) {
       this.observersHelper = new FormArrayHelper<Person>(
-        this.formBuilder,
-        this.form,
-        'observers',
+        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
         (person) => this.validatorService.getObserverControl(person),
-        EntityUtils.equals,
-        EntityUtils.isEmpty,
+        ReferentialUtils.equals,
+        ReferentialUtils.isEmpty,
         {
           allowEmptyArray: !this._showObservers
         }
@@ -330,13 +335,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   protected initMetiersHelper() {
     if (isNil(this._showMetiers)) return; // skip if not loading yet
 
-    this.metiersHelper = new FormArrayHelper<MetierRef>(
-      this.formBuilder,
-      this.form,
-      'metiers',
+    this.metiersHelper = new FormArrayHelper<ReferentialRef>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'metiers'),
       (metier) => this.validatorService.getMetierControl(metier),
-      EntityUtils.equals,
-      EntityUtils.isEmpty,
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
       {
         allowEmptyArray: !this._showMetiers
       }
@@ -363,11 +366,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
     let metierFilter;
     if (!this.enableMetierFilter || !canFilterMetier) {
-      metierFilter = METIER_DEFAULT_FILTER;
+      metierFilter = TRIP_METIER_DEFAULT_FILTER;
     }
     else {
       metierFilter = {
-        ...METIER_DEFAULT_FILTER,
+        ...TRIP_METIER_DEFAULT_FILTER,
         programLabel,
         vesselId,
         date,

@@ -1,6 +1,6 @@
 import {NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
-import {MaterialModule} from "./material/material.module";
+import {SharedMaterialModule} from "./material/material.module";
 import {ReactiveFormsModule} from "@angular/forms";
 import {TranslateModule, TranslateService} from "@ngx-translate/core";
 import {IonicModule} from "@ionic/angular";
@@ -24,7 +24,6 @@ import {
 import {
   changeCaseToUnderscore,
   delay,
-  filterNumberInput,
   fromDateISOString,
   isNil,
   isNilOrBlank,
@@ -34,7 +33,6 @@ import {
   joinPropertiesPath,
   nullIfUndefined,
   propertyComparator,
-  selectInputContent,
   sort,
   startsWithUpperCase,
   toBoolean,
@@ -42,17 +40,16 @@ import {
   toFloat,
   toInt
 } from "./functions";
+import {filterNumberInput, InputElement, selectInputContent} from "./inputs";
 import {
   fadeInAnimation,
   fadeInOutAnimation,
   slideInOutAnimation,
   slideUpDownAnimation
 } from "./material/material.animations";
-import {InputElement} from "./material/focusable";
 import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
 import {AppFormField} from "./form/field.component";
-import {NumpadComponent} from "./numpad/numpad";
 import {AudioProvider} from "./audio/audio";
 import {CloseScrollStrategy, Overlay} from '@angular/cdk/overlay';
 import {Hotkeys, SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
@@ -65,6 +62,7 @@ import {MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_AUTOCOMPLETE_SCROLL_STRATEGY} from
 import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
 import {SharedDirectivesModule} from "./directives/directives.module";
 import {SharedPipesModule} from "./pipes/pipes.module";
+import {AppLoadingSpinner} from "./form/loading-spinner";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -91,7 +89,7 @@ export {
     CommonModule,
     IonicModule,
     ReactiveFormsModule,
-    MaterialModule,
+    SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
     TranslateModule.forChild(),
@@ -103,22 +101,22 @@ export {
   declarations: [
     ToolbarComponent,
     ModalToolbarComponent,
-    NumpadComponent,
-    AppFormField
+    AppFormField,
+    AppLoadingSpinner
   ],
   exports: [
     ReactiveFormsModule,
     IonicModule,
-    MaterialModule,
+    SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
     SharedHotkeysModule,
     ToolbarComponent,
     ModalToolbarComponent,
-    NumpadComponent,
     TranslateModule,
     ColorPickerModule,
-    AppFormField
+    AppFormField,
+    AppLoadingSpinner
   ],
   providers: [
     ProgressBarService,

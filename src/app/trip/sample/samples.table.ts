@@ -28,14 +28,17 @@ import {SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
-
-export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
-export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
+import {MatDialog} from "@angular/material/dialog";
+import {Batch} from "../services/model/batch.model";
 
 export interface SampleFilter {
   operationId?: number;
   landingId?: number;
 }
+
+export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
+export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
+
 
 @Component({
   selector: 'app-samples-table',
@@ -117,8 +120,10 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.referentialRefService = injector.get(ReferentialRefService);
     this.memoryDataService = (this.dataService as InMemoryTableDataService<Sample, SampleFilter>);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
-    this._acquisitionLevel = AcquisitionLevelCodes.SAMPLE; // Default value, can be override by subclasses
-    this.inlineEdition = true;
+    this.inlineEdition = !this.mobile;
+
+    // Set default value
+    this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE; // Default value, can be override by subclasses
 
     //this.debug = false;
     this.debug = !environment.production;
@@ -142,8 +147,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
-      showAllOnFocus: true
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
     });
 
     // Taxon name combo
@@ -187,8 +191,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     await super.onNewEntity(data);
 
-    const isOnFieldMode = this.isOnFieldMode;
-
     // generate label
     if (!this.showLabelColumn) {
       data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
@@ -197,7 +199,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // Default date
     if (isNotNil(this.defaultSampleDate)) {
       data.sampleDate = this.defaultSampleDate;
-    } else if (isOnFieldMode) {
+    } else if (this.isOnFieldMode) {
       data.sampleDate = moment();
     }
 
@@ -215,30 +217,44 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    const sample = await this.openDetailModal();
-    if (sample) {
-      await this.addSampleToTable(sample);
+    const data = await this.openDetailModal();
+    if (data) {
+      await this.addEntityToTable(data);
     }
     return true;
   }
 
   protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
-    const data = row.validator ? Sample.fromObject(row.currentData) : row.currentData;
+    if (!this.allowRowDetail) return false;
+
+    if (this.onOpenRow.observers.length) {
+      this.onOpenRow.emit({id, row});
+      return true;
+    }
+
+    const data = this.getRowEntity(row, true);
+
+    // Prepare entity measurement values
+    this.prepareEntityToSave(data);
 
     const updatedData = await this.openDetailModal(data);
     if (updatedData) {
-      await this.addSampleToTable(updatedData, row);
+      await this.updateEntityToTable(updatedData, row);
+    }
+    else {
+      this.editedRow = null;
     }
     return true;
   }
 
   async openDetailModal(sample?: Sample): Promise<Sample | undefined> {
-
-    const isNew = !sample;
+    const isNew = !sample && true;
     if (isNew) {
       sample = new Sample();
       await this.onNewEntity(sample);
     }
+
+    this.markAsLoading();
 
     const modal = await this.modalCtrl.create({
       component: SampleModal,
@@ -246,8 +262,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         program: this.program,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
-        value: sample.clone(), // Do a copy, because edition can be cancelled
-        isNew: isNew,
+        value: sample,
+        isNew,
         showLabel: this.showLabelColumn,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
@@ -262,39 +278,21 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[samples-table] Modal result: ", data);
+    this.markAsLoaded();
 
-    return (data instanceof Sample) ? data : undefined;
+    // Exit if empty
+    if (!(data instanceof Sample)) {
+      return undefined;
+    }
+
+    return data;
   }
 
-  protected async addSampleToTable(sample: Sample, row?: TableElement<Sample>): Promise<TableElement<Sample>> {
-    if (this.debug) console.debug("[samples-table] Adding new sample", sample);
 
-    // Create a new row, if need
-    if (!row) {
-      row = await this.addRowToTable();
-      if (!row) throw new Error("Could not add row t table");
+  /* -- protected methods -- */
 
-      // Use the generated rankOrder
-      sample.rankOrder = row.currentData.rankOrder;
-
-    }
-
-    // Adapt measurement values to row
-    this.normalizeEntityToRow(sample, row);
-
-    // Affect new row
-    if (row.validator) {
-      row.validator.patchValue(sample);
-      row.validator.markAsDirty();
-    }
-    else {
-      row.currentData = sample;
-    }
-
-    this.confirmEditCreate(null, row);
-    this.markAsDirty();
-
-    return row;
+  protected prepareEntityToSave(sample: Sample) {
+    // Override by subclasses
   }
 
   referentialToString = referentialToString;

@@ -10,6 +10,7 @@ import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.c
 import {AggregationTypeForm} from "./aggregation-type.form";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {ReferentialUtils} from "../../core/services/model";
 
 @Component({
   selector: 'app-aggregation-type-page',
@@ -108,7 +109,7 @@ export class AggregationTypePage extends AppEditorPage<AggregationType> implemen
       // New date allow for supervisors
       || (this.isNewData && this.accountService.isSupervisor())
       // Supervisor on existing data, and the same recorder department
-      || (EntityUtils.isNotEmpty(data && data.recorderDepartment) && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment));
+      || (ReferentialUtils.isNotEmpty(data && data.recorderDepartment) && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment));
   }
 
   protected async onEntityLoaded(data: AggregationType, options?: EditorDataServiceLoadOptions): Promise<void> {

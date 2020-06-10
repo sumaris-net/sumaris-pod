@@ -479,7 +479,7 @@ export class VesselService
   /* -- protected methods -- */
 
   protected asObject(vessel: Vessel, opts?: EntityAsObjectOptions): any {
-    return vessel.asObject({...MINIFY_OPTIONS, options: opts} as EntityAsObjectOptions);
+    return vessel.asObject({...MINIFY_OPTIONS, ...opts} as EntityAsObjectOptions);
   }
 
   protected fillDefaultProperties(vessel: Vessel) {

@@ -12,6 +12,7 @@ import {FormGroup} from "@angular/forms";
 import {arraySize, isEmptyArray, isNotNilOrNaN} from "../../../shared/functions";
 import * as moment from "moment";
 import {isMoment, Moment} from "moment";
+import {IEntity} from "../../../core/services/model";
 
 export const PMFM_ID_REGEXP = /\d+/;
 
@@ -26,7 +27,7 @@ export declare interface MeasurementFormValues {
   [key: string]: MeasurementFormValue;
 }
 
-export declare interface IEntityWithMeasurement<T> extends Entity<T> {
+export declare interface IEntityWithMeasurement<T extends IEntity<T>> extends IEntity<T> {
   measurementValues: MeasurementModelValues | MeasurementFormValues;
   rankOrder?: number;
   comments?: string;

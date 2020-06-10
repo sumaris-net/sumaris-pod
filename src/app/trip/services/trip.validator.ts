@@ -7,7 +7,7 @@ import {SaleValidatorService} from "./sale.validator";
 import {MeasurementsValidatorService} from "./measurement.validator";
 import {toBoolean} from "../../shared/functions";
 import {AcquisitionLevelCodes, ProgramProperties} from "../../referential/services/model";
-import {MetierRef} from "../../referential/services/model/taxon.model";
+import {Metier} from "../../referential/services/model/taxon.model";
 import {Trip} from "./model/trip.model";
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
@@ -127,8 +127,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     );
   }
 
-  getMetierControl(metier: MetierRef) {
-    return this.formBuilder.control(metier || '', [Validators.required, SharedValidators.entity]);
+  getMetierControl(value: any) {
+    return this.formBuilder.control(value || null, [Validators.required, SharedValidators.entity]);
   }
 }
 

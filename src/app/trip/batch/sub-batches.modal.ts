@@ -8,11 +8,12 @@ import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "./sub-batches.table";
 import {AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {AppFormUtils, EntityUtils, environment, isNil} from "../../core/core.module";
-import {ModalController} from "@ionic/angular";
+import {Animation, ModalController} from "@ionic/angular";
 import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
 import {AudioProvider} from "../../shared/audio/audio";
 import {Alerts} from "../../shared/alerts";
 import {Subject} from "rxjs";
+import {createAnimation} from "@ionic/core";
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
@@ -44,6 +45,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   private _previousMaxRankOrder: number;
   private _selectedParent: Batch;
   private _hiddenData: Batch[];
+  private _rowAnimation: Animation;
 
   $title = new Subject<string>();
 
@@ -103,7 +105,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     this.showParentColumn = false;
 
     // TODO: for DEV only ---
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
 
   }
 
@@ -150,6 +152,19 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     // Compute the title
     await this.computeTitle();
 
+    this._rowAnimation = createAnimation()
+
+      .duration(300)
+      .direction('normal')
+      .iterations(1)
+      .keyframes([
+        { offset: 0, transform: 'scale(1.5)', opacity: '0.5'},
+        { offset: 1, transform: 'scale(1)', opacity: '1' }
+      ])
+      .beforeStyles({
+        color: 'var(--ion-color-accent-contrast)',
+        background: 'var(--ion-color-accent)'
+      });
   }
 
   async cancel(event?: UIEvent) {
@@ -304,22 +319,28 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return Math.max(await super.getMaxRankOrder(), this._previousMaxRankOrder || this._initialMaxRankOrder);
   }
 
-  protected async addBatchToTable(newBatch: Batch): Promise<TableElement<Batch>> {
-    const row = await super.addBatchToTable(newBatch);
+  protected async addEntityToTable(newBatch: Batch): Promise<TableElement<Batch>> {
+    const row = await super.addEntityToTable(newBatch);
 
     // Highlight the row, few seconds
-    this.onRowChanged(row);
+    if (row) this.onRowChanged(row);
+
+    // Clean editedRow
+    this.editedRow = null;
 
     return row;
   }
 
-  protected updateRowFromBatch(updatedBatch: Batch, row: TableElement<Batch>): boolean {
-    const res = super.updateRowFromBatch(updatedBatch, row);
+  protected async updateEntityToTable(updatedBatch: Batch, row: TableElement<Batch>):  Promise<TableElement<Batch>> {
+    const updatedRow = await super.updateEntityToTable(updatedBatch, row);
 
     // Highlight the row, few seconds
-    this.onRowChanged(row);
+    if (updatedRow) this.onRowChanged(updatedRow);
 
-    return res;
+    // Clean editedRow
+    this.editedRow = null;
+
+    return updatedRow;
   }
 
   protected onInvalidForm() {
