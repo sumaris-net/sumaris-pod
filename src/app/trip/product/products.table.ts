@@ -5,7 +5,7 @@ import {ProductValidatorService} from "../services/validator/product.validator";
 import {Product, ProductFilter} from "../services/model/product.model";
 import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
-import {AcquisitionLevelCodes, isNotNil, PmfmStrategy} from "../../referential/services/model";
+import {AcquisitionLevelCodes, isNil, isNotNil, PmfmStrategy} from "../../referential/services/model";
 import {BehaviorSubject, Observable} from "rxjs";
 import {IWithProductsEntity} from "../services/model/base.model";
 import {IReferentialRef} from "../../core/services/model";
@@ -89,17 +89,17 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   ngOnInit() {
     super.ngOnInit();
 
-    // this.displayAttributes = {
-    //   parent: this.parentAttributes
-    // };
-
     this.registerAutocompleteField('parent', {
       items: this.$parents,
-      attributes: this.parentAttributes
+      attributes: this.parentAttributes,
+      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
+      columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined)
     });
 
+    const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
+      columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined)
     });
 
     if (this.$parentFilter) {

@@ -86,6 +86,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.saveBeforeSort = false;
+    this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
     this.autoLoad = false; // waiting parent to be loaded
 

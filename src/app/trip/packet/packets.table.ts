@@ -114,7 +114,9 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
     this.registerAutocompleteField('parent', {
       items: this.$parents,
-      attributes: this.parentAttributes
+      attributes: this.parentAttributes,
+      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
+      columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined)
     });
 
     this.registerSubscription(this.$parentFilter.subscribe(parentFilter => {

@@ -144,7 +144,8 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     this.autocompleteHelper.add('operationGroupFilter', {
       showAllOnFocus: true,
       items: this.$operationGroups,
-      attributes: this.operationGroupAttributes
+      attributes: this.operationGroupAttributes,
+      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME']
     });
 
     // Update available operation groups for catches forms
@@ -164,6 +165,17 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
         //this.landedSaleForm.onRefresh.emit();// TODO ? le onRefresh sur les sous tableaux ?
       })
     );
+
+    // Update catch tab index
+    if (this.catchTabGroup) {
+      if (this.selectedTabIndex === 2) {
+        const queryParams = this.route.snapshot.queryParams;
+        this.selectedCatchTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
+      } else {
+        this.selectedCatchTabIndex = 0;
+      }
+      this.catchTabGroup.realignInkBar();
+    }
 
   }
 
@@ -523,6 +535,21 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     return await super.save(event, {...options, ...saveOptions});
   }
 
+  onNewFabButtonClick(event: UIEvent) {
+    if (this.showOperationGroupTab && this.selectedTabIndex === 1) {
+      this.operationGroupTable.addRow(event);
+    }
+    else if (this.showCatchTab && this.selectedTabIndex === 2) {
+      switch (this.selectedCatchTabIndex) {
+        case 0:
+          this.productsTable.addRow(event);
+          break;
+        case 1:
+          this.packetsTable.addRow(event);
+          break;
+      }
+    }
+  }
 
   /**
    * Get the first invalid tab
