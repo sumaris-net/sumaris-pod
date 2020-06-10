@@ -1,5 +1,26 @@
+:host {
+  --ion-item-background-selected: var(--ion-color-secondary);
+  --ion-item-text-color-selected: var(--ion-color-secondary-contrast);
+  --ion-item-icon-color-selected: var(--ion-color-secondary-contrast);
+}
 ion-item.disabled {
   ion-label {
     color: var(--ion-color-medium-shade, grey);
+  }
+}
+
+ion-item.selected {
+  background: var(--ion-item-background-selected) !important;
+  --color-hover:  var(--ion-item-background-selected) !important;
+
+  ion-text,
+  ion-label {
+    color: var(--ion-item-text-color-selected) !important;
+  }
+
+  &:hover {
+    --color-hover:  var(--ion-item-background-selected) !important;
+    --ion-item-icon-color-selected: var(--ion-item-icon-color) !important;
+    --ion-item-text-color-selected: var(--ion-item-text-color) !important;
   }
 }

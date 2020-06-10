@@ -1,7 +1,7 @@
 <ng-container [ngSwitch]="type">
 
   <!-- integer -->
-  <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
+  <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel" [class]="classList">
     <input matInput #matInput
            type="number"
            autocomplete="off"
@@ -31,7 +31,7 @@
   </mat-form-field>
 
   <!-- double -->
-  <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel">
+  <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel" [class]="classList">
 
     <input matInput #matInput
            type="number"
@@ -59,6 +59,7 @@
 
   <!-- boolean -->
   <mat-boolean-field *ngSwitchCase="'boolean'" #matInput
+                     [class]="classList"
                      [formControl]="formControl"
                      [placeholder]="placeholder"
                      [floatLabel]="floatLabel"
@@ -73,6 +74,7 @@
 
   <!-- date -->
   <mat-date-time-field *ngSwitchCase="'date'" #matInput
+                       [class]="classList"
                        [formControl]="formControl"
                        [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                        [floatLabel]="floatLabel"
@@ -88,6 +90,7 @@
 
   <!-- date time -->
   <mat-date-time-field *ngSwitchCase="'dateTime'"
+                       [class]="classList"
                        [formControl]="formControl"
                        [placeholder]="compact ? ('COMMON.DATE_TIME_PLACEHOLDER'|translate): placeholder"
                        [floatLabel]="floatLabel"
@@ -102,7 +105,7 @@
   </mat-date-time-field>
 
   <!-- enum -->
-  <mat-form-field *ngSwitchCase="'enum'" [floatLabel]="floatLabel">
+  <mat-form-field *ngSwitchCase="'enum'" [floatLabel]="floatLabel" [class]="classList">
     <mat-select [formControl]="formControl"
                 [placeholder]="placeholder"
                 [required]="required"
@@ -119,7 +122,7 @@
   </mat-form-field>
 
   <!-- color -->
-  <mat-form-field *ngSwitchCase="'color'" [floatLabel]="floatLabel">
+  <mat-form-field *ngSwitchCase="'color'" [floatLabel]="floatLabel" [class]="classList">
 
     <ion-icon margin-right name="color-fill" matPrefix></ion-icon>
 
@@ -138,7 +141,7 @@
   </mat-form-field>
 
   <!-- string -->
-  <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel">
+  <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel" [class]="classList">
     <input matInput #matInput
            autocomplete="off"
            [formControl]="formControl"
@@ -157,6 +160,7 @@
 
   <!-- auto-complete -->
   <mat-autocomplete-field *ngSwitchCase="'entity'"
+                          [class]="classList"
                           [placeholder]="placeholder"
                           [floatLabel]="floatLabel"
                           [formControl]="formControl"

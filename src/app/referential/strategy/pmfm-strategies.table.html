@@ -84,8 +84,9 @@
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label>{{definition.label | translate}}</ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.min-width-large]="definition.autocomplete">
+    <mat-cell *matCellDef="let row" >
       <app-form-field floatLabel="never"
+                      class="mat-autocomplete-panel-xlarge-size mat-autocomplete-panel-center"
                       [formControl]="row.validator.controls[definition.key]"
                       [definition]="definition"
                       [compact]="true">

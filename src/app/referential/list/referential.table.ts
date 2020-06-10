@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AppTable,
   AppTableDataSource,
@@ -112,7 +112,7 @@ export class ReferentialTable extends AppInMemoryTable<Referential, ReferentialF
     }
   }
 
-  protected onRowCreated(row) {
+  protected onRowCreated(row: TableElement<Referential>) {
     const defaultValues = {
       entityName: this.entityName
     };

@@ -74,6 +74,8 @@ export class AppFormField implements OnInit, ControlValueAccessor {
 
   @Input() tabindex: number;
 
+  @Input('class') classList: string;
+
   @Output('keyup.enter')
   onKeyupEnter: EventEmitter<any> = new EventEmitter<any>();
 

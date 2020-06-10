@@ -296,16 +296,31 @@ mat-option:not(:last-child) {
   width: 250px !important;
 }
 .mat-autocomplete-panel {
-  min-width: 200px !important;
+  --min-width: 200px;
+  min-width: var(--min-width) !important;
 }
+.mat-autocomplete-panel-medium-size .mat-autocomplete-panel,
+.mat-autocomplete-panel-medium-size.mat-autocomplete-panel,
 .min-width-medium .mat-autocomplete-panel,
-.mat-autocomplete-panel.min-width-medium {
-  min-width: 250px !important;
+.min-width-medium.mat-autocomplete-panel {
+  --min-width: 250px;
 }
+.mat-autocomplete-panel-large-size .mat-autocomplete-panel,
+.mat-autocomplete-panel.mat-autocomplete-panel-large-size,
 .min-width-large .mat-autocomplete-panel,
-.mat-autocomplete-panel.min-width-large {
-  min-width: 350px !important;
+.min-width-large.mat-autocomplete-panel {
+  --min-width: 350px;
 }
+.mat-autocomplete-panel-xlarge-size .mat-autocomplete-panel,
+.mat-autocomplete-panel-xlarge-size.mat-autocomplete-panel {
+  --min-width: 450px;
+}
+
+.mat-autocomplete-panel-center .mat-autocomplete-panel,
+.mat-autocomplete-panel-center.mat-autocomplete-panel {
+  margin-left: calc(var(--min-width, 200px) / -2 + 50%) !important;
+}
+
 .mat-select-panel,
 .mat-autocomplete-panel {
 

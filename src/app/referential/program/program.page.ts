@@ -16,8 +16,8 @@ import {ReferentialRefService} from "../services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
 import {AppListForm} from "../../core/form/list.form";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {StrategyForm} from "./strategy.form";
-import {animate, state, style, transition, trigger} from "@angular/animations";
+import {StrategyForm} from "../strategy/strategy.form";
+import {animate, AnimationEvent, state, style, transition, trigger} from "@angular/animations";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -53,22 +53,13 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
   fieldDefinitions: FormFieldDefinitionMap = {};
   form: FormGroup;
-  editedStrategy: Strategy;
   i18nFieldPrefix = 'PROGRAM.';
   strategyFormState: AnimationState;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
-  @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
-  @ViewChild('pmfmStrategiesTable', { static: true }) pmfmStrategiesTable: PmfmStrategiesTable;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
-
-  @ViewChild('locationsForm', { static: true }) locationsForm: AppListForm;
-  @ViewChild('gearsForm', { static: true }) gearsForm: AppListForm;
-  @ViewChild('taxonGroupsForm', { static: true }) taxonGroupsForm: AppListForm;
-  @ViewChild('taxonNamesForm', { static: true }) taxonNamesForm: AppListForm;
-
+  @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
   @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
-
 
   constructor(
     protected injector: Injector,
@@ -166,7 +157,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
 
   protected registerFormsAndTables() {
     this.registerForms([this.referentialForm, this.propertiesForm, this.strategyForm])
-      .registerTables([this.strategiesTable, this.pmfmStrategiesTable]);
+      .registerTables([this.strategiesTable]);
   }
 
   protected setValue(data: Program) {
@@ -194,9 +185,9 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     data.label = this.form.get('label').value;
     data.properties = this.propertiesForm.value;
 
-    const editedStrategyRow = this.strategiesTable.editedRow;
-    if (editedStrategyRow) {
-      await this.onConfirmEditCreateStrategy(editedStrategyRow);
+    // Finish edition of strategy
+    if (this.strategiesTable.dirty && this.strategiesTable.editedRow) {
+      await this.onConfirmEditCreateStrategy(this.strategiesTable.editedRow);
     }
 
     data.strategies = this.data.strategies;
@@ -222,38 +213,25 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   }
 
   protected async onStartEditStrategy(row: TableElement<Strategy>) {
+    if (!row) return; // skip
+
     const strategy = this.getStrategy(row.currentData, false) || new Strategy();
     console.debug("[program] Start editing strategy", strategy);
-    this.editedStrategy = strategy;
-    this.strategyForm.enable();
 
-    this.markForCheck();
-
-    setTimeout(() => {
-      this.strategyFormState = AnimationState.ENTER;
-      this.markForCheck();
-    }, 200);
+    this.showStrategyForm(strategy);
   }
   protected async onCancelOrDeleteStrategy(row: TableElement<Strategy>) {
-    if (!this.editedStrategy) return; // skip
+    if (!row) return; // skip
 
-    this.strategyForm.disable();
-    this.strategyFormState = AnimationState.LEAVE;
-    this.markForCheck();
-
-    setTimeout(() => {
-      this.editedStrategy = null; // forget editing strategy
-      this.markForCheck();
-    }, 500);
-
+    this.hideStrategyForm();
   }
 
   protected async onConfirmEditCreateStrategy(row: TableElement<Strategy>) {
-    if (!this.editedStrategy) return; // skip
+    if (!row) return; // skip
 
     if (this.strategyForm.dirty) {
       const saved = await this.strategyForm.save();
-      // TODO manage is saved==false (e.g. error in PmfmStrategyTable ?)
+      // TODO if (!saved) { ... }
     }
 
     const source = row.currentData;
@@ -269,13 +247,47 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
 
     console.debug("[program] End editing strategy", target);
 
-    this.strategyFormState = AnimationState.LEAVE;
-    this.markForCheck();
+    this.hideStrategyForm();
+  }
 
-    setTimeout(() => {
-      this.editedStrategy = null; // forget editing strategy
+  showStrategyForm(strategy: Strategy) {
+    this.strategyForm.program = this.data;
+    this.strategyForm.value = strategy;
+
+    if (this.strategyFormState !== AnimationState.ENTER) {
+      // Wait 200ms, during form loading, then start animation
+      setTimeout(() => {
+        this.strategyFormState = AnimationState.ENTER;
+        this.markForCheck();
+      }, 200);
+    }
+  }
+
+  hideStrategyForm() {
+    if (this.strategyFormState == AnimationState.ENTER) {
+      this.strategyFormState = AnimationState.LEAVE;
       this.markForCheck();
-    }, 500);
+    }
+  }
+
+  onStrategyAnimationDone(event: AnimationEvent): void {
+    if (event.phaseName === 'done') {
+
+      // After enter
+      if (event.toState === AnimationState.ENTER) {
+        // Enable form
+        this.strategyForm.enable();
+      }
+
+      // After leave
+      else if (event.toState === AnimationState.LEAVE) {
+
+        // Disable form
+        this.strategyForm.disable({emitEvent: false});
+        this.strategyForm.reset(null, {emitEvent: false});
+        this.strategyForm.markAsPristine({emitEvent: false});
+      }
+    }
   }
 
   protected getStrategy(lightStrategy: Strategy|any, createIfNotExists?: boolean) {

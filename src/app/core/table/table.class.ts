@@ -512,7 +512,9 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
   /** Whether the number of selected elements matches the total number of rows. */
   isAllSelected() {
-    console.log('isAllSelected. lengths', this.selection.selected.length, this.resultsLength);
+    // DEBUG
+    //console.debug('isAllSelected. lengths', this.selection.selected.length, this.resultsLength);
+
     return this.selection.selected.length === this.resultsLength;
   }
 

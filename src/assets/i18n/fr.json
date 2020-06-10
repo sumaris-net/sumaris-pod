@@ -1038,14 +1038,11 @@
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?"
     },
     "STRATEGY": {
+      "ACQUISITION_LEVELS": "Niveaux d'acquisition",
       "LOCATIONS": "Lieux",
-      "LOCATIONS_HELP": "Lieux d'application de la stratégie",
       "GEARS": "Engins",
-      "GEARS_HELP": "Engins utilisés",
       "TAXON_GROUPS": "Espèces commerciales",
-      "TAXON_GROUPS_HELP": "",
       "TAXON_NAMES": "Espèces scientifiques",
-      "TAXON_NAMES_HELP": "",
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",

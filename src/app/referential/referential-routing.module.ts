@@ -10,17 +10,12 @@ import {PmfmPage} from "./pmfm/pmfm.page";
 
 const routes: Routes = [
   {
-    path: 'list',
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        component: ReferentialsPage,
-        data: {
-          profile: 'ADMIN'
-        }
-      }
-    ]
+    path: '',
+    pathMatch: 'full',
+    component: ReferentialsPage,
+    data: {
+      profile: 'ADMIN'
+    }
   },
   {
     path: 'vessels',

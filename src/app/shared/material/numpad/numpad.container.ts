@@ -15,7 +15,6 @@ export enum AnimationState {
   styleUrls: ['./numpad.container.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
-    matDatepickerAnimations.transformPanel,
     // Backdrop animation
     trigger('numpadBackdrop', [
       state('*', style({opacity: 0, background: 'transparent'})),

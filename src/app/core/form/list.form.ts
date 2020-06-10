@@ -17,6 +17,8 @@ import {Moment} from "moment";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {AppForm} from "./form.class";
 import {FormArrayHelper, FormArrayHelperOptions} from "./form.utils";
+import {SelectionModel} from "@angular/cdk/collections";
+import {TableElement} from "angular4-material-table";
 
 @Component({
   selector: 'app-list-form',
@@ -28,18 +30,18 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
 
   loading = true;
   helper: FormArrayHelper<T>;
+  selection = new SelectionModel<T>(true, []);
 
   @Input() formArrayName: string;
-
   @Input() formArray: FormArray;
-
-  @Input() options: FormArrayHelperOptions;
+  @Input() options: FormArrayHelperOptions & { allowMultipleSelection?: boolean };
 
   @Input('displayWith') displayWithFn: (item: any) => string = referentialToString;
-
   @Input('equals') equalsFn: (v1: T, v2: T) => boolean;
 
   @Output() onNewItem = new EventEmitter<UIEvent>();
+  @Output() onSelectionChange = new EventEmitter<T[]>();
+
 
   set value(data: T[]) {
     this.setValue(data);
@@ -90,6 +92,11 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
 
   ngOnInit() {
 
+    this.options = {
+      allowEmptyArray: true,
+      allowMultipleSelection: true,
+      ...this.options};
+
     // Retrieve the form
     const form = (this.formArray && this.formArray.parent as FormGroup || this.formGroupDir && this.formGroupDir.form || this.formBuilder.group({}));
     this.setForm(form);
@@ -122,8 +129,56 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
       this.helper.formArray.patchValue(data, {emitEvent: false});
     }
 
+    this.selection.clear();
     this.markAsPristine();
     this.loading = false;
+  }
+
+  /** Whether the number of selected elements matches the total number of rows. */
+  isAllSelected() {
+    return this.selection.selected.length === this.length;
+  }
+
+  async masterToggle(opts?: {emitEvent?: boolean}) {
+    if (this.loading) return;
+    if (this.isAllSelected()) {
+      this.selection.clear();
+    } else {
+      const items = this.value;
+      items.forEach(item => this.selection.select(item));
+    }
+
+    if (!opts || opts.emitEvent !== false) {
+      this.onSelectionChange.emit(this.selection.selected);
+    }
+  }
+
+  async toggle(item: T, opts?: {emitEvent?: boolean}) {
+    if (!item || this.onSelectionChange.observers.length === 0) return;
+
+    // Multiple selection
+    if (this.options.allowMultipleSelection) {
+      this.selection.toggle(item);
+    }
+    // Only one selection
+    else {
+      if (this.selection.isSelected(item)) {
+        this.selection.clear();
+      }
+      else {
+        this.selection.clear();
+        this.selection.select(item);
+      }
+
+    }
+
+    if (!opts || opts.emitEvent !== false) {
+      this.onSelectionChange.emit(this.selection.selected);
+    }
+  }
+
+  hasSelection(): boolean {
+    return this.selection.hasValue();
   }
 
   onNewClick(event: UIEvent) {

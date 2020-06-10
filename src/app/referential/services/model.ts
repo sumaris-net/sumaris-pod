@@ -864,7 +864,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   isMandatory: boolean;
   rankOrder: number;
 
-  acquisitionLevel: string;
+  acquisitionLevel: string|ReferentialRef;
   gears: string[];
   taxonGroupIds: number[];
   referenceTaxonIds: number[];
@@ -885,6 +885,8 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
+    target.acquisitionLevel = (target.acquisitionLevel && typeof target.acquisitionLevel === "object" && target.acquisitionLevel.label)
+      || target.acquisitionLevel;
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
     target.pmfmId = toNumber(this.pmfmId, this.pmfm && this.pmfm.id);
     delete target.pmfm;

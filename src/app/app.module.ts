@@ -118,7 +118,7 @@ import {APP_HOME_BUTTONS} from "./core/home/home";
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
         {title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER'},
-        {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
+        {title: 'MENU.REFERENTIAL', path: '/referential', icon: 'list', profile: 'ADMIN'},
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
         {title: 'MENU.SERVER_SETTINGS', path: '/admin/config', matIcon: 'build', profile: 'ADMIN'},
 

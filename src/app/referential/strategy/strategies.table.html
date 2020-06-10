@@ -4,13 +4,13 @@
           hidden-xs hidden-sm hidden-mobile>
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="canEdit && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
+  <button mat-icon-button color="light" *ngIf="canEdit && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
           (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>

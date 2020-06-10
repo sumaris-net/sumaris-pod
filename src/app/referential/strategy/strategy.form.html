@@ -24,6 +24,24 @@
       <ion-col size="12" size-lg="4">
         <mat-accordion>
 
+          <!-- Acquisition levels -->
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <ion-text color="primary" translate>PROGRAM.STRATEGY.ACQUISITION_LEVELS</ion-text>
+              </mat-panel-title>
+              <mat-panel-description *ngIf="acquisitionLevelList.length">({{acquisitionLevelList.length}})</mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <app-list-form #acquisitionLevelList
+                           [displayWith]="getReferentialName"
+                           [equals]="referentialEquals"
+                           [options]="{allowEmptyArray: true, allowMultipleSelection: false}"
+                           (onSelectionChange)="updateFilterAcquisitionLevel($event && $event[0])"
+                           (onNewItem)="addAcquisitionLevel()">
+            </app-list-form>
+          </mat-expansion-panel>
+
           <!-- Locations -->
           <mat-expansion-panel>
             <mat-expansion-panel-header>
@@ -62,7 +80,10 @@
           <mat-expansion-panel>
             <mat-expansion-panel-header>
               <mat-panel-title>
-                <ion-text color="primary" translate>PROGRAM.STRATEGY.TAXON_GROUPS</ion-text>
+                <ion-text color="primary" [class.text-bold]="taxonGroupsList.hasSelection()">
+                  <span translate>PROGRAM.STRATEGY.TAXON_GROUPS</span>
+                  <ion-icon name="filter" *ngIf="taxonGroupsList.hasSelection()"></ion-icon>
+                </ion-text>
               </mat-panel-title>
               <mat-panel-description *ngIf="taxonGroupsList.length">({{taxonGroupsList.length}})</mat-panel-description>
             </mat-expansion-panel-header>
@@ -70,7 +91,8 @@
             <app-list-form #taxonGroupsList
                            [displayWith]="taxonGroupStrategyToString"
                            [equals]="taxonGroupStrategyEquals"
-                           [options]="{allowEmptyArray: true}"
+                           [options]="{allowEmptyArray: true, allowMultipleSelection: true}"
+                           (onSelectionChange)="updateFilterTaxonGroups($event)"
                            (onNewItem)="addTaxonGroup()">
             </app-list-form>
 
