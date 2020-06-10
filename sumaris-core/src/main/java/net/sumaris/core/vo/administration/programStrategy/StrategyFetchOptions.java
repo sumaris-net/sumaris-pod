@@ -24,9 +24,11 @@ package net.sumaris.core.vo.administration.programStrategy;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Builder
+@EqualsAndHashCode
 public class StrategyFetchOptions {
 
     @Builder.Default
