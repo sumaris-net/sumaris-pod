@@ -65,7 +65,7 @@ public class FishingAreaServiceImpl implements FishingAreaService {
         List<OperationGroupVO> operationGroups = operationGroupDao.getOperationGroupsByTripId(tripId, OperationGroupDao.OperationGroupFilter.UNDEFINED);
         // Get the first (main ?) undefined operation group
         // todo maybe add is_main_operation and manage metier order in app
-        if (CollectionUtils.size(operationGroups) == 1) {
+        if (CollectionUtils.size(operationGroups) > 0) {
             return operationGroups.get(0);
         }
         return null;
