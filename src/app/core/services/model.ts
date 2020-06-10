@@ -521,6 +521,7 @@ export class Referential<T extends Referential<any> = Referential<any>, O extend
   validityStatusId: number;
   levelId: number;
   parentId: number;
+  rankOrder: number;
   entityName: string;
 
   constructor(data?: {
@@ -529,6 +530,7 @@ export class Referential<T extends Referential<any> = Referential<any>, O extend
     name?: string,
     parentId?: number,
     levelId?: number,
+    rankOrder?: number,
     entityName?: string
   }) {
     super();
@@ -537,6 +539,7 @@ export class Referential<T extends Referential<any> = Referential<any>, O extend
     this.name = data && data.name;
     this.parentId = data && data.parentId;
     this.levelId = data && data.levelId;
+    this.rankOrder = data && data.rankOrder;
     this.entityName = data && data.entityName;
   }
 
@@ -569,6 +572,7 @@ export class Referential<T extends Referential<any> = Referential<any>, O extend
     this.statusId = source.statusId;
     this.validityStatusId  = source.validityStatusId;
     this.levelId = source.levelId && source.levelId !== 0 ? source.levelId : undefined; // Do not set as null (need for account.department, when regsiter)
+    this.rankOrder = source.rankOrder;
     this.parentId = source.parentId;
     this.creationDate = fromDateISOString(source.creationDate);
     this.entityName = source.entityName;
@@ -603,6 +607,7 @@ export declare interface IReferentialRef {
   label: string;
   name: string;
   statusId: number;
+  rankOrder: number;
   entityName: string;
 }
 
@@ -644,17 +649,20 @@ export class ReferentialRef<T extends ReferentialRef<any> = ReferentialRef<any>,
   label: string;
   name: string;
   statusId: number;
+  rankOrder: number;
   entityName: string;
 
   constructor(data?: {
     id?: number,
     label?: string,
-    name?: string
+    name?: string,
+    rankOrder?: number
   }) {
     super();
     this.id = data && data.id;
     this.label = data && data.label;
     this.name = data && data.name;
+    this.rankOrder = data && data.rankOrder;
   }
 
   clone(): T {
@@ -682,6 +690,7 @@ export class ReferentialRef<T extends ReferentialRef<any> = ReferentialRef<any>,
     this.label = source.label;
     this.name = source.name;
     this.statusId = source.statusId;
+    this.rankOrder = source.rankOrder;
     this.entityName = source.entityName;
   }
 }

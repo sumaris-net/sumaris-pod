@@ -17,6 +17,7 @@ import {TaxonNameRef} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {ReferentialFragments} from "./referential.queries";
+import {SortDirection} from "@angular/material/sort";
 
 export type ReferentialRefFilter = ReferentialFilter & {
   searchAttributes?: string[];
@@ -249,10 +250,10 @@ export class ReferentialRefService extends BaseDataService
     };
   }
 
-  async suggest(value: any, filter?: ReferentialRefFilter): Promise<ReferentialRef[]> {
+  async suggest(value: any, filter?: ReferentialRefFilter, sortBy?: keyof ReferentialRef, sortDirection?: SortDirection): Promise<ReferentialRef[]> {
     if (ReferentialUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
-    const res = await this.loadAll(0, !value ? 30 : 10, null, null,
+    const res = await this.loadAll(0, !value ? 30 : 10, sortBy, sortDirection,
       { ...filter, searchText: value},
       { withTotal: false /* total not need */ }
     );

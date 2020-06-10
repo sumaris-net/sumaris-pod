@@ -800,6 +800,13 @@
       "PACKAGING": "Packaging"
     }
   },
+  "FISHING_AREA": {
+    "TITLE": "Fishing area",
+    "LOCATION": "Location",
+    "DISTANCE_TO_COAST_GRADIENT": "Distance to coast gradient",
+    "DEPTH_GRADIENT": "Depth gradient",
+    "NEARBY_SPECIFIC_AREA": "Nearby specific area"
+  },
   "QUALITY": {
     "BTN_CONTROL": "Control input",
     "BTN_TERMINATE": "Complete input",

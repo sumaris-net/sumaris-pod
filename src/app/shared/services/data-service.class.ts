@@ -1,6 +1,7 @@
 import {BehaviorSubject, Observable} from "rxjs";
 import {FetchPolicy} from "apollo-client";
 import {isNil, isNotNil} from "../functions";
+import {SortDirection} from "@angular/material/sort";
 
 export declare interface LoadPage<T> {
   offset: number;
@@ -14,7 +15,7 @@ export declare interface LoadResult<T> {
   total?: number;
 }
 
-export declare type SuggestFn<T, F> = (value: any, filter?: F) => Promise<T[]>;
+export declare type SuggestFn<T, F> = (value: any, filter?: F, sortBy?: keyof T, sortDirection?: SortDirection) => Promise<T[]>;
 
 export declare interface SuggestionDataService<T, F> {
   suggest: SuggestFn<T, F>;

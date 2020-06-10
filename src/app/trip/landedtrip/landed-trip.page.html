@@ -75,6 +75,17 @@
                        [showError]="false"
                        [showAddVessel]="false">
 
+              <!-- Main fishing area  -->
+              <app-fishing-area-form #fishingAreaForm
+                                     [showError]="false"
+                                     [showDepthGradient]="false"
+                                     [showNearbySpecificArea]="false"
+                                     [required]="false"
+                                     [debug]="debug"
+              >
+
+              </app-fishing-area-form>
+
               <!-- Other features (Measurements) -->
               <ion-grid class="ion-no-padding ion-padding-top">
                 <ion-row>

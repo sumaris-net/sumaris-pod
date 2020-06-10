@@ -803,6 +803,13 @@
       "PACKAGING": "Unité"
     }
   },
+  "FISHING_AREA": {
+    "TITLE": "Zone de pêche",
+    "LOCATION": "Lieu",
+    "DISTANCE_TO_COAST_GRADIENT": "Gradient de distance à la côte",
+    "DEPTH_GRADIENT": "Gradient de profondeur",
+    "NEARBY_SPECIFIC_AREA": "Zone spécifique à proximité"
+  },
   "QUALITY": {
     "BTN_CONTROL": "Controler la saisie",
     "BTN_TERMINATE": "Terminer la saisie",

@@ -38,6 +38,7 @@ import {debounceTime, filter} from "rxjs/operators";
 import {Sale} from "../services/model/sale.model";
 import {ExpenseForm} from "../expense/expense.form";
 import {Metier} from "../../referential/services/model/taxon.model";
+import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -74,6 +75,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
+  @ViewChild('fishingAreaForm', {static: true}) fishingAreaForm: FishingAreaForm;
   @ViewChild('operationGroupTable', {static: true}) operationGroupTable: OperationGroupTable;
   @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
@@ -166,7 +168,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   }
 
   protected registerFormsAndTables() {
-    this.registerForms([this.tripForm, this.measurementsForm,
+    this.registerForms([this.tripForm, this.measurementsForm, this.fishingAreaForm,
       // this.landedSaleForm //, this.saleMeasurementsForm
       this.expenseForm
     ])
@@ -283,6 +285,9 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       this.productSalePmfms = await this.programService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
 
     }
+
+    // Fishing area
+    this.fishingAreaForm.value = data && data.fishingArea;
 
     // Trip measurements todo filter ????????
     const tripMeasurements = data && data.measurements || [];
@@ -462,6 +467,9 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     // json.sale = !this.saleForm.empty ? this.saleForm.value : null;
     // Concat trip and expense measurements
     json.measurements = (this.measurementsForm.value || []).concat(this.expenseForm.value);
+
+    // FishingArea
+    json.fishingArea = this.fishingAreaForm.value;
 
     const operationGroups: OperationGroup[] = this.operationGroupTable.value || [];
 

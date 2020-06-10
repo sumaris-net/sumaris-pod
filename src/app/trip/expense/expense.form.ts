@@ -1,23 +1,22 @@
 import {AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {Form, FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {FormArray, FormBuilder} from "@angular/forms";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementsForm} from "../measurement/measurements.form.component";
-import {Entity, EntityUtils, isNil, PmfmStrategy} from "../../referential/services/model";
+import {isNil, PmfmStrategy} from "../../referential/services/model";
 import {ProgramService} from "../../referential/services/program.service";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {PlatformService} from "../../core/services/platform.service";
-import {BehaviorSubject, combineLatest, Subscription} from "rxjs";
-import {arraySize, filterNumberInput, isEmptyArray, isNotEmptyArray, isNotNilOrNaN, remove, removeAll, round, selectInputContent} from "../../shared/functions";
+import {BehaviorSubject} from "rxjs";
+import {isNotEmptyArray, isNotNilOrNaN, remove, removeAll, round} from "../../shared/functions";
 import {ObjectMap} from "../../core/services/model";
-import {debounceTime, filter, takeUntil, tap} from "rxjs/operators";
+import {debounceTime, filter} from "rxjs/operators";
 import {Measurement, MeasurementUtils} from "../services/model/measurement.model";
 import {ExpenseValidatorService} from "../services/validator/expense.validator";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {getMaxRankOrder} from "../services/model/base.model";
 import {TypedExpenseForm} from "./typed-expense.form";
-import {getVirtualDeviceNameForPlatform} from "@ionic/cli/lib/integrations/capacitor/utils";
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';
 
@@ -173,9 +172,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   initBaitHelper() {
     this.baitsHelper = new FormArrayHelper<number>(
-      this.formBuilder,
-      this.form,
-      'baits',
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'baits'),
       (data) => this.validatorService.getBaitControl(data),
       (v1, v2) => v1 === v2,
       value => isNil(value),

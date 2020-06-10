@@ -90,6 +90,8 @@ import {MatTabsModule} from "@angular/material/tabs";
 import {ExpenseValidatorService} from "./services/validator/expense.validator";
 import {TypedExpenseForm} from "./expense/typed-expense.form";
 import {TypedExpenseValidatorService} from "./services/validator/typed-expense.validator";
+import {FishingAreaForm} from "./fishing-area/fishing-area.form";
+import {FishingAreaValidatorService} from "./services/validator/fishing-area.validator";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -155,7 +157,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     PacketForm,
     PacketModal,
     PacketSaleForm,
-    PacketSaleModal
+    PacketSaleModal,
+    FishingAreaForm
   ],
   exports: [
     TripTable,
@@ -234,7 +237,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     ProductValidatorService,
     PacketValidatorService,
     PacketCompositionValidatorService,
-    PhysicalGearService
+    PhysicalGearService,
+    FishingAreaValidatorService
   ]
 })
 export class TripModule {
