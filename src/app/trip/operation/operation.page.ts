@@ -663,6 +663,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   }
 
   protected async setAutoFillSpecies(enable: boolean) {
+    console.log("TODO setAutoFillSpecies=" + enable);
     if (!this.showBatchTables || !this.batchGroupsTable.showTaxonGroupColumn || !enable) {
       // Reset table's default taxon groups
       this.batchGroupsTable.defaultTaxonGroups = null;

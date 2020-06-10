@@ -80,114 +80,30 @@
           <ion-icon matPrefix slot="start" name="contract"></ion-icon>
         </mat-icon>
         <ion-label translate>PROGRAM.TAB_STRATEGIES</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="strategiesTable.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="strategiesTable.invalid || (editedStrategy && strategyForm.invalid)"></ion-icon>
       </ng-template>
 
       <div class="ion-no-padding">
 
         <!-- error -->
-        <ion-item *ngIf="strategiesTable.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="(strategiesTable.error || (editedStrategy && strategyForm.error)) as strategyError" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="strategiesTable.error|translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="strategyError |translate"></ion-label>
         </ion-item>
 
-        <app-strategy-table #strategiesTable>
+        <!-- strategies table -->
+        <app-strategy-table #strategiesTable
+                            [canEdit]="enabled"
+                            [canDelete]="enabled">
         </app-strategy-table>
 
         <!-- strategy details-->
-        <ion-grid [class.cdk-visually-hidden]="!editedStrategy">
-          <ion-row>
-
-
-            <ion-col size="12" size-lg="4">
-              <mat-accordion>
-
-                <!-- Locations -->
-                <mat-expansion-panel>
-                  <mat-expansion-panel-header>
-                    <mat-panel-title>
-                      <ion-text color="primary" translate>PROGRAM.STRATEGY.LOCATIONS</ion-text>
-                    </mat-panel-title>
-                    <mat-panel-description *ngIf="locationsForm.length">({{locationsForm.length}})</mat-panel-description>
-                  </mat-expansion-panel-header>
-
-                  <app-list-form #locationsForm
-                                 [displayWith]="referentialToString"
-                                 [equals]="referentialEquals"
-                                 [options]="{allowEmptyArray: true}"
-                                 (onNewItem)="addLocation()">
-                  </app-list-form>
-                </mat-expansion-panel>
-
-                <!-- Gears -->
-                <mat-expansion-panel>
-                  <mat-expansion-panel-header>
-                    <mat-panel-title>
-                      <ion-text color="primary" translate>PROGRAM.STRATEGY.GEARS</ion-text>
-                    </mat-panel-title>
-                    <mat-panel-description *ngIf="gearsForm.length">({{gearsForm.length}})</mat-panel-description>
-                  </mat-expansion-panel-header>
-
-                  <app-list-form #gearsForm
-                                 [displayWith]="referentialToString"
-                                 [equals]="referentialEquals"
-                                 [options]="{allowEmptyArray: true}"
-                                 (onNewItem)="addGear()">
-                  </app-list-form>
-                </mat-expansion-panel>
-
-                <!-- Taxon Groups -->
-                <mat-expansion-panel>
-                  <mat-expansion-panel-header>
-                    <mat-panel-title>
-                      <ion-text color="primary" translate>PROGRAM.STRATEGY.TAXON_GROUPS</ion-text>
-                    </mat-panel-title>
-                    <mat-panel-description *ngIf="editedStrategy && taxonGroupsForm.length">({{taxonGroupsForm.length}})</mat-panel-description>
-                  </mat-expansion-panel-header>
-
-                  <app-list-form #taxonGroupsForm
-                                 [displayWith]="taxonGroupStrategyToString"
-                                 [equals]="taxonGroupStrategyEquals"
-                                 [options]="{allowEmptyArray: true}"
-                                 (onNewItem)="addTaxonGroup()">
-                  </app-list-form>
-
-                </mat-expansion-panel>
-
-                <!-- Taxon names -->
-                <mat-expansion-panel>
-                  <mat-expansion-panel-header>
-                    <mat-panel-title>
-                      <ion-text color="primary" translate>PROGRAM.STRATEGY.TAXON_NAMES</ion-text>
-                    </mat-panel-title>
-                    <mat-panel-description *ngIf="editedStrategy && taxonNamesForm?.length">({{taxonNamesForm.length}})</mat-panel-description>
-                  </mat-expansion-panel-header>
-
-                  <app-list-form #taxonNamesForm
-                                 [displayWith]="taxonNameStrategyToString"
-                                 [equals]="taxonNameStrategyEquals"
-                                 [options]="{allowEmptyArray: true}"
-                                 (onNewItem)="addTaxonName()">
-                  </app-list-form>
-                </mat-expansion-panel>
-              </mat-accordion>
-            </ion-col>
-
-            <!-- Pmfm strategies -->
-            <ion-col>
-              <ion-card class="ion-no-margin">
-                <app-pmfm-strategies-table #pmfmStrategiesTable
-                                           [title]="'PROGRAM.STRATEGY.PMFM_STRATEGY.TABLE.TITLE'|translate">
-                </app-pmfm-strategies-table>
-              </ion-card>
-
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-
-        <!--
-
-        -->
+        <app-strategy-form #strategyForm
+                           [@fadeIn]="strategyFormState"
+                           [showBaseForm]="false"
+                           [value]="editedStrategy"
+                           [program]="data">
+        </app-strategy-form>
       </div>
     </mat-tab>
 

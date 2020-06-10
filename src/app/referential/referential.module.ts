@@ -64,6 +64,7 @@ import {PmfmStrategiesTable} from "./strategy/pmfm-strategies.table";
 import {PmfmStrategyValidatorService} from "./services/validator/pmfm-strategy.validator";
 import {SelectReferentialModal} from "./list/select-referential.modal";
 import {ReferentialRefTable} from "./list/referential-ref.table";
+import {StrategyForm} from "./program/strategy.form";
 
 export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
@@ -90,6 +91,7 @@ export {
     VesselForm,
     VesselModal,
     ProgramPage,
+    StrategyForm,
     StrategiesTable,
     PmfmStrategiesTable,
     SoftwarePage,
@@ -108,6 +110,7 @@ export {
     VesselPage,
     VesselForm,
     ProgramPage,
+    StrategyForm,
     SoftwarePage,
     VesselsPage,
     ParameterPage,

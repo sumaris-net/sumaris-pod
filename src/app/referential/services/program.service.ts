@@ -667,6 +667,8 @@ export class ProgramService extends BaseDataService
             // For now: select the first one
             const strategy = program && program.strategies && program.strategies[0];
 
+            console.log('TODO: getting strategy:', strategy);
+
             const res = (strategy && strategy.taxonGroups || [])
 
               // Sort taxonGroupStrategies, on priorityLevel
