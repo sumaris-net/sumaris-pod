@@ -21,6 +21,7 @@ import {FormArrayHelper, FormArrayHelperOptions} from "./form.utils";
 @Component({
   selector: 'app-list-form',
   templateUrl: 'list.form.html',
+  styleUrls: ['./list.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
@@ -49,11 +50,27 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
   }
 
   get itemControls(): FormGroup[] {
-    return this.formArray.controls as FormGroup[];
+    return this.formArray && this.formArray.controls as FormGroup[];
   }
 
   get length(): number {
     return this.helper ? this.helper.size() : 0;
+  }
+
+  get dirty(): boolean {
+    return this.formArray && this.formArray.dirty;
+  }
+
+  get invalid(): boolean {
+    return !this.formArray || this.formArray.invalid;
+  }
+
+  get valid(): boolean {
+    return this.formArray && this.formArray.valid;
+  }
+
+  get pending(): boolean {
+    return !this.formArray || this.formArray.pending;
   }
 
   constructor(
@@ -100,8 +117,10 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
   setValue(data: T[] | any) {
     if (!data) return; // Skip
 
-    this.helper.resize(data.length);
-    this.helper.formArray.patchValue(data, {emitEvent: false});
+    if (this.helper) {
+      this.helper.resize(data.length);
+      this.helper.formArray.patchValue(data, {emitEvent: false});
+    }
 
     this.markAsPristine();
     this.loading = false;
@@ -112,14 +131,13 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
   }
 
   add(value: T) {
-    console.log("TODO add", value);
     this.helper.add(value, {emitEvent: true});
     this.markForCheck();
   }
 
   removeAt(index: number) {
+    console.log("TODO: remove ? ", this.enabled);
     this.helper.removeAt(index);
-    this.markForCheck();
   }
 
   displayWith(value: T): string {

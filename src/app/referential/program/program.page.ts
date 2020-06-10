@@ -1,15 +1,8 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {AppEditorPage, EntityUtils, isNil, isNotNil, ReferentialRef} from "../../core/core.module";
-import {
-  PmfmStrategy,
-  Program,
-  ProgramProperties,
-  referentialToString,
-  Strategy,
-  TaxonGroupStrategy, TaxonNameStrategy
-} from "../services/model";
+import {AppEditorPage, EntityUtils, isNil} from "../../core/core.module";
+import {Program, ProgramProperties, Strategy} from "../services/model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
@@ -19,12 +12,17 @@ import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model";
 import {PmfmStrategiesTable} from "../strategy/pmfm-strategies.table";
 import {AppPropertiesForm} from "../../core/form/properties.form";
-import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
-import {SelectReferentialModal} from "../list/select-referential.modal";
+import {ReferentialRefService} from "../services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
 import {AppListForm} from "../../core/form/list.form";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {toNumber} from "../../shared/functions";
+import {StrategyForm} from "./strategy.form";
+import {animate, state, style, transition, trigger} from "@angular/animations";
+
+export enum AnimationState {
+  ENTER = 'enter',
+  LEAVE = 'leave'
+}
 
 @Component({
   selector: 'app-program',
@@ -32,7 +30,22 @@ import {toNumber} from "../../shared/functions";
   providers: [
     {provide: ValidatorService, useExisting: ProgramValidatorService}
   ],
-  animations: [fadeInOutAnimation],
+  animations: [fadeInOutAnimation,
+    // Fade in
+    trigger('fadeIn', [
+      state('*', style({opacity: 0, display: 'none', visibility: 'hidden'})),
+      state(AnimationState.ENTER, style({opacity: 1, display: 'inherit', visibility: 'inherit'})),
+      state(AnimationState.LEAVE, style({opacity: 0, display: 'none', visibility: 'hidden'})),
+      // Modal
+      transition(`* => ${AnimationState.ENTER}`, [
+        style({display: 'inherit',  visibility: 'inherit', transform: 'translateX(50%)'}),
+        animate('0.4s ease-out', style({opacity: 1, transform: 'translateX(0)'}))
+      ]),
+      transition(`${AnimationState.ENTER} => ${AnimationState.LEAVE}`, [
+        animate('0.2s ease-out', style({opacity: 0, transform: 'translateX(50%)'})),
+        style({display: 'none',  visibility: 'hidden'})
+      ]) ])
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProgramPage extends AppEditorPage<Program> implements OnInit {
@@ -42,6 +55,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   form: FormGroup;
   editedStrategy: Strategy;
   i18nFieldPrefix = 'PROGRAM.';
+  strategyFormState: AnimationState;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
@@ -52,6 +66,9 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   @ViewChild('gearsForm', { static: true }) gearsForm: AppListForm;
   @ViewChild('taxonGroupsForm', { static: true }) taxonGroupsForm: AppListForm;
   @ViewChild('taxonNamesForm', { static: true }) taxonNamesForm: AppListForm;
+
+  @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
+
 
   constructor(
     protected injector: Injector,
@@ -120,111 +137,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
       .subscribe(row => this.onCancelOrDeleteStrategy(row)));
   }
 
-  async openSelectReferentialModal(opts: {
-    filter: ReferentialRefFilter
-  }): Promise<ReferentialRef[]> {
 
-    const modal = await this.modalCtrl.create({ component: SelectReferentialModal,
-      componentProps: {
-        filter: opts.filter
-      }
-    });
-
-    await modal.present();
-
-    const {data} = await modal.onDidDismiss();
-
-    return data;
-  }
-
-  removeFromArray(array: any[], item: any) {
-    const index = array.findIndex(i => i === item);
-    if (index !== -1) {
-      array.splice(index, 1);
-      this.markForCheck();
-    }
-  }
-
-  async addInArray(array: any[], entityName: string) {
-    const items = await this.openSelectReferentialModal({filter: {
-        entityName
-      }});
-    (items || []).forEach(item => array.push(item))
-    this.markForCheck();
-  }
-
-  async addLocation() {
-    if (!this.editedStrategy) return; // Skip
-
-    const items = await this.openSelectReferentialModal({
-      filter: {
-        entityName: 'Location',
-        levelIds: (this.data.locationClassifications || []).map(item => item.id).filter(isNotNil)
-      }
-    });
-
-    // Add to list
-    (items || []).forEach(item => this.locationsForm.add(item))
-
-    this.markForCheck();
-  }
-
-  async addGear() {
-    if (!this.editedStrategy) return; // Skip
-
-    const items = await this.openSelectReferentialModal({
-      filter: {
-        entityName: 'Gear',
-        levelId: this.data.gearClassification ? toNumber(this.data.gearClassification.id, -1) : -1
-      }
-    });
-
-    // Add to list
-    (items || []).forEach(item => this.gearsForm.add(item))
-    this.markForCheck();
-  }
-
-  async addTaxonGroup(priorityLevel?: number) {
-    if (!this.editedStrategy) return; // Skip
-
-    priorityLevel = priorityLevel && priorityLevel > 0 ? priorityLevel : 1;
-
-    const items = await this.openSelectReferentialModal({
-      filter: {
-        entityName: 'TaxonGroup',
-        levelId: this.data.taxonGroupType ? toNumber(this.data.taxonGroupType.id, -1) : -1
-      }
-    });
-
-    // Add to list
-    (items || []).map(taxonGroup => TaxonGroupStrategy.fromObject({
-      priorityLevel,
-      taxonGroup: taxonGroup.asObject()
-    }))
-      .forEach(item => this.taxonGroupsForm.add(item))
-    this.markForCheck();
-  }
-
-
-  async addTaxonName(priorityLevel?: number) {
-    if (!this.editedStrategy) return; // Skip
-
-    priorityLevel = priorityLevel && priorityLevel > 0 ? priorityLevel : 1;
-
-    const items = await this.openSelectReferentialModal({
-      filter: {
-        entityName: 'TaxonName'
-      }
-    });
-
-    // Add to list
-    (items || []).map(taxonName => TaxonNameStrategy.fromObject({
-      priorityLevel,
-      taxonName: taxonName.asObject()
-    }))
-      .forEach(item => this.taxonNamesForm.add(item))
-    this.markForCheck();
-  }
   /* -- protected methods -- */
 
   protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>) {
@@ -252,7 +165,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   }
 
   protected registerFormsAndTables() {
-    this.registerForms([this.referentialForm, this.propertiesForm])
+    this.registerForms([this.referentialForm, this.propertiesForm, this.strategyForm])
       .registerTables([this.strategiesTable, this.pmfmStrategiesTable]);
   }
 
@@ -274,11 +187,18 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   }
 
   protected async getJsonValueToSave(): Promise<any> {
+
     const data = await super.getJsonValueToSave();
 
     // Re add label, because missing when field disable
     data.label = this.form.get('label').value;
     data.properties = this.propertiesForm.value;
+
+    const editedStrategyRow = this.strategiesTable.editedRow;
+    if (editedStrategyRow) {
+      await this.onConfirmEditCreateStrategy(editedStrategyRow);
+    }
+
     data.strategies = this.data.strategies;
 
     return data;
@@ -297,57 +217,65 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
     if (this.propertiesForm.invalid) return 1;
-    if (this.strategiesTable.invalid) return 2;
+    if (this.strategiesTable.invalid || this.strategyForm.invalid) return 2;
     return 0;
   }
 
   protected async onStartEditStrategy(row: TableElement<Strategy>) {
     const strategy = this.getStrategy(row.currentData, false) || new Strategy();
-    this.editedStrategy = strategy;
-
     console.debug("[program] Start editing strategy", strategy);
-
-    this.locationsForm.value = this.data.locations;
-    this.gearsForm.value = strategy.gears;
-    this.taxonGroupsForm.value = strategy.taxonGroups;
-    this.taxonNamesForm.value = strategy.taxonNames;
-    this.pmfmStrategiesTable.value = strategy.pmfmStrategies || [];
+    this.editedStrategy = strategy;
+    this.strategyForm.enable();
 
     this.markForCheck();
+
+    setTimeout(() => {
+      this.strategyFormState = AnimationState.ENTER;
+      this.markForCheck();
+    }, 200);
   }
   protected async onCancelOrDeleteStrategy(row: TableElement<Strategy>) {
     if (!this.editedStrategy) return; // skip
 
-    this.editedStrategy = null; // forget editing strategy
+    this.strategyForm.disable();
+    this.strategyFormState = AnimationState.LEAVE;
     this.markForCheck();
+
+    setTimeout(() => {
+      this.editedStrategy = null; // forget editing strategy
+      this.markForCheck();
+    }, 500);
+
   }
 
   protected async onConfirmEditCreateStrategy(row: TableElement<Strategy>) {
     if (!this.editedStrategy) return; // skip
 
-    const source = row.currentData;
-    const target = this.getStrategy(source, true);
+    if (this.strategyForm.dirty) {
+      const saved = await this.strategyForm.save();
+      // TODO manage is saved==false (e.g. error in PmfmStrategyTable ?)
+    }
 
-    // Update some properties
+    const source = row.currentData;
+    //const target = this.getStrategy(source, true);
+    const target = this.strategyForm.value
+
+    // Update some properties, from the strategies table
     target.label = source.label;
     target.name = source.name;
     target.description = source.description;
     target.statusId = source.statusId;
     target.comments = source.comments;
 
-    target.gears = this.gearsForm.value;
-    target.taxonGroups = this.taxonGroupsForm.value;
-    target.taxonNames = this.taxonNamesForm.value;
-    // TODO target.locations = this.locationssForm.value;
-
-    // Update pmfm strategy
-    await this.pmfmStrategiesTable.save();
-    target.pmfmStrategies = (this.pmfmStrategiesTable.value || []).map(PmfmStrategy.fromObject);
-
     console.debug("[program] End editing strategy", target);
 
-    this.editedStrategy = null; // forget editing strategy
+    this.strategyFormState = AnimationState.LEAVE;
     this.markForCheck();
+
+    setTimeout(() => {
+      this.editedStrategy = null; // forget editing strategy
+      this.markForCheck();
+    }, 500);
   }
 
   protected getStrategy(lightStrategy: Strategy|any, createIfNotExists?: boolean) {
@@ -363,25 +291,6 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     }
 
   }
-
-  taxonGroupStrategyToString(data: TaxonGroupStrategy): string {
-    return data && referentialToString(data.taxonGroup) || '';
-  }
-
-  taxonGroupStrategyEquals(v1: TaxonGroupStrategy, v2: TaxonGroupStrategy) {
-    return ReferentialUtils.equals(v1.taxonGroup, v2.taxonGroup);
-  }
-
-  taxonNameStrategyToString(data: TaxonNameStrategy): string {
-    return data && referentialToString(data.taxonName) || '';
-  }
-
-  taxonNameStrategyEquals(v1: TaxonNameStrategy, v2: TaxonNameStrategy) {
-    return ReferentialUtils.equals(v1.taxonName, v2.taxonName);
-  }
-
-  referentialToString = referentialToString;
-  referentialEquals = ReferentialUtils.equals;
 
   protected markForCheck() {
     this.cd.markForCheck();
