@@ -4,6 +4,9 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.BatchDao;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.schema.DatabaseSchemaDao;
+import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
+import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
@@ -32,7 +35,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 09/04/2020.
  */
 @Service("packetService")
-public class PacketServiceImpl implements PacketService {
+public class PacketServiceImpl implements PacketService, DatabaseSchemaListener {
 
     private static final Logger logger = LoggerFactory.getLogger(PacketServiceImpl.class);
     private Integer calculatedWeightPmfmId;
@@ -53,8 +56,16 @@ public class PacketServiceImpl implements PacketService {
     @Autowired
     private ReferentialDao referentialDao;
 
+    @Autowired
+    private DatabaseSchemaDao databaseSchemaDao;
+
     @PostConstruct
     protected void init() {
+        databaseSchemaDao.addListener(this);
+    }
+
+    @Override
+    public void onSchemaUpdated(SchemaUpdatedEvent event) {
         // TODO: allow to start service, even some PMFM are missing
         // (e.g. use findByLabel())
         this.calculatedWeightPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_CALCULATED_WEIGHT.getLabel()).getId();

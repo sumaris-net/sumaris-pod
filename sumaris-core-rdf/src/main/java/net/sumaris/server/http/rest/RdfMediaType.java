@@ -22,7 +22,6 @@
 
 package net.sumaris.server.http.rest;
 
-import org.apache.jena.sparql.resultset.ResultsFormat;
 import org.springframework.http.MediaType;
 
 public class RdfMediaType extends MediaType {
