@@ -15,6 +15,7 @@ import {SelectVesselsModal} from "./vessels/select-vessel.modal";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {Landing} from "../services/model/landing.model";
 import {LandingFilter} from "../services/landing.service";
+import {TableElement} from "angular4-material-table";
 
 @Component({
   selector: 'app-observed-location-page',

@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "../../shared/validator/validators";
+import {SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators} from "../../shared/validator/validators";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from "./validator/base.validator";
 import {SaleValidatorService} from "./sale.validator";
@@ -83,9 +83,9 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   getFormGroupOptions(data?: Trip, opts?: O): { [key: string]: any } {
     return {
       validator: Validators.compose([
-        SharedValidators.dateRange('departureDateTime', 'returnDateTime'),
-        SharedValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours'),
-        SharedValidators.dateMaxDuration('departureDateTime', 'returnDateTime', 100, 'days')
+        SharedFormGroupValidators.dateRange('departureDateTime', 'returnDateTime'),
+        SharedFormGroupValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours'),
+        SharedFormGroupValidators.dateMaxDuration('departureDateTime', 'returnDateTime', 100, 'days')
       ])
     };
   }
@@ -123,7 +123,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   getMetiersArray(data?: Trip) {
     return this.formBuilder.array(
       (data && data.metiers || []).map(metier => this.getMetierControl(metier)),
-      SharedValidators.requiredArrayMinLength(1)
+      SharedFormArrayValidators.requiredArrayMinLength(1)
     );
   }
 

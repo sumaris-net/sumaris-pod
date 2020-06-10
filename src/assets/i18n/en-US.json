@@ -777,6 +777,36 @@
       }
     }
   },
+  "EXPENSE": {
+    "TOTAL_ESTIMATION": "Total estimated expenses:",
+    "TOTAL_CALCULATED": "Total calculated expenses:",
+    "TAB_FLUID": "Fluids",
+    "FLUID": {
+      "ENGINE_OIL": "Engine oil:",
+      "HYDRAULIC_OIL": "Hydraulic oil:"
+    },
+    "TAB_MISC": "Other",
+    "MISC": {
+      "OTHER": "Additional costs:"
+    },
+    "TAB_ICE": "Ice",
+    "ICE": {
+      "AMOUNT": "Ice quantity",
+      "PACKAGING": "Packaging"
+    },
+    "TAB_BAIT": "Baits",
+    "BAIT": {
+      "AMOUNT": "Bait amount",
+      "PACKAGING": "Packaging"
+    }
+  },
+  "FISHING_AREA": {
+    "TITLE": "Fishing area",
+    "LOCATION": "Location",
+    "DISTANCE_TO_COAST_GRADIENT": "Distance to coast gradient",
+    "DEPTH_GRADIENT": "Depth gradient",
+    "NEARBY_SPECIFIC_AREA": "Nearby specific area"
+  },
   "QUALITY": {
     "BTN_CONTROL": "Control input",
     "BTN_TERMINATE": "Complete input",

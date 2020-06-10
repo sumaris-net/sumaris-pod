@@ -36,6 +36,7 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
   label: string;
   name: string;
   statusId: number;
+  rankOrder: number;
   entityName: string;
 
   levelId: number;
@@ -95,6 +96,7 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef> implements IReferential
   label: string;
   name: string;
   statusId: number;
+  rankOrder: number;
   entityName: string;
 
   taxonNames: TaxonNameRef[];

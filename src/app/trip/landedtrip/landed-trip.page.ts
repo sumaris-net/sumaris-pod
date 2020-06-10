@@ -38,6 +38,7 @@ import {debounceTime, filter} from "rxjs/operators";
 import {Sale} from "../services/model/sale.model";
 import {ExpenseForm} from "../expense/expense.form";
 import {Metier} from "../../referential/services/model/taxon.model";
+import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -74,6 +75,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
+  @ViewChild('fishingAreaForm', {static: true}) fishingAreaForm: FishingAreaForm;
   @ViewChild('operationGroupTable', {static: true}) operationGroupTable: OperationGroupTable;
   @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
@@ -96,6 +98,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       injector.get(TripService));
     this.idAttribute = 'tripId';
     // this.defaultBackHref = "/trips";
+    this.tabCount = 4;
 
     this.autocompleteHelper = new MatAutocompleteConfigHolder(this.settings && {
       getUserAttributes: (a, b) => this.settings.getFieldDisplayAttributes(a, b)
@@ -141,7 +144,8 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     this.autocompleteHelper.add('operationGroupFilter', {
       showAllOnFocus: true,
       items: this.$operationGroups,
-      attributes: this.operationGroupAttributes
+      attributes: this.operationGroupAttributes,
+      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME']
     });
 
     // Update available operation groups for catches forms
@@ -162,10 +166,21 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       })
     );
 
+    // Update catch tab index
+    if (this.catchTabGroup) {
+      if (this.selectedTabIndex === 2) {
+        const queryParams = this.route.snapshot.queryParams;
+        this.selectedCatchTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
+      } else {
+        this.selectedCatchTabIndex = 0;
+      }
+      this.catchTabGroup.realignInkBar();
+    }
+
   }
 
   protected registerFormsAndTables() {
-    this.registerForms([this.tripForm, this.measurementsForm,
+    this.registerForms([this.tripForm, this.measurementsForm, this.fishingAreaForm,
       // this.landedSaleForm //, this.saleMeasurementsForm
       this.expenseForm
     ])
@@ -221,6 +236,12 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       console.debug(`[landedTrip-page] Loading vessel {${vesselId}}...`);
       data.vesselSnapshot = await this.vesselService.load(vesselId, {fetchPolicy: 'cache-first'});
     }
+    // Get the landing id
+    if (isNotNil(queryParams['landing'])) {
+      const landingId = +queryParams['landing'];
+      console.debug(`[landedTrip-page] Get landing id {${landingId}}...`);
+      data.landingId = landingId;
+    }
 
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
@@ -231,7 +252,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
   protected async getObservedLocationById(observedLocationId: number): Promise<ObservedLocation> {
 
-    // Load parent landing
+    // Load parent observed location
     if (isNotNil(observedLocationId)) {
       console.debug(`[landedTrip-page] Loading parent observed location ${observedLocationId}...`);
       return this.observedLocationService.load(observedLocationId, {fetchPolicy: "cache-first"});
@@ -276,6 +297,9 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       this.productSalePmfms = await this.programService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
 
     }
+
+    // Fishing area
+    this.fishingAreaForm.value = data && data.fishingArea;
 
     // Trip measurements todo filter ????????
     const tripMeasurements = data && data.measurements || [];
@@ -453,7 +477,11 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     json.vesselSnapshot = this.data.vesselSnapshot;
 
     // json.sale = !this.saleForm.empty ? this.saleForm.value : null;
-    json.measurements = this.measurementsForm.value;
+    // Concat trip and expense measurements
+    json.measurements = (this.measurementsForm.value || []).concat(this.expenseForm.value);
+
+    // FishingArea
+    json.fishingArea = this.fishingAreaForm.value;
 
     const operationGroups: OperationGroup[] = this.operationGroupTable.value || [];
 
@@ -479,9 +507,6 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     json.operationGroups = operationGroups;
     json.gears = operationGroups.map(operationGroup => operationGroup.physicalGear);
 
-
-    // todo affect others tables
-
     return json;
   }
 
@@ -505,24 +530,40 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       saveOptions.withOperationGroup = true;
     }
 
-    // todo same for expenses
+    // todo same for other tables
 
     return await super.save(event, {...options, ...saveOptions});
   }
 
+  onNewFabButtonClick(event: UIEvent) {
+    if (this.showOperationGroupTab && this.selectedTabIndex === 1) {
+      this.operationGroupTable.addRow(event);
+    }
+    else if (this.showCatchTab && this.selectedTabIndex === 2) {
+      switch (this.selectedCatchTabIndex) {
+        case 0:
+          this.productsTable.addRow(event);
+          break;
+        case 1:
+          this.packetsTable.addRow(event);
+          break;
+      }
+    }
+  }
 
   /**
    * Get the first invalid tab
    */
   protected getFirstInvalidTabIndex(): number {
-    const tab0Invalid = this.tripForm.invalid || this.measurementsForm.invalid;
-    return 0; // test
+    const invalidTabs: boolean[] = [
+      this.tripForm.invalid || this.measurementsForm.invalid,
+      this.operationGroupTable.invalid,
+      this.productsTable.invalid || this.packetsTable.invalid,
+      this.expenseForm.invalid
+    ];
 
-
-    // const tab1Invalid = !tab0Invalid && this.physicalGearTable.invalid;
-    // const tab2Invalid = !tab1Invalid && this.operationTable.invalid;
-
-    // return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
+    const firstInvalidTab = invalidTabs.indexOf(true);
+    return firstInvalidTab > -1 ? firstInvalidTab : this.selectedTabIndex;
   }
 
   /**

@@ -1,15 +1,29 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {AppForm, isNotNil} from "../../core/core.module";
+import {AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {FormBuilder} from "@angular/forms";
+import {FormArray, FormBuilder} from "@angular/forms";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementsForm} from "../measurement/measurements.form.component";
-import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
-import {Measurement} from "../services/model/measurement.model";
+import {isNil, PmfmStrategy} from "../../referential/services/model";
 import {ProgramService} from "../../referential/services/program.service";
-import {BehaviorSubject, combineLatest, forkJoin, Observable, pipe} from "rxjs";
-import {filterNotNil} from "../../shared/observables";
+import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
+import {PlatformService} from "../../core/services/platform.service";
+import {BehaviorSubject} from "rxjs";
+import {isNotEmptyArray, isNotNilOrNaN, remove, removeAll, round} from "../../shared/functions";
+import {ObjectMap} from "../../core/services/model";
+import {debounceTime, filter} from "rxjs/operators";
+import {Measurement, MeasurementUtils} from "../services/model/measurement.model";
+import {ExpenseValidatorService} from "../services/validator/expense.validator";
+import {FormArrayHelper} from "../../core/form/form.utils";
+import {getMaxRankOrder} from "../services/model/base.model";
+import {TypedExpenseForm} from "./typed-expense.form";
+
+type TupleType = 'quantity' | 'unitPrice' | 'total';
+
+class TupleValue {
+  computed: boolean;
+  type: TupleType;
+}
 
 @Component({
   selector: 'app-expense-form',
@@ -17,206 +31,477 @@ import {filterNotNil} from "../../shared/observables";
   styleUrls: ['./expense.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExpenseForm extends AppForm<Measurement[]> implements OnInit {
+export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewInit {
 
-  @Input() showError = false;
+  mobile: boolean;
+  $estimatedTotalPmfm = new BehaviorSubject<PmfmStrategy>(undefined);
+  $fuelTypePmfm = new BehaviorSubject<PmfmStrategy>(undefined);
+  $fuelPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  fuelTuple: ObjectMap<TupleValue> = undefined;
+  $engineOilPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  engineOilTuple: ObjectMap<TupleValue> = undefined;
+  $hydraulicOilPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  hydraulicOilTuple: ObjectMap<TupleValue> = undefined;
+  $miscPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  totalPmfms: PmfmStrategy[];
+  calculating = false;
 
-  @ViewChild('globalMeasurementsForm', {static: true}) globalMeasurementsForm: MeasurementsForm;
-  @ViewChild('fuelMeasurementsForm', {static: true}) fuelMeasurementsForm: MeasurementsForm;
-  @ViewChild('engineOilMeasurementsForm', {static: true}) engineOilMeasurementsForm: MeasurementsForm;
-  @ViewChild('hydraulicOilMeasurementsForm', {static: true}) hydraulicOilMeasurementsForm: MeasurementsForm;
-  @ViewChild('iceMeasurementsForm', {static: true}) iceMeasurementsForm: MeasurementsForm;
-  @ViewChild('miscMeasurementsForm', {static: true}) miscMeasurementsForm: MeasurementsForm;
+  @ViewChild('iceExpenseForm') iceFrom: TypedExpenseForm;
 
-  private $expensePmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
-  private $data = new BehaviorSubject<Measurement[]>(undefined);
+  @ViewChildren('baitExpenseForm') baitForms: QueryList<TypedExpenseForm>;
+  baitMeasurements: Measurement[];
+  applyingBaitMeasurements = false;
+  addingNewBait = false;
+  removingBait = false;
+  baitsHelper: FormArrayHelper<number>;
+  baitsFocusIndex = -1;
 
-  @Input()
-  set program(program: string) {
-    if (isNotNil(program)) {
-      this.loadPmfms(program);
-    }
-  }
-
-  set value(data: any) {
-    this.setValue(data);
-  }
-
-  get value(): any {
-    return this.$data.getValue(); // todo recompose all measurements
-  }
-
-  get error(): string {
-    return super.error
-    || this.globalMeasurementsForm.error
-    || this.fuelMeasurementsForm.error
-    || this.engineOilMeasurementsForm.error
-    || this.hydraulicOilMeasurementsForm.error
-    || this.iceMeasurementsForm.error
-    || this.miscMeasurementsForm.error
-    ;
-  }
-
-  set error(error) {
-    super.error = error;
-  }
-
-  get invalid(): boolean {
-    return super.invalid
-      || !this.globalMeasurementsForm || this.globalMeasurementsForm.invalid
-      || !this.fuelMeasurementsForm || this.fuelMeasurementsForm.invalid
-      || !this.engineOilMeasurementsForm || this.engineOilMeasurementsForm.invalid
-      || !this.hydraulicOilMeasurementsForm || this.hydraulicOilMeasurementsForm.invalid
-      || !this.iceMeasurementsForm || this.iceMeasurementsForm.invalid
-      || !this.miscMeasurementsForm || this.miscMeasurementsForm.invalid
-      ;
+  get baitsFormArray(): FormArray {
+    // 'baits' FormArray is just a array of number of fake rankOrder
+    return this.form.get('baits') as FormArray;
   }
 
   get dirty(): boolean {
-    return super.dirty
-      || (this.globalMeasurementsForm && this.globalMeasurementsForm.dirty)
-      || (this.fuelMeasurementsForm && this.fuelMeasurementsForm.dirty)
-      || (this.engineOilMeasurementsForm && this.engineOilMeasurementsForm.dirty)
-      || (this.hydraulicOilMeasurementsForm && this.hydraulicOilMeasurementsForm.dirty)
-      || (this.iceMeasurementsForm && this.iceMeasurementsForm.dirty)
-      || (this.miscMeasurementsForm && this.miscMeasurementsForm.dirty)
-      ;
-  }
-
-  get pending(): boolean {
-    return super.pending
-      || (!this.globalMeasurementsForm || (this.globalMeasurementsForm.dirty && this.globalMeasurementsForm.pending))
-      || (!this.fuelMeasurementsForm || (this.fuelMeasurementsForm.dirty && this.fuelMeasurementsForm.pending))
-      || (!this.engineOilMeasurementsForm || (this.engineOilMeasurementsForm.dirty && this.engineOilMeasurementsForm.pending))
-      || (!this.hydraulicOilMeasurementsForm || (this.hydraulicOilMeasurementsForm.dirty && this.hydraulicOilMeasurementsForm.pending))
-      || (!this.iceMeasurementsForm || (this.iceMeasurementsForm.dirty && this.iceMeasurementsForm.pending))
-      || (!this.miscMeasurementsForm || (this.miscMeasurementsForm.dirty && this.miscMeasurementsForm.pending))
-      ;
+    return super.dirty || (this.iceFrom && !!this.iceFrom.dirty) || (this.baitForms && !!this.baitForms.find(form => form.dirty));
   }
 
   get valid(): boolean {
-    return super.valid
-      && this.globalMeasurementsForm && this.globalMeasurementsForm.valid
-      && this.fuelMeasurementsForm && this.fuelMeasurementsForm.valid
-      && this.engineOilMeasurementsForm && this.engineOilMeasurementsForm.valid
-      && this.hydraulicOilMeasurementsForm && this.hydraulicOilMeasurementsForm.valid
-      && this.iceMeasurementsForm && this.iceMeasurementsForm.valid
-      && this.miscMeasurementsForm && this.miscMeasurementsForm.valid
-      ;
+    // Important: Should be not invalid AND not pending, so use '!valid' (and NOT 'invalid')
+    return super.valid && (!this.iceFrom || !this.iceFrom.valid) && (!this.baitForms || !this.baitForms.find(form => !form.valid));
   }
 
-  get empty(): boolean {
-    return super.empty
-      && (!this.globalMeasurementsForm || (!this.globalMeasurementsForm.dirty && !this.globalMeasurementsForm.form.touched))
-      && (!this.fuelMeasurementsForm || (!this.fuelMeasurementsForm.dirty && !this.fuelMeasurementsForm.form.touched))
-      && (!this.engineOilMeasurementsForm || (!this.engineOilMeasurementsForm.dirty && !this.engineOilMeasurementsForm.form.touched))
-      && (!this.hydraulicOilMeasurementsForm || (!this.hydraulicOilMeasurementsForm.dirty && !this.hydraulicOilMeasurementsForm.form.touched))
-      && (!this.iceMeasurementsForm || (!this.iceMeasurementsForm.dirty && !this.iceMeasurementsForm.form.touched))
-      && (!this.miscMeasurementsForm || (!this.miscMeasurementsForm.dirty && !this.miscMeasurementsForm.form.touched))
-      ;
+  get invalid(): boolean {
+    return super.invalid || (this.iceFrom && this.iceFrom.invalid) || (this.baitForms && this.baitForms.find(form => form.invalid) && true);
   }
 
-  disable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }): void {
-    super.disable(opts);
-    this.globalMeasurementsForm.disable(opts);
-    this.fuelMeasurementsForm.disable(opts);
-    this.engineOilMeasurementsForm.disable(opts);
-    this.hydraulicOilMeasurementsForm.disable(opts);
-    this.iceMeasurementsForm.disable(opts);
-    this.miscMeasurementsForm.disable(opts);
-  }
-
-  enable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }): void {
-    super.enable(opts);
-    this.globalMeasurementsForm.enable(opts);
-    this.fuelMeasurementsForm.enable(opts);
-    this.engineOilMeasurementsForm.enable(opts);
-    this.hydraulicOilMeasurementsForm.enable(opts);
-    this.iceMeasurementsForm.enable(opts);
-    this.miscMeasurementsForm.enable(opts);
+  get pending(): boolean {
+    return super.pending || (this.iceFrom && !!this.iceFrom.pending) || (this.baitForms && !!this.baitForms.find(form => form.pending));
   }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
+    protected validatorService: ExpenseValidatorService,
     protected formBuilder: FormBuilder,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    protected programService: ProgramService
+    protected programService: ProgramService,
+    protected platform: PlatformService
   ) {
-    super(dateAdapter, formBuilder.group({}), settings);
+    super(dateAdapter, validatorService, formBuilder, programService, settings, cd);
+    this.mobile = platform.mobile;
+    this.keepRankOrder = true;
   }
 
   ngOnInit() {
+    super.ngOnInit();
 
-    this.registerSubscription(
-      combineLatest([filterNotNil(this.$expensePmfms), filterNotNil(this.$data)])
-      .subscribe(([expensePmfms, data]) => {
-        // dispatch pmfms and data
-        this.setValueToForm(this.globalMeasurementsForm, expensePmfms, this.mapGlobalPmfms, data);
-        this.setValueToForm(this.fuelMeasurementsForm, expensePmfms, this.mapFuelPmfms, data);
-        this.setValueToForm(this.engineOilMeasurementsForm, expensePmfms, this.mapEngineOilPmfms, data);
-        this.setValueToForm(this.hydraulicOilMeasurementsForm, expensePmfms, this.mapHydraulicPmfms, data);
-        this.setValueToForm(this.iceMeasurementsForm, expensePmfms, this.mapIcePmfms, data);
-        this.setValueToForm(this.miscMeasurementsForm, expensePmfms, this.mapMiscPmfms, data);
-      })
+    this.initBaitHelper();
+
+    this.registerSubscription(filterNotNil(this.$pmfms).subscribe(pmfms => {
+
+      // Wait form controls ready
+      this.ready().then(() => {
+        const expensePmfms: PmfmStrategy[] = pmfms.slice();
+        // dispatch pmfms
+        this.$estimatedTotalPmfm.next(remove(expensePmfms, this.isEstimatedTotalPmfm));
+        this.$fuelTypePmfm.next(remove(expensePmfms, this.isFuelTypePmfm));
+
+        this.$fuelPmfms.next(removeAll(expensePmfms, this.isFuelPmfm));
+        this.fuelTuple = this.getValidTuple(this.$fuelPmfms.getValue());
+        this.registerTupleSubscription(this.fuelTuple);
+
+        this.$engineOilPmfms.next(removeAll(expensePmfms, this.isEngineOilPmfm));
+        this.engineOilTuple = this.getValidTuple(this.$engineOilPmfms.getValue());
+        this.registerTupleSubscription(this.engineOilTuple);
+
+        this.$hydraulicOilPmfms.next(removeAll(expensePmfms, this.isHydraulicPmfm));
+        this.hydraulicOilTuple = this.getValidTuple(this.$hydraulicOilPmfms.getValue());
+        this.registerTupleSubscription(this.hydraulicOilTuple);
+
+        // remaining pmfms go to miscellaneous part
+        this.$miscPmfms.next(expensePmfms);
+
+        // register total pmfms for calculated total
+        this.registerTotalSubscription(pmfms.filter(pmfm => this.isTotalPmfm(pmfm) && !this.isEstimatedTotalPmfm(pmfm)));
+
+      });
+
+    }));
+
+  }
+
+  ngAfterViewInit() {
+
+    // listen to bait forms children view changes
+    this.registerSubscription(this.baitForms.changes.subscribe(() => {
+
+      // on applying bait measurements, set them after forms are ready
+      if (this.applyingBaitMeasurements) {
+        this.applyingBaitMeasurements = false;
+        this.applyBaitMeasurements();
+        // set all as enabled
+        this.baitForms.forEach(baitForm => baitForm.enable());
+      }
+
+      // on adding a new bait, prepare the new form
+      if (this.addingNewBait) {
+        this.addingNewBait = false;
+        this.baitForms.last.value = [];
+        this.baitForms.last.enable();
+      }
+
+      // on removing bait, total has to be recalculate
+      if (this.removingBait) {
+        this.removingBait = false;
+        this.calculateTotal();
+      }
+
+      // check all bait children forms having totalValueChange registered,
+      this.baitForms.forEach(baitForm => {
+        if (baitForm.totalValueChanges.observers.length === 0) {
+          // add it if missing
+          this.registerSubscription(baitForm.totalValueChanges.subscribe(() => this.calculateTotal()));
+        }
+      });
+
+    }));
+
+    // add totalValueChange subscription on iceForm
+    this.registerSubscription(this.iceFrom.totalValueChanges.subscribe(() => this.calculateTotal()));
+  }
+
+  initBaitHelper() {
+    this.baitsHelper = new FormArrayHelper<number>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'baits'),
+      (data) => this.validatorService.getBaitControl(data),
+      (v1, v2) => v1 === v2,
+      value => isNil(value),
+      {
+        allowEmptyArray: false
+      }
     );
+    if (this.baitsHelper.size() === 0) {
+      // add at least one bait
+      this.baitsHelper.resize(1);
+    }
+    this.markForCheck();
+  }
+
+  protected getValue(): Measurement[] {
+    const values = super.getValue();
+
+    // reset computed values from tuples
+    this.resetComputedTupleValues(values, this.fuelTuple);
+    this.resetComputedTupleValues(values, this.engineOilTuple);
+    this.resetComputedTupleValues(values, this.hydraulicOilTuple);
+
+    // add ice values
+    values.push(...this.iceFrom.value);
+
+    // add bait values
+    this.baitForms.forEach(form => values.push(...form.value));
+
+    return values;
+  }
+
+  async setValue(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+
+    super.setValue(data, opts);
+
+    // set ice value
+    await this.setIceValue(data);
+
+    // set bait values
+    await this.setBaitValue(data);
+
+    // initial calculation of tuples
+    this.calculateInitialTupleValues(this.fuelTuple);
+    this.calculateInitialTupleValues(this.engineOilTuple);
+    this.calculateInitialTupleValues(this.hydraulicOilTuple);
+
+    // compute total
+    this.calculateTotal();
+  }
+
+  async setIceValue(data: Measurement[]) {
+
+    if (!this.iceFrom.$pmfms.getValue()) {
+      if (this.debug) console.debug('[expense-form] waiting for ice pmfms');
+      await firstNotNilPromise(this.iceFrom.$pmfms);
+    }
+
+    // filter data before set to ice form
+    this.iceFrom.value = MeasurementUtils.filter(data, this.iceFrom.$pmfms.getValue());
 
   }
 
-  private loadPmfms(program: string) {
-    this.programService.loadProgramPmfms(program, {acquisitionLevel: AcquisitionLevelCodes.EXPENSE})
-      .then(expensePmfms => this.$expensePmfms.next(expensePmfms));
+  async setBaitValue(data: Measurement[]) {
+
+    if (!this.baitForms.first.$pmfms.getValue()) {
+      if (this.debug) console.debug('[expense-form] waiting for bait pmfms');
+      await firstNotNilPromise(this.baitForms.first.$pmfms);
+    }
+
+    // filter data before set to each bait form
+    this.baitMeasurements = MeasurementUtils.filter(data, this.baitForms.first.$pmfms.getValue());
+
+    // get max rankOrder (should be = nbBaits)
+    const nbBait = getMaxRankOrder(this.baitMeasurements);
+    const baits = [...Array(nbBait).keys()];
+
+    this.applyingBaitMeasurements = true;
+    // resize 'baits' FormArray and patch main form to adjust number of bait children forms
+    this.baitsHelper.resize(Math.max(1, nbBait));
+    this.form.patchValue({baits});
+    // tell baitForms to call 'changes' event
+    this.baitForms.setDirty();
   }
 
-  private setValueToForm(form: MeasurementsForm, pmfms: PmfmStrategy[], mapFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[], data: Measurement[]) {
-    const filteredPmfms = mapFn(pmfms);
-    form.setPmfms(filteredPmfms);
-    form.value = this.filterData(data, filteredPmfms);
+  applyBaitMeasurements() {
+    // set filtered bait measurements to each form, which will also filter with its rankOrder
+    this.baitForms.forEach(baitForm => {
+      baitForm.value = this.baitMeasurements;
+    });
   }
 
-
-  setValue(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    // don't call super
-    this.$data.next(data);
+  addBait() {
+    // just add a new fake rankOrder value in 'baits' array, the real rankOrder is driven by template index
+    this.addingNewBait = true;
+    this.baitsHelper.add(getMaxRankOrder(this.baitsFormArray.value) + 1);
+    if (!this.mobile) {
+      this.baitsFocusIndex = this.baitsHelper.size() - 1;
+    }
   }
 
-  filterData(data: Measurement[], pmfms: PmfmStrategy[]): Measurement[] {
-    const pmfmIds = pmfms.map(pmfm => pmfm.pmfmId);
-    return data.filter(value => pmfmIds.includes(value.pmfmId));
+  removeBait(index: number) {
+    this.removingBait = true;
+    if (!this.baitsHelper.allowEmptyArray && this.baitsHelper.size() === 1) {
+      this.baitForms.first.value = [];
+    }
+    this.baitsHelper.removeAt(index);
   }
 
-  mapGlobalPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
-    return pmfms.filter(pmfm => pmfm.label === 'TOTAL_COST');
+  registerTupleSubscription(tuple: ObjectMap<TupleValue>) {
+    if (tuple) {
+      Object.keys(tuple).forEach(pmfmId => {
+        this.registerSubscription(this.form.get(pmfmId).valueChanges
+          .pipe(
+            filter(() => !this.applyingValue && !this.calculating),
+            debounceTime(250)
+          )
+          .subscribe(value => {
+            this.calculateTupleValues(tuple, pmfmId, value);
+          }));
+      });
+    }
   }
 
-  mapFuelPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
-    return pmfms.filter(pmfm => pmfm.label.startsWith('FUEL_'));
+  calculateTupleValues(tuple: ObjectMap<TupleValue>, sourcePmfmId: string, value: any) {
+    if (this.calculating)
+      return;
+
+    try {
+      if (this.debug) {
+        console.debug('[expenseForm] calculateTupleValues:', JSON.stringify(tuple), sourcePmfmId, value);
+      }
+      this.calculating = true;
+
+      // get current values (not computed)
+      const values = {quantity: undefined, unitPrice: undefined, total: undefined};
+      Object.keys(tuple).forEach(pmfmId => {
+        if (!tuple[pmfmId].computed) {
+          values[tuple[pmfmId].type] = this.form.get(pmfmId).value || undefined;
+        }
+      });
+
+      // choose which part is to calculate
+      let targetType: TupleType;
+      switch (tuple[sourcePmfmId].type) {
+        case "quantity":
+          if (values.unitPrice) {
+            targetType = "total";
+            values.total = value && round(value * values.unitPrice) || undefined;
+          } else if (values.total) {
+            targetType = "unitPrice";
+            values.unitPrice = value && value > 0 && round(values.total / value) || undefined;
+          }
+          break;
+        case "unitPrice":
+          if (values.quantity) {
+            targetType = "total";
+            values.total = value && round(value * values.quantity) || undefined;
+          } else if (values.total) {
+            targetType = "quantity";
+            values.quantity = value && value > 0 && round(values.total / value) || undefined;
+          }
+          break;
+        case "total":
+          if (values.quantity) {
+            targetType = "unitPrice";
+            values.unitPrice = value && values.quantity > 0 && round(value / values.quantity) || undefined;
+          } else if (values.unitPrice) {
+            targetType = "quantity";
+            values.quantity = value && values.unitPrice > 0 && round(value / values.unitPrice) || undefined;
+          }
+          break;
+      }
+
+      if (targetType) {
+        // set values and tuple computed state
+        const patch = {};
+        Object.keys(tuple).forEach(targetPmfmId => {
+          if (targetPmfmId === sourcePmfmId) {
+            tuple[targetPmfmId].computed = false;
+          }
+          if (tuple[targetPmfmId].type === targetType) {
+            tuple[targetPmfmId].computed = true;
+            patch[targetPmfmId] = values[targetType];
+          }
+        });
+        this.form.patchValue(patch);
+        Object.keys(patch).forEach(pmfmId => this.form.get(pmfmId).markAsPristine());
+      }
+
+    } finally {
+      this.calculating = false;
+    }
   }
 
-  mapEngineOilPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
-    return pmfms.filter(pmfm => pmfm.label.startsWith('ENGINE_OIL_'));
+  calculateInitialTupleValues(tuple: ObjectMap<TupleValue>) {
+    if (tuple) {
+      const pmfmIdWithValue = Object.keys(tuple).find(pmfmId => {
+        return !tuple[pmfmId].computed && isNotNilOrNaN(this.form.get(pmfmId).value);
+      });
+      if (pmfmIdWithValue) {
+        this.calculateTupleValues(tuple, pmfmIdWithValue, this.form.get(pmfmIdWithValue).value);
+      }
+    }
   }
 
-  mapHydraulicPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
-    return pmfms.filter(pmfm => pmfm.label.startsWith('HYDRAULIC_OIL_'));
+  resetComputedTupleValues(values: Measurement[], tuples: ObjectMap<TupleValue>) {
+    if (tuples && values && values.length) {
+      values.forEach(value => {
+        const tuple = tuples[value.pmfmId.toString()];
+        if (tuple && tuple.computed) {
+          value.numericalValue = undefined;
+        }
+      });
+    }
   }
 
-  mapIcePmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
-    return pmfms.filter(pmfm => pmfm.label.startsWith('ICE_'));
+  registerTotalSubscription(totalPmfms: PmfmStrategy[]) {
+    if (isNotEmptyArray(totalPmfms)) {
+      this.totalPmfms = totalPmfms;
+      totalPmfms.forEach(totalPmfm => {
+        this.registerSubscription(this.form.get(totalPmfm.pmfmId.toString()).valueChanges
+          .pipe(
+            filter(() => !this.applyingValue),
+            debounceTime(250)
+          )
+          .subscribe(() => this.calculateTotal())
+        );
+      });
+    }
   }
 
-  mapMiscPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
-    return pmfms.filter(pmfm => pmfm.label === 'LANDING_COST' || pmfm.label === 'FOOD_COST' || pmfm.label === 'GEAR_LOST_COST' || pmfm.label === 'OTHER_COST');
+  private calculateTotal() {
+    let total = 0;
+    // sum each total field from main form
+    (this.totalPmfms || []).forEach(totalPmfm => {
+      total += this.form.get(totalPmfm.pmfmId.toString()).value;
+    });
+
+    // add total from ice form
+    total += this.iceFrom.total;
+
+    // add total from each bait form
+    this.baitForms.forEach(baitForm => {
+      total += baitForm.total;
+    });
+
+    this.form.patchValue({calculatedTotal: round(total)});
   }
 
-  mapBaitPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
-    return pmfms.filter(pmfm => pmfm.label.startsWith('BAIT_'));
+  getValidTuple(pmfms: PmfmStrategy[]): ObjectMap<TupleValue> {
+    if (pmfms) {
+      const quantityPmfm = pmfms.find(this.isQuantityPmfm);
+      const unitPricePmfm = pmfms.find(this.isUnitPricePmfm);
+      const totalPmfm = pmfms.find(this.isTotalPmfm);
+      if (quantityPmfm && unitPricePmfm && totalPmfm) {
+        const tuple: ObjectMap<TupleValue> = {};
+        tuple[quantityPmfm.pmfmId.toString()] = {computed: false, type: "quantity"};
+        tuple[unitPricePmfm.pmfmId.toString()] = {computed: false, type: "unitPrice"};
+        tuple[totalPmfm.pmfmId.toString()] = {computed: false, type: "total"};
+        return tuple;
+      }
+    }
+    return {};
+  }
+
+  isEstimatedTotalPmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label === 'TOTAL_COST';
+  }
+
+  isFuelTypePmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label === 'FUEL_TYPE';
+  }
+
+  isFuelPmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label.startsWith('FUEL_');
+  }
+
+  isEngineOilPmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label.startsWith('ENGINE_OIL_');
+  }
+
+  isHydraulicPmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label.startsWith('HYDRAULIC_OIL_');
+  }
+
+  isQuantityPmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label.endsWith('VOLUME');
+  }
+
+  isUnitPricePmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label.endsWith('UNIT_PRICE');
+  }
+
+  isTotalPmfm(pmfm: PmfmStrategy): boolean {
+    return pmfm.label.endsWith('COST');
+  }
+
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    this.calculating = true;
+    super.enable(opts);
+    this.iceFrom && this.iceFrom.enable(opts);
+    this.baitForms && this.baitForms.forEach(form => form.enable(opts));
+    this.calculating = false;
+  }
+
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    this.calculating = true;
+    super.disable(opts);
+    this.iceFrom && this.iceFrom.disable(opts);
+    this.baitForms && this.baitForms.forEach(form => form.disable(opts));
+    this.calculating = false;
+  }
+
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsPristine(opts);
+    this.iceFrom && this.iceFrom.markAsPristine(opts);
+    this.baitForms && this.baitForms.forEach(form => form.markAsPristine(opts));
+  }
+
+  markAsUntouched(opts?: { onlySelf?: boolean }) {
+    super.markAsUntouched(opts);
+    this.iceFrom && this.iceFrom.markAsUntouched(opts);
+    this.baitForms && this.baitForms.forEach(form => form.markAsUntouched());
+  }
+
+  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsTouched(opts);
+    this.iceFrom && this.iceFrom.markAsTouched(opts);
+    this.baitForms && this.baitForms.forEach(form => form.markAsTouched(opts));
   }
 
   protected markForCheck() {

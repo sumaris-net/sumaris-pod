@@ -780,6 +780,36 @@
       }
     }
   },
+  "EXPENSE": {
+    "TOTAL_ESTIMATION": "Estimation des dépenses totales :",
+    "TOTAL_CALCULATED": "Total des dépenses saisis :",
+    "TAB_FLUID": "Fluides",
+    "FLUID": {
+      "ENGINE_OIL": "Huile moteur :",
+      "HYDRAULIC_OIL": "Huile hydraulique :"
+    },
+    "TAB_MISC": "Autre dépenses",
+    "MISC": {
+      "OTHER": "Frais annexes :"
+    },
+    "TAB_ICE": "Glace",
+    "ICE": {
+      "AMOUNT": "Quantité de glace",
+      "PACKAGING": "Unité"
+    },
+    "TAB_BAIT": "Appâts",
+    "BAIT": {
+      "AMOUNT": "Quantité d'appât",
+      "PACKAGING": "Unité"
+    }
+  },
+  "FISHING_AREA": {
+    "TITLE": "Zone de pêche",
+    "LOCATION": "Lieu",
+    "DISTANCE_TO_COAST_GRADIENT": "Gradient de distance à la côte",
+    "DEPTH_GRADIENT": "Gradient de profondeur",
+    "NEARBY_SPECIFIC_AREA": "Zone spécifique à proximité"
+  },
   "QUALITY": {
     "BTN_CONTROL": "Controler la saisie",
     "BTN_TERMINATE": "Terminer la saisie",

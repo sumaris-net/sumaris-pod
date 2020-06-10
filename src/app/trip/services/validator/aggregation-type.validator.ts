@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ValidatorService} from "angular4-material-table";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
 import {AggregationStrata, AggregationType} from "../extraction.model";
 import {toInt} from "../../../shared/functions";
 
@@ -38,7 +38,7 @@ export class AggregationTypeValidatorService implements ValidatorService {
   getStratumArray(data?: AggregationType): FormArray {
     return this.formBuilder.array(
       (data && data.stratum || []).map(this.getStrataFormGroup),
-      SharedValidators.requiredArrayMinLength(1)
+      SharedFormArrayValidators.requiredArrayMinLength(1)
     );
   }
 

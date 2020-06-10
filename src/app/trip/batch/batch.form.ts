@@ -26,7 +26,7 @@ import {isNotNilOrBlank, isNotNilOrNaN, toBoolean} from "../../shared/functions"
 import {BatchValidatorService} from "../services/batch.validator";
 import {firstNotNilPromise} from "../../shared/observables";
 import {PlatformService} from "../../core/services/platform.service";
-import {SharedValidators} from "../../shared/validator/validators";
+import {SharedFormGroupValidators, SharedValidators} from "../../shared/validator/validators";
 
 @Component({
   selector: 'app-batch-form',
@@ -479,7 +479,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       // If sampling weight is required, make batch weight required also
       if (this._requiredSampleWeight) {
         this.weightForm.setValidators(Validators.compose([
-          SharedValidators.requiredIf('value', samplingForm.get('weight.value'))
+          SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value'))
         ]));
       }
 

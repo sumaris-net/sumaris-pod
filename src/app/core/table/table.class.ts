@@ -101,6 +101,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   @Input() confirmBeforeDelete = false;
   @Input() saveBeforeDelete: boolean;
   @Input() saveBeforeSort: boolean;
+  @Input() saveBeforeFilter: boolean;
 
   @Input() debug = false;
 
@@ -270,6 +271,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     this.inlineEdition = !this.readOnly && toBoolean(this.inlineEdition, false); // force to false when readonly
     this.saveBeforeDelete = toBoolean(this.saveBeforeDelete, !this.readOnly); // force to false when readonly
     this.saveBeforeSort = toBoolean(this.saveBeforeSort, !this.readOnly); // force to false when readonly
+    this.saveBeforeFilter = toBoolean(this.saveBeforeFilter, !this.readOnly); // force to false when readonly
 
     // Check ask user confirmation is possible
     if (this.confirmBeforeDelete && !this.alertCtrl) throw Error("Missing 'alertCtrl' or 'injector' in component's constructor.");
@@ -374,6 +376,32 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
   setFilter(filter: F, opts?: { emitEvent: boolean; }) {
     opts = opts || {emitEvent: true};
+
+    if (this.saveBeforeFilter) {
+
+      // if a dirty table is to be saved before filter
+      if (this.dirty) {
+
+        // Save
+        this.save().then(() => {
+          // Then apply filter
+          this.applyFilter(filter, opts);
+          // Restore dirty state
+          this.markAsDirty();
+        });
+      } else {
+        // apply filter on non dirty table
+        this.applyFilter(filter, opts);
+      }
+
+    } else {
+
+      // apply filter directly
+      this.applyFilter(filter, opts);
+    }
+  }
+
+  private applyFilter(filter: F, opts: { emitEvent: boolean; }) {
     this._filter = filter;
     if (opts.emitEvent) {
       this.onRefresh.emit();

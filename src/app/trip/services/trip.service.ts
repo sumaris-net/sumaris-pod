@@ -17,7 +17,7 @@ import {catchError, filter, map, switchMap, tap} from "rxjs/operators";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
-import {Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
+import {DataFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from "./trip.queries";
 import {WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
@@ -198,6 +198,9 @@ export const TripFragments = {
     sale {
       ...SaleFragment
     }
+    fishingArea {
+      ...FishingAreaFragment
+    }
   }
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
@@ -208,6 +211,7 @@ export const TripFragments = {
   ${Fragments.metier}
   ${OperationGroupFragment.operationGroup}
   ${SaleFragments.sale}
+  ${DataFragments.fishingArea}
   `
 };
 

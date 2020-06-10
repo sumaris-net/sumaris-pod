@@ -99,13 +99,18 @@ export const OperationFragments = {
     batches {
       ...BatchFragment
     }
+    fishingAreas {
+      ...FishingAreaFragment
+    }
   }
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.metier}
+  ${ReferentialFragments.referential}
   ${Fragments.position}
   ${Fragments.measurement}
   ${DataFragments.sample}
   ${DataFragments.batch}
+  ${DataFragments.fishingArea}
   `
 };
 

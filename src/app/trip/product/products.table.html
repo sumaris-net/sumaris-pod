@@ -67,8 +67,8 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [hidden]="!showParent">
 
-      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
-                              [appAutofocus]="row.id == -1 && row.editing"
+      <mat-autocomplete-field floatLabel="never" class="min-width-large ion-text-wrap"
+                              [appAutofocus]="row.id == -1 && row.editing && !row.currentData.parent"
                               [formControl]="row.validator.controls.parent"
                               [placeholder]="'TRIP.PRODUCT.LIST.PARENT'|translate"
                               [required]="true" [readonly]="!row.editing"
@@ -85,8 +85,8 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
 
-      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
-                              [appAutofocus]="row.id == -1 && row.editing"
+      <mat-autocomplete-field floatLabel="never" class="min-width-large ion-text-wrap"
+                              [appAutofocus]="row.id == -1 && row.editing && !!row.currentData.parent"
                               [formControl]="row.validator.controls.taxonGroup"
                               [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP'|translate"
                               [required]="true" [readonly]="!row.editing"

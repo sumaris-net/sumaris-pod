@@ -30,6 +30,7 @@ import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
 import {Product} from "./product.model";
 import {Packet} from "./packet.model";
+import {FishingArea} from "./fishing-area.model";
 
 /* -- Helper function -- */
 
@@ -62,6 +63,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   metiers: ReferentialRef[];
   operations?: Operation[];
   operationGroups?: OperationGroup[];
+  fishingArea: FishingArea;
 
   landingId?: number;
   observedLocationId?: number;
@@ -74,6 +76,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.measurements = [];
     this.observers = [];
     this.metiers = [];
+    this.fishingArea = null;
   }
 
   clone(): Trip {
@@ -108,6 +111,9 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.operationGroups = this.operationGroups && this.operationGroups.filter(isNotNil).map(o => o.asObject(options)) || undefined;
     if (isEmptyArray(target.operationGroups)) delete target.operationGroups; // Clean if empty, for compat with previous version
 
+    // Fishing area
+    target.fishingArea = this.fishingArea && this.fishingArea.asObject(options) || undefined;
+
     return target;
   }
 
@@ -132,6 +138,8 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     if (this.returnDateTime && this.returnDateTime.isSameOrBefore(this.departureDateTime)) {
       this.returnDateTime = undefined;
     }
+
+    this.fishingArea = source.fishingArea && FishingArea.fromObject(source.fishingArea) || undefined;
 
     this.landingId = source.landingId;
     this.observedLocationId = source.observedLocationId;
@@ -317,6 +325,7 @@ export class Operation extends DataEntity<Operation> {
   measurements: Measurement[];
   samples: Sample[];
   catchBatch: Batch;
+  fishingAreas: FishingArea[];
 
   constructor() {
     super();
@@ -328,6 +337,7 @@ export class Operation extends DataEntity<Operation> {
     this.measurements = [];
     this.samples = [];
     this.catchBatch = null;
+    this.fishingAreas = [];
   }
 
   clone(): Operation {
@@ -400,6 +410,9 @@ export class Operation extends DataEntity<Operation> {
       }
     }
 
+    // Fishing areas
+    target.fishingAreas = this.fishingAreas && this.fishingAreas.map(value => value.asObject(opts)) || undefined;
+
     return target;
   }
 
@@ -445,6 +458,9 @@ export class Operation extends DataEntity<Operation> {
       Batch.fromObject(source.catchBatch, {withChildren: true}) :
       // Convert list to tree (useful when fetching from a pod)
       Batch.fromObjectArrayAsTree(source.batches);
+
+    // Fishing areas
+    this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || undefined;
 
     // Remove fake dates (e.g. if endDateTime = startDateTime)
     if (this.endDateTime && this.endDateTime.isSameOrBefore(this.startDateTime)) {
@@ -499,6 +515,7 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
 
   products: Product[];
   packets: Packet[];
+  fishingAreas: FishingArea[];
 
   constructor() {
     super();
@@ -510,6 +527,7 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
     this.gearMeasurements = [];
     this.products = [];
     this.packets = [];
+    this.fishingAreas = [];
   }
 
   clone(): OperationGroup {
@@ -551,6 +569,9 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
       return p;
     }) || undefined;
 
+    // Fishing areas
+    target.fishingAreas = this.fishingAreas && this.fishingAreas.map(value => value.asObject(opts)) || undefined;
+
     return target;
   }
 
@@ -590,6 +611,9 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
     this.packets.forEach(packet => {
       packet.parent = this;
     });
+
+    // Fishing areas
+    this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || undefined;
 
     return this;
   }

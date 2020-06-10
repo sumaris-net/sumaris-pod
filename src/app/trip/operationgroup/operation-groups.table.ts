@@ -89,9 +89,12 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     };
 
     // Metier combo
+    const metierAttributes = this.settings.getFieldDisplayAttributes('metier');
     this.registerAutocompleteField('metier', {
       showAllOnFocus: true,
-      items: this.$metiers
+      items: this.$metiers,
+      attributes: metierAttributes,
+      columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined)
     });
 
   }

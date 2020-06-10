@@ -1,7 +1,7 @@
 import {Person} from "../../../core/services/model";
 import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
 import {DataEntity, RootDataEntity, DataRootVesselEntity, IWithObserversEntity} from "../model/base.model";
 import {Program} from "../../../referential/services/model";
 import {toBoolean, toNumber} from "../../../shared/functions";
@@ -104,7 +104,7 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
   getObserversFormArray(data?: IWithObserversEntity<T>) {
     return this.formBuilder.array(
       (data && data.observers || [null]).map(observer => this.getObserverControl(observer)),
-      SharedValidators.requiredArrayMinLength(1)
+      SharedFormArrayValidators.requiredArrayMinLength(1)
     );
   }
 

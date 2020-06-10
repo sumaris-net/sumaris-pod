@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {PositionValidatorService} from "./position.validator";
-import {SharedValidators} from "../../shared/validator/validators";
+import {SharedFormGroupValidators, SharedValidators} from "../../shared/validator/validators";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {DataEntityValidatorOptions, DataEntityValidatorService} from "./validator/base.validator";
 import {toBoolean} from "../../shared/functions";
@@ -73,8 +73,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
   getFormGroupOptions(data?: Operation, opts?: O): { [p: string]: any } {
     return {
       validator: Validators.compose([
-        SharedValidators.dateRange('startDateTime', 'endDateTime'),
-        SharedValidators.dateMaxDuration('startDateTime', 'endDateTime', 100, 'days')
+        SharedFormGroupValidators.dateRange('startDateTime', 'endDateTime'),
+        SharedFormGroupValidators.dateMaxDuration('startDateTime', 'endDateTime', 100, 'days')
       ])
     };
   }

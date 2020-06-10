@@ -11,7 +11,7 @@ import {isMoment} from "moment";
 import {Entity, ObjectMap} from "../services/model";
 import {timer} from "rxjs";
 import {filter, first, tap} from "rxjs/operators";
-import {SharedValidators} from "../../shared/validator/validators";
+import {SharedFormArrayValidators, SharedValidators} from "../../shared/validator/validators";
 import {round} from "../../shared/functions";
 
 export {selectInputContent};
@@ -107,7 +107,7 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
             // Add empty values if need
             if (value[key].length < control.length) {
               console.warn(`WARN: Adding null value to array values`);
-              for (let i = value[key].length; i++; i < control.length) {
+              for (let i = value[key].length; i < control.length; i++) {
                 value[key].push(null);
               }
             }
@@ -535,7 +535,7 @@ export class FormArrayHelper<T = Entity<any>> {
       this._formArray.setValidators(this._validators || null);
     }
     else {
-      this._formArray.setValidators((this._validators || []).concat(SharedValidators.requiredArrayMinLength(1)));
+      this._formArray.setValidators((this._validators || []).concat(SharedFormArrayValidators.requiredArrayMinLength(1)));
     }
   }
 }

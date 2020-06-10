@@ -51,12 +51,17 @@ export {
 
 /* -- Helper function -- */
 
-export function fillRankOrder(values: { rankOrder: number }[]) {
-  // Compute rankOrder
+export function getMaxRankOrder(values: { rankOrder: number }[]): number {
   let maxRankOrder = 0;
   (values || []).forEach(m => {
     if (m.rankOrder && m.rankOrder > maxRankOrder) maxRankOrder = m.rankOrder;
   });
+  return maxRankOrder;
+}
+
+export function fillRankOrder(values: { rankOrder: number }[]) {
+  // Compute rankOrder
+  let maxRankOrder = getMaxRankOrder(values);
   (values || []).forEach(m => {
     m.rankOrder = m.rankOrder || ++maxRankOrder;
   });

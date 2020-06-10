@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "../../shared/validator/validators";
+import {SharedFormGroupValidators, SharedValidators} from "../../shared/validator/validators";
 import {ObservedLocation} from "./model/observed-location.model";
 import {DataRootEntityValidatorService} from "./validator/base.validator";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -32,7 +32,7 @@ export class ObservedLocationValidatorService extends DataRootEntityValidatorSer
 
   getFormGroupOptions(data?: any): { [key: string]: any } {
     return {
-      validators: [SharedValidators.dateRange('startDateTime', 'endDateTime')]
+      validators: [SharedFormGroupValidators.dateRange('startDateTime', 'endDateTime')]
     };
   }
 }

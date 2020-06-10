@@ -155,6 +155,7 @@ ion-menu.menu-side-left {
 // --------------------------------------------------
 // Material Forms
 // --------------------------------------------------
+.form-container,
 form.form-container {
   color: rgba(0, 0, 0, 0.87);
 
@@ -219,30 +220,31 @@ form.form-container {
     color: var(--ion-color-primary-tint) !important;
     font-style: italic;
   }
+}
+// Manage first child grid inside a form
+form.form-container > ion-grid,
+ion-grid.form-container {
+  padding: 0;
 
-  > ion-grid {
+  ion-row {
+    // No between grid rows
     padding: 0;
 
-    ion-row {
-      // No between grid rows
-      padding: 0;
-
-      ion-col > ion-label {
-        color: var(--ion-color-primary100);
-        padding-inline-end: 5px;
-      }
-
-      ion-col > ion-label[text-wrap] {
-        word-wrap: normal;
-        white-space: normal;
-      }
+    ion-col > ion-label {
+      color: var(--ion-color-primary100);
+      padding-inline-end: 5px;
     }
-    ion-row > ion-col {
 
-      // No top/bottom padding between grid cell
-      padding-bottom: 0;
-      padding-top: 0;
+    ion-col > ion-label[text-wrap] {
+      word-wrap: normal;
+      white-space: normal;
     }
+  }
+  ion-row > ion-col {
+
+    // No top/bottom padding between grid cell
+    padding-bottom: 0;
+    padding-top: 0;
   }
 }
 

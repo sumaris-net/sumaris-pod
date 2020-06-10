@@ -1,7 +1,6 @@
 import {
   AppFormUtils,
-  Entity,
-  fromDateISOString,
+  Entity, fromDateISOString,
   isNil,
   isNotNil,
   joinPropertiesPath,
@@ -10,7 +9,7 @@ import {
 import {PmfmStrategy, ReferentialRef} from "../../../referential/services/model";
 import {DataEntity, DataEntityAsObjectOptions} from "./base.model";
 import {FormGroup} from "@angular/forms";
-import {isNotNilOrNaN} from "../../../shared/functions";
+import {arraySize, isEmptyArray, isNotNilOrNaN} from "../../../shared/functions";
 import * as moment from "moment";
 import {isMoment, Moment} from "moment";
 import {IEntity} from "../../../core/services/model";
@@ -111,13 +110,13 @@ export class Measurement extends DataEntity<Measurement> {
 
 export class MeasurementUtils {
 
-  static initAllMeasurements(source: Measurement[], pmfms: PmfmStrategy[], entityName: MeasurementType): Measurement[] {
+  static initAllMeasurements(source: Measurement[], pmfms: PmfmStrategy[], entityName: MeasurementType, keepRankOrder: boolean): Measurement[] {
     // Work on a copy, to be able to reduce the array
     let rankOrder = 1;
     return (pmfms || []).map(pmfm => {
       const measurement = (source || []).find(m => m.pmfmId === pmfm.pmfmId) || new Measurement();
       measurement.pmfmId = pmfm.pmfmId; // apply the pmfm (need for new object)
-      measurement.rankOrder = rankOrder++;
+      measurement.rankOrder = keepRankOrder ? measurement.rankOrder : rankOrder++;
 
       // Need by GraphQL cache
       measurement.entityName = measurement.entityName || entityName;
@@ -208,6 +207,11 @@ export class MeasurementUtils {
       && (!source.qualitativeValue || isNil(source.qualitativeValue.id));
   }
 
+  static areEmpty(source: Measurement[]): boolean {
+    if (isEmptyArray(source)) return true;
+    return !source.some(MeasurementUtils.isNotEmpty);
+  }
+
   static isNotEmpty(source: Measurement | any): boolean {
     return !MeasurementUtils.isEmpty(source);
   }
@@ -228,6 +232,15 @@ export class MeasurementUtils {
     });
   }
 
+  static areEquals(array1: Measurement[], array2: Measurement[]): boolean {
+    if (arraySize(array1) !== arraySize(array2)) return false;
+    return MeasurementValuesUtils.equals(MeasurementUtils.toMeasurementValues(array1), MeasurementUtils.toMeasurementValues(array2));
+  }
+
+  static filter(measurements: Measurement[], pmfms: PmfmStrategy[]): Measurement[] {
+    const pmfmIds = (pmfms || []).map(pmfm => pmfm.pmfmId);
+    return (measurements || []).filter(measurement => pmfmIds.includes(measurement.pmfmId));
+  }
 }
 
 export class MeasurementValuesUtils {

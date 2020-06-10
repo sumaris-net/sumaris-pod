@@ -91,7 +91,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     this._packet = data;
 
     // Initialize product sales by converting products to aggregated sale products
-    const aggregatedSaleProducts = isNotEmptyArray(data.saleProducts) ? SaleProductUtils.productsToAggregatedSaleProduct(data.saleProducts, this.packetSalePmfms) : [null];
+    const aggregatedSaleProducts = isNotEmptyArray(data.saleProducts) ? SaleProductUtils.productsToAggregatedSaleProduct(data.saleProducts, this.packetSalePmfms) : [{}];
     this.salesHelper.resize(Math.max(1, aggregatedSaleProducts.length));
 
     // Set value

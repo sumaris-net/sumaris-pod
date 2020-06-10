@@ -133,6 +133,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.saveBeforeSort = false;
+    this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
     this.autoLoad = false;
 

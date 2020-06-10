@@ -75,6 +75,17 @@
                        [showError]="false"
                        [showAddVessel]="false">
 
+              <!-- Main fishing area  -->
+              <app-fishing-area-form #fishingAreaForm
+                                     [showError]="false"
+                                     [showDepthGradient]="false"
+                                     [showNearbySpecificArea]="false"
+                                     [required]="false"
+                                     [debug]="debug"
+              >
+
+              </app-fishing-area-form>
+
               <!-- Other features (Measurements) -->
               <ion-grid class="ion-no-padding ion-padding-top">
                 <ion-row>
@@ -144,13 +155,12 @@
               <ion-label class="ion-float-end" translate>TRIP.LANDED_CATCH.OPERATION_GROUP_FILTER</ion-label>
             </ion-col>
             <ion-col>
-              <mat-autocomplete-field floatLabel="never" clearable="true"
+              <mat-autocomplete-field floatLabel="never" [clearable]="true"
                 [placeholder]="'COMMON.EMPTY_OPTION'|translate"
                 [config]="autocompleteFields.operationGroupFilter"
                 formControlName="operationGroup">
                 <ion-icon matPrefix name="locate"></ion-icon>
               </mat-autocomplete-field>
-
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -231,8 +241,12 @@
       </ng-template>
 
       <app-expense-form #expenseForm
+                        entityName="VesselUseMeasurement"
                         [program]="programSubject|async"
+                        acquisitionLevel="EXPENSE"
+                        [forceOptional]="isOnFieldMode"
                         [showError]="true"
+                        [debug]="debug"
       >
 
       </app-expense-form>
@@ -256,3 +270,13 @@
   </form-buttons-bar>
 </ion-footer>
 
+<!-- FAB button -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed"
+         *ngIf="enabled && (selectedTabIndex === 1 || selectedTabIndex === 2)" @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
+
+  <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+
+</ion-fab>
