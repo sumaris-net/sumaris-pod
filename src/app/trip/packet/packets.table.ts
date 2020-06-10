@@ -124,6 +124,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       this.setFilter(new PacketFilter(parentFilter));
     }));
 
+    this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditPacket(row)));
   }
 
   private loadPmfms() {
@@ -223,4 +224,9 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
   }
 
+  private onStartEditPacket(row: TableElement<Packet>) {
+    if (this.filter && this.filter.parent && row.currentData && !row.currentData.parent) {
+      row.validator.patchValue({parent: this.filter.parent});
+    }
+  }
 }

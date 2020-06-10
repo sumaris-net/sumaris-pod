@@ -117,6 +117,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
             .then(productSalePmfms => this.productSalePmfms = productSalePmfms);
         }));
 
+    this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditProduct(row)));
   }
 
   /* -- protected methods -- */
@@ -184,4 +185,9 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     // todo
   }
 
+  private onStartEditProduct(row: TableElement<Product>) {
+    if (this.filter && this.filter.parent && row.currentData && !row.currentData.parent) {
+      row.validator.patchValue({parent: this.filter.parent});
+    }
+  }
 }
