@@ -34,8 +34,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-public interface LandingRepositoryExtend
-    extends IEntityConverter<Landing, LandingVO> {
+public interface LandingRepositoryExtend {
 
     default Specification<Landing> hasObservedLocationId(Integer observedLocationId) {
         if (observedLocationId == null) return null;

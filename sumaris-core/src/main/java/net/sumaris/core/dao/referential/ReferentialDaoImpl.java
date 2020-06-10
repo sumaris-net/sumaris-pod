@@ -126,6 +126,10 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     GroupingClassification.class,
                     GroupingLevel.class,
                     Grouping.class,
+                    // Fishing Area
+                    DistanceToCoastGradient.class,
+                    DepthGradient.class,
+                    NearbySpecificArea.class,
                     // Product
                     ExtractionProduct.class,
                     ExtractionProductTable.class,
@@ -166,6 +170,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         I18n.n("sumaris.persistence.table.groupingClassification");
         I18n.n("sumaris.persistence.table.groupingLevel");
         I18n.n("sumaris.persistence.table.grouping");
+        I18n.n("sumaris.persistence.table.distanceToCoastGradient");
+        I18n.n("sumaris.persistence.table.depthGradient");
+        I18n.n("sumaris.persistence.table.nearbySpecificArea");
         I18n.n("sumaris.persistence.table.extractionProduct");
         I18n.n("sumaris.persistence.table.extractionProductTable");
         I18n.n("sumaris.persistence.table.systemVersion");

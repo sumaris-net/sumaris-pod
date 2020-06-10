@@ -26,7 +26,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.data.*;
+import net.sumaris.core.dao.data.LandingRepository;
+import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.ObservedLocationDao;
+import net.sumaris.core.dao.data.TripRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.DataEntityCreatedEvent;
 import net.sumaris.core.event.DataEntityUpdatedEvent;
@@ -59,31 +62,28 @@ public class TripServiceImpl implements TripService {
     private static final Logger log = LoggerFactory.getLogger(TripServiceImpl.class);
 
     @Autowired
-    protected TripRepository tripRepository;
+    private TripRepository tripRepository;
 
     @Autowired
-    protected SaleDao saleDao;
+    private SaleService saleService;
 
     @Autowired
-    protected SaleService saleService;
+    private OperationService operationService;
 
     @Autowired
-    protected OperationService operationService;
+    private OperationGroupService operationGroupService;
 
     @Autowired
-    protected OperationGroupService operationGroupService;
+    private PhysicalGearService physicalGearService;
 
     @Autowired
-    protected PhysicalGearService physicalGearService;
+    private MeasurementDao measurementDao;
 
     @Autowired
-    protected MeasurementDao measurementDao;
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    protected ApplicationEventPublisher eventPublisher;
-
-    @Autowired
-    protected PmfmService pmfmService;
+    private PmfmService pmfmService;
 
     @Autowired
     private LandingRepository landingRepository;
@@ -92,7 +92,10 @@ public class TripServiceImpl implements TripService {
     private ObservedLocationDao observedLocationDao;
 
     @Autowired
-    protected ReferentialService referentialService;
+    private ReferentialService referentialService;
+
+    @Autowired
+    private FishingAreaService fishingAreaService;
 
     @Override
     public List<TripVO> getAllTrips(int offset, int size) {
@@ -200,6 +203,12 @@ public class TripServiceImpl implements TripService {
         List<MetierVO> metiers = Beans.getList(source.getMetiers());
         metiers = operationGroupService.saveMetiersByTripId(savedTrip.getId(), metiers);
         savedTrip.setMetiers(metiers);
+
+        // Save fishing area
+        if (source.getFishingArea() != null) {
+            FishingAreaVO savedFishingArea = fishingAreaService.saveByFishingTripId(savedTrip.getId(), source.getFishingArea());
+            savedTrip.setFishingArea(savedFishingArea);
+        }
 
         // Save physical gears
         List<PhysicalGearVO> physicalGears = Beans.getList(source.getGears());

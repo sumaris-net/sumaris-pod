@@ -59,12 +59,12 @@ import java.math.BigInteger;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * <p>HibernateDaoSupport class.</p>
  *
  */
+@Deprecated
 public abstract class HibernateDaoSupport {
 
     /**

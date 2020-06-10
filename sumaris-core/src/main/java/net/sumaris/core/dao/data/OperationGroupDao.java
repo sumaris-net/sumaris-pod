@@ -36,6 +36,9 @@ public interface OperationGroupDao {
         UNDEFINED,
         DEFINED
     }
+
+    List<OperationGroupVO> getOperationGroupsByTripId(int tripId, OperationGroupFilter filter);
+
     /**
      * Get metier ( = operations with same start and end date as trip)
      *

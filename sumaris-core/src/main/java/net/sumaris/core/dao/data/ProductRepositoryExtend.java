@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * @author peck7 on 30/03/2020.
  */
-public interface ProductRepositoryExtend
-    extends IEntityConverter<Product, ProductVO> {
+public interface ProductRepositoryExtend {
 
     default Specification<Product> hasLandingId(Integer landingId) {
         if (landingId == null) return null;

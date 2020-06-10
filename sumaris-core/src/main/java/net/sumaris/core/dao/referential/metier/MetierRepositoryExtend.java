@@ -22,7 +22,6 @@ package net.sumaris.core.dao.referential.metier;
  * #L%
  */
 
-import net.sumaris.core.dao.data.IEntityConverter;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -30,7 +29,6 @@ import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.springframework.data.jpa.domain.Specification;
@@ -42,7 +40,7 @@ import java.util.List;
 
 @NoRepositoryBean
 public interface MetierRepositoryExtend
-        extends IEntityConverter<Metier, MetierVO>, ReferentialSpecifications {
+    extends ReferentialSpecifications {
 
     String PROGRAM_LABEL_PARAMETER = "programLabel";
     String TRIP_ID_PARAMETER = "tripId";

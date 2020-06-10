@@ -33,8 +33,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.Date;
 import java.util.List;
 
-public interface PhysicalGearRepositoryExtend
-    extends IEntityConverter<PhysicalGear, PhysicalGearVO> {
+public interface PhysicalGearRepositoryExtend {
 
     default Specification<PhysicalGear> hasVesselId(Integer vesselId) {
         if (vesselId == null) return null;

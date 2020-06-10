@@ -44,7 +44,7 @@
     </createTable>
   </changeSet>
 
-  <!-- add PROGRAM2LOCATION_CLASSIF -->
+  <!-- add PROGRAM2LOCATION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-2">
     <preConditions onFail="MARK_RAN">
       <not>
