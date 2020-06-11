@@ -31,7 +31,6 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
@@ -55,8 +54,6 @@ import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -142,7 +139,7 @@ public class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends Serializ
         E savedEntity = save(entity);
 
         // Update VO
-        onAfterSaveEntity(vo, savedEntity, entity.getId() == null);
+        onAfterSaveEntity(vo, savedEntity, isNew);
 
         return vo;
     }

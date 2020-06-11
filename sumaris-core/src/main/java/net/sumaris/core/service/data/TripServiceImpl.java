@@ -111,7 +111,7 @@ public class TripServiceImpl implements TripService {
     public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute,
                                      SortDirection sortDirection, DataFetchOptions fieldOptions) {
         return tripRepository.findAll(filter, offset, size, sortAttribute, sortDirection, fieldOptions)
-                .stream().collect(Collectors.toList());
+            .stream().collect(Collectors.toList());
     }
 
     @Override
@@ -141,9 +141,9 @@ public class TripServiceImpl implements TripService {
     public void fillTripsLandingLinks(List<TripVO> targets) {
 
         List<Integer> tripsIds = targets.stream()
-                .map(TripVO::getId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+            .map(TripVO::getId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
         List<LandingVO> landings = landingRepository.findAllByTripIds(tripsIds);
         final Multimap<Integer, LandingVO> landingsByTripId = Beans.splitByNotUniqueProperty(landings, LandingVO.Fields.TRIP_ID);
@@ -205,10 +205,8 @@ public class TripServiceImpl implements TripService {
         savedTrip.setMetiers(metiers);
 
         // Save fishing area
-        if (source.getFishingArea() != null) {
-            FishingAreaVO savedFishingArea = fishingAreaService.saveByFishingTripId(savedTrip.getId(), source.getFishingArea());
-            savedTrip.setFishingArea(savedFishingArea);
-        }
+        FishingAreaVO savedFishingArea = fishingAreaService.saveByFishingTripId(savedTrip.getId(), source.getFishingArea());
+        savedTrip.setFishingArea(savedFishingArea);
 
         // Save physical gears
         List<PhysicalGearVO> physicalGears = Beans.getList(source.getGears());
@@ -312,7 +310,6 @@ public class TripServiceImpl implements TripService {
 
             landingRepository.save(landing);
 
-
         } else {
 
             // a landing have to be created
@@ -366,8 +363,8 @@ public class TripServiceImpl implements TripService {
             // Find with gear and rank order
             operationGroup = operationGroups.stream()
                 .filter(og -> og.getPhysicalGear() != null && og.getPhysicalGear().getGear() != null
-                        && physicalGear.getGear().getId().equals(og.getPhysicalGear().getGear().getId())
-                        && physicalGear.getRankOrder().equals(og.getPhysicalGear().getRankOrder()))
+                    && physicalGear.getGear().getId().equals(og.getPhysicalGear().getGear().getId())
+                    && physicalGear.getRankOrder().equals(og.getPhysicalGear().getRankOrder()))
                 .findFirst().orElseThrow(() -> new SumarisTechnicalException(
                     String.format("Operation with PhysicalGear.gear#%s and PhysicalGear.rankOrder#%s not found in OperationGroups",
                         physicalGear.getGear().getId(), physicalGear.getRankOrder()))

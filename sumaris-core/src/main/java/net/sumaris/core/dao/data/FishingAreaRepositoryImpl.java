@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Lazy;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,7 +35,8 @@ public class FishingAreaRepositoryImpl
     private final LocationDao locationDao;
     private final ReferentialDao referentialDao;
 
-    @Autowired @Lazy
+    @Autowired
+    @Lazy
     private FishingAreaRepository loopBack;
 
     @Autowired
@@ -124,17 +126,24 @@ public class FishingAreaRepositoryImpl
     @Override
     public List<FishingAreaVO> saveAllByOperationId(int operationId, @Nonnull List<FishingAreaVO> fishingAreas) {
 
-        fishingAreas.forEach(fishingArea -> fishingArea.setOperationId(operationId));
+        // Save only non null objects
+        List<FishingAreaVO> fishingAreasToSave = fishingAreas.stream().filter(Objects::nonNull).collect(Collectors.toList());
 
+        // Set parent link
+        fishingAreasToSave.forEach(fishingArea -> fishingArea.setOperationId(operationId));
+
+        // Get existing fishing areas
         Set<Integer> existingFishingAreaIds = loopBack.getAllByOperationId(operationId).stream().map(FishingArea::getId).collect(Collectors.toSet());
 
-        fishingAreas.forEach(fishingArea -> {
+        // Save
+        fishingAreasToSave.forEach(fishingArea -> {
             save(fishingArea);
             existingFishingAreaIds.remove(fishingArea.getId());
         });
 
+        // Delete remaining objects
         existingFishingAreaIds.forEach(this::deleteById);
 
-        return fishingAreas;
+        return fishingAreasToSave;
     }
 }
