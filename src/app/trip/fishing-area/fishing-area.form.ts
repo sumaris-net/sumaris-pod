@@ -26,6 +26,17 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
   @Input() showDepthGradient = true;
   @Input() showNearbySpecificArea = true;
 
+  get empty(): boolean {
+    const value = this.value;
+    return (!value.location || !value.location.id)
+      && (!value.distanceToCoastGradient || !value.distanceToCoastGradient.id)
+      && (!value.depthGradient || !value.depthGradient.id)
+      && (!value.nearbySpecificArea || !value.nearbySpecificArea.id)
+  }
+
+  get valid(): boolean {
+    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
+  }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -37,7 +48,6 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
     public network: NetworkService,
     protected cd: ChangeDetectorRef
   ) {
-
     super(dateAdapter, validatorService.getFormGroup(), settings);
     this.mobile = this.settings.mobile;
   }
