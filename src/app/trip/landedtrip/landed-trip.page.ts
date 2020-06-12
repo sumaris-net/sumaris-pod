@@ -14,7 +14,6 @@ import {AcquisitionLevelCodes, PmfmStrategy, ProgramProperties} from "../../refe
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
-import {LandingService} from "../services/landing.service";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
 import {TripService, TripServiceSaveOption} from "../services/trip.service";
@@ -37,7 +36,6 @@ import {SaleProductUtils} from "../services/model/sale-product.model";
 import {debounceTime, filter} from "rxjs/operators";
 import {Sale} from "../services/model/sale.model";
 import {ExpenseForm} from "../expense/expense.form";
-import {Metier} from "../../referential/services/model/taxon.model";
 import {FishingAreaForm} from "../fishing-area/fishing-area.form";
 
 @Component({
@@ -87,7 +85,6 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   constructor(
     injector: Injector,
     protected entities: EntityStorage,
-    protected landingService: LandingService,
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
     public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
@@ -299,7 +296,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     }
 
     // Fishing area
-    this.fishingAreaForm.value = data && data.fishingArea;
+    this.fishingAreaForm.value = data && data.fishingArea || {};
 
     // Trip measurements todo filter ????????
     const tripMeasurements = data && data.measurements || [];
@@ -481,7 +478,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     json.measurements = (this.measurementsForm.value || []).concat(this.expenseForm.value);
 
     // FishingArea
-    json.fishingArea = this.fishingAreaForm.value;
+    json.fishingArea = !this.fishingAreaForm.empty ? this.fishingAreaForm.value : null;
 
     const operationGroups: OperationGroup[] = this.operationGroupTable.value || [];
 
