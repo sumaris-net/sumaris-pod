@@ -59,19 +59,18 @@ import java.sql.Timestamp;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @NoRepositoryBean
-public class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>>
+public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>>
         extends SimpleJpaRepository<E, ID>
         implements SumarisJpaRepository<E, ID, V> {
 
     private boolean debugEntityLoad = false;
 
-    private EntityManager entityManager;
+    protected EntityManager entityManager;
 
     @Autowired
     private DataSource dataSource;
 
-    // There are two constructors to choose from, either can be used.
-    public SumarisJpaRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
+    protected SumarisJpaRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         super(domainClass, entityManager);
 
         // This is the recommended method for accessing inherited class dependencies.
