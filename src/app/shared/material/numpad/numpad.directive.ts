@@ -164,7 +164,6 @@ export class NumpadDirective implements ControlValueAccessor, OnDestroy, OnChang
   }
 
   private updateInputValue(): void {
-    console.log(this.elementRef.nativeElement);
     this.elementRef.nativeElement.value = this.value;
   }
 

@@ -27,7 +27,10 @@ export class PmfmStrategyValidatorService implements ValidatorService {
       isMandatory: [data && data.isMandatory || false, Validators.required],
       acquisitionNumber: [data && data.acquisitionNumber || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
       minValue: [data && data.minValue || null, SharedValidators.double()],
-      maxValue: [data && data.maxValue || null, SharedValidators.double()]
+      maxValue: [data && data.maxValue || null, SharedValidators.double()],
+      gearIds: [data && data.gearIds || null],
+      taxonGroupIds: [data && data.taxonGroupIds || null],
+      referenceTaxonIds: [data && data.referenceTaxonIds || null]
     });
   }
 }

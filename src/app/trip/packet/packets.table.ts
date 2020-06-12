@@ -11,14 +11,12 @@ import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AppTableDataSource, isNil} from "../../core/core.module";
 import {BehaviorSubject, Observable} from "rxjs";
-import {IWithProductsEntity} from "../services/model/base.model";
-import {PacketModal} from "./packet.modal";
 import {AcquisitionLevelCodes, IWithPacketsEntity, PmfmStrategy} from "../services/model/base.model";
+import {PacketModal} from "./packet.modal";
 import {PacketSaleModal} from "../sale/packet-sale.modal";
 import {ProgramService} from "../../referential/services/program.service";
 import {isNotEmptyArray} from "../../shared/functions";
 import {SaleProductUtils} from "../services/model/sale-product.model";
-import {filterNotNil} from "../../shared/observables";
 
 @Component({
   selector: 'app-packets-table',
@@ -27,7 +25,9 @@ import {filterNotNil} from "../../shared/observables";
   providers: [
     {
       provide: InMemoryTableDataService,
-      useFactory: () => new InMemoryTableDataService<Packet, PacketFilter>(Packet)
+      useFactory: () => new InMemoryTableDataService<Packet, PacketFilter>(Packet, {
+        filterFnFactory: PacketFilter.searchFilter
+      })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -119,10 +119,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined)
     });
 
-    this.registerSubscription(this.$parentFilter.subscribe(parentFilter => {
-      // console.debug('parent test change', parentFilter);
-      this.setFilter(new PacketFilter(parentFilter));
-    }));
+    this.registerSubscription(this.$parentFilter.subscribe(parentFilter => this.setFilter(parentFilter)));
 
     this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditPacket(row)));
   }

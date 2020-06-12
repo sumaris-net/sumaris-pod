@@ -5,13 +5,12 @@ import {ProductValidatorService} from "../services/validator/product.validator";
 import {Product, ProductFilter} from "../services/model/product.model";
 import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
-import {AcquisitionLevelCodes, isNil, isNotNil, PmfmStrategy} from "../../referential/services/model";
+import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
 import {BehaviorSubject, Observable} from "rxjs";
 import {IWithProductsEntity} from "../services/model/base.model";
 import {IReferentialRef} from "../../core/services/model";
 import {TableElement} from "angular4-material-table";
 import {ProductSaleModal} from "../sale/product-sale.modal";
-import {$e} from "codelyzer/angular/styles/chars";
 import {isNotEmptyArray} from "../../shared/functions";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {filterNotNil} from "../../shared/observables";
@@ -27,7 +26,8 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
     {
       provide: InMemoryTableDataService,
       useFactory: () => new InMemoryTableDataService<Product, ProductFilter>(Product, {
-        equals: Product.equals
+        equals: Product.equals,
+        filterFnFactory: ProductFilter.searchFilter
       })
     }
   ],
@@ -103,10 +103,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     });
 
     if (this.$parentFilter) {
-      this.registerSubscription(this.$parentFilter.subscribe(parentFilter => {
-        // console.debug('parent test change', parentFilter);
-        this.setFilter(new ProductFilter(parentFilter));
-      }));
+      this.registerSubscription(this.$parentFilter.subscribe(parentFilter => this.setFilter(parentFilter)));
     }
 
     this.registerSubscription(

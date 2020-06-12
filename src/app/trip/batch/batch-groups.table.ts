@@ -15,7 +15,6 @@ import {
 } from "../../shared/functions";
 import {MethodIds, PmfmStrategy, QualityFlagIds} from "../../referential/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {environment} from "../../../environments/environment";
 import {MeasurementFormValues, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {ModalController} from "@ionic/angular";
 import {Batch, BatchUtils, BatchWeight} from "../services/model/batch.model";

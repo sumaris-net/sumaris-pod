@@ -295,23 +295,25 @@ mat-option:not(:last-child) {
 }
 
 .mat-select-panel {
-  width: 250px !important;
-}
-.mat-autocomplete-panel {
   --min-width: 200px;
   min-width: var(--min-width) !important;
 }
+.mat-autocomplete-panel {
+  --min-width: 250px;
+  min-width: var(--min-width) !important;
+}
+
 .mat-autocomplete-panel-medium-size .mat-autocomplete-panel,
 .mat-autocomplete-panel-medium-size.mat-autocomplete-panel,
 .min-width-medium .mat-autocomplete-panel,
 .min-width-medium.mat-autocomplete-panel {
-  --min-width: 250px;
+  --min-width: 300px;
 }
 .mat-autocomplete-panel-large-size .mat-autocomplete-panel,
 .mat-autocomplete-panel.mat-autocomplete-panel-large-size,
 .min-width-large .mat-autocomplete-panel,
 .min-width-large.mat-autocomplete-panel {
-  --min-width: 350px;
+  --min-width: 400px;
 }
 .mat-autocomplete-panel-xlarge-size .mat-autocomplete-panel,
 .mat-autocomplete-panel-xlarge-size.mat-autocomplete-panel {
@@ -321,6 +323,13 @@ mat-option:not(:last-child) {
 .mat-autocomplete-panel-center .mat-autocomplete-panel,
 .mat-autocomplete-panel-center.mat-autocomplete-panel {
   margin-left: calc(var(--min-width, 200px) / -2 + 50%) !important;
+}
+
+.mat-autocomplete-panel-full-size .mat-autocomplete-panel,
+.mat-autocomplete-panel-full-size.mat-autocomplete-panel {
+  --min-width: calc(100vw);
+  position: fixed;
+  left: 0;
 }
 
 .mat-select-panel,
@@ -348,7 +357,7 @@ mat-option:not(:last-child) {
     ion-col {
       padding: 0 !important;
       padding-left: 8px !important;
-      text-overflow: clip;
+      text-overflow: ellipsis;
       overflow: hidden;
     }
   }

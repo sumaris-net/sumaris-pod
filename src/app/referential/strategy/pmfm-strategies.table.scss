@@ -1,2 +1,24 @@
-:host {
+.mat-table {
+
+  .mat-column-acquisitionLevel {
+    min-width: 80px;
+    max-width: 200px;
+  }
+
+  .mat-column-rankOrder,
+  .mat-column-acquisitionNumber,
+  .mat-column-minValue,
+  .mat-column-maxValue {
+    max-width: 60px;
+  }
+
+  .mat-column-isMandatory {
+    max-width: 40px;
+  }
+
+  mat-header-cell.hidden,
+  mat-cell.hidden {
+    visibility: hidden;
+    display: none;
+  }
 }

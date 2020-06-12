@@ -104,13 +104,13 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       )
       .subscribe(value => {
         this.data.gear = value;
-        this.gear = value.label;
+        this.gearId = value.label;
       });
   }
 
   setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
     if (data && ReferentialUtils.isNotEmpty(data.gear)) {
-      this.gear = data.gear.label;
+      this.gearId = data.gear.id;
     }
     super.setValue(data, opts);
   }
@@ -124,7 +124,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   protected async safeSetValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }): Promise<void> {
 
     if (data && ReferentialUtils.isNotEmpty(data.gear)) {
-      this.gear = data.gear.label;
+      this.gearId = data.gear.id;
     }
 
     await super.safeSetValue(data, opts);

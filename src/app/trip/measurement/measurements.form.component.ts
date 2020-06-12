@@ -36,7 +36,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   private _onRefreshPmfms = new EventEmitter<any>();
   private _program: string;
-  private _gear: string;
+  private _gearId: number;
   private _acquisitionLevel: string;
   private _forceOptional = false;
   protected data: Measurement[];
@@ -87,9 +87,9 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   }
 
   @Input()
-  set gear(value: string) {
-    if (this._gear !== value && isNotNil(value)) {
-      this._gear = value;
+  set gearId(value: number) {
+    if (this._gearId !== value && isNotNil(value)) {
+      this._gearId = value;
       if (this.requiredGear) {
         this._onRefreshPmfms.emit();
       }
@@ -99,8 +99,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     }
   }
 
-  get gear(): string {
-    return this._gear;
+  get gearId(): number {
+    return this._gearId;
   }
 
   @Input()
@@ -228,7 +228,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   protected async refreshPmfms(event?: any) {
     // Skip if missing: program, acquisition (or gear, if required)
-    if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gear))) {
+    if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
       return;
     }
 
@@ -243,11 +243,11 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
         this._program,
         {
           acquisitionLevel: this._acquisitionLevel,
-          gear: this._gear
+          gearId: this._gearId
         })) || [];
 
       if (!pmfms.length && this.debug) {
-        console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gear}}. Make sure programs/strategies are filled`);
+        console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
       }
       else {
 

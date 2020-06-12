@@ -1076,9 +1076,9 @@
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",
-        "PMFM": "PMFM",
-        "IS_MANDATORY": "Obligatoire ?",
-        "ACQUISITION_NUMBER": "Nombre d'acquisition",
+        "PMFM": "Paramètre collecté (PMFM)",
+        "IS_MANDATORY": "Oblig ?",
+        "ACQUISITION_NUMBER": "Nb acquis.",
         "MIN_VALUE": "Min",
         "MAX_VALUE": "Max",
         "TABLE": {

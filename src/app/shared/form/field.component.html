@@ -164,12 +164,7 @@
                           [placeholder]="placeholder"
                           [floatLabel]="floatLabel"
                           [formControl]="formControl"
-                          [suggestFn]="definition.autocomplete?.suggestFn"
-                          [filter]="definition.autocomplete?.filter"
-                          [items]="definition.autocomplete?.items"
-                          [displayColumnNames]="definition.autocomplete?.columnNames"
-                          [displayColumnSizes]="definition.autocomplete?.columnSizes"
-                          [displayAttributes]="definition.autocomplete?.attributes"
+                          [config]="definition.autocomplete"
                           [required]="required"
                           [displayWith]="getDisplayValueFn(definition)">
     <ng-content select="[matPrefix]"></ng-content>

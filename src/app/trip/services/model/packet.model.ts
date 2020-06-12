@@ -13,20 +13,19 @@ import {DataFilter} from "../../../shared/services/memory-data-service.class";
 import {Product} from "./product.model";
 import {equalsOrNil, isNotNilOrNaN} from "../../../shared/functions";
 
-export class PacketFilter implements DataFilter<Packet> {
+export class PacketFilter {
+
+  static searchFilter(f: PacketFilter): (Packet) => boolean {
+    if (!f || isNil(f.parent)) return undefined;
+    return (p) => {
+      if (isNil(p.parent) || !f.parent.equals(p.parent)) {
+        return false;
+      }
+      return true;
+    }
+  }
 
   parent?: IWithPacketsEntity<any>;
-
-  constructor(parent?: IWithPacketsEntity<any>) {
-    this.parent = parent || null;
-  }
-
-  test(data: Packet): boolean {
-    if (isNotNil(this.parent)) {
-      return this.parent.equals(data.parent);
-    }
-    return true;
-  }
 }
 
 export class Packet extends DataEntity<Packet> {

@@ -284,7 +284,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
 
         // Disable form
         this.strategyForm.disable({emitEvent: false});
-        this.strategyForm.reset(null, {emitEvent: false});
+        this.strategyForm.reset(new Strategy(), {emitEvent: false});
         this.strategyForm.markAsPristine({emitEvent: false});
       }
     }

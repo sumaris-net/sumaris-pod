@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "angular4-material-table";
 import {EntityUtils, environment, joinPropertiesPath, referentialToString} from "../../core/core.module";
 import {PmfmIds, PmfmStrategy} from "../../referential/services/model";
 import {SubSampleValidatorService} from "../services/sub-sample.validator";
@@ -10,7 +10,6 @@ import {UsageMode} from "../../core/services/model";
 import {filterNotNil, firstFalsePromise} from "../../shared/observables";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {Sample} from "../services/model/sample.model";
-import {Batch} from "../services/model/batch.model";
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];

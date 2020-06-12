@@ -40,7 +40,7 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
   @Input('equals') equalsFn: (v1: T, v2: T) => boolean;
 
   @Output() onNewItem = new EventEmitter<UIEvent>();
-  @Output() onSelectionChange = new EventEmitter<T[]>();
+  @Output() onSelectionChange = new EventEmitter<T[]>(true);
 
 
   set value(data: T[]) {
@@ -153,11 +153,11 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
     }
   }
 
-  async toggle(item: T, opts?: {emitEvent?: boolean}) {
+  async onItemClick(event: MouseEvent, item: T, opts?: {emitEvent?: boolean}) {
     if (!item || this.onSelectionChange.observers.length === 0) return;
 
-    // Multiple selection
-    if (this.options.allowMultipleSelection) {
+    // Multiple selection (if ctrl+click)
+    if (event.ctrlKey && this.options.allowMultipleSelection) {
       this.selection.toggle(item);
     }
     // Only one selection
@@ -191,7 +191,6 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
   }
 
   removeAt(index: number) {
-    console.log("TODO: remove ? ", this.enabled);
     this.helper.removeAt(index);
   }
 

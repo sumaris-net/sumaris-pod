@@ -3,17 +3,19 @@ import {Entity, isNotNil, LoadResult, TableDataService} from "../../core/core.mo
 import {EntityUtils, IEntity} from "../../core/services/model";
 import {filter, mergeMap} from "rxjs/operators";
 import {isNotEmptyArray} from "../functions";
+import {FilterFnFactory} from "./data-service.class";
 
 export interface InMemoryTableDataServiceOptions<T, F> {
   onSort?: (data: T[], sortBy?: string, sortDirection?: string) => T[];
   onLoad?: (data: T[]) => T[] | Promise<T[]>;
   onSave?: (data: T[]) => T[] | Promise<T[]>;
   equals?: (d1: T, d2: T) => boolean;
+  filterFnFactory?: FilterFnFactory<T, F>;
   onFilter?: (data: T[], filter: F) => T[] | Promise<T[]>;
 }
 
-export class DataFilter<T extends IEntity<T>> {
-  test(data: T): boolean {
+export abstract class DataFilter<T extends IEntity<T>> {
+  test(data: T, filter: any): boolean {
     return true;
   }
 }
@@ -27,7 +29,8 @@ export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter
   private readonly _onLoad: (data: T[]) => T[] | Promise<T[]>;
   private readonly _onSaveFn: (data: T[]) => T[] | Promise<T[]>;
   private readonly _equalsFn: (d1: T, d2: T) => boolean;
-  private readonly _filterFn: (data: T[], filter: F) => T[] | Promise<T[]>;
+  private readonly _onFilterFn: (data: T[], filter: F) => T[] | Promise<T[]>;
+  private readonly _filterFnFactory: FilterFnFactory<T, F>;
 
   protected data: T[];
   private _hiddenData: T[];
@@ -62,7 +65,8 @@ export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter
     this._onLoad = options && options.onLoad || null;
     this._onSaveFn = options && options.onSave || null;
     this._equalsFn = options && options.equals || this.equals;
-    this._filterFn = options && options.onFilter || this.filter;
+    this._onFilterFn = options && options.onFilter || this.filter;
+    this._filterFnFactory = options && options.filterFnFactory;
 
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
@@ -104,7 +108,7 @@ export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter
 
           // Apply filter
           {
-            const promiseOrData = this._filterFn(data, filterData);
+            const promiseOrData = this._onFilterFn(data, filterData);
             data = ((promiseOrData instanceof Promise)) ? await promiseOrData : promiseOrData;
           }
 
@@ -165,12 +169,13 @@ export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter
   filter(data: T[], _filter: F): T[] {
 
     // if filter is DataFilter instance, use its test function
-    if (_filter && _filter.test !== undefined) {
+    const testFn = this._filterFnFactory && this._filterFnFactory(_filter);
+    if (testFn) {
       this._hiddenData = [];
       const filteredData = [];
 
       data.forEach(value => {
-        if (_filter.test(value))
+        if (testFn(value))
           filteredData.push(value);
         else
           this._hiddenData.push(value);

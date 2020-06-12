@@ -20,9 +20,9 @@
 
   <ion-item *ngFor="let itemControl of itemControls; index as i; last as last"
             [class.disabled]="disabled"
-            (click)="toggle(itemControl.value)"
+            (click)="onItemClick($event, itemControl.value)"
             [color]="selection.isSelected(itemControl.value) ? 'secondary' : undefined"
-            tappable>
+            [button]="onSelectionChange.observers.length > 0">
     <ion-label>{{displayWith(itemControl.value)}}</ion-label>
 
     <!-- buttons -->

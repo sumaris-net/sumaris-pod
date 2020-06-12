@@ -327,6 +327,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
         takeUntil(this._onDestroy),
         catchError(err => {
           this.error = err && err.message || err;
+          if (this.debug) console.error(err);
           return of(undefined);
         })
       )

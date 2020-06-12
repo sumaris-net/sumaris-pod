@@ -86,7 +86,6 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row" >
       <app-form-field floatLabel="never"
-                      class="mat-autocomplete-panel-xlarge-size mat-autocomplete-panel-center"
                       [formControl]="row.validator.controls[definition.key]"
                       [definition]="definition"
                       [compact]="true">
@@ -183,7 +182,7 @@
     </mat-cell>
   </ng-container>
 
-  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-header-row *matHeaderRowDef="displayedColumns; sticky: sticky"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns;"
            [class.mat-row-error]="row.validator.invalid"
            [class.mat-row-dirty]="row.validator.dirty"

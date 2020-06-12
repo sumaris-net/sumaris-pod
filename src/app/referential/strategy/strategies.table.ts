@@ -1,21 +1,10 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {
-  AppTable,
-  AppTableDataSource,
-  environment, isNotNil, referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, StatusIds
-} from "../../core/core.module";
+import {environment, referentialToString, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {Strategy} from "../services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController, Platform} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {isEmptyArray, toBoolean} from "../../shared/functions";
-import {AccountService} from "../../core/services/account.service";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {toBoolean} from "../../shared/functions";
 import {DefaultStatusList} from "../../core/services/model";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 
@@ -81,8 +70,6 @@ export class StrategiesTable extends AppInMemoryTable<Strategy, StrategyFilter> 
   ngOnInit() {
     this.inlineEdition = toBoolean(this.inlineEdition, true);
     super.ngOnInit();
-
-    console.log("TODO check inlineEdition:" + this.inlineEdition);
   }
 
 

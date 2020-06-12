@@ -104,8 +104,10 @@ export class MatAutocompleteConfigHolder {
       columnNames: options.columnNames,
       showAllOnFocus: options.showAllOnFocus,
       showPanelOnFocus: options.showPanelOnFocus,
-      mobile: options.mobile
+      mobile: options.mobile,
+      class: options.class
     };
+
     this.fields[fieldName] = config;
     return config;
   }

@@ -28,8 +28,6 @@ import {SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
-import {MatDialog} from "@angular/material/dialog";
-import {Batch} from "../services/model/batch.model";
 
 export interface SampleFilter {
   operationId?: number;

@@ -23,7 +23,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected _onValueChanged = new EventEmitter<T>();
   protected _onRefreshPmfms = new EventEmitter<any>();
   protected _program: string;
-  protected _gear: string = null;
+  protected _gearId: number = null;
   protected _acquisitionLevel: string;
   protected _ready = false;
   protected data: T;
@@ -70,15 +70,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   @Input()
-  set gear(value: string) {
-    if (this._gear !== value && isNotNil(value)) {
-      this._gear = value;
+  set gearId(value: number) {
+    if (this._gearId !== value && isNotNil(value)) {
+      this._gearId = value;
       if (!this.loading || this.requiredGear) this._onRefreshPmfms.emit();
     }
   }
 
-  get gear(): string {
-    return this._gear;
+  get gearId(): number {
+    return this._gearId;
   }
 
   @Input()
@@ -248,7 +248,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   protected async refreshPmfms(event?: any) {
     // Skip if missing: program, acquisition (or gear, if required)
-    if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gear))) {
+    if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
       return;
     }
 
@@ -265,11 +265,11 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
         this._program,
         {
           acquisitionLevel: this._acquisitionLevel,
-          gear: this._gear
+          gearId: this._gearId
         })) || [];
 
       if (!pmfms.length && this.debug) {
-        console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gear}}. Make sure programs/strategies are filled`);
+        console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
       }
 
       await this.setPmfms(pmfms.slice());

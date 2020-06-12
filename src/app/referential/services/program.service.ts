@@ -172,7 +172,7 @@ const ProgramFragments = {
       isMandatory
       rankOrder
       acquisitionLevel
-      gears
+      gearIds
       taxonGroupIds
       referenceTaxonIds
       qualitativeValues {
@@ -197,7 +197,7 @@ const ProgramFragments = {
       pmfm {
         ...PmfmFragment
       }
-      gears
+      gearIds
       taxonGroupIds
       referenceTaxonIds
       __typename
@@ -559,7 +559,7 @@ export class ProgramService extends BaseDataService
    */
   watchProgramPmfms(programLabel: string, options: {
     acquisitionLevel: string;
-    gear?: string;
+    gearId?: number;
     taxonGroupId?: number;
     referenceTaxonId?: number;
   }, debug?: boolean): Observable<PmfmStrategy[]> {
@@ -582,7 +582,7 @@ export class ProgramService extends BaseDataService
                       !options || (
                         (!options.acquisitionLevel || p.acquisitionLevel === options.acquisitionLevel)
                         // Filter on gear (if PMFM has gears = compatible with all gears)
-                        && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g === options.gear) !== -1)
+                        && (!options.gearId || !p.gearIds || !p.gearIds.length || p.gearIds.findIndex(id => id === options.gearId) !== -1)
                         // Filter on taxon group
                         && (!options.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === options.taxonGroupId) !== -1)
                         // Filter on reference taxon
@@ -614,7 +614,7 @@ export class ProgramService extends BaseDataService
    */
   loadProgramPmfms(programLabel: string, options?: {
     acquisitionLevel: string;
-    gear?: string;
+    gearId?: number;
     taxonGroupId?: number;
     referenceTaxonId?: number;
   }, debug?: boolean): Promise<PmfmStrategy[]> {
@@ -666,8 +666,6 @@ export class ProgramService extends BaseDataService
             // TODO: select the valid strategy (from date and location)
             // For now: select the first one
             const strategy = program && program.strategies && program.strategies[0];
-
-            console.log('TODO: getting strategy:', strategy);
 
             const res = (strategy && strategy.taxonGroups || [])
 

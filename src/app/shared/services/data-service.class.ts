@@ -21,6 +21,9 @@ export declare interface SuggestionDataService<T, F> {
   suggest: SuggestFn<T, F>;
 }
 
+export declare type FilterFn<T> = (data: T) => boolean;
+export declare type FilterFnFactory<T, F> = (filter: F) => FilterFn<T>;
+
 export declare interface DataService<T, F> {
 
   loadAll(

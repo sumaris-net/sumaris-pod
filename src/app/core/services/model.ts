@@ -604,6 +604,7 @@ export class ReferentialUtils {
 }
 
 export declare interface IReferentialRef {
+  id: number;
   label: string;
   name: string;
   statusId: number;

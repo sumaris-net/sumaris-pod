@@ -110,9 +110,9 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
       this.opeForm.form.controls['physicalGear'].valueChanges
         .subscribe((res) => {
           if (this.loading) return; // SKip during loading
-          const gearLabel = res && res.gear && res.gear.label || null;
-          this.measurementsForm.gear = gearLabel;
-          this.catchBatchForm.gear = gearLabel;
+          const gearId = res && res.gear && res.gear.id || null;
+          this.measurementsForm.gearId = gearId;
+          this.catchBatchForm.gearId = gearId;
         })
     );
 
@@ -526,11 +526,11 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
 
     const program = trip && trip.program && trip.program.label;
 
-    // Get gear
-    const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label || null;
+    // Get gear, from the physical gear
+    const gearId = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.id || null;
 
     // Set measurements form
-    this.measurementsForm.gear = gearLabel;
+    this.measurementsForm.gearId = gearId;
     this.measurementsForm.program = program;
     this.measurementsForm.value = data && data.measurements || [];
 
@@ -539,7 +539,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     const samples = (data && data.samples || []).reduce((res, sample) => !sample.children ? res.concat(sample) : res.concat(sample).concat(sample.children), []);
 
     // Set catch batch
-    this.catchBatchForm.gear = gearLabel;
+    this.catchBatchForm.gearId = gearId;
     this.catchBatchForm.value = data && data.catchBatch || Batch.fromObject({
       rankOrder: 1,
       label: AcquisitionLevelCodes.CATCH_BATCH
@@ -663,7 +663,6 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
   }
 
   protected async setAutoFillSpecies(enable: boolean) {
-    console.log("TODO setAutoFillSpecies=" + enable);
     if (!this.showBatchTables || !this.batchGroupsTable.showTaxonGroupColumn || !enable) {
       // Reset table's default taxon groups
       this.batchGroupsTable.defaultTaxonGroups = null;

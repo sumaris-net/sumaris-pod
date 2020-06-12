@@ -15,6 +15,8 @@ import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {SelectionModel} from "@angular/cdk/collections";
+import {BehaviorSubject, Subject} from "rxjs";
+import {debounceTime} from "rxjs/operators";
 
 @Component({
   selector: 'app-strategy-form',
@@ -29,6 +31,7 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
 
   data: Strategy;
   components: (AppForm<any>|AppTable<any>)[] = [];
+  $filter = new BehaviorSubject<Partial<PmfmStrategyFilter>>({});
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('acquisitionLevelList', { static: true }) acquisitionLevelList: AppListForm;
@@ -142,6 +145,14 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
       this.taxonGroupListForm,
       this.taxonNameListForm
     ];
+
+    this.registerSubscription(
+      this.$filter
+        .pipe(
+          debounceTime(700)
+        )
+        .subscribe(filter => this.pmfmStrategiesTable.setFilter(filter))
+    );
 
     // TODO: Check label is unique
     /*this.form.get('label')
@@ -296,13 +307,13 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
     this.taxonNameListForm.value = data.taxonNames;
 
     const allAcquisitionLevels = (await this.referentialRefService.loadAll(0,1000, 'name', 'asc', {entityName: 'AcquisitionLevel'}, {fetchPolicy: 'cache-first'})).data;
-    const existingAcquisitionLevels = (data.pmfmStrategies || []).reduce((res, item) => {
+    const collectedAcquisitionLevels = (data.pmfmStrategies || []).reduce((res, item) => {
       if (typeof item.acquisitionLevel === "string" && res[item.acquisitionLevel] === undefined) {
         res[item.acquisitionLevel] = allAcquisitionLevels.find(al => al.label === item.acquisitionLevel) || null;
       }
       return res;
     }, <{[key: string]: ReferentialRef|null}>{});
-    this.acquisitionLevelList.value = Object.values(existingAcquisitionLevels).filter(isNotNil) as ReferentialRef[];
+    this.acquisitionLevelList.value = Object.values(collectedAcquisitionLevels).filter(isNotNil) as ReferentialRef[];
 
     this.pmfmStrategiesTable.value = data.pmfmStrategies || [];
 
@@ -314,7 +325,7 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
 
   protected async getJsonValueToSave(): Promise<any> {
 
-    const json = this.form.value;
+    const json = this.form.value as Partial<Strategy>;
 
     // Re add label, because missing when field disable
     json.label = this.form.get('label').value;
@@ -339,30 +350,28 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   updateFilterLocations(value: ReferentialRef[]|any) {
-    const locationIds = (value as ReferentialRef[]).map(item => item.id);
+    const locationIds = value && (value as ReferentialRef[]).map(item => item.id) || undefined;
     this.patchPmfmStrategyFilter({locationIds});
   }
 
   updateFilterGears(value: ReferentialRef[]|any) {
-    const gearIds = (value as ReferentialRef[]).map(item => item.id);
+    const gearIds = value && (value as ReferentialRef[]).map(item => item.id) || undefined;
     this.patchPmfmStrategyFilter({gearIds});
   }
 
   updateFilterTaxonGroups(value: TaxonGroupStrategy[]|any) {
-    const taxonGroupIds = value.map(tgs => tgs.taxonGroup && tgs.taxonGroup.id);
+    const taxonGroupIds = value && value.map(tgs => tgs.taxonGroup && tgs.taxonGroup.id) || undefined;
     this.patchPmfmStrategyFilter({taxonGroupIds});
   }
 
   updateFilterTaxonNames(value: TaxonNameStrategy[]|any) {
-    if (value instanceof Array) {
-      const taxonNameIds = value.map(tgs => tgs.taxonName && tgs.taxonName.id);
-      this.patchPmfmStrategyFilter({taxonNameIds});
-    }
+    const referenceTaxonIds = value && (value as TaxonNameStrategy[]).map(tgs => tgs.taxonName && tgs.taxonName.referenceTaxonId) || undefined;
+    this.patchPmfmStrategyFilter({referenceTaxonIds});
   }
 
   protected patchPmfmStrategyFilter(filter: Partial<PmfmStrategyFilter>) {
-    this.pmfmStrategiesTable.setFilter({
-      ...this.pmfmStrategiesTable.filter,
+    this.$filter.next({
+      ...this.$filter.getValue(),
       ...filter
     });
   }

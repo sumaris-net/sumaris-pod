@@ -441,7 +441,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
   onTimePickerKeyup(event: KeyboardEvent) {
     if (!this.timePicker) return;
-    console.log(event);
     if (event.key === 'Enter') {
       // Format hour
       let hour: number | string = this.timePicker.selectedHour.time;
