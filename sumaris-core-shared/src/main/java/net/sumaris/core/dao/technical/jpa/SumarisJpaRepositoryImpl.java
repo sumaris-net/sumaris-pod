@@ -65,7 +65,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     private boolean debugEntityLoad = false;
 
-    protected EntityManager entityManager;
+    private EntityManager entityManager;
 
     @Autowired
     private DataSource dataSource;
