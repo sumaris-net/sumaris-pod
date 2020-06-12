@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 30/03/2020.
  */
 @NoRepositoryBean
-public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V extends IDataVO<ID>, F extends Serializable>
+public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V extends IDataVO<ID>, F extends Serializable>
     extends SumarisJpaRepositoryImpl<E, ID, V>
     implements DataRepository<E, ID, V, F> {
 
@@ -73,7 +73,7 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
     @Autowired
     private DepartmentDao departmentDao;
 
-    public DataRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
+    protected DataRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         super(domainClass, entityManager);
     }
 
@@ -175,7 +175,7 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         E savedEntity = save(entity);
 
         // Update VO
-        onAfterSaveEntity(vo, savedEntity, entity.getId() == null);
+        onAfterSaveEntity(vo, savedEntity, isNew);
 
         return vo;
     }
