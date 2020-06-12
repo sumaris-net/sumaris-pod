@@ -28,7 +28,6 @@ import com.google.common.collect.Maps;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -327,24 +326,18 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             target.setGears(gears);
+
+            target.setGearIds(Beans.collectIds(source.getGears()));
         }
 
         // Taxon groups
         if (CollectionUtils.isNotEmpty(source.getTaxonGroups())) {
-            List<Integer> taxonGroupIds = source.getTaxonGroups()
-                    .stream()
-                    .map(IEntity::getId)
-                    .collect(Collectors.toList());
-            target.setTaxonGroupIds(taxonGroupIds);
+            target.setTaxonGroupIds(Beans.collectIds(source.getTaxonGroups()));
         }
 
         // Reference taxons
         if (CollectionUtils.isNotEmpty(source.getReferenceTaxons())) {
-            List<Integer> referenceTaxonIds = source.getReferenceTaxons()
-                    .stream()
-                    .map(IEntity::getId)
-                    .collect(Collectors.toList());
-            target.setReferenceTaxonIds(referenceTaxonIds);
+            target.setReferenceTaxonIds(Beans.collectIds(source.getReferenceTaxons()));
         }
 
         return target;
@@ -478,13 +471,9 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                         Beans.collectIds(source.getGears()) :
                         null);
         if (copyIfNull || CollectionUtils.isNotEmpty(gearIds)) {
-            if (CollectionUtils.isEmpty(gearIds)) {
-                if (target.getGears() != null) {
-                    target.getGears().clear();
-                }
-            }
-            else {
-                target.setGears(loadAllAsSet(Gear.class, gearIds, true));
+            target.getGears().clear();
+            if (CollectionUtils.isNotEmpty(gearIds)) {
+                target.getGears().addAll(loadAllAsSet(Gear.class, gearIds, true));
             }
         }
 
@@ -694,6 +683,29 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
         }
         target.setAcquisitionLevel(load(AcquisitionLevel.class, acquisitionLevelId));
 
+        // Gears
+        if (copyIfNull || CollectionUtils.isNotEmpty(source.getGearIds())) {
+            target.getGears().clear();
+            if (CollectionUtils.isNotEmpty(source.getGearIds())) {
+                target.getGears().addAll(loadAllAsSet(Gear.class, source.getGearIds(), true));
+            }
+        }
+
+        // Taxon Groups
+        if (copyIfNull || CollectionUtils.isNotEmpty(source.getTaxonGroupIds())) {
+            target.getTaxonGroups().clear();
+            if (CollectionUtils.isNotEmpty(source.getTaxonGroupIds())) {
+                target.getTaxonGroups().addAll(loadAllAsSet(TaxonGroup.class, source.getTaxonGroupIds(), true));
+            }
+        }
+
+        // Taxon Names
+        if (copyIfNull || CollectionUtils.isNotEmpty(source.getReferenceTaxonIds())) {
+            target.getReferenceTaxons().clear();
+            if (CollectionUtils.isNotEmpty(source.getReferenceTaxonIds())) {
+                target.getReferenceTaxons().addAll(loadAllAsSet(ReferenceTaxon.class, source.getReferenceTaxonIds(), true));
+            }
+        }
     }
 
     private synchronized void loadAcquisitionLevels() {

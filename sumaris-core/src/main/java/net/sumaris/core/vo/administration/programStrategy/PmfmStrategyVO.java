@@ -47,7 +47,10 @@ public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IVa
     private Double defaultValue;
     private Date updateDate;
 
+    @Deprecated
     private List<String> gears;
+
+    private List<Integer> gearIds;
     private List<Integer> taxonGroupIds;
     private List<Integer> referenceTaxonIds;
 

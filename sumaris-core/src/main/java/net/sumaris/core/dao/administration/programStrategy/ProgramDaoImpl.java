@@ -448,13 +448,9 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
                         Beans.collectIds(source.getLocationClassifications()) :
                         null);
         if (copyIfNull || CollectionUtils.isNotEmpty(locationClassificationIds)) {
-            if (CollectionUtils.isEmpty(locationClassificationIds)) {
-                if (target.getLocationClassifications() != null) {
-                    target.getLocationClassifications().clear();
-                }
-            }
-            else {
-                target.setLocationClassifications(loadAllAsSet(LocationClassification.class, locationClassificationIds, true));
+            target.getLocationClassifications().clear();
+            if (CollectionUtils.isNotEmpty(locationClassificationIds)) {
+                target.getLocationClassifications().addAll(loadAllAsSet(LocationClassification.class, locationClassificationIds, true));
             }
         }
 
@@ -465,13 +461,9 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
                         Beans.collectIds(source.getLocations()) :
                         null);
         if (copyIfNull || CollectionUtils.isNotEmpty(locationIds)) {
-            if (CollectionUtils.isEmpty(locationIds)) {
-                if (target.getLocations() != null) {
-                    target.getLocations().clear();
-                }
-            }
-            else {
-                target.setLocations(loadAllAsSet(Location.class, locationIds, true));
+            target.getLocations().clear();
+            if (CollectionUtils.isNotEmpty(locationIds)) {
+                target.getLocations().addAll(loadAllAsSet(Location.class, locationIds, true));
             }
         }
     }
