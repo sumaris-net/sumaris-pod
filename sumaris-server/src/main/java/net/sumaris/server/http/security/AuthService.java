@@ -22,17 +22,44 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.vo.security.AuthDataVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Transactional
 public interface AuthService {
 
+    List<String> PRIORITIZED_AUTHORITIES = ImmutableList.of("ROLE_ADMIN", "ROLE_SUPERVISOR", "ROLE_USER", "ROLE_GUEST");
+
+    default boolean isSupervisor() {
+        return hasAuthority("ROLE_SUPERVISOR");
+    }
+
+    default boolean isAdmin() {
+        return hasAuthority("ROLE_ADMIN");
+    }
+
+    default boolean isUser() {
+        return hasAuthority("ROLE_USER");
+    }
+
     Optional<AuthUser> authenticate(String token);
 
     @Transactional(readOnly = true)
     AuthDataVO createNewChallenge();
+
+    /**
+     * Check in the security context, that user has the expected authority
+     * @param role
+     * @return
+     */
+    boolean hasAuthority(String authority);
+
+    Optional<PersonVO> getAuthenticatedUser();
+
 }
