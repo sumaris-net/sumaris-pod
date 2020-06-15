@@ -31,8 +31,8 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
@@ -40,6 +40,7 @@ import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.ImageService;
@@ -115,6 +116,9 @@ public class DataGraphQLService {
 
     @Autowired
     private FishingAreaService fishingAreaService;
+
+    @Autowired
+    private AuthService authService;
 
     /* -- Vessel -- */
 
@@ -217,6 +221,14 @@ public class DataGraphQLService {
                                           @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                           @GraphQLEnvironment() Set<String> fields
                                   ) {
+
+        filter = filter != null ? filter : new TripFilterVO();
+
+        // Force filter by recorder person (=self) if NOT supervisor
+        if (!authService.isSupervisor()) {
+            filter.setRecorderDepartmentId(null);
+            filter.setRecorderPersonId(authService.getAuthenticatedUser().get().getId());
+        }
 
         final List<TripVO> result = tripService.findByFilter(filter, offset, size, sort,
                 direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
