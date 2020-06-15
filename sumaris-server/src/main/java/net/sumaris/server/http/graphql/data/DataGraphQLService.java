@@ -31,8 +31,8 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
@@ -40,6 +40,7 @@ import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.ImageService;
@@ -112,6 +113,9 @@ public class DataGraphQLService {
 
     @Autowired
     private PacketService packetService;
+
+    @Autowired
+    private AuthService authService;
 
     /* -- Vessel -- */
 
@@ -215,7 +219,8 @@ public class DataGraphQLService {
                                           @GraphQLEnvironment() Set<String> fields
                                   ) {
 
-        final List<TripVO> result = tripService.findByFilter(filter, offset, size, sort,
+        final List<TripVO> result = tripService.findByFilter(fillTripFilterDefaults(filter),
+                offset, size, sort,
                 direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
                 getFetchOptions(fields));
 
@@ -229,7 +234,7 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public long getTripsCount(@GraphQLArgument(name = "filter") TripFilterVO filter) {
-        return tripService.countByFilter(filter);
+        return tripService.countByFilter(fillTripFilterDefaults(filter));
     }
 
     @GraphQLQuery(name = "trip", description = "Get a trip, by id")
@@ -1195,5 +1200,24 @@ public class DataGraphQLService {
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 .build();
+    }
+
+    protected TripFilterVO fillTripFilterDefaults(TripFilterVO filter) {
+        TripFilterVO result = filter != null ? filter : new TripFilterVO();
+
+        // Force filter by recorder person (=self) if NOT supervisor - issue #
+        // TODO: rendre configurable, par variable de config
+        if (!authService.isSupervisor()) {
+            PersonVO user = authService.getAuthenticatedUser().orElse(null);
+            if (user != null) {
+                result.setRecorderDepartmentId(null);
+                result.setRecorderPersonId(user.getId());
+            }
+            else {
+                result.setRecorderPersonId(-999); // Hide all. Should neveer occur
+            }
+        }
+
+        return result;
     }
 }
