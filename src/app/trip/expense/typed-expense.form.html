@@ -6,13 +6,13 @@
         <ion-col size="12" size-md="2" size-lg="3">
           <!-- type -->
           <ng-container *ngIf="$typePmfm | async; let typePmfm">
-            <mat-form-field-measurement-qv [pmfm]="typePmfm"
+            <app-pmfm-qv-field [pmfm]="typePmfm"
                                            [formControlName]="typePmfm.pmfmId.toString()"
                                            [hidden]="typePmfm.hidden"
                                            [style]="mobile? 'button' : 'autocomplete'"
                                            [compact]="compact"
                                            [tabindex]="tabindex+1">
-            </mat-form-field-measurement-qv>
+            </app-pmfm-qv-field>
           </ng-container>
         </ion-col>
         <ion-col>
@@ -34,12 +34,12 @@
         <ion-col size="12" size-md="2" size-lg="3">
         </ion-col>
         <ion-col>
-          <mat-form-field-measurement [pmfm]="totalPmfm"
+          <app-pmfm-field [pmfm]="totalPmfm"
                                       [formControlName]="totalPmfm.pmfmId.toString()"
                                       [hidden]="totalPmfm.hidden"
                                       [compact]="compact"
                                       [tabindex]="tabindex+2">
-          </mat-form-field-measurement>
+          </app-pmfm-field>
         </ion-col>
       </ion-row>
     </ng-container>

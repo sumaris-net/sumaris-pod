@@ -65,6 +65,8 @@ import {PmfmStrategyValidatorService} from "./services/validator/pmfm-strategy.v
 import {SelectReferentialModal} from "./list/select-referential.modal";
 import {ReferentialRefTable} from "./list/referential-ref.table";
 import {StrategyForm} from "./strategy/strategy.form";
+import {PmfmQvFormField} from "./pmfm/pmfm-qv.form-field.component";
+import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
 
 export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
@@ -101,7 +103,9 @@ export {
     PmfmPage,
     ReferentialTable,
     ReferentialRefTable,
-    SelectReferentialModal
+    SelectReferentialModal,
+    PmfmFormField,
+    PmfmQvFormField
   ],
   exports: [
     ReferentialsPage,
@@ -116,7 +120,9 @@ export {
     ParameterPage,
     PmfmPage,
     ReferentialRefTable,
-    SelectReferentialModal
+    SelectReferentialModal,
+    PmfmFormField,
+    PmfmQvFormField
   ],
   entryComponents: [
     VesselModal,

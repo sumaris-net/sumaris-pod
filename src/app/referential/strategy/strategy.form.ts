@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "angular4-material-table";
 import {AppForm, AppTable, isNil, isNotNil, ReferentialRef} from "../../core/core.module";
 import {Program, referentialToString, Strategy, TaxonGroupStrategy, TaxonNameStrategy} from "../services/model";
 import {ReferentialForm} from "../form/referential.form";
@@ -14,8 +14,7 @@ import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
-import {SelectionModel} from "@angular/cdk/collections";
-import {BehaviorSubject, Subject} from "rxjs";
+import {BehaviorSubject} from "rxjs";
 import {debounceTime} from "rxjs/operators";
 
 @Component({
@@ -62,11 +61,11 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   get dirty(): boolean {
-    return this.components.findIndex(component => component.dirty) !== -1;
+    return this._enable && this.components.findIndex(component => component.dirty) !== -1;
   }
 
   get invalid(): boolean {
-    return this.components.findIndex(component => component.invalid) !== -1;
+    return this._enable && this.components.findIndex(component => component.invalid) !== -1;
   }
 
   get valid(): boolean {
@@ -74,7 +73,7 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   get pending(): boolean {
-    return this.components.findIndex(component => component.pending) !== -1;
+    return this._enable && this.components.findIndex(component => component.pending) !== -1;
   }
 
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -149,7 +148,7 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
     this.registerSubscription(
       this.$filter
         .pipe(
-          debounceTime(700)
+          debounceTime(450)
         )
         .subscribe(filter => this.pmfmStrategiesTable.setFilter(filter))
     );
@@ -170,7 +169,9 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
     const modal = await this.modalCtrl.create({ component: SelectReferentialModal,
       componentProps: {
         filter: opts.filter
-      }
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
     });
 
     await modal.present();

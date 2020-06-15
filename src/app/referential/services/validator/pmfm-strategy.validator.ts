@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {PmfmStrategy, Strategy} from "../model";
+import {isNotNil, PmfmStrategy, Strategy} from "../model";
 
 import {ValidatorService} from "angular4-material-table";
 import {SharedValidators} from "../../../shared/validator/validators";
@@ -28,6 +28,7 @@ export class PmfmStrategyValidatorService implements ValidatorService {
       acquisitionNumber: [data && data.acquisitionNumber || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
       minValue: [data && data.minValue || null, SharedValidators.double()],
       maxValue: [data && data.maxValue || null, SharedValidators.double()],
+      defaultValue: [isNotNil(data && data.defaultValue) ? data.defaultValue : null],
       gearIds: [data && data.gearIds || null],
       taxonGroupIds: [data && data.taxonGroupIds || null],
       referenceTaxonIds: [data && data.referenceTaxonIds || null]

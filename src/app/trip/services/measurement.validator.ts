@@ -1,16 +1,13 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {SharedValidators} from "../../shared/validator/validators";
+import {AbstractControl, FormBuilder, FormGroup, ValidatorFn} from "@angular/forms";
 
-import {isNil, isNotNil, toBoolean} from '../../shared/functions';
+import {toBoolean} from '../../shared/functions';
 import {ProgramService} from "../../referential/services/program.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Measurement, MeasurementUtils, MeasurementValuesUtils} from "./model/measurement.model";
 import {PmfmStrategy} from "./model/base.model";
-
-const REGEXP_INTEGER = /^[0-9]+$/;
-const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;
+import {PmfmValidators} from "../../referential/services/pmfm.validator";
 
 export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
@@ -54,7 +51,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       }) || undefined;
 
     return opts.pmfms.reduce((res, pmfm) => {
-      const validator = this.getPmfmValidator(pmfm, null, opts);
+      const validator = PmfmValidators.create(pmfm, null, opts);
       if (validator) {
         res[pmfm.pmfmId] = [measurementValues ? measurementValues[pmfm.pmfmId] : null, validator];
       }
@@ -85,7 +82,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       // If new pmfm: add as control
       if (!formControl) {
 
-        formControl = this.formBuilder.control(pmfm.defaultValue || '', this.getPmfmValidator(pmfm, null, opts));
+        formControl = this.formBuilder.control(pmfm.defaultValue || '', PmfmValidators.create(pmfm, null, opts));
         form.addControl(controlName, formControl);
       }
 
@@ -102,42 +99,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   }
 
   getPmfmValidator(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[], opts?: O): ValidatorFn {
-    validatorFns = validatorFns || [];
-    // Add required validator (if NOT force as optional - can occur when on field mode)
-    if (pmfm.required && (!opts || opts.forceOptional !== true)) {
-      validatorFns.push(Validators.required);
-    }
-    if (pmfm.isAlphanumeric) {
-      validatorFns.push(Validators.maxLength(40));
-    }
-    else if (pmfm.isNumeric) {
-
-      if (isNotNil(pmfm.minValue)) {
-        validatorFns.push(Validators.min(pmfm.minValue));
-      }
-      if (isNotNil(pmfm.maxValue)) {
-        validatorFns.push(Validators.max(pmfm.maxValue));
-      }
-
-      // Pattern validation:
-      // Integer or double with 0 decimals
-      if (pmfm.type === 'integer' || pmfm.maximumNumberDecimals === 0) {
-        validatorFns.push(Validators.pattern(REGEXP_INTEGER));
-      }
-      // Double without maximal decimals
-      else if (pmfm.type === 'double' && isNil(pmfm.maximumNumberDecimals)) {
-        validatorFns.push(Validators.pattern(REGEXP_DOUBLE));
-      }
-      // Double with a N decimal
-      else if (pmfm.maximumNumberDecimals >= 1) {
-        validatorFns.push(SharedValidators.double({maxDecimals: pmfm.maximumNumberDecimals}));
-      }
-    }
-    else if (pmfm.type === 'qualitative_value') {
-      validatorFns.push(SharedValidators.entity);
-    }
-
-    return validatorFns.length > 1 ? Validators.compose(validatorFns) : (validatorFns.length === 1 ? validatorFns[0] : undefined);
+    return PmfmValidators.create(pmfm, validatorFns, opts);
   }
 
   /* -- -- */

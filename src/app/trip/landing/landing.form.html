@@ -110,13 +110,13 @@
         <ion-spinner *ngIf="loading"></ion-spinner>
 
         <!-- pmfms -->
-        <mat-form-field-measurement *ngFor="let pmfm of $pmfms | async; index as i;"
+        <app-pmfm-field *ngFor="let pmfm of $pmfms | async; index as i;"
                                     [pmfm]="pmfm"
                                     [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                     [compact]="compact"
                                     [tabindex]="50 + i*2"
                                     [floatLabel]="floatLabel">
-        </mat-form-field-measurement>
+        </app-pmfm-field>
       </ion-col>
     </ion-row>
 

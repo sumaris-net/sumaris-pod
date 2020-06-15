@@ -43,25 +43,25 @@
 
         <!-- If mobile + qualitative value: force 'button' style -->
         <ng-container *ngIf="mobile && pmfm.isQualitative; else otherField">
-          <mat-form-field-measurement-qv #matInput
+          <app-pmfm-qv-field #matInput
                                          [pmfm]="pmfm"
                                          [hidden]="pmfm.hidden"
                                          [style]="'button'"
                                          [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                          [compact]="compact"
                                          [tabindex]="tabindex+2 + i*2">
-          </mat-form-field-measurement-qv>
+          </app-pmfm-qv-field>
         </ng-container>
 
         <!-- NOT qualitative value -->
         <ng-template #otherField>
-          <mat-form-field-measurement #matInput
+          <app-pmfm-field #matInput
                                       [pmfm]="pmfm"
                                       [hidden]="pmfm.hidden"
                                       [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                       [compact]="compact"
                                       [tabindex]="tabindex+2 + i*2">
-          </mat-form-field-measurement>
+          </app-pmfm-field>
         </ng-template>
 
       </ion-col>
@@ -70,7 +70,7 @@
     <!-- Total weight -->
     <ion-row *ngIf="defaultWeightPmfm && showWeight">
       <ion-col class="ion-no-padding">
-        <mat-form-field-measurement #matInput
+        <app-pmfm-field #matInput
                                     [class.computed]="weightForm.controls.computed.value"
                                     [pmfm]="defaultWeightPmfm"
                                     [formControl]="weightForm.controls.value"
@@ -79,7 +79,7 @@
                                     [tabindex]="tabindex+28"
                                     [listenStatusChanges]="true"
                                     [required]="requiredWeight">
-        </mat-form-field-measurement>
+        </app-pmfm-field>
 
       </ion-col>
 
@@ -173,7 +173,7 @@
         <!-- Sampling weight -->
         <ion-col class="ion-no-padding" *ngIf="defaultWeightPmfm">
 
-          <mat-form-field-measurement #matInput
+          <app-pmfm-field #matInput
                                       [class.computed]="samplingBatchForm.controls.weight.controls.computed.value"
                                       [pmfm]="defaultWeightPmfm"
                                       [formControl]="samplingBatchForm.controls.weight.controls.value"
@@ -182,7 +182,7 @@
                                       [required]="requiredSampleWeight"
                                       [tabindex]="tabindex+33"
                                       [listenStatusChanges]="true">
-          </mat-form-field-measurement>
+          </app-pmfm-field>
         </ion-col>
 
         <!-- Sampling individual count -->

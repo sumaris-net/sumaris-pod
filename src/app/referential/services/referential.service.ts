@@ -2,9 +2,9 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {EntityUtils, isNil, isNotNil, Referential, StatusIds} from "./model";
+import {EntityUtils, isNotNil, Referential, StatusIds} from "./model";
 import {LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService} from "../../core/core.module";
+import {BaseDataService, ReferentialUtils} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 
@@ -13,7 +13,6 @@ import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {environment} from "../../../environments/environment";
 import {Beans, KeysEnum} from "../../shared/functions";
-import {PersonFilterKeys} from "../../admin/services/person.service";
 
 export class ReferentialFilter {
   entityName: string;
@@ -183,7 +182,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     })
       .pipe(
         map(({referentials, referentialsCount}) => {
-          const data = (referentials || []).map(Referential.fromObject);
+          const data = (referentials || []).map(ReferentialUtils.fromObject);
           data.forEach(r => r.entityName = uniqueEntityName);
           if (this._debug) console.debug(`[referential-service] ${uniqueEntityName} loaded in ${new Date().getTime() - now.getTime()}ms`, data);
           return {
@@ -236,7 +235,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });
     const data = (!opts || opts.toEntity !== false) ?
-      (res && res.referentials || []).map(Referential.fromObject) :
+      (res && res.referentials || []).map(ReferentialUtils.fromObject) :
       (res && res.referentials || []) as Referential[];
     data.forEach(r => r.entityName = uniqueEntityName);
     if (debug) console.debug(`[referential-service] ${uniqueEntityName} items loaded in ${Date.now() - now}ms`);
@@ -476,7 +475,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       fetchPolicy: options && options.fetchPolicy || 'cache-first'
     });
 
-    const res = (data && data.referentialLevels || []).map(Referential.fromObject);
+    const res = (data && data.referentialLevels || []).map(ReferentialUtils.fromObject);
 
     if (this._debug) console.debug(`[referential-service] Levels for ${entityName} loading in ${Date.now() - now}`, res);
 

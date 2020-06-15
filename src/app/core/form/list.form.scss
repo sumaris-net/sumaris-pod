@@ -9,6 +9,20 @@ ion-item.disabled {
   }
 }
 
+ion-item {
+  .action-buttons {
+    visibility: hidden;
+    display: none;
+  }
+
+  &:hover {
+    .action-buttons {
+      visibility: visible;
+      display: block;
+    }
+  }
+}
+
 ion-item.selected {
   background: var(--ion-item-background-selected) !important;
   --color-hover:  var(--ion-item-background-selected) !important;

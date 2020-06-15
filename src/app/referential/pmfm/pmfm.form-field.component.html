@@ -109,7 +109,7 @@
   </mat-date-time-field>
 
   <!-- qualitative value -->
-  <mat-form-field-measurement-qv *ngSwitchCase="'qualitative_value'" #matInput
+  <app-pmfm-qv-field *ngSwitchCase="'qualitative_value'" #matInput
                                  [pmfm]="pmfm"
                                  [formControl]="formControl"
                                  [floatLabel]="floatLabel"
@@ -122,7 +122,7 @@
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
-  </mat-form-field-measurement-qv>
+  </app-pmfm-qv-field>
 
   <!-- string -->
   <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel">
@@ -171,8 +171,8 @@
 
   <!-- other -->
   <div *ngSwitchDefault>
-    <mat-error *ngIf="type">Unknown type {{type}} for PMFM {{pmfm.pmfmId}}. Please report this error.</mat-error>
-    <mat-error *ngIf="!type">Error on field for PMFM {{pmfm.pmfmId}}. Please report this error.</mat-error>
+    <mat-error *ngIf="type">Unknown type {{type}} for PMFM {{pmfm?.pmfmId}}. Please report this error.</mat-error>
+    <mat-error *ngIf="!type">Error on field for PMFM {{pmfm?.pmfmId}}. Please report this error.</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>

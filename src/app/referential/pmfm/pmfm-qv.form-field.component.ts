@@ -14,43 +14,40 @@ import {
 } from '@angular/core';
 import {merge, Observable, of} from 'rxjs';
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
-import {
-  entityToString,
-  PmfmIds,
-  PmfmStrategy,
-  ReferentialRef,
-  referentialToString
-} from '../../referential/referential.module';
+
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
 import {FloatLabelType} from "@angular/material/form-field";
 
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean} from "../../shared/functions";
-import {AppFormUtils} from "../../core/core.module";
+import {isEmptyArray, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoolean} from "../../shared/functions";
+import {AppFormUtils, ReferentialRef, referentialToString} from "../../core/core.module";
 import {focusInput, InputElement} from "../../shared/inputs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ReferentialUtils} from "../../core/services/model";
+import {PmfmIds, PmfmStrategy} from "../services/model";
+import {Pmfm} from "../services/model/pmfm.model";
 
 @Component({
-  selector: 'mat-form-field-measurement-qv',
-  templateUrl: './measurement-qv.form-field.component.html',
+  selector: 'app-pmfm-qv-field',
+  templateUrl: './pmfm-qv.form-field.component.html',
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => MeasurementQVFormField),
+      useExisting: forwardRef(() => PmfmQvFormField),
       multi: true
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
+export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
 
   private _onChangeCallback = (_: any) => { };
   private _onTouchedCallback = () => { };
   private _implicitValue: ReferentialRef | any;
   private _onDestroy = new EventEmitter(true);
+  private _qualitativeValues: ReferentialRef[];
   private _sortedQualitativeValues: ReferentialRef[];
 
   items: Observable<ReferentialRef[]>;
@@ -66,7 +63,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   @Input()
   displayWith: (obj: ReferentialRef | any) => string;
 
-  @Input() pmfm: PmfmStrategy;
+  @Input() pmfm: PmfmStrategy|Pmfm;
 
   @Input() formControl: FormControl;
 
@@ -127,11 +124,17 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     this.style = this.style || (this.mobile ? 'select' : 'autocomplete');
 
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
-    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement-qv>.");
+    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
-    this.pmfm.qualitativeValues = this.pmfm.qualitativeValues || [];
-    this.required = toBoolean(this.required, this.pmfm.isMandatory);
+    this._qualitativeValues = this.pmfm.qualitativeValues;
+    if (isEmptyArray(this._qualitativeValues) && this.pmfm instanceof Pmfm) {
+      this._qualitativeValues = this.pmfm.parameter && this.pmfm.parameter.qualitativeValues || [];
+      if (isEmptyArray(this._qualitativeValues)) {
+        console.warn('Empty qualitative values !!', this.pmfm);
+      }
+    }
+    this.required = toBoolean(this.required, (this.pmfm instanceof PmfmStrategy && this.pmfm.isMandatory));
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
@@ -141,9 +144,9 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : (attributes[0]);
 
     // Sort values
-    this._sortedQualitativeValues = (this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
-      sort(this.pmfm.qualitativeValues, this.sortAttribute) :
-      this.pmfm.qualitativeValues;
+    this._sortedQualitativeValues = (this.pmfm instanceof PmfmStrategy && this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
+      sort(this._qualitativeValues, this.sortAttribute) :
+      this._qualitativeValues;
 
     this.placeholder = this.placeholder || this.pmfm.name || this.computePlaceholder(this.pmfm, this._sortedQualitativeValues);
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
@@ -206,7 +209,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     }
 
     if (this.style === 'button') {
-      const index = (obj && isNotNil(obj.id)) ? this.pmfm.qualitativeValues.findIndex(qv => qv.id === obj.id) : -1;
+      const index = (obj && isNotNil(obj.id)) ? this._qualitativeValues.findIndex(qv => qv.id === obj.id) : -1;
       if (this.selectedIndex !== index) {
         this.selectedIndex = index;
         this.markForCheck();
@@ -226,7 +229,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   }
 
-  computePlaceholder(pmfm: PmfmStrategy, sortedQualitativeValues: ReferentialRef[]): string {
+  computePlaceholder(pmfm: PmfmStrategy|Pmfm, sortedQualitativeValues: ReferentialRef[]): string {
     if (!sortedQualitativeValues || !sortedQualitativeValues.length) return pmfm && pmfm.name;
     return sortedQualitativeValues.reduce((res, qv) => (res + "/" + (qv.label || qv.name)), "").substr(1);
   }
@@ -262,7 +265,6 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   compareWith = ReferentialUtils.equals;
 
   selectInputContent = AppFormUtils.selectInputContent;
-  entityToString = entityToString;
 
   /* -- protected methods -- */
 
@@ -287,12 +289,5 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     this.cd.markForCheck();
   }
 
-  private match(qv: ReferentialRef, search: string): boolean {
-    return this.searchAttributes.findIndex(attr => this.startsWithUpperCase(qv[attr], search)) !== -1;
-  }
-
-  private startsWithUpperCase(input: string, search: string): boolean {
-    return input && input.toUpperCase().startsWith(search);
-  }
 
 }

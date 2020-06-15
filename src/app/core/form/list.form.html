@@ -1,41 +1,39 @@
 
-<!-- Properties -->
-<ion-list *ngIf="!loading; else listSkeleton"
-          class="ion-no-padding" >
+<ng-container *ngIf="!loading; else listSkeleton">
 
-  <ng-container *ngIf="!length">
-    <!-- Add button -->
-    <ion-button color="tertiary" fill="clear"
-                *ngIf="enabled && onNewItem.observers.length; else emptyText"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="onNewClick($event)" >
-      <ion-icon slot="start" name="add"></ion-icon>
-      <ion-label translate>COMMON.BTN_ADD</ion-label>
-    </ion-button>
-    <!-- Empty (if readonly) -->
-    <ng-template #emptyText>
-      <ion-text color="medium"><i translate>COMMON.EMPTY_OPTION</i></ion-text>
-    </ng-template>
-  </ng-container>
+  <!-- List -->
+  <ion-list class="ion-no-padding" >
 
-  <ion-item *ngFor="let itemControl of itemControls; index as i; last as last"
-            [class.disabled]="disabled"
-            (click)="onItemClick($event, itemControl.value)"
-            [color]="selection.isSelected(itemControl.value) ? 'secondary' : undefined"
-            [button]="onSelectionChange.observers.length > 0">
-    <ion-label>{{displayWith(itemControl.value)}}</ion-label>
+    <ion-item *ngFor="let itemControl of itemControls; index as i; last as last"
+              [class.disabled]="disabled"
+              (click)="onItemClick($event, itemControl.value)"
+              [color]="selection.isSelected(itemControl.value) ? 'secondary' : undefined"
+              [button]="onSelectionChange.observers.length > 0">
+      <ion-label>{{displayWith(itemControl.value)}}</ion-label>
 
-    <!-- buttons -->
-    <ion-buttons slot="end" *ngIf="enabled">
-      <ion-button fill="clear" *ngIf="last && onNewItem.observers.length > 0" (click)="onNewClick($event)">
-        <ion-icon name="add"></ion-icon>
-      </ion-button>
-      <ion-button fill="clear" (click)="removeAt(i)">
-        <ion-icon name="trash"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-item>
-</ion-list>
+      <!-- buttons -->
+      <ion-buttons slot="end" *ngIf="enabled" class="action-buttons">
+        <ion-button fill="clear" (click)="removeAt(i)">
+          <ion-icon name="trash"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-item>
+  </ion-list>
+
+  <!-- Add button -->
+  <ion-button color="tertiary" fill="clear"
+              *ngIf="enabled && onNewItem.observers.length; else emptyText"
+              [title]="'COMMON.BTN_ADD'|translate"
+              (click)="onNewClick($event)" >
+    <ion-icon slot="start" name="add"></ion-icon>
+    <ion-label translate>COMMON.BTN_ADD</ion-label>
+  </ion-button>
+
+  <!-- Empty (if readonly) -->
+  <ng-template #emptyText>
+    <ion-text  *ngIf="!length" color="medium"><i translate>COMMON.EMPTY_OPTION</i></ion-text>
+  </ng-template>
+</ng-container>
 
 <ng-template #listSkeleton>
 
@@ -53,19 +51,6 @@
     <ion-label>
       <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
     </ion-label>
-
-    <!-- buttons -->
-    <ion-buttons>
-<!--
-      <ion-button fill="clear"  [disabled]="true">
-        <ion-icon name="add"></ion-icon>
-      </ion-button>
--->
-      <ion-button fill="clear" [disabled]="true">
-        <ion-icon name="trash"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-
   </ion-item>
 
 </ng-template>

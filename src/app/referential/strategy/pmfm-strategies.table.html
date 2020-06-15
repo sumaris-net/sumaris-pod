@@ -93,6 +93,25 @@
     </mat-cell>
   </ng-container>
 
+  <!-- Default value -->
+  <ng-container matColumnDef="defaultValue">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label>{{fieldDefinitionsMap.defaultValue.label | translate}}</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" >
+      <ng-container *ngIf="row.validator.controls.pmfm.valid">
+        <app-pmfm-field *ngIf="row.editing; else pmfmReadonly" floatLabel="never"
+                        [formControl]="row.validator.controls.defaultValue"
+                        [pmfm]="row.currentData.pmfm"
+                        [compact]="true">
+        </app-pmfm-field>
+        <ng-template #pmfmReadonly>
+          {{pmfmValueToString(row.currentData.defaultValue, row.currentData.pmfm)}}
+        </ng-template>
+      </ng-container>
+    </mat-cell>
+  </ng-container>
+
   <!--&lt;!&ndash; Is mandatory &ndash;&gt;
   <ng-container matColumnDef="isMandatory">
     <mat-header-cell *matHeaderCellDef mat-sort-header>

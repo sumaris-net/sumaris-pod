@@ -117,6 +117,7 @@ export const ReferentialFragments = {
     id
     label
     name
+    type
     minValue
     maxValue
     unitLabel

@@ -14,12 +14,12 @@
           <ion-label class="ion-float-end" translate>EXPENSE.TOTAL_ESTIMATION</ion-label>
         </ion-col>
         <ion-col>
-          <mat-form-field-measurement [pmfm]="estimatedTotalPmfm"
+          <app-pmfm-field [pmfm]="estimatedTotalPmfm"
                                       [formControlName]="estimatedTotalPmfm.pmfmId.toString()"
                                       [hidden]="estimatedTotalPmfm.hidden"
                                       [compact]="compact"
                                       [tabindex]="tabindex+2">
-          </mat-form-field-measurement>
+          </app-pmfm-field>
         </ion-col>
       </ion-row>
     </ng-container>
@@ -48,36 +48,36 @@
         <ion-row [hidden]="!($fuelTypePmfm | async) && !($fuelPmfms | async)">
           <ion-col size="12" size-md="2" size-lg="3">
             <ng-container *ngIf="$fuelTypePmfm | async; let fuelTypePmfm">
-              <mat-form-field-measurement-qv #fuelTypeField
+              <app-pmfm-qv-field #fuelTypeField
                                              [pmfm]="fuelTypePmfm"
                                              [style]="mobile? 'button' : 'autocomplete'"
                                              [formControlName]="fuelTypePmfm.pmfmId.toString()"
                                              [compact]="false"
                                              [tabindex]="tabindex+2">
-              </mat-form-field-measurement-qv>
+              </app-pmfm-qv-field>
             </ng-container>
           </ion-col>
           <ng-container *ngIf="$fuelPmfms | async; let fuelPmfms;">
             <ion-col *ngFor="let pmfm of fuelPmfms; index as i;">
               <!-- qualitative value (force 'button' style, on mobile)-->
               <ng-container *ngIf="pmfm.isQualitative; else otherField">
-                <mat-form-field-measurement-qv [pmfm]="pmfm"
+                <app-pmfm-qv-field [pmfm]="pmfm"
                                                [formControlName]="pmfm.pmfmId.toString()"
                                                [hidden]="pmfm.hidden"
                                                [style]="mobile? 'button' : 'autocomplete'"
                                                [compact]="compact"
                                                [tabindex]="tabindex+2 + i*2">
-                </mat-form-field-measurement-qv>
+                </app-pmfm-qv-field>
               </ng-container>
               <!-- NOT qualitative value -->
               <ng-template #otherField>
-                <mat-form-field-measurement [pmfm]="pmfm"
+                <app-pmfm-field [pmfm]="pmfm"
                                             [formControlName]="pmfm.pmfmId.toString()"
                                             [hidden]="pmfm.hidden"
                                             [compact]="compact"
                                             [class.computed]="fuelTuple[pmfm.pmfmId.toString()] && fuelTuple[pmfm.pmfmId.toString()].computed"
                                             [tabindex]="tabindex+2 + i*2">
-                </mat-form-field-measurement>
+                </app-pmfm-field>
               </ng-template>
             </ion-col>
           </ng-container>
@@ -92,23 +92,23 @@
             <ion-col *ngFor="let pmfm of engineOilPmfms; index as i;">
               <!-- qualitative value (force 'button' style, on mobile)-->
               <ng-container *ngIf="pmfm.isQualitative; else otherField">
-                <mat-form-field-measurement-qv [pmfm]="pmfm"
+                <app-pmfm-qv-field [pmfm]="pmfm"
                                                [formControlName]="pmfm.pmfmId.toString()"
                                                [hidden]="pmfm.hidden"
                                                [style]="mobile? 'button' : 'autocomplete'"
                                                [compact]="compact"
                                                [tabindex]="tabindex+2 + i*2">
-                </mat-form-field-measurement-qv>
+                </app-pmfm-qv-field>
               </ng-container>
               <!-- NOT qualitative value -->
               <ng-template #otherField>
-                <mat-form-field-measurement [pmfm]="pmfm"
+                <app-pmfm-field [pmfm]="pmfm"
                                             [formControlName]="pmfm.pmfmId.toString()"
                                             [hidden]="pmfm.hidden"
                                             [compact]="compact"
                                             [class.computed]="engineOilTuple[pmfm.pmfmId.toString()] && engineOilTuple[pmfm.pmfmId.toString()].computed"
                                             [tabindex]="tabindex+2 + i*2">
-                </mat-form-field-measurement>
+                </app-pmfm-field>
               </ng-template>
             </ion-col>
           </ion-row>
@@ -123,23 +123,23 @@
             <ion-col *ngFor="let pmfm of hydraulicOilPmfms; index as i;">
               <!-- qualitative value (force 'button' style, on mobile)-->
               <ng-container *ngIf="pmfm.isQualitative; else otherField">
-                <mat-form-field-measurement-qv [pmfm]="pmfm"
+                <app-pmfm-qv-field [pmfm]="pmfm"
                                                [formControlName]="pmfm.pmfmId.toString()"
                                                [hidden]="pmfm.hidden"
                                                [style]="mobile? 'button' : 'autocomplete'"
                                                [compact]="compact"
                                                [tabindex]="tabindex+2 + i*2">
-                </mat-form-field-measurement-qv>
+                </app-pmfm-qv-field>
               </ng-container>
               <!-- NOT qualitative value -->
               <ng-template #otherField>
-                <mat-form-field-measurement [pmfm]="pmfm"
+                <app-pmfm-field [pmfm]="pmfm"
                                             [formControlName]="pmfm.pmfmId.toString()"
                                             [hidden]="pmfm.hidden"
                                             [compact]="compact"
                                             [class.computed]="hydraulicOilTuple[pmfm.pmfmId.toString()] && hydraulicOilTuple[pmfm.pmfmId.toString()].computed"
                                             [tabindex]="tabindex+2 + i*2">
-                </mat-form-field-measurement>
+                </app-pmfm-field>
               </ng-template>
             </ion-col>
           </ion-row>
@@ -214,22 +214,22 @@
               <div *ngFor="let pmfm of miscPmfms; index as i;">
                 <!-- qualitative value (force 'button' style, on mobile)-->
                 <ng-container *ngIf="pmfm.isQualitative; else otherField">
-                  <mat-form-field-measurement-qv [pmfm]="pmfm"
+                  <app-pmfm-qv-field [pmfm]="pmfm"
                                                  [formControlName]="pmfm.pmfmId.toString()"
                                                  [hidden]="pmfm.hidden"
                                                  [style]="mobile? 'button' : 'autocomplete'"
                                                  [compact]="compact"
                                                  [tabindex]="tabindex+2 + i*2">
-                  </mat-form-field-measurement-qv>
+                  </app-pmfm-qv-field>
                 </ng-container>
                 <!-- NOT qualitative value -->
                 <ng-template #otherField>
-                  <mat-form-field-measurement [pmfm]="pmfm"
+                  <app-pmfm-field [pmfm]="pmfm"
                                               [formControlName]="pmfm.pmfmId.toString()"
                                               [hidden]="pmfm.hidden"
                                               [compact]="compact"
                                               [tabindex]="tabindex+2 + i*2">
-                  </mat-form-field-measurement>
+                  </app-pmfm-field>
                 </ng-template>
               </div>
             </ng-container>

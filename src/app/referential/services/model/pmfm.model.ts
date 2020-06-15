@@ -1,4 +1,4 @@
-import {EntityAsObjectOptions, Referential, ReferentialRef} from "../../../core/services/model";
+import {EntityAsObjectOptions, Referential, ReferentialRef, ReferentialUtils} from "../../../core/services/model";
 import {isNotNil} from "../../../shared/functions";
 
 
@@ -97,7 +97,7 @@ export class Pmfm extends Referential<Pmfm> {
     this.method = source.method && ReferentialRef.fromObject(source.method);
     this.unit = source.unit && ReferentialRef.fromObject(source.unit);
 
-    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject) || [];
+    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject) || undefined;
     return this;
   }
 }
@@ -141,7 +141,7 @@ export class Parameter extends Referential<Parameter> {
     this.type = source.type;
     this.entityName = source.entityName || Parameter.TYPENAME;
 
-    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(Referential.fromObject) || [];
+    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialUtils.fromObject) || [];
     return this;
   }
 

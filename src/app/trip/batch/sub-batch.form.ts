@@ -19,7 +19,7 @@ import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/form
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
-import {EntityUtils, ReferentialRef, ReferentialUtils, UsageMode} from "../../core/services/model";
+import {EntityUtils, ReferentialUtils, UsageMode} from "../../core/services/model";
 import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
 import {
   AcquisitionLevelCodes,
@@ -30,26 +30,13 @@ import {
   QualitativeLabels
 } from "../../referential/services/model";
 import {BehaviorSubject, combineLatest} from "rxjs";
-import {
-  getPropertyByPath,
-  isNilOrBlank,
-  isNotNilOrBlank,
-  startsWithUpperCase,
-  toBoolean,
-  toNumber
-} from "../../shared/functions";
+import {getPropertyByPath, isNilOrBlank, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppFormUtils} from "../../core/core.module";
-import {MeasurementFormField} from "../measurement/measurement.form-field.component";
-import {
-  asInputElement,
-  focusNextInput,
-  focusPreviousInput,
-  GetFocusableInputOptions,
-  isInputElement
-} from "../../shared/inputs";
+import {PmfmFormField} from "../../referential/pmfm/pmfm.form-field.component";
+import {focusNextInput, focusPreviousInput, GetFocusableInputOptions} from "../../shared/inputs";
 import {SharedValidators} from "../../shared/validator/validators";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 
@@ -168,7 +155,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     return this.form.controls.parent.value;
   }
 
-  @ViewChildren(MeasurementFormField) measurementFormFields: QueryList<MeasurementFormField>;
+  @ViewChildren(PmfmFormField) measurementFormFields: QueryList<PmfmFormField>;
   @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
 
   constructor(

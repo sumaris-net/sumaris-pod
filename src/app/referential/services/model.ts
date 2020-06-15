@@ -8,7 +8,8 @@ import {
   fromDateISOString,
   isNil,
   isNotNil,
-  joinPropertiesPath, MINIFY_OPTIONS,
+  joinPropertiesPath,
+  MINIFY_OPTIONS,
   NOT_MINIFY_OPTIONS,
   Person,
   PropertiesMap,
@@ -22,10 +23,13 @@ import {
 import {Moment} from "moment/moment";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
-import {isNilOrBlank, toNumber} from "../../shared/functions";
+import {isNilOrBlank, isNotNilOrNaN, toNumber} from "../../shared/functions";
 import {PredefinedColors} from "@ionic/core";
-import {Pmfm, PmfmType} from "./model/pmfm.model";
+import {Parameter, Pmfm, PmfmType} from "./model/pmfm.model";
 import {IEntity, ReferentialUtils} from "../../core/services/model";
+import {ValidatorFn, Validators} from "@angular/forms";
+import {SharedValidators} from "../../shared/validator/validators";
+import {MeasurementFormValue} from "../../trip/services/model/measurement.model";
 
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 export const LocationLevelIds = {
@@ -851,8 +855,8 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     return res;
   }
 
-  pmfm: Pmfm;
   pmfmId: number;
+  pmfm: Pmfm;
 
   methodId: number;
   label: string;
@@ -862,17 +866,20 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   minValue: number;
   maxValue: number;
   maximumNumberDecimals: number;
-  defaultValue: number;
+  defaultValue: PmfmValue;
   acquisitionNumber: number;
   isMandatory: boolean;
   rankOrder: number;
 
   acquisitionLevel: string|ReferentialRef;
-  gears: string[];
+
+  gearIds: number[];
   taxonGroupIds: number[];
   referenceTaxonIds: number[];
+
   qualitativeValues: ReferentialRef[];
 
+  strategyId: number;
   hidden?: boolean;
 
   constructor() {
@@ -891,8 +898,15 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     target.acquisitionLevel = (target.acquisitionLevel && typeof target.acquisitionLevel === "object" && target.acquisitionLevel.label)
       || target.acquisitionLevel;
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
-    target.pmfmId = toNumber(this.pmfmId, this.pmfm && this.pmfm.id);
+
+    target.pmfmId = this.pmfm && toNumber(this.pmfm.id, this.pmfmId);
     delete target.pmfm;
+
+    if (isNil(target.pmfmId)) console.log("TODO serialize:", target);
+
+    if (target.defaultValue) console.log("TODO serialize:", target);
+    target.defaultValue = +(PmfmValueUtils.toModelValue(this.defaultValue, this.pmfm));
+
     return target;
   }
 
@@ -909,13 +923,18 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;
     this.maximumNumberDecimals = source.maximumNumberDecimals;
-    this.defaultValue = source.defaultValue;
+    this.defaultValue = PmfmValueUtils.fromModelValue(source.defaultValue, this.pmfm);
     this.acquisitionNumber = source.acquisitionNumber;
     this.isMandatory = source.isMandatory;
     this.rankOrder = source.rankOrder;
     this.acquisitionLevel = source.acquisitionLevel;
-    this.gears = source.gears || [];
-    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject) || [];
+    this.gearIds = source.gearIds;
+    this.taxonGroupIds = source.taxonGroupIds;
+    this.referenceTaxonIds = source.referenceTaxonIds;
+    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject)
+      || this.pmfm && (this.pmfm.qualitativeValues || this.pmfm.parameter && this.pmfm.parameter.qualitativeValues)
+      || undefined;
+    this.strategyId = source.strategyId;
   }
 
   get required(): boolean {
@@ -954,6 +973,12 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     return isNotNil(this.label) && this.label.endsWith("WEIGHT");
   }
 
+  equals(other: PmfmStrategy): boolean {
+    return other && (this.id === other.id
+      // Same acquisitionLevel and pmfmId
+      || (this.strategyId === other.strategyId && this.acquisitionLevel === other.acquisitionLevel && (this.pmfmId === other.pmfmId || -this.pmfm && this.pmfm.id === other.pmfmId) )
+    );
+  }
 }
 
 
@@ -1093,6 +1118,9 @@ export class TaxonNameStrategy {
   }
 }
 
+
+
+
 export class PmfmUtils {
 
   static getFirstQualitativePmfm(pmfms: PmfmStrategy[]): PmfmStrategy {
@@ -1106,6 +1134,103 @@ export class PmfmUtils {
       qvPmfm.qualitativeValues.sort((qv1, qv2) => qv1.label === 'LAN' ? -1 : 1);
     }
     return qvPmfm;
+  }
+
+  static isNumeric(pmfm: PmfmStrategy | Pmfm): boolean {
+    return isNotNil(pmfm.type) && (pmfm.type === 'integer' || pmfm.type === 'double');
+  }
+
+  static isAlphanumeric(pmfm: PmfmStrategy | Pmfm): boolean {
+    return isNotNil(pmfm.type) && (pmfm.type === 'string');
+  }
+
+  static isDate(pmfm: PmfmStrategy | Pmfm): boolean {
+    return isNotNil(pmfm.type) && (pmfm.type === 'date');
+  }
+
+  static hasUnit(pmfm: PmfmStrategy): boolean {
+    return isNotNil(pmfm.unitLabel) && PmfmUtils.isNumeric(pmfm);
+  }
+
+  static isWeight(pmfm: PmfmStrategy | Pmfm): boolean {
+    return isNotNil(pmfm.label) && pmfm.label.endsWith("WEIGHT");
+  }
+}
+
+
+export declare type PmfmValue = number | string | boolean | Moment | ReferentialRef<any>;
+
+export class PmfmValueUtils {
+
+  static toModelValue(value: PmfmValue | any, pmfm: PmfmStrategy | Pmfm): string {
+    if (isNil(value) || !pmfm) return undefined;
+    switch (pmfm.type) {
+      case "qualitative_value":
+        return value && isNotNil(value.id) && value.id.toString() || undefined;
+      case "integer":
+      case "double":
+        return isNotNil(value) && !isNaN(+value) && value.toString() || undefined;
+      case "string":
+        return value;
+      case "boolean":
+        return (value === true || value === "true") ? "true" : ((value === false || value === "false") ? "false" : undefined);
+      case "date":
+        return toDateISOString(value);
+      default:
+        throw new Error("Unknown pmfm's type: " + pmfm.type);
+    }
+  }
+
+  static fromModelValue(value: any, pmfm: PmfmStrategy | Pmfm): PmfmValue {
+    if (!pmfm) return value;
+    // If empty, apply the pmfm default value
+    if (isNil(value) && isNotNil(pmfm.defaultValue)) value = pmfm.defaultValue;
+    switch (pmfm.type) {
+      case "qualitative_value":
+        if (isNotNil(value)) {
+          const qvId = (typeof value === "object") ? value.id : parseInt(value);
+          return (pmfm.qualitativeValues || (pmfm instanceof Pmfm && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
+            .find(qv => qv.id === qvId) || null;
+        }
+        return null;
+      case "integer":
+        return isNotNilOrNaN(value) ? parseInt(value) : null;
+      case "double":
+        return isNotNilOrNaN(value) ? parseFloat(value) : null;
+      case "string":
+        return value || null;
+      case "boolean":
+        return (value === "true" || value === true || value === 1) ? true : ((value === "false" || value === false || value === 0) ? false : null);
+      case "date":
+        return fromDateISOString(value) || null;
+      default:
+        throw new Error("Unknown pmfm's type: " + pmfm.type);
+    }
+  }
+
+  static valueToString(value: any, pmfm: PmfmStrategy | Pmfm, propertyNames?: string[]): string | undefined {
+    if (isNil(value) || !pmfm) return null;
+    switch (pmfm.type) {
+      case "qualitative_value":
+        if (value && typeof value !== "object") {
+          const qvId = parseInt(value);
+          value = (pmfm.qualitativeValues || (pmfm instanceof Pmfm && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
+            .find(qv => qv.id === qvId) || null;
+        }
+        return value && ((propertyNames && joinPropertiesPath(value, propertyNames)) || value.name || value.label) || null;
+      case "integer":
+      case "double":
+        return isNotNil(value) ? value : null;
+      case "string":
+        return value || null;
+      case "date":
+        return value || null;
+      case "boolean":
+        return (value === "true" || value === true || value === 1) ? '&#x2714;' /*checkmark*/ :
+          ((value === "false" || value === false || value === 0) ? '' : null); /*empty*/
+      default:
+        throw new Error("Unknown pmfm's type: " + pmfm.type);
+    }
   }
 }
 

@@ -47,13 +47,13 @@
   </ng-container>
 
   <!-- Measurements -->
-  <mat-form-field-measurement *ngFor="let pmfm of $pmfms | async; index as i;"
+  <app-pmfm-field *ngFor="let pmfm of $pmfms | async; index as i;"
                               [pmfm]="pmfm"
                               [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                               [compact]="compact"
                               [tabindex]="tabindex+10 + i*2"
                               [floatLabel]="floatLabel">
-  </mat-form-field-measurement>
+  </app-pmfm-field>
 
   <!-- Comments -->
   <mat-form-field appearance="outline" *ngIf="showComment">

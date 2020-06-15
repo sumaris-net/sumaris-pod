@@ -113,7 +113,7 @@
               <mat-form-field>
                 <input matInput hidden readonly="true" [placeholder]="'ACCOUNT.USER_DETAILS.PROFILE'|translate"
                   formControlName="mainProfile" required>
-                <span>{{'USER.PROFILE_'+form.controls.mainProfile.value | translate}}</span>
+                <span>{{'USER.PROFILE_ENUM.'+form.controls.mainProfile.value | translate}}</span>
                 <mat-error *ngIf="form.controls.firstName.hasError('mainProfile') && form.controls.mainProfile.dirty"
                   translate>ERROR.FIELD_REQUIRED</mat-error>
               </mat-form-field>

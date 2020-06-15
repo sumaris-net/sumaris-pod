@@ -200,6 +200,7 @@ const ProgramFragments = {
       gearIds
       taxonGroupIds
       referenceTaxonIds
+      strategyId
       __typename
   }`,
   taxonGroupStrategy: gql`
@@ -830,7 +831,8 @@ export class ProgramService extends BaseDataService
     const savedProgram = res && res.saveProgram;
     this.copyIdAndUpdateDate(savedProgram, data);
 
-    if (this._debug) console.debug(`[pogram-service] Program saved and updated in ${Date.now() - now}ms`, data);
+    //if (this._debug)
+      console.debug(`[pogram-service] Program saved and updated in ${Date.now() - now}ms`, data);
 
     return data;
   }
@@ -960,14 +962,24 @@ export class ProgramService extends BaseDataService
     if (target.strategies && source.strategies) {
       target.strategies.forEach(entity => {
 
-        // Make sure program id is copy (need by equals)
+        // Make sure tp copy programId (need by equals)
         entity.programId = source.id;
 
         const savedStrategy = source.strategies.find(json => entity.equals(json));
         EntityUtils.copyIdAndUpdateDate(savedStrategy, entity);
 
-        // Update pmfm strategy
-        // TODO
+        // Update pmfm strategy (id)
+        if (savedStrategy.pmfmStrategies && savedStrategy.pmfmStrategies.length > 0) {
+
+          entity.pmfmStrategies.forEach(targetPmfmStrategy => {
+
+            // Make sure to copy strategyId (need by equals)
+            targetPmfmStrategy.strategyId = savedStrategy.id;
+
+            const savedPmfmStrategy = entity.pmfmStrategies.find(srcPmfmStrategy => targetPmfmStrategy.equals(srcPmfmStrategy));
+            targetPmfmStrategy.id = savedPmfmStrategy.id;
+          });
+        }
 
       });
     }

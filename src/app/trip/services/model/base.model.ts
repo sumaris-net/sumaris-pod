@@ -12,30 +12,24 @@ import {
   toDateISOString
 } from "../../../core/core.module";
 import {
+  AcquisitionLevelCodes,
   Department,
   EntityUtils,
   GearLevelIds,
   getPmfmName,
+  LocationLevelIds,
   Person,
   PmfmStrategy,
   QualityFlagIds,
   Referential,
   ReferentialRef,
   TaxonGroupIds,
-  LocationLevelIds,
-  AcquisitionLevelCodes,
   VesselSnapshot,
   vesselSnapshotToString
 } from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
 import {IWithProgramEntity} from "../../../referential/services/model";
-import {
-  EntityAsObjectOptions,
-  IEntity,
-  MINIFY_OPTIONS,
-  NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions
-} from "../../../core/services/model";
+import {IEntity, MINIFY_OPTIONS, NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model";
 import {Product} from "./product.model";
 import {Packet} from "./packet.model";
 

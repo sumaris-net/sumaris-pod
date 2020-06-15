@@ -7,17 +7,17 @@ import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "../strategy/strategies.table";
-import {changeCaseToUnderscore, fadeInOutAnimation} from "../../shared/shared.module";
+import {changeCaseToUnderscore, EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model";
-import {PmfmStrategiesTable} from "../strategy/pmfm-strategies.table";
 import {AppPropertiesForm} from "../../core/form/properties.form";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
-import {AppListForm} from "../../core/form/list.form";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {StrategyForm} from "../strategy/strategy.form";
 import {animate, AnimationEvent, state, style, transition, trigger} from "@angular/animations";
+import {debounceTime, filter, first} from "rxjs/operators";
+import {firstNotNilPromise} from "../../shared/observables";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -131,6 +131,11 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
 
   /* -- protected methods -- */
 
+  async load(id?: number, opts?: EditorDataServiceLoadOptions): Promise<void> {
+    // Force the load from network
+    return super.load(id, {...opts, fetchPolicy: "network-only"});
+  }
+
   protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>) {
     const definition = <FormFieldDefinition>{
       key: fieldName,
@@ -163,13 +168,9 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   protected setValue(data: Program) {
     if (!data) return; // Skip
 
-    const json = data.asObject();
-    const properties = EntityUtils.getObjectAsArray(json.properties);
-    delete json.properties;
+    this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
 
-    this.form.patchValue(json, {emitEvent: false});
-
-    this.propertiesForm.value = properties;
+    this.propertiesForm.value = EntityUtils.getObjectAsArray(data.properties);
 
     // strategies
     this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
@@ -218,7 +219,23 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     const strategy = this.getStrategy(row.currentData, false) || new Strategy();
     console.debug("[program] Start editing strategy", strategy);
 
-    this.showStrategyForm(strategy);
+    if (!row.isValid()) {
+      row.validator.valueChanges
+        .pipe(
+          debounceTime(450),
+          filter(() => row.isValid()),
+          first()
+        )
+        .subscribe(() => {
+          strategy.fromObject(row.currentData);
+          this.showStrategyForm(strategy)
+        });
+    }
+    else {
+
+
+      this.showStrategyForm(strategy);
+    }
   }
   protected async onCancelOrDeleteStrategy(row: TableElement<Strategy>) {
     if (!row) return; // skip
@@ -284,8 +301,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
 
         // Disable form
         this.strategyForm.disable({emitEvent: false});
-        this.strategyForm.reset(new Strategy(), {emitEvent: false});
-        this.strategyForm.markAsPristine({emitEvent: false});
+        this.strategyForm.setValue(Strategy.fromObject({}));
       }
     }
   }

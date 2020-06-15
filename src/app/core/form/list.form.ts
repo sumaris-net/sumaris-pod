@@ -160,16 +160,18 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
     if (event.ctrlKey && this.options.allowMultipleSelection) {
       this.selection.toggle(item);
     }
-    // Only one selection
     else {
-      if (this.selection.isSelected(item)) {
-        this.selection.clear();
-      }
-      else {
+      // Unselect all
+
+      // Select the item (or relected
+      if (!this.selection.isSelected(item) || (this.options.allowMultipleSelection && this.selection.selected.length > 1)) {
         this.selection.clear();
         this.selection.select(item);
       }
-
+      // Unselect all
+      else {
+        this.selection.clear();
+      }
     }
 
     if (!opts || opts.emitEvent !== false) {
@@ -186,11 +188,21 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
   }
 
   add(value: T) {
-    this.helper.add(value, {emitEvent: true});
-    this.markForCheck();
+    const done = this.helper.add(value, {emitEvent: true});
+    if (done) {
+      if (!this.options.allowMultipleSelection) {
+        this.selection.clear();
+      }
+      this.selection.toggle(value);
+      this.markForCheck();
+    }
   }
 
   removeAt(index: number) {
+    const item = this.helper.at(index).value;
+    if (this.selection.isSelected(item)) {
+      this.selection.deselect(item);
+    }
     this.helper.removeAt(index);
   }
 

@@ -33,7 +33,7 @@
   </ion-grid>
 
   <!-- QV pmfm -->
-  <mat-form-field-measurement-qv #inputField
+  <app-pmfm-qv-field #inputField
                                  *ngIf="!($loadingControls | async) && qvPmfm"
                                  [pmfm]="qvPmfm"
                                  [style]="mobile? 'button' : 'autocomplete'"
@@ -52,7 +52,7 @@
                    tabindex="-1">
       <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
     </mat-checkbox>
-  </mat-form-field-measurement-qv>
+  </app-pmfm-qv-field>
 
   <!-- Taxon name -->
   <ng-container *ngIf="showTaxonName">
@@ -141,7 +141,7 @@
 
     <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
       <!-- If mobile, force 'button' style for qualitative value PMFMs -->
-      <mat-form-field-measurement-qv #inputField
+      <app-pmfm-qv-field #inputField
                                      *ngIf="mobile && !pmfm.hidden && pmfm.isQualitative; else otherField"
                                      [pmfm]="pmfm"
                                      [style]="'button'"
@@ -150,18 +150,18 @@
                                      [compact]="compact"
                                      [tabindex]="tabindex + 20 + i*2"
                                      (keyup.enter)="focusNextInput($event)">
-      </mat-form-field-measurement-qv>
+      </app-pmfm-qv-field>
 
       <!-- NOT mobile and qualitative value -->
       <ng-template #otherField>
-        <mat-form-field-measurement #inputField
+        <app-pmfm-field #inputField
                                     [pmfm]="pmfm"
                                     [hidden]="pmfm.hidden"
                                     [formControl]="measurementFormGroup.controls[pmfm.pmfmId.toString()]"
                                     [compact]="compact"
                                     (keyup.enter)="focusNextInputOrSubmit($event, last)"
                                     [tabindex]="tabindex + 20 + i*2">
-        </mat-form-field-measurement>
+        </app-pmfm-field>
       </ng-template>
     </ng-container>
   </div>

@@ -20,6 +20,13 @@ export {
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
+
+export type UsageMode = 'DESK' | 'FIELD';
+
+export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
+
+export const PRIORITIZED_USER_PROFILES: UserProfileLabel[] = ['ADMIN', 'SUPERVISOR', 'USER', 'GUEST'];
+
 // TODO: rename to STATUS_ID_MAP
 // then declare a type like this :
 // > export declare type StatusIds = keyof typeof STATUS_ID_MAP;
@@ -113,6 +120,15 @@ export const ConfigOptions: FormFieldDefinitionMap = {
         value: 'COMMON.DD_PLACEHOLDER'
       }
     ]
+  },
+  DATA_NOT_SELF_ACCESS_ROLE: {
+    key: "sumaris.auth.notSelfDataAccess.role",
+    label: "CONFIGURATION.OPTIONS.NOT_SELF_DATA_ACCESS_MIN_ROLE",
+    type: 'enum',
+    values: PRIORITIZED_USER_PROFILES.map(key => ({
+      key: 'ROLE_' + key,
+      value: 'USER.PROFILE_ENUM.' + key
+    }))
   },
   TESTING: {
     key: 'sumaris.testing.enable',
@@ -212,11 +228,6 @@ export const ConfigOptions: FormFieldDefinitionMap = {
 };
 
 
-export type UsageMode = 'DESK' | 'FIELD';
-
-export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
-
-export const PRIORITIZED_USER_PROFILES: UserProfileLabel[] = ['ADMIN', 'SUPERVISOR', 'USER', 'GUEST'];
 
 export function getMainProfile(profiles?: string[]): UserProfileLabel {
   return profiles && profiles.length && PRIORITIZED_USER_PROFILES.find(pp => profiles.indexOf(pp) > -1) || 'GUEST';
@@ -505,13 +516,6 @@ export declare interface ITreeItemEntity<T extends IEntity<T>> {
 export class Referential<T extends Referential<any> = Referential<any>, O extends ReferentialAsObjectOptions = ReferentialAsObjectOptions>
     extends Entity<T, O> implements IReferentialRef {
 
-  static fromObject(source: any): Referential {
-    if (!source || source instanceof Referential) return source;
-    const res = new Referential();
-    res.fromObject(source);
-    return res as Referential;
-  }
-
   label: string;
   name: string;
   description: string;
@@ -584,6 +588,13 @@ export class Referential<T extends Referential<any> = Referential<any>, O extend
 }
 
 export class ReferentialUtils {
+  static fromObject(source: any): Referential {
+    if (!source || source instanceof Referential) return source;
+    const res = new Referential();
+    res.fromObject(source);
+    return res as Referential;
+  }
+
   static isNotEmpty(obj: any | Referential<any> | ReferentialRef): boolean {
     // A referential entity should always have a 'id' filled (can be negative is local and temporary)
     return EntityUtils.isNotEmpty(obj, 'id');

@@ -13,31 +13,30 @@ import {
 } from '@angular/core';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {FloatLabelType} from "@angular/material/form-field";
-import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {AppFormUtils, isNil} from "../../core/core.module";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {toBoolean} from "../../shared/functions";
-import {filterNumberInput, focusInput, setTabIndex} from "../../shared/inputs";
-import {InputElement} from "../../shared/inputs";
-import {getPmfmName, PmfmStrategy} from "../../referential/services/model";
+import {filterNumberInput, focusInput, InputElement, setTabIndex} from "../../shared/inputs";
+import {getPmfmName, PmfmStrategy, PmfmUtils} from "../services/model";
+import {PmfmValidators} from "../services/pmfm.validator";
 
 const noop = () => {
 };
 
 @Component({
-  selector: 'mat-form-field-measurement',
-  styleUrls: ['./measurement.form-field.component.scss'],
-  templateUrl: './measurement.form-field.component.html',
+  selector: 'app-pmfm-field',
+  styleUrls: ['./pmfm.form-field.component.scss'],
+  templateUrl: './pmfm.form-field.component.html',
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => MeasurementFormField),
+      useExisting: forwardRef(() => PmfmFormField),
       multi: true
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MeasurementFormField implements OnInit, ControlValueAccessor, InputElement {
+export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement {
 
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
@@ -87,7 +86,6 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
 
   constructor(
     protected settings: LocalSettingsService,
-    protected measurementValidatorService: MeasurementsValidatorService,
     protected cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
@@ -96,13 +94,13 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
 
   ngOnInit() {
 
-    if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-form-field-measurement>.");
-    if (typeof this.pmfm !== 'object') throw new Error("Invalid attribute 'pmfm' in <mat-form-field-measurement>. Should be an object.");
+    if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <app-pmfm-field>.");
+    if (typeof this.pmfm !== 'object') throw new Error("Invalid attribute 'pmfm' in <app-pmfm-field>. Should be an object.");
 
     this.formControl = this.formControl || (this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl);
-    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement>.");
+    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");
 
-    this.formControl.setValidators(this.measurementValidatorService.getPmfmValidator(this.pmfm));
+    this.formControl.setValidators(PmfmValidators.create(this.pmfm));
 
     if (this.listenStatusChanges) {
       this.formControl.statusChanges.subscribe((_) => this.cd.markForCheck());
@@ -135,7 +133,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
   writeValue(value: any): void {
     // FIXME This is a hack, because some time invalid value are passed
     // Example: in the batch group table (inline edition)
-    if (this.pmfm.isNumeric && Number.isNaN(value)) {
+    if (PmfmUtils.isNumeric(this.pmfm) && Number.isNaN(value)) {
       //console.warn("Trying to set NaN value, in a measurement field ! " + this.constructor.name);
       value = null;
       if (value !== this.formControl.value) {

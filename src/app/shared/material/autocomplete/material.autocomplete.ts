@@ -311,6 +311,9 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     // No suggestFn: filter on the given items
     if (!this.suggestFn) {
       const suggestFromArrayFn: SuggestFn<any, any> = async (value, filter) => {
+        // DEBUG
+        //console.debug(this.logPrefix + " Calling suggestFromArray with value=", value);
+
         const res  = await suggestFromArray(this.$inputItems.getValue(), value, {
           searchAttributes: this.displayAttributes,
           ...filter
@@ -321,8 +324,12 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       // Wait (once) that items are loaded, then call suggest from array fn
       this.suggestFn = async (value, filter) => {
         if (isNil(this.$inputItems.getValue())) {
+          // DEBUG
           //console.debug("[mat-autocomplete] Waiting items to be set...");
+
           await firstNotNilPromise(this.$inputItems);
+
+          // DEBUG
           //console.debug("[mat-autocomplete] Received items:", this.$inputItems.getValue());
         }
         this.suggestFn = suggestFromArrayFn;

@@ -8,8 +8,6 @@ import {SaleForm} from './sale/sale.form';
 import {OperationForm} from './operation/operation.form';
 import {OperationPage} from './operation/operation.page';
 import {MeasurementsForm} from './measurement/measurements.form.component';
-import {MeasurementQVFormField} from './measurement/measurement-qv.form-field.component';
-import {MeasurementFormField} from './measurement/measurement.form-field.component';
 import {CatchBatchForm} from './catch/catch.form';
 import {PhysicalGearForm} from './physicalgear/physicalgear.form';
 import {PhysicalGearTable} from './physicalgear/physicalgears.table';
@@ -119,8 +117,6 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     ObservedLocationPage,
     ObservedLocationsPage,
     MeasurementsForm,
-    MeasurementQVFormField,
-    MeasurementFormField,
     CatchBatchForm,
     LandingsTable,
     LandingPage,
@@ -160,32 +156,31 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     PacketSaleModal,
     FishingAreaForm
   ],
-  exports: [
-    TripTable,
-    TripPage,
-    TripForm,
-    PhysicalGearModal,
-    SaleForm,
-    PhysicalGearForm,
-    PhysicalGearTable,
-    OperationForm,
-    OperationPage,
-    OperationTable,
-    MeasurementsForm,
-    MeasurementQVFormField,
-    EntityQualityFormComponent,
-    LandingsTable,
-    LandingForm,
-    LandingPage,
-    SelectLandingsModal,
-    SelectVesselsModal,
-    AuctionControlPage,
-    BatchForm,
-    BatchGroupPage,
-    SubBatchForm,
-    SubBatchModal,
-    SampleForm
-  ],
+    exports: [
+        TripTable,
+        TripPage,
+        TripForm,
+        PhysicalGearModal,
+        SaleForm,
+        PhysicalGearForm,
+        PhysicalGearTable,
+        OperationForm,
+        OperationPage,
+        OperationTable,
+        MeasurementsForm,
+        EntityQualityFormComponent,
+        LandingsTable,
+        LandingForm,
+        LandingPage,
+        SelectLandingsModal,
+        SelectVesselsModal,
+        AuctionControlPage,
+        BatchForm,
+        BatchGroupPage,
+        SubBatchForm,
+        SubBatchModal,
+        SampleForm
+    ],
   entryComponents: [
     TripTable,
     TripPage,

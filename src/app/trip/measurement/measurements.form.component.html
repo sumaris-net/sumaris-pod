@@ -12,13 +12,13 @@
 
   <!-- pmfms -->
   <ng-container *ngIf="($pmfms | async); else measurementsSkeleton; let pmfms;">
-    <mat-form-field-measurement *ngFor="let pmfm of pmfms; index as i;"
+    <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
                                 [pmfm]="pmfm"
                                 [formControlName]="pmfm.pmfmId.toString()"
                                 [compact]="compact"
                                 [tabindex]="(tabindex || 0) + i*2"
                                 [floatLabel]="floatLabel">
-    </mat-form-field-measurement>
+    </app-pmfm-field>
   </ng-container>
 </form>
 

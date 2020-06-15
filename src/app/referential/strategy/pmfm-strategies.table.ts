@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {PmfmStrategy, Program, ReferentialRef} from "../services/model";
+import {isNotNil, PmfmStrategy, PmfmValueUtils, Program, ReferentialRef, referentialToString} from "../services/model";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {DataFilter, InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {environment} from "../../../environments/environment";
@@ -8,14 +8,15 @@ import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {filterNumberInput} from "../../shared/inputs";
 import {ReferentialRefService} from "../services/referential-ref.service";
-import {FormFieldDefinition} from "../../shared/form/field.model";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {Beans, changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, KeysEnum} from "../../shared/functions";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, of} from "rxjs";
 import {firstFalsePromise} from "../../shared/observables";
 import {PmfmService} from "../services/pmfm.service";
 import {Pmfm} from "../services/model/pmfm.model";
 import {IReferentialRef, ReferentialUtils} from "../../core/services/model";
 import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
+import {debounceTime, map, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
 
 export class PmfmStrategyFilter {
 
@@ -23,7 +24,7 @@ export class PmfmStrategyFilter {
     if (PmfmStrategyFilter.isEmpty(f)) return undefined; // no filter need
     return (t) => {
       // DEBUG
-      console.debug("Filtering pmfmStrategy: ", t, f);
+      //console.debug("Filtering pmfmStrategy: ", t, f);
 
       // Acquisition Level
       const acquisitionLevel = t.acquisitionLevel && t.acquisitionLevel instanceof ReferentialRef ? t.acquisitionLevel.label : t.acquisitionLevel;
@@ -93,8 +94,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   $pmfms = new BehaviorSubject<Pmfm[]>(undefined);
   $gears = new BehaviorSubject<IReferentialRef[]>(undefined);
   $loadingReferential = new BehaviorSubject<boolean>(true);
+  $qualitativeValues = new BehaviorSubject<IReferentialRef[]>(undefined);
 
-
+  fieldDefinitionsMap: FormFieldDefinitionMap = {};
   fieldDefinitions: FormFieldDefinition[] = [];
 
   @Input() canEdit = false;
@@ -122,12 +124,14 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           'isMandatory',
           'acquisitionNumber',
           'minValue',
-          'maxValue'
+          'maxValue',
+          'defaultValue'
         ])
         .concat(RESERVED_END_COLUMNS),
       PmfmStrategy,
       new InMemoryTableDataService<PmfmStrategy, PmfmStrategyFilter>(PmfmStrategy, {
         onLoad: (data) => this.onLoad(data),
+        onSave: (data) => this.onSave(data),
         filterFnFactory: PmfmStrategyFilter.searchFilter
       }),
       validatorService,
@@ -143,6 +147,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     //this.confirmBeforeDelete = true;
 
     this.debug = !environment.production;
+
+    // Loading referential items
+    this.loadReferential();
   }
 
   ngOnInit() {
@@ -224,8 +231,38 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'double',
       required: false
     });
+    this.registerFormField('defaultValue', {
+      type: 'double',
+      required: false
+    }, true);
 
-    this.loadReferential();
+    const qvAttributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
+    this.registerFormField('defaultQualitativeValue', {
+      type: 'entity',
+      autocomplete: {
+        attributes: qvAttributes,
+        items: this.onStartEditingRow
+          .pipe(
+            switchMap(row => {
+              const control = row.validator && row.validator.get('pmfm');
+              if (control) {
+                return control.valueChanges.pipe(startWith(control.value))
+              } else {
+                return of(row.currentData.pmfm);
+              }
+            }),
+            debounceTime(200),
+            map(pmfm => isNotEmptyArray(pmfm && pmfm.qualitativeValues) ? pmfm.qualitativeValues : (pmfm.parameter && pmfm.parameter.qualitativeValues || []))
+          ),
+        showAllOnFocus: false,
+        class: 'mat-autocomplete-panel-large-size'
+      },
+      required: false
+    }, true);
+
+
+
+
   }
 
 
@@ -244,8 +281,12 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       const target:any = source instanceof PmfmStrategy ? source.asObject() : source;
       target.acquisitionLevel = acquisitionLevels.find(i => i.label === target.acquisitionLevel);
 
-      target.pmfm = pmfms.find(i => i.id === target.pmfmId);
+      const pmfm = pmfms.find(i => i.id === target.pmfmId);
+      target.pmfm = pmfm;
       delete target.pmfmId;
+
+      if (isNotNil(target.defaultValue)) console.log("TODO check reading default value", target.defaultValue);
+      target.defaultValue = PmfmValueUtils.fromModelValue(target.defaultValue, pmfm);
 
       return target;
     })
@@ -255,7 +296,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     console.debug("[pmfm-strategy-table] Saving...");
 
     // Convert to JSON
-    return data.map(source => source instanceof PmfmStrategy ? source.asObject() : source);
+    //return data.map(source => source instanceof PmfmStrategy ? source.asObject() : source);
+
+    return data;
   }
 
   setFilter(source: Partial<PmfmStrategyFilter>, opts?: { emitEvent: boolean }) {
@@ -303,13 +346,18 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       .reduce((res, data) => Math.max(res, data.rankOrder || 0), 0);
   }
 
-  protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>) {
+  protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>, intoMap?: boolean) {
     const definition = <FormFieldDefinition>{
       key: fieldName,
       label: this.i18nColumnPrefix + changeCaseToUnderscore(fieldName).toUpperCase(),
       ...def
     }
-    this.fieldDefinitions.push(definition);
+    if (intoMap === true) {
+      this.fieldDefinitionsMap[fieldName] = definition;
+    }
+    else {
+      this.fieldDefinitions.push(definition);
+    }
   }
 
 
@@ -370,8 +418,13 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$gears.next(res && res.data || []);
   }
 
+  protected startEditingRow() {
+    console.log("TODO start edit")
+  }
 
   filterNumberInput = filterNumberInput;
+  referentialToString = referentialToString;
+  pmfmValueToString = PmfmValueUtils.valueToString;
 
   protected markForCheck() {
     this.cd.markForCheck();

@@ -44,6 +44,7 @@
     "COMMENTS": "Commentaires",
     "BTN_DECIMAL_SEPARATOR": ",",
     "EMPTY_OPTION": "(Vide)",
+    "All_OPTION": "(Tous)",
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
@@ -132,6 +133,7 @@
       "FAVICON": "favicon",
       "DEFAULT_LOCALE": "Langue par défaut",
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
+      "NOT_SELF_DATA_ACCESS_MIN_ROLE": "Role (min) pour l'accès aux données des autres",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
@@ -326,10 +328,12 @@
     "STATUS": "Etat",
     "PUBKEY": "Clé publique",
     "PROFILE": "Profil",
-    "PROFILE_ADMIN": "Administrateur",
-    "PROFILE_SUPERVISOR": "Superviseur",
-    "PROFILE_USER": "Observateur",
-    "PROFILE_GUEST": "Invité",
+    "PROFILE_ENUM": {
+      "ADMIN": "Administrateur",
+      "SUPERVISOR": "Superviseur",
+      "USER": "Observateur",
+      "GUEST": "Invité"
+    },
     "LIST": {
       "TITLE": "Utilisateurs",
       "FILTER": {
@@ -1081,6 +1085,7 @@
         "ACQUISITION_NUMBER": "Nb acquis.",
         "MIN_VALUE": "Min",
         "MAX_VALUE": "Max",
+        "DEFAULT_VALUE": "Valeur par défaut",
         "TABLE": {
           "TITLE": "Paramètres collectés"
         }
@@ -1318,7 +1323,10 @@
     "LOAD_DATA_ERROR": "Erreur de chargement des données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "NETWORK_REQUIRED": "Connexion au système impossible.<br/><b>Vérifiez votre connexion réseau</b> avant de réessayer.",
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
-    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne."
+    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
+    "PROFILE_ENUM": {
+
+    }
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

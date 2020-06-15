@@ -316,6 +316,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
               return of(undefined);
             }
             if (this.debug) console.debug("[table] Calling dataSource.watchAll()...");
+            this.selection.clear();
             return this._dataSource.watchAll(
               this.paginator && this.paginator.pageIndex * this.paginator.pageSize || 0,
               this.paginator && this.paginator.pageSize || this.pageSize || DEFAULT_PAGE_SIZE,
@@ -549,6 +550,8 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
   /** Selects all rows if they are not all selected; otherwise clear selection. */
   async masterToggle() {
+
+    console.log('TODO check masterToggle');
     if (this.loading) return;
     if (this.isAllSelected()) {
       this.selection.clear();

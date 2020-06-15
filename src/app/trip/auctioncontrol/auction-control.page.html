@@ -64,10 +64,10 @@
               <!-- pmfms -->
               <ion-col *ngFor="let pmfm of landingForm.$pmfms | async; index as i;"
                   size="12" size-md="6">
-                <mat-form-field-measurement [pmfm]="pmfm"
+                <app-pmfm-field [pmfm]="pmfm"
                                             [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                             [tabindex]="50 + i*2">
-                </mat-form-field-measurement>
+                </app-pmfm-field>
               </ion-col>
             </ion-row>
           </ion-grid>
