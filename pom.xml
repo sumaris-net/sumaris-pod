@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.2.6-SNAPSHOT</version>
+  <version>1.2.6</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -61,7 +61,7 @@
   <scm>
     <url>https://github.com/sumaris-net/sumaris-pod.git</url>
     <connection>scm:git:[fetch=]https://github.com/sumaris-net/sumaris-pod.git[push=]ssh://git@github.com/sumaris-net/sumaris-pod.git</connection>
-    <tag>HEAD</tag>
+    <tag>v1.2.6</tag>
   </scm>
 
   <issueManagement>
