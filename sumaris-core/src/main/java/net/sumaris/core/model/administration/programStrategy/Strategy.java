@@ -97,6 +97,15 @@ public class Strategy implements IItemReferentialEntity {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<AppliedStrategy> appliedStrategies = new ArrayList<>();
 
+    public void addPmfmStrategy(PmfmStrategy pmfmStrategy, boolean setReverse) {
+        if (pmfmStrategy != null) {
+            getPmfmStrategies().add(pmfmStrategy);
+            if (setReverse) {
+                pmfmStrategy.setStrategy(this);
+            }
+        }
+    }
+
     public String toString() {
         return String.format("Strategy{id=%s, label=%s, programId=%s}",
                 id,

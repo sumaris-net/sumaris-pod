@@ -23,6 +23,7 @@ package net.sumaris.core.dao.technical.jpa;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import com.querydsl.jpa.impl.JPAQuery;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
@@ -54,6 +55,9 @@ import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -85,48 +89,6 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <C extends Serializable> C load(Class<C> clazz, Serializable id) {
-
-        if (debugEntityLoad) {
-            C load = entityManager.find(clazz, id);
-            if (load == null) {
-                throw new DataIntegrityViolationException("Unable to load entity " + clazz.getName() + " with identifier '" + id + "': not found in database.");
-            }
-        }
-        return entityManager.unwrap(Session.class).load(clazz, id);
-    }
-
-    /**
-     * <p>get.</p>
-     *
-     * @param clazz a {@link Class} object.
-     * @param id a {@link Serializable} object.
-     * @param <C> a C object.
-     * @return a C object.
-     */
-    @SuppressWarnings("unchecked")
-    public <C extends Serializable> C get(Class<? extends C> clazz, Serializable id) {
-        return this.entityManager.find(clazz, id);
-    }
-
-    /**
-     * <p>get.</p>
-     *
-     * @param clazz a {@link Class} object.
-     * @param id a {@link Serializable} object.
-     * @param lockModeType a {@link LockOptions} object.
-     * @param <C> a C object.
-     * @return a C object.
-     */
-    @SuppressWarnings("unchecked")
-    public <C extends Serializable> C get(Class<? extends C> clazz, Serializable id, LockModeType lockModeType) {
-        C entity = entityManager.find(clazz, id);
-        entityManager.lock(entity, lockModeType);
-        return entity;
     }
 
     @Override
@@ -199,6 +161,94 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     protected SessionFactoryImplementor getSessionFactory() {
         return (SessionFactoryImplementor) getSession().getSessionFactory();
+    }
+
+
+    @SuppressWarnings("unchecked")
+    protected <C extends Serializable> C load(Class<C> clazz, Serializable id) {
+
+        if (debugEntityLoad) {
+            C load = entityManager.find(clazz, id);
+            if (load == null) {
+                throw new DataIntegrityViolationException("Unable to load entity " + clazz.getName() + " with identifier '" + id + "': not found in database.");
+            }
+        }
+        return entityManager.unwrap(Session.class).load(clazz, id);
+    }
+
+    /**
+     * <p>load many entities.</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param identifierAttribute name of the identifier attribute
+     * @param identifiers list of identifiers.
+     * @param <T> a T object.
+     * @return a list of T object.
+     */
+    @SuppressWarnings("unchecked")
+    protected <C extends Serializable> List<C> loadAll(Class<? extends C> clazz,
+                                                       String identifierAttribute,
+                                                       Collection<? extends Serializable> identifiers,
+                                                       boolean failedIfMissing) {
+
+        List result = getEntityManager().createQuery(String.format("from %s where id in (:id)", clazz.getSimpleName()))
+                .setParameter(identifierAttribute, identifiers)
+                .getResultList();
+        if (failedIfMissing && result.size() != identifiers.size()) {
+            throw new DataIntegrityViolationException(String.format("Unable to load entities %s from ids. Expected %s entities, but found %s entities.",
+                    clazz.getName(),
+                    identifiers.size(),
+                    result.size()));
+        }
+        return (List<C>)result;
+    }
+
+    /**
+     * <p>load.</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param identifierAttribute name of the identifier attribute
+     * @param identifiers list of identifiers.
+     * @param <C> a C object.
+     * @return a list of T object.
+     */
+    @SuppressWarnings("unchecked")
+    protected <C extends Serializable> Set<C> loadAllAsSet(Class<? extends C> clazz,
+                                                           String identifierAttribute,
+                                                           Collection<? extends Serializable> identifiers,
+                                                           boolean failedIfMissing) {
+
+        List<C> result = loadAll(clazz, identifierAttribute, identifiers, failedIfMissing);
+        return Sets.newHashSet(result);
+    }
+
+    /**
+     * <p>get.</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param id a {@link Serializable} object.
+     * @param <C> a C object.
+     * @return a C object.
+     */
+    @SuppressWarnings("unchecked")
+    protected <C extends Serializable> C get(Class<? extends C> clazz, Serializable id) {
+        return this.entityManager.find(clazz, id);
+    }
+
+    /**
+     * <p>get.</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param id a {@link Serializable} object.
+     * @param lockModeType a {@link LockOptions} object.
+     * @param <C> a C object.
+     * @return a C object.
+     */
+    @SuppressWarnings("unchecked")
+    protected <C extends Serializable> C get(Class<? extends C> clazz, Serializable id, LockModeType lockModeType) {
+        C entity = entityManager.find(clazz, id);
+        entityManager.lock(entity, lockModeType);
+        return entity;
     }
 
     protected Timestamp getDatabaseCurrentTimestamp() {

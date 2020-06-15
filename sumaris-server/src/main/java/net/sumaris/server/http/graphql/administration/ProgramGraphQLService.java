@@ -124,7 +124,19 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "strategies", description = "Get program's strategies")
     public List<StrategyVO> getStrategiesByProgram(@GraphQLContext ProgramVO program,
                                                    @GraphQLEnvironment() Set<String> fields) {
+        if (program.getStrategies() != null) {
+            return program.getStrategies();
+        }
         return strategyService.findByProgram(program.getId(), getFetchOptions(fields));
+    }
+
+    @GraphQLQuery(name = "pmfmStrategies", description = "Get strategy's pmfms")
+    public List<PmfmStrategyVO> getPmfmStrategiesByStrategy(@GraphQLContext StrategyVO strategy,
+                                                   @GraphQLEnvironment() Set<String> fields) {
+        if (strategy.getPmfmStrategies() != null) {
+            return strategy.getPmfmStrategies();
+        }
+        return strategyService.findPmfmStrategiesByStrategy(strategy.getId(), getFetchOptions(fields).isWithPmfmStrategyInheritance());
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get strategy pmfm")
@@ -152,7 +164,8 @@ public class ProgramGraphQLService {
     @IsSupervisor
     public ProgramVO saveProgram(
             @GraphQLArgument(name = "program") ProgramVO program) {
-        return programService.save(program);
+        ProgramVO result = programService.save(program);
+        return result;
     }
 
     @GraphQLMutation(name = "deleteProgram", description = "Delete a program")

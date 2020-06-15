@@ -27,7 +27,6 @@ import net.sumaris.core.dao.technical.model.IValueObject;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
-import javax.persistence.LockModeType;
 import java.io.Serializable;
 
 /**
@@ -37,11 +36,6 @@ import java.io.Serializable;
 public interface SumarisJpaRepository<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>>
     extends JpaRepository<E, ID> {
 
-    <C extends Serializable> C load(Class<C> clazz, Serializable id);
-
-    <C extends Serializable> C get(Class<? extends C> clazz, Serializable id);
-
-    <C extends Serializable> C get(Class<? extends C> clazz, Serializable id, LockModeType lockModeType);
 
     V toVO(E source);
 

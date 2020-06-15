@@ -57,6 +57,9 @@ public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IVa
     private Integer pmfmId;
     private PmfmVO pmfm;
 
+    // Link to parent
+    private Integer strategyId;
+
     // **** Copy from PMFM or parameter
     private String unitLabel;
     private String type;

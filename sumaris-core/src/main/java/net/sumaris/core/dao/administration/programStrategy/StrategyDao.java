@@ -38,31 +38,22 @@ public interface StrategyDao {
     @Cacheable(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, key = "#programId * #fetchOptions.hashCode()")
     List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions);
 
-    @Cacheable(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, key = "#strategyId", unless = "#result == null")
-    List<PmfmStrategyVO> getPmfmStrategies(int strategyId);
-
-    List<PmfmStrategyVO> getPmfmStrategiesByAcquisitionLevel(int programId, int acquisitionLevelId);
-
     List<ReferentialVO> getGears(int strategyId);
 
     List<TaxonGroupStrategyVO> getTaxonGroupStrategies(int strategyId);
 
     List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
 
-    PmfmStrategyVO toPmfmStrategyVO(PmfmStrategy source, boolean copyPmfmValue);
-
     @Caching(
             evict = {
-                    @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true),
-                    @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, allEntries = true)
+                    @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true)
             }
     )
     List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
 
     @Caching(
             evict = {
-                    @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true),
-                    @CacheEvict(cacheNames = CacheNames.PMFM_BY_STRATEGY_ID, key = "#source.id", condition = "#source.id != null")
+                    @CacheEvict(cacheNames = CacheNames.STRATEGIES_BY_PROGRAM_ID, allEntries = true)
             }
     )
     StrategyVO save(StrategyVO source);

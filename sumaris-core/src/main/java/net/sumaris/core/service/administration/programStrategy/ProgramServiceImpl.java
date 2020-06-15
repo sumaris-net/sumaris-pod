@@ -71,15 +71,15 @@ public class ProgramServiceImpl implements ProgramService {
 	@Override
 	public ProgramVO save(ProgramVO source) {
 		Preconditions.checkNotNull(source);
-		ProgramVO savedProgram = programDao.save(source);
+		ProgramVO result = programDao.save(source);
 
 		// Save strategies
-		if (savedProgram.getStrategies() != null) {
-			List<StrategyVO> savedStrategies = strategyService.saveByProgramId(savedProgram.getId(), source.getStrategies());
-			savedProgram.setStrategies(savedStrategies);
+		if (source.getStrategies() != null) {
+			List<StrategyVO> savedStrategies = strategyService.saveByProgramId(result.getId(), source.getStrategies());
+			result.setStrategies(savedStrategies);
 		}
 
-		return savedProgram;
+		return result;
 	}
 
 	@Override

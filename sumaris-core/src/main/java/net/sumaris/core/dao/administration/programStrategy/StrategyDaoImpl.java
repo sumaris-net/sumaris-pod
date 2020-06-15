@@ -24,7 +24,6 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
@@ -32,14 +31,10 @@ import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.pmfm.Parameter;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -50,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.criteria.*;
@@ -77,14 +71,8 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
     @Autowired
     private TaxonNameDao taxonNameDao;
 
-    private Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
-
-    private int unitIdNone;
-
-    @PostConstruct
-    protected void init() {
-        this.unitIdNone = config.getUnitIdNone();
-    }
+    @Autowired
+    private PmfmStrategyRepository pmfmStrategyRepository;
 
     @Override
     public List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions) {
@@ -105,63 +93,10 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                 .createQuery(query)
                 .setParameter(programIdParam, programId)
                 .getResultStream()
-                .map(s -> this.toStrategyVO(s, fetchOptions))
+                .map(s -> this.toVO(s, fetchOptions))
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<PmfmStrategyVO> getPmfmStrategies(int strategyId) {
-
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<PmfmStrategy> query = builder.createQuery(PmfmStrategy.class);
-        Root<PmfmStrategy> root = query.from(PmfmStrategy.class);
-
-        ParameterExpression<Integer> strategyIdParam = builder.parameter(Integer.class);
-
-        Join<PmfmStrategy, Strategy> strategyInnerJoin = root.join(PmfmStrategy.Fields.STRATEGY, JoinType.INNER);
-
-        query.select(root)
-                .where(builder.equal(strategyInnerJoin.get(Strategy.Fields.ID), strategyIdParam))
-                // Sort by rank order
-                .orderBy(builder.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
-
-        return getEntityManager()
-                .createQuery(query)
-                .setParameter(strategyIdParam, strategyId)
-                .getResultStream()
-                .map(this::toPmfmStrategyVO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<PmfmStrategyVO> getPmfmStrategiesByAcquisitionLevel(int programId, int acquisitionLevelId) {
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<PmfmStrategy> query = builder.createQuery(PmfmStrategy.class);
-        Root<PmfmStrategy> root = query.from(PmfmStrategy.class);
-
-        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
-        ParameterExpression<Integer> acquisitionLevelIdParam = builder.parameter(Integer.class);
-
-        Join<PmfmStrategy, Strategy> strategyInnerJoin = root.join(PmfmStrategy.Fields.STRATEGY, JoinType.INNER);
-
-        query.select(root)
-                .where(
-                        builder.and(
-                                builder.equal(strategyInnerJoin.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
-                                builder.equal(root.get(PmfmStrategy.Fields.ACQUISITION_LEVEL).get(AcquisitionLevel.Fields.ID), acquisitionLevelIdParam)
-                        ));
-
-        // Sort by rank order
-        query.orderBy(builder.asc(root.get(PmfmStrategy.Fields.RANK_ORDER)));
-
-        return getEntityManager()
-                .createQuery(query)
-                .setParameter(programIdParam, programId)
-                .setParameter(acquisitionLevelIdParam, acquisitionLevelId)
-                .getResultStream()
-                .map(this::toPmfmStrategyVO)
-                .collect(Collectors.toList());
-    }
 
     @Override
     public List<ReferentialVO> getGears(int strategyId) {
@@ -201,146 +136,6 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
     @Override
     public List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId) {
         return getTaxonNameStrategies(load(Strategy.class, strategyId));
-    }
-
-
-    /* -- protected methods -- */
-
-    protected StrategyVO toStrategyVO(Strategy source, StrategyFetchOptions fetchOptions) {
-        if (source == null) return null;
-
-        StrategyVO target = new StrategyVO();
-
-        Beans.copyProperties(source, target);
-
-        // Program
-        target.setProgramId(source.getProgram().getId());
-
-        // Status id
-        target.setStatusId(source.getStatus().getId());
-
-        // Gears
-        if (CollectionUtils.isNotEmpty(source.getGears())) {
-            List<ReferentialVO> gears = source.getGears()
-                    .stream()
-                    .map(referentialDao::toReferentialVO)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            target.setGears(gears);
-        }
-
-        // Taxon groups
-        target.setTaxonGroups(getTaxonGroupStrategies(source));
-
-        // Taxon names
-        target.setTaxonNames(getTaxonNameStrategies(source));
-
-        // Pmfm strategies
-        if (CollectionUtils.isNotEmpty(source.getPmfmStrategies())) {
-            List<PmfmStrategyVO> pmfmStrategies = source.getPmfmStrategies()
-                    .stream()
-                    // Transform to VO
-                    .map(ps -> toPmfmStrategyVO(ps, fetchOptions))
-                    .filter(Objects::nonNull)
-                    // Sort by acquisitionLevel and rankOrder
-                    .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
-                    .collect(Collectors.toList());
-            target.setPmfmStrategies(pmfmStrategies);
-        }
-
-        return target;
-    }
-
-    protected PmfmStrategyVO toPmfmStrategyVO(PmfmStrategy source) {
-        return toPmfmStrategyVO(source, StrategyFetchOptions.builder().withPmfmStrategyInheritance(false).build());
-    }
-
-    protected PmfmStrategyVO toPmfmStrategyVO(PmfmStrategy source, StrategyFetchOptions fetchOptions) {
-        return toPmfmStrategyVO(source, fetchOptions.isWithPmfmStrategyInheritance());
-    }
-
-    @Override
-    public PmfmStrategyVO toPmfmStrategyVO(PmfmStrategy source, boolean enablePmfmInheritance) {
-        if (source == null) return null;
-
-        Pmfm pmfm = source.getPmfm();
-        Preconditions.checkNotNull(pmfm);
-
-        PmfmStrategyVO target = new PmfmStrategyVO();
-
-        // Copy properties, from Pmfm first (if inherit enable), then from source
-        if (enablePmfmInheritance) {
-            Beans.copyProperties(pmfm, target);
-        }
-        Beans.copyProperties(source, target);
-
-        // Set some attributes from Pmfm
-        target.setPmfmId(pmfm.getId());
-
-        // Apply default values from Pmfm
-        if (pmfm.getMethod() != null) {
-            target.setMethodId(pmfm.getMethod().getId());
-        }
-        if (target.getMinValue() == null) {
-            target.setMinValue(pmfm.getMinValue());
-        }
-        if (target.getMaxValue() == null) {
-            target.setMaxValue(pmfm.getMaxValue());
-        }
-        if (target.getDefaultValue() == null) {
-            target.setDefaultValue(pmfm.getDefaultValue());
-        }
-
-        // Parameter name
-        Parameter parameter = pmfm.getParameter();
-        target.setName(parameter.getName());
-
-        // Value Type
-        PmfmValueType type = PmfmValueType.fromPmfm(pmfm);
-        target.setType(type.name().toLowerCase());
-
-        // Unit symbol
-        if (pmfm.getUnit() != null && pmfm.getUnit().getId().intValue() != unitIdNone) {
-            target.setUnitLabel(pmfm.getUnit().getLabel());
-        }
-
-        // Acquisition Level
-        if (source.getAcquisitionLevel() != null) {
-            target.setAcquisitionLevel(source.getAcquisitionLevel().getLabel());
-        }
-
-        // Qualitative values
-        if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
-            List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
-                    .stream()
-                    .map(referentialDao::toReferentialVO)
-                    .collect(Collectors.toList());
-            target.setQualitativeValues(qualitativeValues);
-        }
-
-        // Gears
-        if (CollectionUtils.isNotEmpty(source.getGears())) {
-            List<String> gears = source.getGears()
-                    .stream()
-                    .map(Gear::getLabel)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            target.setGears(gears);
-
-            target.setGearIds(Beans.collectIds(source.getGears()));
-        }
-
-        // Taxon groups
-        if (CollectionUtils.isNotEmpty(source.getTaxonGroups())) {
-            target.setTaxonGroupIds(Beans.collectIds(source.getTaxonGroups()));
-        }
-
-        // Reference taxons
-        if (CollectionUtils.isNotEmpty(source.getReferenceTaxons())) {
-            target.setReferenceTaxonIds(Beans.collectIds(source.getReferenceTaxons()));
-        }
-
-        return target;
     }
 
     @Override
@@ -423,8 +218,6 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
 
         source.setUpdateDate(newUpdateDate);
 
-        // Save pmfm stratgeies
-        //saveProperties(source.getProperties(), entity, newUpdateDate);
 
         //getEntityManager().flush();
         //getEntityManager().clear();
@@ -437,10 +230,54 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
         delete(Strategy.class, id);
     }
 
-    /* -- protected method -- */
+    /* -- protected methods -- */
+
+    protected StrategyVO toVO(Strategy source, StrategyFetchOptions fetchOptions) {
+        if (source == null) return null;
+
+        StrategyVO target = new StrategyVO();
+
+        Beans.copyProperties(source, target);
+
+        // Program
+        target.setProgramId(source.getProgram().getId());
+
+        // Status id
+        target.setStatusId(source.getStatus().getId());
+
+        // Gears
+        if (CollectionUtils.isNotEmpty(source.getGears())) {
+            List<ReferentialVO> gears = source.getGears()
+                    .stream()
+                    .map(referentialDao::toReferentialVO)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            target.setGears(gears);
+        }
+
+        // Taxon groups
+        target.setTaxonGroups(getTaxonGroupStrategies(source));
+
+        // Taxon names
+        target.setTaxonNames(getTaxonNameStrategies(source));
+
+        // Pmfm strategies
+        if (CollectionUtils.isNotEmpty(source.getPmfmStrategies())) {
+            List<PmfmStrategyVO> pmfmStrategies = source.getPmfmStrategies()
+                    .stream()
+                    // Transform to VO
+                    .map(ps -> pmfmStrategyRepository.toVO(ps, fetchOptions))
+                    .filter(Objects::nonNull)
+                    // Sort by acquisitionLevel and rankOrder
+                    .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
+                    .collect(Collectors.toList());
+            target.setPmfmStrategies(pmfmStrategies);
+        }
+
+        return target;
+    }
 
     protected void toEntity(StrategyVO source, Strategy target, boolean copyIfNull) {
-        EntityManager em = getEntityManager();
 
         Beans.copyProperties(source, target);
 
@@ -488,9 +325,9 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
         }
 
         // Pmfm Strategies
-        if (copyIfNull || CollectionUtils.isNotEmpty(source.getPmfmStrategies())) {
+        /*if (copyIfNull || CollectionUtils.isNotEmpty(source.getPmfmStrategies())) {
             savePmfmStrategiesByStrategy(source.getPmfmStrategies(), target);
-        }
+        }*/
     }
 
     protected List<TaxonNameStrategyVO> getTaxonNameStrategies(Strategy source) {
@@ -500,8 +337,8 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                 .stream()
                 // Sort by priority level (or if not set, by id)
                 .sorted(Comparator.comparingInt(item -> item.getPriorityLevel() != null ?
-                        item.getPriorityLevel().intValue() :
-                        item.getReferenceTaxon().getId().intValue()))
+                        item.getPriorityLevel() :
+                        item.getReferenceTaxon().getId()))
                 .map(item -> {
                     TaxonNameStrategyVO target = new TaxonNameStrategyVO();
                     target.setStrategyId(source.getId());
@@ -522,8 +359,8 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                 .stream()
                 // Sort by priority level (or if not set, by id)
                 .sorted(Comparator.comparingInt((item) -> item.getPriorityLevel() != null ?
-                        item.getPriorityLevel().intValue() :
-                        item.getTaxonGroup().getId().intValue()))
+                        item.getPriorityLevel() :
+                        item.getTaxonGroup().getId()))
                 .map(item -> {
                     TaxonGroupStrategyVO target = new TaxonGroupStrategyVO();
                     target.setStrategyId(source.getId());
@@ -617,102 +454,4 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
         }
     }
 
-
-    protected void savePmfmStrategiesByStrategy(List<PmfmStrategyVO> sources, Strategy parent) {
-        EntityManager em = getEntityManager();
-
-
-        // Remember existing entities
-        Map<Integer, PmfmStrategy> sourcesToRemove = Beans.splitById(parent.getPmfmStrategies());
-
-        // Save each reference taxon strategy
-        List<PmfmStrategy> result = Beans.getStream(sources).map(source -> {
-            PmfmStrategy target = source.getId() != null ? sourcesToRemove.remove(source.getId()) : null;
-            boolean isNew = target == null;
-            if (isNew) {
-                target = new PmfmStrategy();
-                target.setStrategy(parent);
-            }
-
-            toPmfmStrategyEntity(source, target, true);
-
-            if (isNew) {
-                em.persist(target);
-
-                // Update the VO
-                source.setId(target.getId());
-            }
-            else {
-                em.merge(target);
-            }
-
-
-            return target;
-        }).collect(Collectors.toList());
-
-        // Update the target strategy
-        parent.setPmfmStrategies(result);
-
-        // Remove unused entities
-        if (MapUtils.isNotEmpty(sourcesToRemove)) {
-            sourcesToRemove.values().forEach(em::remove);
-        }
-    }
-
-    protected void toPmfmStrategyEntity(PmfmStrategyVO source, PmfmStrategy target, boolean copyIfNull) {
-
-        Beans.copyProperties(source, target);
-
-        // Pmfm
-        Integer pmfmId = source.getPmfmId() != null ? source.getPmfmId() :
-                (source.getPmfm() != null ? source.getPmfm().getId() : null);
-        if (pmfmId == null) throw new DataIntegrityViolationException("Missing pmfmId or pmfm.id in a PmfmStrategyVO");
-        target.setPmfm(load(Pmfm.class, pmfmId));
-
-        // Acquisition Level
-        Integer acquisitionLevelId = acquisitionLevelIdByLabel.get(source.getAcquisitionLevel());
-        if (acquisitionLevelId == null) {
-            // Try to reload
-            loadAcquisitionLevels();
-
-            // Retry to find it
-            acquisitionLevelId = acquisitionLevelIdByLabel.get(source.getAcquisitionLevel());
-            if (acquisitionLevelId == null) {
-                throw new DataIntegrityViolationException("Unknown acquistion level with label=" + source.getAcquisitionLevel());
-            }
-        }
-        target.setAcquisitionLevel(load(AcquisitionLevel.class, acquisitionLevelId));
-
-        // Gears
-        if (copyIfNull || CollectionUtils.isNotEmpty(source.getGearIds())) {
-            target.getGears().clear();
-            if (CollectionUtils.isNotEmpty(source.getGearIds())) {
-                target.getGears().addAll(loadAllAsSet(Gear.class, source.getGearIds(), true));
-            }
-        }
-
-        // Taxon Groups
-        if (copyIfNull || CollectionUtils.isNotEmpty(source.getTaxonGroupIds())) {
-            target.getTaxonGroups().clear();
-            if (CollectionUtils.isNotEmpty(source.getTaxonGroupIds())) {
-                target.getTaxonGroups().addAll(loadAllAsSet(TaxonGroup.class, source.getTaxonGroupIds(), true));
-            }
-        }
-
-        // Taxon Names
-        if (copyIfNull || CollectionUtils.isNotEmpty(source.getReferenceTaxonIds())) {
-            target.getReferenceTaxons().clear();
-            if (CollectionUtils.isNotEmpty(source.getReferenceTaxonIds())) {
-                target.getReferenceTaxons().addAll(loadAllAsSet(ReferenceTaxon.class, source.getReferenceTaxonIds(), true));
-            }
-        }
-    }
-
-    private synchronized void loadAcquisitionLevels() {
-        acquisitionLevelIdByLabel.clear();
-
-        // Fill acquisition levels map
-        List<ReferentialVO> items = referentialDao.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null);
-        items.forEach(item -> acquisitionLevelIdByLabel.put(item.getLabel(), item.getId()));
-    }
 }
