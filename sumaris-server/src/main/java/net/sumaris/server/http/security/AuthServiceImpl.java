@@ -27,6 +27,7 @@ import net.sumaris.core.dao.administration.user.UserTokenDao;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
@@ -44,14 +45,13 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.Attributes2GrantedAuthoritiesMapper;
 import org.springframework.security.core.authority.mapping.SimpleAttributes2GrantedAuthoritiesMapper;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("authService")
@@ -200,6 +200,51 @@ public class AuthServiceImpl implements AuthService {
         if (debug) log.debug(String.format("Authentication succeed for user with pubkey {%s}", authData.getPubkey().substring(0, 6)));
 
         return authUser;
+    }
+
+    @Override
+    public Optional<PersonVO> getAuthenticatedUser() {
+        return getAuthPrincipal().map(user -> personDao.getByPubkeyOrNull(user.getPubkey()));
+    }
+
+    @Override
+    public boolean hasAuthority(String authority) {
+        return hasUpperOrEqualsAuthority(getAuthorities(), authority);
+    }
+
+    /* -- internal methods -- */
+
+    public Optional<AuthUser> getAuthPrincipal() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        if (securityContext != null && securityContext.getAuthentication() != null) {
+            return Optional.ofNullable((AuthUser)securityContext.getAuthentication().getPrincipal());
+        }
+        return Optional.empty(); // Not auth
+    }
+
+    protected String getMainAuthority(Collection<? extends GrantedAuthority> authorities) {
+        if (CollectionUtils.isEmpty(authorities)) return PRIORITIZED_AUTHORITIES.get(PRIORITIZED_AUTHORITIES.size()-1); // Last role
+        return PRIORITIZED_AUTHORITIES.stream()
+                .map(role -> Beans.getList(authorities).stream().map(GrantedAuthority::getAuthority).filter(authority -> role.equals(authority)).findFirst().orElse(null))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(PRIORITIZED_AUTHORITIES.get(PRIORITIZED_AUTHORITIES.size()-1)); // Last role
+    }
+
+    protected boolean hasUpperOrEqualsAuthority(Collection<? extends GrantedAuthority> authorities,
+                                                String expectedAuthority) {
+        int expectedRoleIndex = PRIORITIZED_AUTHORITIES.indexOf(expectedAuthority);
+        int actualRoleIndex = PRIORITIZED_AUTHORITIES.indexOf(getMainAuthority(authorities));
+        return expectedRoleIndex != -1 && actualRoleIndex <= expectedRoleIndex;
+    }
+
+
+    protected Collection<? extends GrantedAuthority> getAuthorities(){
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        if (securityContext != null && securityContext.getAuthentication() != null) {
+            return securityContext.getAuthentication().getAuthorities();
+        }
+        return null;
     }
 
     private List<GrantedAuthority> getAuthorities(String pubkey) {
