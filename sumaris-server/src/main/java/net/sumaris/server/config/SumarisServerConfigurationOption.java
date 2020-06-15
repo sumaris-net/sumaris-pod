@@ -107,6 +107,13 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             Integer.class,
             false),
 
+    AUTH_NOT_SELF_DATA_ROLE(
+            "sumaris.auth.notSelfDataAccess.role",
+            n("sumaris.config.option.auth.notSelfDataAccess.role.description"),
+            null, // Possible values: ROLE_GUEST, ROLE_USER, ROLE_SUPERVISOR, ROLE_ADMIN
+            String.class,
+            false),
+
     DOWNLOAD_DIRECTORY(
             "sumaris.download.directory",
             n("sumaris.config.option.download.directory.description"),

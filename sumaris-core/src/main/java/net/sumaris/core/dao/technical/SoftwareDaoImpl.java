@@ -47,14 +47,14 @@ import java.util.Objects;
 public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
 
     @Autowired
-    private SoftwareRepository repository;
+    private SoftwareRepository softwareRepository;
 
     public SoftwareVO get(int id) {
-        return toVO(repository.getOne(id));
+        return toVO(softwareRepository.getOne(id));
     }
 
     public SoftwareVO getByLabel(String label) {
-        return toVO(repository.getOneByLabel(label));
+        return toVO(softwareRepository.getOneByLabel(label));
     }
 
     public SoftwareVO save(SoftwareVO source)  {
@@ -75,6 +75,10 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
 
             // Lock entityName
             lockForUpdate(entity);
+
+            // Check same label (cannot be changed, because used as a PK, in the Pod configuration)
+            Preconditions.checkArgument(Objects.equals(entity.getLabel(), source.getLabel()),
+                    "Cannot change label of a software entity");
         }
 
         // VO -> Entity
@@ -212,7 +216,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
 
         Software target;
         if (source.getId() != null) {
-            target = repository.getOneByLabel(source.getLabel());
+            target = softwareRepository.getOneByLabel(source.getLabel());
         }
         else {
             target = new Software();

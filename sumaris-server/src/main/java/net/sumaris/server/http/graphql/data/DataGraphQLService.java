@@ -40,6 +40,7 @@ import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -59,6 +60,9 @@ import java.util.Set;
 @Service
 @Transactional
 public class DataGraphQLService {
+
+    @Autowired
+    private SumarisServerConfiguration config;
 
     @Autowired
     private VesselService vesselService;
@@ -222,15 +226,8 @@ public class DataGraphQLService {
                                           @GraphQLEnvironment() Set<String> fields
                                   ) {
 
-        filter = filter != null ? filter : new TripFilterVO();
-
-        // Force filter by recorder person (=self) if NOT supervisor
-        if (!authService.isSupervisor()) {
-            filter.setRecorderDepartmentId(null);
-            filter.setRecorderPersonId(authService.getAuthenticatedUser().get().getId());
-        }
-
-        final List<TripVO> result = tripService.findByFilter(filter, offset, size, sort,
+        final List<TripVO> result = tripService.findByFilter(fillTripFilterDefaults(filter),
+                offset, size, sort,
                 direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
                 getFetchOptions(fields));
 
@@ -244,7 +241,7 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public long getTripsCount(@GraphQLArgument(name = "filter") TripFilterVO filter) {
-        return tripService.countByFilter(filter);
+        return tripService.countByFilter(fillTripFilterDefaults(filter));
     }
 
     @GraphQLQuery(name = "trip", description = "Get a trip, by id")
@@ -1235,5 +1232,28 @@ public class DataGraphQLService {
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 .build();
+    }
+
+    protected TripFilterVO fillTripFilterDefaults(TripFilterVO filter) {
+        TripFilterVO result = filter != null ? filter : new TripFilterVO();
+
+        // Restrict to self data - issue #199
+        if (!canAccessNotSelfData()) {
+            PersonVO user = authService.getAuthenticatedUser().orElse(null);
+            if (user != null) {
+                result.setRecorderDepartmentId(null);
+                result.setRecorderPersonId(user.getId());
+            }
+            else {
+                result.setRecorderPersonId(-999); // Hide all. Should neveer occur
+            }
+        }
+
+        return result;
+    }
+
+    protected boolean canAccessNotSelfData() {
+        String minRole = config.getAuthNotSelfDataRole();
+        return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
     }
 }
