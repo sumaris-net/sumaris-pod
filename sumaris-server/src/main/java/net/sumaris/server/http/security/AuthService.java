@@ -25,7 +25,6 @@ package net.sumaris.server.http.security;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.vo.security.AuthDataVO;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
