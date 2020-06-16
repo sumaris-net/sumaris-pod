@@ -619,7 +619,6 @@ export declare interface IReferentialRef {
   label: string;
   name: string;
   statusId: number;
-  rankOrder: number;
   entityName: string;
 }
 
@@ -661,7 +660,6 @@ export class ReferentialRef<T extends ReferentialRef<any> = ReferentialRef<any>,
   label: string;
   name: string;
   statusId: number;
-  rankOrder: number;
   entityName: string;
 
   constructor(data?: {
@@ -674,7 +672,6 @@ export class ReferentialRef<T extends ReferentialRef<any> = ReferentialRef<any>,
     this.id = data && data.id;
     this.label = data && data.label;
     this.name = data && data.name;
-    this.rankOrder = data && data.rankOrder;
   }
 
   clone(): T {
@@ -702,7 +699,6 @@ export class ReferentialRef<T extends ReferentialRef<any> = ReferentialRef<any>,
     this.label = source.label;
     this.name = source.name;
     this.statusId = source.statusId;
-    this.rankOrder = source.rankOrder;
     this.entityName = source.entityName;
   }
 }

@@ -250,7 +250,7 @@ export class ReferentialRefService extends BaseDataService
     };
   }
 
-  async suggest(value: any, filter?: ReferentialRefFilter, sortBy?: keyof ReferentialRef, sortDirection?: SortDirection): Promise<ReferentialRef[]> {
+  async suggest(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<ReferentialRef[]> {
     if (ReferentialUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, sortBy, sortDirection,
