@@ -69,7 +69,7 @@ export class MatAutocompleteConfigHolder {
   }) {
     // Store the function from options (e.g. get from user settings)
     // or create a default function
-    this.getUserAttributes = options && options.getUserAttributes || 
+    this.getUserAttributes = options && options.getUserAttributes ||
       function (fieldName, defaultAttributes): string[] {
         return defaultAttributes || ['label', 'name'];
       };
@@ -79,7 +79,7 @@ export class MatAutocompleteConfigHolder {
     if (!fieldName) {
       throw new Error("Unable to add config, with name: " + (fieldName || 'undefined'));
     }
-    options = options || <MatAutocompleteFieldAddOptions>{};
+    options = options || <MatAutocompleteFieldAddOptions>{};
     const suggestFn: SuggestFn<T, F> = options.suggestFn
         || (options.service && ((v, f) => options.service.suggest(v, f)))
         || undefined;
@@ -91,7 +91,7 @@ export class MatAutocompleteConfigHolder {
       ...options.filter
     };
     const displayWith = options.displayWith || ((obj) => obj && joinPropertiesPath(obj, attributesOrFn));
-    const compareWith = options.compareWith || ((o1: any, o2: any) => o1 && o2 && o1.id === o2.id);
+    const compareWith = options.compareWith || ((o1: any, o2: any) => o1 && o2 && o1.id === o2.id);
 
     const config: MatAutocompleteFieldConfig = {
       attributes: attributesOrFn,
@@ -282,17 +282,17 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this.displayAttributes = this.displayAttributes || this.config.attributes;
       this.displayColumnSizes = this.displayColumnSizes || this.config.columnSizes;
       this.displayColumnNames = this.displayColumnNames || this.config.columnNames;
-      this.displayWith = this.displayWith || this.config.displayWith;
+      this.displayWith = this.displayWith || this.config.displayWith;
       this.mobile = toBoolean(this.mobile, this.config.mobile);
       this.showAllOnFocus = toBoolean(this.showAllOnFocus, toBoolean(this.config.showAllOnFocus, true));
       this.showPanelOnFocus = toBoolean(this.showPanelOnFocus, toBoolean(this.config.showPanelOnFocus, true));
-      this.classList = this.classList || this.config.class;
+      this.classList = this.classList || this.config.class;
     }
 
     // Default values
     this.displayAttributes = this.displayAttributes || (this.filter && this.filter.attributes) || ['label', 'name'];
     this.displayWith = this.displayWith || ((obj) => obj && joinPropertiesPath(obj, this.displayAttributes));
-    this.displayColumnSizes = this.displayColumnSizes || this.displayAttributes.map(attr => (
+    this.displayColumnSizes = this.displayColumnSizes || this.displayAttributes.map(attr => (
         // If label then col size = 2
         attr && attr.endsWith('label')) ? 2 :
         // If rankOrder then col size = 1
@@ -318,7 +318,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
           searchAttributes: this.displayAttributes,
           ...filter
         });
-        this._itemCount = res && res.length || 0;
+        this._itemCount = res && res.length || 0;
         return res;
       }
       // Wait (once) that items are loaded, then call suggest from array fn
@@ -347,7 +347,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
           .subscribe(async (filter) => {
             const res = await this.suggestFn('*', filter);
             this.$inputItems.next(res);
-            this._itemCount = res && res.length || 0;
+            this._itemCount = res && res.length || 0;
           })
       )
     }
@@ -406,7 +406,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         switchMap(async (value) => {
           const res = await this.suggestFn(value, this.filter);
           // console.debug(this.logPrefix + " Filtered items by suggestFn:", value, res);
-          this._itemCount = res && res.length || 0;
+          this._itemCount = res && res.length || 0;
           return res;
         }),
         // Store implicit value (will use it onBlur if not other value selected)

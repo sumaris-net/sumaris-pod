@@ -1,7 +1,6 @@
 import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
 import gql from "graphql-tag";
-import {BaseDataService} from "./base.data-service.class";
-import {ConfigOptions, Configuration} from "./model";
+import {Configuration} from "./model/config.model";
 import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
@@ -14,7 +13,9 @@ import {isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {FileService} from "../../shared/file/file.service";
 import {NetworkService} from "./network.service";
 import {PlatformService} from "./platform.service";
-import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/shared.module";
+import {EditorDataServiceLoadOptions} from "../../shared/shared.module";
+import {ConfigOptions} from "./config/core.config";
+import {SoftwareService} from "../../referential/services/software.service";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -95,7 +96,7 @@ export const APP_CONFIG_OPTIONS = new InjectionToken<FormFieldDefinitionMap>('de
   providedIn: 'root',
   deps: [APP_CONFIG_OPTIONS]
 })
-export class ConfigService extends BaseDataService implements EditorDataService<Configuration> {
+export class ConfigService extends SoftwareService<Configuration> {
 
   private _started = false;
   private _startPromise: Promise<any>;
@@ -305,9 +306,9 @@ export class ConfigService extends BaseDataService implements EditorDataService<
     return this._optionDefs;
   }
 
-  /* -- private method -- */
+  /* -- protected method -- */
 
-  private async loadQuery(opts?:
+  protected async loadQuery(opts?:
     {
       query?: any,
       variables?: any,

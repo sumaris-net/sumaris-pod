@@ -7,7 +7,7 @@ import {FormBuilder} from "@angular/forms";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ProductsTable} from "../product/products.table";
 import {MeasurementsForm} from "../measurement/measurements.form.component";
-import {SaleValidatorService} from "../services/sale.validator";
+import {SaleValidatorService} from "../services/validator/sale.validator";
 
 @Component({
   selector: 'app-landed-sale-form',

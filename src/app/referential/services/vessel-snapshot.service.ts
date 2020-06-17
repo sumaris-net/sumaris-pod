@@ -1,20 +1,19 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {EntityUtils, isNil, isNotNil, Person, StatusIds, VesselSnapshot} from "./model";
-import {LoadResult} from "../../shared/shared.module";
-import {BaseDataService} from "../../core/core.module";
-import {Moment} from "moment";
+import {isNotNil, LoadResult} from "../../shared/shared.module";
+import {BaseDataService, StatusIds} from "../../core/core.module";
 
 import {ErrorCodes} from "./errors";
 import {fetchAllPagesWithProgress, SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {FetchPolicy} from "apollo-client";
-import {VesselFilter, VesselFragments} from "./vessel-service";
-import {BehaviorSubject, defer, Observable} from "rxjs";
+import {VesselFilter} from "./vessel-service";
+import {BehaviorSubject, Observable} from "rxjs";
 import {NetworkService} from "../../core/services/network.service";
 import {EntityStorage} from "../../core/services/entities-storage.service";
-import {ReferentialUtils} from "../../core/services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {VesselSnapshot} from "./model/vessel-snapshot.model";
 
 export const VesselSnapshotFragments = {
   lightVesselSnapshot: gql`fragment LightVesselSnapshotFragment on VesselSnapshotVO {
@@ -115,18 +114,18 @@ export class VesselSnapshotService
         date: filter.date,
         vesselId: filter.vesselId,
         searchText: filter.searchText,
-        statusIds: isNotNil(filter.statusId) ?  [filter.statusId] : filter.statusIds
+        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : filter.statusIds
       }
     };
 
-    const debug = this._debug && (!opts || opts.debug !== false);
+    const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();
     if (debug) console.debug("[vessel-snapshot-service] Loading vessel snapshots using options:", variables);
 
     let res: LoadResult<VesselSnapshot>;
 
     // Offline: use local store
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
       res = await this.entities.loadAll('VesselSnapshotVO',
         {
@@ -228,7 +227,7 @@ export class VesselSnapshotService
     )
       .then(res =>  this.entities.saveAll(res.data, {entityName: 'VesselSnapshotVO'}))
       .then(data =>  {
-        console.info(`[vessel-snapshot-service] Successfully import ${data && data.length || 0} vessels in ${Date.now() - now}ms`);
+        console.info(`[vessel-snapshot-service] Successfully import ${data && data.length || 0} vessels in ${Date.now() - now}ms`);
         progression.next(maxProgression);
         progression.complete();
       })

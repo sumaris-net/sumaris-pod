@@ -2,8 +2,8 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from '@ngx-translate/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean} from '../../shared/shared.module';
-import {ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from "../services/extraction.model";
+import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean} from '../../shared/functions';
+import {ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from "../services/model/extraction.model";
 import {ExtractionService} from "../services/extraction.service";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {debounceTime, distinctUntilChanged, filter, map} from "rxjs/operators";
@@ -67,7 +67,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
   get sheetCriteriaForm(): FormArray {
-    return this._sheetName && (this.form.get(this._sheetName) as FormArray) || undefined;
+    return this._sheetName && (this.form.get(this._sheetName) as FormArray) || undefined;
   }
 
   constructor(
@@ -221,7 +221,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
   hasFilterCriteria(sheetName?: string): boolean {
-    sheetName = sheetName || this.sheetName;
+    sheetName = sheetName || this.sheetName;
     const sheetCriteriaForm = sheetName && (this.form.get(sheetName) as FormArray);
     return sheetCriteriaForm && sheetCriteriaForm.controls
       .map(c => c.value)
@@ -316,7 +316,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
   updateCriterionValueDefinition(index: number, columnName?: string, resetValue?: boolean): Observable<FormFieldDefinition> {
     const criterionForm = this.sheetCriteriaForm.at(index) as FormGroup;
-    columnName = columnName || (criterionForm && criterionForm.controls.name.value);
+    columnName = columnName || (criterionForm && criterionForm.controls.name.value);
     const definition = columnName && this.$columnValueDefinitions.getValue().find(d => d.key === columnName) || null;
 
     // Reset the criterion value, is ask by caller
@@ -378,7 +378,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       operator: criterion && criterion.operator || DEFAULT_CRITERION_OPERATOR,
       value: criterion && criterion.value || null,
       endValue: criterion && criterion.endValue || null,
-      sheetName: criterion && criterion.sheetName || this.sheetName || null
+      sheetName: criterion && criterion.sheetName || this.sheetName || null
     });
   }
 

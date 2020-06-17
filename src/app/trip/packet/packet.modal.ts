@@ -1,12 +1,5 @@
-import {
-  AfterViewInit,
-  Component,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from "@angular/core";
-import {Packet, PacketComposition} from "../services/model/packet.model";
+import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {Packet} from "../services/model/packet.model";
 import {ModalController} from "@ionic/angular";
 import {Subject, Subscription} from "rxjs";
 import {PacketForm} from "./packet.form";

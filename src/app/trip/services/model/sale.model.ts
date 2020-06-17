@@ -1,14 +1,17 @@
-import {fromDateISOString, NOT_MINIFY_OPTIONS, toDateISOString} from "../../../core/core.module";
-import {Person, ReferentialRef} from "../../../core/services/model";
+import {fromDateISOString, toDateISOString} from "../../../core/core.module";
+import {Person} from "../../../core/services/model/person.model";
+import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
 import {Moment} from "moment/moment";
-import {DataEntityAsObjectOptions, DataRootVesselEntity, IWithProductsEntity} from "./base.model";
+import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {Sample} from "./sample.model";
-import {Measurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {Product} from "./product.model";
+import {Measurement, MeasurementUtils} from "./measurement.model";
+import {IWithProductsEntity, Product} from "./product.model";
 import {isNotEmptyArray} from "../../../shared/functions";
+import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
 
 
-export class Sale extends DataRootVesselEntity<Sale> implements IWithProductsEntity<Sale> {
+export class Sale extends DataRootVesselEntity<Sale>
+  implements IWithProductsEntity<Sale> {
 
   static TYPENAME = 'SaleVO';
 

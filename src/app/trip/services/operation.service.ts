@@ -4,8 +4,10 @@ import {EMPTY, Observable} from "rxjs";
 import {filter, map, throttleTime} from "rxjs/operators";
 import {
   EditorDataService,
-  EditorDataServiceLoadOptions, isNil,
-  isNotEmptyArray, isNotNil,
+  EditorDataServiceLoadOptions,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
   LoadResult,
   TableDataService
 } from "../../shared/shared.module";
@@ -14,24 +16,25 @@ import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {isEmptyArray, isNilOrBlank, toNumber} from "../../shared/functions";
-import {AcquisitionLevelCodes, QualityFlagIds, ReferentialFragments} from "../../referential/referential.module";
+import {isEmptyArray, isNilOrBlank} from "../../shared/functions";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {NetworkService} from "../../core/services/network.service";
 import {AccountService} from "../../core/services/account.service";
 import {
   DataEntity,
   DataEntityAsObjectOptions,
-  MINIFY_OPTIONS,
   SAVE_AS_OBJECT_OPTIONS,
   SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
-} from "./model/base.model";
+} from "../../data/services/model/data-entity.model";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {Operation, VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
+import {ReferentialFragments} from "../../referential/services/referential.queries";
+import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -191,7 +194,7 @@ export declare interface OperationSaveOptions {
 @Injectable({providedIn: 'root'})
 export class OperationService extends BaseDataService
   implements TableDataService<Operation, OperationFilter>,
-             EditorDataService<Operation, OperationFilter>{
+             EditorDataService<Operation>{
 
   loading = false;
 
@@ -226,7 +229,7 @@ export class OperationService extends BaseDataService
            }
   ): Observable<LoadResult<Operation>> {
 
-    if (!dataFilter || isNil(dataFilter.tripId)) {
+    if (!dataFilter || isNil(dataFilter.tripId)) {
       console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
       return EMPTY;
     }
@@ -609,7 +612,7 @@ export class OperationService extends BaseDataService
     this.fillRecorderDepartment(entity.endPosition, department);
 
     // Measurements
-    (entity.measurements || []).forEach(m => this.fillRecorderDepartment(m, department));
+    (entity.measurements || []).forEach(m => this.fillRecorderDepartment(m, department));
 
     // Fill position dates
     entity.startPosition.dateTime = entity.fishingStartDateTime || entity.startDateTime;
@@ -635,7 +638,7 @@ export class OperationService extends BaseDataService
   fillRecorderDepartment(entity: DataEntity<Operation | VesselPosition | Measurement>, department?: Department) {
     if (!entity.recorderDepartment || !entity.recorderDepartment.id) {
 
-      department = department || this.accountService.department;
+      department = department || this.accountService.department;
 
       // Recorder department
       if (department) {

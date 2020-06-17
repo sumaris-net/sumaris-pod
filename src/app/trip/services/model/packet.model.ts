@@ -1,22 +1,23 @@
+import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {
-  DataEntity,
-  DataEntityAsObjectOptions,
-  isNil,
-  isNotNil,
-  IWithPacketsEntity,
   NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
   ReferentialRef,
-  referentialToString
-} from "./base.model";
-import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model";
-import {DataFilter} from "../../../shared/services/memory-data-service.class";
+  referentialToString,
+  ReferentialUtils
+} from "../../../core/services/model/referential.model";
 import {Product} from "./product.model";
-import {equalsOrNil, isNotNilOrNaN} from "../../../shared/functions";
+import {equalsOrNil, isNil, isNotNilOrNaN} from "../../../shared/functions";
+import {IEntity} from "../../../core/services/model/entity.model";
+
+export interface IWithPacketsEntity<T> extends IEntity<T> {
+  packets: Packet[];
+}
 
 export class PacketFilter {
 
   static searchFilter(f: PacketFilter): (Packet) => boolean {
-    if (!f || isNil(f.parent)) return undefined;
+    if (!f || isNil(f.parent)) return undefined;
     return (p) => {
       if (isNil(p.parent) || !f.parent.equals(p.parent)) {
         return false;

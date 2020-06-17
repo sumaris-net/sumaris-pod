@@ -1,9 +1,10 @@
 import {FormGroup, ValidationErrors, Validators} from "@angular/forms";
 import {Subject, Subscription} from "rxjs";
 import {debounceTime, filter, map, startWith, tap} from "rxjs/operators";
-import {PmfmIds, PmfmStrategy} from "../../../referential/services/model";
+import {PmfmIds} from "../../../referential/services/model/model.enum";
 import {AppFormUtils} from "../../../core/form/form.utils";
 import {isNotNilOrBlank} from "../../../shared/functions";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 
 export class AuctionControlValidators {
 

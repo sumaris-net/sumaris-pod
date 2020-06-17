@@ -1,4 +1,4 @@
-<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
+<app-toolbar [title]="title$ | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true">
   <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
@@ -17,9 +17,9 @@
 
       <div class="ion-padding">
         <!-- error -->
-        <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
         </ion-item>
 
         <ion-grid class="ion-no-padding">

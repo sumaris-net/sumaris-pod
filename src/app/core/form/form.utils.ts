@@ -1,4 +1,12 @@
-import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
+import {
+  AbstractControl,
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ValidationErrors,
+  ValidatorFn
+} from "@angular/forms";
 import {
   filterNumberInput,
   isNil,
@@ -8,13 +16,91 @@ import {
   toDateISOString
 } from "../../shared/shared.module";
 import {isMoment} from "moment";
-import {Entity, ObjectMap} from "../services/model";
+import {Entity, ObjectMap} from "../services/model/entity.model";
 import {timer} from "rxjs";
 import {filter, first, tap} from "rxjs/operators";
-import {SharedFormArrayValidators, SharedValidators} from "../../shared/validator/validators";
+import {SharedFormArrayValidators} from "../../shared/validator/validators";
 import {round} from "../../shared/functions";
 
 export {selectInputContent};
+
+export interface IAppForm  {
+  invalid: boolean;
+  valid: boolean;
+  dirty: boolean;
+  empty?: boolean;
+  pending: boolean;
+  error: string;
+  //TODO
+  // enabled: boolean;
+
+  disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
+
+  markAsPristine(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
+  markAsUntouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
+  markAsTouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
+  markAsDirty(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
+}
+
+
+export class AppDynamicFormHolder<F extends IAppForm = IAppForm> implements IAppForm {
+
+  get form(): F {
+    return this.getter();
+  }
+
+  constructor(private getter: () => F) {
+  }
+  get error(): string {
+    const form = this.getter();
+    return form && form.error;
+  }
+  get invalid(): boolean {
+    const form = this.getter();
+    return form && form.invalid;
+  }
+  get valid(): boolean {
+    const form = this.getter();
+    return form && form.valid;
+  }
+  get dirty(): boolean {
+    const form = this.getter();
+    return form && form.dirty;
+  }
+  get empty(): boolean {
+    const form = this.getter();
+    return !form && form.empty;
+  }
+  get pending(): boolean {
+    const form = this.getter();
+    return form && form.pending;
+  }
+  disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    const form = this.getter();
+    if (form) form.disable(opts);
+  }
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    const form = this.getter();
+    if (form) form.enable(opts);
+  }
+  markAsPristine(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    const form = this.getter();
+    if (form) form.markAsPristine(opts);
+  }
+  markAsUntouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    const form = this.getter();
+    if (form) form.markAsUntouched(opts);
+  }
+  markAsTouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    const form = this.getter();
+    if (form) form.markAsTouched(opts);
+  }
+  markAsDirty(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    const form = this.getter();
+    if (form) form.markAsDirty(opts);
+  }
+}
 
 // TODO continue to use this kind of declaration ?
 export class AppFormUtils {
@@ -115,7 +201,7 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
         }
       }
       else if (source[key] === undefined) {
-        console.warn("Invalid form value. Expected array but found:", source[key]);
+        console.warn("Invalid value for property '"+key+"'. Unable to set form control. Expected array but found: undefined");
         value[key] = [];
       }
     }
@@ -336,7 +422,7 @@ export function markControlAsTouched(control: AbstractControl, opts?: {onlySelf?
     markAsTouched(control, { ...opts, onlySelf: true}); // recursive call
   }
   else if (control instanceof FormArray) {
-    (control.controls || []).forEach(c => markControlAsTouched(c, { ...opts, onlySelf: true})); // recursive call
+    (control.controls || []).forEach(c => markControlAsTouched(c, { ...opts, onlySelf: true})); // recursive call
   }
   else {
     control.markAsTouched({onlySelf: true});

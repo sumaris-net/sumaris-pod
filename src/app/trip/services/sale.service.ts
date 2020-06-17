@@ -9,7 +9,7 @@ import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {WatchQueryFetchPolicy} from "apollo-client";
 import {AccountService} from "../../core/services/account.service";
-import {SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
+import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {Sale} from "./model/sale.model";
 import {Sample} from "./model/sample.model";

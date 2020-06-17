@@ -2,8 +2,8 @@ import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 import {AccountService} from './services/account.service';
-import {AccountValidatorService} from './services/account.validator';
-import {UserSettingsValidatorService} from './services/user-settings.validator';
+import {AccountValidatorService} from './services/validator/account.validator';
+import {UserSettingsValidatorService} from './services/validator/user-settings.validator';
 import {BaseDataService} from './services/base.data-service.class';
 import {AuthForm} from './auth/form/form-auth';
 import {AuthModal} from './auth/modal/modal-auth';
@@ -15,6 +15,7 @@ import {
   fromDateISOString,
   isNil,
   isNotNil,
+  joinPropertiesPath,
   LoadResult,
   nullIfUndefined,
   SharedModule,
@@ -22,7 +23,7 @@ import {
   toDateISOString
 } from '../shared/shared.module';
 import {AppForm} from './form/form.class';
-import {AppTabPage} from './form/tab-page.class';
+import {AppTabForm} from './form/tab-form.class';
 import {EntityMetadataComponent} from './form/entity-metadata.component';
 import {FormButtonsBarComponent} from './form/form-buttons-bar.component';
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from './table/table.class';
@@ -39,42 +40,29 @@ import {DateAdapter} from "@angular/material/core";
 import * as moment from "moment/moment";
 import {AppFormUtils, FormArrayHelper} from './form/form.utils';
 import {AppTableUtils} from './table/table.utils';
-
+import {IReferentialRef, Referential, ReferentialRef, referentialToString} from './services/model/referential.model';
+import {Person} from './services/model/person.model';
+import {Department} from './services/model/department.model';
+import {StatusIds} from './services/model/model.enum';
 
 import {environment} from '../../environments/environment';
 import {
   Cloneable,
-  Department,
   Entity,
   EntityAsObjectOptions,
   entityToString,
   EntityUtils,
-  IReferentialRef,
-  joinPropertiesPath,
-  MINIFY_OPTIONS,
-  NOT_MINIFY_OPTIONS,
-  Person,
-  personsToString,
-  personToString,
-  PropertiesMap,
-  Referential,
-  ReferentialAsObjectOptions,
-  ReferentialRef,
-  referentialToString,
-  ReferentialUtils,
-  SAVE_AS_OBJECT_OPTIONS,
-  SAVE_LOCALLY_AS_OBJECT_OPTIONS,
-  StatusIds
-} from './services/model';
+  PropertiesMap
+} from './services/model/entity.model';
 // import ngx-translate and the http loader
 import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {SelectPeerModal} from "./peer/select-peer.modal";
 import {SettingsPage} from "./settings/settings.page";
-import {LocalSettingsValidatorService} from "./services/local-settings.validator";
+import {LocalSettingsValidatorService} from "./services/validator/local-settings.validator";
 import {LocalSettingsService} from "./services/local-settings.service";
-import {AppEditorPage} from "./form/editor-page.class";
+import {AppEditor} from "./form/editor.class";
 import {EntityStorage} from "./services/entities-storage.service";
 import {IonicModule} from "@ionic/angular";
 import {CacheModule} from "ionic-cache";
@@ -86,9 +74,9 @@ export {
   AppForm,
   AppFormUtils,
   AppTable,
-  AppTabPage,
+  AppTabForm,
   AppTableDataSource,
-  AppEditorPage,
+  AppEditor,
   TableSelectColumnsComponent,
   BaseDataService,
   AccountValidatorService,
@@ -100,7 +88,6 @@ export {
   Entity,
   Cloneable,
   EntityUtils,
-  StatusIds,
   Referential,
   ReferentialRef,
   IReferentialRef,
@@ -110,25 +97,18 @@ export {
   TableDataService,
   LoadResult,
   toDateISOString,
+  StatusIds,
   fromDateISOString,
-  joinPropertiesPath,
   isNil,
   isNotNil,
   nullIfUndefined,
   entityToString,
   referentialToString,
-  personToString,
-  personsToString,
+  joinPropertiesPath,
   FormArrayHelper,
   AppTableUtils,
   EntityAsObjectOptions,
-  PropertiesMap,
-  ReferentialUtils,
-  ReferentialAsObjectOptions,
-  MINIFY_OPTIONS,
-  NOT_MINIFY_OPTIONS,
-  SAVE_AS_OBJECT_OPTIONS,
-  SAVE_LOCALLY_AS_OBJECT_OPTIONS
+  PropertiesMap
 };
 
 export function HttpLoaderFactory(http: HttpClient) {

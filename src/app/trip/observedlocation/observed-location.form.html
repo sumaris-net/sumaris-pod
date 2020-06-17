@@ -139,17 +139,29 @@
         <ion-label class="ion-float-end" translate>OBSERVED_LOCATION.EDIT.OTHER_FEATURES</ion-label>
       </ion-col>
       <ion-col>
-
-        <ion-spinner *ngIf="loading"></ion-spinner>
-
         <!-- pmfms -->
-        <app-pmfm-field *ngFor="let pmfm of $pmfms | async; index as i;"
-                                    [pmfm]="pmfm"
-                                    [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
-                                    [compact]="compact"
-                                    [tabindex]="50 + i*2"
-                                    [floatLabel]="floatLabel">
-        </app-pmfm-field>
+        <form [formGroup]="measurementValuesForm" *ngIf="($pmfms | async); else measurementsSkeleton; let pmfms;">
+          <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
+                                      [pmfm]="pmfm"
+                                      [formControlName]="pmfm.pmfmId.toString()"
+                                      [compact]="compact"
+                                      [tabindex]="50 + i*2"
+                                      [floatLabel]="floatLabel">
+          </app-pmfm-field>
+        </form>
+
+        <ng-template #measurementsSkeleton>
+          <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
+          <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
+        </ng-template>
+
+        <ng-template #propertySkeleton>
+          <mat-form-field>
+            <input matInput hidden>
+            <ion-skeleton-text style="width: 60%"></ion-skeleton-text>
+          </mat-form-field>
+        </ng-template>
+
       </ion-col>
     </ion-row>
 
@@ -172,3 +184,4 @@
   </ion-grid>
 
 </form>
+

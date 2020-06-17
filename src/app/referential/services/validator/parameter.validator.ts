@@ -1,8 +1,8 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Referential} from "../model";
-import {Parameter} from "../model/pmfm.model";
-import {ReferentialValidatorService} from "../referential.validator";
+import {ReferentialValidatorService} from "./referential.validator";
+import {Parameter} from "../model/parameter.model";
+import {Referential} from "../../../core/services/model/referential.model";
 
 @Injectable()
 export class ParameterValidatorService extends ReferentialValidatorService<Parameter> {
@@ -21,7 +21,7 @@ export class ParameterValidatorService extends ReferentialValidatorService<Param
     const config = super.getFormGroupConfig(data, opts);
     return {
       ...config,
-      type : [data && data.type || null, Validators.required],
+      type : [data && data.type || null, Validators.required],
       qualitativeValues: this.formBuilder.array(
         (data && data.qualitativeValues || []).map(item => this.getQualitativeValuesFormGroup(item))
       )

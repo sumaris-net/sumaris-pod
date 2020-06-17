@@ -3,17 +3,18 @@ import {isNil, isNotNil, LoadResult, TableDataService} from "../../core/core.mod
 import {filter, first, map, switchMap} from "rxjs/operators";
 import {
   IEntityWithMeasurement,
-  MeasurementValuesUtils,
-  PMFM_ID_REGEXP
-} from "../../trip/services/model/measurement.model";
-import {EntityUtils} from "../../core/services/model";
-import {PmfmStrategy} from "../../referential/services/model";
-import {Directive, EventEmitter, Injector, Input} from "@angular/core";
-import {ProgramService} from "../../referential/referential.module";
+  MeasurementValuesUtils
+} from "../services/model/measurement.model";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {Directive, EventEmitter, Injector, Input, OnDestroy} from "@angular/core";
+import {ProgramService} from "../../referential/services/program.service";
 import {firstNotNilPromise} from "../../shared/observables";
+import {PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
 
 @Directive()
-export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> implements TableDataService<T, F> {
+export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
+    implements TableDataService<T, F> {
 
   private _program: string;
   private _acquisitionLevel: string;
@@ -81,6 +82,11 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
     this._onRefreshPmfms.asObservable().subscribe(() => this.refreshPmfms());
   }
 
+  close() {
+    this.$pmfms.unsubscribe();
+    this._onRefreshPmfms.unsubscribe();
+  }
+
   watchAll(
     offset: number,
     size: number,
@@ -135,7 +141,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
     if (this.debug) console.debug("[meas-service] converting measurement values before saving...");
     const pmfms = this.$pmfms.getValue() || [];
     const dataToSaved = data.map(json => {
-      const entity = new this.dataType();
+      const entity = new this.dataType() as T;
       entity.fromObject(json);
       // Adapt measurementValues to entity, but :
       // - keep the original JSON object measurementValues, because may be still used (e.g. in table without validator, in row.currentData)
@@ -144,11 +150,11 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
       return entity;
     });
 
-    return this.delegate.saveAll(dataToSaved);
+    return this.delegate.saveAll(dataToSaved, options);
   }
 
   deleteAll(data: T[], options?: any): Promise<any> {
-    return this.delegate.deleteAll(data);
+    return this.delegate.deleteAll(data, options);
   }
 
 

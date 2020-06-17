@@ -1,6 +1,6 @@
 import {AppTable} from "./table.class";
 import {debounceTime, filter, first} from "rxjs/operators";
-import {Entity} from "../services/model";
+import {Entity} from "../services/model/entity.model";
 
 export class AppTableUtils {
 

@@ -1,5 +1,8 @@
 import {Injectable} from "@angular/core";
-import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.validator";
+import {
+  DataEntityValidatorOptions,
+  DataEntityValidatorService
+} from "../../../data/services/validator/data-entity.validator";
 import {PacketComposition} from "../model/packet.model";
 import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, Validators} from "@angular/forms";

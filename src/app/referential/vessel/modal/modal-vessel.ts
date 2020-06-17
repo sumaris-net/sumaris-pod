@@ -1,13 +1,12 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {isNil, isNotNil, Vessel} from "../../services/model";
-import { ModalController } from "@ionic/angular";
-import { VesselForm } from '../form/form-vessel';
-import { VesselService } from '../../services/vessel-service';
-import { AppFormUtils } from '../../../core/core.module';
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Vessel} from "../../services/model/vessel.model";
+import {ModalController} from "@ionic/angular";
+import {VesselForm} from '../form/form-vessel';
+import {VesselService} from '../../services/vessel-service';
+import {AppFormUtils, isNotNil} from '../../../core/core.module';
 import {ConfigService} from "../../../core/services/config.service";
 import {Subscription} from "rxjs";
-import {AccountService} from "../../../core/services/account.service";
-import {ConfigOptions} from "../../../core/services/model";
+import {ConfigOptions} from "../../../core/services/config/core.config";
 
 
 @Component({

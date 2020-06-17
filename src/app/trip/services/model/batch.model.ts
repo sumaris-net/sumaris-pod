@@ -1,15 +1,16 @@
-import {Entity, EntityUtils, isNil, isNotNil, referentialToString} from "../../../core/core.module";
-import {
-  AcquisitionLevelCodes,
-  PmfmStrategy,
-  QualityFlagIds,
-  ReferentialRef
-} from "../../../referential/referential.module";
-import {DataEntity, DataEntityAsObjectOptions, NOT_MINIFY_OPTIONS} from "./base.model";
+import {EntityUtils, isNil, isNotNil, ReferentialRef, referentialToString} from "../../../core/core.module";
+import {AcquisitionLevelCodes, QualityFlagIds} from "../../../referential/services/model/model.enum";
+import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {isNilOrBlank, isNotEmptyArray, isNotNilOrBlank, toNumber} from "../../../shared/functions";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
-import {IEntity, ITreeItemEntity, ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model";
+import {ITreeItemEntity} from "../../../core/services/model/entity.model";
+import {
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
+  ReferentialUtils
+} from "../../../core/services/model/referential.model";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
@@ -86,10 +87,10 @@ export class Batch<T extends Batch<any> = Batch<any>,
       delete target.parent; // not need
     }
 
-    return (source.children || []).reduce((res, batch) => {
+    return (source.children || []).reduce((res, batch) => {
         return res.concat(this.treeAsObjectArray(batch, {...opts, parent: target}) || []);
       },
-      [target]) || undefined;
+      [target]) || undefined;
   }
 
   static equals(b1: Batch | any, b2: Batch | any): boolean {
@@ -196,7 +197,7 @@ export class Batch<T extends Batch<any> = Batch<any>,
       this.measurementValues = source.measurementValues;
     }
     // Convert measurement lists to map
-    else if (source.sortingMeasurements || source.quantificationMeasurements) {
+    else if (source.sortingMeasurements || source.quantificationMeasurements) {
       const measurements = (source.sortingMeasurements || []).concat(source.quantificationMeasurements);
       this.measurementValues = MeasurementUtils.toMeasurementValues(measurements);
     }
@@ -341,7 +342,7 @@ export class BatchUtils {
 
   static hasChildrenWithLevel(batch: Batch, acquisitionLevel: string): boolean {
     return batch && (batch.children || []).findIndex(child => {
-      return (child.label && child.label.startsWith(acquisitionLevel + "#")) || 
+      return (child.label && child.label.startsWith(acquisitionLevel + "#")) ||
         // If children, recursive call
         (child.children && BatchUtils.hasChildrenWithLevel(child, acquisitionLevel));
     }) !== -1;
@@ -390,7 +391,7 @@ export class BatchUtils {
 
     // Parent batch is a sampling batch: update individual count
     if (BatchUtils.isSampleBatch(source)) {
-      source.individualCount = sumChildrenIndividualCount || null;
+      source.individualCount = sumChildrenIndividualCount || null;
     }
 
     // Parent is NOT a sampling batch
@@ -441,7 +442,7 @@ export class BatchUtils {
    * @param batches
    */
   static sumObservedIndividualCount(batches: Batch[]): number {
-    return (batches || [])
+    return (batches || [])
       .map(b => isNotEmptyArray(b.children) ?
         // Recursive call
         BatchUtils.sumObservedIndividualCount(b.children) :
@@ -456,14 +457,14 @@ export class BatchUtils {
   }
 
   static logTree(batch: Batch, opts?: {indent?: string; nextIndent?: string}) {
-    const indent = opts && opts.indent || '';
-    const nextIndent = opts && opts.nextIndent || indent;
+    const indent = opts && opts.indent || '';
+    const nextIndent = opts && opts.nextIndent || indent;
     let message = indent + batch.label + ' id=' + batch.id;
     if (batch.parent || isNotNil(batch.parentId)) {
       message += ' - parentId=' + (batch.parent && batch.parent.id || batch.parentId);
     }
     console.debug(message);
-    const childrenCount = batch.children && batch.children.length || 0;
+    const childrenCount = batch.children && batch.children.length || 0;
     if (childrenCount) {
       batch.children.forEach((b, index, ) => {
         const opts = (index === childrenCount - 1) ? {

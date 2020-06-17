@@ -1,5 +1,5 @@
 import {BehaviorSubject, Observable} from "rxjs";
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {isNil, isNotNil} from "../functions";
 import {SortDirection} from "@angular/material/sort";
 
@@ -45,7 +45,7 @@ export declare interface EditorDataServiceLoadOptions {
   [key: string]: any;
 }
 
-export declare interface EditorDataService<T, F = any, O = EditorDataServiceLoadOptions> {
+export declare interface EditorDataService<T, O = EditorDataServiceLoadOptions> {
 
   load(
     id: number,
@@ -59,7 +59,12 @@ export declare interface EditorDataService<T, F = any, O = EditorDataServiceLoad
   listenChanges(id: number, options?: any): Observable<T | undefined>;
 }
 
-export declare interface TableDataService<T, F> {
+export declare interface TableDataServiceWatchOptions {
+  fetchPolicy?: WatchQueryFetchPolicy;
+  [key: string]: any;
+}
+
+export declare interface TableDataService<T, F, O extends TableDataServiceWatchOptions = TableDataServiceWatchOptions> {
 
   watchAll(
     offset: number,
@@ -67,7 +72,7 @@ export declare interface TableDataService<T, F> {
     sortBy?: string,
     sortDirection?: string,
     filter?: F,
-    options?: any
+    options?: O
   ): Observable<LoadResult<T>>;
 
   saveAll(data: T[], options?: any): Promise<T[]>;
@@ -107,7 +112,7 @@ export async function fetchAllPagesWithProgress<T>(
     if (isNil(total) && isNotNil(res.total)) {
       total = res.total;
       loopCount = Math.round(res.total / fetchSize + 0.5); // Round to next integer
-      loopProgressionStepSize = progressionStep ? progressionStep / loopCount : undefined /*if 0 reset to undefined*/;
+      loopProgressionStepSize = progressionStep ? progressionStep / loopCount : undefined /*if 0 reset to undefined*/;
     }
 
     // Increment progression on each iteration (if possible)
@@ -117,7 +122,7 @@ export async function fetchAllPagesWithProgress<T>(
 
     if (onPageLoaded) onPageLoaded(res);
 
-  } while (loopDataCount > 0 && ((isNil(total) && loopDataCount === fetchSize) || (isNotNil(total) && (offset < total))));
+  } while (loopDataCount > 0 && ((isNil(total) && loopDataCount === fetchSize) || (isNotNil(total) && (offset < total))));
 
   // Complete progression to reach progressionStep value (because of round)
   if (isNotNil(loopProgressionStepSize)) {

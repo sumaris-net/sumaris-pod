@@ -1,20 +1,20 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {OperationFilter, OperationSaveOptions, OperationService} from '../services/operation.service';
+import {OperationSaveOptions, OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AppEditorPage, AppTableUtils, EntityUtils, environment} from '../../core/core.module';
+import {AppEditor, AppTableUtils, EntityUtils, environment} from '../../core/core.module';
 import {CatchBatchForm} from '../catch/catch.form';
-import {HistoryPageReference, ReferentialUtils, UsageMode} from '../../core/services/model';
+import {ReferentialUtils} from '../../core/services/model/referential.model';
+import {HistoryPageReference, UsageMode} from '../../core/services/model/settings.model';
 import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
-import {AcquisitionLevelCodes, PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {debounceTime, distinctUntilChanged, filter, first, map, startWith, switchMap} from "rxjs/operators";
 import {FormGroup, Validators} from "@angular/forms";
 import * as moment from "moment";
 import {IndividualMonitoringSubSamplesTable} from "../sample/individualmonitoring/individual-monitoring-samples.table";
-import {Program, ProgramProperties} from "../../referential/services/model";
+import {Program} from "../../referential/services/model/program.model";
 import {SubBatchesTable} from "../batch/sub-batches.table";
 import {SubSamplesTable} from "../sample/sub-samples.table";
 import {SamplesTable} from "../sample/samples.table";
@@ -24,6 +24,9 @@ import {isNotNilOrBlank} from "../../shared/functions";
 import {filterNotNil, firstNotNil} from "../../shared/observables";
 import {Operation, Trip} from "../services/model/trip.model";
 import {BatchGroup} from "../services/model/batch-group.model";
+import {ProgramProperties} from "../../referential/services/config/program.config";
+import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
+import {ProgramService} from "../../referential/services/program.service";
 
 @Component({
   selector: 'app-operation-page',
@@ -32,7 +35,7 @@ import {BatchGroup} from "../services/model/batch-group.model";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationPage extends AppEditorPage<Operation, OperationFilter> implements OnInit, AfterViewInit, OnDestroy {
+export class OperationPage extends AppEditor<Operation, OperationService> implements OnInit, AfterViewInit, OnDestroy {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.OPERATION;
 
@@ -79,9 +82,10 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     protected tripService: TripService,
     protected programService: ProgramService
   ) {
-    super(injector, Operation, dataService);
-    this.idAttribute = 'operationId';
-    this.tabCount = 2;
+    super(injector, Operation, dataService, {
+      pathIdAttribute: 'operationId',
+      tabCount: 2
+    });
 
     // Init mobile (WARN
     this.mobile = this.settings.mobile;
@@ -405,7 +409,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     const titlePrefix = this.trip && (await this.translate.get('TRIP.OPERATION.TITLE_PREFIX', {
       vessel: this.trip && this.trip.vesselSnapshot && (this.trip.vesselSnapshot.exteriorMarking || this.trip.vesselSnapshot.name) || '',
       departureDateTime: this.trip && this.trip.departureDateTime && this.dateFormat.transform(this.trip.departureDateTime) as string || ''
-    }).toPromise()) || '';
+    }).toPromise()) || '';
 
     // new ope
     if (!data || isNil(data.id)) {
@@ -527,7 +531,7 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     const program = trip && trip.program && trip.program.label;
 
     // Get gear, from the physical gear
-    const gearId = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.id || null;
+    const gearId = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.id || null;
 
     // Set measurements form
     this.measurementsForm.gearId = gearId;
@@ -575,16 +579,18 @@ export class OperationPage extends AppEditorPage<Operation, OperationFilter> imp
     }
   }
 
-  protected registerFormsAndTables() {
+  protected registerForms() {
     // Register sub forms & table
-    this.registerForms([this.opeForm, this.measurementsForm, this.catchBatchForm])
-      .registerTables([
-        this.samplesTable,
-        this.individualMonitoringTable,
-        this.individualReleaseTable,
-        this.batchGroupsTable,
-        this.subBatchesTable
-      ]);
+    this.addChildForms([
+      this.opeForm,
+      this.measurementsForm,
+      this.catchBatchForm,
+      this.samplesTable,
+      this.individualMonitoringTable,
+      this.individualReleaseTable,
+      this.batchGroupsTable,
+      this.subBatchesTable
+    ]);
   }
 
   protected async waitWhilePending(): Promise<void> {

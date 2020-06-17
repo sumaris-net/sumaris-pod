@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Input, OnInit, ViewChild} from "@angular/core";
-import {AppForm, EntityUtils, FormArrayHelper, StatusIds} from "../../core/core.module";
-import {AggregationStrata, AggregationType, ExtractionColumn} from "../services/extraction.model";
+import {AppForm, FormArrayHelper, StatusIds} from "../../core/core.module";
+import {AggregationStrata, AggregationType, ExtractionColumn} from "../services/model/extraction.model";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../referential/form/referential.form";
@@ -9,7 +9,7 @@ import {arraySize} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ReferentialUtils} from "../../core/services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 
 @Component({
   selector: 'app-aggregation-type-form',

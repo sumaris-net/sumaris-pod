@@ -2,18 +2,18 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {ProductValidatorService} from "../services/validator/product.validator";
-import {Product, ProductFilter} from "../services/model/product.model";
+import {IWithProductsEntity, Product, ProductFilter} from "../services/model/product.model";
 import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
-import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {BehaviorSubject, Observable} from "rxjs";
-import {IWithProductsEntity} from "../services/model/base.model";
-import {IReferentialRef} from "../../core/services/model";
+import {IReferentialRef} from "../../core/services/model/referential.model";
 import {TableElement} from "angular4-material-table";
 import {ProductSaleModal} from "../sale/product-sale.modal";
 import {isNotEmptyArray} from "../../shared/functions";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {filterNotNil} from "../../shared/observables";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo

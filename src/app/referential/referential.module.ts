@@ -2,43 +2,17 @@ import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {CoreModule} from '../core/core.module';
 import {VesselService} from './services/vessel-service';
-import {VesselValidatorService} from './services/vessel.validator';
+import {VesselValidatorService} from './services/validator/vessel.validator';
 import {ReferentialRefService} from './services/referential-ref.service';
 import {ReferentialService} from './services/referential.service';
-import {ReferentialValidatorService} from './services/referential.validator';
+import {ReferentialValidatorService} from './services/validator/referential.validator';
 import {ProgramService} from './services/program.service';
 import {VesselForm} from "./vessel/form/form-vessel";
 import {VesselPage} from "./vessel/page/vessel.page";
 import {VesselsTable} from "./vessel/list/vessels.table";
 import {VesselModal} from "./vessel/modal/modal-vessel";
 import {ReferentialsPage} from './list/referentials';
-import {
-  AcquisitionLevelCodes,
-  Department,
-  entityToString,
-  EntityUtils,
-  GearLevelIds,
-  getPmfmName,
-  LocationLevelIds,
-  Person,
-  PmfmIds,
-  PmfmLabelPatterns,
-  PmfmStrategy,
-  PmfmUtils,
-  QualitativeLabels,
-  QualityFlagIds,
-  qualityFlagToColor,
-  Referential,
-  ReferentialRef,
-  referentialToString,
-  StatusIds,
-  TaxonGroupIds,
-  TaxonomicLevelIds,
-  VesselSnapshot,
-  vesselSnapshotToString
-} from './services/model';
 
-import {ReferentialFragments} from './services/referential.queries';
 import {ReferentialForm} from "./form/referential.form";
 import {ProgramPage} from "./program/program.page";
 import {ProgramValidatorService} from "./services/validator/program.validator";
@@ -47,9 +21,9 @@ import {StrategiesTable} from "./strategy/strategies.table";
 import {SoftwarePage} from "./software/software.page";
 import {VesselFeaturesHistoryComponent} from "./vessel/page/vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel/page/vessel-registration-history.component";
-import {VesselFeaturesValidatorService} from "./services/vessel-features.validator";
-import {VesselRegistrationValidatorService} from "./services/vessel-registration.validator";
-import {SoftwareValidatorService} from "./services/software.validator";
+import {VesselFeaturesValidatorService} from "./services/validator/vessel-features.validator";
+import {VesselRegistrationValidatorService} from "./services/validator/vessel-registration.validator";
+import {SoftwareValidatorService} from "./services/validator/software.validator";
 import {SoftwareService} from "./services/software.service";
 import {VesselsPage} from "./vessel/list/vessels.page";
 import {PmfmService} from "./services/pmfm.service";
@@ -68,15 +42,6 @@ import {StrategyForm} from "./strategy/strategy.form";
 import {PmfmQvFormField} from "./pmfm/pmfm-qv.form-field.component";
 import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
 
-export {
-  VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
-  Referential, ReferentialRef, EntityUtils, Department, Person,
-  VesselSnapshot, PmfmStrategy, PmfmUtils, QualityFlagIds,
-  GearLevelIds, TaxonGroupIds, LocationLevelIds, AcquisitionLevelCodes, StatusIds, PmfmIds, QualitativeLabels, TaxonomicLevelIds,
-  ReferentialFragments, PmfmLabelPatterns,
-  entityToString, referentialToString, qualityFlagToColor,
-  vesselSnapshotToString, getPmfmName
-};
 
 @NgModule({
   imports: [
@@ -123,11 +88,6 @@ export {
     SelectReferentialModal,
     PmfmFormField,
     PmfmQvFormField
-  ],
-  entryComponents: [
-    VesselModal,
-    ReferentialRefTable,
-    SelectReferentialModal
   ],
   providers: [
     ReferentialRefService,

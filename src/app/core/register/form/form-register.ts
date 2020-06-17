@@ -10,10 +10,11 @@ import {
   Validators
 } from "@angular/forms";
 import {AccountService, RegisterData} from "../../services/account.service";
-import {Account, referentialToString} from "../../services/model";
+import {Account} from "../../services/model/account.model";
+import {referentialToString} from "../../services/model/referential.model";
 import {MatHorizontalStepper} from "@angular/material/stepper";
 import {Observable, Subscription, timer} from "rxjs";
-import {AccountValidatorService} from "../../services/account.validator";
+import {AccountValidatorService} from "../../services/validator/account.validator";
 import {environment} from "../../../../environments/environment";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {mergeMap} from "rxjs/operators";

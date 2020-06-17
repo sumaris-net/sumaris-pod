@@ -77,7 +77,7 @@ export function moveInputCaretToSeparator(event: KeyboardEvent, separator: strin
 
       const separatorIndex = (forward ? value.indexOf(separator, caretPosition) : value.lastIndexOf(separator, caretPosition));
       if (separatorIndex !== -1 && ((forward && separatorIndex + 1 < value.length)
-        || (!forward && separatorIndex > 0))) {
+        || (!forward && separatorIndex > 0))) {
         if (input.setSelectionRange) {
           // Move after the next separator
           if (selectInputRange(input, separatorIndex + (forward ? 1 : -1))) {
@@ -152,7 +152,7 @@ export function isInputElement(object: any): object is InputElement {
   return isFocusableElement(object)
     && ('value' in object
       // has value is not always set (neither tabindex) check on 2 properties with a logical OR
-      || ('tabindex' in object || 'tabIndex' in object));
+      || ('tabindex' in object || 'tabIndex' in object));
 }
 
 export function asInputElement(object: ElementRef): InputElement|undefined {
@@ -164,7 +164,7 @@ export function asInputElement(object: ElementRef): InputElement|undefined {
 }
 
 export function tabindexComparator(a: InputElement, b: InputElement) {
-  const valueA = a.tabindex || a.tabIndex;
+  const valueA = a.tabindex || a.tabIndex;
   const valueB = b.tabindex || b.tabIndex;
   return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
 }
@@ -185,11 +185,11 @@ export function canHaveFocus(input: InputElement, opts?: CanGainFocusOptions): b
   // Exclude disabled element
   return !toBoolean(input.disabled, false)
     // Exclude hidden element
-    && !toBoolean(input.hidden, false)
+    && !toBoolean(input.hidden, false)
     // Exclude minTabIndex < element.tabIndex
-    && (isNil(opts.minTabindex) || toNumber(input.tabIndex, input.tabindex) > opts.minTabindex)
+    && (isNil(opts.minTabindex) || toNumber(input.tabIndex, input.tabindex) > opts.minTabindex)
     // Exclude maxTabIndex > element.tabIndex
-    && (isNil(opts.maxTabindex) || toNumber(input.tabIndex, input.tabindex) < opts.maxTabindex)
+    && (isNil(opts.maxTabindex) || toNumber(input.tabIndex, input.tabindex) < opts.maxTabindex)
     // Exclude nil input value
     && (!opts.excludeEmptyInput || isNilOrBlank(input.value));
 }
@@ -229,7 +229,7 @@ export function focusNextInput(event: UIEvent|undefined, elements: QueryList<Ele
   }
 
   // Get current index
-  const minTabindex = event && isInputElement(event.target) ? (event.target.tabIndex || event.target.tabindex) : undefined;
+  const minTabindex = event && isInputElement(event.target) ? (event.target.tabIndex || event.target.tabindex) : undefined;
 
   // Get focusable input elements
   const focusableInputs: InputElement[] = getFocusableInputElements(elements, {minTabindex: minTabindex, ...opts});
@@ -252,7 +252,7 @@ export function focusPreviousInput(event: UIEvent|undefined, elements: QueryList
   }
 
   // Get current index
-  const maxTabindex = event && isInputElement(event.target) ? (event.target.tabIndex || event.target.tabindex) : undefined;
+  const maxTabindex = event && isInputElement(event.target) ? (event.target.tabIndex || event.target.tabindex) : undefined;
 
   // Get focusable input elements
   const focusableInputs: InputElement[] = getFocusableInputElements(elements, {maxTabindex: maxTabindex, ...opts});

@@ -1,14 +1,20 @@
-import {AppFormUtils, fromDateISOString, isNil, isNotNil, toDateISOString} from "../../../core/core.module";
-import {PmfmStrategy, PmfmUtils, PmfmValue, PmfmValueUtils, ReferentialRef} from "../../../referential/services/model";
-import {DataEntity, DataEntityAsObjectOptions} from "./base.model";
+import {
+  AppFormUtils,
+  fromDateISOString,
+  isNil,
+  isNotNil,
+  ReferentialRef,
+  toDateISOString
+} from "../../../core/core.module";
+import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {FormGroup} from "@angular/forms";
 import {arraySize, isEmptyArray} from "../../../shared/functions";
 import * as moment from "moment";
 import {isMoment} from "moment";
-import {IEntity} from "../../../core/services/model";
+import {IEntity} from "../../../core/services/model/entity.model";
 import {Pmfm} from "../../../referential/services/model/pmfm.model";
-
-export const PMFM_ID_REGEXP = /\d+/;
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {PmfmValue, PmfmValueUtils} from "../../../referential/services/model/pmfm-value.model";
 
 
 export declare interface MeasurementModelValues {
@@ -113,8 +119,8 @@ export class MeasurementUtils {
       measurement.rankOrder = keepRankOrder ? measurement.rankOrder : rankOrder++;
 
       // Need by GraphQL cache
-      measurement.entityName = measurement.entityName || entityName;
-      measurement.__typename = measurement.__typename || 'MeasurementVO';
+      measurement.entityName = measurement.entityName || entityName;
+      measurement.__typename = measurement.__typename || 'MeasurementVO';
       return measurement;
     });
   }
@@ -315,7 +321,7 @@ export class MeasurementValuesUtils {
         const measurementValues = AppFormUtils.getFormValueFromEntity(data.measurementValues || {}, measFormGroup);
         // This will adapt to form (e.g. transform a QV_ID into a an object)
         data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(measurementValues, pmfms, {
-          keepSourceObject: opts && opts.keepOtherExistingPmfms || false,
+          keepSourceObject: opts && opts.keepOtherExistingPmfms || false,
           onlyExistingPmfms: opts && opts.onlyExistingPmfms
         });
       } else {

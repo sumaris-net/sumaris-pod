@@ -1,22 +1,29 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {isNotNil, PmfmStrategy, PmfmValueUtils, Program, ReferentialRef, referentialToString} from "../services/model";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {DataFilter, InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {environment} from "../../../environments/environment";
 import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 import {filterNumberInput} from "../../shared/inputs";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {Beans, changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, KeysEnum} from "../../shared/functions";
+import {Beans, changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, isNotNil, KeysEnum} from "../../shared/functions";
 import {BehaviorSubject, of} from "rxjs";
 import {firstFalsePromise} from "../../shared/observables";
 import {PmfmService} from "../services/pmfm.service";
 import {Pmfm} from "../services/model/pmfm.model";
-import {IReferentialRef, ReferentialUtils} from "../../core/services/model";
+import {
+  IReferentialRef,
+  ReferentialRef,
+  referentialToString,
+  ReferentialUtils
+} from "../../core/services/model/referential.model";
 import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
-import {debounceTime, map, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
+import {debounceTime, map, startWith, switchMap} from "rxjs/operators";
+import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {PmfmValueUtils} from "../services/model/pmfm-value.model";
+import {Program} from "../services/model/program.model";
 
 export class PmfmStrategyFilter {
 
@@ -57,7 +64,7 @@ export class PmfmStrategyFilter {
   }
 
   static isEmpty(aFilter: PmfmStrategyFilter|any): boolean {
-    return Beans.isEmpty(aFilter, PmfmStrategyFilterKeys, {
+    return Beans.isEmpty<PmfmStrategyFilter>(aFilter, PmfmStrategyFilterKeys, {
       blankStringLikeEmpty: true
     });
   }
@@ -69,6 +76,7 @@ export class PmfmStrategyFilter {
   taxonGroupIds?: number[];
   referenceTaxonIds?: number[];
 }
+
 export const PmfmStrategyFilterKeys: KeysEnum<PmfmStrategyFilter> = {
   strategyId: true,
   acquisitionLevel: true,
@@ -252,7 +260,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
               }
             }),
             debounceTime(200),
-            map(pmfm => isNotEmptyArray(pmfm && pmfm.qualitativeValues) ? pmfm.qualitativeValues : (pmfm.parameter && pmfm.parameter.qualitativeValues || []))
+            map(pmfm => isNotEmptyArray(pmfm && pmfm.qualitativeValues) ? pmfm.qualitativeValues : (pmfm.parameter && pmfm.parameter.qualitativeValues || []))
           ),
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-large-size'
@@ -319,7 +327,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     let rankOrder:number = null;
     if (acquisitionLevel) {
-      rankOrder = ((await this.getMaxRankOrder(acquisitionLevel)) || 0) + 1;
+      rankOrder = ((await this.getMaxRankOrder(acquisitionLevel)) || 0) + 1;
     }
     const defaultValues = {
       acquisitionLevel,
@@ -383,7 +391,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
       console.debug("[pmfm-strategy-table] Loaded referential items");
     } catch(err) {
-      this.error = err && err.message || err;
+      this.error = err && err.message || err;
       this.markForCheck();
     }
     finally {
@@ -395,7 +403,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const res = await this.referentialRefService.loadAll(0, 100, null, null, {
       entityName: 'AcquisitionLevel'
     }, {withTotal: false});
-    this.$acquisitionLevels.next(res && res.data || undefined)
+    this.$acquisitionLevels.next(res && res.data || undefined)
   }
 
   protected async loadPmfms() {
@@ -404,7 +412,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         withTotal: false,
         withDetails: true
       });
-    this.$pmfms.next(res && res.data || [])
+    this.$pmfms.next(res && res.data || [])
   }
 
   protected async loadGears() {
@@ -415,7 +423,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       {
         withTotal: false
       });
-    this.$gears.next(res && res.data || []);
+    this.$gears.next(res && res.data || []);
   }
 
   protected startEditingRow() {

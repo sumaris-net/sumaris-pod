@@ -1,38 +1,28 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {TripValidatorService} from "../services/trip.validator";
+import {TripValidatorService} from "../services/validator/trip.validator";
 import {ModalController} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
-import {
-  AppForm,
-  FormArrayHelper,
-  isNil,
-  isNotNil,
-  Person,
-  personToString,
-  ReferentialRef,
-  StatusIds
-} from '../../core/core.module';
-import {
-  LocationLevelIds,
-  ReferentialRefService,
-  referentialToString,
-  VesselModal,
-  VesselSnapshot
-} from "../../referential/referential.module";
-import {ReferentialUtils, UsageMode, UserProfileLabel} from "../../core/services/model";
+import {LocationLevelIds,} from "../../referential/services/model/model.enum";
+
+import {personToString, UserProfileLabel} from "../../core/services/model/person.model";
+import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
+import {UsageMode} from "../../core/services/model/settings.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {PersonService} from "../../admin/services/person.service";
 import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
 import {NetworkService} from "../../core/services/network.service";
-import {Vessel} from "../../referential/services/model";
+import {Vessel} from "../../referential/services/model/vessel.model";
 import {Metier} from "../../referential/services/model/taxon.model";
 import {METIER_DEFAULT_FILTER, MetierFilter} from "../../referential/services/metier.service";
 import {Trip} from "../services/model/trip.model";
-import {ReferentialRefFilter} from "../../referential/services/referential-ref.service";
+import {ReferentialRefFilter, ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {debounceTime, filter} from "rxjs/operators";
+import {AppForm, FormArrayHelper, isNil, isNotNil, Person, ReferentialRef, StatusIds} from '../../core/core.module';
+import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
+import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 
 const TRIP_METIER_DEFAULT_FILTER: MetierFilter = {
   entityName: 'Metier',
@@ -222,9 +212,9 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     }
     else {
       const value = this.form.value;
-      const date = value.returnDateTime || value.departureDateTime;
+      const date = value.returnDateTime || value.departureDateTime;
       const vesselId = value.vesselSnapshot && value.vesselSnapshot.id;
-      this.enableMetierFilter = date && isNotNil(vesselId);
+      this.enableMetierFilter = date && isNotNil(vesselId);
     }
 
     // Update the metier filter
@@ -358,14 +348,14 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   protected updateMetierFilter(value?: Trip) {
     console.debug("[trip-form] Updating metier filter...");
-    value = value || this.form.value as Trip;
+    value = value || this.form.value as Trip;
     const programLabel = value.program && value.program.label;
-    const date = value.returnDateTime || value.departureDateTime;
+    const date = value.returnDateTime || value.departureDateTime;
     const vesselId = value.vesselSnapshot && value.vesselSnapshot.id;
-    const canFilterMetier = date && isNotNilOrBlank(programLabel) && isNotNil(vesselId);
+    const canFilterMetier = date && isNotNilOrBlank(programLabel) && isNotNil(vesselId);
 
     let metierFilter;
-    if (!this.enableMetierFilter || !canFilterMetier) {
+    if (!this.enableMetierFilter || !canFilterMetier) {
       metierFilter = TRIP_METIER_DEFAULT_FILTER;
     }
     else {
@@ -377,7 +367,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         tripId: value.id
       };
     }
-    if (this.canFilterMetier !== canFilterMetier || this.metierFilter !== metierFilter) {
+    if (this.canFilterMetier !== canFilterMetier || this.metierFilter !== metierFilter) {
       this.canFilterMetier = canFilterMetier;
       this.metierFilter = metierFilter;
       this.markForCheck();

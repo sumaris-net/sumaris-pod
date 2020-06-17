@@ -1,4 +1,4 @@
-<app-toolbar [title]="$title | async" color="primary"
+<app-toolbar [title]="title$ | async" color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
@@ -49,7 +49,7 @@
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger"
-                  *ngIf="error || (submitted && (opeForm.invalid || measurementsForm.invalid))"></ion-icon>
+                  *ngIf="error || (submitted && (opeForm.invalid || measurementsForm.invalid))"></ion-icon>
       </ng-template>
 
       <!-- error -->

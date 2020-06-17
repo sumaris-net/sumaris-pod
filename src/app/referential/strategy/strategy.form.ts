@@ -1,9 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
-import {AppForm, AppTable, isNil, isNotNil, ReferentialRef} from "../../core/core.module";
-import {Program, referentialToString, Strategy, TaxonGroupStrategy, TaxonNameStrategy} from "../services/model";
+import {AppEditor, isNotNil, ReferentialRef, referentialToString} from "../../core/core.module";
 import {ReferentialForm} from "../form/referential.form";
-import {ReferentialUtils} from "../../core/services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {PmfmStrategiesTable, PmfmStrategyFilter} from "./pmfm-strategies.table";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {SelectReferentialModal} from "../list/select-referential.modal";
@@ -16,98 +14,65 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {BehaviorSubject} from "rxjs";
 import {debounceTime} from "rxjs/operators";
+import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {AccountService} from "../../core/services/account.service";
+import {ReferentialValidatorService} from "../services/validator/referential.validator";
+import {Strategy, TaxonGroupStrategy, TaxonNameStrategy} from "../services/model/strategy.model";
+import {Program} from "../services/model/program.model";
 
 @Component({
   selector: 'app-strategy-form',
   templateUrl: 'strategy.form.html',
   styleUrls: ['strategy.form.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: StrategyValidatorService}
+    {provide: ReferentialValidatorService, useExisting: StrategyValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StrategyForm extends AppForm<Strategy> implements OnInit {
+export class StrategyForm extends AppEditor<Strategy> implements OnInit {
 
-  data: Strategy;
-  components: (AppForm<any>|AppTable<any>)[] = [];
+
+  filterForm: FormGroup;
   $filter = new BehaviorSubject<Partial<PmfmStrategyFilter>>({});
+  $allAcquisitionLevels = new BehaviorSubject<ReferentialRef[]>(undefined);
+  taxonGroupListOptions = {
+    allowEmptyArray: true,
+    allowMultipleSelection: true,
+    buttons: [{
+      // TODO title:
+      icon: 'arrow-forward-circle-outline',
+      click: (event, item) => this.applyTaxonGroupToPmfm(event, item)
+    }]};
+  taxonNameListOptions = {
+    allowEmptyArray: true,
+    allowMultipleSelection: true,
+    buttons: [{
+      // TODO title:
+      icon: 'arrow-forward-circle-outline',
+      click: (event, item) => this.applyTaxonNameToPmfm(event, item)
+    }]};
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('acquisitionLevelList', { static: true }) acquisitionLevelList: AppListForm;
   @ViewChild('locationsList', { static: true }) locationListForm: AppListForm;
   @ViewChild('gearsList', { static: true }) gearListForm: AppListForm;
+
   @ViewChild('taxonGroupsList', { static: true }) taxonGroupListForm: AppListForm;
+
+
   @ViewChild('taxonNamesList', { static: true }) taxonNameListForm: AppListForm;
+
 
   @ViewChild('pmfmStrategiesTable', { static: true }) pmfmStrategiesTable: PmfmStrategiesTable;
 
-  get isNewData(): boolean {
-    return !this.data || isNil(this.data.id);
-  }
-
-  get value(): Strategy {
-    return this.data;
-  }
-
-  @Input() set value(data: Strategy) {
-    if (this.data !== data) {
-      this.setValue(data);
-    }
+  get form(): FormGroup {
+    return this.referentialForm.form;
   }
 
   get firstError(): string {
-    const errorComponent = this.components.find(item => isNotNil(item.error));
-    return errorComponent && errorComponent.error;
-  }
-
-  get dirty(): boolean {
-    return this._enable && this.components.findIndex(component => component.dirty) !== -1;
-  }
-
-  get invalid(): boolean {
-    return this._enable && this.components.findIndex(component => component.invalid) !== -1;
-  }
-
-  get valid(): boolean {
-    return !this._enable || this.components.findIndex(component => !component.valid) === -1;
-  }
-
-  get pending(): boolean {
-    return this._enable && this.components.findIndex(component => component.pending) !== -1;
-  }
-
-  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAsPristine(opts);
-    this.components.forEach(component => component.markAsPristine(opts));
-  }
-
-  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAsTouched(opts);
-    this.components.forEach(component => component.markAsTouched(opts));
-  }
-
-  markAsUntouched(opts?: { onlySelf?: boolean }) {
-    super.markAsUntouched(opts);
-    this.components.forEach(component => component.markAsUntouched(opts));
-  }
-
-  disable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }): void {
-    super.disable(opts);
-    this.components.forEach(component => component.disable(opts));
-  }
-
-  enable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }): void {
-    super.enable(opts);
-    if (!this.isNewData) {
-      this.form.get('label').disable();
-    }
-    this.components.forEach(component => component.enable(opts));
+    const firstChildWithError = this.children.find(item => isNotNil(item.error));
+    return firstChildWithError && firstChildWithError.error;
   }
 
   @Input() program: Program;
@@ -117,33 +82,33 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
 
   constructor(
     protected injector: Injector,
+    protected formBuilder: FormBuilder,
     protected dateAdapter: DateAdapter<Moment>,
     protected settings: LocalSettingsService,
     protected validatorService: StrategyValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
+    protected accountService: AccountService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter,
-      validatorService.getFormGroup(),
-      settings);
+    super(injector, Strategy, null, {
+      pathIdAttribute: null, // Do not load from route
+      autoLoad: false
+    });
 
-    this._enable = false; // Waiting value to be set
+    this.filterForm = formBuilder.group({
+      acquisitionLevels: [null],
+      locations: formBuilder.array([])
+    });
+
     //this.debug = !environment.production;
   }
 
   ngOnInit() {
+    //this.referentialForm.setForm(this.validatorService.getFormGroup());
+
     super.ngOnInit();
 
-    this.components = [
-      this.referentialForm,
-      this.pmfmStrategiesTable,
-      this.acquisitionLevelList,
-      this.locationListForm,
-      this.gearListForm,
-      this.taxonGroupListForm,
-      this.taxonNameListForm
-    ];
 
     this.registerSubscription(
       this.$filter
@@ -153,6 +118,12 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
         .subscribe(filter => this.pmfmStrategiesTable.setFilter(filter))
     );
 
+    // Load acquisition levels
+    this.registerSubscription(
+      this.referentialRefService.watchAll(0,1000, 'name', 'asc', {entityName: 'AcquisitionLevel'}, {fetchPolicy: 'cache-first', withTotal: false})
+        .subscribe(res => this.$allAcquisitionLevels.next(res && res.data || []))
+    );
+
     // TODO: Check label is unique
     /*this.form.get('label')
       .setAsyncValidators(async (control: AbstractControl) => {
@@ -160,6 +131,52 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
         return label && (await this.programService.existsByLabel(label)) ? {unique: true} : null;
       });*/
 
+  }
+
+  protected registerForms() {
+    this.addChildForms([
+      this.referentialForm,
+      this.pmfmStrategiesTable,
+      this.acquisitionLevelList,
+      this.locationListForm,
+      this.gearListForm,
+      this.taxonGroupListForm,
+      this.taxonNameListForm
+    ]);
+  }
+
+  protected getFirstInvalidTabIndex(): number {
+    return 0;
+  }
+
+  protected async computeTitle(data: Strategy): Promise<string> {
+    return data && referentialToString(data) || 'PROGRAM.STRATEGY.NEW.TITLE';
+  }
+
+  protected canUserWrite(data: Strategy): boolean {
+    return this.enabled && this.accountService.isAdmin(); // TODO test user is a program's manager
+  }
+
+  async save(event?: Event, options?: any): Promise<boolean> {
+    if (this.dirty) {
+      if (!this.valid) {
+        await this.waitWhilePending();
+        if (this.invalid) {
+          this.logFormErrors();
+          return false;
+        }
+      }
+
+      const json = await this.getJsonValueToSave();
+      const data = Strategy.fromObject(json);
+      this.updateView(data, {openTabIndex: -1, updateTabAndRoute: false});
+    }
+
+    return true;
+  }
+
+  updateView(data: Strategy | null, opts?: { openTabIndex?: number; updateTabAndRoute?: boolean }) {
+    super.updateView(data, {...opts, updateTabAndRoute: false});
   }
 
   async openSelectReferentialModal(opts: {
@@ -191,7 +208,7 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
     });
 
     // Add to list
-    (items || []).forEach(item => this.acquisitionLevelList.add(item))
+    (items || []).forEach(item => this.acquisitionLevelList.add(item))
 
     this.markForCheck();
   }
@@ -202,12 +219,12 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
     const items = await this.openSelectReferentialModal({
       filter: {
         entityName: 'Location',
-        levelIds: (this.program && this.program.locationClassifications || []).map(item => item.id).filter(isNotNil)
+        levelIds: (this.program && this.program.locationClassifications || []).map(item => item.id).filter(isNotNil)
       }
     });
 
     // Add to list
-    (items || []).forEach(item => this.locationListForm.add(item))
+    (items || []).forEach(item => this.locationListForm.add(item))
 
     this.markForCheck();
   }
@@ -218,12 +235,12 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
     const items = await this.openSelectReferentialModal({
       filter: {
         entityName: 'Gear',
-        levelId: this.program && this.program.gearClassification ? toNumber(this.program.gearClassification.id, -1) : -1
+        levelId: this.program && this.program.gearClassification ? toNumber(this.program.gearClassification.id, -1) : -1
       }
     });
 
     // Add to list
-    (items || []).forEach(item => this.gearListForm.add(item))
+    (items || []).forEach(item => this.gearListForm.add(item))
     this.markForCheck();
   }
 
@@ -235,12 +252,12 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
     const items = await this.openSelectReferentialModal({
       filter: {
         entityName: 'TaxonGroup',
-        levelId: this.program && this.program.taxonGroupType ? toNumber(this.program.taxonGroupType.id, -1) : -1
+        levelId: this.program && this.program.taxonGroupType ? toNumber(this.program.taxonGroupType.id, -1) : -1
       }
     });
 
     // Add to list
-    (items || []).map(taxonGroup => TaxonGroupStrategy.fromObject({
+    (items || []).map(taxonGroup => TaxonGroupStrategy.fromObject({
       priorityLevel,
       taxonGroup: taxonGroup.asObject()
     }))
@@ -261,7 +278,7 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
     });
 
     // Add to list
-    (items || []).map(taxonName => TaxonNameStrategy.fromObject({
+    (items || []).map(taxonName => TaxonNameStrategy.fromObject({
       priorityLevel,
       taxonName: taxonName.asObject()
     }))
@@ -269,36 +286,18 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
     this.markForCheck();
   }
 
-  async save(event?: UIEvent): Promise<boolean> {
+  async load(id?: number, opts?: EditorDataServiceLoadOptions): Promise<void> {
 
-    const json = await this.getJsonValueToSave();
-
-    this.data = this.data || new Strategy();
-    this.data.fromObject(json);
-
-    return true;
   }
 
-  reset(data?: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
-    this.components.forEach(component => {
-      if (component instanceof AppTable) {
-        component.markAsLoading(opts);
-      }
-      else if (component instanceof AppForm) {
-        component.reset(null, opts);
-      }
-    })
-  }
-
-  async setValue(data: Strategy) {
-    data = data || new Strategy();
+  setValue(data: Strategy) {
 
     console.debug("[strategy-form] Setting value", data);
-    this.data = data;
-    const json = data.asObject();
+    //const json = data.asObject();
 
-    this.form.patchValue(json, {emitEvent: false});
+    this.referentialForm.setForm(this.validatorService.getFormGroup(data));
+    //AppFormUtils.copyEntity2Form(data, this.form, {emitEvent: false});
 
     // TODO get locations from AppliedStrategy
     this.locationListForm.value = []; //data.locations;
@@ -307,18 +306,19 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
     this.taxonGroupListForm.value = data.taxonGroups;
     this.taxonNameListForm.value = data.taxonNames;
 
-    const allAcquisitionLevels = (await this.referentialRefService.loadAll(0,1000, 'name', 'asc', {entityName: 'AcquisitionLevel'}, {fetchPolicy: 'cache-first'})).data;
-    const collectedAcquisitionLevels = (data.pmfmStrategies || []).reduce((res, item) => {
+
+    const allAcquisitionLevels = this.$allAcquisitionLevels.getValue();
+    const collectedAcquisitionLevels = (data.pmfmStrategies || []).reduce((res, item) => {
       if (typeof item.acquisitionLevel === "string" && res[item.acquisitionLevel] === undefined) {
-        res[item.acquisitionLevel] = allAcquisitionLevels.find(al => al.label === item.acquisitionLevel) || null;
+        res[item.acquisitionLevel] = allAcquisitionLevels.find(al => al.label === item.acquisitionLevel) || null;
       }
       return res;
     }, <{[key: string]: ReferentialRef|null}>{});
     this.acquisitionLevelList.value = Object.values(collectedAcquisitionLevels).filter(isNotNil) as ReferentialRef[];
 
-    this.pmfmStrategiesTable.value = data.pmfmStrategies || [];
+    this.pmfmStrategiesTable.value = data.pmfmStrategies || [];
 
-    this.markAsPristine();
+
   }
 
   /* -- protected methods -- */
@@ -338,7 +338,7 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
 
     if (this.pmfmStrategiesTable.dirty) {
       const saved = await this.pmfmStrategiesTable.save();
-      // TODO if (!saved)
+      if (!saved) throw Error('Failed to save pmfmStrategiesTable');
     }
     json.pmfmStrategies = this.pmfmStrategiesTable.value;
 
@@ -346,7 +346,7 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   updateFilterAcquisitionLevel(value: ReferentialRef|any) {
-    const acquisitionLevel = value && (value as ReferentialRef).label || undefined;
+    const acquisitionLevel = value && (value as ReferentialRef).label || undefined;
     this.patchPmfmStrategyFilter({acquisitionLevel});
   }
 
@@ -370,6 +370,36 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
     this.patchPmfmStrategyFilter({referenceTaxonIds});
   }
 
+  /**
+   * Applying a taxonName to selected PmfmSTrategy
+   * @param event
+   */
+  applyTaxonGroupToPmfm(event: UIEvent, item: TaxonGroupStrategy) {
+    console.debug("TODO: applying taxon group", item);
+    event.preventDefault();
+
+    const taxonGroupId = item.taxonGroup && item.taxonGroup.id;
+    (this.pmfmStrategiesTable.selection.selected || [])
+      .forEach(row => {
+        const control = row.validator.get('taxonGroupIds');
+        const taxonGroupIds = (control.value || []) as number[];
+        if (!taxonGroupIds.includes(taxonGroupId)) {
+          //row.startEdit();
+          taxonGroupIds.push(taxonGroupId);
+          control.setValue(taxonGroupIds);
+          //row.confirmEditCreate();
+          row.validator.markAsDirty();
+        }
+      });
+    this.markForCheck();
+  }
+
+
+  applyTaxonNameToPmfm(event: UIEvent, item: TaxonNameStrategy) {
+    console.debug("TODO: applying taxon name", item);
+    event.preventDefault();
+  }
+
   protected patchPmfmStrategyFilter(filter: Partial<PmfmStrategyFilter>) {
     this.$filter.next({
       ...this.$filter.getValue(),
@@ -378,7 +408,7 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   taxonGroupStrategyToString(data: TaxonGroupStrategy): string {
-    return data && referentialToString(data.taxonGroup) || '';
+    return data && referentialToString(data.taxonGroup) || '';
   }
 
   taxonGroupStrategyEquals(v1: TaxonGroupStrategy, v2: TaxonGroupStrategy) {
@@ -386,7 +416,7 @@ export class StrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   taxonNameStrategyToString(data: TaxonNameStrategy): string {
-    return data && referentialToString(data.taxonName) || '';
+    return data && referentialToString(data.taxonName) || '';
   }
 
   taxonNameStrategyEquals(v1: TaxonNameStrategy, v2: TaxonNameStrategy) {

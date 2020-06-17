@@ -1,7 +1,7 @@
-import { Component, ViewChild } from '@angular/core';
-import { ModalController } from '@ionic/angular';
-import { AccountService } from "../../services/account.service";
-import { RegisterForm } from '../form/form-register';
+import {Component, ViewChild} from '@angular/core';
+import {ModalController} from '@ionic/angular';
+import {AccountService} from "../../services/account.service";
+import {RegisterForm} from '../form/form-register';
 
 @Component({
   selector: 'modal-register',

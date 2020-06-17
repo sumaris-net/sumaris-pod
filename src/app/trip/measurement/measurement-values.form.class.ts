@@ -1,13 +1,14 @@
-import { ChangeDetectorRef, EventEmitter, Input, OnInit, Output, Directive } from '@angular/core';
+import {ChangeDetectorRef, Directive, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {FloatLabelType} from "@angular/material/form-field";
 import {BehaviorSubject, isObservable, Observable} from 'rxjs';
 import {AppForm, isNil, isNotNil} from '../../core/core.module';
-import {PmfmStrategy, ProgramService} from "../../referential/referential.module";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ProgramService} from "../../referential/services/program.service";
 import {FormBuilder, FormGroup} from '@angular/forms';
-import {MeasurementsValidatorService} from '../services/measurement.validator';
-import {filter, first, throttleTime} from "rxjs/operators";
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {filter, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -95,6 +96,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.setPmfms(pmfms);
   }
 
+  get measurementValuesForm(): FormGroup {
+    return this.form.get('measurementValues') as FormGroup;
+  }
+
   protected constructor(protected dateAdapter: DateAdapter<Moment>,
                         protected measurementValidatorService: MeasurementsValidatorService,
                         protected formBuilder: FormBuilder,
@@ -106,8 +111,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   ) {
     super(dateAdapter, form, settings);
 
-    // TODO: DEV only
-    //this.debug = true;
 
     this.registerSubscription(
       this._onRefreshPmfms
@@ -119,6 +122,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       filterNotNil(this.$pmfms)
         .subscribe((pmfms) => this.updateControls('constructor', pmfms))
     );
+
+    // TODO: DEV only
+    //this.debug = true;
   }
 
   ngOnInit() {
@@ -139,7 +145,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
-    if (!this.isReady() || !this.data) {
+    if (!this.isReady() || !this.data) {
       this.safeSetValue(data, opts); // Loop
       return;
     }
@@ -156,7 +162,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   reset(data?: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
-    if (!this.isReady() || !this.data) {
+    if (!this.isReady() || !this.data) {
       this.safeSetValue(data, opts); // Loop
       return;
     }
@@ -173,7 +179,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   isReady(): boolean {
-    return this._ready || (!this.$loadingControls.getValue()  && !this.loadingPmfms);
+    return this._ready || (!this.$loadingControls.getValue()  && !this.loadingPmfms);
   }
 
   async ready(): Promise<void> {
@@ -292,7 +298,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.measurementFormGroup = form.get('measurementValues') as FormGroup;
 
     // Waiting end of pmfm load
-    if (!pmfms || !form || this.loadingPmfms) {
+    if (!pmfms || this.loadingPmfms) {
       if (this.debug) console.debug(`${this.logPrefix} updateControls(${event}): waiting pmfms...`);
       pmfms = await firstNotNilPromise(
         // groups pmfms updates event, if many updates in few duration
@@ -366,11 +372,14 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   async setPmfms(value: PmfmStrategy[] | Observable<PmfmStrategy[]>): Promise<PmfmStrategy[]> {
+    // If no pmfms
     if (!value) {
-      //if (this.debug)
-      console.warn(`${this.logPrefix} setPmfms(null|undefined): resetting pmfms`);
-      this.loadingPmfms = true;
-      this.$pmfms.next(undefined);
+      // If need, reset pmfms
+      if (!this.loadingPmfms || isNotNil(this.$pmfms.getValue())) {
+        if (this.debug && isNotNil(this.$pmfms.getValue())) console.warn(`${this.logPrefix} setPmfms(null|undefined): resetting pmfms`);
+        this.loadingPmfms = true;
+        this.$pmfms.next(undefined);
+      }
       return undefined; // skip
     }
 

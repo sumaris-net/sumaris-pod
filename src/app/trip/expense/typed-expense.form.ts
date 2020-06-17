@@ -8,7 +8,7 @@ import {ProgramService} from "../../referential/services/program.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {TypedExpenseValidatorService} from "../services/validator/typed-expense.validator";
 import {BehaviorSubject} from "rxjs";
-import {PmfmStrategy} from "../../referential/services/model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {filterNotNil} from "../../shared/observables";
 import {isNotEmptyArray, isNotNilOrNaN, remove, removeAll} from "../../shared/functions";
 import {Measurement} from "../services/model/measurement.model";

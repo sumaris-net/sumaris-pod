@@ -9,7 +9,7 @@ import {ModalController} from "@ionic/angular";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {NetworkService} from "../../core/services/network.service";
 import {FishingAreaValidatorService} from "../services/validator/fishing-area.validator";
-import {LocationLevelIds} from "../../referential/services/model";
+import {LocationLevelIds} from "../../referential/services/model/model.enum";
 
 @Component({
   selector: 'app-fishing-area-form',

@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Optional} from "@angular/core";
 import {FormArray, FormBuilder, FormGroup, FormGroupDirective, Validators} from "@angular/forms";
-import {EntityUtils} from "../services/model";
+import {EntityUtils} from "../services/model/entity.model";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 import {isEmptyArray, isNil} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
@@ -72,11 +72,11 @@ export class AppPropertiesForm<T = FormFieldValue> extends AppForm<T[]> implemen
     });
 
     // Retrieve the form
-    const form = (this.formArray && this.formArray.parent as FormGroup || this.formGroupDir && this.formGroupDir.form || this.formBuilder.group({}));
+    const form = (this.formArray && this.formArray.parent as FormGroup || this.formGroupDir && this.formGroupDir.form || this.formBuilder.group({}));
     this.setForm(form);
 
-    this.formArray = this.formArray || this.formArrayName && form.get(this.formArrayName) as FormArray
-    this.formArrayName = this.formArrayName || this.formArray && Object.keys(form.controls).find(key => form.get(key) === this.formArray) || 'properties';
+    this.formArray = this.formArray || this.formArrayName && form.get(this.formArrayName) as FormArray
+    this.formArrayName = this.formArrayName || this.formArray && Object.keys(form.controls).find(key => form.get(key) === this.formArray) || 'properties';
     if (!this.formArray) {
       console.warn(`Missing array control '${this.formArrayName}'. Will create it!`)
       this.formArray = this.formBuilder.array([]);

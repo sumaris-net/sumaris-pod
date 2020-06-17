@@ -2,13 +2,9 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit}
 import {ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  environment,
-  isNil,
+  environment, isNil,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-  referentialToString,
-  personsToString,
-  ReferentialRef, StatusIds, personToString
+  RESERVED_START_COLUMNS
 } from "../../core/core.module";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ModalController} from "@ionic/angular";
@@ -17,17 +13,21 @@ import {AccountService} from "../../core/services/account.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
+import {personToString, personsToString} from "../../core/services/model/person.model";
+import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
 import {AppTableDataSource} from "../../core/table/table-datasource.class";
 import {debounceTime, filter, tap} from "rxjs/operators";
 import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
-import {ObservedLocationValidatorService} from "../services/observed-location.validator";
-import {LocationLevelIds, qualityFlagToColor, vesselSnapshotToString} from "../../referential/services/model";
+import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
+import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {qualityFlagToColor} from "../../data/services/model/model.utils";
+import {vesselSnapshotToString} from "../../referential/services/model/vessel-snapshot.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {TripFilter} from "../services/trip.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {PersonService} from "../../admin/services/person.service";
 import {SharedValidators} from "../../shared/validator/validators";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 @Component({
   selector: 'app-observed-locations-page',
@@ -77,7 +77,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       new AppTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        serviceOptions: {
+        dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
       })
@@ -200,10 +200,10 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     const json = this.settings.getPageSettings(this.settingsId, 'filter');
 
     // No default filter: load all trips
-    if (isNil(json) || typeof json !== 'object') {
+    if (isNil(json) || typeof json !== 'object') {
       // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
       this.onRefresh.emit();
-      // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
+      // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
       this.filterForm.patchValue({}, {emitEvent: false});
     }
     // Restore the filter (will apply it)

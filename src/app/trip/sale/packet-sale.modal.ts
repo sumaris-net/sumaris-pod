@@ -1,17 +1,10 @@
-import {
-  AfterViewInit,
-  Component,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from "@angular/core";
+import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {ModalController} from "@ionic/angular";
 import {Subject, Subscription} from "rxjs";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {Packet} from "../services/model/packet.model";
 import {PacketSaleForm} from "./packet-sale.form";
-import {PmfmStrategy} from "../../referential/services/model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {TranslateService} from "@ngx-translate/core";
 
 @Component({

@@ -13,30 +13,21 @@ import {
 import {isObservable, Observable, Subscription} from 'rxjs';
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {AppFormUtils, EntityUtils, environment, IReferentialRef, referentialToString} from "../../core/core.module";
-import {
-  AcquisitionLevelCodes,
-  PmfmIds,
-  PmfmStrategy,
-  QualitativeLabels,
-  ReferentialRefService
-} from "../../referential/referential.module";
 import {FormGroup, Validators} from "@angular/forms";
-import {
-  isNil,
-  isNilOrBlank,
-  isNotNil,
-  startsWithUpperCase,
-  toBoolean, toNumber
-} from "../../shared/functions";
-import {ReferentialUtils, UsageMode} from "../../core/services/model";
+import {isNil, isNilOrBlank, isNotNil, startsWithUpperCase, toBoolean} from "../../shared/functions";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {UsageMode} from "../../core/services/model/settings.model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {Batch, BatchUtils} from "../services/model/batch.model";
-import {SubBatchValidatorService} from "../services/sub-batch.validator";
+import {SubBatchValidatorService} from "../services/validator/sub-batch.validator";
 import {SubBatchForm} from "./sub-batch.form";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {SubBatchModal} from "./sub-batch.modal";
 import {selectInputContent} from "../../shared/inputs";
+import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -432,7 +423,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       this.form.markAsUntouched({onlySelf: true});
     }
 
-    if (!opts || opts.emitEvent !== false) {
+    if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
     }
   }
@@ -656,7 +647,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     data.forEach(s => {
       const parentId = s.parentId || (s.parent && s.parent.id);
       const parentLabel = (s.parent && s.parent.label);
-      s.parent = this._availableParents.find(p => (isNotNil(parentId) && p.id === parentId) || (parentLabel && p.label === parentLabel)) || null;
+      s.parent = this._availableParents.find(p => (isNotNil(parentId) && p.id === parentId) || (parentLabel && p.label === parentLabel)) || null;
       if (!s.parent) console.warn("[sub-batches-table] linkDataToParent() - Could not found parent for sub-batch:", s);
     });
   }

@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy} from '@angular/core';
 import {ModalController} from '@ionic/angular';
-import {Peer} from "../services/model";
+import {Peer} from "../services/model/peer.model";
 import {Observable, Subject, Subscription} from "rxjs";
 import {fadeInAnimation} from "../../shared/material/material.animations";
 import {HttpClient} from "@angular/common/http";

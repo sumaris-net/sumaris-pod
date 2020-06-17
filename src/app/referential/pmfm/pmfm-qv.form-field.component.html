@@ -24,7 +24,7 @@
                 type="button"
                 *ngIf="clearable"
                 (click)="clear()"
-                [hidden]="formControl.disabled || !formControl.value">
+                [hidden]="formControl.disabled || !formControl.value">
           <mat-icon>close</mat-icon>
         </button>
         <button mat-button matSuffix  mat-icon-button tabindex="-1"
@@ -133,7 +133,7 @@
                         (click)="writeValue(item)"
                         (keyup.enter)="writeValue(item)"
                         [color]="selectedIndex === -1 ? 'danger': (selectedIndex === i ? 'accent' : 'light')">
-              {{item.name || item.label}}
+              {{item.name || item.label}}
             </ion-button>
           </ion-col>
         </ion-row>

@@ -1,17 +1,17 @@
-import {
-  DataEntityAsObjectOptions,
-  DataRootVesselEntity,
-  fromDateISOString,
-  IWithObserversEntity,
-  NOT_MINIFY_OPTIONS,
-  Person,
-  ReferentialRef,
-  toDateISOString
-} from "./base.model";
+import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {Moment} from "moment";
 import {MeasurementValuesUtils} from "./measurement.model";
 import {Sample} from "./sample.model";
-import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model";
+import {
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  ReferentialUtils
+} from "../../../core/services/model/referential.model";
+import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
+import {IWithObserversEntity} from "../../../data/services/model/model.utils";
+import {Person} from "../../../core/services/model/person.model";
+import {fromDateISOString, toDateISOString} from "../../../shared/functions";
 
 /**
  * Landing entity
@@ -21,6 +21,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   static TYPENAME = 'LandingVO';
 
   static fromObject(source: any): Landing {
+    if (!source || source instanceof Landing) return source;
     const res = new Landing();
     res.fromObject(source);
     return res;

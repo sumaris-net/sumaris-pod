@@ -3,11 +3,11 @@ import {TableElement, ValidatorService} from "angular4-material-table";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {SubBatchForm} from "./sub-batch.form";
-import {SubBatchValidatorService} from "../services/sub-batch.validator";
+import {SubBatchValidatorService} from "../services/validator/sub-batch.validator";
 import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "./sub-batches.table";
 import {AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {AppFormUtils, EntityUtils, environment, isNil} from "../../core/core.module";
+import {AppFormUtils, EntityUtils, isNil} from "../../core/core.module";
 import {Animation, ModalController} from "@ionic/angular";
 import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
 import {AudioProvider} from "../../shared/audio/audio";
@@ -173,7 +173,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
       const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
       // User cancelled
-      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
+      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
         return;
       }
 
@@ -287,7 +287,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
       const showIndividualCount = this.showIndividualCount; // Read once the getter value
 
       const hiddenData = [];
-      let maxRankOrder = this._previousMaxRankOrder || this._initialMaxRankOrder;
+      let maxRankOrder = this._previousMaxRankOrder || this._initialMaxRankOrder;
       const filteredData = data.reduce((res, b) => {
         maxRankOrder = Math.max(maxRankOrder, b.rankOrder || 0);
         // Filter on individual count = 1 when individual count is hide
@@ -316,7 +316,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   }
 
   protected async getMaxRankOrder(): Promise<number> {
-    return Math.max(await super.getMaxRankOrder(), this._previousMaxRankOrder || this._initialMaxRankOrder);
+    return Math.max(await super.getMaxRankOrder(), this._previousMaxRankOrder || this._initialMaxRankOrder);
   }
 
   protected async addEntityToTable(newBatch: Batch): Promise<TableElement<Batch>> {

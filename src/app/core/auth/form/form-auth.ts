@@ -6,7 +6,7 @@ import {AuthData} from "../../services/account.service";
 import {environment} from "../../../../environments/environment";
 import {NetworkService} from "../../services/network.service";
 import {LocalSettingsService} from "../../services/local-settings.service";
-import {fadeInAnimation, slideUpDownAnimation} from "../../../shared/material/material.animations";
+import {slideUpDownAnimation} from "../../../shared/material/material.animations";
 
 
 @Component({

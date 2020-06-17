@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {AppForm, AppFormUtils, FormArrayHelper} from "../../core/core.module";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {UsageMode} from "../../core/services/model";
+import {UsageMode} from "../../core/services/model/settings.model";
 import {isNotEmptyArray} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
@@ -10,8 +10,9 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Packet} from "../services/model/packet.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {Subscription} from "rxjs";
-import {fillRankOrder, PmfmStrategy} from "../services/model/base.model";
+import {fillRankOrder} from "../../data/services/model/model.utils";
 import {SaleProduct, SaleProductUtils} from "../services/model/sale-product.model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 
 @Component({
   selector: 'app-packet-sale-form',

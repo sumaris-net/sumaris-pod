@@ -1,21 +1,30 @@
-import {AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  QueryList,
+  ViewChild,
+  ViewChildren
+} from '@angular/core';
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementsForm} from "../measurement/measurements.form.component";
-import {isNil, PmfmStrategy} from "../../referential/services/model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ProgramService} from "../../referential/services/program.service";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {PlatformService} from "../../core/services/platform.service";
 import {BehaviorSubject} from "rxjs";
-import {isNotEmptyArray, isNotNilOrNaN, remove, removeAll, round} from "../../shared/functions";
-import {ObjectMap} from "../../core/services/model";
+import {isNil, isNotEmptyArray, isNotNilOrNaN, remove, removeAll, round} from "../../shared/functions";
+import {ObjectMap} from "../../core/services/model/entity.model";
 import {debounceTime, filter} from "rxjs/operators";
 import {Measurement, MeasurementUtils} from "../services/model/measurement.model";
 import {ExpenseValidatorService} from "../services/validator/expense.validator";
 import {FormArrayHelper} from "../../core/form/form.utils";
-import {getMaxRankOrder} from "../services/model/base.model";
+import {getMaxRankOrder} from "../../data/services/model/model.utils";
 import {TypedExpenseForm} from "./typed-expense.form";
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';

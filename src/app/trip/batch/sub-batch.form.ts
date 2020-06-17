@@ -14,23 +14,27 @@ import {Batch} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {MeasurementsValidatorService} from "../services/measurement.validator";
+import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {SubBatchValidatorService} from "../services/sub-batch.validator";
-import {EntityUtils, ReferentialUtils, UsageMode} from "../../core/services/model";
+import {SubBatchValidatorService} from "../services/validator/sub-batch.validator";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {UsageMode} from "../../core/services/model/settings.model";
 import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
-import {
-  AcquisitionLevelCodes,
-  isNil,
-  isNotNil,
-  PmfmIds,
-  PmfmStrategy,
-  QualitativeLabels
-} from "../../referential/services/model";
+import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {BehaviorSubject, combineLatest} from "rxjs";
-import {getPropertyByPath, isNilOrBlank, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "../../shared/functions";
+import {
+  getPropertyByPath,
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
+  startsWithUpperCase,
+  toBoolean
+} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PlatformService} from "../../core/services/platform.service";
@@ -353,7 +357,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // Reset taxon name button index
     if (this.mobile && data && data.taxonName && isNotNil(data.taxonName.id)) {
-      this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
+      this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
     }
     else {
       this.selectedTaxonNameIndex = -1;
@@ -371,7 +375,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // Reset taxon name button index
     if (this.mobile && data && data.taxonName && isNotNil(data.taxonName.id)) {
-      this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
+      this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
     }
     else {
       this.selectedTaxonNameIndex = -1;
@@ -556,7 +560,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     // Parent not found
     if (!data.parent) {
       // Force to allow parent selection
-      this.showParent = this.showParent || true;
+      this.showParent = this.showParent || true;
     }
 
     // Get the parent of the parent (e.g. if parent is a sample batch)

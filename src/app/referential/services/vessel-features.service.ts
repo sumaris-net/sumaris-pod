@@ -1,20 +1,14 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {Department, EntityUtils, isNil, Person, VesselFeatures, VesselSnapshot} from "./model";
-import {
-  EditorDataService,
-  EditorDataServiceLoadOptions,
-  LoadResult,
-  TableDataService
-} from "../../shared/shared.module";
+import {VesselFeatures} from "./model/vessel.model";
+import {LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {VesselFilter} from "./vessel-service";
-import {AccountService} from "../../core/services/account.service";
 
 export const VesselFeaturesFragments = {
     vesselFeatures: gql`fragment VesselFeaturesFragment on VesselFeaturesVO {

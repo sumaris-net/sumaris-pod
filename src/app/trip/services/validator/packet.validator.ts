@@ -1,9 +1,16 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
+import {
+  SharedFormArrayValidators,
+  SharedFormGroupValidators,
+  SharedValidators
+} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.validator";
+import {
+  DataEntityValidatorOptions,
+  DataEntityValidatorService
+} from "../../../data/services/validator/data-entity.validator";
 import {Packet, PacketComposition} from "../model/packet.model";
 import {PacketCompositionValidatorService} from "./packet-composition.validator";
 

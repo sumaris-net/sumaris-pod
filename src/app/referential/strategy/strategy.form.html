@@ -15,7 +15,7 @@
                       [class.cdk-visually-hidden]="!showBaseForm">
 </app-referential-form>
 
-<!-- Other fields -->
+<!-- Filter form -->
 <form [formGroup]="form" class="form-container">
   <ion-grid>
     <ion-row>
@@ -38,6 +38,7 @@
 
             <app-list-form #acquisitionLevelList
                            [displayWith]="getReferentialName"
+                           [formArray]="filterForm.controls.acquisitionLevels"
                            [equals]="referentialEquals"
                            [options]="{allowEmptyArray: true, allowMultipleSelection: false}"
                            (onSelectionChange)="updateFilterAcquisitionLevel($event && $event[0])"
@@ -58,6 +59,7 @@
             </mat-expansion-panel-header>
 
             <app-list-form #locationsList
+                           [formArray]="filterForm.controls.locations"
                            [displayWith]="referentialToString"
                            [equals]="referentialEquals"
                            [options]="{allowEmptyArray: true, allowMultipleSelection: true}"
@@ -79,6 +81,7 @@
             </mat-expansion-panel-header>
 
             <app-list-form #gearsList
+                           formArrayName="gears"
                            [displayWith]="referentialToString"
                            [equals]="referentialEquals"
                            [options]="{allowEmptyArray: true, allowMultipleSelection: true}"
@@ -100,13 +103,14 @@
             </mat-expansion-panel-header>
 
             <app-list-form #taxonGroupsList
+                           formArrayName="taxonGroups"
                            [displayWith]="taxonGroupStrategyToString"
                            [equals]="taxonGroupStrategyEquals"
-                           [options]="{allowEmptyArray: true, allowMultipleSelection: true}"
+                           [options]="taxonGroupListOptions"
                            (onSelectionChange)="updateFilterTaxonGroups($event)"
                            (onNewItem)="addTaxonGroup()">
+              <span slot="end" >TOTO</span>
             </app-list-form>
-
           </mat-expansion-panel>
 
           <!-- Taxon names -->
@@ -122,9 +126,10 @@
             </mat-expansion-panel-header>
 
             <app-list-form #taxonNamesList
+                           formArrayName="taxonNames"
                            [displayWith]="taxonNameStrategyToString"
                            [equals]="taxonNameStrategyEquals"
-                           [options]="{allowEmptyArray: true, allowMultipleSelection: true}"
+                           [options]="taxonNameListOptions"
                            (onSelectionChange)="updateFilterTaxonNames($event)"
                            (onNewItem)="addTaxonName()">
             </app-list-form>

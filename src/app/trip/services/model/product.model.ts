@@ -1,9 +1,18 @@
 import {isNil, isNotNil} from "../../../core/core.module";
-import {ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils} from "../../../core/services/model";
-import {DataEntity, DataEntityAsObjectOptions, IWithProductsEntity, NOT_MINIFY_OPTIONS} from "./base.model";
+import {
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  ReferentialUtils
+} from "../../../core/services/model/referential.model";
+import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from "./measurement.model";
 import {equalsOrNil, isNotNilOrBlank} from "../../../shared/functions";
-import {DataFilter} from "../../../shared/services/memory-data-service.class";
+import {IEntity} from "../../../core/services/model/entity.model";
+
+export interface IWithProductsEntity<T> extends IEntity<T> {
+  products: Product[];
+}
 
 export class ProductFilter {
 
@@ -18,7 +27,7 @@ export class ProductFilter {
   }
 
   static isEmpty(f: ProductFilter) {
-    return !f || isNil(f.parent);
+    return !f || isNil(f.parent);
   }
 
   parent?: IWithProductsEntity<any>;

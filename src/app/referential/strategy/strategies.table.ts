@@ -2,10 +2,10 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {ValidatorService} from "angular4-material-table";
 import {environment, referentialToString, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
-import {Strategy} from "../services/model";
+import {Strategy} from "../services/model/strategy.model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {toBoolean} from "../../shared/functions";
-import {DefaultStatusList} from "../../core/services/model";
+import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
 
 export declare interface StrategyFilter {

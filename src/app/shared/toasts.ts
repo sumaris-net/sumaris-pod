@@ -38,7 +38,7 @@ export async function showToast(
   }
 
   if (opts.error) {
-    const cssArray = opts.cssClass && typeof opts.cssClass === 'string' && opts.cssClass.split(',') || (opts.cssClass as Array<string>) || [];
+    const cssArray = opts.cssClass && typeof opts.cssClass === 'string' && opts.cssClass.split(',') || (opts.cssClass as Array<string>) || [];
     cssArray.push('error');
     opts.cssClass = cssArray;
   }

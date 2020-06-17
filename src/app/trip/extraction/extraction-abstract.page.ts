@@ -1,16 +1,16 @@
-import { EventEmitter, OnInit, ViewChild, Directive } from '@angular/core';
+import {Directive, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {isNil, isNotEmptyArray, isNotNil} from '../../shared/shared.module';
+import {isEmptyArray, isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import {
   AggregationType,
   ExtractionColumn,
   ExtractionFilter,
   ExtractionType,
   ExtractionUtils
-} from "../services/extraction.model";
+} from "../services/model/extraction.model";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {mergeMap} from "rxjs/operators";
-import {AppTabPage} from "../../core/core.module";
+import {AppTabForm} from "../../core/core.module";
 import {firstNotNilPromise} from "../../shared/observables";
 import {ExtractionCriteriaForm} from "./extraction-criteria.form";
 import {TranslateService} from "@ngx-translate/core";
@@ -20,16 +20,14 @@ import {AlertController, ToastController} from "@ionic/angular";
 import {capitalizeFirstLetter} from "apollo-client/util/capitalizeFirstLetter";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {isEmptyArray} from "../../shared/functions";
 import {PlatformService} from "../../core/services/platform.service";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Directive()
-export abstract class ExtractionAbstractPage<T extends ExtractionType | AggregationType> extends AppTabPage<any> implements OnInit {
+export abstract class ExtractionAbstractPage<T extends ExtractionType | AggregationType> extends AppTabForm<any> implements OnInit {
 
-  loading = true;
   type: T;
   form: FormGroup;
   canEdit = false;
@@ -72,7 +70,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
   ngOnInit() {
     super.ngOnInit();
 
-    this.registerForm(this.criteriaForm);
+    this.addChildForm(this.criteriaForm);
 
     this.registerSubscription(
       this.translate.get('EXTRACTION.TYPE').subscribe(msg => {

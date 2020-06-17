@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy,
 import {AppForm, AppFormUtils, FormArrayHelper, isNotNil} from "../../core/core.module";
 import {Product} from "../services/model/product.model";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {UsageMode} from "../../core/services/model";
+import {UsageMode} from "../../core/services/model/settings.model";
 import {isNotEmptyArray} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
@@ -11,7 +11,7 @@ import {ProductValidatorService} from "../services/validator/product.validator";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {Subscription} from "rxjs";
 import {SaleProduct, SaleProductUtils} from "../services/model/sale-product.model";
-import {PmfmStrategy} from "../../referential/services/model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 
 @Component({
   selector: 'app-product-sale-form',

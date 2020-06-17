@@ -1,23 +1,17 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {
-  EntityUtils,
-  isNil,
-  isNotNil,
-  LocationLevelIds,
-  PmfmIds, referentialToString,
-  vesselSnapshotToString
-} from "../../referential/services/model";
+import {LocationLevelIds, PmfmIds} from "../../referential/services/model/model.enum";
 import {LandingPage} from "../landing/landing.page";
-import {LandingValidatorService} from "../services/landing.validator";
+import {LandingValidatorService} from "../services/validator/landing.validator";
 import {debounceTime, filter, map, mergeMap, startWith, switchMap} from "rxjs/operators";
 import {from, Subscription} from "rxjs";
 import {Landing} from "../services/model/landing.model";
 import {AuctionControlValidators} from "../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
-import {fadeInOutAnimation} from "../../shared/shared.module";
-import {HistoryPageReference, ReferentialUtils} from "../../core/services/model";
+import {fadeInOutAnimation, isNil, isNotNil} from "../../shared/shared.module";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 
 @Component({
@@ -38,8 +32,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     injector: Injector,
     protected modalCtrl: ModalController
   ) {
-    super(injector);
-    this.idAttribute = 'controlId';
+    super(injector, {
+      pathIdAttribute: 'controlId'
+    });
   }
 
   ngOnInit() {
@@ -194,9 +189,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   protected async computeTitle(data: Landing): Promise<string> {
     const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
       await this.translate.get('AUCTION_CONTROL.TITLE_PREFIX', {
-        location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
+        location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
-      }).toPromise() || '';
+      }).toPromise() || '';
 
     // new data
     if (!data || (isNil(data.id) && ReferentialUtils.isEmpty(data.vesselSnapshot))) {

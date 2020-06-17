@@ -1,7 +1,7 @@
 import "./vendor";
 
 import {APP_BASE_HREF, CommonModule} from "@angular/common";
-import {BrowserModule} from "@angular/platform-browser";
+import {BrowserModule, HammerModule} from "@angular/platform-browser";
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule} from "@angular/core";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
 import {DATE_ISO_PATTERN} from "./core/constants";
@@ -23,7 +23,7 @@ import {Camera} from "@ionic-native/camera/ngx";
 import {Network} from "@ionic-native/network/ngx";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
 import {APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
-import {ConfigOptions, LocalSettings} from "./core/services/model";
+import {LocalSettings} from "./core/services/model/settings.model";
 import {TripModule} from "./trip/trip.module";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {APP_CONFIG_OPTIONS, ConfigService} from "./core/services/config.service";
@@ -32,6 +32,7 @@ import {IonicStorageModule} from "@ionic/storage";
 import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
 import {APP_MENU_ITEMS} from "./core/menu/menu.component";
 import {APP_HOME_BUTTONS} from "./core/home/home";
+import {ConfigOptions} from "./core/services/config/core.config";
 
 
 @NgModule({

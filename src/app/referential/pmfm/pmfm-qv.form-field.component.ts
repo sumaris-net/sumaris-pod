@@ -25,9 +25,10 @@ import {isEmptyArray, isNotEmptyArray, isNotNil, sort, suggestFromArray, toBoole
 import {AppFormUtils, ReferentialRef, referentialToString} from "../../core/core.module";
 import {focusInput, InputElement} from "../../shared/inputs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ReferentialUtils} from "../../core/services/model";
-import {PmfmIds, PmfmStrategy} from "../services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {PmfmIds} from "../services/model/model.enum";
 import {Pmfm} from "../services/model/pmfm.model";
+import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 
 @Component({
   selector: 'app-pmfm-qv-field',
@@ -121,7 +122,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   ngOnInit() {
     // Set defaults
-    this.style = this.style || (this.mobile ? 'select' : 'autocomplete');
+    this.style = this.style || (this.mobile ? 'select' : 'autocomplete');
 
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
@@ -131,7 +132,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     if (isEmptyArray(this._qualitativeValues) && this.pmfm instanceof Pmfm) {
       this._qualitativeValues = this.pmfm.parameter && this.pmfm.parameter.qualitativeValues || [];
       if (isEmptyArray(this._qualitativeValues)) {
-        console.warn('Empty qualitative values !!', this.pmfm);
+        console.warn(`The PMFM {label: '${this.pmfm.label}'} has no qualitative values, neither in the PmfmStrategy, nor in Parameter!` );
       }
     }
     this.required = toBoolean(this.required, (this.pmfm instanceof PmfmStrategy && this.pmfm.isMandatory));
@@ -209,7 +210,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
 
     if (this.style === 'button') {
-      const index = (obj && isNotNil(obj.id)) ? this._qualitativeValues.findIndex(qv => qv.id === obj.id) : -1;
+      const index = (obj && isNotNil(obj.id)) ? this._qualitativeValues.findIndex(qv => qv.id === obj.id) : -1;
       if (this.selectedIndex !== index) {
         this.selectedIndex = index;
         this.markForCheck();

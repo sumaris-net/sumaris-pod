@@ -3,7 +3,7 @@ import {Apollo} from "apollo-angular";
 import {ApolloClient, ApolloQueryResult, FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";
 import {ErrorCodes, ServerErrorCodes, ServiceError} from "./errors";
-import {catchError, distinctUntilChanged, filter, first, map, mergeMap, tap} from "rxjs/operators";
+import {catchError, distinctUntilChanged, filter, first, map, mergeMap} from "rxjs/operators";
 
 import {environment} from '../../../environments/environment';
 import {Injectable} from "@angular/core";
@@ -21,7 +21,7 @@ import QueueLink from 'apollo-link-queue';
 import SerializingLink from 'apollo-link-serialize';
 import loggerLink from 'apollo-link-logger';
 import {Platform} from "@ionic/angular";
-import {EntityUtils} from "./model";
+import {EntityUtils} from "./model/entity.model";
 import {DataProxy} from 'apollo-cache';
 import {isNotNil} from "../../shared/functions";
 
@@ -606,10 +606,10 @@ export class GraphqlService {
     let error = (err.networkError && (this.toAppError(err.networkError) || this.createAppErrorByCode(ErrorCodes.UNKNOWN_NETWORK_ERROR))) ||
       (err.graphQLErrors && err.graphQLErrors.length && this.toAppError(err.graphQLErrors[0])) ||
       this.toAppError(err) ||
-      this.toAppError(err.originalError) || 
-      (err.graphQLErrors && err.graphQLErrors[0]) || 
+      this.toAppError(err.originalError) ||
+      (err.graphQLErrors && err.graphQLErrors[0]) ||
       err;
-    console.error("[graphql] " + (error && error.message || error), error.stack || '');
+    console.error("[graphql] " + (error && error.message || error), error.stack || '');
     if (error && error.code === ErrorCodes.UNKNOWN_NETWORK_ERROR && err.networkError && err.networkError.message)
       console.error("[graphql] original error: " + err.networkError.message);
     if ((!error || !error.code) && defaultError) {
@@ -654,7 +654,7 @@ export class GraphqlService {
     const message = err && err.message || err;
     if (typeof message === "string" && message.trim().indexOf('{"code":') === 0) {
       const error = JSON.parse(message);
-      return error && this.createAppErrorByCode(error.code) || error && error.message || err;
+      return error && this.createAppErrorByCode(error.code) || error && error.message || err;
     }
     return undefined;
   }

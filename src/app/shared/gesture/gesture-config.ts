@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HammerGestureConfig } from "@angular/platform-browser";
 
+
 /**
  * @hidden
  * This class overrides the default Angular gesture config.
@@ -28,6 +29,7 @@ export class AppGestureConfig extends HammerGestureConfig {
   };
 
   buildHammer(element: HTMLElement) {
+    console.debug("[gesture] Override HammerJS default config: ", this.overrides);
     const mc = new (<any>window).Hammer(element);
 
     for (const eventName in this.overrides) {
