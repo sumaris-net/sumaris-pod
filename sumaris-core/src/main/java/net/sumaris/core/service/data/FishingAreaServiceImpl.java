@@ -41,11 +41,15 @@ public class FishingAreaServiceImpl implements FishingAreaService {
 
         OperationGroupVO operationGroup = getMainUndefinedOperationGroup(tripId);
         if (operationGroup == null) {
-            throw new SumarisTechnicalException("the main undefined operation was not found, please check the trip's metier");
+            if (fishingArea != null) {
+                throw new SumarisTechnicalException("the main undefined operation was not found, please check the trip's metier");
+            }
+            else {
+                return null;
+            }
         }
 
-        List<FishingAreaVO> fishingAreas = Collections.singletonList(fishingArea);
-        fishingAreaRepository.saveAllByOperationId(operationGroup.getId(), fishingAreas);
+        List<FishingAreaVO> fishingAreas = fishingAreaRepository.saveAllByOperationId(operationGroup.getId(), Collections.singletonList(fishingArea));
 
         return fishingAreas.get(0);
     }
