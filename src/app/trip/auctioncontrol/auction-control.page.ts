@@ -14,7 +14,6 @@ import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {MatAutocompleteConfigHolder} from "../../shared/material/autocomplete/material.autocomplete";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
 @Component({
@@ -240,7 +239,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   }
 
   protected getFirstInvalidTabIndex(): number {
-    return this.landingForm.invalid && !this.measurementValuesForm.invalid ? 0 : (
-      (this.samplesTable.invalid || this.measurementValuesForm.invalid) ? 1 : -1);
+    return this.landingForm.invalid && !this.landingForm.measurementValuesForm.invalid ? 0 : (
+      (this.samplesTable.invalid || this.landingForm.measurementValuesForm.invalid) ? 1 : -1);
   }
 }

@@ -141,7 +141,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.formBuilder = injector.get(FormBuilder);
     this.pageSize = 10000; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
-    this.autoLoad = false; // must wait pmfms to be load
+
     this.setLoading(false, {emitEvent: false});
 
     this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, options && {
@@ -179,7 +179,9 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
           this.updateColumns();
 
           // Load the table, if already loaded or if autoLoad=true
-          if (this.autoLoad || this.dataSource.loaded /*already load*/) {
+          // FIXME: this.dataSource.loaded will cause batches table not loaded !
+
+          if (this.autoLoad || this.dataSource.loaded/*already load*/) {
             this.onRefresh.emit();
           }
         }));

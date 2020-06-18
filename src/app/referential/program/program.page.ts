@@ -169,7 +169,7 @@ export class ProgramPage extends AppEditor<Program, ProgramService> implements O
       this.referentialForm,
       this.propertiesForm,
       this.strategiesTable,
-      new AppFormHolder(() => this.strategyForm)
+      this.strategyForm
     ]);
   }
 
