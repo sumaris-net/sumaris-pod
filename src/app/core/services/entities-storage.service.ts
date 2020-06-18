@@ -247,7 +247,6 @@ export class EntityStorage {
 
     const entityStore = this.getEntityStore<T>(entityName, {create: true});
     return entityStore.entitiesSubject
-      .asObservable()
       .pipe(
         map(data => this.reduceAndSort(data, opts))
       );

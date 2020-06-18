@@ -985,7 +985,7 @@ export class AccountService extends BaseDataService {
   }
 
   get $additionalFields(): Observable<FormFieldDefinition[]> {
-    return this._$additionalFields.asObservable();
+    return this._$additionalFields;
   }
 
   getAdditionalField(key: string): FormFieldDefinition | undefined {

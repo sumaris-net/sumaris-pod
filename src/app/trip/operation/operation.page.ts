@@ -99,7 +99,7 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.programSubject.asObservable()
+      this.programSubject
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
@@ -354,7 +354,7 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
       data.physicalGear = trip.gears[0];
     }
 
-    this.defaultBackHref = trip ? '/trips/' + trip.id  + '?tab=2' : undefined;
+    this.defaultBackHref = trip ? `/trips/${trip.id}?tab=2` : undefined;
   }
 
   async onEntityLoaded(data: Operation, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -369,7 +369,7 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
     // Replace physical gear by the real entity
     data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
 
-    this.defaultBackHref = trip ? '/trips/' + trip.id  + '?tab=2' : undefined;
+    this.defaultBackHref = trip ? `/trips/${trip.id}?tab=2` : undefined;
   }
 
 
@@ -427,7 +427,7 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
 
     // TODO: for mobile, hide sub-batches tables, and store data else where ?
     this.subBatchesTable.value = subbatches;
-    await AppTableUtils.waitLoaded(this.subBatchesTable);
+    await AppTableUtils.waitIdle(this.subBatchesTable);
 
     this.subBatchesTable.markAsDirty();
   }

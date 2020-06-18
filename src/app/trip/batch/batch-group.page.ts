@@ -71,7 +71,7 @@ export class BatchGroupPage extends AppEditor<BatchGroup, any> implements OnInit
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.programSubject.asObservable()
+      this.programSubject
         .pipe(
           filter(isNotNilOrBlank),
           switchMap(programLabel => this.programService.watchByLabel(programLabel))

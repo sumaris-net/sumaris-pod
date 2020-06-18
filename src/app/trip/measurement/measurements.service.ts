@@ -79,7 +79,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
 
-    this._onRefreshPmfms.asObservable().subscribe(() => this.refreshPmfms());
+    this._onRefreshPmfms.subscribe(() => this.refreshPmfms());
   }
 
   close() {

@@ -18,11 +18,15 @@ import {LocalSettingsService} from "../services/local-settings.service";
 import {AppForm} from "./form.class";
 import {FormArrayHelper, FormArrayHelperOptions} from "./form.utils";
 import {SelectionModel} from "@angular/cdk/collections";
+import {Observable} from "rxjs";
+import {Color} from "@ionic/core";
 
 export declare interface ItemButton<T = any> {
   title?: string;
   click: (event: UIEvent, item: T, index: number) => void;
   icon: string;
+  color?: Color;
+  disabled?: Observable<boolean>
 }
 
 export declare type AppListFormOptions<T> = FormArrayHelperOptions & {
@@ -49,7 +53,7 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
   @Input('equals') equalsFn: (v1: T, v2: T) => boolean;
 
   @Output() onNewItem = new EventEmitter<UIEvent>();
-  @Output() onSelectionChange = new EventEmitter<T[]>(true);
+  @Output() selectionChanges = new EventEmitter<T[]>(true);
 
   set value(data: T[]) {
     this.setValue(data);
@@ -158,13 +162,13 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
     }
 
     if (!opts || opts.emitEvent !== false) {
-      this.onSelectionChange.emit(this.selection.selected);
+      this.selectionChanges.emit(this.selection.selected);
     }
   }
 
   async onItemClick(event: MouseEvent, item: T, opts?: {emitEvent?: boolean}) {
 
-    if (!item || event.defaultPrevented || !this.onSelectionChange.observers.length) return;
+    if (!item || event.defaultPrevented || !this.selectionChanges.observers.length) return;
 
     // Multiple selection (if ctrl+click)
     if (event.ctrlKey && this.options.allowMultipleSelection) {
@@ -185,7 +189,7 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
     }
 
     if (!opts || opts.emitEvent !== false) {
-      this.onSelectionChange.emit(this.selection.selected);
+      this.selectionChanges.emit(this.selection.selected);
     }
   }
 
@@ -202,7 +206,7 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
     this.onNewItem.emit(event);
   }
 
-  add(value: T) {
+  add(value: T, opts?: {emitEvent?: boolean}) {
     const done = this.helper.add(value, {emitEvent: true});
     if (done) {
       if (!this.options.allowMultipleSelection) {
@@ -210,6 +214,10 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
       }
       this.selection.toggle(value);
       this.markForCheck();
+
+      if (!opts || opts.emitEvent !== false) {
+        this.selectionChanges.emit(this.selection.selected);
+      }
     }
   }
 

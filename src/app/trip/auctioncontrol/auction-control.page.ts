@@ -33,7 +33,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     protected modalCtrl: ModalController
   ) {
     super(injector, {
-      pathIdAttribute: 'controlId'
+      pathIdAttribute: 'controlId',
+      tabCount: 2
     });
   }
 
@@ -128,6 +129,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       this.selectedTabIndex = 1;
       this.tabGroup.realignInkBar();
     }
+
+    // Define default back link
+    const observedLocationId = this.parent && this.parent.id || data && data.observedLocationId;
+    this.defaultBackHref = `/observations/${observedLocationId}?tab=1`;
   }
 
   protected async onEntityLoaded(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -139,6 +144,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     // Always open the second tab, when existing entity
     this.selectedTabIndex = 1;
     this.tabGroup.realignInkBar();
+
+    // Define default back link
+    const observedLocationId = this.parent && this.parent.id || data && data.observedLocationId;
+    this.defaultBackHref = `/observations/${observedLocationId}?tab=1`;
 
     this.markForCheck();
   }
@@ -159,6 +168,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   protected addToPageHistory(page: HistoryPageReference) {
     super.addToPageHistory({ ...page, icon: 'flag'});
+  }
+
+  async save(event?: Event, options?: any): Promise<boolean> {
+    return super.save(event, options);
   }
 
   // protected async getValue(): Promise<Landing> {
@@ -202,5 +215,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return titlePrefix + (await this.translate.get('AUCTION_CONTROL.EDIT.TITLE', {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name)
     }).toPromise());
+  }
+
+  protected computePageUrl(id: number|'new') {
+    let parentUrl = this.getParentPageUrl();
+    return `${parentUrl}/control/${id}`;
   }
 }

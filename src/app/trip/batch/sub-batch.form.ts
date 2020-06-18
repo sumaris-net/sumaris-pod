@@ -234,7 +234,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       taxonNameControl.setValidators(Validators.compose([SharedValidators.entity, Validators.required]));
     }
     this.registerAutocompleteField('taxonName', {
-      items: this.$taxonNames.asObservable(),
+      items: this.$taxonNames,
       mobile: this.mobile
     });
 

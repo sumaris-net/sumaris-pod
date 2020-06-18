@@ -18,7 +18,7 @@ import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/fie
 import {StrategyForm} from "../strategy/strategy.form";
 import {animate, AnimationEvent, state, style, transition, trigger} from "@angular/animations";
 import {debounceTime, filter, first} from "rxjs/operators";
-import {AppDynamicFormHolder} from "../../core/form/form.utils";
+import {AppFormHolder} from "../../core/form/form.utils";
 import {ProgramProperties} from "../services/config/program.config";
 
 export enum AnimationState {
@@ -169,7 +169,7 @@ export class ProgramPage extends AppEditor<Program, ProgramService> implements O
       this.referentialForm,
       this.propertiesForm,
       this.strategiesTable,
-      new AppDynamicFormHolder(() => this.strategyForm)
+      new AppFormHolder(() => this.strategyForm)
     ]);
   }
 

@@ -352,7 +352,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       )
     }
 
-    this.matSelectItems$ = this.$inputItems.asObservable()
+    this.matSelectItems$ = this.$inputItems
       .pipe(
         takeWhile((_) => !this.searchable), // Close subscription, when enabling search (no more mat-select)
         filter(isNotNil),
@@ -388,11 +388,11 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
             //tap((value) => console.debug(this.logPrefix + " valueChanges:", value)),
             debounceTime(this.debounceTime)
           ),
-        this.$inputItems.asObservable()
+        this.$inputItems
           .pipe(
             map(items => this.formControl.value)
           ),
-        this._$filter.asObservable()
+        this._$filter
           .pipe(
             map(items => this.formControl.value)
           )

@@ -24,6 +24,8 @@ import {round} from "../../shared/functions";
 
 export {selectInputContent};
 
+export declare type IAppFormFactory = () => IAppForm;
+
 export interface IAppForm  {
   invalid: boolean;
   valid: boolean;
@@ -43,62 +45,85 @@ export interface IAppForm  {
   markAsDirty(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
 }
 
+/**
+ * A form that do nothing
+ */
+class AppNullForm implements IAppForm {
+  readonly invalid= false;
+  readonly valid = false;
+  readonly dirty = false;
+  readonly empty = true;
+  readonly pending = false;
+  readonly error = null;
 
-export class AppDynamicFormHolder<F extends IAppForm = IAppForm> implements IAppForm {
+  disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
 
-  get form(): F {
-    return this.getter();
-  }
+  markAsPristine(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
+  markAsUntouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
+  markAsTouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
+  markAsDirty(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
+}
+
+export class AppFormHolder<F extends IAppForm = IAppForm> implements IAppForm {
+  static NULL_FORM = new AppNullForm();
 
   constructor(private getter: () => F) {
   }
+
+  private delegate(): IAppForm {
+    return this.getter() || AppFormHolder.NULL_FORM;
+  }
+
+  async waitDelegate(opts?: {checkTimeMs?: number; maxTimeoutMs?: number; startTime?: number}): Promise<F> {
+    const content = this.getter();
+    if (!content) {
+      if (opts && opts.maxTimeoutMs && opts.startTime && (Date.now() >= opts.startTime + opts.maxTimeoutMs)) {
+        throw new Error("Timeout exception. Cannot get form instance");
+      }
+      await setTimeout(() => {},  opts && opts.checkTimeMs || 500);
+      return this.waitDelegate({startTime: Date.now(), ...opts}); // Loop
+    }
+    return content;
+  }
+
+  /* -- delegated methods -- */
+
   get error(): string {
-    const form = this.getter();
-    return form && form.error;
+    return this.delegate().error;
   }
   get invalid(): boolean {
-    const form = this.getter();
-    return form && form.invalid;
+    return this.delegate().invalid;
   }
   get valid(): boolean {
-    const form = this.getter();
-    return form && form.valid;
+    return this.delegate().valid;
   }
   get dirty(): boolean {
-    const form = this.getter();
-    return form && form.dirty;
+    return this.delegate().dirty;
   }
   get empty(): boolean {
-    const form = this.getter();
-    return !form && form.empty;
+    return this.delegate().empty;
   }
   get pending(): boolean {
-    const form = this.getter();
-    return form && form.pending;
+    return this.delegate().pending;
   }
   disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    const form = this.getter();
-    if (form) form.disable(opts);
+    return this.delegate().disable(opts);
   }
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    const form = this.getter();
-    if (form) form.enable(opts);
+    return this.delegate().enable(opts);
   }
   markAsPristine(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    const form = this.getter();
-    if (form) form.markAsPristine(opts);
+    return this.delegate().markAsPristine(opts);
   }
   markAsUntouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    const form = this.getter();
-    if (form) form.markAsUntouched(opts);
+    return this.delegate().markAsUntouched(opts);
   }
   markAsTouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    const form = this.getter();
-    if (form) form.markAsTouched(opts);
+    return this.delegate().markAsTouched(opts);
   }
   markAsDirty(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    const form = this.getter();
-    if (form) form.markAsDirty(opts);
+    return this.delegate().markAsDirty(opts);
   }
 }
 

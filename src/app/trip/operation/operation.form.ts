@@ -114,14 +114,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     // Combo: physicalGears
     this.registerAutocompleteField('physicalGear', {
-      items: this._physicalGearsSubject.asObservable(),
+      items: this._physicalGearsSubject,
       attributes: ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key)),
       mobile: this.mobile
     });
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      items: this._metiersSubject.asObservable(),
+      items: this._metiersSubject,
       mobile: this.mobile
     });
 

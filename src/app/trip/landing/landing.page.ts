@@ -132,12 +132,17 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
           data.vesselSnapshot = await this.vesselService.load(vesselId, {fetchPolicy: 'cache-first'});
         }
 
+        // Define back link
+        this.defaultBackHref = `/observations/${this.parent.id}?tab=1`;
       }
       else if (this.parent instanceof Trip) {
         data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = this.parent.returnLocation || this.parent.departureLocation;
         data.dateTime = this.parent.returnDateTime || this.parent.departureDateTime;
         data.observedLocationId = undefined;
+
+        // Define back link
+        this.defaultBackHref = `/trips/${this.parent.id}?tab=2`;
       }
 
       // Set rankOrder
@@ -164,14 +169,20 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         data.location = data.location || this.parent.location;
         data.dateTime = data.dateTime || this.parent.startDateTime || this.parent.endDateTime;
         data.tripId = undefined;
+
+        // Define back link
+        this.defaultBackHref = `/observations/${this.parent.id}?tab=1`;
       }
       else if (this.parent instanceof Trip) {
         data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = data.location || this.parent.returnLocation || this.parent.departureLocation;
         data.dateTime = data.dateTime || this.parent.returnDateTime || this.parent.departureDateTime;
         data.observedLocationId = undefined;
+
+        this.defaultBackHref = `/trips/${this.parent.id}?tab=2`;
       }
     }
+
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
@@ -223,8 +234,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     if (this.parent) {
       if (this.parent instanceof ObservedLocation) {
-        // Update the back ref link
-        this.defaultBackHref = `/observations/${this.parent.id}?tab=1`;
 
         this.landingForm.showProgram = false;
         this.landingForm.showVessel = true;
@@ -233,8 +242,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         this.landingForm.showObservers = true;
 
       } else if (this.parent instanceof Trip) {
-        // Update the back ref link
-        this.defaultBackHref = `/trips/${this.parent.id}`;
 
         // Hide some fields
         this.landingForm.showProgram = false;
@@ -244,7 +251,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         this.landingForm.showObservers = true;
       }
     } else {
-      this.defaultBackHref = null;
 
       this.landingForm.showVessel = true;
       this.landingForm.showLocation = true;
@@ -271,6 +277,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }).toPromise());
   }
 
+  protected computePageUrl(id: number|'new') {
+    let parentUrl = this.getParentPageUrl();
+    return `${parentUrl}/landing/${id}`;
+  }
 
   protected getFirstInvalidTabIndex(): number {
     return this.landingForm.invalid ? 0 : (this.samplesTable.invalid ? 1 : -1);

@@ -98,7 +98,7 @@ export abstract class AppEditor<
   ngOnInit() {
     super.ngOnInit();
 
-    // Register forms & tables
+    // Register forms
     this.registerForms();
 
     // Disable page, during load

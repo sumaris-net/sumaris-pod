@@ -41,7 +41,7 @@
                            [formArray]="filterForm.controls.acquisitionLevels"
                            [equals]="referentialEquals"
                            [options]="{allowEmptyArray: true, allowMultipleSelection: false}"
-                           (onSelectionChange)="updateFilterAcquisitionLevel($event && $event[0])"
+                           (selectionChanges)="updateFilterAcquisitionLevel($event && $event[0])"
                            (onNewItem)="addAcquisitionLevel()">
             </app-list-form>
           </mat-expansion-panel>
@@ -52,18 +52,18 @@
               <mat-panel-title>
                 <ion-text color="primary">
                   <span translate>PROGRAM.STRATEGY.LOCATIONS</span>
-                  <ion-icon name="filter" *ngIf="locationsList.hasSelection()"></ion-icon>
+                  <ion-icon name="filter" *ngIf="locationList.hasSelection()"></ion-icon>
                 </ion-text>
               </mat-panel-title>
-              <mat-panel-description *ngIf="locationsList.length">({{locationsList.length}})</mat-panel-description>
+              <mat-panel-description *ngIf="locationList.length">({{locationList.length}})</mat-panel-description>
             </mat-expansion-panel-header>
 
-            <app-list-form #locationsList
+            <app-list-form #locationList
                            [formArray]="filterForm.controls.locations"
                            [displayWith]="referentialToString"
                            [equals]="referentialEquals"
                            [options]="{allowEmptyArray: true, allowMultipleSelection: true}"
-                           (onSelectionChange)="updateFilterLocations($event)"
+                           (selectionChanges)="updateFilterLocations($event)"
                            (onNewItem)="addLocation()">
             </app-list-form>
           </mat-expansion-panel>
@@ -74,18 +74,18 @@
               <mat-panel-title>
                 <ion-text color="primary">
                   <span translate>PROGRAM.STRATEGY.GEARS</span>
-                  <ion-icon name="filter" *ngIf="gearsList.hasSelection()"></ion-icon>
+                  <ion-icon name="filter" *ngIf="gearList.hasSelection()"></ion-icon>
                 </ion-text>
               </mat-panel-title>
-              <mat-panel-description *ngIf="gearsList.length">({{gearsList.length}})</mat-panel-description>
+              <mat-panel-description *ngIf="gearList.length">({{gearList.length}})</mat-panel-description>
             </mat-expansion-panel-header>
 
-            <app-list-form #gearsList
+            <app-list-form #gearList
                            formArrayName="gears"
                            [displayWith]="referentialToString"
                            [equals]="referentialEquals"
-                           [options]="{allowEmptyArray: true, allowMultipleSelection: true}"
-                           (onSelectionChange)="updateFilterGears($event)"
+                           [options]="gearListOptions"
+                           (selectionChanges)="updateFilterGears($event)"
                            (onNewItem)="addGear()">
             </app-list-form>
           </mat-expansion-panel>
@@ -96,20 +96,19 @@
               <mat-panel-title>
                 <ion-text color="primary">
                   <span translate>PROGRAM.STRATEGY.TAXON_GROUPS</span>
-                  <ion-icon name="filter" *ngIf="taxonGroupsList.hasSelection()"></ion-icon>
+                  <ion-icon name="filter" *ngIf="taxonGroupList.hasSelection()"></ion-icon>
                 </ion-text>
               </mat-panel-title>
-              <mat-panel-description *ngIf="taxonGroupsList.length">({{taxonGroupsList.length}})</mat-panel-description>
+              <mat-panel-description *ngIf="taxonGroupList.length">({{taxonGroupList.length}})</mat-panel-description>
             </mat-expansion-panel-header>
 
-            <app-list-form #taxonGroupsList
+            <app-list-form #taxonGroupList
                            formArrayName="taxonGroups"
                            [displayWith]="taxonGroupStrategyToString"
                            [equals]="taxonGroupStrategyEquals"
                            [options]="taxonGroupListOptions"
-                           (onSelectionChange)="updateFilterTaxonGroups($event)"
+                           (selectionChanges)="updateFilterTaxonGroups($event)"
                            (onNewItem)="addTaxonGroup()">
-              <span slot="end" >TOTO</span>
             </app-list-form>
           </mat-expansion-panel>
 
@@ -119,18 +118,18 @@
               <mat-panel-title>
                 <ion-text color="primary">
                   <span translate>PROGRAM.STRATEGY.TAXON_NAMES</span>
-                  <ion-icon name="filter" *ngIf="taxonNamesList.hasSelection()"></ion-icon>
+                  <ion-icon name="filter" *ngIf="taxonNameList.hasSelection()"></ion-icon>
                 </ion-text>
               </mat-panel-title>
-              <mat-panel-description *ngIf="taxonNamesList.length">({{taxonNamesList.length}})</mat-panel-description>
+              <mat-panel-description *ngIf="taxonNameList.length">({{taxonNameList.length}})</mat-panel-description>
             </mat-expansion-panel-header>
 
-            <app-list-form #taxonNamesList
+            <app-list-form #taxonNameList
                            formArrayName="taxonNames"
                            [displayWith]="taxonNameStrategyToString"
                            [equals]="taxonNameStrategyEquals"
                            [options]="taxonNameListOptions"
-                           (onSelectionChange)="updateFilterTaxonNames($event)"
+                           (selectionChanges)="updateFilterTaxonNames($event)"
                            (onNewItem)="addTaxonName()">
             </app-list-form>
           </mat-expansion-panel>

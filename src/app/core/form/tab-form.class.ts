@@ -9,7 +9,7 @@ import {isNotNil, ToolbarComponent} from '../../shared/shared.module';
 import {AppTable} from '../table/table.class';
 import {AppForm} from './form.class';
 import {FormButtonsBarComponent} from './form-buttons-bar.component';
-import {AppFormUtils, IAppForm} from "./form.utils";
+import {AppFormHolder, AppFormUtils, IAppForm, IAppFormFactory} from "./form.utils";
 import {ToastOptions} from "@ionic/core";
 import {Toasts} from "../../shared/toasts";
 import {HammerSwipeAction, HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
@@ -162,15 +162,20 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
 
   abstract async save(event, options?: any): Promise<any>;
 
-  addChildForm(form: IAppForm): AppTabForm<T> {
-    if (!form) throw new Error('Trying to register an invalid form');
+  addChildForm(form: IAppForm | IAppFormFactory): AppTabForm<T> {
+    if (!form) throw new Error('Trying to register an undefined child form');
     this._children = this._children || [];
-    this._children.push(form);
+    if (typeof form === "function") {
+      this._children.push(new AppFormHolder(form));
+    }
+    else {
+      this._children.push(form);
+    }
     return this;
   }
 
-  addChildForms(forms: IAppForm[]): AppTabForm<T> {
-    forms.forEach(form => this.addChildForm(form));
+  addChildForms(forms: (IAppForm | IAppFormFactory)[]): AppTabForm<T> {
+    (forms || []).forEach(form => this.addChildForm(form));
     return this;
   }
 

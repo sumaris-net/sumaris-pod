@@ -189,7 +189,7 @@ export class InMemoryTableDataService<T extends IEntity<T>, F = any> implements 
   }
 
   connect(): Observable<LoadResult<T>> {
-    return this._dataSubject.asObservable();
+    return this._dataSubject;
   }
 
   protected equals(d1: T, d2: T): boolean {

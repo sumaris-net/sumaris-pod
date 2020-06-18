@@ -443,7 +443,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       this._dataSourceSubscription.unsubscribe();
       this._subscription.remove(this._dataSourceSubscription);
     }
-    this._dataSourceSubscription = this._dataSource.loadingSubject
+    this._dataSourceSubscription = this._dataSource.$busy
         .pipe(
             distinctUntilChanged(),
 

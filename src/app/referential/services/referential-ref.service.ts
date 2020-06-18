@@ -361,7 +361,7 @@ export class ReferentialRefService extends BaseDataService
         progress.error(err);
       });
 
-    return progress.asObservable();
+    return progress;
   }
 
   saveAll(data: ReferentialRef[], options?: any): Promise<ReferentialRef[]> {

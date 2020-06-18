@@ -57,16 +57,17 @@
 
       <div class="ion-no-padding">
 
-        <form [formGroup]="landingForm.form" class="form-container ion-padding">
+        <form [formGroup]="form.controls.measurementValues" class="form-container ion-padding">
 
           <ion-grid class="ion-no-padding">
             <ion-row class="ion-no-padding">
               <!-- pmfms -->
               <ion-col *ngFor="let pmfm of landingForm.$pmfms | async; index as i;"
                   size="12" size-md="6">
-                <app-pmfm-field [pmfm]="pmfm"
-                                            [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
-                                            [tabindex]="50 + i*2">
+                <app-pmfm-field [formControlName]="pmfm.pmfmId.toString()"
+                                [pmfm]="pmfm"
+                                [required]="!isOnFieldMode && pmfm.isMandatory"
+                                [tabindex]="50 + i*2">
                 </app-pmfm-field>
               </ion-col>
             </ion-row>

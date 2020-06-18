@@ -28,7 +28,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   protected _stopWatchAll$ = new Subject();
   private _loaded = false;
 
-  loadingSubject = new BehaviorSubject(false);
+  $busy = new BehaviorSubject(false);
 
   serviceOptions: any;
 
@@ -73,7 +73,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     this._stopWatchAll$.next();
     // Unsubscribe from the subject
     this._stopWatchAll$.unsubscribe();
-    this.loadingSubject.unsubscribe();
+    this.$busy.unsubscribe();
   }
 
   watchAll(offset: number,
@@ -84,7 +84,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
     this._stopWatchAll$.next(); // stop previous watch observable
 
-    this.loadingSubject.next(true);
+    this.$busy.next(true);
     return this._dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
       //.catch(err => this.handleError(err, 'Unable to load rows'))
       .pipe(
@@ -95,7 +95,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
           if (this._saving) {
             console.error(`[table-datasource] Service ${this._dataService.constructor.name} sent data, while will saving... should skip ?`);
           } else {
-            this.loadingSubject.next(false);
+            this.$busy.next(false);
             if (this._debug) console.debug(`[table-datasource] Service ${this._dataService.constructor.name} sent new data: updating datasource...`, res);
             this.updateDatasource(res.data || []);
           }
@@ -115,7 +115,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     }
 
     this._saving = true;
-    this.loadingSubject.next(true);
+    this.$busy.next(true);
 
     const onlyDirtyRows = toBoolean(this.serviceOptions.saveOnlyDirtyRows, false);
 
@@ -175,7 +175,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     } finally {
       this._saving = false;
       // Always update the loading indicator
-      this.loadingSubject.next(false);
+      this.$busy.next(false);
     }
   }
 
@@ -225,20 +225,20 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   public handleError(error: any, message: string): Observable<LoadResult<T>> {
     const errorMsg = error && error.message || error;
     console.error(`${errorMsg} (dataService: ${this._dataService.constructor.name})`, error);
-    this.loadingSubject.next(false);
+    this.$busy.next(false);
     throw new Error(message || errorMsg);
   }
 
   public handleErrorPromise(error: any, message: string) {
     const errorMsg = error && error.message || error;
     console.error(`${errorMsg} (dataService: ${this._dataService.constructor.name})`, error);
-    this.loadingSubject.next(false);
+    this.$busy.next(false);
     throw new Error(message || errorMsg);
   }
 
   public delete(id: number): void {
     const row = this.getRow(id);
-    this.loadingSubject.next(true);
+    this.$busy.next(true);
 
     this._dataService.deleteAll([row.currentData], this.serviceOptions)
       .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
@@ -247,13 +247,13 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
           // make sure row has been deleted (because GrapQHl cache remove can failed)
           const present = this.getRow(id) === row;
           if (present) super.delete(id);
-          this.loadingSubject.next(false);
+          this.$busy.next(false);
         }, 300);
       });
   }
 
   public deleteAll(rows: TableElement<T>[]): Promise<any> {
-    this.loadingSubject.next(true);
+    this.$busy.next(true);
 
     const data = rows.map(r => r.currentData);
     const rowsById = rows.reduce((res, row) => {
@@ -278,7 +278,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
           console.warn(`[table-datasource] Force deletion of ${rowNotDeleted.length} rows (Is service applying deletion to observable ?)`);
           rowNotDeleted.forEach(r => selfDelete.call(self, r.id));
         }
-        this.loadingSubject.next(false);
+        this.$busy.next(false);
       });
   }
 

@@ -6,20 +6,22 @@ import {PmfmStrategiesTable, PmfmStrategyFilter} from "./pmfm-strategies.table";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {SelectReferentialModal} from "../list/select-referential.modal";
 import {ModalController} from "@ionic/angular";
-import {AppListForm} from "../../core/form/list.form";
-import {toNumber} from "../../shared/functions";
+import {AppListForm, AppListFormOptions} from "../../core/form/list.form";
+import {isEmptyArray, toNumber} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {BehaviorSubject} from "rxjs";
-import {debounceTime} from "rxjs/operators";
+import {debounceTime, map} from "rxjs/operators";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {Strategy, TaxonGroupStrategy, TaxonNameStrategy} from "../services/model/strategy.model";
 import {Program} from "../services/model/program.model";
+import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {TableElement} from "angular4-material-table";
 
 @Component({
   selector: 'app-strategy-form',
@@ -33,37 +35,76 @@ import {Program} from "../services/model/program.model";
 export class StrategyForm extends AppEditor<Strategy> implements OnInit {
 
 
+  private $isPmfmStrategyEmpty = new BehaviorSubject<boolean>(true);
+  private $disabledRemoveButtons = new BehaviorSubject<boolean>(true);
+
   filterForm: FormGroup;
   $filter = new BehaviorSubject<Partial<PmfmStrategyFilter>>({});
   $allAcquisitionLevels = new BehaviorSubject<ReferentialRef[]>(undefined);
-  taxonGroupListOptions = {
+  gearListOptions = <AppListFormOptions<ReferentialRef>>{
     allowEmptyArray: true,
     allowMultipleSelection: true,
-    buttons: [{
-      // TODO title:
-      icon: 'arrow-forward-circle-outline',
-      click: (event, item) => this.applyTaxonGroupToPmfm(event, item)
-    }]};
+    buttons: [
+      // Remove from Pmfm
+      {
+        title: 'PROGRAM.STRATEGY.BTN_REMOVE_FROM_SELECTED_PMFM',
+        icon: 'arrow-back-circle-outline',
+        disabled: this.$isPmfmStrategyEmpty,
+        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'gears', item.id)
+      },
+      // Apply to Pmfm
+      {
+        title: 'PROGRAM.STRATEGY.BTN_APPLY_TO_SELECTED_PMFM',
+        icon: 'arrow-forward-circle-outline',
+        disabled: this.$isPmfmStrategyEmpty,
+        click: (event, item) => this.addToSelectedPmfmRows(event, 'gears', item.id)
+      }
+    ]};
+  taxonGroupListOptions = <AppListFormOptions<TaxonGroupStrategy>>{
+    allowEmptyArray: true,
+    allowMultipleSelection: true,
+    buttons: [
+      // Remove from Pmfm
+      {
+        title: 'PROGRAM.STRATEGY.BTN_REMOVE_FROM_SELECTED_PMFM',
+        icon: 'arrow-back-circle-outline',
+        disabled: this.$isPmfmStrategyEmpty,
+        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'taxonGroupIds', item.taxonGroup.id)
+      },
+      // Apply to Pmfm
+      {
+        title: 'PROGRAM.STRATEGY.BTN_APPLY_TO_SELECTED_PMFM',
+        icon: 'arrow-forward-circle-outline',
+        disabled: this.$isPmfmStrategyEmpty,
+        click: (event, item) => this.addToSelectedPmfmRows(event, 'taxonGroupIds', item.taxonGroup.id)
+      }
+    ]};
   taxonNameListOptions = {
     allowEmptyArray: true,
     allowMultipleSelection: true,
-    buttons: [{
-      // TODO title:
-      icon: 'arrow-forward-circle-outline',
-      click: (event, item) => this.applyTaxonNameToPmfm(event, item)
-    }]};
+    buttons: [
+      // Remove from Pmfm
+      {
+        title: 'PROGRAM.STRATEGY.BTN_REMOVE_FROM_SELECTED_PMFM',
+        icon: 'arrow-back-circle-outline',
+        disabled: this.$isPmfmStrategyEmpty,
+        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'taxonNameIds', item.taxonName.id)
+      },
+      // Apply to Pmfm
+      {
+        title: 'PROGRAM.STRATEGY.BTN_APPLY_TO_SELECTED_PMFM',
+        icon: 'arrow-forward-circle-outline',
+        disabled: this.$isPmfmStrategyEmpty,
+        click: (event, item) => this.addToSelectedPmfmRows(event, 'taxonNameIds', item.taxonName.id)
+      }
+    ]};
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('acquisitionLevelList', { static: true }) acquisitionLevelList: AppListForm;
-  @ViewChild('locationsList', { static: true }) locationListForm: AppListForm;
-  @ViewChild('gearsList', { static: true }) gearListForm: AppListForm;
-
-  @ViewChild('taxonGroupsList', { static: true }) taxonGroupListForm: AppListForm;
-
-
-  @ViewChild('taxonNamesList', { static: true }) taxonNameListForm: AppListForm;
-
-
+  @ViewChild('locationList', { static: true }) locationListForm: AppListForm;
+  @ViewChild('gearList', { static: true }) gearListForm: AppListForm;
+  @ViewChild('taxonGroupList', { static: true }) taxonGroupListForm: AppListForm;
+  @ViewChild('taxonNameList', { static: true }) taxonNameListForm: AppListForm;
   @ViewChild('pmfmStrategiesTable', { static: true }) pmfmStrategiesTable: PmfmStrategiesTable;
 
   get form(): FormGroup {
@@ -97,7 +138,7 @@ export class StrategyForm extends AppEditor<Strategy> implements OnInit {
     });
 
     this.filterForm = formBuilder.group({
-      acquisitionLevels: [null],
+      acquisitionLevels: formBuilder.array([]),
       locations: formBuilder.array([])
     });
 
@@ -123,6 +164,13 @@ export class StrategyForm extends AppEditor<Strategy> implements OnInit {
       this.referentialRefService.watchAll(0,1000, 'name', 'asc', {entityName: 'AcquisitionLevel'}, {fetchPolicy: 'cache-first', withTotal: false})
         .subscribe(res => this.$allAcquisitionLevels.next(res && res.data || []))
     );
+
+
+    // Listen when Pmfm selection is empty
+    this.registerSubscription(
+      this.pmfmStrategiesTable.selectionChanges
+        .subscribe(rows => this.$isPmfmStrategyEmpty.next(isEmptyArray(rows)))
+      );
 
     // TODO: Check label is unique
     /*this.form.get('label')
@@ -370,41 +418,52 @@ export class StrategyForm extends AppEditor<Strategy> implements OnInit {
     this.patchPmfmStrategyFilter({referenceTaxonIds});
   }
 
-  /**
-   * Applying a taxonName to selected PmfmSTrategy
-   * @param event
-   */
-  applyTaxonGroupToPmfm(event: UIEvent, item: TaxonGroupStrategy) {
-    console.debug("TODO: applying taxon group", item);
-    event.preventDefault();
-
-    const taxonGroupId = item.taxonGroup && item.taxonGroup.id;
-    (this.pmfmStrategiesTable.selection.selected || [])
-      .forEach(row => {
-        const control = row.validator.get('taxonGroupIds');
-        const taxonGroupIds = (control.value || []) as number[];
-        if (!taxonGroupIds.includes(taxonGroupId)) {
-          //row.startEdit();
-          taxonGroupIds.push(taxonGroupId);
-          control.setValue(taxonGroupIds);
-          //row.confirmEditCreate();
-          row.validator.markAsDirty();
-        }
-      });
-    this.markForCheck();
-  }
-
-
-  applyTaxonNameToPmfm(event: UIEvent, item: TaxonNameStrategy) {
-    console.debug("TODO: applying taxon name", item);
-    event.preventDefault();
-  }
-
   protected patchPmfmStrategyFilter(filter: Partial<PmfmStrategyFilter>) {
     this.$filter.next({
       ...this.$filter.getValue(),
       ...filter
     });
+  }
+
+  protected addToSelectedPmfmRows(event: Event, arrayName: string, value: any) {
+    if (event) event.preventDefault(); // Cancel toggle event, in <list-form> component
+
+    (this.pmfmStrategiesTable.selection.selected || [])
+      .forEach(row => {
+        const control = row.validator.get(arrayName);
+        if (!control) throw new Error('Control not found in row validator: ' + arrayName);
+
+        const existingValues = (control.value || []) as number[];
+        if (!existingValues.includes(value)) {
+          existingValues.push(value);
+          control.setValue(existingValues, {emitEvent: false});
+          row.validator.markAsDirty();
+        }
+      });
+
+    this.pmfmStrategiesTable.markAsDirty();
+  }
+
+  protected removeFromSelectedPmfmRows(event: Event,
+                                          arrayName: string,
+                                          value: any) {
+    if (event) event.preventDefault(); // Cancel toggle event, in <list-form> component
+
+    (this.pmfmStrategiesTable.selection.selected || [])
+      .forEach(row => {
+        const control = row.validator.get(arrayName);
+        if (!control) throw new Error('Control not found in row validator: ' + arrayName);
+
+        const existingValues = (control.value || []) as number[];
+        let index = existingValues.indexOf(value);
+        if (index !== -1) {
+          existingValues.splice(index, 1);
+          control.setValue(existingValues, {emitEvent: false});
+          row.validator.markAsDirty();
+        }
+      });
+
+    this.pmfmStrategiesTable.markAsDirty();
   }
 
   taxonGroupStrategyToString(data: TaxonGroupStrategy): string {

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
@@ -9,7 +9,7 @@ import {filterNumberInput} from "../../shared/inputs";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {Beans, changeCaseToUnderscore, isEmptyArray, isNotEmptyArray, isNotNil, KeysEnum} from "../../shared/functions";
-import {BehaviorSubject, of} from "rxjs";
+import {BehaviorSubject, Observable, of} from "rxjs";
 import {firstFalsePromise} from "../../shared/observables";
 import {PmfmService} from "../services/pmfm.service";
 import {Pmfm} from "../services/model/pmfm.model";
@@ -24,6 +24,7 @@ import {debounceTime, map, startWith, switchMap} from "rxjs/operators";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
 import {Program} from "../services/model/program.model";
+import {SelectionChange} from "@angular/cdk/collections";
 
 export class PmfmStrategyFilter {
 
@@ -98,6 +99,7 @@ export const PmfmStrategyFilterKeys: KeysEnum<PmfmStrategyFilter> = {
 export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStrategyFilter> implements OnInit {
 
 
+  $selectedPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   $acquisitionLevels = new BehaviorSubject<IReferentialRef[]>(undefined);
   $pmfms = new BehaviorSubject<Pmfm[]>(undefined);
   $gears = new BehaviorSubject<IReferentialRef[]>(undefined);
@@ -114,6 +116,12 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   @Input() title: string;
 
   @Input() program: Program;
+
+  @Output() get selectionChanges(): Observable<TableElement<PmfmStrategy>[]> {
+    return this.selection.changed.pipe(
+      map(_ => this.selection.selected)
+    );
+  }
 
   constructor(
     protected injector: Injector,

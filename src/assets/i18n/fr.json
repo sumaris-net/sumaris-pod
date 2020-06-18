@@ -1077,6 +1077,8 @@
       "GEARS": "Engins",
       "TAXON_GROUPS": "Espèces commerciales",
       "TAXON_NAMES": "Espèces scientifiques",
+      "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
+      "BTN_REMOVE_TO_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
       "NEW": {
         "TITLE": "Nouvelle stratégie"
       },

@@ -48,7 +48,7 @@ export abstract class AppRootDataEditor<
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.programSubject.asObservable()
+      this.programSubject
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
@@ -112,12 +112,25 @@ export abstract class AppRootDataEditor<
     super.addToPageHistory(page);
   }
 
-  protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
+  protected getParentPageUrl(withQueryParams?: boolean) {
     let parentUrl = this.defaultBackHref;
-    if (parentUrl && parentUrl.indexOf('?') !== -1) {
+
+    // Remove query params
+    if (withQueryParams !== true && parentUrl && parentUrl.indexOf('?') !== -1) {
       parentUrl = parentUrl.substr(0, parentUrl.indexOf('?'));
     }
-    return await this.router.navigateByUrl(`${parentUrl}/${data.id}`, {
+
+    return parentUrl;
+  }
+
+  protected computePageUrl(id: number|'new') {
+    let parentUrl = this.getParentPageUrl();
+    return `${parentUrl}/${id}`;
+  }
+
+  protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
+    const pageUrl = this.computePageUrl(isNotNil(data.id) ? data.id : 'new');
+    return await this.router.navigateByUrl(pageUrl, {
       replaceUrl: true,
       queryParams: this.queryParams
     });

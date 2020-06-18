@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnChanges, OnInit, SimpleChanges, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 import {fadeInOutAnimation, isNil} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
@@ -20,7 +20,6 @@ import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.m
 import {BehaviorSubject} from "rxjs";
 import {firstNotNilPromise} from "../../shared/observables";
 import {filter} from "rxjs/operators";
-import {AggregatedLandingsForm} from "../aggregated-landing/aggregated-landings.form";
 import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
 
 @Component({
@@ -32,15 +31,22 @@ import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings
 export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> implements OnInit {
 
   aggregatedLandings: boolean;
-  landingEditor: LandingEditor;
 
   $childLoaded = new BehaviorSubject<boolean>(false);
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
 
-  @ViewChild('landingsTable', {static: false}) landingsTable: LandingsTable;
+  @ViewChild('landingsTable') landingsTable: LandingsTable;
 
   @ViewChild('aggregatedLandingsTable', {static: false}) aggregatedLandingsTable: AggregatedLandingsTable;
+
+  get landingEditor(): LandingEditor {
+    return this.landingsTable && this.landingsTable.detailEditor;
+  }
+
+  set landingEditor(value: LandingEditor) {
+    if (this.landingsTable) this.landingsTable.detailEditor = value;
+  }
 
   constructor(
     injector: Injector,
@@ -51,7 +57,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       ObservedLocation,
       dataService,
       {
-        pathIdAttribute: 'observedLocationId'
+        pathIdAttribute: 'observedLocationId',
+        tabCount: 2
       });
 
     this.defaultBackHref = "/observations";
@@ -64,8 +71,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   ngOnInit() {
     super.ngOnInit();
 
-    this.landingsTable.detailEditor ='landing'
-
     // Configure using program properties
     this.onProgramChanged
       .subscribe(program => {
@@ -77,19 +82,13 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
         if (this.landingsTable) {
           this.landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
-
-          const landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
-          this.landingsTable.detailEditor = (landingEditor === 'landing' || landingEditor === 'control' || landingEditor === 'trip') ? landingEditor : 'landing';
-
-          // if (this.landingEditor === 'trip') {
-          //   this.landingsTable.tripEditor = true;
-          // }
+          const editorName = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
+          this.landingsTable.detailEditor = (editorName === 'landing' || editorName === 'control' || editorName === 'trip') ? editorName : 'landing';
 
         } else if (this.aggregatedLandingsTable) {
 
           this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
           this.aggregatedLandingsTable.program = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
-
         }
 
         this.$childLoaded.next(true);
@@ -103,7 +102,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   protected registerForms() {
     // Register forms & tables
-    this.addChildForms([this.observedLocationForm, this.landingsTable]);
+    this.addChildForms([
+      this.observedLocationForm,
+      () => this.landingsTable
+    ]);
   }
 
   protected async onNewEntity(data: ObservedLocation, options?: EditorDataServiceLoadOptions): Promise<void> {
