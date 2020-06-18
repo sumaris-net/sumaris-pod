@@ -28,8 +28,9 @@ import java.util.List;
 
 public interface FishingAreaRepositoryExtend {
 
-    List<FishingAreaVO> loadAllByOperationId(Integer operationId);
+    List<FishingAreaVO> getAllVOByOperationId(Integer operationId);
 
     List<FishingAreaVO> saveAllByOperationId(int operationId, List<FishingAreaVO> fishingAreas);
+
 
 }

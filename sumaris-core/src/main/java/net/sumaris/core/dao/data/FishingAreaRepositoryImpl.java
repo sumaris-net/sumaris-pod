@@ -118,7 +118,7 @@ public class FishingAreaRepositoryImpl
     }
 
     @Override
-    public List<FishingAreaVO> loadAllByOperationId(Integer operationId) {
+    public List<FishingAreaVO> getAllVOByOperationId(Integer operationId) {
         return loopBack.getAllByOperationId(operationId).stream()
             .map(this::toVO).collect(Collectors.toList());
     }

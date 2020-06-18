@@ -32,4 +32,6 @@ public interface FishingAreaRepository
     extends SumarisJpaRepository<FishingArea, Integer, FishingAreaVO>, FishingAreaRepositoryExtend
 {
     List<FishingArea> getAllByOperationId(int operationId);
+
+    void deleteAllByOperationId(int operationId);
 }

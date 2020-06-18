@@ -32,7 +32,7 @@ public class FishingAreaServiceImpl implements FishingAreaService {
     @Override
     public FishingAreaVO getByFishingTripId(int tripId) {
         return Optional.ofNullable(getMainUndefinedOperationGroup(tripId))
-            .flatMap(operationGroup -> fishingAreaRepository.loadAllByOperationId(operationGroup.getId()).stream().findFirst())
+            .flatMap(operationGroup -> fishingAreaRepository.getAllVOByOperationId(operationGroup.getId()).stream().findFirst())
             .orElse(null);
     }
 
@@ -41,22 +41,24 @@ public class FishingAreaServiceImpl implements FishingAreaService {
 
         OperationGroupVO operationGroup = getMainUndefinedOperationGroup(tripId);
         if (operationGroup == null) {
-            if (fishingArea != null) {
-                throw new SumarisTechnicalException("the main undefined operation was not found, please check the trip's metier");
+            if (fishingArea == null) {
+                return null; // Nothing to delete
             }
-            else {
-                return null;
-            }
+            throw new SumarisTechnicalException("the main undefined operation was not found, please check the trip's metier");
+        }
+
+        if (fishingArea == null) {
+            fishingAreaRepository.deleteAllByOperationId(operationGroup.getId());
+            return null;
         }
 
         List<FishingAreaVO> fishingAreas = fishingAreaRepository.saveAllByOperationId(operationGroup.getId(), Collections.singletonList(fishingArea));
-
-        return fishingAreas.get(0);
+        return CollectionUtils.extractSingleton(fishingAreas);
     }
 
     @Override
     public List<FishingAreaVO> getAllByOperationId(int operationId) {
-        return fishingAreaRepository.loadAllByOperationId(operationId);
+        return fishingAreaRepository.getAllVOByOperationId(operationId);
     }
 
     @Override
