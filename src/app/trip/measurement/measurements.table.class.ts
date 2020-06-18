@@ -40,6 +40,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   implements OnInit, OnDestroy, ValidatorService {
 
   private _program: string;
+  private _autoLoadAfterPmfm = true;
 
   protected _acquisitionLevel: AcquisitionLevelType;
 
@@ -141,7 +142,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.formBuilder = injector.get(FormBuilder);
     this.pageSize = 10000; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
-
     this.setLoading(false, {emitEvent: false});
 
     this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, options && {
@@ -164,6 +164,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   ngOnInit() {
+    // Remember the value of autoLoad, but force to false, to make sure pmfm will be loaded before
+    this._autoLoadAfterPmfm = this.autoLoad;
+    this.autoLoad = false;
+
     super.ngOnInit();
 
     this.registerSubscription(
@@ -178,10 +182,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
           // Add pmfm columns
           this.updateColumns();
 
-          // Load the table, if already loaded or if autoLoad=true
-          // FIXME: this.dataSource.loaded will cause batches table not loaded !
-
-          if (this.autoLoad || this.dataSource.loaded/*already load*/) {
+          // Load the table, if already loaded or if autoLoad was set to true
+          if (this._autoLoadAfterPmfm || this.dataSource.loaded/*already load*/) {
             this.onRefresh.emit();
           }
         }));
