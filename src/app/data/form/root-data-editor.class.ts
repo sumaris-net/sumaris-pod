@@ -11,6 +11,10 @@ import {AppEditor, AppEditorOptions} from "../../core/form/editor.class";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {RootDataEntity} from "../services/model/root-data-entity.model";
+import {
+  MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions,
+  MatAutocompleteFieldConfig
+} from "../../shared/material/autocomplete/material.autocomplete";
 
 
 @Directive()
@@ -22,6 +26,9 @@ export abstract class AppRootDataEditor<
   implements OnInit {
 
   protected programService: ProgramService;
+  protected autocompleteHelper: MatAutocompleteConfigHolder;
+
+  autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
 
   programSubject = new BehaviorSubject<string>(null);
   onProgramChanged = new Subject<Program>();
@@ -38,6 +45,12 @@ export abstract class AppRootDataEditor<
       options);
 
     this.programService = injector.get(ProgramService);
+
+    // Create autocomplete fields registry
+    this.autocompleteHelper = new MatAutocompleteConfigHolder(this.settings && {
+      getUserAttributes: (a, b) => this.settings.getFieldDisplayAttributes(a, b)
+    });
+    this.autocompleteFields = this.autocompleteHelper.fields;
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -81,6 +94,11 @@ export abstract class AppRootDataEditor<
   }
 
   /* -- protected methods -- */
+
+  protected registerAutocompleteField<T = any, F = any>(fieldName: string,
+                                                        opts?: MatAutocompleteFieldAddOptions<T, F>): MatAutocompleteFieldConfig<T, F> {
+    return this.autocompleteHelper.add(fieldName, opts);
+  }
 
   protected canUserWrite(data: T): boolean {
     return isNil(data.validationDate) && this.programService.canUserWrite(data);

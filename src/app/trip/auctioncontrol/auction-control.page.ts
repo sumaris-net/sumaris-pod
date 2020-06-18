@@ -13,6 +13,9 @@ import {fadeInOutAnimation, isNil, isNotNil} from "../../shared/shared.module";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {MatAutocompleteConfigHolder} from "../../shared/material/autocomplete/material.autocomplete";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
 @Component({
   selector: 'app-auction-control',
@@ -28,14 +31,28 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   private _rowValidatorSubscription: Subscription;
 
+  filterForm: FormGroup;
+
   constructor(
     injector: Injector,
+    protected referentialRefService: ReferentialRefService,
+    protected formBuilder: FormBuilder,
     protected modalCtrl: ModalController
   ) {
     super(injector, {
       pathIdAttribute: 'controlId',
       tabCount: 2
     });
+
+    this.filterForm = this.formBuilder.group({
+      taxonGroup: [null]
+    });
+    this.registerAutocompleteField('taxonGroupFilter', {
+      service: referentialRefService,
+      filter: {
+        entityName: 'TaxonGroup'
+      }
+    })
   }
 
   ngOnInit() {
@@ -220,5 +237,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   protected computePageUrl(id: number|'new') {
     let parentUrl = this.getParentPageUrl();
     return `${parentUrl}/control/${id}`;
+  }
+
+  protected getFirstInvalidTabIndex(): number {
+    return this.landingForm.invalid && !this.measurementValuesForm.invalid ? 0 : (
+      (this.samplesTable.invalid || this.measurementValuesForm.invalid) ? 1 : -1);
   }
 }

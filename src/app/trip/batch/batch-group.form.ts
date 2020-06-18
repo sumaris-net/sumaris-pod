@@ -130,7 +130,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     // Set isSampling on each child forms, when has indiv. measure changed
     this.registerSubscription(
       this.hasIndividualMeasureControl.valueChanges
-        .pipe(filter(() => !this.loadingValue && !this.loading))
+        .pipe(filter(() => !this.applyingValue && !this.loading))
         .subscribe(value => {
           (this.childrenForms || []).forEach((childForm, index) => {
             childForm.setIsSampling(value, {emitEvent: true}/*Important, to force async validator*/);

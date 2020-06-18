@@ -37,7 +37,7 @@
                                  *ngIf="!($loadingControls | async) && qvPmfm"
                                  [pmfm]="qvPmfm"
                                  [style]="mobile? 'button' : 'autocomplete'"
-                                 [formControl]="measurementFormGroup.controls[qvPmfm.pmfmId.toString()]"
+                                 [formControl]="measurementValuesForm.controls[qvPmfm.pmfmId.toString()]"
                                  [floatLabel]="floatLabel"
                                  [compact]="compact"
                                  [tabindex]="tabindex+1"
@@ -137,34 +137,35 @@
   </ng-container>
 
   <!-- pmfms -->
-  <div *ngIf="$pmfms | async as pmfms; else loadingSpinner">
+  <form *ngIf="$pmfms | async as pmfms; else loadingSpinner"
+        [formGroup]="measurementValuesForm">
 
     <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
       <!-- If mobile, force 'button' style for qualitative value PMFMs -->
       <app-pmfm-qv-field #inputField
-                                     *ngIf="mobile && !pmfm.hidden && pmfm.isQualitative; else otherField"
-                                     [pmfm]="pmfm"
-                                     [style]="'button'"
-                                     [sortAttribute]="['name']"
-                                     [formControl]="measurementFormGroup.controls[pmfm.pmfmId.toString()]"
-                                     [compact]="compact"
-                                     [tabindex]="tabindex + 20 + i*2"
-                                     (keyup.enter)="focusNextInput($event)">
+                         *ngIf="mobile && !pmfm.hidden && pmfm.isQualitative; else otherField"
+                         [pmfm]="pmfm"
+                         [style]="'button'"
+                         [sortAttribute]="['name']"
+                         [formControlName]="pmfm.pmfmId.toString()"
+                         [compact]="compact"
+                         [tabindex]="tabindex + 20 + i*2"
+                         (keyup.enter)="focusNextInput($event)">
       </app-pmfm-qv-field>
 
       <!-- NOT mobile and qualitative value -->
       <ng-template #otherField>
         <app-pmfm-field #inputField
-                                    [pmfm]="pmfm"
-                                    [hidden]="pmfm.hidden"
-                                    [formControl]="measurementFormGroup.controls[pmfm.pmfmId.toString()]"
-                                    [compact]="compact"
-                                    (keyup.enter)="focusNextInputOrSubmit($event, last)"
-                                    [tabindex]="tabindex + 20 + i*2">
+                        [pmfm]="pmfm"
+                        [hidden]="pmfm.hidden"
+                        [formControlName]="pmfm.pmfmId.toString()"
+                        [compact]="compact"
+                        (keyup.enter)="focusNextInputOrSubmit($event, last)"
+                        [tabindex]="tabindex + 20 + i*2">
         </app-pmfm-field>
       </ng-template>
     </ng-container>
-  </div>
+  </form>
 
 
   <ion-grid class="ion-no-padding">

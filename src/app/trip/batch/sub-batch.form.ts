@@ -58,12 +58,15 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   protected _parentAttributes: string[];
   protected _showTaxonName: boolean;
 
+  protected _disableByDefaultControls: AbstractControl[] = [];
+
   mobile: boolean;
   enableIndividualCountControl: AbstractControl;
   freezeTaxonNameControl: AbstractControl;
   freezeQvPmfmControl: AbstractControl;
   $taxonNames = new BehaviorSubject<TaxonNameRef[]>(undefined);
   selectedTaxonNameIndex = -1;
+
 
   @Input() tabindex: number;
 
@@ -391,6 +394,18 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     if (!this.enableIndividualCount) {
       this.form.get('individualCount').disable(opts);
     }
+
+    // Other field to disable by default (e.g. discard reason, in SUMARiS program)
+    this._disableByDefaultControls.forEach(c => c.disable(opts));
+  }
+
+  protected restoreFormStatus(opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    super.restoreFormStatus(opts);
+
+    if (this._enable) {
+      // Other field to disable by default (e.g. discard reason, in SUMARiS program)
+      this._disableByDefaultControls.forEach(c => c.disable(opts));
+    }
   }
 
   onTaxonNameButtonClick(event: UIEvent|undefined, value: TaxonNameRef, minTabindex: number) {
@@ -448,9 +463,14 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // Manage DISCARD_REASON validator
     if (discardOrLandingControl && discardReasonControl) {
+      // Always disable by default, while discard/Landing not set
+      this._disableByDefaultControls.push(discardReasonControl);
+
       this.registerSubscription(discardOrLandingControl.valueChanges
-        // IMPORTANT: add a delay, to make sure to be executed AFTER the form.enable()
-        .pipe(delay(200))
+        .pipe(
+          // IMPORTANT: add a delay, to make sure to be executed AFTER the form.enable()
+          delay(200)
+        )
         .subscribe((value) => {
 
           if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
@@ -568,4 +588,5 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       data.parent = data.parent.parent;
     }
   }
+
 }

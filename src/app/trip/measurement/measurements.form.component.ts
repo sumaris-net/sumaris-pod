@@ -323,7 +323,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
     else {
 
-      if (this.debug) console.debug(`${this.logPrefix} Updating form controls {force_optional: ${this._forceOptional}}, using pmfms:`, pmfms);
+      if (this.debug) console.debug(`${this.logPrefix} Updating form controls {event: ${event}, force_optional: ${this._forceOptional}}, using pmfms:`, pmfms);
 
       // Update the existing form
       this.measurementValidatorService.updateFormGroup(this.form, {
@@ -352,11 +352,12 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   }
 
   protected restoreFormStatus(opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+    const form = this.form;
     // Restore enable state (because form.setValue() can change it !)
     if (this._enable) {
-      this.form.enable(opts);
-    } else if (this.form.enabled) {
-      this.form.disable(opts);
+      form.enable(opts);
+    } else if (form.enabled) {
+      form.disable(opts);
     }
   }
 

@@ -177,9 +177,10 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
         equals: Batch.equals
       }),
       validatorService,
-      Object.assign(options, {
+      {
+        ...options,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
-      })
+      }
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);

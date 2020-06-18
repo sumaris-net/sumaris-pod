@@ -4,6 +4,7 @@ import {BatchGroupValidatorService} from "../services/validator/trip.validators"
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
 import {
+  delay,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -596,10 +597,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // If row not added yet
     if (!this.editedRow) {
-      // wait 100ms, then retry
-      return setTimeout(() => {
-        return this.onOpenSubBatchesFromModal(parent); // loop
-      }, 100);
+      // wait 100ms, then loop
+      await delay(100);
+      return this.onOpenSubBatchesFromModal(parent);
     }
 
     await this.onSubBatchesClick(null, this.editedRow, {

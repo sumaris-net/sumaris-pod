@@ -1,6 +1,7 @@
 import {AppTable} from "./table.class";
-import {debounceTime, filter, first} from "rxjs/operators";
+import {debounceTime} from "rxjs/operators";
 import {Entity} from "../services/model/entity.model";
+import {firstFalsePromise} from "../../shared/observables";
 
 export class AppTableUtils {
 
@@ -10,12 +11,10 @@ export class AppTableUtils {
       throw Error("Invalid table. Missing table or table.dataSource")
     }
 
-    await table.dataSource.$busy
+    await firstFalsePromise(table.dataSource.$busy.asObservable()
       .pipe(
         debounceTime(100), // if not started yet, wait
-        filter(loading => loading === false),
-        first()
-      ).toPromise();
+      ));
 
   }
 

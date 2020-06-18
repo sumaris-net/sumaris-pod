@@ -175,6 +175,14 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return this._enable;
   }
 
+  // FIXME: need to hidden buttons (in HTML), etc. when disabled
+  // @Input() set disabled(disabled: boolean) {
+  //   if (disabled !== !this._enable) {
+  //     if (disabled) this.disable()
+  //     else this.enable();
+  //   }
+  // }
+
   get disabled(): boolean {
     return !this._enable;
   }

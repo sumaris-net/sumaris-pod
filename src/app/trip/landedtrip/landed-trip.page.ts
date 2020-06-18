@@ -59,9 +59,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   showSaleTab = false;
   showExpenseTab = false;
 
-  autocompleteHelper: MatAutocompleteConfigHolder;
-  autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
-
   // List of trip's metier, used to populate operation group's metier combobox
   $metiers = new BehaviorSubject<ReferentialRef[]>(null);
 
@@ -103,11 +100,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
         tabCount: 4
       });
 
-    this.autocompleteHelper = new MatAutocompleteConfigHolder(this.settings && {
-      getUserAttributes: (a, b) => this.settings.getFieldDisplayAttributes(a, b)
-    });
-    this.autocompleteFields = this.autocompleteHelper.fields;
-
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -148,7 +140,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     }));
 
     // Init operationGroupFilter combobox
-    this.autocompleteHelper.add('operationGroupFilter', {
+    this.registerAutocompleteField('operationGroupFilter', {
       showAllOnFocus: true,
       items: this.$operationGroups,
       attributes: this.operationGroupAttributes,
