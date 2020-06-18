@@ -136,7 +136,7 @@
                 type="button"
                 *ngIf="clearable"
                 (click)="clearValue($event)"
-                [hidden]="disabled || !formControl.value">
+                [hidden]="disabled || !formControl.value">
           <mat-icon>close</mat-icon>
         </button>
         <ng-content matSuffix select="[matSuffix]"></ng-content>

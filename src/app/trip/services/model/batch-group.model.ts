@@ -1,4 +1,3 @@
-import {DataEntityAsObjectOptions, Entity} from "./base.model";
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
 
 export class BatchGroup extends Batch<BatchGroup> {

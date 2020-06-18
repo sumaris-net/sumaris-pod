@@ -46,7 +46,7 @@ export class FileService {
   }): Promise<string[]> {
     if (!this._started) throw new Error("Platform must be started first!");
 
-    //const fileTransfer = this.canUseFileSystem ? this.transfer.create() : undefined;
+    //const fileTransfer = this.canUseFileSystem ? this.transfer.create() : undefined;
     //const jobsFactories = (sources || []).map(source => () => this.getImage(source, {...opts, fileTransfer}));
 
     const jobsFactories = (sources || []).map(source => () => this.getImage(source, {...opts}));
@@ -58,9 +58,9 @@ export class FileService {
     responseType?: 'file' | 'dataUrl'
     }): Promise<string> {
 
-    let responseType = opts && opts.responseType || (this.canUseFileSystem ? 'file' : 'dataUrl');
+    let responseType = opts && opts.responseType || (this.canUseFileSystem ? 'file' : 'dataUrl');
 
-    const debug = this._debug /*&& (!opts || !opts.fileTransfer)*/;
+    const debug = this._debug /*&& (!opts || !opts.fileTransfer)*/;
     const now = debug && Date.now();
     if (debug) console.debug(`[file] Fetching image {${source}} into ${responseType}...`);
 

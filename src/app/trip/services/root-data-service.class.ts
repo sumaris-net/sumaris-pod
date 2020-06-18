@@ -1,20 +1,12 @@
-import {
-  DataEntityAsObjectOptions,
-  RootDataEntity,
-  DataRootEntityUtils,
-  Department,
-  EntityUtils, isNil, MINIFY_OPTIONS,
-  Person
-} from "../../trip/services/model/base.model";
+import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
 import {Injector} from "@angular/core";
-import {BaseDataService} from "../../core/core.module";
+import {BaseDataService, EntityUtils, isNil} from "../../core/core.module";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {DataQualityService} from "./base.service";
 import {FormErrors} from "../../core/form/form.utils";
-import {DataRootEntityValidatorService} from "./validator/base.validator";
-import {Trip} from "./model/trip.model";
-import {ValidatorService} from "angular4-material-table";
+import {DataRootEntityUtils, RootDataEntity} from "../../data/services/model/root-data-entity.model";
+import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 
 
 export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
@@ -28,7 +20,7 @@ export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
   ) {
     super(injector.get(GraphqlService));
 
-    this.accountService = this.accountService || injector && injector.get(AccountService) || undefined;
+    this.accountService = this.accountService || injector && injector.get(AccountService) || undefined;
   }
 
   canUserWrite(entity: T): boolean {

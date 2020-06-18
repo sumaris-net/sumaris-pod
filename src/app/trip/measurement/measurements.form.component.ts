@@ -13,10 +13,11 @@ import {FloatLabelType} from "@angular/material/form-field";
 import {BehaviorSubject} from 'rxjs';
 import {filter, throttleTime} from "rxjs/operators";
 import {AppForm} from '../../core/core.module';
-import {PmfmStrategy, ProgramService} from "../../referential/referential.module";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ProgramService} from "../../referential/services/program.service";
 import {FormBuilder} from '@angular/forms';
-import {MeasurementsValidatorService} from '../services/measurement.validator';
-import {isNil, isNotNil, delay} from '../../shared/functions';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {delay, isNil, isNotNil} from '../../shared/functions';
 import {
   Measurement,
   MeasurementType,
@@ -58,6 +59,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   @Input() requiredGear = false;
 
   @Input() entityName: MeasurementType;
+
+  @Input() animated = false;
 
   @Output()
   valueChanges: EventEmitter<any> = new EventEmitter<any>();

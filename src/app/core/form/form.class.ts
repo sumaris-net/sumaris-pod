@@ -1,10 +1,10 @@
-import { EventEmitter, Input, OnDestroy, OnInit, Output, Directive } from '@angular/core';
+import {Directive, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {FormGroup} from "@angular/forms";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {Subscription} from 'rxjs';
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
-import {AppFormUtils} from "./form.utils";
+import {AppFormUtils, IAppForm} from "./form.utils";
 import {
   MatAutocompleteConfigHolder,
   MatAutocompleteFieldAddOptions,
@@ -13,7 +13,7 @@ import {
 import {LocalSettingsService} from "../services/local-settings.service";
 
 @Directive()
-export abstract class AppForm<T> implements OnInit, OnDestroy {
+export abstract class AppForm<T> implements IAppForm, OnInit, OnDestroy {
 
   private _subscription = new Subscription();
   private _form: FormGroup;
@@ -140,9 +140,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     if (this._form !== form) {
       this._form = form;
       this._subscription.add(
-        this.form.statusChanges.subscribe(status => {
-          this.markForCheck();
-        }));
+        this._form.statusChanges.subscribe(status => this.markForCheck()));
     }
   }
 
@@ -216,6 +214,9 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }
 
   /* -- protected methods -- */
+
+
+
 
   protected registerSubscription(sub: Subscription): Subscription {
     return this._subscription.add(sub);

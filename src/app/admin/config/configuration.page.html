@@ -1,4 +1,4 @@
-<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
+<app-toolbar [title]="title$ | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
              [canGoBack]="false">
   <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
@@ -17,10 +17,10 @@
 
       <div class="ion-padding">
         <!-- error -->
-        <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error"
-                     [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
+                     [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
         </ion-item>
 
         <ion-grid class="ion-no-padding">
@@ -119,7 +119,7 @@
                 </h3>
 
                 <!-- Home logos -->
-                <ng-container *ngIf="config?.smallLogo || config?.largeLogo">
+                <ng-container *ngIf="config?.smallLogo || config?.largeLogo">
                   <h4>
                     <ion-text translate>CONFIGURATION.LOGOS</ion-text>
                   </h4>

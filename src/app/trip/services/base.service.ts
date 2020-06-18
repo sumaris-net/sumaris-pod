@@ -1,4 +1,4 @@
-import {DataEntity} from "./model/base.model";
+import {DataEntity} from "../../data/services/model/data-entity.model";
 import {FormErrors} from "../../core/form/form.utils";
 
 export interface DataQualityService<T extends DataEntity<T>, O = any> {

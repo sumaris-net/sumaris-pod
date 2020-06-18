@@ -10,14 +10,14 @@ import {
   isNotNilOrBlank
 } from '../../shared/shared.module';
 import * as moment from "moment";
-import {AcquisitionLevelCodes, PmfmStrategy, ProgramProperties} from "../../referential/services/model";
-import {AppDataEditorPage} from "../form/data-editor-page.class";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
 import {TripService, TripServiceSaveOption} from "../services/trip.service";
-import {HistoryPageReference, UsageMode} from "../../core/services/model";
+import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -31,12 +31,14 @@ import {PacketsTable} from "../packet/packets.table";
 import {Packet, PacketFilter} from "../services/model/packet.model";
 import {OperationGroup, Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
-import {fillRankOrder, isRankOrderValid} from "../services/model/base.model";
+import {fillRankOrder, isRankOrderValid} from "../../data/services/model/model.utils";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {debounceTime, filter} from "rxjs/operators";
 import {Sale} from "../services/model/sale.model";
 import {ExpenseForm} from "../expense/expense.form";
 import {FishingAreaForm} from "../fishing-area/fishing-area.form";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ProgramProperties} from "../../referential/services/config/program.config";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -45,7 +47,7 @@ import {FishingAreaForm} from "../fishing-area/fishing-area.form";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandedTripPage extends AppDataEditorPage<Trip, TripService> implements OnInit {
+export class LandedTripPage extends AppRootDataEditor<Trip, TripService> implements OnInit {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   observedLocationId: number;
@@ -87,6 +89,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   constructor(
     injector: Injector,
     protected entities: EntityStorage,
+    protected dataService: TripService,
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
     public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
@@ -94,10 +97,11 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   ) {
     super(injector,
       Trip,
-      injector.get(TripService));
-    this.idAttribute = 'tripId';
-    // this.defaultBackHref = "/trips";
-    this.tabCount = 4;
+      dataService,
+      {
+        pathIdAttribute: 'tripId',
+        tabCount: 4
+      });
 
     this.autocompleteHelper = new MatAutocompleteConfigHolder(this.settings && {
       getUserAttributes: (a, b) => this.settings.getFieldDisplayAttributes(a, b)
@@ -182,12 +186,13 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
   }
 
-  protected registerFormsAndTables() {
-    this.registerForms([this.tripForm, this.measurementsForm, this.fishingAreaForm,
+  protected registerForms() {
+    this.addChildForms([
+      this.tripForm, this.measurementsForm, this.fishingAreaForm,
       // this.landedSaleForm //, this.saleMeasurementsForm
-      this.expenseForm
-    ])
-      .registerTables([this.operationGroupTable, this.productsTable, this.packetsTable]);
+      this.expenseForm,
+      this.operationGroupTable, this.productsTable, this.packetsTable
+    ]);
   }
 
 
@@ -196,7 +201,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     this.observedLocationId = options && options.observedLocationId || this.observedLocationId;
     this.defaultBackHref = `/observations/${this.observedLocationId}`;
 
-    super.load(id, {isLandedTrip: true, ...options});
+    return super.load(id, {isLandedTrip: true, ...options});
   }
 
   protected async onNewEntity(data: Trip, options?: EditorDataServiceLoadOptions): Promise<void> {

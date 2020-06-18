@@ -15,18 +15,10 @@ import {of, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
-import {
-  AcquisitionLevelCodes,
-  getPmfmName,
-  PmfmLabelPatterns,
-  PmfmStrategy,
-  PmfmUtils,
-  ReferentialRefService
-} from "../../referential/referential.module";
 import {isNilOrBlank, isNotNil} from "../../shared/functions";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {UsageMode} from "../../core/services/model";
+import {UsageMode} from "../../core/services/model/settings.model";
 import {SubBatchesModal} from "./sub-batches.modal";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {BatchModal} from "./batch.modal";
@@ -34,6 +26,10 @@ import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Batch} from "../services/model/batch.model";
 import {Operation} from "../services/model/trip.model";
 import {Landing} from "../services/model/landing.model";
+import {AcquisitionLevelCodes, PmfmLabelPatterns} from "../../referential/services/model/model.enum";
+import {PmfmUtils} from "../../referential/services/model/pmfm.model";
+import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
 export interface BatchFilter {
   operationId?: number;

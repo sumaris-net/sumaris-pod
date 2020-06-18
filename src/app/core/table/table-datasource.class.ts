@@ -1,34 +1,36 @@
 import {TableDataSource, TableElement, ValidatorService} from 'angular4-material-table';
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {isNotEmptyArray, isNotNil, LoadResult, TableDataService, toBoolean} from '../../shared/shared.module';
-import {Entity} from "../services/model";
+import {Entity} from "../services/model/entity.model";
 import {ErrorCodes} from '../services/errors';
 import {catchError, first, map, takeUntil} from "rxjs/operators";
+import {OnDestroy} from "@angular/core";
 
 export interface AppTableDataSourceOptions<T extends Entity<T>> {
   prependNewElements: boolean;
   suppressErrors: boolean;
   onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
-  serviceOptions?: {
+  dataServiceOptions?: {
     saveOnlyDirtyRows?: boolean;
+    readOnly?: boolean;
     [key: string]: any;
   };
   [key: string]: any;
 }
 
-export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> {
+export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> implements OnDestroy {
 
   protected _debug = false;
   protected _config: AppTableDataSourceOptions<T>;
   protected _creating = false;
   protected _saving = false;
   protected _useValidator = false;
-  protected _stopWatchAll = new Subject();
+  protected _stopWatchAll$ = new Subject();
   private _loaded = false;
 
-  public loadingSubject = new BehaviorSubject(false);
+  loadingSubject = new BehaviorSubject(false);
 
-  public serviceOptions: any;
+  serviceOptions: any;
 
   set dataService(value: TableDataService<T, F>) {
     this._dataService = value;
@@ -59,12 +61,19 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
               validatorService?: ValidatorService,
               config?: AppTableDataSourceOptions<T>) {
     super([], dataType, validatorService, config);
-    this.serviceOptions = config && config.serviceOptions || {};
+    this.serviceOptions = config && config.dataServiceOptions || {};
     this._config = config || {prependNewElements: false, suppressErrors: true};
     this._useValidator = isNotNil(validatorService);
 
     // For DEV ONLY
     //this._debug = !environment.production;
+  }
+
+  ngOnDestroy() {
+    this._stopWatchAll$.next();
+    // Unsubscribe from the subject
+    this._stopWatchAll$.unsubscribe();
+    this.loadingSubject.unsubscribe();
   }
 
   watchAll(offset: number,
@@ -73,14 +82,14 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
            sortDirection?: string,
            filter?: F): Observable<LoadResult<T>> {
 
-    this._stopWatchAll.next(); // stop previous watch observable
+    this._stopWatchAll$.next(); // stop previous watch observable
 
     this.loadingSubject.next(true);
     return this._dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
       //.catch(err => this.handleError(err, 'Unable to load rows'))
       .pipe(
-        // Stop this pipe, on the next call of watchAll()
-        takeUntil(this._stopWatchAll),
+        // Stop this pipe next time we call watchAll()
+        takeUntil(this._stopWatchAll$),
         catchError(err => this.handleError(err, 'ERROR.LOAD_DATA_ERROR')),
         map(res => {
           if (this._saving) {
@@ -178,7 +187,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
   disconnect() {
     super.disconnect();
-    this._stopWatchAll.next();
+    this._stopWatchAll$.next();
   }
 
   confirmCreate(row: TableElement<T>) {

@@ -17,8 +17,9 @@ import {AppFormUtils, isNil} from "../../core/core.module";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {toBoolean} from "../../shared/functions";
 import {filterNumberInput, focusInput, InputElement, setTabIndex} from "../../shared/inputs";
-import {getPmfmName, PmfmStrategy, PmfmUtils} from "../services/model";
-import {PmfmValidators} from "../services/pmfm.validator";
+import {getPmfmName, PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {PmfmUtils} from "../services/model/pmfm.model";
+import {PmfmValidators} from "../services/validator/pmfm.validators";
 
 const noop = () => {
 };
@@ -202,7 +203,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   }
 
   protected updateTabIndex() {
-    if (isNil(this.tabindex) || this.tabindex === -1) return;
+    if (isNil(this.tabindex) || this.tabindex === -1) return;
     setTimeout(() => {
       if (!this.matInput) return;
       setTabIndex(this.matInput, this.tabindex);

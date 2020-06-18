@@ -1,26 +1,17 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {
-  AppTable,
-  AppTableDataSource,
-  environment,
-  referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, StatusIds
-} from "../../core/core.module";
-import {PmfmStrategy, Referential} from "../services/model";
+import {environment, referentialToString, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
+import {Referential} from "../../core/services/model/referential.model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {isEmptyArray} from "../../shared/functions";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {DefaultStatusList} from "../../core/services/model";
-import {ReferentialValidatorService} from "../services/referential.validator";
+import {DefaultStatusList} from "../../core/services/model/referential.model";
+import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {ReferentialFilter} from "../services/referential.service";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
-import {PmfmStrategyFilter} from "../strategy/pmfm-strategies.table";
 
 
 @Component({
@@ -31,7 +22,9 @@ import {PmfmStrategyFilter} from "../strategy/pmfm-strategies.table";
     {provide: ValidatorService, useExisting: ReferentialValidatorService},
     {
       provide: InMemoryTableDataService,
-      useFactory: () => new InMemoryTableDataService<Referential, ReferentialFilter>(Referential, {})
+      useFactory: () => {
+        return new InMemoryTableDataService<Referential, ReferentialFilter>(Referential);
+      }
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush

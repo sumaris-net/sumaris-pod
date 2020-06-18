@@ -1,4 +1,5 @@
-import {DataEntity, DataEntityAsObjectOptions, NOT_MINIFY_OPTIONS, ReferentialRef} from "./base.model";
+import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
+import {NOT_MINIFY_OPTIONS, ReferentialRef} from "../../../core/services/model/referential.model";
 
 export class FishingArea extends DataEntity<FishingArea> {
 

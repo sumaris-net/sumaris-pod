@@ -1,7 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {AppForm} from "../../core/form/form.class";
 import {Packet, PacketComposition, PacketUtils} from "../services/model/packet.model";
-import {IReferentialRef, UsageMode} from "../../core/services/model";
+import {IReferentialRef} from "../../core/services/model/referential.model";
+import {UsageMode} from "../../core/services/model/settings.model";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";

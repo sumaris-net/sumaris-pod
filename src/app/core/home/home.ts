@@ -11,14 +11,10 @@ import {ModalController} from '@ionic/angular';
 import {RegisterModal} from '../register/modal/modal-register';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
-import {
-  Account,
-  ConfigOptions,
-  Configuration,
-  Department,
-  HistoryPageReference,
-  LocalSettings
-} from '../services/model';
+import {Account} from '../services/model/account.model';
+import {Configuration} from '../services/model/config.model';
+import {Department} from '../services/model/department.model';
+import {HistoryPageReference, LocalSettings} from '../services/model/settings.model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
 import {fadeInAnimation, isNotNil, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
@@ -29,6 +25,7 @@ import {AuthModal} from "../auth/modal/modal-auth";
 import {environment} from "../../../environments/environment";
 import {NetworkService} from "../services/network.service";
 import {MenuItem, MenuItems} from "../menu/menu.component";
+import {ConfigOptions} from "../services/config/core.config";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -286,8 +283,8 @@ export class HomePage implements OnDestroy {
             this.appInstallName = this.appName;
           }
           else {
-            this.appInstallName = environment.defaultAppName || 'SUMARiS';
-            this.appInstallUrl =  environment.defaultAndroidInstallUrl || null;
+            this.appInstallName = environment.defaultAppName || 'SUMARiS';
+            this.appInstallUrl =  environment.defaultAndroidInstallUrl || null;
           }
           this.markForCheck();
         }, 1000); // Add a delay, for animation

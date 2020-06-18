@@ -1,6 +1,6 @@
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {Entity, isNotNil, LoadResult, TableDataService} from "../../core/core.module";
-import {EntityUtils, IEntity} from "../../core/services/model";
+import {isNotNil, LoadResult, TableDataService} from "../../core/core.module";
+import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
 import {filter, mergeMap} from "rxjs/operators";
 import {isNotEmptyArray} from "../functions";
 import {FilterFnFactory} from "./data-service.class";
@@ -14,13 +14,7 @@ export interface InMemoryTableDataServiceOptions<T, F> {
   onFilter?: (data: T[], filter: F) => T[] | Promise<T[]>;
 }
 
-export abstract class DataFilter<T extends IEntity<T>> {
-  test(data: T, filter: any): boolean {
-    return true;
-  }
-}
-
-export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter<T> | any = DataFilter<T>> implements TableDataService<T, F> {
+export class InMemoryTableDataService<T extends IEntity<T>, F = any> implements TableDataService<T, F> {
 
   private _onDataChange = new Subject();
   private _dataSubject = new BehaviorSubject<LoadResult<T>>(undefined);
@@ -58,15 +52,21 @@ export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter
 
   constructor(
     protected dataType: new() => T,
-    protected options?: InMemoryTableDataServiceOptions<T, F>
+    options?: InMemoryTableDataServiceOptions<T, F>
   ) {
+    options = {
+      onSort: this.sort,
+      onFilter: this.filter,
+      equals: this.equals,
+      ...options
+    };
 
-    this._sortFn = options && options.onSort || this.sort;
-    this._onLoad = options && options.onLoad || null;
-    this._onSaveFn = options && options.onSave || null;
-    this._equalsFn = options && options.equals || this.equals;
-    this._onFilterFn = options && options.onFilter || this.filter;
-    this._filterFnFactory = options && options.filterFnFactory;
+    this._sortFn = options.onSort;
+    this._onLoad = options.onLoad;
+    this._onSaveFn = options.onSave;
+    this._equalsFn = options.equals;
+    this._onFilterFn = options.onFilter;
+    this._filterFnFactory = options.filterFnFactory;
 
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;

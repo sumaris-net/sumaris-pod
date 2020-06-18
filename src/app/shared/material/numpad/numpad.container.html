@@ -16,7 +16,7 @@
           <ion-col size="{{12/columnCount}}" *ngFor="let item of row">
             <ion-button mat-button expand="block"
                         *ngIf="item"
-                        [color]="item.color || 'secondary'"
+                        [color]="item.color || 'secondary'"
                         (click)="onButtonClick($event, item)">
               <ion-icon *ngIf="item.icon; else label" slot="icon-only" [name]="item.icon"></ion-icon>
               <ng-template #label>

@@ -10,7 +10,8 @@ import {
   isNotNil,
   LoadResult,
   TableDataService,
-  toBoolean, toDateISOString
+  toBoolean,
+  toDateISOString
 } from "../../shared/shared.module";
 import {AppFormUtils, Department, EntityUtils, environment} from "../../core/core.module";
 import {catchError, filter, map, switchMap, tap} from "rxjs/operators";
@@ -24,15 +25,10 @@ import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {RootDataService} from "./root-data-service.class";
 import {
   DataEntityAsObjectOptions,
-  DataRootEntityUtils,
-  fillRankOrder,
-  IWithRecorderDepartmentEntity,
-  MINIFY_OPTIONS,
   SAVE_AS_OBJECT_OPTIONS,
   SAVE_LOCALLY_AS_OBJECT_OPTIONS,
-  SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS,
-  SynchronizationStatus
-} from "./model/base.model";
+  SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
+} from "../../data/services/model/data-entity.model";
 import {NetworkService} from "../../core/services/network.service";
 import {concat, defer, Observable, of, timer} from "rxjs";
 import {EntityStorage} from "../../core/services/entities-storage.service";
@@ -45,12 +41,14 @@ import {PersonService} from "../../admin/services/person.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {concatPromises} from "../../shared/observables";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {TripValidatorService} from "./trip.validator";
+import {TripValidatorService} from "./validator/trip.validator";
 import {FormErrors} from "../../core/form/form.utils";
-import {AcquisitionLevelType} from "../../referential/services/model";
 import {Operation, PhysicalGear, Trip} from "./model/trip.model";
 import {Batch} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
+import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
+import {fillRankOrder, IWithRecorderDepartmentEntity} from "../../data/services/model/model.utils";
+import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -220,7 +218,7 @@ export const TRIP_FEATURE = 'trip';
 export class TripFilter {
 
   static isEmpty(tripFilter: TripFilter|any): boolean {
-    return !tripFilter || (isNilOrBlank(tripFilter.programLabel) && isNilOrBlank(tripFilter.vesselId) && isNilOrBlank(tripFilter.locationId)
+    return !tripFilter || (isNilOrBlank(tripFilter.programLabel) && isNilOrBlank(tripFilter.vesselId) && isNilOrBlank(tripFilter.locationId)
       && !tripFilter.startDate && !tripFilter.endDate
       && isNil(tripFilter.recorderDepartmentId)
       && isNil(tripFilter.recorderPersonId))
@@ -408,7 +406,7 @@ const UpdateSubscription = gql`
 export class TripService extends RootDataService<Trip, TripFilter>
   implements
     TableDataService<Trip, TripFilter>,
-    EditorDataService<Trip, TripFilter, TripServiceLoadOption>,
+    EditorDataService<Trip, TripServiceLoadOption>,
     DataQualityService<Trip> {
 
   protected $importationProgress: Observable<number>;
@@ -660,7 +658,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const isNew = isNil(entity.id);
 
     // If is a local entity: force a local save
-    const offline = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0;
+    const offline = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0;
     if (offline) {
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
@@ -717,7 +715,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
          else {
 
            // Remove existing entity from the local storage
-           if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
+           if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
              if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
              await this.entities.delete(entity);
 
@@ -821,7 +819,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}}...`, entity);
 
-    const programLabel = entity.program && entity.program.label || null;
+    const programLabel = entity.program && entity.program.label || null;
     if (!programLabel) throw new Error("Missing trip's program. Unable to control the trip");
     const program = await this.programService.loadByLabel(programLabel);
 
@@ -1179,8 +1177,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
 
     // Remove ids
     delete entity.id;
-    (entity.gears || []).forEach(g => g.id = undefined);
-    (entity.measurements || []).forEach(m => m.id = undefined);
+    (entity.gears || []).forEach(g => g.id = undefined);
+    (entity.measurements || []).forEach(m => m.id = undefined);
 
     // Make sure to fill id, with local ids
     await this.fillOfflineDefaultProperties(entity);
@@ -1205,10 +1203,10 @@ export class TripService extends RootDataService<Trip, TripFilter>
         op.id = undefined;
         op.tripId = offlineTrip.id;
         op.physicalGear.id = undefined;
-        (op.measurements || []).forEach(m => m.id = undefined);
-        (op.positions || []).forEach(p => p.id = undefined);
+        (op.measurements || []).forEach(m => m.id = undefined);
+        (op.positions || []).forEach(p => p.id = undefined);
         const cleanTreeIdsFn = (a: (Batch|Sample)[] ) => {
-          if (!a || isEmptyArray(a)) return;
+          if (!a || isEmptyArray(a)) return;
           a.forEach(v => {
             if (!v) return; // Skip if empty
             v.id = undefined;
@@ -1275,7 +1273,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     if (!Array.isArray(entities)) {
       entities = [entities];
     }
-    department = department || this.accountService.department;
+    department = department || this.accountService.department;
 
     entities.forEach(entity => {
       if (!entity.recorderDepartment || !entity.recorderDepartment.id) {
@@ -1296,7 +1294,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     }
 
     // Fill default synchronization status
-    entity.synchronizationStatus = entity.synchronizationStatus || 'DIRTY';
+    entity.synchronizationStatus = entity.synchronizationStatus || 'DIRTY';
 
     // Fill gear id
     const gears = entity.gears || [];

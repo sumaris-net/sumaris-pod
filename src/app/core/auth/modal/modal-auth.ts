@@ -1,8 +1,8 @@
-import { Component, ViewChild } from '@angular/core';
-import { ModalController } from '@ionic/angular';
-import { AccountService } from "../../services/account.service";
-import { AuthForm } from '../form/form-auth';
-import {firstNotNil, firstNotNilPromise} from "../../../shared/observables";
+import {Component, ViewChild} from '@angular/core';
+import {ModalController} from '@ionic/angular';
+import {AccountService} from "../../services/account.service";
+import {AuthForm} from '../form/form-auth';
+import {firstNotNilPromise} from "../../../shared/observables";
 
 @Component({
   templateUrl: 'modal-auth.html',

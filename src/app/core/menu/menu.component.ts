@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ElementRef, HostListener,
   Inject,
   InjectionToken,
   Input,
@@ -12,18 +13,21 @@ import {
 import {AlertController, IonSplitPane, MenuController, ModalController} from "@ionic/angular";
 
 import {Router} from "@angular/router";
-import {Account, Configuration, UserProfileLabel} from "../services/model";
+import {Account} from "../services/model/account.model";
+import {UserProfileLabel} from "../services/model/person.model";
+import {Configuration} from "../services/model/config.model";
 import {AccountService} from "../services/account.service";
 import {AboutModal} from '../about/modal-about';
 
 import {environment} from '../../../environments/environment';
 import {fadeInAnimation} from '../../shared/material/material.animations';
 import {TranslateService} from "@ngx-translate/core";
-import {isNotNilOrBlank} from "../../shared/functions";
+import {isNil, isNotNilOrBlank} from "../../shared/functions";
 import {BehaviorSubject, merge, Subscription} from "rxjs";
 import {ConfigService} from "../services/config.service";
 import {mergeMap, tap, throttleTime} from "rxjs/operators";
-import {HammerSwipeAction} from "../form/tab-page.class";
+import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
+import {DOCUMENT} from "@angular/common";
 
 export interface MenuItem {
   title: string;
@@ -51,7 +55,7 @@ export class MenuItems {
                     isLogin?: boolean;
                     debug?: boolean
                   }): boolean {
-    opts = opts || {};
+    opts = opts || {};
     if (item.profile) {
       const hasProfile = accountService.isLogin() && accountService.hasMinProfile(item.profile);
       if (!hasProfile) {
@@ -98,6 +102,7 @@ export class MenuComponent implements OnInit {
   private readonly _debug: boolean;
   private _subscription = new Subscription();
   private _config: Configuration;
+  private _screenWidth: number;
 
   public loading = true;
   public isLogin = false;
@@ -130,6 +135,14 @@ export class MenuComponent implements OnInit {
   ) {
 
     this._debug = !environment.production;
+
+    this.onResize();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event?) {
+    this._screenWidth = window.innerWidth;
+    console.debug("[menu] Screen size (px): " + this._screenWidth);
   }
 
   async ngOnInit() {
@@ -264,13 +277,26 @@ export class MenuComponent implements OnInit {
     }
   }
 
-  onSwipeRight(event: { type: HammerSwipeAction; pointerType: 'touch' | any } & UIEvent) {
+  onSwipeRight(event: HammerSwipeEvent) {
     // Skip, if not a valid swipe event
-    if (!event || event.pointerType !== 'touch') {
+    if (!event || event.pointerType !== 'touch' || event.velocity < 0.4) {
+      //event.preventDefault();
       return false;
     }
-    // TODO: check when to call: => depending on X/Y position ?
-    // event.preventDefault()
+
+    // Will open the left menu, so cancelled this swipe event
+    const startX =  event.center.x - event.distance;
+    if (startX <= 50) {
+      // DEBUG
+      //console.debug("[menu] Cancel swipe right, because near the left menu {x: " + startX + ", velocity: " + event.velocity + "}");
+      event.preventDefault();
+      return false;
+    }
+
+    // OK: continue
+
+    // DEBUG
+    //console.debug("[menu] Received swipe right {x: " + startX + ", velocity: " + event.velocity + "}");
   }
 
   /* -- protected methods -- */

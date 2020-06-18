@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector, Input} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {BatchGroupValidatorService} from "../services/trip.validators";
+import {BatchGroupValidatorService} from "../services/validator/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
 import {
@@ -13,7 +13,8 @@ import {
   toInt,
   toNumber
 } from "../../shared/functions";
-import {MethodIds, PmfmStrategy, QualityFlagIds} from "../../referential/services/model";
+import {MethodIds, QualityFlagIds} from "../../referential/services/model/model.enum";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {MeasurementFormValues, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {ModalController} from "@ionic/angular";
@@ -24,7 +25,7 @@ import {BatchGroupModal} from "./batch-group.modal";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {firstFalsePromise} from "../../shared/observables";
 import {BatchGroup} from "../services/model/batch-group.model";
-import {ReferentialUtils} from "../../core/services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
@@ -248,18 +249,18 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     this.markAsLoading();
 
     try {
-      const defaultTaxonGroups = opts && opts.defaultTaxonGroups || this._defaultTaxonGroups || null;
+      const defaultTaxonGroups = opts && opts.defaultTaxonGroups || this._defaultTaxonGroups || null;
       console.debug("[batch-group-table] Auto fill table, using options:", opts);
 
       // Read existing taxonGroup
-      const rowsTaxonGroups = (await this.dataSource.getRows() || []).map(r => r.currentData)
+      const rowsTaxonGroups = (await this.dataSource.getRows() || []).map(r => r.currentData)
         .map(batch => batch.taxonGroup)
         .filter(isNotNil);
 
       const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
-      const taxonGroups = (await this.programService.loadTaxonGroups(this.program) || [])
+      const taxonGroups = (await this.programService.loadTaxonGroups(this.program) || [])
         // Filter on expected labels (as prefix)
-        .filter(taxonGroup => !defaultTaxonGroups || taxonGroup.label && defaultTaxonGroups.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
+        .filter(taxonGroup => !defaultTaxonGroups || taxonGroup.label && defaultTaxonGroups.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
         // Exclude species that already exists in table
         .filter(taxonGroup => !rowsTaxonGroups.find(tg => ReferentialUtils.equals(tg, taxonGroup)))
         // Sort using order configure in the taxon group column
@@ -283,7 +284,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   /**
    * Use in ngFor, for trackBy
    * @param index
-   * @param columnDef
+   * @param column
    */
   trackColumnDef(index: number, column: ColumnDefinition) {
     return column.rankOrder;
@@ -300,7 +301,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         // For each group (one by qualitative value)
         this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
           const childLabel = `${batch.label}.${qv.label}`;
-          const child = batch.children.find(c => c.label === childLabel || c.measurementValues[this.qvPmfm.pmfmId] == qv.id);
+          const child = batch.children.find(c => c.label === childLabel || c.measurementValues[this.qvPmfm.pmfmId] == qv.id);
           if (child) {
 
             // Replace measurement values inside a new map, based on fake pmfms
@@ -471,7 +472,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
         // Listening changes, to mark table as dirty
         this.registerSubscription(
-          this.weightMethodForm.valueChanges.subscribe(json =>  this.markAsDirty())
+          this.weightMethodForm.valueChanges.subscribe(_ =>  this.markAsDirty())
         );
       }
 
@@ -546,7 +547,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }
 
   protected getUserColumns(userColumns?: string[]): string[] {
-    userColumns = userColumns || this.settings.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
+    userColumns = userColumns || this.settings.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
 
     // Exclude OLD user columns (fix issue on v0.16.2)
     userColumns = userColumns && userColumns.filter(c => c === 'weight' || c === 'individualCount');
@@ -572,12 +573,12 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     individualCountIndex = (individualCountIndex !== -1 && weightIndex === -1 ? 0 : individualCountIndex);
     const inverseOrder = individualCountIndex < weightIndex;
 
-    const dynamicColumnKeys = (this.dynamicColumns || [])
+    const dynamicColumnKeys = (this.dynamicColumns || [])
       .map(c => {
         return {
           key: c.key,
           rankOrder: c.rankOrder + (inverseOrder &&
-            ((c.key.endsWith('_WEIGHT') && 1) || (c.key.endsWith('_INDIVIDUAL_COUNT') && -1)) || 0)
+            ((c.key.endsWith('_WEIGHT') && 1) || (c.key.endsWith('_INDIVIDUAL_COUNT') && -1)) || 0)
         };
       })
       .sort((c1, c2) => c1.rankOrder - c2.rankOrder)
@@ -656,7 +657,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     let userColumns = this.getUserColumns();
     const hiddenColumns = DEFAULT_USER_COLUMNS.slice(0)
       .filter(name => userColumns.indexOf(name) === -1);
-    let columns = (userColumns || [])
+    let columns = (userColumns || [])
       .concat(hiddenColumns)
       .map(name => {
         const label = (name === 'individualCount') ? 'TRIP.BATCH.TABLE.INDIVIDUAL_COUNT' :
@@ -708,7 +709,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     }
     finally {
       // Hide loading
-      if (!opts || opts.emitLoaded !== false) {
+      if (!opts || opts.emitLoaded !== false) {
         this.markAsLoaded();
       }
     }
@@ -743,9 +744,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         });
         const samplingIndividualCount = BatchUtils.sumObservedIndividualCount(qvChildren);
         const qvOffset = (qvIndex * BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length);
-        const hasSampling = !!(parent.measurementValues[qvOffset + 2] || parent.measurementValues[qvOffset + 3]);
+        const hasSampling = !!(parent.measurementValues[qvOffset + 2] || parent.measurementValues[qvOffset + 3]);
         parent.measurementValues[qvOffset + 4] = hasSampling || samplingIndividualCount ? samplingIndividualCount : undefined;
-        parent.observedIndividualCount += (samplingIndividualCount || 0);
+        parent.observedIndividualCount += (samplingIndividualCount || 0);
       });
     }
 

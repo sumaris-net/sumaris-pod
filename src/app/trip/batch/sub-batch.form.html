@@ -58,7 +58,7 @@
   <ng-container *ngIf="showTaxonName">
 
     <!-- Taxon name (desktop) -->
-    <mat-autocomplete-field #inputField *ngIf="!mobile || freezeTaxonName; else taxonNameMobile"
+    <mat-autocomplete-field #inputField *ngIf="!mobile || freezeTaxonName; else taxonNameMobile"
                             formControlName="taxonName"
                             [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                             [config]="autocompleteFields.taxonName"

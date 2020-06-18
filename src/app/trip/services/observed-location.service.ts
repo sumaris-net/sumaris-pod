@@ -1,5 +1,11 @@
 import {Injectable, Injector} from "@angular/core";
-import {EditorDataService, LoadResult, TableDataService} from "../../shared/services/data-service.class";
+import {
+  EditorDataService,
+  EditorDataServiceLoadOptions,
+  LoadResult,
+  TableDataService,
+  TableDataServiceWatchOptions
+} from "../../shared/services/data-service.class";
 import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import {Moment} from "moment";
@@ -8,19 +14,13 @@ import gql from "graphql-tag";
 import {Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {map} from "rxjs/operators";
-import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {RootDataService} from "./root-data-service.class";
-import {
-  DataEntityAsObjectOptions,
-  isNil,
-  isNotNil,
-  SAVE_AS_OBJECT_OPTIONS,
-  SynchronizationStatus, toDateISOString
-} from "./model/base.model";
+import {DataEntityAsObjectOptions, SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {FormErrors} from "../../core/form/form.utils";
 import {ObservedLocation} from "./model/observed-location.model";
-import {Beans, KeysEnum} from "../../shared/functions";
+import {Beans, isNil, isNotNil, KeysEnum, toDateISOString} from "../../shared/functions";
+import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 
 
 export class ObservedLocationFilter {
@@ -33,7 +33,7 @@ export class ObservedLocationFilter {
   synchronizationStatus?: SynchronizationStatus;
 
   static isEmpty(f: ObservedLocationFilter|any): boolean {
-    return Beans.isEmpty({...f, synchronizationStatus: null}, ObservedLocationFilterKeys, {
+    return Beans.isEmpty<ObservedLocationFilter>({...f, synchronizationStatus: null}, ObservedLocationFilterKeys, {
       blankStringLikeEmpty: true
     });
   }
@@ -161,7 +161,7 @@ const UpdateSubscription = gql`
 @Injectable({providedIn: "root"})
 export class ObservedLocationService extends RootDataService<ObservedLocation, ObservedLocationFilter>
   implements TableDataService<ObservedLocation, ObservedLocationFilter>,
-    EditorDataService<ObservedLocation, ObservedLocationFilter> {
+    EditorDataService<ObservedLocation> {
 
   constructor(
     injector: Injector,
@@ -174,7 +174,9 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
     this._debug = !environment.production;
   }
 
-  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: string, dataFilter?: ObservedLocationFilter, options?: any): Observable<LoadResult<ObservedLocation>> {
+  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: string,
+           dataFilter?: ObservedLocationFilter,
+           opts?: TableDataServiceWatchOptions): Observable<LoadResult<ObservedLocation>> {
 
     const variables: any = {
       offset: offset || 0,
@@ -202,7 +204,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ALL_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
+      fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
       .pipe(
         map(res => {
@@ -223,7 +225,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
         }));
   }
 
-  async load(id: number, options?: { fetchPolicy: FetchPolicy }): Promise<ObservedLocation> {
+  async load(id: number, opts?: EditorDataServiceLoadOptions): Promise<ObservedLocation> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = Date.now();
@@ -235,7 +237,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
         id: id
       },
       error: {code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || 'cache-first'
+      fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
     });
     const data = res && res.observedLocation && ObservedLocation.fromObject(res.observedLocation);
     if (data && this._debug) console.debug(`[observed-location-service] Observed location #${id} loaded in ${Date.now() - now}ms`, data);
@@ -286,7 +288,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
     if (isNew) delete json.id; // Make to remove temporary id, before sending to graphQL
     if (this._debug) console.debug("[observed-location-service] Using minify object, to send:", json);
 
-    const res = await this.graphql.mutate<{ saveObservedLocations: any }>({
+    await this.graphql.mutate<{ saveObservedLocations: any }>({
       mutation: SaveAllQuery,
       variables: {
         observedLocations: [json]

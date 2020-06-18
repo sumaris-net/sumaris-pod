@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ValidatorService} from "angular4-material-table";
-import {ExtractionFilterCriterion, ExtractionType} from "../extraction.model";
+import {ExtractionFilterCriterion, ExtractionType} from "../model/extraction.model";
 
 @Injectable()
 export class ExtractionCriteriaValidatorService implements ValidatorService {

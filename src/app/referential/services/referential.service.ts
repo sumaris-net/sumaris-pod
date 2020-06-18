@@ -2,9 +2,8 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {EntityUtils, isNotNil, Referential, StatusIds} from "./model";
-import {LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService, ReferentialUtils} from "../../core/core.module";
+import {isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
+import {BaseDataService, EntityUtils, Referential} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 
@@ -13,6 +12,8 @@ import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {environment} from "../../../environments/environment";
 import {Beans, KeysEnum} from "../../shared/functions";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 export class ReferentialFilter {
   entityName: string;
@@ -30,7 +31,7 @@ export class ReferentialFilter {
   searchAttribute?: string;
 
   static isEmpty(f: ReferentialFilter|any): boolean {
-    return Beans.isEmpty(f, ReferentialFilterKeys, {
+    return Beans.isEmpty<ReferentialFilter>(f, ReferentialFilterKeys, {
       blankStringLikeEmpty: true
     });
   }
@@ -156,7 +157,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     }
 
     const entityName = filter.entityName;
-    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
+    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
 
     const variables: any = {
       entityName,
@@ -212,8 +213,8 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     }
 
     const entityName = filter.entityName;
-    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
-    const debug = this._debug && (!opts || opts.debug !== false);
+    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
+    const debug = this._debug && (!opts || opts.debug !== false);
 
     const variables: any = {
       entityName: entityName,
@@ -310,7 +311,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
                       opts?: {
                         fetchPolicy: FetchPolicy
                       }): Promise<boolean> {
-    if (!filter || !filter.entityName || !label) {
+    if (!filter || !filter.entityName || !label) {
       console.error("[referential-service] Missing 'filter.entityName' or 'label'");
       throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
     }

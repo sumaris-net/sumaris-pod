@@ -1,5 +1,8 @@
 import {Injectable} from "@angular/core";
-import {DataEntityValidatorOptions, DataEntityValidatorService, DataRootEntityValidatorOptions} from "./base.validator";
+import {
+  DataEntityValidatorOptions,
+  DataEntityValidatorService
+} from "../../../data/services/validator/data-entity.validator";
 import {FishingArea} from "../model/fishing-area.model";
 import {FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {toBoolean} from "../../../shared/functions";

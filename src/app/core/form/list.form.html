@@ -4,20 +4,29 @@
   <!-- List -->
   <ion-list class="ion-no-padding" >
 
-    <ion-item *ngFor="let itemControl of itemControls; index as i; last as last"
-              [class.disabled]="disabled"
-              (click)="onItemClick($event, itemControl.value)"
-              [color]="selection.isSelected(itemControl.value) ? 'secondary' : undefined"
-              [button]="onSelectionChange.observers.length > 0">
-      <ion-label>{{displayWith(itemControl.value)}}</ion-label>
+    <ng-container *ngFor="let itemControl of itemControls; index as i; last as last">
+      <ion-item *ngIf="itemControl.value; let item"
+                [class.disabled]="disabled"
+                (click)="onItemClick($event, item)"
+                [color]="selection.isSelected(item) ? 'secondary' : undefined"
+                [button]="onSelectionChange.observers.length > 0">
+        <ion-label>{{displayWith(item)}}</ion-label>
 
-      <!-- buttons -->
-      <ion-buttons slot="end" *ngIf="enabled" class="action-buttons">
-        <ion-button fill="clear" (click)="removeAt(i)">
-          <ion-icon name="trash"></ion-icon>
-        </ion-button>
-      </ion-buttons>
-    </ion-item>
+        <!-- buttons -->
+        <ion-buttons slot="end" *ngIf="enabled" class="action-buttons">
+          <ion-button fill="clear" (click)="removeAt(i)">
+            <ion-icon name="trash"></ion-icon>
+          </ion-button>
+
+          <ion-button *ngFor="let button of options.buttons"
+                      fill="clear" (click)="onItemButtonClick(button, $event, item, i)">
+            <ion-icon [name]="button.icon"></ion-icon>
+          </ion-button>
+
+          <ng-container *ngTemplateOutlet="itemButton;context:{item: item}"></ng-container>
+        </ion-buttons>
+      </ion-item>
+    </ng-container>
   </ion-list>
 
   <!-- Add button -->
@@ -54,3 +63,9 @@
   </ion-item>
 
 </ng-template>
+
+<ng-template #itemButton let-item>
+  <span>Template: {{item?.label}}</span>
+  <ng-content select="[slot='end']" ></ng-content>
+</ng-template>
+

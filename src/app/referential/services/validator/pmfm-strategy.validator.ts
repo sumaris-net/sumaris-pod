@@ -1,10 +1,10 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {isNotNil, PmfmStrategy, Strategy} from "../model";
+import {PmfmStrategy} from "../model/pmfm-strategy.model";
 
 import {ValidatorService} from "angular4-material-table";
 import {SharedValidators} from "../../../shared/validator/validators";
-import {toNumber} from "../../../shared/functions";
+import {isNotNil} from "../../../shared/functions";
 
 @Injectable()
 export class PmfmStrategyValidatorService implements ValidatorService {
@@ -20,18 +20,18 @@ export class PmfmStrategyValidatorService implements ValidatorService {
 
   getFormGroup(data?: PmfmStrategy): FormGroup {
     return this.formBuilder.group({
-      id: [data && data.id || null],
-      acquisitionLevel: [data && data.acquisitionLevel || null, Validators.required],
-      rankOrder: [data && data.rankOrder || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
-      pmfm: [data && data.pmfm || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      isMandatory: [data && data.isMandatory || false, Validators.required],
-      acquisitionNumber: [data && data.acquisitionNumber || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
-      minValue: [data && data.minValue || null, SharedValidators.double()],
-      maxValue: [data && data.maxValue || null, SharedValidators.double()],
+      id: [data && data.id || null],
+      acquisitionLevel: [data && data.acquisitionLevel || null, Validators.required],
+      rankOrder: [data && data.rankOrder || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
+      pmfm: [data && data.pmfm || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      isMandatory: [data && data.isMandatory || false, Validators.required],
+      acquisitionNumber: [data && data.acquisitionNumber || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
+      minValue: [data && data.minValue || null, SharedValidators.double()],
+      maxValue: [data && data.maxValue || null, SharedValidators.double()],
       defaultValue: [isNotNil(data && data.defaultValue) ? data.defaultValue : null],
-      gearIds: [data && data.gearIds || null],
-      taxonGroupIds: [data && data.taxonGroupIds || null],
-      referenceTaxonIds: [data && data.referenceTaxonIds || null]
+      gearIds: [data && data.gearIds || null],
+      taxonGroupIds: [data && data.taxonGroupIds || null],
+      referenceTaxonIds: [data && data.referenceTaxonIds || null]
     });
   }
 }

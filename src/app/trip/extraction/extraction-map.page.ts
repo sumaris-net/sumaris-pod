@@ -11,7 +11,7 @@ import {
   ExtractionFilter,
   ExtractionFilterCriterion,
   ExtractionUtils
-} from "../services/extraction.model";
+} from "../services/model/extraction.model";
 import {Location} from "@angular/common";
 import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
 import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
@@ -142,7 +142,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   }
 
   get dirty(): boolean {
-    return this.form.dirty || this.criteriaForm.dirty;
+    return this.form.dirty || this.criteriaForm.dirty;
   }
 
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -224,7 +224,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   ngOnInit() {
     super.ngOnInit();
 
-    this.registerForm(this.criteriaForm);
+    this.addChildForm(this.criteriaForm);
 
     this.registerSubscription(
       this.$onOverFeature
@@ -359,7 +359,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
 
   protected async loadData() {
     if (!this.ready) return;
-    if (!this.type || !this.type.category || !this.type.label) {
+    if (!this.type || !this.type.category || !this.type.label) {
       this.loading = false;
       return;
     }
@@ -659,7 +659,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
 
     const filter = super.getFilterValue();
 
-    strata = strata || this.getStrataValue();
+    strata = strata || this.getStrataValue();
     if (!strata) return filter;
 
     const json = this.form.value;

@@ -1,4 +1,4 @@
-import {Directive, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {Directive, Injector, Input} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AppTable, AppTableDataSource, Entity} from "../../core/core.module";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
@@ -43,9 +43,10 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
       injector.get(ModalController),
       injector.get(LocalSettingsService),
       columns,
-      new AppTableDataSource<T, F>(dataType, memoryDataService, validatorService, options || {
+      new AppTableDataSource<T, F>(dataType, memoryDataService, validatorService, {
         suppressErrors: true,
-        prependNewElements: false
+        prependNewElements: false,
+        ...options
       }),
       filter,
       injector);

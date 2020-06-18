@@ -1,9 +1,10 @@
-import { Injector, Input, OnDestroy, OnInit, Directive } from "@angular/core";
+import {Directive, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource, environment,
+  AppTableDataSource,
+  environment,
   isNil,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -12,19 +13,20 @@ import {
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
-import {getPmfmName, PmfmStrategy, ProgramService} from "../../referential/referential.module";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from '@ngx-translate/core';
-import {MeasurementsValidatorService} from "../services/trip.validators";
+import {MeasurementsValidatorService} from "../services/validator/trip.validators";
 import {isNotNil} from "../../shared/functions";
-import {IEntityWithMeasurement, MeasurementValuesUtils, PMFM_ID_REGEXP} from "../services/model/measurement.model";
+import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {MeasurementsDataService} from "./measurements.service";
 import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
-import {AcquisitionLevelType} from "../../referential/services/model";
+import {AcquisitionLevelType} from "../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Alerts} from "../../shared/alerts";
-import {Batch} from "../services/model/batch.model";
+import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
+import {ProgramService} from "../../referential/services/program.service";
 
 
 export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {
@@ -97,6 +99,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.markAsLoading();
     this.measurementsDataService.pmfms = pmfms;
   }
+
 
   @Input() set dataService(value: TableDataService<T, F>) {
     this.measurementsDataService.delegate = value;
@@ -187,6 +190,12 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     }
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.measurementsDataService.close();
+  }
+
   getRowValidator(): FormGroup {
     const formGroup = this.validatorService.getRowValidator();
     if (this.measurementValuesFormGroupConfig) {
@@ -220,11 +229,11 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     const userColumns = this.getUserColumns();
 
     const pmfmColumnNames = pmfms
-      //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
+      //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
       .map(p => p.pmfmId.toString());
 
-    const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
-    const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
+    const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
+    const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
 
     return RESERVED_START_COLUMNS
       .concat(startColumns)

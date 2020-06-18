@@ -1,9 +1,9 @@
-import {MeasurementsValidatorOptions, MeasurementsValidatorService} from "../measurement.validator";
+import {MeasurementsValidatorOptions, MeasurementsValidatorService} from "./measurement.validator";
 import {Injectable} from "@angular/core";
 import {FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {Measurement} from "../model/measurement.model";
 import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
-import {PmfmStrategy} from "../../../referential/services/model";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 
 interface TypedExpenseValidatorOptions extends MeasurementsValidatorOptions {
   typePmfm?: PmfmStrategy;

@@ -1,13 +1,13 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {EntityUtils, isNil, isNotNil, Program, ReferentialRef, StatusIds} from "./model";
 import {
   EditorDataService,
-  EditorDataServiceLoadOptions, LoadResult,
+  EditorDataServiceLoadOptions, isNil, isNotNil,
+  LoadResult,
   SuggestionDataService,
   TableDataService
 } from "../../shared/shared.module";
-import {BaseDataService, SAVE_AS_OBJECT_OPTIONS} from "../../core/core.module";
+import {BaseDataService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/services/graphql.service";
@@ -18,9 +18,7 @@ import {Observable, of} from "rxjs";
 import {ReferentialFragments} from "./referential.queries";
 import {map} from "rxjs/operators";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
-import {ProgramFilter} from "./program.service";
-import {ReferentialUtils} from "../../core/services/model";
-import {ReferentialRefFilter} from "./referential-ref.service";
+import {ReferentialUtils, SAVE_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";
 
 const LoadAllQuery: any = gql`
   query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -81,7 +79,7 @@ export class PmfmFilter extends ReferentialFilter {
 }
 
 @Injectable({providedIn: 'root'})
-export class PmfmService extends BaseDataService implements EditorDataService<Pmfm, PmfmFilter>,
+export class PmfmService extends BaseDataService implements EditorDataService<Pmfm>,
   TableDataService<Pmfm, PmfmFilter>,
   SuggestionDataService<Pmfm, PmfmFilter>
 {
@@ -253,7 +251,7 @@ export class PmfmService extends BaseDataService implements EditorDataService<Pm
                   debug?: boolean;
                 }): Promise<LoadResult<Pmfm>> {
 
-    opts = opts || {};
+    opts = opts || {};
     const variables: any = {
       offset: offset || 0,
       size: size || 100,

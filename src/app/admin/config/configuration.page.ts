@@ -1,13 +1,17 @@
-import {ChangeDetectionStrategy, Component, Injector} from "@angular/core";
-import {SoftwarePage} from "../../referential/software/software.page";
+import {ChangeDetectionStrategy, Component, Inject, Injector, Optional} from "@angular/core";
 import {firstNotNilPromise} from "../../shared/observables";
-import {SoftwareValidatorService} from "../../referential/services/software.validator";
-import {ConfigOptions, Configuration, Department} from "../../core/services/model";
+import {SoftwareValidatorService} from "../../referential/services/validator/software.validator";
+import {Configuration} from "../../core/services/model/config.model";
+import {Department} from "../../core/services/model/department.model";
 import {isEmptyArray, isNilOrBlank, isNotEmptyArray} from "../../shared/functions";
 import {BehaviorSubject} from "rxjs";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {NetworkService} from "../../core/services/network.service";
 import {Alerts} from "../../shared/alerts";
+import {ConfigOptions} from "../../core/services/config/core.config";
+import {APP_CONFIG_OPTIONS, ConfigService} from "../../core/services/config.service";
+import {FormFieldDefinitionMap} from "../../shared/form/field.model";
+import {AbstractSoftwarePage} from "../../referential/software/abstract-software.page";
 
 declare interface CacheStatistic {
   name: string;
@@ -23,7 +27,7 @@ declare interface CacheStatistic {
   styleUrls: ['./configuration.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ConfigurationPage extends SoftwarePage<Configuration> {
+export class ConfigurationPage extends AbstractSoftwarePage<Configuration, ConfigService> {
 
   partners = new BehaviorSubject<Department[]>(null);
   cacheStatistics = new BehaviorSubject<CacheStatistic[]>(null);
@@ -34,25 +38,30 @@ export class ConfigurationPage extends SoftwarePage<Configuration> {
   }
 
   constructor(
-    protected injector: Injector,
-    protected validatorService: SoftwareValidatorService,
-    public network: NetworkService
+    injector: Injector,
+    dataService: ConfigService,
+    validatorService: SoftwareValidatorService,
+    public network: NetworkService,
+    @Optional() @Inject(APP_CONFIG_OPTIONS) configOptions: FormFieldDefinitionMap,
   ) {
     super(injector,
-      validatorService);
-    this.dataType = Configuration;
-    this.dataService = this.configService;
+      Configuration,
+      dataService,
+      validatorService,
+      configOptions,
+      {
+        tabCount: 2
+      });
 
     // default values
     this.defaultBackHref = null;
-    this.tabCount=2;
 
     //this.debug = !environment.production;
   }
 
   async load(id?: number, opts?: EditorDataServiceLoadOptions): Promise<void> {
 
-    const config = await firstNotNilPromise(this.configService.config);
+    const config = await firstNotNilPromise(this.service.config);
 
     // Force the load of the config
     await super.load(config.id, {...opts, fetchPolicy: "network-only"});
@@ -137,13 +146,13 @@ export class ConfigurationPage extends SoftwarePage<Configuration> {
     if (confirm) {
       await this.network.clearCache();
       await this.settings.removeOfflineFeatures();
-      await this.configService.clearCache({cacheName: cacheName});
+      await this.service.clearCache({cacheName: cacheName});
       await this.loadCacheStat();
     }
   }
 
   async loadCacheStat() {
-    const value = await this.configService.getCacheStatistics();
+    const value = await this.service.getCacheStatistics();
     const stats: CacheStatistic[] = Object.keys(value).map(cacheName => {
       const stat = value[cacheName];
       return {

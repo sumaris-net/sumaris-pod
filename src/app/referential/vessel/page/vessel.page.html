@@ -1,4 +1,4 @@
-<app-toolbar [title]="$title | async" color="primary"
+<app-toolbar [title]="title$ | async" color="primary"
              [hasValidate]="!loading && dirty" (onValidate)="save($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true">
 </app-toolbar>

@@ -3,14 +3,15 @@ import {CryptoService} from "./crypto.service";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 import {environment} from "../../../environments/environment";
-import {LocalSettings, Peer} from "./model";
+import {Peer} from "./model/peer.model";
+import {LocalSettings} from "./model/settings.model";
 import {IonicSafeString, ModalController, ToastController} from "@ionic/angular";
 import {SelectPeerModal} from "../peer/select-peer.modal";
 import {BehaviorSubject, Subject, Subscription} from "rxjs";
 import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.service";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient} from "@angular/common/http";
-import {isNotNil, isNotNilOrBlank, toBoolean} from "../../shared/shared.module";
+import {isNotNilOrBlank, toBoolean} from "../../shared/shared.module";
 import {Connection, Network} from '@ionic-native/network/ngx';
 import {DOCUMENT} from "@angular/common";
 import {CacheService} from "ionic-cache";
@@ -272,7 +273,7 @@ export class NetworkService {
         this.onNetworkStatusChanges.next(currentConnectionType);
 
         // Offline mode: alert the user
-        if (currentConnectionType === 'none' && (!opts || opts.displayToast !== false)) {
+        if (currentConnectionType === 'none' && (!opts || opts.displayToast !== false)) {
           this.showToast({message: 'NETWORK.INFO.OFFLINE_HELP'});
         }
       }
@@ -374,7 +375,7 @@ export class NetworkService {
   }
 
   protected showToast(opts: ToastOptions): Promise<void> {
-    if (!this.toastController || !this.translate) {
+    if (!this.toastController || !this.translate) {
       console.error("[network] Cannot show toast - missing toastController or translate");
       if (opts.message instanceof IonicSafeString) console.info("[network] toast message: " + (this.translate && this.translate.instant(opts.message.value) || opts.message.value));
       else if (typeof opts.message === "string") console.info("[network] toast message: " + (this.translate && this.translate.instant(opts.message) || opts.message));

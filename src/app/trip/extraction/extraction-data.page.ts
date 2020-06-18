@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
-import {isNil, isNotNil} from '../../shared/shared.module';
+import {isNil, isNotNil} from '../../shared/functions';
 import {TableDataSource} from "angular4-material-table";
 import {
   AggregationType,
@@ -8,7 +8,7 @@ import {
   ExtractionResult,
   ExtractionRow,
   ExtractionType
-} from "../services/extraction.model";
+} from "../services/model/extraction.model";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
@@ -342,7 +342,7 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
 
   protected async loadData() {
 
-    if (!this.type || !this.type.category || !this.type.label) return; // skip
+    if (!this.type || !this.type.category || !this.type.label) return; // skip
 
     this.settingsId = this.generateTableId();
     this.error = null;

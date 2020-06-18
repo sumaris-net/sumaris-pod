@@ -4,14 +4,16 @@ import {
   AppTable,
   AppTableDataSource,
   environment,
-  isNil, isNotNil,
+  isNil,
+  isNotNil, referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../../../core/core.module";
-import {VesselValidatorService} from "../../services/vessel.validator";
+import {VesselValidatorService} from "../../services/validator/vessel.validator";
 import {VesselFilter, VesselService} from "../../services/vessel-service";
 import {VesselModal} from "../modal/modal-vessel";
-import {ReferentialRef, referentialToString, statusToColor, Vessel} from "../../services/model";
+import {Vessel} from "../../services/model/vessel.model";
+import {DefaultStatusList, ReferentialRef} from "../../../core/services/model/referential.model";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService} from "../../../core/services/account.service";
@@ -19,10 +21,10 @@ import {Location} from '@angular/common';
 import {Observable} from 'rxjs';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {DefaultStatusList} from "../../../core/services/model";
 import {debounceTime, filter, tap} from "rxjs/operators";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {toBoolean} from "../../../shared/functions";
+import {statusToColor} from "../../../data/services/model/model.utils";
 
 @Component({
   selector: 'app-vessels-table',
@@ -78,7 +80,7 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
       new AppTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        serviceOptions: {
+        dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
       }),
@@ -169,10 +171,10 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
     const json = this.settings.getPageSettings(this.settingsId, 'filter');
 
     // No default filter: load all vessels
-    if (isNil(json) || typeof json !== 'object') {
+    if (isNil(json) || typeof json !== 'object') {
       // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
       this.onRefresh.emit();
-      // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
+      // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
       this.filterForm.patchValue({}, {emitEvent: false});
     }
     // Restore the filter (will apply it)

@@ -18,7 +18,7 @@ const FAKE_ENTITIES: Entity[] = [
 ];
 
 function deepCopy(values?: Entity[]): Entity[] {
-  return (values || FAKE_ENTITIES).map(entity => Object.assign({}, entity));
+  return (values || FAKE_ENTITIES).map(entity => Object.assign({}, entity));
 }
 
 @Component({

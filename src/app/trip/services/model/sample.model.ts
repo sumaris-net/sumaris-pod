@@ -1,21 +1,17 @@
+import {fromDateISOString, isNotNil, referentialToString, toDateISOString} from "../../../core/core.module";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {
-  EntityUtils,
-  fromDateISOString,
-  isNotNil,
-  referentialToString,
-  toDateISOString
-} from "../../../core/core.module";
-import {PmfmStrategy, ReferentialRef} from "../../../referential/services/model";
-import {Moment} from "moment/moment";
-import {DataEntityAsObjectOptions, RootDataEntity} from "./base.model";
-import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {
-  ITreeItemEntity,
   NOT_MINIFY_OPTIONS,
   ReferentialAsObjectOptions,
+  ReferentialRef,
   ReferentialUtils
-} from "../../../core/services/model";
+} from "../../../core/services/model/referential.model";
+import {Moment} from "moment/moment";
+import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
+import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
+import {ITreeItemEntity} from "../../../core/services/model/entity.model";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
+import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
 
 
 export class Sample extends RootDataEntity<Sample>

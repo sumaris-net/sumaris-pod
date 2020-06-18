@@ -3,25 +3,32 @@ import gql from "graphql-tag";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {isNotEmptyArray, isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService, EntityUtils, environment, Referential, StatusIds} from "../../core/core.module";
+import {
+  BaseDataService,
+  EntityUtils,
+  environment,
+  IReferentialRef,
+  Referential,
+  StatusIds
+} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
-import {ReferentialRef, ReferentialUtils} from "../../core/services/model";
+import {ReferentialRef, ReferentialUtils} from "../../core/services/model/referential.model";
 
 import {FetchPolicy} from "apollo-client";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
-import {fetchAllPagesWithProgress, SuggestionDataService} from "../../shared/services/data-service.class";
+import {fetchAllPagesWithProgress, FilterFn, SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {LocationLevelIds, TaxonGroupIds, TaxonomicLevelIds} from "./model";
+import {LocationLevelIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.enum";
 import {TaxonNameRef} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {ReferentialFragments} from "./referential.queries";
 import {SortDirection} from "@angular/material/sort";
 
-export type ReferentialRefFilter = ReferentialFilter & {
+export class ReferentialRefFilter extends ReferentialFilter {
   searchAttributes?: string[];
-};
+}
 
 export type TaxonNameRefFilter = Partial<ReferentialRefFilter> & {
 
@@ -109,7 +116,7 @@ export class ReferentialRefService extends BaseDataService
       entityName: entityName,
       offset: offset || 0,
       size: size || 100,
-      sortBy: sortBy || filter.searchAttribute || 'label',
+      sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
       filter: ReferentialFilter.asPodObject(filter)
     };
@@ -180,7 +187,7 @@ export class ReferentialRefService extends BaseDataService
     const entityName = filter.entityName;
     const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
 
-    const debug = this._debug && (!opts || opts.debug !== false);
+    const debug = this._debug && (!opts || opts.debug !== false);
 
     const variables: any = {
       entityName: entityName,
@@ -208,7 +215,7 @@ export class ReferentialRefService extends BaseDataService
 
     // Offline mode: read from the entities storage
     let loadResult: { referentials: any[]; referentialsCount: number };
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
       loadResult = await this.entities.loadAll(uniqueEntityName + 'VO',
         {
@@ -285,20 +292,20 @@ export class ReferentialRefService extends BaseDataService
       filter: {
         searchText: filter.searchText,
         searchAttribute: filter.searchAttribute,
-        levelIds: filter.levelIds || (isNotNil(filter.levelId) && [filter.levelId]) || [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES],
-        statusIds: filter.statusIds || (isNotNil(filter.statusId) && [filter.statusId]) || [StatusIds.ENABLE],
-        taxonGroupIds: isNotNil(filter.taxonGroupId) ? [filter.taxonGroupId] : (filter.taxonGroupIds || undefined)
+        levelIds: filter.levelIds || (isNotNil(filter.levelId) && [filter.levelId]) || [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES],
+        statusIds: filter.statusIds || (isNotNil(filter.statusId) && [filter.statusId]) || [StatusIds.ENABLE],
+        taxonGroupIds: isNotNil(filter.taxonGroupId) ? [filter.taxonGroupId] : (filter.taxonGroupIds || undefined)
       }
     };
 
-    const debug = this._debug && (!opts || opts.debug !== false);
+    const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();
     if (debug) console.debug(`[referential-ref-service] Loading TaxonName items...`, variables);
 
     let taxonNames: any[];
 
     // Offline mode
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
       const res = await this.entities.loadAll('TaxonNameVO', {
         ...variables,
@@ -374,7 +381,7 @@ export class ReferentialRefService extends BaseDataService
                                               statusIds?: number[];
                                             }) {
 
-    const entityNames = opts && opts.entityNames || ['Location', 'Gear', 'Metier', 'MetierTaxonGroup', 'TaxonGroup', 'TaxonName', 'Department', 'QualityFlag', 'SaleType', 'VesselType'];
+    const entityNames = opts && opts.entityNames || ['Location', 'Gear', 'Metier', 'MetierTaxonGroup', 'TaxonGroup', 'TaxonName', 'Department', 'QualityFlag', 'SaleType', 'VesselType'];
 
     const statusIds = opts && opts.statusIds || [StatusIds.ENABLE, StatusIds.TEMPORARY];
 
@@ -450,8 +457,8 @@ export class ReferentialRefService extends BaseDataService
           });
         })
         .catch(err => {
-          const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
-          console.error(`[referential-ref-service] Failed to import ${entityName}: ${detailMessage || err && err.message || err}`);
+          const detailMessage = err && err.details && (err.details.message || err.details) || undefined;
+          console.error(`[referential-ref-service] Failed to import ${entityName}: ${detailMessage || err && err.message || err}`);
           throw err;
         });
     });
@@ -474,9 +481,9 @@ export class ReferentialRefService extends BaseDataService
     progression.next(maxProgression);
   }
 
-  protected createSearchFilterFn<T extends Referential>(f: Partial<ReferentialRefFilter>): (T) => boolean {
+  protected createSearchFilterFn<T extends Referential|IReferentialRef>(f: Partial<ReferentialRefFilter>): FilterFn<T> {
 
-    const filterFns: ((T) => boolean)[] = [];
+    const filterFns: FilterFn<T>[] = [];
 
     // Filter by levels ids
     const levelIds = f.levelIds || (isNotNil(f.levelId) && [f.levelId]) || undefined;
@@ -485,12 +492,12 @@ export class ReferentialRefService extends BaseDataService
     }
 
     // Filter by status
-    const statusIds = f.statusIds || (isNotNil(f.statusId) && [f.statusId]) || undefined;
+    const statusIds = f.statusIds || (isNotNil(f.statusId) && [f.statusId]) || undefined;
     if (statusIds) {
       filterFns.push((entity: T) => !!statusIds.find(v => entity.statusId === v));
     }
 
-    const searchTextFilter = EntityUtils.searchTextFilter(f.searchAttribute || f.searchAttributes, f.searchText);
+    const searchTextFilter = EntityUtils.searchTextFilter(f.searchAttribute || f.searchAttributes, f.searchText);
     if (searchTextFilter) filterFns.push(searchTextFilter);
 
     if (!filterFns.length) return undefined;
@@ -500,13 +507,13 @@ export class ReferentialRefService extends BaseDataService
     };
   }
 
-  protected createSearchTaxonNameRefFilterFn(f: TaxonNameRefFilter): (TaxonNameRef) => boolean {
+  protected createSearchTaxonNameRefFilterFn(f: TaxonNameRefFilter): FilterFn<TaxonNameRef> {
 
-    const filterFns: ((TaxonNameRef) => boolean)[] = [];
+    const filterFns: FilterFn<TaxonNameRef>[] = [];
 
     // Filter by taxon group id, or list of id
     if (isNotNil(f.taxonGroupId)) {
-      filterFns.push((entity: TaxonNameRef) =>  {
+      filterFns.push((entity: TaxonNameRef) =>  {
         const res = entity.taxonGroupIds && entity.taxonGroupIds.indexOf(f.taxonGroupId) !== -1;
         console.debug(`TODO TaxonName offline filter, by {taxonGroupId: ${f.taxonGroupId} => ${entity.label}:${res}`);
         return res;
@@ -521,7 +528,7 @@ export class ReferentialRefService extends BaseDataService
       });
     }
 
-    const baseSearchFilter = this.createSearchFilterFn(f);
+    const baseSearchFilter = this.createSearchFilterFn<TaxonNameRef>(f);
     if (baseSearchFilter) filterFns.push(baseSearchFilter);
 
     if (!filterFns.length) return undefined;

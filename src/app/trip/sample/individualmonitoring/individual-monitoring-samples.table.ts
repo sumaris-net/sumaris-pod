@@ -1,9 +1,9 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {isNotNil} from "../../../core/core.module";
-import {SubSampleValidatorService} from "../../services/sub-sample.validator";
+import {SubSampleValidatorService} from "../../services/validator/sub-sample.validator";
 import {FormGroup, Validators} from "@angular/forms";
-import {AcquisitionLevelCodes, PmfmIds} from "../../../referential/services/model";
+import {AcquisitionLevelCodes, PmfmIds} from "../../../referential/services/model/model.enum";
 import {filter} from "rxjs/operators";
 import {SubSamplesTable} from "../sub-samples.table";
 

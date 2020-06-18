@@ -6,19 +6,29 @@ import {
   Injector,
   Input,
   OnInit,
-  Optional, Output
+  Optional,
+  Output
 } from "@angular/core";
 import {AbstractControl, FormArray, FormBuilder, FormGroup, FormGroupDirective, Validators} from "@angular/forms";
-import {EntityUtils, referentialToString} from "../services/model";
-import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
-import {isEmptyArray, isNil} from "../../shared/functions";
+import {referentialToString} from "../services/model/referential.model";
+import {isNil} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {AppForm} from "./form.class";
 import {FormArrayHelper, FormArrayHelperOptions} from "./form.utils";
 import {SelectionModel} from "@angular/cdk/collections";
-import {TableElement} from "angular4-material-table";
+
+export declare interface ItemButton<T = any> {
+  title?: string;
+  click: (event: UIEvent, item: T, index: number) => void;
+  icon: string;
+}
+
+export declare type AppListFormOptions<T> = FormArrayHelperOptions & {
+  allowMultipleSelection?: boolean;
+  buttons?: ItemButton<T>[];
+}
 
 @Component({
   selector: 'app-list-form',
@@ -27,21 +37,19 @@ import {TableElement} from "angular4-material-table";
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
-
   loading = true;
   helper: FormArrayHelper<T>;
   selection = new SelectionModel<T>(true, []);
 
   @Input() formArrayName: string;
   @Input() formArray: FormArray;
-  @Input() options: FormArrayHelperOptions & { allowMultipleSelection?: boolean };
+  @Input() options: AppListFormOptions<T>;
 
   @Input('displayWith') displayWithFn: (item: any) => string = referentialToString;
   @Input('equals') equalsFn: (v1: T, v2: T) => boolean;
 
   @Output() onNewItem = new EventEmitter<UIEvent>();
   @Output() onSelectionChange = new EventEmitter<T[]>(true);
-
 
   set value(data: T[]) {
     this.setValue(data);
@@ -56,7 +64,7 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
   }
 
   get length(): number {
-    return this.helper ? this.helper.size() : 0;
+    return this.helper ? this.helper.size() : 0;
   }
 
   get dirty(): boolean {
@@ -95,14 +103,15 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
     this.options = {
       allowEmptyArray: true,
       allowMultipleSelection: true,
+      buttons: [],
       ...this.options};
 
     // Retrieve the form
-    const form = (this.formArray && this.formArray.parent as FormGroup || this.formGroupDir && this.formGroupDir.form || this.formBuilder.group({}));
+    const form = (this.formArray && this.formArray.parent as FormGroup || this.formGroupDir && this.formGroupDir.form || this.formBuilder.group({}));
     this.setForm(form);
 
-    this.formArray = this.formArray || this.formArrayName && form.get(this.formArrayName) as FormArray
-    this.formArrayName = this.formArrayName || this.formArray && Object.keys(form.controls).find(key => form.get(key) === this.formArray) || 'properties';
+    this.formArray = this.formArray || this.formArrayName && form.get(this.formArrayName) as FormArray
+    this.formArrayName = this.formArrayName || this.formArray && Object.keys(form.controls).find(key => form.get(key) === this.formArray) || 'properties';
     if (!this.formArray) {
       console.warn(`Missing array control '${this.formArrayName}'. Will create it!`)
       this.formArray = this.formBuilder.array([]);
@@ -148,13 +157,14 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
       items.forEach(item => this.selection.select(item));
     }
 
-    if (!opts || opts.emitEvent !== false) {
+    if (!opts || opts.emitEvent !== false) {
       this.onSelectionChange.emit(this.selection.selected);
     }
   }
 
   async onItemClick(event: MouseEvent, item: T, opts?: {emitEvent?: boolean}) {
-    if (!item || this.onSelectionChange.observers.length === 0) return;
+
+    if (!item || event.defaultPrevented || !this.onSelectionChange.observers.length) return;
 
     // Multiple selection (if ctrl+click)
     if (event.ctrlKey && this.options.allowMultipleSelection) {
@@ -163,7 +173,7 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
     else {
       // Unselect all
 
-      // Select the item (or relected
+      // Select the item (or reselect)
       if (!this.selection.isSelected(item) || (this.options.allowMultipleSelection && this.selection.selected.length > 1)) {
         this.selection.clear();
         this.selection.select(item);
@@ -174,9 +184,14 @@ export class AppListForm<T = any> extends AppForm<T[]> implements OnInit {
       }
     }
 
-    if (!opts || opts.emitEvent !== false) {
+    if (!opts || opts.emitEvent !== false) {
       this.onSelectionChange.emit(this.selection.selected);
     }
+  }
+
+  async onItemButtonClick(button: ItemButton, event: MouseEvent, item: T, index: number) {
+    if (button.click) button.click(event, item, index);
+    await this.onItemClick(event, item);
   }
 
   hasSelection(): boolean {

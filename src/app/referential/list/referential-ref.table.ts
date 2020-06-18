@@ -1,7 +1,6 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Optional} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
 import {
   AppTable,
-  AppTableDataSource,
   environment,
   ReferentialRef,
   RESERVED_END_COLUMNS,
@@ -11,7 +10,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {DefaultStatusList} from "../../core/services/model";
+import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 
 

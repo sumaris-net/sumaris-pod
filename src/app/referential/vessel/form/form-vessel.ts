@@ -1,10 +1,11 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {VesselValidatorService} from "../../services/vessel.validator";
-import {LocationLevelIds, referentialToString, StatusIds, Vessel} from "../../services/model";
-import {DefaultStatusList} from "../../../core/services/model";
+import {VesselValidatorService} from "../../services/validator/vessel.validator";
+import {Vessel} from "../../services/model/vessel.model";
+import {LocationLevelIds} from "../../services/model/model.enum";
+import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
-import {AppForm, AppFormUtils} from '../../../core/core.module';
+import {AppForm, AppFormUtils, StatusIds} from '../../../core/core.module';
 import {ReferentialRefService} from '../../services/referential-ref.service';
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {AccountService} from "../../../core/services/account.service";

@@ -2,13 +2,12 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@
 import {isNil, isNotNilOrBlank} from '../../shared/functions';
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {ModalController} from "@ionic/angular";
-import {BehaviorSubject, Observable, of, Subject} from "rxjs";
-import {AppEditorPage} from "../../core/form/editor-page.class";
-import {environment} from "../../../environments/environment";
+import {BehaviorSubject, of, Subject} from "rxjs";
+import {AppEditor} from "../../core/form/editor.class";
 import {FormGroup} from "@angular/forms";
 import {OperationService} from "../services/operation.service";
 import {ProgramService} from "../../referential/services/program.service";
-import {Program, ProgramProperties} from "../../referential/services/model";
+import {ProgramProperties} from "../../referential/services/config/program.config";
 import {filter, switchMap} from "rxjs/operators";
 import {TripService} from "../services/trip.service";
 import {Batch, BatchUtils} from "../services/model/batch.model";
@@ -20,7 +19,7 @@ import {BatchGroup} from "../services/model/batch-group.model";
   templateUrl: './batch-group.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupPage extends AppEditorPage<BatchGroup, any> implements OnInit {
+export class BatchGroupPage extends AppEditor<BatchGroup, any> implements OnInit {
 
   programSubject = new BehaviorSubject<string>(undefined);
 
@@ -59,9 +58,9 @@ export class BatchGroupPage extends AppEditorPage<BatchGroup, any> implements On
         delete: async (batch) => {}, // TODO
         listenChanges: (id) => of(), // TODO
         save: async (batch) => batch // TODO
+      }, {
+        pathIdAttribute: 'batchId'
       });
-
-    this.idAttribute = 'batchId';
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -95,8 +94,8 @@ export class BatchGroupPage extends AppEditorPage<BatchGroup, any> implements On
     return this.batchGroupForm.form;
   }
 
-  protected registerFormsAndTables() {
-    this.registerForm(this.batchGroupForm);
+  protected registerForms() {
+    this.addChildForm(this.batchGroupForm);
   }
 
   protected async onNewEntity(data: Batch, options?: EditorDataServiceLoadOptions): Promise<void> {

@@ -1,7 +1,7 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
-import { AccountService } from '../../services/account.service';
+import {Component, OnDestroy} from '@angular/core';
+import {Subscription} from 'rxjs';
+import {ActivatedRoute} from '@angular/router';
+import {AccountService} from '../../services/account.service';
 import {getRandomImage} from '../../home/home';
 import {ConfigService} from '../../services/config.service';
 import {PlatformService} from "../../services/platform.service";

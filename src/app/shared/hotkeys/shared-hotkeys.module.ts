@@ -20,9 +20,6 @@ export {
   exports: [
     HotkeysDialogComponent
   ],
-  entryComponents: [
-    HotkeysDialogComponent
-  ],
   declarations: [
     HotkeysDialogComponent
   ],

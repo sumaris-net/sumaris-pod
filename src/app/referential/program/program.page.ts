@@ -1,15 +1,16 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {AppEditorPage, EntityUtils, isNil} from "../../core/core.module";
-import {Program, ProgramProperties, Strategy} from "../services/model";
+import {AppEditor, EntityUtils, isNil} from "../../core/core.module";
+import {Program} from "../services/model/program.model";
+import {Strategy} from "../services/model/strategy.model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "../strategy/strategies.table";
 import {changeCaseToUnderscore, EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
-import {ReferentialUtils} from "../../core/services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppPropertiesForm} from "../../core/form/properties.form";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
@@ -17,7 +18,8 @@ import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/fie
 import {StrategyForm} from "../strategy/strategy.form";
 import {animate, AnimationEvent, state, style, transition, trigger} from "@angular/animations";
 import {debounceTime, filter, first} from "rxjs/operators";
-import {firstNotNilPromise} from "../../shared/observables";
+import {AppDynamicFormHolder} from "../../core/form/form.utils";
+import {ProgramProperties} from "../services/config/program.config";
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -48,7 +50,7 @@ export enum AnimationState {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProgramPage extends AppEditorPage<Program> implements OnInit {
+export class ProgramPage extends AppEditor<Program, ProgramService> implements OnInit {
 
   propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
   fieldDefinitions: FormFieldDefinitionMap = {};
@@ -66,13 +68,13 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     protected formBuilder: FormBuilder,
     protected accountService: AccountService,
     protected validatorService: ProgramValidatorService,
-    protected programService: ProgramService,
+    dataService: ProgramService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController
   ) {
     super(injector,
       Program,
-      programService);
+      dataService);
     this.form = validatorService.getFormGroup();
 
     // default values
@@ -95,7 +97,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     this.form.get('label')
       .setAsyncValidators(async (control: AbstractControl) => {
         const label = control.enabled && control.value;
-        return label && (await this.programService.existsByLabel(label)) ? {unique: true} : null;
+        return label && (await this.service.existsByLabel(label)) ? {unique: true} : null;
       });
 
     this.registerFormField('gearClassification', {
@@ -131,6 +133,8 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
 
   /* -- protected methods -- */
 
+
+
   async load(id?: number, opts?: EditorDataServiceLoadOptions): Promise<void> {
     // Force the load from network
     return super.load(id, {...opts, fetchPolicy: "network-only"});
@@ -160,9 +164,13 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     }
   }
 
-  protected registerFormsAndTables() {
-    this.registerForms([this.referentialForm, this.propertiesForm, this.strategyForm])
-      .registerTables([this.strategiesTable]);
+  protected registerForms() {
+    this.addChildForms([
+      this.referentialForm,
+      this.propertiesForm,
+      this.strategiesTable,
+      new AppDynamicFormHolder(() => this.strategyForm)
+    ]);
   }
 
   protected setValue(data: Program) {
@@ -173,7 +181,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     this.propertiesForm.value = EntityUtils.getObjectAsArray(data.properties);
 
     // strategies
-    this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
+    this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
 
     this.markAsPristine();
   }
@@ -187,11 +195,14 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     data.properties = this.propertiesForm.value;
 
     // Finish edition of strategy
-    if (this.strategiesTable.dirty && this.strategiesTable.editedRow) {
-      await this.onConfirmEditCreateStrategy(this.strategiesTable.editedRow);
+    if (this.strategiesTable.dirty) {
+      if (this.strategiesTable.editedRow) {
+        await this.onConfirmEditCreateStrategy(this.strategiesTable.editedRow);
+      }
+      await this.strategiesTable.save();
     }
 
-    data.strategies = this.data.strategies;
+    data.strategies = this.strategiesTable.value;
 
     return data;
   }
@@ -209,14 +220,14 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
     if (this.propertiesForm.invalid) return 1;
-    if (this.strategiesTable.invalid || this.strategyForm.invalid) return 2;
+    if (this.strategiesTable.invalid || this.strategyForm.enabled && this.strategyForm.invalid) return 2;
     return 0;
   }
 
   protected async onStartEditStrategy(row: TableElement<Strategy>) {
     if (!row) return; // skip
 
-    const strategy = this.getStrategy(row.currentData, false) || new Strategy();
+    const strategy = this.loadOrCreateStrategy(row.currentData);
     console.debug("[program] Start editing strategy", strategy);
 
     if (!row.isValid()) {
@@ -228,7 +239,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
         )
         .subscribe(() => {
           strategy.fromObject(row.currentData);
-          this.showStrategyForm(strategy)
+          this.showStrategyForm(strategy);
         });
     }
     else {
@@ -246,30 +257,33 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   protected async onConfirmEditCreateStrategy(row: TableElement<Strategy>) {
     if (!row) return; // skip
 
-    if (this.strategyForm.dirty) {
-      const saved = await this.strategyForm.save();
-      // TODO if (!saved) { ... }
-    }
+    // DEBUG
+    console.debug('[program] Confirm edit/create of a strategy row', row);
 
+    // Copy some properties from row
     const source = row.currentData;
-    //const target = this.getStrategy(source, true);
-    const target = this.strategyForm.value
+    this.strategyForm.form.patchValue({
+      label: source.label,
+      name: source.name,
+      description: source.description,
+      statusId: source.statusId,
+      comments: source.comments
+    });
 
-    // Update some properties, from the strategies table
-    target.label = source.label;
-    target.name = source.name;
-    target.description = source.description;
-    target.statusId = source.statusId;
-    target.comments = source.comments;
+    let target = await this.strategyForm.saveAndGetDataIfValid();
+    if (!target) throw new Error('strategyForm has error');
 
-    console.debug("[program] End editing strategy", target);
+    // Update the row
+    row.validator = this.strategyForm.form;
+
+    console.debug("[program] End editing strategy", row.currentData);
 
     this.hideStrategyForm();
   }
 
   showStrategyForm(strategy: Strategy) {
     this.strategyForm.program = this.data;
-    this.strategyForm.value = strategy;
+    this.strategyForm.updateView(strategy);
 
     if (this.strategyFormState !== AnimationState.ENTER) {
       // Wait 200ms, during form loading, then start animation
@@ -301,21 +315,27 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
 
         // Disable form
         this.strategyForm.disable({emitEvent: false});
-        this.strategyForm.setValue(Strategy.fromObject({}));
       }
     }
   }
 
-  protected getStrategy(lightStrategy: Strategy|any, createIfNotExists?: boolean) {
-    let strategy = Strategy.fromObject(lightStrategy);
-    const existingStrategy = this.data.strategies.find(s => ReferentialUtils.equals(s, strategy));
-    if (existingStrategy) {
+  protected loadOrCreateStrategy(json: any): Strategy|undefined {
+    const existingStrategy = this.data.strategies.find(s => s.equals(json));
+    if (existingStrategy) return existingStrategy;
+    return Strategy.fromObject(json);
+  }
 
-      return existingStrategy;
-    }
-    if (createIfNotExists) {
+  protected updateStrategy(strategy: Strategy) {
+
+    const existingStrategy = this.data.strategies.find(s => s.equals(strategy));
+    if (!existingStrategy) {
       this.data.strategies.push(strategy);
       return strategy;
+    }
+    else {
+      // Copy
+      existingStrategy.fromObject(strategy);
+      return existingStrategy;
     }
 
   }

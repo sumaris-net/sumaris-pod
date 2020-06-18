@@ -31,7 +31,7 @@ export function isNotNilString(obj: any | null | undefined): obj is string {
   return obj !== undefined && obj !== null && typeof obj === 'string';
 }
 export function arraySize<T>(obj: T[] | null | undefined): number {
-  return isNotEmptyArray(obj) && obj.length || 0;
+  return isNotEmptyArray(obj) && obj.length || 0;
 }
 export function nullIfUndefined<T>(obj: T | null | undefined): T | null {
   return obj === undefined ? null : obj;
@@ -67,7 +67,7 @@ export function toDateISOString(value: any): string | undefined {
   }
   // Make sure to have a Moment object
   value = fromDateISOString(value);
-  return value && value.toISOString() || undefined;
+  return value && value.toISOString() || undefined;
 }
 
 export function fromDateISOString(value: any): Moment | undefined {
@@ -151,7 +151,7 @@ export function suggestFromArray<T=any>(items: T[], value: any, options?: {
   if (isNotNil(value) && typeof value === "object") return [value];
   value = (typeof value === "string" && value !== '*') && value.toUpperCase() || undefined;
   if (isNilOrBlank(value)) return items;
-  const keys = options && (options.searchAttribute && [options.searchAttribute] || options.searchAttributes) || ['label'];
+  const keys = options && (options.searchAttribute && [options.searchAttribute] || options.searchAttributes) || ['label'];
 
   // If wildcard, search using regexp
   if ((value as string).indexOf('*') !== -1) {
@@ -213,7 +213,7 @@ export function propertyComparator<T = any, K extends keyof T = any>(key: K, def
 }
 
 export function propertiesPathComparator<T = any>(keys: string[], defaultValues?: any[]): (a: T, b: T) => number {
-  if (!keys || !keys.length || (defaultValues && keys.length > defaultValues.length)) {
+  if (!keys || !keys.length || (defaultValues && keys.length > defaultValues.length)) {
     throw new Error("Invalid arguments: missing 'keys' or array 'defaultValues' has a bad length");
   }
   return (a: T, b: T) => {
@@ -223,7 +223,7 @@ export function propertiesPathComparator<T = any>(keys: string[], defaultValues?
       return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
     })
       // Stop if not equals, otherwise continue with the next key
-      .find(res => res !== 0) || 0;
+      .find(res => res !== 0) || 0;
   };
 }
 
@@ -320,7 +320,7 @@ export function remove<T>(array: T[], predicate: (pmfm: T) => boolean): T {
 export declare type KeysEnum<T> = { [P in keyof Required<T>]: true };
 
 export function uncapitalizeFirstLetter(value: string) {
-  if (!value || value.length === 0) return value;
+  if (!value || value.length === 0) return value;
   return value.substr(0,1).toLowerCase() + value.substr(1);
 }
 

@@ -3,30 +3,26 @@ import {Batch, BatchUtils} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {MeasurementsValidatorService} from "../services/measurement.validator";
+import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {EntityUtils, referentialToString, ReferentialUtils, UsageMode} from "../../core/services/model";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
+import {UsageMode} from "../../core/services/model/settings.model";
+
 import {debounceTime, filter, first} from "rxjs/operators";
-import {
-  AcquisitionLevelCodes,
-  isNil,
-  isNotNil,
-  MethodIds,
-  PmfmLabelPatterns,
-  PmfmStrategy
-} from "../../referential/services/model";
+import {AcquisitionLevelCodes, MethodIds, PmfmLabelPatterns} from "../../referential/services/model/model.enum";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {environment} from "../../../environments/environment";
-import {AppFormUtils, FormArrayHelper} from "../../core/core.module";
+import {AppFormUtils, FormArrayHelper, isNil, isNotNil} from "../../core/core.module";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {isNotNilOrBlank, isNotNilOrNaN, toBoolean} from "../../shared/functions";
-import {BatchValidatorService} from "../services/batch.validator";
+import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
+import {BatchValidatorService} from "../services/validator/batch.validator";
 import {firstNotNilPromise} from "../../shared/observables";
 import {PlatformService} from "../../core/services/platform.service";
-import {SharedFormGroupValidators, SharedValidators} from "../../shared/validator/validators";
+import {SharedFormGroupValidators} from "../../shared/validator/validators";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 
 @Component({
   selector: 'app-batch-form',
@@ -215,7 +211,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
   setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean}) {
 
-    if (!this.isReady() || !this.data) {
+    if (!this.isReady() || !this.data) {
       this.safeSetValue(data, opts);
       return;
     }
@@ -296,7 +292,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Convert weight into measurement
     const totalWeight = this.defaultWeightPmfm && json.weight && json.weight.value;
     if (isNotNil(totalWeight)) {
-      const weightPmfm = this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
+      const weightPmfm = this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
       json.measurementValues[weightPmfm.pmfmId.toString()] = totalWeight;
     }
     json.weight = undefined;
@@ -314,13 +310,13 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         const childJson = json.children && json.children[0] || {};
 
         childJson.rankOrder = 1;
-        childJson.label = json.label && (json.label  + Batch.SAMPLING_BATCH_SUFFIX) || undefined;
+        childJson.label = json.label && (json.label  + Batch.SAMPLING_BATCH_SUFFIX) || undefined;
 
         childJson.measurementValues = childJson.measurementValues || {};
 
         // Convert weight into measurement
         if (childJson.weight && isNotNil(childJson.weight.value)) {
-          const childWeightPmfm = childJson.weight.estimated && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
+          const childWeightPmfm = childJson.weight.estimated && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
           childJson.measurementValues[childWeightPmfm.pmfmId.toString()] = childJson.weight.value;
         }
 
@@ -426,7 +422,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
     // Read weight PMFMs
     this.weightPmfms = pmfms.filter(p => PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label));
-    this.defaultWeightPmfm = this.weightPmfms.length && this.weightPmfms[0] || undefined;
+    this.defaultWeightPmfm = this.weightPmfms.length && this.weightPmfms[0] || undefined;
     this.weightPmfmsByMethod = {};
     this.weightPmfms.forEach(p => this.weightPmfmsByMethod[p.methodId] = p);
 
@@ -438,7 +434,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   }
 
   protected async onUpdateControls(form?: FormGroup): Promise<void> {
-    form = form || this.form;
+    form = form || this.form;
 
     // Wait end of ngInit()
     await this.onInitialized();

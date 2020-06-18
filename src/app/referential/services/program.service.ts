@@ -1,36 +1,25 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {BehaviorSubject, defer, Observable, of, Subject} from "rxjs";
+import {BehaviorSubject, defer, Observable, of} from "rxjs";
 import {filter, map} from "rxjs/operators";
-import {
-  AcquisitionLevelCodes,
-  EntityUtils,
-  isNil,
-  isNotNil,
-  IWithProgramEntity,
-  PmfmStrategy,
-  Program,
-  StatusIds
-} from "./model";
+import {AcquisitionLevelCodes} from "./model/model.enum";
 import {
   BaseDataService,
+  EntityUtils,
   environment,
-  IReferentialRef,
+  IReferentialRef, isNil,
+  isNotNil,
   LoadResult,
-  NOT_MINIFY_OPTIONS,
-  ReferentialAsObjectOptions,
   ReferentialRef,
-  ReferentialUtils,
-  SAVE_AS_OBJECT_OPTIONS,
   TableDataService
 } from "../../core/core.module";
 import {ErrorCodes} from "./errors";
-import {ReferentialFragments} from "../services/referential.queries";
+import {ReferentialFragments} from "./referential.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {
   EditorDataService,
   EditorDataServiceLoadOptions,
-  fetchAllPagesWithProgress
+  fetchAllPagesWithProgress, FilterFn
 } from "../../shared/services/data-service.class";
 import {TaxonGroupIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 import {isNilOrBlank, isNotEmptyArray, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
@@ -41,12 +30,41 @@ import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {EntityStorage} from "../../core/services/entities-storage.service";
+import {
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
+  ReferentialUtils,
+  SAVE_AS_OBJECT_OPTIONS
+} from "../../core/services/model/referential.model";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {Program} from "./model/program.model";
+
+import {PmfmStrategy} from "./model/pmfm-strategy.model";
+import {IWithProgramEntity} from "../../data/services/model/model.utils";
 
 
-export declare class ProgramFilter {
+export class ProgramFilter {
   searchText?: string;
+  searchAttribute?: string;
   statusIds?: number[];
-  withProperty?: string;
+
+  static searchFilter<T extends Program | IReferentialRef>(f: ProgramFilter): FilterFn<T>{
+    const filterFns: FilterFn<T>[] = [];
+
+    // Filter by status
+    if (f.statusIds) {
+      //filterFns.push((entity) => !!f.statusIds.find(v => entity.statusId === v));
+    }
+
+    if (f.searchText) {
+      const searchTextFilter = EntityUtils.searchTextFilter<T>(f.searchAttribute || ['label', 'name'], f.searchText);
+      if (searchTextFilter) filterFns.push(searchTextFilter);
+    }
+
+    if (!filterFns.length) return undefined;
+
+    return (entity) => !filterFns.find(fn => !fn(entity));
+  }
 }
 
 const ProgramFragments = {
@@ -328,7 +346,7 @@ const ProgramCacheKeys = {
 @Injectable({providedIn: 'root'})
 export class ProgramService extends BaseDataService
   implements TableDataService<Program, ProgramFilter>,
-    EditorDataService<Program, ProgramFilter> {
+    EditorDataService<Program> {
 
 
   constructor(
@@ -399,13 +417,13 @@ export class ProgramService extends BaseDataService
    * @param size
    * @param sortBy
    * @param sortDirection
-   * @param filter
+   * @param dataFilter
    */
   async loadAll(offset: number,
            size: number,
            sortBy?: string,
            sortDirection?: string,
-           filter?: ProgramFilter,
+           dataFilter?: ProgramFilter,
            opts?: {
              query?: any,
              fetchPolicy: FetchPolicy;
@@ -419,21 +437,21 @@ export class ProgramService extends BaseDataService
       size: size || 100,
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: dataFilter
     };
-    const debug = this._debug && (!opts || opts.debug !== false);
+    const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();
     if (debug) console.debug("[program-service] Loading programs... using options:", variables);
 
     let loadResult: { programs: any[], referentialsCount?: number };
 
     // Offline mode
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
       loadResult = await this.entities.loadAll('ProgramVO',
         {
           ...variables,
-          filter: EntityUtils.searchTextFilter('label', filter.searchText)
+          filter: EntityUtils.searchTextFilter('label', dataFilter.searchText)
         }
       ).then(res => {
         return {
@@ -500,7 +518,7 @@ export class ProgramService extends BaseDataService
           })
           .pipe(
             map(res => {
-              return {program: res && res.data && res.data.length && res.data[0] || undefined};
+              return {program: res && res.data && res.data.length && res.data[0] || undefined};
             }));
         }
         else {
@@ -508,7 +526,7 @@ export class ProgramService extends BaseDataService
           $loadResult = this.graphql.watchQuery<{ program: any }>({
             query: query,
             variables: {
-              label: label
+              label
             },
             error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
           });

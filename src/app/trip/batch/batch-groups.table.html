@@ -184,7 +184,7 @@
                      [class.odd]="isQvOdd(col)"
                      [class.even]="isQvEven(col)"
                      [class.hidden-xs]="col.rankOrder % 5 !== 0"
-                     [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
+                     [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
                      class="content-padding-left">
       <mat-label>
         <span>{{col.label|translate}}</span>
@@ -192,19 +192,19 @@
       </mat-label>
     </mat-header-cell>
 
-    <mat-cell *matCellDef="let row; let roo"
+    <mat-cell *matCellDef="let row"
               [class.total]="col.rankOrder % 5 < 2"
               [class.odd]="isQvOdd(col)"
               [class.even]="isQvEven(col)"
               [class.hidden-xs]="col.rankOrder % 5 !== 0"
-              [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
+              [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
               [class.mat-cell-computed]="col.computed"
               class="content-padding-left">
 
       <app-form-field *ngIf="!mobile; else mobileCellDef"
         floatLabel="never"
         [definition]="col"
-        [readonly]="!row.editing || col.computed"
+        [readonly]="!row.editing || col.computed"
         [formControl]="row.validator.controls.measurementValues.controls[col.rankOrder]"
         [compact]="true">
       </app-form-field>
@@ -301,7 +301,7 @@
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 
   <mat-row *matRowDef="let row; columns: displayedColumns;"
-           [class.mat-row-error]="row.validator?.invalid || row.validator?.controls['qualityFlagId'].value === 4"
+           [class.mat-row-error]="row.validator?.invalid || row.validator?.controls['qualityFlagId'].value === 4"
            [class.mat-row-dirty]="row.validator?.dirty"
            [class.mat-row-disabled]="!row.editing"
            (click)="clickRow($event, row)">

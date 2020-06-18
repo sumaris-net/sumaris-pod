@@ -2,9 +2,10 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Vi
 import {LandingsTable} from "./landings.table";
 import {ModalController} from "@ionic/angular";
 import {LandingFilter} from "../services/landing.service";
-import {AcquisitionLevelCodes, AcquisitionLevelType, isNotNil} from "../../referential/services/model";
+import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model/model.enum";
 import {Landing} from "../services/model/landing.model";
 import {Observable} from "rxjs";
+import {isNotNil} from "../../shared/functions";
 
 @Component({
   selector: 'app-select-landings-modal',
@@ -53,7 +54,7 @@ export class SelectLandingsModal implements OnInit {
   async close(event?: any): Promise<boolean> {
     try {
       if (this.hasSelection()) {
-        const landings = (this.table.selection.selected || [])
+        const landings = (this.table.selection.selected || [])
           .map(row => row.currentData)
           .map(Landing.fromObject)
           .filter(isNotNil);

@@ -1,10 +1,10 @@
 import {defaultDataIdFromObject} from "apollo-cache-inmemory";
-import {ApolloLink, FetchResult, NextLink, Operation} from "apollo-link";
+import {ApolloLink, NextLink, Operation} from "apollo-link";
 import * as uuidv4 from "uuid/v4";
 import {EventEmitter} from "@angular/core";
 import {debounceTime, filter, switchMap} from "rxjs/operators";
 import {PersistedData, PersistentStorage} from "apollo-cache-persist/types";
-import {BehaviorSubject, Observable, of} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 import {ApolloClient} from "apollo-client";
 import {environment} from "../../../environments/environment";
 import {isNotNil} from "../../shared/functions";
@@ -184,7 +184,7 @@ export async function restoreTrackedQueries(opts: {
   if (!list) return;
   if (opts.debug) console.debug("[apollo-tracker-link] Restoring tracked queries", list);
 
-  const promises = (list || []).map(trackedQuery => {
+  const promises = (list || []).map(trackedQuery => {
     const context = JSON.parse(trackedQuery.contextJSON);
     const query = JSON.parse(trackedQuery.queryJSON);
     const variables = JSON.parse(trackedQuery.variablesJSON);

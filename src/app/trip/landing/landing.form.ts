@@ -1,37 +1,27 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment/moment';
-import {
-  EntityUtils,
-  FormArrayHelper,
-  isNil,
-  isNotNil,
-  Person,
-  personToString,
-  referentialToString,
-  StatusIds
-} from '../../core/core.module';
+import {FormArrayHelper, isNil, isNotNil, Person, referentialToString} from '../../core/core.module';
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
-import {
-  AcquisitionLevelCodes,
-  LocationLevelIds,
-  ProgramService,
-  ReferentialRefService,
-  VesselModal,
-  VesselSnapshot
-} from '../../referential/referential.module';
-import {LandingValidatorService} from "../services/landing.validator";
+import {AcquisitionLevelCodes, LocationLevelIds} from '../../referential/services/model/model.enum';
+import {LandingValidatorService} from "../services/validator/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {MeasurementsValidatorService} from "../services/measurement.validator";
+import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormArray, FormBuilder} from "@angular/forms";
 import {ModalController} from "@ionic/angular";
-import {ReferentialUtils, UserProfileLabel} from "../../core/services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {personToString, UserProfileLabel} from "../../core/services/model/person.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {toBoolean} from "../../shared/functions";
 import {Landing} from "../services/model/landing.model";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {ProgramService} from "../../referential/services/program.service";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
+import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 
 @Component({
   selector: 'app-landing-form',
@@ -144,7 +134,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           pluck('label'),
           distinctUntilChanged()
         )
-        .subscribe(programLabel => this.program = programLabel));
+        .subscribe(programLabel => this.program = programLabel as string));
 
     // Combo location
     this.registerAutocompleteField('location', {

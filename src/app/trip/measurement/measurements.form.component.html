@@ -1,6 +1,6 @@
-<!-- <ion-col no-padding size="6" *ngFor="let pmfm of pmfms | async">
+<!-- <ion-col no-padding size="6" *ngFor="let pmfm of $pmfms | async">
   {{pmfm.name}}
-</ion-col> -->
+</ion-col>-->
 
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
@@ -24,13 +24,13 @@
 
 
 <ng-template #measurementsSkeleton>
-  <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
-  <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
+  <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
+  <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
 </ng-template>
 
-<ng-template #propertySkeleton>
+<ng-template #measurementSkeleton>
   <mat-form-field>
     <input matInput hidden>
-    <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+    <ion-skeleton-text [animated]="animated" style="width: 60%"></ion-skeleton-text>
   </mat-form-field>
 </ng-template>

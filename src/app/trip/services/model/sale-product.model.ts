@@ -1,12 +1,11 @@
-import {EntityUtils, isNil, isNotNil, PmfmStrategy} from "../../../referential/services/model";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {MeasurementValuesUtils} from "./measurement.model";
-import {isNotEmptyArray, isNotNilOrNaN, round} from "../../../shared/functions";
-import {DataEntityAsObjectOptions} from "./base.model";
+import {isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, round} from "../../../shared/functions";
+import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {Product} from "./product.model";
 import {Packet, PacketUtils} from "./packet.model";
-import {AppFormUtils} from "../../../core/form/form.utils";
-import {AbstractControl} from "@angular/forms";
-import {ObjectMap, ReferentialUtils} from "../../../core/services/model";
+import {ObjectMap} from "../../../core/services/model/entity.model";
+import {ReferentialUtils} from "../../../core/services/model/referential.model";
 
 export class SaleProduct extends Product {
 

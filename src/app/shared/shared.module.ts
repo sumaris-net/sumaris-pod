@@ -54,7 +54,7 @@ import {AudioProvider} from "./audio/audio";
 import {CloseScrollStrategy, Overlay} from '@angular/cdk/overlay';
 import {Hotkeys, SharedHotkeysModule} from "./hotkeys/shared-hotkeys.module";
 import {FileService} from "./file/file.service";
-import {HAMMER_GESTURE_CONFIG} from "@angular/platform-browser";
+import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from "@angular/platform-browser";
 import {AppGestureConfig} from "./gesture/gesture-config";
 import {ModalToolbarComponent} from "./toolbar/modal-toolbar";
 import {DragDropModule} from "@angular/cdk/drag-drop";
@@ -63,6 +63,7 @@ import {MAT_SELECT_SCROLL_STRATEGY} from "@angular/material/select";
 import {SharedDirectivesModule} from "./directives/directives.module";
 import {SharedPipesModule} from "./pipes/pipes.module";
 import {AppLoadingSpinner} from "./form/loading-spinner";
+import {SharedGestureModule} from "./gesture/gesture.module";
 
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
@@ -87,6 +88,7 @@ export {
 @NgModule({
   imports: [
     CommonModule,
+    HammerModule,
     IonicModule,
     ReactiveFormsModule,
     SharedMaterialModule,
@@ -107,6 +109,7 @@ export {
   exports: [
     ReactiveFormsModule,
     IonicModule,
+    SharedGestureModule,
     SharedMaterialModule,
     SharedDirectivesModule,
     SharedPipesModule,
@@ -132,8 +135,6 @@ export {
       },
       deps: [TranslateService]
     },
-    // Configure hammer gesture
-    {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
     // FIXME: try to force a custom overlay for autocomplete, because of there is a bug when using inside an ionic modal
     //{ provide: Overlay, useClass: Overlay},
     { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },

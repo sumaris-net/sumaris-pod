@@ -1,12 +1,19 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
+import {
+  SharedFormArrayValidators,
+  SharedFormGroupValidators,
+  SharedValidators
+} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {Program} from "../../../referential/services/model";
+import {Program} from "../../../referential/services/model/program.model";
 import {toBoolean} from "../../../shared/functions";
-import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.validator";
-import {MeasurementsValidatorService} from "../measurement.validator";
+import {
+  DataEntityValidatorOptions,
+  DataEntityValidatorService
+} from "../../../data/services/validator/data-entity.validator";
+import {MeasurementsValidatorService} from "./measurement.validator";
 import {Product} from "../model/product.model";
 import {OperationGroup} from "../model/trip.model";
 

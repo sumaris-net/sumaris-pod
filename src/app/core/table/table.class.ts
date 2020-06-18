@@ -27,14 +27,14 @@ import {
 import {TableElement} from "angular4-material-table";
 import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
-import {Entity} from "../services/model";
+import {Entity} from "../services/model/entity.model";
 import {AlertController, ModalController, Platform, ToastController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
-import {AppFormUtils} from "../form/form.utils";
-import {isNil, isNotNil, toBoolean} from "../../shared/shared.module";
+import {AppFormUtils, IAppForm} from "../form/form.utils";
+import {isNil, isNotNil, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../services/platform.service";
@@ -59,7 +59,8 @@ export class CellValueChangeListener {
 }
 
 @Directive()
-export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, OnDestroy, AfterViewInit {
+export abstract class AppTable<T extends Entity<T>, F = any>
+  implements OnInit, OnDestroy, AfterViewInit, IAppForm {
 
   private _initialized = false;
   private _subscription = new Subscription();
@@ -72,8 +73,8 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   protected _enable = true;
   protected _dirty = false;
   protected allowRowDetail = true;
-  protected _onDestroy = new Subject();
-  protected _autocompleteHelper: MatAutocompleteConfigHolder;
+  protected _destroy$ = new Subject();
+  protected _autocompleteConfigHolder: MatAutocompleteConfigHolder;
   protected translate: TranslateService;
   protected alertCtrl: AlertController;
   protected toastController: ToastController;
@@ -123,6 +124,9 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     return this._filter;
   }
 
+  get empty(): boolean {
+    return this.loading || this.resultsLength === 0;
+  }
 
 
   @Output() onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>();
@@ -194,7 +198,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   }
 
   markAsUntouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
-    if (this._dirty !== false || this.editedRow) {
+    if (this._dirty !== false || this.editedRow) {
       this._dirty = false;
       this.editedRow = null;
       if (!opts || opts.emitEvent !== false) {
@@ -256,10 +260,10 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
     this.toastController = injector && injector.get(ToastController);
-    this._autocompleteHelper = new MatAutocompleteConfigHolder({
+    this._autocompleteConfigHolder = new MatAutocompleteConfigHolder({
       getUserAttributes: (a,b) => settings.getFieldDisplayAttributes(a, b)
     });
-    this.autocompleteFields = this._autocompleteHelper.fields;
+    this.autocompleteFields = this._autocompleteConfigHolder.fields;
   }
 
   ngOnInit() {
@@ -277,7 +281,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     if (this.confirmBeforeDelete && !this.alertCtrl) throw Error("Missing 'alertCtrl' or 'injector' in component's constructor.");
 
     // Defined unique id for settings for the page
-    this.settingsId = this.settingsId || this.generateTableId();
+    this.settingsId = this.settingsId || this.generateTableId();
 
     this.displayedColumns = this.getDisplayColumns();
 
@@ -285,6 +289,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
     merge(
+      // Listen sort events
       this.sort && this.sort.sortChange
         .pipe(
           mergeMap(async () => {
@@ -298,7 +303,20 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
           filter(res => res === true)
         )
       || EMPTY,
-      this.paginator && this.paginator.page || EMPTY,
+      // Listen paginator events
+      this.paginator && this.paginator.page
+        .pipe(
+          mergeMap(async () => {
+            if (this._dirty && this.saveBeforeSort) {
+              const saved = await this.save();
+              this.markAsDirty(); // restore dirty flag
+              return saved;
+            }
+            return true;
+          }),
+          filter(res => res === true)
+        ) || EMPTY,
+
       this.onRefresh
     )
       .pipe(
@@ -318,14 +336,14 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
             if (this.debug) console.debug("[table] Calling dataSource.watchAll()...");
             this.selection.clear();
             return this._dataSource.watchAll(
-              this.paginator && this.paginator.pageIndex * this.paginator.pageSize || 0,
+              this.paginator && this.paginator.pageIndex * this.paginator.pageSize || 0,
               this.paginator && this.paginator.pageSize || this.pageSize || DEFAULT_PAGE_SIZE,
               this.sort && this.sort.active,
               this.sort && this.sort.direction && (this.sort.direction === 'desc' ? 'desc' : 'asc') || undefined,
               this._filter
             );
           }),
-        takeUntil(this._onDestroy),
+        takeUntil(this._destroy$),
         catchError(err => {
           this.error = err && err.message || err;
           if (this.debug) console.error(err);
@@ -365,7 +383,12 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       .forEach(col => this.stopCellValueChanges(col));
     this._cellValueChangesDefs = {};
 
-    this._onDestroy.next();
+    this._destroy$.next();
+    this._destroy$.unsubscribe();
+
+    if (this._dataSource) {
+      this._dataSource.ngOnDestroy()
+    }
   }
 
   setDatasource(datasource: AppTableDataSource<T, F>) {
@@ -748,7 +771,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   }
 
   protected registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions): MatAutocompleteFieldConfig {
-    return this._autocompleteHelper.add(fieldName, options);
+    return this._autocompleteConfigHolder.add(fieldName, options);
   }
 
   protected getI18nColumnName(columnName: string) {

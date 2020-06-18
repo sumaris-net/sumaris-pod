@@ -1077,6 +1077,9 @@
       "GEARS": "Engins",
       "TAXON_GROUPS": "Espèces commerciales",
       "TAXON_NAMES": "Espèces scientifiques",
+      "NEW": {
+        "TITLE": "Nouvelle stratégie"
+      },
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Niveau d'acquisition",
         "RANK_ORDER": "Ordre",

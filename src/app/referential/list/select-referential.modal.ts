@@ -1,12 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
 import {ModalController} from "@ionic/angular";
-import {isNotNil, Referential, ReferentialRef} from "../services/model";
-import {changeCaseToUnderscore, toBoolean} from "../../shared/functions";
-import {ReferentialFilter, ReferentialService} from "../services/referential.service";
+import {changeCaseToUnderscore, isNotNil, toBoolean} from "../../shared/functions";
+import {ReferentialFilter} from "../services/referential.service";
 import {Subject} from "rxjs";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
 import {AppTableDataSource} from "../../core/table/table-datasource.class";
 import {ReferentialRefTable} from "./referential-ref.table";
+import {ReferentialRef} from "../../core/services/model/referential.model";
 
 @Component({
   selector: 'app-select-referential-modal',
@@ -37,7 +37,7 @@ export class SelectReferentialModal implements OnInit {
 
   ngOnInit() {
     // Init table
-    if (!this.filter || !this.filter.entityName) {
+    if (!this.filter || !this.filter.entityName) {
       throw new Error("Missing argument 'filter'");
     }
     this.table.setDatasource(new AppTableDataSource<ReferentialRef, ReferentialRefFilter>(ReferentialRef,
@@ -85,7 +85,7 @@ export class SelectReferentialModal implements OnInit {
   async close(event?: any): Promise<boolean> {
     try {
       if (this.hasSelection()) {
-        const items = (this.table.selection.selected || [])
+        const items = (this.table.selection.selected || [])
             .map(row => row.currentData)
             .map(ReferentialRef.fromObject)
             .filter(isNotNil);
@@ -104,7 +104,7 @@ export class SelectReferentialModal implements OnInit {
 
   hasSelection(): boolean {
     const table = this.table;
-    return table && table.selection.hasValue() && (this.allowMultiple || table.selection.selected.length === 1);
+    return table && table.selection.hasValue() && (this.allowMultiple || table.selection.selected.length === 1);
   }
 
   protected markForCheck() {

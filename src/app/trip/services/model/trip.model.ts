@@ -1,36 +1,33 @@
 import {
-  EntityUtils,
-  fromDateISOString,
-  isNotNil,
-  ReferentialAsObjectOptions,
-  toDateISOString
+    EntityUtils,
+    fromDateISOString,
+    isNotNil,
+    Person,
+    ReferentialRef,
+    toDateISOString
 } from "../../../core/core.module";
 import {Moment} from "moment/moment";
+import {DataEntity, DataEntityAsObjectOptions,} from "../../../data/services/model/data-entity.model";
 import {
-  DataEntity,
-  DataEntityAsObjectOptions,
-  RootDataEntity,
-  DataRootVesselEntity,
-  IWithObserversEntity, IWithPacketsEntity, IWithProductsEntity,
-  NOT_MINIFY_OPTIONS,
-  Person,
-  ReferentialRef
-} from "./base.model";
-import {
-  IEntityWithMeasurement,
-  Measurement, MeasurementFormValues,
-  MeasurementModelValues,
-  MeasurementUtils,
-  MeasurementValuesUtils
+    IEntityWithMeasurement,
+    Measurement,
+    MeasurementFormValues,
+    MeasurementModelValues,
+    MeasurementUtils,
+    MeasurementValuesUtils
 } from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Metier} from "../../../referential/services/model/taxon.model";
 import {isEmptyArray} from "../../../shared/functions";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
-import {Product} from "./product.model";
-import {Packet} from "./packet.model";
+import {IWithProductsEntity, Product} from "./product.model";
+import {IWithPacketsEntity, Packet} from "./packet.model";
 import {FishingArea} from "./fishing-area.model";
+import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
+import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
+import {IWithObserversEntity} from "../../../data/services/model/model.utils";
+import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
 
 /* -- Helper function -- */
 
@@ -362,7 +359,7 @@ export class Operation extends DataEntity<Operation> {
       if (!target.endPosition.dateTime) {
         // Create a copy
         target.endPosition = target.endPosition.clone();
-        target.endPosition.dateTime = target.endPosition.dateTime || target.fishingEndDateTime || target.endDateTime;
+        target.endPosition.dateTime = target.endPosition.dateTime || target.fishingEndDateTime || target.endDateTime;
       }
     }
     // Invalid position (missing latitude or longitude - allowed in on FIELD mode): remove it
@@ -389,7 +386,7 @@ export class Operation extends DataEntity<Operation> {
     }
 
     // Metier
-    target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/} as ReferentialAsObjectOptions) || undefined;
+    target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/}) || undefined;
 
     // Measurements
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
@@ -488,7 +485,8 @@ export class Operation extends DataEntity<Operation> {
 
 /* -- Operation Group -- */
 
-export class OperationGroup extends DataEntity<OperationGroup> implements IWithProductsEntity<OperationGroup>, IWithPacketsEntity<OperationGroup> {
+export class OperationGroup extends DataEntity<OperationGroup>
+    implements IWithProductsEntity<OperationGroup>, IWithPacketsEntity<OperationGroup> {
 
   static TYPENAME = 'OperationGroupVO';
 
