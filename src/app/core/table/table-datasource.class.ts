@@ -98,7 +98,6 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
             this.loadingSubject.next(false);
             if (this._debug) console.debug(`[table-datasource] Service ${this._dataService.constructor.name} sent new data: updating datasource...`, res);
             this.updateDatasource(res.data || []);
-            this._loaded = true;
           }
           return res;
         })
@@ -178,6 +177,11 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       // Always update the loading indicator
       this.loadingSubject.next(false);
     }
+  }
+
+  updateDatasource(data: T[], options?: { emitEvent: boolean }) {
+    super.updateDatasource(data, options);
+    this._loaded = true;
   }
 
   // Overwrite default signature
