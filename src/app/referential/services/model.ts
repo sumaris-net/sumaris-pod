@@ -675,6 +675,30 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     ],
     defaultValue: LocationLevelIds.PORT.toString()
   },
+  OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE: {
+    key: 'sumaris.observedLocation.aggregatedLandings.enable',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
+  OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM: {
+    key: 'sumaris.observedLocation.aggregatedLandings.program',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM",
+    defaultValue: "",
+    type: 'string'
+  },
+  OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY: {
+    key: 'sumaris.observedLocation.aggregatedLandings.startDay',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY",
+    defaultValue: "1",
+    type: 'integer'
+  },
+  OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT: {
+    key: 'sumaris.observedLocation.aggregatedLandings.dayCount',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT",
+    defaultValue: "7",
+    type: 'integer'
+  },
 
   // Landing
   LANDING_EDITOR: {

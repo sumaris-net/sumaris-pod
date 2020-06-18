@@ -175,8 +175,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
           // Add pmfm columns
           this.updateColumns();
 
-          // Load the table, if already laoded or if autoLoad=true
-          if (this.autoLoad || isNotNil(this.resultsLength)/*already load*/) {
+          // Load the table, if already loaded or if autoLoad=true
+          if (this.autoLoad || this.dataSource.loaded /*already load*/) {
             this.onRefresh.emit();
           }
         }));

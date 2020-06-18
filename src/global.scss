@@ -658,6 +658,10 @@ mat-table {
     margin-top: -1px;
     border: 2px dashed var(--ion-color-danger);
   }
+
+  .mat-row-height-auto {
+    max-height: unset !important;
+  }
 }
 
 

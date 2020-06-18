@@ -15,6 +15,10 @@ import {equalsOrNil, isNotNilOrNaN} from "../../../shared/functions";
 
 export class PacketFilter {
 
+  constructor(parent: IWithPacketsEntity<any>) {
+    this.parent = parent;
+  }
+
   static searchFilter(f: PacketFilter): (Packet) => boolean {
     if (!f || isNil(f.parent)) return undefined;
     return (p) => {

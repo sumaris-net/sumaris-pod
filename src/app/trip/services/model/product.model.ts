@@ -7,6 +7,10 @@ import {DataFilter} from "../../../shared/services/memory-data-service.class";
 
 export class ProductFilter {
 
+  constructor(parent: IWithProductsEntity<any>) {
+    this.parent = parent;
+  }
+
   static searchFilter<P extends Product>(f: ProductFilter): (T) => boolean {
     if (ProductFilter.isEmpty(f)) return undefined;
     return (p: P) => {

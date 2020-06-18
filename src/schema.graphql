@@ -23,6 +23,13 @@ type AccountVO {
   updateDate: Date
 }
 
+type AggregatedLandingVO {
+  id: Int
+  vesselActivities: [VesselActivityVO]
+  vesselDateTime: Date
+  vesselSnapshot: VesselSnapshotVO
+}
+
 type AggregationResultVO {
   aggStrata: [String]
   columns: [ExtractionProductColumnVO]
@@ -619,6 +626,7 @@ type PmfmStrategyVO {
   acquisitionLevel: String
   acquisitionNumber: Int
   defaultValue: Float
+  gearIds: [Int]
   gears: [String]
   id: Int
   isMandatory: Boolean
@@ -635,6 +643,7 @@ type PmfmStrategyVO {
   rankOrder: Int
   referenceTaxonIds: [Int]
   signifFiguresNumber: Int
+  strategyId: Int
   taxonGroupIds: [Int]
   type: String
   unitLabel: String
@@ -748,6 +757,8 @@ type ProgramVO {
 type Query {
   "Load a user account"
   account(pubkey: String): AccountVO
+  "Find aggregated landings by filter"
+  aggregatedLandings(filter: AggregatedLandingFilterVOInput): [AggregatedLandingVO]
   "Read columns from aggregation"
   aggregationColumns(sheet: String, type: AggregationTypeVOInput): [ExtractionProductColumnVO]
   "Execute an aggregation and return as GeoJson"
@@ -960,6 +971,7 @@ type StrategyVO {
   id: Int
   label: String
   name: String
+  "Get strategy's pmfms"
   pmfmStrategies: [PmfmStrategyVO]
   programId: Int
   statusId: Int
@@ -1111,6 +1123,15 @@ type UserSettingsVO {
   updateDate: Date
 }
 
+type VesselActivityVO {
+  comments: String
+  date: Date
+  measurementValues: Map_Integer_StringScalar
+  metiers: [MetierVO]
+  rankOrder: Int
+  tripId: Int
+}
+
 type VesselFeaturesVO {
   administrativePower: Int
   basePortLocation: LocationVO
@@ -1226,6 +1247,16 @@ input AccountVOInput {
   settings: UserSettingsVOInput
   statusId: Int
   updateDate: Date
+}
+
+input AggregatedLandingFilterVOInput {
+  endDate: Date
+  locationId: Int
+  observedLocationId: Int
+  programLabel: String
+  recorderDepartmentId: Int
+  recorderPersonId: Int
+  startDate: Date
 }
 
 input AggregationStrataVOInput {
@@ -1775,6 +1806,7 @@ input PmfmStrategyVOInput {
   acquisitionLevel: String
   acquisitionNumber: Int
   defaultValue: Float
+  gearIds: [Int]
   gears: [String]
   id: Int
   isMandatory: Boolean
@@ -1790,6 +1822,7 @@ input PmfmStrategyVOInput {
   rankOrder: Int
   referenceTaxonIds: [Int]
   signifFiguresNumber: Int
+  strategyId: Int
   taxonGroupIds: [Int]
   type: String
   unitLabel: String

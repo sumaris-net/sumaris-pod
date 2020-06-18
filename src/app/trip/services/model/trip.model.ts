@@ -519,7 +519,7 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
 
   constructor() {
     super();
-    this.__typename = 'OperationGroupVO';
+    this.__typename = OperationGroup.TYPENAME;
     this.metier = null;
     this.physicalGear = null;
     this.measurementValues = {};

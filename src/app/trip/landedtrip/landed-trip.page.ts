@@ -26,9 +26,9 @@ import {OperationGroupTable} from "../operationgroup/operation-groups.table";
 import {MatAutocompleteConfigHolder, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
-import {Product} from "../services/model/product.model";
+import {Product, ProductFilter} from "../services/model/product.model";
 import {PacketsTable} from "../packet/packets.table";
-import {Packet} from "../services/model/packet.model";
+import {Packet, PacketFilter} from "../services/model/packet.model";
 import {OperationGroup, Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {fillRankOrder, isRankOrderValid} from "../services/model/base.model";
@@ -66,6 +66,8 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   // List of trip's operation groups, use to populate product filter
   $operationGroups = new BehaviorSubject<OperationGroup[]>(null);
   catchFilterForm: FormGroup;
+  $productFilter = new BehaviorSubject<ProductFilter>(undefined);
+  $packetFilter = new BehaviorSubject<PacketFilter>(undefined);
 
   operationGroupAttributes = ['metier.label', 'metier.name'];
 
@@ -136,6 +138,10 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     this.catchFilterForm = this.formBuilder.group({
       operationGroup: [null]
     });
+    this.registerSubscription(this.catchFilterForm.valueChanges.subscribe(() => {
+      this.$productFilter.next(new ProductFilter(this.catchFilterForm.value.operationGroup));
+      this.$packetFilter.next(new PacketFilter(this.catchFilterForm.value.operationGroup));
+    }));
 
     // Init operationGroupFilter combobox
     this.autocompleteHelper.add('operationGroupFilter', {

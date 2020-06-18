@@ -35,10 +35,13 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
 })
 export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> implements OnInit, OnDestroy {
 
-  @Input() $parentFilter: Observable<any>;
+  @Input() showParent = true;
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
   @Input() parentAttributes: string[];
-  @Input() showParent = true;
+
+  @Input() set parentFilter(productFilter: ProductFilter) {
+    this.setFilter(productFilter);
+  }
 
   @Input()
   set value(data: Product[]) {
@@ -101,10 +104,6 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
       columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined)
     });
-
-    if (this.$parentFilter) {
-      this.registerSubscription(this.$parentFilter.subscribe(parentFilter => this.setFilter(parentFilter)));
-    }
 
     this.registerSubscription(
       filterNotNil(this.$pmfms)

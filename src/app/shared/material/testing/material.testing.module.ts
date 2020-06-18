@@ -8,6 +8,7 @@ import {IonicModule} from "@ionic/angular";
 import {CommonModule} from "@angular/common";
 import {ReactiveFormsModule} from "@angular/forms";
 import {NumpadTestPage} from "../numpad/testing/numpad.test";
+import {SwipeTestPage} from "../swipe/testing/swipe.test";
 
 
 const routes: Routes = [
@@ -30,6 +31,11 @@ const routes: Routes = [
     path: 'numpad',
     pathMatch: 'full',
     component: NumpadTestPage
+  },
+  {
+    path: 'swipe',
+    pathMatch: 'full',
+    component: SwipeTestPage
   }
 ];
 
@@ -45,7 +51,8 @@ const routes: Routes = [
     MaterialTestingPage,
     AutocompleteTestPage,
     LatLongTestPage,
-    NumpadTestPage
+    NumpadTestPage,
+    SwipeTestPage
   ],
   exports: [
     SharedMaterialModule,
@@ -53,7 +60,8 @@ const routes: Routes = [
     MaterialTestingPage,
     AutocompleteTestPage,
     LatLongTestPage,
-    NumpadTestPage
+    NumpadTestPage,
+    SwipeTestPage
   ]
 })
 export class MaterialTestingModule {

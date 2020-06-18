@@ -34,9 +34,12 @@ import {SaleProductUtils} from "../services/model/sale-product.model";
 })
 export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnInit {
 
-  @Input() $parentFilter: Observable<any>;
   @Input() $parents: BehaviorSubject<IWithPacketsEntity<any>[]>;
   @Input() parentAttributes: string[];
+
+  @Input() set parentFilter(packetFilter: PacketFilter) {
+    this.setFilter(packetFilter);
+  }
 
   private _program: string;
 
@@ -118,8 +121,6 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
       columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined)
     });
-
-    this.registerSubscription(this.$parentFilter.subscribe(parentFilter => this.setFilter(parentFilter)));
 
     this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditPacket(row)));
   }

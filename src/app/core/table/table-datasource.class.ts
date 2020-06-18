@@ -24,6 +24,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   protected _saving = false;
   protected _useValidator = false;
   protected _stopWatchAll = new Subject();
+  private _loaded = false;
 
   public loadingSubject = new BehaviorSubject(false);
 
@@ -39,6 +40,10 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
   get options(): AppTableDataSourceOptions<T> {
     return this._config;
+  }
+
+  get loaded(): boolean {
+    return this._loaded;
   }
 
   /**
@@ -84,6 +89,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
             this.loadingSubject.next(false);
             if (this._debug) console.debug(`[table-datasource] Service ${this._dataService.constructor.name} sent new data: updating datasource...`, res);
             this.updateDatasource(res.data || []);
+            this._loaded = true;
           }
           return res;
         })

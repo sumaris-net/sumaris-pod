@@ -184,7 +184,7 @@
                               [program]="programSubject | async"
                               acquisitionLevel="PRODUCT"
                               [$parents]="$operationGroups"
-                              [$parentFilter]="catchFilterForm.controls['operationGroup'].valueChanges"
+                              [parentFilter]="$productFilter | async"
                               [parentAttributes]="operationGroupAttributes"
           >
           </app-products-table>
@@ -199,9 +199,9 @@
 
           <app-packets-table #packetsTable
                              [debug]="debug"
-                             [program]="programSubject|async"
+                             [program]="programSubject | async"
                              [$parents]="$operationGroups"
-                             [$parentFilter]="catchFilterForm.controls['operationGroup'].valueChanges"
+                             [parentFilter]="$packetFilter | async"
                              [parentAttributes]="operationGroupAttributes"
             ></app-packets-table>
 

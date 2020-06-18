@@ -1,0 +1,75 @@
+
+<mat-form-field [floatLabel]="floatLabel" [class.mat-form-field-disabled]="disabled">
+  <input matInput hidden type="text"
+         [placeholder]="placeholder"
+         [formControl]="formControl"
+         readonly>
+
+<!--  <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>-->
+
+  <!-- readonly
+  <ng-container *ngIf="readonly; else writable">
+--          <ion-label>{{ displayWith(value) }}</ion-label>-
+    <ion-label>readonly</ion-label>
+  </ng-container>-->
+
+  <!--<ng-template #writable>-->
+
+    <ng-container *ngTemplateOutlet="prefix"></ng-container>
+
+
+<!--    <ion-slides #ionSlides-->
+<!--                (ionSlideReachStart)="reachStart(true)"-->
+<!--                (ionSlideReachEnd)="reachEnd(true)"-->
+<!--                (ionSlideNextEnd)="reachStart(false)"-->
+<!--                (ionSlidePrevEnd)="reachEnd(false)"-->
+<!--                hidden="true"-->
+<!--    >-->
+<!--      <ion-slide *ngFor="let item of $inputItems | async">-->
+<!--        <ion-label>{{ displayWith(item) }}</ion-label>-->
+<!--      </ion-slide>-->
+
+<!--    </ion-slides>-->
+  <ion-text>test</ion-text>
+
+
+
+<!--          <button matSuffix mat-icon-button tabindex="-1"-->
+<!--                  type="button"-->
+<!--                  *ngIf="clearable"-->
+<!--                  (click)="clearValue($event)"-->
+<!--                  [hidden]="disabled || !formControl.value">-->
+<!--            <mat-icon>close</mat-icon>-->
+<!--          </button>-->
+  <!--</ng-template>-->
+
+  <ng-container *ngTemplateOutlet="suffix"></ng-container>
+
+
+  <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+  <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+
+
+</mat-form-field>
+
+<ng-template #prefix>
+  <button matPrefix mat-icon-button
+          type="button"
+          [disabled]="previousDisabled"
+          (click)="previous()"
+          [hidden]="disabled">
+    <mat-icon>chevron_left</mat-icon>
+  </button>
+  <ng-content matPrefix select="[matPrefix]"></ng-content>
+</ng-template>
+
+<ng-template #suffix>
+  <button matSuffix mat-icon-button
+          type="button"
+          [disabled]="nextDisabled"
+          (click)="next()"
+          [hidden]="disabled">
+    <mat-icon>chevron_right</mat-icon>
+  </button>
+  <ng-content matSuffix select="[matSuffix]"></ng-content>
+</ng-template>

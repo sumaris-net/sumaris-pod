@@ -1,0 +1,89 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Swipe test page</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <h1>Swipe page:</h1>
+
+  <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+
+    <ion-grid>
+
+      <ion-row>
+        <!-- empty -->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Empty
+                </ion-label>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-swipe formControlName="empty"
+                        placeholder="placeholder"
+                         [items]="$dates"
+                         [config]="swipeDateOption"
+              >
+              </mat-swipe>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <!-- date -->
+<!--        <ion-col>-->
+<!--          <ion-card>-->
+<!--            <ion-card-header>-->
+<!--              <ion-card-title>-->
+<!--                <ion-label color="primary">-->
+<!--                  Date-->
+<!--                </ion-label>-->
+<!--              </ion-card-title>-->
+<!--            </ion-card-header>-->
+<!--            <ion-card-content>-->
+<!--              <mat-swipe formControlName="date"-->
+<!--                         [items]="$dates"-->
+<!--                        [clearable]="true"-->
+<!--                         [config]="swipeDateOption"-->
+<!--              >-->
+<!--              </mat-swipe>-->
+<!--            </ion-card-content>-->
+<!--          </ion-card>-->
+<!--        </ion-col>-->
+
+        <!-- disable -->
+<!--        <ion-col>-->
+<!--          <ion-card>-->
+<!--            <ion-card-header>-->
+<!--              <ion-card-title>-->
+<!--                <ion-label color="primary">-->
+<!--                  Disabled control-->
+<!--                </ion-label>-->
+<!--              </ion-card-title>-->
+<!--            </ion-card-header>-->
+<!--            <ion-card-content>-->
+<!--              <mat-swipe formControlName="disabled"-->
+<!--                         [clearable]="false"-->
+<!--              >-->
+<!--              </mat-swipe>-->
+<!--            </ion-card-content>-->
+<!--          </ion-card>-->
+<!--        </ion-col>-->
+
+
+      </ion-row>
+
+    </ion-grid>
+
+  </form>
+
+</ion-content>
