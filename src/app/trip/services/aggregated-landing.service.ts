@@ -6,13 +6,13 @@ import {ErrorCodes} from "./trip.errors";
 import {NetworkService} from "../../core/services/network.service";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {SynchronizationStatus} from "./model/base.model";
 import {Beans} from "../../shared/functions";
 import gql from "graphql-tag";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {ReferentialFragments} from "../../referential/services/referential.queries";
 import {Observable} from "rxjs";
 import {filter, map, tap} from "rxjs/operators";
+import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 
 export class AggregatedLandingFilter {
   programLabel?: string;

@@ -10,12 +10,12 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {NetworkService} from "../../core/services/network.service";
 import {AggregatedLandingValidatorService} from "../services/validator/aggregated-landing.validator";
 import {BehaviorSubject} from "rxjs";
-import {AcquisitionLevelCodes} from "../../referential/services/model";
 import {firstNotNilPromise} from "../../shared/observables";
 import {filter} from "rxjs/operators";
 import * as moment from "moment";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {AggregatedLandingService} from "../services/aggregated-landing.service";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 
 @Component({
   selector: 'app-aggregated-landings',

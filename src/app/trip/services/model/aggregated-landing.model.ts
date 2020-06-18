@@ -1,8 +1,9 @@
-import {Entity, fromDateISOString, IWithVesselSnapshotEntity, NOT_MINIFY_OPTIONS, toDateISOString, VesselSnapshot} from "./base.model";
-import {EntityAsObjectOptions} from "../../../core/core.module";
+import {Entity, EntityAsObjectOptions, fromDateISOString, toDateISOString} from "../../../core/core.module";
 import {Metier} from "../../../referential/services/model/taxon.model";
 import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Moment} from "moment";
+import {IWithVesselSnapshotEntity, VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
+import {NOT_MINIFY_OPTIONS} from "../../../core/services/model/referential.model";
 
 export class VesselActivity extends Entity<VesselActivity> {
 

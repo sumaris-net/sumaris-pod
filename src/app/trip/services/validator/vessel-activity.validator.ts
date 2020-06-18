@@ -1,5 +1,4 @@
 import {Injectable} from "@angular/core";
-import {DataEntityValidatorOptions} from "./base.validator";
 import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {toBoolean} from "../../../shared/functions";
 import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
@@ -7,6 +6,7 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
 import {VesselActivity} from "../model/aggregated-landing.model";
 import {ValidatorService} from "angular4-material-table";
 import {Metier} from "../../../referential/services/model/taxon.model";
+import {DataEntityValidatorOptions} from "../../../data/services/validator/data-entity.validator";
 
 export interface VesselActivityValidatorOptions extends DataEntityValidatorOptions {
   required?: boolean;

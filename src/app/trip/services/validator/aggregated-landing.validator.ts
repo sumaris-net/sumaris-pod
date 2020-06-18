@@ -1,11 +1,11 @@
 import {Injectable} from "@angular/core";
-import {DataEntityValidatorOptions} from "./base.validator";
-import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {toBoolean} from "../../../shared/functions";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {AggregatedLanding, VesselActivity} from "../model/aggregated-landing.model";
+import {AggregatedLanding} from "../model/aggregated-landing.model";
 import {ValidatorService} from "angular4-material-table";
+import {DataEntityValidatorOptions} from "../../../data/services/validator/data-entity.validator";
 
 export interface AggregatedLandingValidatorOptions extends DataEntityValidatorOptions {
   required?: boolean;

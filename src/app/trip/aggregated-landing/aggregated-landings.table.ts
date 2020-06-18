@@ -2,10 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Inj
 import {
   AppTable,
   AppTableDataSource,
-  environment, isNil, isNotNil,
-  personsToString,
-  personToString,
-  ReferentialRef,
+  environment, isNil, isNotNil, referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   StatusIds
@@ -13,27 +10,16 @@ import {
 import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {
-  AcquisitionLevelCodes,
-  LocationLevelIds, PmfmStrategy, ProgramService,
-  qualityFlagToColor,
-  ReferentialRefService,
-  referentialToString
-} from "../../referential/referential.module";
-import {catchError, debounceTime, distinctUntilChanged, filter, map, tap, throttleTime} from "rxjs/operators";
+import {FormBuilder} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {SharedValidators} from "../../shared/validator/validators";
 import {PlatformService} from "../../core/services/platform.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AccountService} from "../../core/services/account.service";
-import {ConnectionType, NetworkService} from "../../core/services/network.service";
+import {NetworkService} from "../../core/services/network.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {BehaviorSubject} from "rxjs";
-import {SynchronizationStatus} from "../services/model/base.model";
-import {concatPromises, filterNotNil} from "../../shared/observables";
-import {isEmptyArray, isNotEmptyArray} from "../../shared/functions";
-import {PersonService} from "../../admin/services/person.service";
+import {filterNotNil} from "../../shared/observables";
+import {isNotEmptyArray} from "../../shared/functions";
 import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
 import {AggregatedLandingFilter, AggregatedLandingService} from "../services/aggregated-landing.service";
 import {Moment} from "moment";
@@ -41,6 +27,10 @@ import {ObservedLocation} from "../services/model/observed-location.model";
 import * as moment from "moment";
 import {TableElement} from "angular4-material-table";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {ProgramService} from "../../referential/services/program.service";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 
 @Component({
   selector: 'app-aggregated-landings-table',
