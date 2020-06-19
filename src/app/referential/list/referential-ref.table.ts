@@ -12,6 +12,8 @@ import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
+import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
+import {debounceTime, filter} from "rxjs/operators";
 
 
 @Component({
@@ -24,6 +26,11 @@ export class ReferentialRefTable extends AppTable<ReferentialRef, ReferentialRef
 
   statusList = DefaultStatusList;
   statusById: any;
+  filterForm: FormGroup;
+
+  @Input() showToolbar = false;
+
+  @Input() showFilter = true;
 
   @Input() set entityName(entityName: string) {
     this.setFilter({
@@ -47,6 +54,7 @@ export class ReferentialRefTable extends AppTable<ReferentialRef, ReferentialRef
   constructor(
     protected injector: Injector,
     protected referentialRefService: ReferentialRefService,
+    formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
     super(injector.get(ActivatedRoute),
@@ -72,12 +80,39 @@ export class ReferentialRefTable extends AppTable<ReferentialRef, ReferentialRef
     this.autoLoad = false; // waiting dataSource to be set
     this.inlineEdition = false;
 
+
     // Fill statusById
     this.statusById = {};
     this.statusList.forEach((status) => this.statusById[status.id] = status);
 
+    this.filterForm = formBuilder.group({
+      'searchText': [null]
+    });
+
+    // Update filter when changes
+    this.registerSubscription(
+      this.filterForm.valueChanges
+        .pipe(
+          debounceTime(250),
+          filter(() => this.filterForm.valid)
+        )
+        // Applying the filter
+        .subscribe((json) => this.setFilter({
+          ...this.filter, // Keep previous filter
+          ...json},
+          {emitEvent: this.mobile}))
+    );
+
     this.debug = !environment.production;
   }
+
+  clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
+    if (event) event.stopPropagation(); // Avoid to enter input the field
+    formControl.setValue(null);
+    return false;
+  }
+
+  /* -- protected methods -- */
 
   protected markForCheck() {
     this.cd.markForCheck();

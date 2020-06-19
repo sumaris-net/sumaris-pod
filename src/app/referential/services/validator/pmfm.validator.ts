@@ -26,7 +26,7 @@ export class PmfmValidatorService extends ReferentialValidatorService<Pmfm> {
       signifFiguresNumber: [toNumber(data && data.signifFiguresNumber, null), SharedValidators.integer],
       parameter: [data && data.parameter || null, Validators.compose([Validators.required, SharedValidators.entity])],
       matrix: [data && data.matrix || null, SharedValidators.entity],
-      fraction: [data && data.fraction || null, Validators.compose([, SharedValidators.entity])],
+      fraction: [data && data.fraction || null, SharedValidators.entity],
       method: [data && data.method || null, SharedValidators.entity],
       unit: [data && data.unit || null, Validators.compose([Validators.required, SharedValidators.entity])]
     } ;
@@ -34,9 +34,9 @@ export class PmfmValidatorService extends ReferentialValidatorService<Pmfm> {
 
   getFormGroupOptions(data?: Pmfm, opts?: any): { [key: string]: any } {
     return {
-      validator: Validators.compose([
+      /*validator: Validators.compose([
         SharedFormGroupValidators.requiredIf('fraction', 'matrix')
-      ])
+      ])*/
     };
   }
 }

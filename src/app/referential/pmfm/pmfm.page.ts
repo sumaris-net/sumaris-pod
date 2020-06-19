@@ -71,13 +71,6 @@ export class PmfmPage extends AppEditor<Pmfm> implements OnInit {
     // Set entity name (required for referential form validator)
     this.referentialForm.entityName = 'Pmfm';
 
-    // Check label is unique
-    this.form.get('label')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const label = control.enabled && control.value;
-        return label && (await this.pmfmService.existsByLabel(label, {excludedId: this.data.id})) ? {unique: true} : null;
-      });
-
     const autocompleteConfig: MatAutocompleteFieldConfig = {
       suggestFn: (value, opts) => this.referentialRefService.suggest(value, opts),
       displayWith: (value) => value && joinPropertiesPath(value, ['label', 'name']),
@@ -187,6 +180,7 @@ export class PmfmPage extends AppEditor<Pmfm> implements OnInit {
 
   /* -- protected methods -- */
 
+
   protected canUserWrite(data: Pmfm): boolean {
     // TODO : check user is in pmfm managers
     return (this.isNewData && this.accountService.isAdmin())
@@ -249,8 +243,19 @@ export class PmfmPage extends AppEditor<Pmfm> implements OnInit {
     return 0;
   }
 
+  protected async onNewEntity(data: Pmfm, options?: EditorDataServiceLoadOptions): Promise<void> {
+    await super.onNewEntity(data, options);
+
+    // Check label is unique
+    this.form.get('label')
+      .setAsyncValidators(async (control: AbstractControl) => {
+        const label = control.enabled && control.value;
+        return label && (await this.pmfmService.existsByLabel(label, {excludedId: this.data.id})) ? {unique: true} : null;
+      });
+  }
+
   protected async onEntityLoaded(data: Pmfm, options?: EditorDataServiceLoadOptions): Promise<void> {
-    super.onEntityLoaded(data, options);
+    await super.onEntityLoaded(data, options);
 
     this.canEdit = this.canUserWrite(data);
   }

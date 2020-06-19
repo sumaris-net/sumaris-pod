@@ -1,5 +1,7 @@
-<app-toolbar [title]="'ACCOUNT.TITLE'|translate" color="primary" [hasValidate]="form.dirty && !saving" (onValidate)="save($event)"
-             [canGoBack]="true">
+<app-toolbar [title]="'ACCOUNT.TITLE'|translate" color="primary"
+             [hasValidate]="form.dirty && !saving"
+             (onValidate)="save($event)"
+             [canGoBack]="false">
 </app-toolbar>
 
 <ion-content>

@@ -22,10 +22,11 @@
 
 <ion-content class="ion-no-padding">
 
-    <app-referential-ref-table #table
-                               (onOpenRow)="selectRow($event)"
-                               (onNewRow)="close($event)"
-    ></app-referential-ref-table>
+
+  <app-referential-ref-table #table
+                             (onOpenRow)="selectRow($event)"
+                             (onNewRow)="close($event)">
+  </app-referential-ref-table>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>

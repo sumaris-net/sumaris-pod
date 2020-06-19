@@ -1,4 +1,4 @@
-<mat-toolbar>
+<mat-toolbar *ngIf="showToolbar">
 
   <!-- refresh (debug only) -->
   <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
@@ -24,6 +24,32 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
+
+<form *ngIf="showFilter" class="form-container ion-padding-top"
+      [formGroup]="filterForm"
+      (ngSubmit)="onRefresh.emit()">
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <!-- search text -->
+        <mat-form-field>
+          <input matInput
+                 formControlName="searchText"
+                 autocomplete="off"
+                 [placeholder]=" 'REFERENTIAL.LIST.FILTER.SEARCH_TEXT'|translate">
+          <button mat-icon-button matSuffix tabindex="-1"
+                  type="button"
+                  (click)="clearControlValue($event, filterForm.controls.searchText)"
+                  [hidden]="filterForm.controls.searchText.disabled || !filterForm.controls.searchText.value">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+
+    <!-- TODO: add more filter fields ? -->
+  </ion-grid>
+</form>
 
 <mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
            matSortDisableClear [trackBy]="trackByFn">
