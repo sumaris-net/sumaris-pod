@@ -36,6 +36,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.aggregatedLanding.AggregatedLandingVO;
 import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
@@ -81,6 +82,9 @@ public class DataGraphQLService {
 
     @Autowired
     private LandingService landingService;
+
+    @Autowired
+    private AggregatedLandingService aggregatedLandingService;
 
     @Autowired
     private SaleService saleService;
@@ -879,6 +883,21 @@ public class DataGraphQLService {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         return changesPublisherService.getPublisher(Landing.class, LandingVO.class, id, minIntervalInSecond, true);
+    }
+
+    /* -- Aggregated landings -- */
+
+    @GraphQLQuery(name = "aggregatedLandings", description = "Find aggregated landings by filter")
+    public List<AggregatedLandingVO> findAggregatedLandings(
+        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+        @GraphQLEnvironment() Set<String> fields
+    ) {
+
+        final List<AggregatedLandingVO> result = aggregatedLandingService.findAll(filter);
+
+        fillVesselSnapshot(result, fields);
+
+        return result;
     }
 
     /* -- Measurements -- */
