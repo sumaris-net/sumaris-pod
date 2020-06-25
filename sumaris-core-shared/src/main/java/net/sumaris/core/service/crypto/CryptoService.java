@@ -84,4 +84,5 @@ public interface CryptoService {
      * @return
      */
     String hash(String message);
+
 }

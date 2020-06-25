@@ -34,6 +34,7 @@ import net.sumaris.server.http.graphql.administration.ProgramGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
 import net.sumaris.server.http.graphql.extraction.AggregationGraphQLService;
 import net.sumaris.server.http.graphql.extraction.ExtractionGraphQLService;
+import net.sumaris.server.http.graphql.referential.PmfmGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
 import net.sumaris.server.http.graphql.security.AuthGraphQLService;
 import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
@@ -73,6 +74,9 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     private ReferentialGraphQLService referentialService;
 
     @Autowired
+    private PmfmGraphQLService pmfmService;
+
+    @Autowired
     private ExtractionGraphQLService extractionGraphQLService;
 
     @Autowired
@@ -91,14 +95,23 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
         return new GraphQLSchemaGenerator()
                 .withResolverBuilders(new AnnotatedResolverBuilder())
+
+                // Auth and configuration
+                .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
+                .withOperationsFromSingleton(podConfigurationService, ConfigurationGraphQLService.class)
+
+                // Administration & Referential
                 .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
                 .withOperationsFromSingleton(programService, ProgramGraphQLService.class)
-                .withOperationsFromSingleton(dataService, DataGraphQLService.class)
                 .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
-                .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
+                .withOperationsFromSingleton(pmfmService, PmfmGraphQLService.class)
+
+                // Data
+                .withOperationsFromSingleton(dataService, DataGraphQLService.class)
+
+                // Extraction
                 .withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class)
                 .withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class)
-                .withOperationsFromSingleton(podConfigurationService, ConfigurationGraphQLService.class)
 
 
                 .withTypeTransformer(new DefaultTypeTransformer(false, true)

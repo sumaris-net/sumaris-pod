@@ -101,6 +101,11 @@ public class CacheConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean strategiesByProgramId() {
+        return Caches.createHeapCache(ehcache(), CacheNames.STRATEGIES_BY_PROGRAM_ID, 1500, 1500, 100);
+    }
+
+    @Bean
     public EhCacheFactoryBean pmfmByStrategyIdCache() {
         return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_STRATEGY_ID, 1500, 1500, 100);
     }
@@ -118,6 +123,16 @@ public class CacheConfiguration {
     @Bean
     public EhCacheFactoryBean pmfmByIdCache() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.PMFM_BY_ID, 600);
+    }
+
+    @Bean
+    public EhCacheFactoryBean pmfmHasPrefix() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PMFM_HAS_PREFIX, 600);
+    }
+
+    @Bean
+    public EhCacheFactoryBean pmfmHasSuffix() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PMFM_HAS_SUFFIX, 600);
     }
 
     @Bean

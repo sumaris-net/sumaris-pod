@@ -22,23 +22,25 @@
 
 package net.sumaris.rdf.dao;
 
-import net.sumaris.rdf.model.ModelDomain;
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.rdf.model.ModelVocabulary;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
 public interface RdfModelDao {
 
-    <T> T getById(ModelDomain domain, String className, Class<T> aClass, Serializable id);
+    <T> T getById(ModelVocabulary domain, String className, Class<T> aClass, Serializable id);
 
-    <T> Stream<T> streamAll(ModelDomain domain, String className, Class<T> aClass);
+    <T> Stream<T> streamAll(ModelVocabulary domain, String className, Class<T> aClass);
 
-    Set<String> getClassNamesByDomain(ModelDomain domain);
+    <T> Stream<T> streamAll(ModelVocabulary domain, String className, Class<T> aClass, Page page);
 
-    ModelDomain getDomainByClassName(String className);
+    Set<String> getClassNamesByDomain(ModelVocabulary domain);
 
-    Set<String> getClassNamesByRootClass(@Nullable ModelDomain domain, String className);
+    ModelVocabulary getDomainByClassName(String className);
+
+    Set<String> getClassNamesByRootClass(@Nullable ModelVocabulary domain, String className);
 }

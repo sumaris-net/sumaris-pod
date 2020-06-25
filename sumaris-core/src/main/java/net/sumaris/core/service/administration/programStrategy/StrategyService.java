@@ -25,7 +25,6 @@ package net.sumaris.core.service.administration.programStrategy;
 
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,10 +43,13 @@ public interface StrategyService {
 	List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> getPmfmStrategies(int strategyId);
+	List<PmfmStrategyVO> findPmfmStrategiesByProgram(int programId, boolean enablePmfmInheritance);
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> getPmfmStrategiesByAcquisitionLevel(int programId, int acquisitionLevelId);
+	List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, boolean enablePmfmInheritance);
+
+	@Transactional(readOnly = true)
+	List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, boolean enablePmfmInheritance);
 
 	@Transactional(readOnly = true)
 	List<ReferentialVO> getGears(int strategyId);
@@ -57,6 +59,8 @@ public interface StrategyService {
 
 	@Transactional(readOnly = true)
 	List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
+
+	StrategyVO save(StrategyVO source);
 
 	List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
 

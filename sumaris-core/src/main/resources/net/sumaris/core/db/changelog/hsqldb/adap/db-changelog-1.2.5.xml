@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.2.5.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- add Parameter 'SELF_SAMPLING_PROGRAM' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-400">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM PARAMETER where LABEL='SELF_SAMPLING_PROGRAM'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="parameter">
+            <column name="ID" valueComputed="NEXT VALUE FOR PARAMETER_SEQ"/>
+            <column name="LABEL">SELF_SAMPLING_PROGRAM</column>
+            <column name="NAME">Type d'auto-echantillonnage</column>
+            <column name="IS_BOOLEAN" valueNumeric="0"/>
+            <column name="IS_QUALITATIVE" valueNumeric="1"/>
+            <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add qualitaive values for  'SELF_SAMPLING_PROGRAM' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-401">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM qualitative_value where PARAMETER_FK = (SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">MNZ/HAD</column>
+            <column name="NAME">Baudroie/Eglegin</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">MNZ</column>
+            <column name="NAME">Baudroie</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">HAD</column>
+            <column name="NAME">Eglefin</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">COD</column>
+            <column name="NAME">Cabillaud</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">COD/HAD</column>
+            <column name="NAME">Cabillaud/Eglefin</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">MNZ/HAD/RJB</column>
+            <column name="NAME">Baudroie/Eglefin/Pocheteaux</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">RJB</column>
+            <column name="NAME">Pocheteaux</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add PMFM 'SELF_SAMPLING_PROGRAM' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-402" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM PMFM where LABEL='SELF_SAMPLING_PROGRAM'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm">
+            <column name="ID" valueNumeric="28"/>
+            <column name="LABEL">SELF_SAMPLING_PROGRAM</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+            <column name="MATRIX_FK" valueNumeric="4"/>
+            <column name="METHOD_FK" valueNumeric="5"/>
+            <column name="UNIT_FK" valueNumeric="0"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- Add PMFM_STRATEGY 'SELF_SAMPLING_PROGRAM' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-403" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PMFM_STRATEGY WHERE STRATEGY_FK=10
+                    AND PMFM_FK = (SELECT ID FROM PMFM WHERE LABEL = 'SELF_SAMPLING_PROGRAM' )</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PMFM_STRATEGY_SEQ"/>
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL='SELF_SAMPLING_PROGRAM')"/>
+            <column name="ACQUISITION_LEVEL_FK" valueNumeric="1"/>
+            <column name="RANK_ORDER" valueNumeric="3"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="1"/>
+        </insert>
+    </changeSet>
+
+
+    <!-- add Missing TAXON_GROUP for 'ADAP-MER' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-404" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP where TAXON_GROUP_TYPE_FK=2 AND LABEL IN ('RJB_1', 'RJB_2')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_SEQ"/>
+            <column name="LABEL">RJB_1</column>
+            <column name="NAME">Petit pocheteau gris</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="PARENT_TAXON_GROUP_FK" valueNumeric="1004"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">2019-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='RJB_1')"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE LABEL='RJB_1')"/>
+        </insert>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_SEQ"/>
+            <column name="LABEL">RJB_2</column>
+            <column name="NAME">Grand pocheteau gris</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="PARENT_TAXON_GROUP_FK" valueNumeric="1004"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">2019-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='RJB_2')"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE LABEL='RJB_2')"/>
+        </insert>
+    </changeSet>
+
+    <!-- add Close previous 'RJB' association -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-405" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP_HISTORICAL_RECORD where TAXON_GROUP_FK=1014 AND END_DATE IS NULL</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update TAXON_GROUP_HISTORICAL_RECORD set END_DATE='2018-12-31 00:00:00' where TAXON_GROUP_FK=1014 AND REFERENCE_TAXON_FK=1014;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- add Missing TAXON_GROUP_STRATEGY for 'ADAP-MER' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897856-406" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP_STRATEGY where STRATEGY_FK=10</sqlCheck>
+            </and>
+        </preConditions>
+        <!-- MNZ-->
+        <insert tableName="TAXON_GROUP_STRATEGY">
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='MNZ')"/>
+            <column name="PRIORITY_LEVEL" valueNumeric="1"/>
+        </insert>
+        <!-- HAD -->
+        <insert tableName="TAXON_GROUP_STRATEGY">
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='HAD')"/>
+            <column name="PRIORITY_LEVEL" valueNumeric="1"/>
+        </insert>
+        <!-- COD -->
+        <insert tableName="TAXON_GROUP_STRATEGY">
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='COD')"/>
+            <column name="PRIORITY_LEVEL" valueNumeric="1"/>
+        </insert>
+        <!-- RJB_1 -->
+        <insert tableName="TAXON_GROUP_STRATEGY">
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='RJB_1')"/>
+            <column name="PRIORITY_LEVEL" valueNumeric="1"/>
+        </insert>
+        <!-- RJB_2 -->
+        <insert tableName="TAXON_GROUP_STRATEGY">
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='RJB_2')"/>
+            <column name="PRIORITY_LEVEL" valueNumeric="1"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

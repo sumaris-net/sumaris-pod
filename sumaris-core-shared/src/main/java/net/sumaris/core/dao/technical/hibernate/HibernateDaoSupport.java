@@ -26,6 +26,7 @@ package net.sumaris.core.dao.technical.hibernate;
 
 
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -39,6 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,15 +58,13 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * <p>HibernateDaoSupport class.</p>
  *
  */
+@Deprecated
 public abstract class HibernateDaoSupport {
 
     /**
@@ -120,7 +120,11 @@ public abstract class HibernateDaoSupport {
 
 
     protected Session getSession() {
-        return entityManager.unwrap(Session.class);
+        return (Session) entityManager.getDelegate();
+    }
+
+    protected SessionFactoryImplementor getSessionFactory() {
+        return (SessionFactoryImplementor) getSession().getSessionFactory();
     }
 
     /**
@@ -167,6 +171,44 @@ public abstract class HibernateDaoSupport {
             }
         }
         return entityManager.unwrap(Session.class).load(clazz, id);
+    }
+
+    /**
+     * <p>load many entities.</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param ids list of identifiers.
+     * @param <T> a T object.
+     * @return a list of T object.
+     */
+    @SuppressWarnings("unchecked")
+    protected <T> List<T> loadAll(Class<? extends T> clazz, Collection<? extends Serializable> ids, boolean failedIfMissing) {
+
+        List result = getEntityManager().createQuery(String.format("from %s where id in (:id)", clazz.getSimpleName()))
+                .setParameter("id", ids)
+                .getResultList();
+        if (failedIfMissing && result.size() != ids.size()) {
+            throw new DataIntegrityViolationException(String.format("Unable to load entities %s from ids. Expected %s entities, but found %s entities.",
+                    clazz.getName(),
+                    ids.size(),
+                    result.size()));
+        }
+        return (List<T>)result;
+    }
+
+    /**
+     * <p>load.</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param ids list of identifiers.
+     * @param <T> a T object.
+     * @return a list of T object.
+     */
+    @SuppressWarnings("unchecked")
+    protected <T> Set<T> loadAllAsSet(Class<? extends T> clazz, Collection<? extends Serializable> ids, boolean failedIfMissing) {
+
+        List<T> result = loadAll(clazz, ids, failedIfMissing);
+        return Sets.newHashSet(result);
     }
 
     /**
@@ -347,10 +389,8 @@ public abstract class HibernateDaoSupport {
      */
     protected Timestamp getDatabaseCurrentTimestamp() {
         try {
-            final Dialect dialect = Dialect.getDialect(SumarisConfiguration.getInstance().getConnectionProperties());
-            final String sql = dialect.getCurrentTimestampSelectString();
-            Object r = Daos.sqlUniqueTimestamp(dataSource, sql);
-            return Daos.toTimestampFromJdbcResult(r);
+            final Dialect dialect = getSessionFactory().getJdbcServices().getDialect();
+            return Daos.getDatabaseCurrentTimestamp(dataSource, dialect);
         }catch(DataAccessResourceFailureException | SQLException e) {
             throw new SumarisTechnicalException(e);
         }
@@ -411,7 +451,7 @@ public abstract class HibernateDaoSupport {
                                               Root<?> root, String sortAttribute, SortDirection sortDirection) {
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
-            Expression<?> sortExpression = composePath(root, sortAttribute);
+            Expression<?> sortExpression = Daos.composePath(root, sortAttribute);
             query.orderBy(SortDirection.DESC.equals(sortDirection) ?
                     cb.desc(sortExpression) :
                     cb.asc(sortExpression)
@@ -427,6 +467,7 @@ public abstract class HibernateDaoSupport {
      * @param attributePath the attribute path, can contains '.'
      * @param <X> Type of Path
      * @return the composed Path
+     * @deprecated use Daos.composePath()
      */
     protected <X> Path<X> composePath(Root<?> root, String attributePath) {
 

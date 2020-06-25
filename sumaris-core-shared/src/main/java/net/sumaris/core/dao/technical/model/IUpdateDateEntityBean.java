@@ -27,6 +27,10 @@ import java.util.Date;
 
 public interface IUpdateDateEntityBean<ID extends Serializable, D extends Date> extends IEntity<ID> {
 
+    interface Fields extends IEntity.Fields {
+        String UPDATE_DATE = "updateDate";
+    }
+
     D getUpdateDate();
 
     void setUpdateDate(D updateDate);

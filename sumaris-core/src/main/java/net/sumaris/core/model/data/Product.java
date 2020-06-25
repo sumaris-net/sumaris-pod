@@ -24,12 +24,12 @@ package net.sumaris.core.model.data;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.SaleType;
-import net.sumaris.core.model.referential.pmfm.Matrix;
+import net.sumaris.core.model.referential.pmfm.Method;
+import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import org.hibernate.annotations.Cascade;
 
@@ -42,7 +42,8 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "product")
-public class Product implements IRootDataEntity<Integer> {
+public class Product
+    implements IDataEntity<Integer>, IWithRecorderPersonEntity<Integer, Person> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PRODUCT_SEQ")
@@ -58,22 +59,17 @@ public class Product implements IRootDataEntity<Integer> {
     @Column(name = "individual_count")
     private Integer individualCount;
 
+    @Column(name = "subgroup_count")
+    private Double subgroupCount;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "taxon_group_fk")
     private TaxonGroup taxonGroup;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "matrix_fk", nullable = false)
-    private Matrix matrix;
 
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
     /* -- Quality insurance -- */
-
-    @Column(name = "creation_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date creationDate;
 
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
@@ -106,13 +102,29 @@ public class Product implements IRootDataEntity<Integer> {
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
-    @JoinColumn(name = "program_fk", nullable = false)
-    private Program program;
-
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = SaleType.class)
     @JoinColumn(name = "sale_type_fk")
     private SaleType saleType;
+
+    private Double weight;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "weight_method_fk")
+    private Method weightMethod;
+
+    private Double cost;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dressing_fk")
+    private QualitativeValue dressing;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "preservation_fk")
+    private QualitativeValue preservation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "size_category_fk")
+    private QualitativeValue sizeCategory;
 
     /* -- measurements -- */
 
@@ -131,12 +143,12 @@ public class Product implements IRootDataEntity<Integer> {
     private Operation operation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sale_fk")
-    private Sale sale;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "landing_fk")
     private Landing landing;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sale_fk")
+    private Sale sale;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_fk")

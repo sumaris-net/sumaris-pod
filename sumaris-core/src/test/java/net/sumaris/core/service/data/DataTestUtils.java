@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
-import net.sumaris.core.service.referential.PmfmService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.referential.MetierVO;

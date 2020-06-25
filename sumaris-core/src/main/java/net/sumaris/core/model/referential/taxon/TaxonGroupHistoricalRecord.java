@@ -48,9 +48,11 @@ public class TaxonGroupHistoricalRecord implements IUpdateDateEntityBean<Integer
     private Integer id;
 
     @Column(name = "start_date", nullable = false)
+    @Temporal(TemporalType.DATE)
     private Date startDate;
 
     @Column(name = "end_date")
+    @Temporal(TemporalType.DATE)
     private Date endDate;
 
     @Column(name = "update_date")

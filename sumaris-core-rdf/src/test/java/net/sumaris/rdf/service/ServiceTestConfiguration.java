@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
                 FreeMarkerAutoConfiguration.class
         },
         scanBasePackages = {
+            "fr.eaufrance",
             "net.sumaris.core",
             "net.sumaris.rdf"
     }

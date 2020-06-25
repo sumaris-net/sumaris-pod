@@ -24,7 +24,7 @@ package net.sumaris.core.extraction.vo;
 
 import lombok.Data;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
-import net.sumaris.core.vo.IValueObject;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 
 @Data

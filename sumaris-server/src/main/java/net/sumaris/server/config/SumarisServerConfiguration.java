@@ -124,6 +124,9 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         super.overrideExternalModulesDefaultOptions(applicationConfig);
     }
 
+    public String getAuthNotSelfDataRole() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.AUTH_NOT_SELF_DATA_ROLE.getKey());
+    }
 
     /**
      * <p>getVersionAsString.</p>

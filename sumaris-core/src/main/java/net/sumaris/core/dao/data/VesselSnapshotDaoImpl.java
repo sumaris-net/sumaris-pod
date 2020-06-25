@@ -27,6 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
@@ -185,14 +186,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
         );
 
 
-        String searchText = StringUtils.trimToNull(filter.getSearchText());
-        String searchTextAsPrefix = null;
-        if (StringUtils.isNotBlank(searchText)) {
-            searchTextAsPrefix = (searchText + "*"); // add trailing escape char
-            searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]+", "*"); // group escape chars
-            searchTextAsPrefix = searchTextAsPrefix.replaceAll("[%]", "\\%"); // protected '%' chars
-            searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]", "%"); // replace asterix
-        }
+        String searchTextAsPrefix = Daos.getEscapedSearchText(filter.getSearchText());
         String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
 
         TypedQuery<VesselSnapshotResult> q = entityManager.createQuery(query)

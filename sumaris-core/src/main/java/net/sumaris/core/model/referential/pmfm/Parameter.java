@@ -88,7 +88,7 @@ public class Parameter implements IItemReferentialEntity {
     private List<QualitativeValue> qualitativeValues = new ArrayList<>();
 
     public String toString() {
-        return String.format("Paremeter{id=%s, label=%s}",
+        return String.format("Parameter{id=%s, label=%s}",
                 id,
                 label);
     }

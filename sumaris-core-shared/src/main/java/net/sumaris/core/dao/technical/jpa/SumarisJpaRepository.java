@@ -22,23 +22,32 @@ package net.sumaris.core.dao.technical.jpa;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
-import javax.persistence.LockModeType;
 import java.io.Serializable;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @NoRepositoryBean
-public interface SumarisJpaRepository<T, ID extends Serializable> extends JpaRepository<T, ID> {
+public interface SumarisJpaRepository<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>>
+    extends JpaRepository<E, ID> {
 
-    <C extends Serializable> C load(Class<C> clazz, Serializable id);
 
-    <C extends Serializable> C get(Class<? extends C> clazz, Serializable id);
+    V toVO(E source);
 
-    <C extends Serializable> C get(Class<? extends C> clazz, Serializable id, LockModeType lockModeType);
+    E toEntity(V source);
 
-    T createEntity();
+    void toEntity(V source, E target, boolean copyIfNull);
+
+    V createVO();
+
+    Class<V> getVOClass();
+
+    E createEntity();
+
+    V save(V vo);
 }

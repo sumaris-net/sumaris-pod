@@ -24,12 +24,15 @@ package net.sumaris.core.service.data;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.LandingVO;
+import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.text.ParseException;
 import java.util.List;
 
 public class LandingServiceReadTest extends AbstractServiceTest{
@@ -55,6 +58,22 @@ public class LandingServiceReadTest extends AbstractServiceTest{
     public void findAll() {
 
         List<LandingVO> vos = service.findAll(null, 0, 100);
+        Assert.assertNotNull(vos);
+        Assert.assertTrue(vos.size() > 0);
+    }
+
+    @Test
+    public void findAllWithFilter() throws ParseException {
+
+        LandingFilterVO filter = LandingFilterVO.builder()
+                .programLabel("ADAP-CONTROLE")
+                .startDate(Dates.parseDate("01/03/2018", "DD/MM/YYYY"))
+                .startDate(Dates.parseDate("01/04/2018", "DD/MM/YYYY"))
+                .locationId(30) // Auction Douarnenez
+                .build();
+
+
+        List<LandingVO> vos = service.findAll(filter, 0, 100);
         Assert.assertNotNull(vos);
         Assert.assertTrue(vos.size() > 0);
     }

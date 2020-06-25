@@ -40,7 +40,7 @@ import java.io.IOException;
  * <p>DatabaseSchemaService interface.</p>
  *
  */
-@Transactional(readOnly = true)
+@Transactional
 public interface DatabaseSchemaService {
 
 	/**
@@ -48,6 +48,7 @@ public interface DatabaseSchemaService {
 	 *
 	 * @return a {@link Version} object.
 	 */
+	@Transactional(readOnly = true)
 	Version getDbVersion();
 
 	/**
@@ -55,12 +56,12 @@ public interface DatabaseSchemaService {
 	 *
 	 * @return the version, or null if not patch available
 	 */
+	@Transactional(readOnly = true)
 	Version getApplicationVersion();
 
 	/**
 	 * <p>updateSchema.</p>
 	 */
-	@Transactional(readOnly = false)
 	void updateSchema();
 
     /**
@@ -69,6 +70,7 @@ public interface DatabaseSchemaService {
      *
      * @return if db is loaded
      */
+	@Transactional(readOnly = true)
     boolean isDbLoaded();
 
     /**
@@ -76,6 +78,7 @@ public interface DatabaseSchemaService {
      *
      * @return if db files exists
      */
+	@Transactional(readOnly = true)
     boolean isDbExists();
 
     /**
@@ -84,6 +87,7 @@ public interface DatabaseSchemaService {
      * @param outputFile a {@link File} object.
      * @throws IOException if any.
      */
+	@Transactional(readOnly = true)
     void generateStatusReport(File outputFile) throws IOException;
 
     /**
@@ -91,6 +95,7 @@ public interface DatabaseSchemaService {
      *
      * @param outputFile a {@link File} object.
      */
+	@Transactional(readOnly = true)
     void generateDiffReport(File outputFile);
 
     /**
@@ -108,6 +113,7 @@ public interface DatabaseSchemaService {
      * @param withDrop a boolean.
      * @throws IOException if any.
      */
+	@Transactional(readOnly = true)
     void createSchemaToFile(File outputFile, boolean withDrop) throws IOException;
 
 	/**
@@ -116,13 +122,12 @@ public interface DatabaseSchemaService {
 	 * @param outputFile a {@link File} object.	 *
 	 * @throws IOException if any.
 	 */
+	@Transactional(readOnly = true)
 	void updateSchemaToFile(File outputFile) throws IOException;
 
 	/**
 	 * Emit event to all listeners, into a NEW transaction
 	 */
-	@Transactional(
-			propagation = Propagation.REQUIRES_NEW,
-			readOnly = false)
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	void fireOnSchemaUpdatedEvent();
 }

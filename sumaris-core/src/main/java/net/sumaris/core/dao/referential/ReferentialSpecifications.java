@@ -23,35 +23,38 @@ package net.sumaris.core.dao.referential;
  */
 
 import com.google.common.collect.ImmutableList;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.SpecificationWithParameters;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.metier.Metier;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
 import javax.persistence.criteria.*;
 
-public class ReferentialSpecifications {
+public interface ReferentialSpecifications {
 
-    public static Specification<Metier> inLevelIds(String levelProperty, Integer[] gearIds) {
+    String SEARCH_TEXT_PARAMETER = "searchText";
+
+    default <T extends IReferentialWithStatusEntity> Specification<T> inLevelIds(String levelProperty, Integer[] gearIds) {
         if (ArrayUtils.isEmpty(gearIds)) return null;
         return (root, query, cb) -> cb.in(
                 root.join(levelProperty, JoinType.INNER).get(Gear.Fields.ID))
                 .value(ImmutableList.copyOf(gearIds));
     }
 
-    public static <T extends IReferentialEntity> Specification<T> inStatusIds(Integer[] statusIds) {
+    default <T extends IReferentialWithStatusEntity> Specification<T> inStatusIds(@Nullable Integer[] statusIds) {
         if (ArrayUtils.isEmpty(statusIds)) return null;
         return (root, query, cb) -> cb.in(
-                root.get(IReferentialEntity.Fields.STATUS).get(Status.Fields.ID))
+                root.get(IReferentialWithStatusEntity.Fields.STATUS).get(Status.Fields.ID))
                 .value(ImmutableList.copyOf(statusIds));
     }
 
-    public static <T extends IItemReferentialEntity> Specification<T> searchText(String searchAttribute, String paramName) {
+    default <T extends IItemReferentialEntity> Specification<T> searchText(String searchAttribute, String paramName) {
 
         return new SpecificationWithParameters<T>() {
 
@@ -62,7 +65,7 @@ public class ReferentialSpecifications {
                 if (StringUtils.isNotBlank(searchAttribute)) {
                     return cb.or(
                             cb.isNull(searchTextParam),
-                            cb.like(cb.upper(root.get(searchAttribute)), cb.upper(searchTextParam)));
+                            cb.like(cb.upper(Daos.composePath(root, searchAttribute)), cb.upper(searchTextParam)));
                 }
                 // Search on label+name
                 return cb.or(
@@ -74,7 +77,7 @@ public class ReferentialSpecifications {
         };
     }
 
-    public static <T extends IItemReferentialEntity> Specification<T> joinSearchText(String joinProperty, String searchAttribute, String paramName) {
+    default <T extends IItemReferentialEntity> Specification<T> joinSearchText(String joinProperty, String searchAttribute, String paramName) {
 
         return new SpecificationWithParameters<T>() {
 

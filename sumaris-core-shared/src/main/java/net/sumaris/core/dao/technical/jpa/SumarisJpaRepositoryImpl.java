@@ -22,15 +22,21 @@ package net.sumaris.core.dao.technical.jpa;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import com.querydsl.jpa.impl.JPAQuery;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Beans;
+import org.apache.commons.lang3.NotImplementedException;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -43,18 +49,23 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
+import javax.persistence.Parameter;
+import javax.persistence.TypedQuery;
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
-        extends SimpleJpaRepository<T, ID>
-        implements SumarisJpaRepository<T, ID> {
+@NoRepositoryBean
+public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>>
+        extends SimpleJpaRepository<E, ID>
+        implements SumarisJpaRepository<E, ID, V> {
 
     private boolean debugEntityLoad = false;
 
@@ -63,8 +74,7 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
     @Autowired
     private DataSource dataSource;
 
-    // There are two constructors to choose from, either can be used.
-    public SumarisJpaRepositoryImpl(Class<T> domainClass, EntityManager entityManager) {
+    protected SumarisJpaRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         super(domainClass, entityManager);
 
         // This is the recommended method for accessing inherited class dependencies.
@@ -73,7 +83,7 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
     }
 
     @Override
-    public T createEntity() {
+    public E createEntity() {
         try {
             return getDomainClass().newInstance();
         } catch (Exception e) {
@@ -81,9 +91,81 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <C extends Serializable> C load(Class<C> clazz, Serializable id) {
+    public V save(V vo) {
+        E entity = toEntity(vo);
+
+        boolean isNew = entity.getId() == null;
+
+        E savedEntity = save(entity);
+
+        // Update VO
+        onAfterSaveEntity(vo, savedEntity, isNew);
+
+        return vo;
+    }
+
+    public E toEntity(V vo) {
+        Preconditions.checkNotNull(vo);
+        E entity;
+        if (vo.getId() != null) {
+            entity = getOne(vo.getId());
+        } else {
+            entity = createEntity();
+        }
+
+        toEntity(vo, entity, true);
+
+        return entity;
+    }
+
+    public void toEntity(V source, E target, boolean copyIfNull) {
+        Beans.copyProperties(source, target);
+    }
+
+    public V toVO(E source) {
+        V target = createVO();
+        toVO(source, target, true);
+        return target;
+    }
+
+    public void toVO(E source, V target, boolean copyIfNull) {
+        Beans.copyProperties(source, target);
+    }
+
+    public V createVO() {
+        try {
+            return getVOClass().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Class<V> getVOClass() {
+        throw new NotImplementedException("Not implemented yet. Should be override by subclass");
+    }
+
+    /* -- protected method -- */
+
+    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
+        vo.setId(savedEntity.getId());
+    }
+
+    protected EntityManager getEntityManager() {
+        return entityManager;
+    }
+
+    protected Session getSession() {
+        return (Session) getEntityManager().getDelegate();
+    }
+
+    protected SessionFactoryImplementor getSessionFactory() {
+        return (SessionFactoryImplementor) getSession().getSessionFactory();
+    }
+
+
+    @SuppressWarnings("unchecked")
+    protected <C extends Serializable> C load(Class<C> clazz, Serializable id) {
 
         if (debugEntityLoad) {
             C load = entityManager.find(clazz, id);
@@ -95,15 +177,61 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
     }
 
     /**
+     * <p>load many entities.</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param identifierAttribute name of the identifier attribute
+     * @param identifiers list of identifiers.
+     * @param <T> a T object.
+     * @return a list of T object.
+     */
+    @SuppressWarnings("unchecked")
+    protected <C extends Serializable> List<C> loadAll(Class<? extends C> clazz,
+                                                       String identifierAttribute,
+                                                       Collection<? extends Serializable> identifiers,
+                                                       boolean failedIfMissing) {
+
+        List result = getEntityManager().createQuery(String.format("from %s where id in (:id)", clazz.getSimpleName()))
+                .setParameter(identifierAttribute, identifiers)
+                .getResultList();
+        if (failedIfMissing && result.size() != identifiers.size()) {
+            throw new DataIntegrityViolationException(String.format("Unable to load entities %s from ids. Expected %s entities, but found %s entities.",
+                    clazz.getName(),
+                    identifiers.size(),
+                    result.size()));
+        }
+        return (List<C>)result;
+    }
+
+    /**
+     * <p>load.</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param identifierAttribute name of the identifier attribute
+     * @param identifiers list of identifiers.
+     * @param <C> a C object.
+     * @return a list of T object.
+     */
+    @SuppressWarnings("unchecked")
+    protected <C extends Serializable> Set<C> loadAllAsSet(Class<? extends C> clazz,
+                                                           String identifierAttribute,
+                                                           Collection<? extends Serializable> identifiers,
+                                                           boolean failedIfMissing) {
+
+        List<C> result = loadAll(clazz, identifierAttribute, identifiers, failedIfMissing);
+        return Sets.newHashSet(result);
+    }
+
+    /**
      * <p>get.</p>
      *
      * @param clazz a {@link Class} object.
      * @param id a {@link Serializable} object.
-     * @param <T> a T object.
-     * @return a T object.
+     * @param <C> a C object.
+     * @return a C object.
      */
     @SuppressWarnings("unchecked")
-    public <C extends Serializable> C get(Class<? extends C> clazz, Serializable id) {
+    protected <C extends Serializable> C get(Class<? extends C> clazz, Serializable id) {
         return this.entityManager.find(clazz, id);
     }
 
@@ -112,21 +240,15 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
      *
      * @param clazz a {@link Class} object.
      * @param id a {@link Serializable} object.
-     * @param lockOptions a {@link LockOptions} object.
-     * @param <T> a T object.
-     * @return a T object.
+     * @param lockModeType a {@link LockOptions} object.
+     * @param <C> a C object.
+     * @return a C object.
      */
     @SuppressWarnings("unchecked")
-    public <C extends Serializable> C get(Class<? extends C> clazz, Serializable id, LockModeType lockModeType) {
+    protected <C extends Serializable> C get(Class<? extends C> clazz, Serializable id, LockModeType lockModeType) {
         C entity = entityManager.find(clazz, id);
         entityManager.lock(entity, lockModeType);
         return entity;
-    }
-
-    /* -- protected method -- */
-
-    protected EntityManager getEntityManager() {
-        return entityManager;
     }
 
     protected Timestamp getDatabaseCurrentTimestamp() {
@@ -134,10 +256,8 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
         if (dataSource == null) return new Timestamp(System.currentTimeMillis());
 
         try {
-            final Dialect dialect = Dialect.getDialect(SumarisConfiguration.getInstance().getConnectionProperties());
-            final String sql = dialect.getCurrentTimestampSelectString();
-            Object r = Daos.sqlUnique(dataSource, sql);
-            return Daos.toTimestampFromJdbcResult(r);
+            final Dialect dialect = getSessionFactory().getJdbcServices().getDialect();
+            return Daos.getDatabaseCurrentTimestamp(dataSource, dialect);
         } catch (DataAccessResourceFailureException | SQLException e) {
             throw new SumarisTechnicalException(e);
         }
@@ -171,4 +291,20 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
         }
         return PageRequest.of(offset / size, size);
     }
+
+    protected Pageable getPageable(Page page) {
+        return getPageable((int)page.getOffset(), page.getSize(), page.getSortAttribute(), page.getSortDirection());
+    }
+
+    protected <E, T extends Object> TypedQuery<E> setParameterIfExists(TypedQuery<E> query, String parameterName, T value) {
+        try {
+            Parameter<T> parameter = (Parameter<T>) query.getParameter(parameterName, Object.class);
+            if (parameter != null) query.setParameter(parameter, value);
+        }
+        catch(IllegalArgumentException iae) {
+            // Not found
+        }
+        return query;
+    }
+
 }

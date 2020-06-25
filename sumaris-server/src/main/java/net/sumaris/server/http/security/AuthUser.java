@@ -59,6 +59,10 @@ public class AuthUser implements UserDetails {
         return authData.getPubkey();
     }
 
+    public String getPubkey() {
+        return authData.getPubkey();
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;

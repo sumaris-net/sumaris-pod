@@ -44,7 +44,7 @@ public class SoftwareProperty implements IItemReferentialEntity  {
     @Column(nullable = false, length = 255)
     private String label;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, length = 2000) // Increase, need to large URL in images
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -63,4 +63,11 @@ public class SoftwareProperty implements IItemReferentialEntity  {
     @JoinColumn(name = "software_fk", nullable = false)
     private Software software;
 
+    @Override
+    public String toString() {
+        return "SoftwareProperty{" +
+                "id=" + id +
+                ", label='" + label + "'" +
+                "}";
+    }
 }

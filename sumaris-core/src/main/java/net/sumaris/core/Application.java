@@ -22,18 +22,17 @@ package net.sumaris.core;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.util.ApplicationUtils;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.nuiton.i18n.I18n;
 import org.nuiton.i18n.init.DefaultI18nInitializer;
 import org.nuiton.i18n.init.UserI18nInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -48,11 +47,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -86,7 +81,7 @@ public class Application {
 	 * main.
 	 * </p>
 	 *
-	 * @param args
+	 * @param cmdArgs
 	 *            an array of {@link String} objects.
 	 */
 	public static void main(String[] cmdArgs) {
@@ -113,7 +108,7 @@ public class Application {
             // Start Spring boot
             ConfigurableApplicationContext appContext = SpringApplication.run(Application.class, args);
             appContext.addApplicationListener(applicationEvent -> {
-                if (applicationEvent != null && applicationEvent instanceof ContextClosedEvent) {
+                if (applicationEvent instanceof ContextClosedEvent) {
 					log.info("Application closed");
                 }
             });
@@ -159,8 +154,6 @@ public class Application {
 	 * initI18n.
 	 * </p>
 	 *
-	 * @param config
-	 *            a {@link SumarisConfiguration} object.
 	 * @throws IOException
 	 *             if any.
 	 */

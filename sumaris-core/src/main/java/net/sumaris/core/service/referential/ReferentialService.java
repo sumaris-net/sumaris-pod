@@ -24,19 +24,27 @@ package net.sumaris.core.service.referential;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.PrintStream;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Transactional
 public interface ReferentialService {
 
     @Transactional(readOnly = true)
     List<ReferentialTypeVO> getAllTypes();
+
+    @Transactional(readOnly = true)
+    ReferentialVO get(String entityName, int id);
+
+    @Transactional(readOnly = true)
+    ReferentialVO get(Class<? extends IReferentialWithStatusEntity> entityClass, int id);
 
     @Transactional(readOnly = true)
     List<ReferentialVO> findByFilter(String entityName, ReferentialFilterVO filter, int offset, int size);

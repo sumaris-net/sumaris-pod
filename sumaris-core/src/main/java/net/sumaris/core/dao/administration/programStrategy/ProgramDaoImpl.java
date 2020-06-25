@@ -31,6 +31,7 @@ import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
 import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.*;
@@ -38,7 +39,11 @@ import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.model.referential.gear.GearClassification;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -154,14 +159,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
             }
         }
 
-        String searchText = StringUtils.trimToNull(filter.getSearchText());
-        String searchTextAnyMatch = null;
-        if (StringUtils.isNotBlank(searchText)) {
-            searchTextAnyMatch = ("*" + searchText + "*"); // add trailing escape char
-            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]+", "*"); // group escape chars
-            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[%]", "\\%"); // protected '%' chars
-            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]", "%"); // replace asterix
-        }
+        String searchTextAnyMatch = Daos.getEscapedSearchText(filter.getSearchText(), true);
 
         List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds()) ?
                 null : filter.getStatusIds();
@@ -239,7 +237,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
             lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
         }
 
-        programVOToEntity(source, entity, true);
+        toEntity(source, entity, true);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -329,7 +327,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
                 .createQuery(query)
                 .setParameter(programIdParam, programId)
                 .getResultStream()
-                .map(taxonGroupRepository::toTaxonGroupVO)
+                .map(taxonGroupRepository::toVO)
                 .collect(Collectors.toList());
     }
 
@@ -359,7 +357,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
         target.setStatusId(source.getStatus().getId());
 
         // properties
-        if (fetchOptions.isWithProperties()) {
+        if (fetchOptions != null && fetchOptions.isWithProperties()) {
             Map<String, String> properties = Maps.newHashMap();
             Beans.getStream(source.getProperties())
                     .filter(prop -> Objects.nonNull(prop)
@@ -375,6 +373,28 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
             target.setProperties(properties);
         }
 
+        // Other attributes
+        target.setGearClassificationId(source.getGearClassification() != null ? source.getGearClassification().getId() : null);
+        target.setTaxonGroupTypeId(source.getTaxonGroupType() != null ? source.getTaxonGroupType().getId() : null);
+
+        // locations
+        if (fetchOptions != null && fetchOptions.isWithLocations()) {
+            target.setLocationClassifications(
+                    Beans.getStream(source.getLocationClassifications())
+                            .map(referentialDao::toReferentialVO)
+                            .collect(Collectors.toList()));
+
+            target.setLocationClassificationIds(
+                    Beans.getStream(target.getLocationClassifications())
+                            .map(ReferentialVO::getId)
+                            .collect(Collectors.toList()));
+
+            target.setLocations(
+                Beans.getStream(source.getLocations())
+                        .map(referentialDao::toReferentialVO)
+                        .collect(Collectors.toList()));
+        }
+
         return target;
     }
 
@@ -383,7 +403,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
 
 
 
-    protected void programVOToEntity(ProgramVO source, Program target, boolean copyIfNull) {
+    protected void toEntity(ProgramVO source, Program target, boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
 
@@ -397,6 +417,55 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao, D
             }
         }
 
+        // Gear classification
+        Integer gearClassificationId = source.getGearClassificationId() != null ? source.getGearClassificationId() :
+                (source.getGearClassification() != null ? source.getGearClassification().getId() : null);
+        if (copyIfNull || gearClassificationId != null) {
+            if (gearClassificationId == null) {
+                target.setGearClassification(null);
+            }
+            else {
+                target.setGearClassification(load(GearClassification.class, gearClassificationId));
+            }
+        }
+
+        // Taxon group type
+        Integer taxonGroupTypeId = source.getTaxonGroupTypeId() != null ? source.getTaxonGroupTypeId() :
+                (source.getTaxonGroupType() != null ? source.getTaxonGroupType().getId() : null);
+        if (copyIfNull || taxonGroupTypeId != null) {
+            if (taxonGroupTypeId == null) {
+                target.setTaxonGroupType(null);
+            }
+            else {
+                target.setTaxonGroupType(load(TaxonGroupType.class, taxonGroupTypeId));
+            }
+        }
+
+        // Location classifications
+        List<Integer> locationClassificationIds = CollectionUtils.isNotEmpty(source.getLocationClassificationIds()) ?
+                source.getLocationClassificationIds() :
+                (CollectionUtils.isNotEmpty(source.getLocationClassifications()) ?
+                        Beans.collectIds(source.getLocationClassifications()) :
+                        null);
+        if (copyIfNull || CollectionUtils.isNotEmpty(locationClassificationIds)) {
+            target.getLocationClassifications().clear();
+            if (CollectionUtils.isNotEmpty(locationClassificationIds)) {
+                target.getLocationClassifications().addAll(loadAllAsSet(LocationClassification.class, locationClassificationIds, true));
+            }
+        }
+
+        // Locations
+        List<Integer> locationIds = CollectionUtils.isNotEmpty(source.getLocationIds()) ?
+                source.getLocationIds() :
+                (CollectionUtils.isNotEmpty(source.getLocations()) ?
+                        Beans.collectIds(source.getLocations()) :
+                        null);
+        if (copyIfNull || CollectionUtils.isNotEmpty(locationIds)) {
+            target.getLocations().clear();
+            if (CollectionUtils.isNotEmpty(locationIds)) {
+                target.getLocations().addAll(loadAllAsSet(Location.class, locationIds, true));
+            }
+        }
     }
 
     protected void saveProperties(Map<String, String> source, Program parent, Timestamp updateDate) {

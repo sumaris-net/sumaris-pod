@@ -73,6 +73,8 @@ public class OperationVO implements IUpdateDateEntityBean<Integer, Date> {
     private BatchVO catchBatch;
     private List<BatchVO> batches;
 
+    private List<FishingAreaVO> fishingAreas;
+
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }

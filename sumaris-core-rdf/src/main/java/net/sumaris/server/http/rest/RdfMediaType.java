@@ -37,26 +37,38 @@ public class RdfMediaType extends MediaType {
     public static final String APPLICATION_RDF_XML_VALUE = "application/rdf+xml";
     public static final RdfMediaType APPLICATION_RDF_XML = fromString(APPLICATION_RDF_XML_VALUE);
 
+    public static final String TEXT_N3_VALUE = "text/rdf+n3";
+    public static final RdfMediaType TEXT_N3 = fromString(TEXT_N3_VALUE);
+
     public static final String APPLICATION_N_TRIPLES_VALUE = "application/n-triples";
     public static final RdfMediaType APPLICATION_N_TRIPLES = fromString(APPLICATION_N_TRIPLES_VALUE);
 
-    public static final String TEXT_N_TRIPLES_VALUE = "text/n-triples";
-    public static final RdfMediaType TEXT_N_TRIPLES = fromString(TEXT_N_TRIPLES_VALUE);
+    public static final String APPLICATION_N_QUADS_VALUE = "application/n-quads";
+    public static final RdfMediaType APPLICATION_N_QUADS = fromString(APPLICATION_N_QUADS_VALUE);
+
+    public static final String APPLICATION_RDF_JSON_VALUE = "application/rdf+json";
+    public static final RdfMediaType APPLICATION_RDF_JSON = fromString(APPLICATION_RDF_JSON_VALUE);
 
     public static final String APPLICATION_JSON_LD_VALUE = "application/ld+json";
     public static final RdfMediaType APPLICATION_JSON_LD = fromString(APPLICATION_JSON_LD_VALUE);
 
+    public static final String APPLICATION_TURTLE_VALUE = "application/ttl";
     public static final String TEXT_TURTLE_VALUE = "text/turtle";
     public static final RdfMediaType TEXT_TURTLE = fromString(TEXT_TURTLE_VALUE);
 
+    public static final String APPLICATION_TRIG_VALUE = "application/trig";
     public static final String TEXT_TRIG_VALUE = "text/trig";
     public static final RdfMediaType TEXT_TRIG = fromString(TEXT_TRIG_VALUE);
 
+    public static final String APPLICATION_TRIX_VALUE = "application/trix";
     public static final String TEXT_TRIX_VALUE = "text/trix";
     public static final RdfMediaType TEXT_TRIX = fromString(TEXT_TRIX_VALUE);
 
     public static final String APPLICATION_X_JAVASCRIPT_VALUE = "application/x-javascript";
     public static final RdfMediaType APPLICATION_X_JAVASCRIPT = fromString(APPLICATION_X_JAVASCRIPT_VALUE);
+
+    public static final String APPLICATION_THRIFT_VALUE = "application/x-thrift";
+    public static final RdfMediaType APPLICATION_THRIFT = fromString(APPLICATION_THRIFT_VALUE);
 
     public static final String APPLICATION_WEBVOWL_VALUE = "application/webvowl+json";
     public static final RdfMediaType APPLICATION_WEBVOWL = fromString(APPLICATION_WEBVOWL_VALUE);

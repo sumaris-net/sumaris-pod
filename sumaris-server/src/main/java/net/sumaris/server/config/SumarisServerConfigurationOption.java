@@ -61,7 +61,7 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     REGISTRATION_CONFIRM_URL(
             "sumaris.server.account.register.confirm.url",
             n("sumaris.config.option.server.account.register.confirm.url.description"),
-            "${server.url}/confirm/{email}/{code}",
+            "${server.url}/api/confirmEmail/?email={email}&code={code}",
             String.class,
             false),
 
@@ -105,6 +105,13 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.auth.session.duration.description"),
             "14400", // = 4 hours
             Integer.class,
+            false),
+
+    AUTH_NOT_SELF_DATA_ROLE(
+            "sumaris.auth.notSelfDataAccess.role",
+            n("sumaris.config.option.auth.notSelfDataAccess.role.description"),
+            null, // Possible values: ROLE_GUEST, ROLE_USER, ROLE_SUPERVISOR, ROLE_ADMIN
+            String.class,
             false),
 
     DOWNLOAD_DIRECTORY(

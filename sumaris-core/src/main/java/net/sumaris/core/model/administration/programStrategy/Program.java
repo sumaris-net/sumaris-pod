@@ -22,19 +22,20 @@ package net.sumaris.core.model.administration.programStrategy;
  * #L%
  */
 
+import com.google.common.collect.Sets;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gear.GearClassification;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Data
 @FieldNameConstants
@@ -86,7 +87,27 @@ public class Program implements IItemReferentialEntity {
     @JoinColumn(name = "gear_classification_fk", nullable = false)
     private GearClassification gearClassification;
 
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @JoinTable(name = "program2location_classif", joinColumns = {
+            @JoinColumn(name = "program_fk", nullable = false, updatable = false) },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "location_classification_fk", nullable = false, updatable = false) })
+    private Set<LocationClassification> locationClassifications = Sets.newHashSet();
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @JoinTable(name = "program2location", joinColumns = {
+            @JoinColumn(name = "program_fk", nullable = false, updatable = false) },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "location_fk", nullable = false, updatable = false) })
+    private Set<Location> locations = Sets.newHashSet();
+
     public int hashCode() {
         return Objects.hash(label);
+    }
+
+    public String toString() {
+        return String.format("Program{id=%s, label=%s}",
+                id,
+                label);
     }
 }

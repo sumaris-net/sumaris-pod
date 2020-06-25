@@ -44,7 +44,8 @@ import java.util.Set;
 public class Landing implements IRootDataEntity<Integer>,
         IWithObserversEntity<Integer, Person>,
         IWithVesselEntity<Integer, Vessel>,
-        IWithSamplesEntity<Integer, Sample> {
+        IWithSamplesEntity<Integer, Sample>,
+        IWithProductsEntity<Integer, Product> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LANDING_SEQ")
@@ -103,6 +104,9 @@ public class Landing implements IRootDataEntity<Integer>,
     @Column(name = "rank_order")
     private Integer rankOrder;
 
+    @Column(name = "rank_order_on_vessel")
+    private Integer rankOrderOnVessel;
+
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
@@ -118,6 +122,10 @@ public class Landing implements IRootDataEntity<Integer>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Sample.Fields.LANDING)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sample> samples = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Product.class, mappedBy = Product.Fields.LANDING)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<Product> products = new ArrayList<>();
 
     /* -- measurements -- */
 

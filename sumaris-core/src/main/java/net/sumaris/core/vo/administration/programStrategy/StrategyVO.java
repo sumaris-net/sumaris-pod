@@ -46,8 +46,14 @@ public class StrategyVO implements IReferentialVO {
     private Integer programId;
 
     private List<PmfmStrategyVO> pmfmStrategies;
+
+    private List<Integer> gearIds;
     private List<ReferentialVO> gears;
+
+    private List<Integer> taxonGroupIds;
     private List<TaxonGroupStrategyVO> taxonGroups;
+
+    private List<Integer> taxonNameIds;
     private List<TaxonNameStrategyVO> taxonNames;
 
 }

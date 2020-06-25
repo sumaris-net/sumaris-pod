@@ -23,7 +23,7 @@ package net.sumaris.core.vo.referential;
  */
 
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.vo.IValueObject;
+import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.util.Date;
 
@@ -42,4 +42,11 @@ public interface IReferentialVO extends IUpdateDateEntityBean<Integer, Date>, IV
 
     void setName(String name);
 
+    Integer getStatusId();
+
+    void setStatusId(Integer statusId);
+
+    Date getCreationDate();
+
+    void setCreationDate(Date creationDate);
 }

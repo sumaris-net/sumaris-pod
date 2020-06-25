@@ -25,8 +25,10 @@ package net.sumaris.core.dao.referential;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -52,6 +54,7 @@ import net.sumaris.core.model.referential.transcribing.TranscribingItem;
 import net.sumaris.core.model.technical.configuration.Software;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
+import net.sumaris.core.model.technical.versionning.SystemVersion;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
@@ -85,6 +88,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
     private static Map<String, Class<? extends IReferentialEntity>> entityClassMap = Maps.uniqueIndex(
             ImmutableList.of(
+                    Status.class,
                     Department.class,
                     Location.class,
                     LocationLevel.class,
@@ -107,7 +111,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     Pmfm.class,
                     Matrix.class,
                     Fraction.class,
+                    Method.class,
                     QualitativeValue.class,
+                    Unit.class,
                     // Quality
                     QualityFlag.class,
                     // Program/strategy
@@ -120,13 +126,19 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     GroupingClassification.class,
                     GroupingLevel.class,
                     Grouping.class,
+                    // Fishing Area
+                    DistanceToCoastGradient.class,
+                    DepthGradient.class,
+                    NearbySpecificArea.class,
                     // Product
                     ExtractionProduct.class,
                     ExtractionProductTable.class,
                     // Software
                     Software.class,
                     // Program
-                    ProgramPrivilege.class
+                    ProgramPrivilege.class,
+                    // Technical
+                    SystemVersion.class
             ), Class::getSimpleName);
 
     private Map<String, PropertyDescriptor> levelPropertyNameMap = initLevelPropertyNameMap();
@@ -149,6 +161,8 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         I18n.n("sumaris.persistence.table.pmfm");
         I18n.n("sumaris.persistence.table.matrix");
         I18n.n("sumaris.persistence.table.fraction");
+        I18n.n("sumaris.persistence.table.method");
+        I18n.n("sumaris.persistence.table.unit");
         I18n.n("sumaris.persistence.table.qualitativeValue");
         I18n.n("sumaris.persistence.table.program");
         I18n.n("sumaris.persistence.table.acquisitionLevel");
@@ -156,8 +170,12 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         I18n.n("sumaris.persistence.table.groupingClassification");
         I18n.n("sumaris.persistence.table.groupingLevel");
         I18n.n("sumaris.persistence.table.grouping");
+        I18n.n("sumaris.persistence.table.distanceToCoastGradient");
+        I18n.n("sumaris.persistence.table.depthGradient");
+        I18n.n("sumaris.persistence.table.nearbySpecificArea");
         I18n.n("sumaris.persistence.table.extractionProduct");
         I18n.n("sumaris.persistence.table.extractionProductTable");
+        I18n.n("sumaris.persistence.table.systemVersion");
     }
 
     protected static Map<String, PropertyDescriptor> initLevelPropertyNameMap() {
@@ -195,17 +213,14 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
 
     @Override
-    public List<ReferentialVO> findByFilter(final String entityName,
+    public <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
                                             ReferentialFilterVO filter,
                                             int offset,
                                             int size,
                                             String sortAttribute,
                                             SortDirection sortDirection) {
-        Preconditions.checkNotNull(entityName, "Missing entityName argument");
-        Preconditions.checkNotNull(filter);
-
-        // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        Preconditions.checkNotNull(entityClass, "Missing 'entityClass' argument");
+        Preconditions.checkNotNull(filter, "Missing 'filter' argument");
 
         return createFindQuery(entityClass,
                 filter,
@@ -213,9 +228,30 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                 sortDirection,
                 null
         )
-        .setFirstResult(offset)
-        .setMaxResults(size)
-        .getResultStream()
+                .setFirstResult(offset)
+                .setMaxResults(size)
+                .getResultStream();
+    }
+
+    @Override
+    public List<ReferentialVO> findByFilter(final String entityName,
+                                            ReferentialFilterVO filter,
+                                            int offset,
+                                            int size,
+                                            String sortAttribute,
+                                            SortDirection sortDirection) {
+        Preconditions.checkNotNull(entityName, "Missing entityName argument");
+
+        // Get entity class from entityName
+        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+
+        return streamByFilter(entityClass,
+                filter,
+                offset,
+                size,
+                sortAttribute,
+                sortDirection
+        )
         .map(s -> toReferentialVO(entityName, s))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
@@ -250,6 +286,17 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         return entityClassMap.keySet().stream()
                 .map(this::getTypeByEntityName)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public ReferentialVO get(String entityName, int id) {
+        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        return get(entityClass, id);
+    }
+
+    @Override
+    public ReferentialVO get(Class<? extends IReferentialEntity> entityClass, int id) {
+        return toReferentialVO(super.get(entityClass, id));
     }
 
     @Override
@@ -436,7 +483,13 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         Beans.copyProperties(source, target);
 
         // Status
-        target.setStatusId(source.getStatus().getId());
+        if (source instanceof IWithStatusEntity) {
+            target.setStatusId(((IWithStatusEntity<?, ?>)source).getStatus().getId());
+        }
+        else {
+            // No status in the entity = ENABLE
+            target.setStatusId(StatusEnum.ENABLE.getId());
+        }
 
         // Level
         PropertyDescriptor levelDescriptor = levelPropertyNameMap.get(entityName);
@@ -547,16 +600,24 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
             }
         }
 
-        // Filter on text
+        // Filter on label
+        Predicate labelClause = null;
+        ParameterExpression<String> labelParam = null;
+        if (StringUtils.isNotBlank(filter.getLabel())) {
+            labelParam = builder.parameter(String.class);
+            labelClause = builder.equal(builder.upper(entityRoot.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(labelParam));
+        }
+
+        // Filter on search text
         ParameterExpression<String> searchAsPrefixParam = builder.parameter(String.class);
         ParameterExpression<String> searchAnyMatchParam = builder.parameter(String.class);
         Predicate searchTextClause = null;
-        if (searchText != null) {
+        if (labelClause == null && searchText != null) {
             // Search on the given search attribute, if exists
             if (StringUtils.isNotBlank(searchAttribute) && BeanUtils.getPropertyDescriptor(entityClass, searchAttribute) != null) {
                 searchTextClause = builder.or(
                         builder.isNull(searchAnyMatchParam),
-                        builder.like(builder.upper(entityRoot.get(searchAttribute)), builder.upper(searchAsPrefixParam))
+                        builder.like(builder.upper(Daos.composePath(entityRoot, searchAttribute)), builder.upper(searchAsPrefixParam))
                 );
             }
             else if (IItemReferentialEntity.class.isAssignableFrom(entityClass)) {
@@ -584,8 +645,8 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         // Filter on status
         ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
         Predicate statusIdsClause = null;
-        if (ArrayUtils.isNotEmpty(statusIds)) {
-            statusIdsClause = builder.in(entityRoot.get(IItemReferentialEntity.Fields.STATUS).get(IItemReferentialEntity.Fields.ID)).value(statusIdsParam);
+        if (ArrayUtils.isNotEmpty(statusIds) && IWithStatusEntity.class.isAssignableFrom(entityClass)) {
+            statusIdsClause = builder.in(entityRoot.get(IWithStatusEntity.Fields.STATUS).get(IEntity.Fields.ID)).value(statusIdsParam);
         }
 
         // Compute where clause
@@ -593,7 +654,10 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         if (levelClause != null) {
             whereClause = levelClause;
         }
-        if (searchTextClause != null) {
+        if (labelClause != null) {
+            whereClause = (whereClause == null) ? labelClause : builder.and(whereClause, labelClause);
+        }
+        else if (searchTextClause != null) {
             whereClause = (whereClause == null) ? searchTextClause : builder.and(whereClause, searchTextClause);
         }
 
@@ -603,9 +667,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
         // Delegate to visitor
         if (queryVisitor != null) {
-            Expression<Boolean> additionnalWhere = queryVisitor.apply(query, entityRoot);
-            if (additionnalWhere != null) {
-                whereClause = (whereClause == null) ? additionnalWhere : builder.and(whereClause, additionnalWhere);
+            Expression<Boolean> additionalWhere = queryVisitor.apply(query, entityRoot);
+            if (additionalWhere != null) {
+                whereClause = (whereClause == null) ? additionalWhere : builder.and(whereClause, additionalWhere);
             }
         }
 
@@ -616,14 +680,11 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         TypedQuery<R> typedQuery = getEntityManager().createQuery(query);
 
         // Bind parameters
-        if (searchTextClause != null) {
-            String searchTextAsPrefix = null;
-            if (StringUtils.isNotBlank(searchText)) {
-                searchTextAsPrefix = (searchText + "*") // add trailing escape char
-                        .replaceAll("[*]+", "*") // group escape chars
-                        .replaceAll("[%]", "\\%") // protected '%' chars
-                        .replaceAll("[*]", "%"); // replace asterix
-            }
+        if (labelClause != null) {
+            typedQuery.setParameter(labelParam, filter.getLabel());
+        }
+        else if (searchTextClause != null) {
+            String searchTextAsPrefix = Daos.getEscapedSearchText(searchText);
             String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
             typedQuery.setParameter(searchAsPrefixParam, searchTextAsPrefix);
             typedQuery.setParameter(searchAnyMatchParam, searchTextAnyMatch);
@@ -686,12 +747,13 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         Beans.copyProperties(source, target);
 
         // Status
-        if (copyIfNull || source.getStatusId() != null) {
+        if ((copyIfNull || source.getStatusId() != null) && target instanceof IWithStatusEntity) {
+            IWithStatusEntity<Integer, Status> targetWithStatus = (IWithStatusEntity)target;
             if (source.getStatusId() == null) {
-                target.setStatus(null);
+                targetWithStatus.setStatus(null);
             }
             else {
-                target.setStatus(load(Status.class, source.getStatusId()));
+                targetWithStatus.setStatus(load(Status.class, source.getStatusId()));
             }
         }
 

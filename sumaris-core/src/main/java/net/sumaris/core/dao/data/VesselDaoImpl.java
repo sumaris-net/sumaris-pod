@@ -29,10 +29,10 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.QualityFlagEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -41,6 +41,7 @@ import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.VesselType;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
@@ -50,7 +51,6 @@ import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,7 +128,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             // replace some field aliases
             sortAttribute = sortAttribute.replaceFirst(VesselVO.Fields.FEATURES, Vessel.Fields.VESSEL_FEATURES);
             sortAttribute = sortAttribute.replaceFirst(VesselVO.Fields.REGISTRATION, Vessel.Fields.VESSEL_REGISTRATION_PERIODS);
-            sortAttribute = sortAttribute.replaceFirst(VesselVO.Fields.STATUS_ID, Vessel.Fields.STATUS + "." + Status.Fields.ID);
+            sortAttribute = sortAttribute.replaceFirst(VesselVO.Fields.STATUS_ID, StringUtils.doting(Vessel.Fields.STATUS, Status.Fields.ID));
         }
         addSorting(query, builder, vesselRoot, sortAttribute, sortDirection);
 
@@ -394,14 +394,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 )
             );
 
-            String searchText = StringUtils.trimToNull(filter.getSearchText());
-            String searchTextAsPrefix = null;
-            if (StringUtils.isNotBlank(searchText)) {
-                searchTextAsPrefix = (searchText + "*"); // add trailing escape char
-                searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]+", "*"); // group escape chars
-                searchTextAsPrefix = searchTextAsPrefix.replaceAll("[%]", "\\%"); // protected '%' chars
-                searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]", "%"); // replace asterix
-            }
+            String searchTextAsPrefix = Daos.getEscapedSearchText(filter.getSearchText());
             String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%" + searchTextAsPrefix) : null;
 
             List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds())

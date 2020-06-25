@@ -151,6 +151,16 @@ public class Beans {
         }
     }
 
+    public static <T> T safeGet(List<T> list, int index) {
+        if (list == null)
+            return null;
+        try {
+            return list.get(index);
+        } catch (IndexOutOfBoundsException ignored) {
+            return null;
+        }
+    }
+
     /**
      * <p>splitByProperty.</p>
      *
@@ -299,8 +309,8 @@ public class Beans {
         return collection.stream().filter(predicate).collect(Collectors.toList());
     }
 
-    public static <O, E> List<O> transformCollection(Collection<? extends E> collection, Function<E, O> funtion) {
-        return collection.stream().map(funtion).collect(Collectors.toList());
+    public static <O, E> List<O> transformCollection(Collection<? extends E> collection, Function<E, O> function) {
+        return collection.stream().map(function).collect(Collectors.toList());
     }
 
     public static <T> Comparator<T> naturalComparator(final String sortAttribute, final SortDirection sortDirection) {
@@ -322,6 +332,10 @@ public class Beans {
                     getProperty(o1, sortAttribute)
             );
         }
+    }
+
+    public static <T> Comparator<T> unsortedComparator() {
+        return (o1, o2) -> -1;
     }
 
     //public static Map<String, String[]> cacheCopyPropertiesIgnored;

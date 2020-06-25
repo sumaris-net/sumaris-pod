@@ -29,8 +29,10 @@ import lombok.Data;
 @Builder
 public class ProgramFetchOptions {
 
-    private boolean withProperties = false;
+    private boolean withProperties;
 
-    private boolean withStrategies = false;
+    private boolean withLocations;
+
+    private boolean withStrategies;
 
 }

@@ -51,8 +51,15 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
 import java.io.File;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.sql.*;
@@ -66,6 +73,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.nuiton.i18n.I18n.t;
 
@@ -710,6 +719,34 @@ public class Daos {
     }
 
     /**
+     * Round a double value with 2 decimals
+     *
+     * @param value to round or null
+     * @return the rounded number or null
+     */
+    public static Double roundValue(Double value) {
+        return roundValue(value, 2);
+    }
+
+    /**
+     * Round a double value with specific number of decimals
+     *
+     * @param value to round or null
+     * @param nbDecimal number of decimals
+     * @return the rounded number or null
+     */
+    public static Double roundValue(Double value, int nbDecimal) {
+        if (value == null) {
+            return null;
+        }
+        if (nbDecimal == 0) {
+            return (double) Math.round(value);
+        }
+        double pow = Math.pow(10, nbDecimal);
+        return Math.round(value * pow) / pow;
+    }
+
+    /**
      * <p>isSmallerWeight.</p>
      *
      * @param v0 a float.
@@ -961,10 +998,14 @@ public class Daos {
     public static Object sqlUniqueTimestamp(DataSource dataSource, String sql) throws DataAccessResourceFailureException {
         Connection connection = DataSourceUtils.getConnection(dataSource);
         try {
-            return sqlUnique(connection, sql, true);
+            return sqlUniqueTimestamp(connection, sql);
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }
+    }
+
+    public static Object sqlUniqueTimestamp(Connection connection, String sql) throws DataAccessResourceFailureException {
+        return sqlUnique(connection, sql, true);
     }
 
     /**
@@ -1453,7 +1494,13 @@ public class Daos {
      */
     public static Timestamp getDatabaseCurrentTimestamp(Connection connection, Dialect dialect) throws SQLException {
         final String sql = dialect.getCurrentTimestampSelectString();
-        Object result = Daos.sqlUniqueTyped(connection, sql);
+        Object result = Daos.sqlUniqueTimestamp(connection, sql);
+        return toTimestampFromJdbcResult(result);
+    }
+
+    public static Timestamp getDatabaseCurrentTimestamp(DataSource dataSource, Dialect dialect) throws SQLException {
+        final String sql = dialect.getCurrentTimestampSelectString();
+        Object result = Daos.sqlUniqueTimestamp(dataSource, sql);
         return toTimestampFromJdbcResult(result);
     }
 
@@ -1548,4 +1595,123 @@ public class Daos {
         return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
     }
 
+    public static String getEscapedSearchText(String searchText) {
+        return getEscapedSearchText(searchText, false);
+    }
+
+    public static String getEscapedSearchText(String searchText, boolean searchAny) {
+        searchText = StringUtils.trimToNull(searchText);
+        if (searchText == null) return null;
+        return  ((searchAny ? "*" : "") + searchText + "*") // add leading wildcard (if searchAny specified) and trailing wildcard
+            .replaceAll("[*]+", "*") // group escape chars
+            .replaceAll("[%]", "\\%") // protected '%' chars
+            .replaceAll("[*]", "%"); // replace asterisk mark
+    }
+
+
+    public static <T> Stream<T> streamByPageIteration(final Function<Page, T> processPageFn,
+                                                      final Function<T, Boolean> hasNextFn,
+                                                      final int pageSize,
+                                                      final long maxPageCount) {
+        final Page page = Page.builder().size(pageSize).build();
+        final Iterator<T> iterator = new Iterator<T>() {
+            boolean hasNext = true;
+
+            @Override
+            public boolean hasNext() {
+                return hasNext;
+            }
+
+            @Override
+            public T next() {
+                T pageModel = processPageFn.apply(page);
+                page.setOffset(page.getOffset() + pageSize);
+                hasNext = hasNextFn.apply(pageModel)
+                        && (maxPageCount == -1 || page.getOffset() < maxPageCount);
+                return pageModel;
+            }
+        };
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(
+                iterator,
+                Spliterator.ORDERED | Spliterator.IMMUTABLE), false);
+    }
+
+
+    /**
+     * Fill a property, as an entity
+     * @param propertyClass
+     * @param propertyName
+     * @param entityId
+     * @param target
+     * @param <T>
+     */
+    public static <T extends Serializable> void setEntityProperty(EntityManager em,
+                                                                  T target,
+                                                                  String propertyName,
+                                                                  Class<? extends Serializable> propertyClass,
+                                                                  Integer entityId) {
+        if (entityId == null) {
+            Beans.setProperty(target, propertyName, null);
+        } else {
+            Object entity = em.getReference(propertyClass, entityId);
+            Beans.setProperty(target, propertyName, entity);
+        }
+    }
+
+    /**
+     * Fill many properties, by a class and an entity id
+     * @param target
+     * @param copySpec should be an array of triple: [String propertyName, Class propertyClass, Integer entityId]
+     */
+    public static <T extends Serializable> void setEntityProperties(EntityManager em,
+                                                                    T target,
+                                                                    Object... copySpec) {
+        Preconditions.checkNotNull(target);
+        Preconditions.checkNotNull(copySpec);
+        Preconditions.checkArgument(copySpec.length > 0 && copySpec.length % 3 == 0,
+                "Invalid 'copySpec' argument. Expect [propertyName, Class, entityId]");
+
+        int offset = 0;
+        while(offset < copySpec.length -1) {
+            try {
+                String propertyName = (String) copySpec[offset];
+                Class<? extends Serializable> propertyClazz = (Class<? extends Serializable>) copySpec[offset+1];
+                Integer entityId = (Integer) copySpec[offset+2];
+
+                setEntityProperty(em, target, propertyName, propertyClazz, entityId);
+            }
+            catch (Throwable t) {
+                throw new IllegalArgumentException("Error while reading arguments at index: " + offset);
+            }
+            offset += 3;
+
+        }
+    }
+
+    public static <X> Path<X> composePath(Root<?> root, String attributePath) {
+
+        String[] paths = attributePath.split("\\.");
+        From<?, ?> from = root; // starting from root
+        Path<X> result = null;
+
+        for (int i = 0; i < paths.length; i++) {
+            String path = paths[i];
+
+            if (i == paths.length - 1) {
+                // last path, get it
+                result = from.get(path);
+            } else {
+                // need a join (find it from existing joins of from)
+                Join join = from.getJoins().stream()
+                        .filter(j -> j.getAttribute().getName().equals(path))
+                        .findFirst().orElse(null);
+                if (join == null) {
+                    throw new IllegalArgumentException(String.format("the join %s from %s doesn't exists", path, from.getClass().getSimpleName()));
+                }
+                from = join;
+            }
+        }
+
+        return result;
+    }
 }

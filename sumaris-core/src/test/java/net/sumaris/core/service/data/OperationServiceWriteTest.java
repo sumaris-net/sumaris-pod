@@ -25,7 +25,7 @@ package net.sumaris.core.service.data;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.referential.PmfmService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.data.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;

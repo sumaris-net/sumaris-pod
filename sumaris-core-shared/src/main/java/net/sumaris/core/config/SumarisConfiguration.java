@@ -188,6 +188,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         applicationConfig.setOption(
                 SumarisConfigurationOption.BASEDIR.getKey(),
                 appBasedir.getAbsolutePath());
+
+        if (log.isDebugEnabled())
+            log.debug(applicationConfig.getPrintableConfig(null, 4));
+
     }
 
     /**
@@ -760,10 +764,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     public boolean isInitStatisticalRectangles() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.INIT_STATISTICAL_RECTANGLES.getKey());
-    }
-
-    public boolean isPreserveHistoricalMeasurements() {
-        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.PRESERVE_HISTORICAL_MEASUREMENTS.getKey());
     }
 
     public boolean enableBatchHashOptimization() {

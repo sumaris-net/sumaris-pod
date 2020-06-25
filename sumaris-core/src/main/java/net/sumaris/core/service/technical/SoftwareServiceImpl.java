@@ -37,6 +37,7 @@ import org.apache.commons.logging.LogFactory;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
+import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,9 +49,7 @@ import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -106,7 +105,15 @@ public class SoftwareServiceImpl implements SoftwareService, DatabaseSchemaListe
         Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(source.getLabel());
 
-        return dao.save(source);
+        SoftwareVO result = dao.save(source);
+
+        // If default
+        if (Objects.equals(result.getLabel(), defaultSoftwareLabel)) {
+            // Apply to appConfig
+            overrideAppConfigFromProperties(result.getLabel(), result.getProperties());
+        }
+
+        return result;
     }
 
     /**
@@ -141,18 +148,26 @@ public class SoftwareServiceImpl implements SoftwareService, DatabaseSchemaListe
             // ok, continue (schema should be a new one)
         }
 
-        ApplicationConfig appConfig = SumarisConfiguration.getInstance().getApplicationConfig();
         // Override the configuration existing in the config file, using DB
         SoftwareVO software = getDefault();
         if (software == null) {
             log.info(String.format("No configuration for {%s} found in database. to enable configuration override from database, make sure to set the option '%s' to an existing row of the table SOFTWARE (column LABEL).", defaultSoftwareLabel, SumarisConfigurationOption.APP_NAME.getKey()));
             return true; // skip
         }
-        else if (MapUtils.isEmpty(software.getProperties())) {
-            return true; // No properties found
-        }
 
-        log.info(String.format("Overriding configuration options, using those found in database for {%s}", defaultSoftwareLabel));
+        // Apply properties to appConfig
+        overrideAppConfigFromProperties(software.getLabel(), software.getProperties());
+
+        return true;
+    }
+
+    protected void overrideAppConfigFromProperties(String label, Map<String, String> properties) {
+        Preconditions.checkNotNull(label); // Need by log message
+        if (MapUtils.isEmpty(properties)) return; // Skip if empty - TODO: applying defaults ?
+
+        ApplicationConfig appConfig = SumarisConfiguration.getInstance().getApplicationConfig();
+
+        log.info(String.format("Overriding configuration options, using those found in {%s} software's properties", label));
 
         // Load options from configuration providers
         Set<ApplicationConfigProvider> providers =
@@ -160,27 +175,30 @@ public class SoftwareServiceImpl implements SoftwareService, DatabaseSchemaListe
                         null,
                         null,
                         true);
-        Set<String> optionKeys = providers.stream().flatMap(p -> Stream.of(p.getOptions()))
-                .map(o -> o.getKey()).collect(Collectors.toSet());
-        Set<String> transientOptionKeys = providers.stream().flatMap(p -> Stream.of(p.getOptions()))
-                .filter(o -> o.isTransient())
-                .map(o -> o.getKey()).collect(Collectors.toSet());
+        Set<String> optionKeys = providers.stream()
+                .map(ApplicationConfigProvider::getOptions)
+                .flatMap(Stream::of)
+                .map(ConfigOptionDef::getKey)
+                .collect(Collectors.toSet());
+        Set<String> transientOptionKeys = providers.stream()
+                .map(ApplicationConfigProvider::getOptions)
+                .flatMap(Stream::of)
+                .filter(ConfigOptionDef::isTransient)
+                .map(ConfigOptionDef::getKey)
+                .collect(Collectors.toSet());
 
-        software.getProperties().entrySet()
-                .forEach(entry -> {
-                    if (!optionKeys.contains(entry.getKey())) {
-                        if (log.isDebugEnabled()) log.debug(String.format(" - Skipping unknown configuration option {%s=%s} found in database for {%s}.", entry.getKey(), entry.getValue(), defaultSoftwareLabel));
-                    }
-                    else if (transientOptionKeys.contains(entry.getKey())) {
-                        if (log.isDebugEnabled()) log.debug(String.format(" - Skipping transient configuration option {%s=%s} found in database for {%s}.", entry.getKey(), entry.getValue(), defaultSoftwareLabel));
-                    }
-                    else {
-                        if (log.isDebugEnabled()) log.debug(String.format(" - Applying option {%s=%s}", entry.getKey(), entry.getValue()));
+        boolean info = log.isInfoEnabled();
 
-                        appConfig.setOption(entry.getKey(), entry.getValue());
-                    }
-                });
-        return true;
+        properties.forEach((key, value) -> {
+            if (!optionKeys.contains(key)) {
+                if (info) log.info(String.format(" - Skipping unknown configuration option {%s=%s} found in {%s} software properties.", key, value, defaultSoftwareLabel));
+            } else if (transientOptionKeys.contains(key)) {
+                if (info) log.info(String.format(" - Skipping transient configuration option {%s=%s} found in {%s} software properties.", key, value, defaultSoftwareLabel));
+            } else {
+                if (info) log.info(String.format(" - Applying option {%s=%s}", key, value));
+                appConfig.setOption(key, value);
+            }
+        });
     }
 
 }

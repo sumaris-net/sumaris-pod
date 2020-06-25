@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 
 import javax.persistence.*;
 import java.util.Date;

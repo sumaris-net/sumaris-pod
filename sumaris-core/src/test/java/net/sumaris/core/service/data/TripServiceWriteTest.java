@@ -24,16 +24,12 @@ package net.sumaris.core.service.data;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableTable;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.referential.PmfmService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.OperationVO;
-import net.sumaris.core.vo.data.PhysicalGearVO;
-import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -61,7 +57,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
     @Test
     public void save() {
         TripVO vo = createTrip();
-        TripVO savedVO = service.save(vo, false);
+        TripVO savedVO = service.save(vo, false, false);
 
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
@@ -91,7 +87,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
         trip.setOperations(ImmutableList.of(operation));
 
-        TripVO savedVO = service.save(trip, true);
+        TripVO savedVO = service.save(trip, true, false);
 
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
@@ -119,7 +115,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
     public void deleteAfterCreate() {
         TripVO savedVO = null;
         try {
-            savedVO = service.save(createTrip(), false);
+            savedVO = service.save(createTrip(), false, false);
             Assume.assumeNotNull(savedVO);
             Assume.assumeNotNull(savedVO.getId());
         }

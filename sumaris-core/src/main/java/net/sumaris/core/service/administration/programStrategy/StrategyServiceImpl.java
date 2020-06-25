@@ -23,7 +23,10 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
+import com.google.common.collect.Maps;
+import net.sumaris.core.dao.administration.programStrategy.PmfmStrategyRepository;
 import net.sumaris.core.dao.administration.programStrategy.StrategyDao;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.slf4j.Logger;
@@ -31,7 +34,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @Service("strategyService")
 public class StrategyServiceImpl implements StrategyService {
@@ -39,7 +44,10 @@ public class StrategyServiceImpl implements StrategyService {
 	private static final Logger log = LoggerFactory.getLogger(StrategyServiceImpl.class);
 
 	@Autowired
-	protected StrategyDao strategyDao;
+	private StrategyDao strategyDao;
+
+	@Autowired
+	private PmfmStrategyRepository pmfmStrategyRepository;
 
 	@Override
 	public List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions) {
@@ -47,13 +55,31 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
-	public List<PmfmStrategyVO> getPmfmStrategies(int strategyId) {
-		return strategyDao.getPmfmStrategies(strategyId);
+	public List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, boolean enablePmfmInheritance) {
+		return pmfmStrategyRepository.findByStrategyId(strategy, enablePmfmInheritance);
 	}
 
 	@Override
-	public List<PmfmStrategyVO> getPmfmStrategiesByAcquisitionLevel(int programId, int acquisitionLevelId) {
-		return strategyDao.getPmfmStrategiesByAcquisitionLevel(programId, acquisitionLevelId);
+	public List<PmfmStrategyVO> findPmfmStrategiesByProgram(int programId, boolean enablePmfmInheritance) {
+
+		List<StrategyVO> vos = findByProgram(programId, StrategyFetchOptions.builder()
+				.withPmfmStrategyInheritance(enablePmfmInheritance)
+				.build());
+
+		Map<Integer, PmfmStrategyVO> pmfmStrategyByPmfmId = Maps.newHashMap();
+		Beans.getStream(vos)
+				.flatMap(strategy -> strategy.getPmfmStrategies().stream())
+				// Sort by strategyId, acquisitionLevel and rankOrder
+				.sorted(Comparator.comparing(ps -> String.format("%s#%s#%s", ps.getStrategyId(), ps.getAcquisitionLevel(), ps.getRankOrder())))
+				// Put in the last (last found will override previous)
+				.forEach(ps -> pmfmStrategyByPmfmId.put(ps.getPmfmId(), ps));
+
+		return Beans.getList(pmfmStrategyByPmfmId.values());
+	}
+
+	@Override
+	public List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, boolean enablePmfmInheritance) {
+		return pmfmStrategyRepository.findByProgramAndAcquisitionLevel(programId, acquisitionLevelId, enablePmfmInheritance);
 	}
 
 	@Override
@@ -72,11 +98,26 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
+	public StrategyVO save(StrategyVO source) {
+
+		StrategyVO result = strategyDao.save(source);
+
+		// Save pmfm stratgeies
+		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(result.getId(), Beans.getList(source.getPmfmStrategies()));
+		source.setPmfmStrategies(savedPmfmStrategies);
+
+		return result;
+	}
+
+	@Override
 	public List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources) {
 		List<StrategyVO> result = strategyDao.saveByProgramId(programId, sources);
 
-		// Save pmfm strategy
-		//saveMeasurements(result);
+		// Save pmfm strategies
+		sources.forEach(source -> {
+			List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(source.getId(), Beans.getList(source.getPmfmStrategies()));
+			source.setPmfmStrategies(savedPmfmStrategies);
+		});
 
 		return result;
 	}

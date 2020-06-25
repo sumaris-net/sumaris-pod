@@ -32,11 +32,12 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -72,10 +73,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
 
     @Autowired
-    private PhysicalGearDao physicalGearDao;
-
-    @Autowired
-    private TaxonGroupRepository taxonGroupDao;
+    private PhysicalGearRepository physicalGearRepository;
 
     @Autowired
     private MetierRepository metierDao;
@@ -97,7 +95,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
         ParameterExpression<Integer> operationIdParam = builder.parameter(Integer.class);
 
         query.select(root)
-            .where(builder.equal(root.get(Operation.Fields.TRIP).get(IReferentialEntity.Fields.ID), operationIdParam));
+            .where(builder.equal(root.get(Operation.Fields.TRIP).get(IReferentialWithStatusEntity.Fields.ID), operationIdParam));
 
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
@@ -112,7 +110,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
                 .setParameter(operationIdParam, tripId)
                 .setFirstResult(offset)
                 .setMaxResults(size);
-        return toOperationVOs(q.getResultList());
+        return toVOs(q.getResultList());
     }
 
     @Override
@@ -176,7 +174,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
         }
 
         // VO -> Entity
-        operationVOToEntity(source, entity, true);
+        toEntity(source, entity, true);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -227,12 +225,12 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
         // Physical gear
         if (source.getPhysicalGear() != null) {
             target.setPhysicalGearId(source.getPhysicalGear().getId());
-            target.setPhysicalGear(physicalGearDao.toPhysicalGearVO(source.getPhysicalGear(), false/*no details*/));
+            target.setPhysicalGear(physicalGearRepository.toVO(source.getPhysicalGear(), DataFetchOptions.builder().withRecorderDepartment(false).build()));
         }
 
         // Métier
         if (source.getMetier() != null) {
-            target.setMetier(metierDao.toMetierVO(source.getMetier()));
+            target.setMetier(metierDao.toVO(source.getMetier()));
         }
 
         // Recorder department
@@ -244,14 +242,14 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
     /* -- protected methods -- */
 
-    protected List<OperationVO> toOperationVOs(List<Operation> source) {
+    protected List<OperationVO> toVOs(List<Operation> source) {
         return source.stream()
                 .map(this::toVO)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    protected void operationVOToEntity(OperationVO source, Operation target, boolean copyIfNull) {
+    protected void toEntity(OperationVO source, Operation target, boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
 
@@ -262,7 +260,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
                 target.setTrip(null);
             }
             else {
-                target.setTrip(get(Trip.class, tripId));
+                target.setTrip(get(Trip.class, tripId)); // Use a GET, because trip will be used later, for physicalGears
             }
         }
 
@@ -308,8 +306,9 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
                 Integer rankOrder = source.getPhysicalGear().getRankOrder();
                 physicalGearId = target.getTrip().getPhysicalGears()
                         .stream()
-                        .filter(g -> g.getRankOrder() == rankOrder)
-                        .map(g -> g.getId()).findFirst().orElse(null);
+                        .filter(g -> rankOrder != null && Objects.equals(g.getRankOrder(), rankOrder))
+                        .map(PhysicalGear::getId)
+                        .findFirst().orElse(null);
                 if (physicalGearId == null) {
                     throw new DataIntegrityViolationException("An operation use a unknown PhysicalGear with rankOrder=" + source.getPhysicalGear().getRankOrder());
                 }
