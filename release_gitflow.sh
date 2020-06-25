@@ -32,7 +32,7 @@ RELEASE_OPTS="-DperformRelease -DskipTests -Denv=hsqldb"
 echo "**********************************"
 echo "* Preparing release..."
 echo "**********************************"
-mvn gitflow:release-start -DbranchName="$version"
+mvn -B gitflow:release-start -DreleaseVersion="$version"
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
