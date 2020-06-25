@@ -82,7 +82,7 @@
         </form>
 
         <app-samples-table #samplesTable
-                           [disabled]="!samplesTable.defaultTaxonGroup"
+                           [class.cdk-visually-hidden]="!samplesTable.defaultTaxonGroup"
                            [program]="programSubject|async"
                            [showLabelColumn]="true"
                            [showDateTimeColumn]="false"

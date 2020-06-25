@@ -50,6 +50,15 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
   @Input() showFabButton = false;
   @Input() showError = true;
 
+  @Input()
+  set showIdColumn(value: boolean) {
+    this.setShowColumn('id', value);
+  }
+
+  get showIdColumn(): boolean {
+    return this.getShowColumn('id');
+  }
+
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,

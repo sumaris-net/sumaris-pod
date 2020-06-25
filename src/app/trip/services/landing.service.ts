@@ -523,11 +523,23 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
           if (this._debug) console.debug(`[landing-service] Landing saved remotely in ${Date.now() - now}ms`, entity);
 
           // Add to cache
-          if (isNew && this._lastVariables.loadAll) {
-            this.graphql.addToQueryCache(proxy, {
-              query: LoadAllQuery,
-              variables: this._lastVariables.loadAll
-            }, 'landings', savedEntity);
+          if (isNew) {
+            // Cache load by parent
+            if (this._lastVariables.loadByParent && this._lastVariables.loadByParent.filter && (
+                // If same observedLocation or trip
+                (isNotNil(entity.observedLocationId) && this._lastVariables.loadByParent.filter.observedLocationId === entity.observedLocationId) ||
+                (isNotNil(entity.tripId) && this._lastVariables.loadByParent.filter.tripId === entity.tripId))) {
+              this.graphql.addToQueryCache(proxy, {
+                query: LoadAllQuery,
+                variables: this._lastVariables.loadByParent
+              }, 'landings', savedEntity);
+            }
+            else if (this._lastVariables.loadAll) {
+              this.graphql.addToQueryCache(proxy, {
+                query: LoadAllQuery,
+                variables: this._lastVariables.loadAll
+              }, 'landings', savedEntity);
+            }
           }
           else if (this._lastVariables.load) {
             this.graphql.updateToQueryCache(proxy, {
@@ -574,6 +586,12 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       update: (proxy) => {
 
         // Remove from cache
+        if (this._lastVariables.loadByParent) {
+          this.graphql.removeToQueryCacheByIds(proxy, {
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadByParent
+          }, 'landings', remoteIds);
+        }
         if (this._lastVariables.loadAll) {
           this.graphql.removeToQueryCacheByIds(proxy, {
             query: LoadAllQuery,

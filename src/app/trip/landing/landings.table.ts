@@ -89,6 +89,14 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return this.getShowColumn('dateTime');
   }
 
+  @Input()
+  set showIdColumn(value: boolean) {
+    this.setShowColumn('id', value);
+  }
+  get showIdColumn(): boolean {
+    return this.getShowColumn('id');
+  }
+
   constructor(
     injector: Injector
   ) {
