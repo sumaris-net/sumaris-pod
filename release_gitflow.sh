@@ -26,9 +26,6 @@ fi
 version=$1
 echo "new build version: $version"
 
-RELEASE_OPTS="-DperformRelease -DskipTests -Denv=hsqldb"
-
-
 echo "**********************************"
 echo "* Preparing release..."
 echo "**********************************"
@@ -42,7 +39,7 @@ echo "Prepare release [OK]"
 echo "**********************************"
 echo "* Performing release..."
 echo "**********************************"
-mvn clean deploy "${RELEASE_OPTS}"
+mvn clean deploy -DperformRelease -DskipTests -Denv=hsqldb
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
