@@ -68,19 +68,20 @@ echo "Generate DB [OK]"
 
 
 cd $dirname
-#echo "**********************************"
-#echo "* Uploading artifacts to Github..."
-#echo "**********************************"
-#./github_gitflow.sh pre "$version"
-#if [[ $? -ne 0 ]]; then
-#    exit 1
-#fi
-#echo "Upload artifacts to github [OK]"
+echo "**********************************"
+echo "* Uploading artifacts to Github..."
+echo "**********************************"
+./github_gitflow.sh pre "$version"
+if [[ $? -ne 0 ]]; then
+    exit 1
+fi
+echo "Upload artifacts to github [OK]"
 
 
 #echo "**********************************"
 #echo "* Pushing changes to upstream..."
 #echo "**********************************"
+
 #mvn gitflow:release-finish -DfetchRemote=false
 #if [[ $? -ne 0 ]]; then
 #    exit 1
