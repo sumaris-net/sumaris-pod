@@ -78,28 +78,29 @@ fi
 echo "Upload artifacts to github [OK]"
 
 
-#echo "**********************************"
-#echo "* Pushing changes to upstream..."
-#echo "**********************************"
-
-#mvn gitflow:release-finish -DfetchRemote=false
-#if [[ $? -ne 0 ]]; then
-#    exit 1
-#fi
+echo "**********************************"
+echo "* Pushing changes to upstream..."
+echo "**********************************"
+git commit -a -m "release $version"
+git status
+mvn gitflow:release-finish -DfetchRemote=false
+if [[ $? -ne 0 ]]; then
+    exit 1
+fi
 
 # Pause (if propagation is need between hosted git server and github)
 #sleep 10s
 #echo "Push changes to upstream [OK]"
 
-#echo "----------------------------------"
-#echo "RELEASE finished !"
-#echo "----------------------------------"
+echo "----------------------------------"
+echo "RELEASE finished !"
+echo "----------------------------------"
 
-#echo "Rebuild new SNAPSHOT version..."
-#mvn clean install -DskipTests --quiet
-#if [[ $? -ne 0 ]]; then
-#    exit 1
-#fi
-#echo "Rebuild new SNAPSHOT version [OK]"
+echo "Rebuild new SNAPSHOT version..."
+mvn clean install -DskipTests --quiet
+if [[ $? -ne 0 ]]; then
+    exit 1
+fi
+echo "Rebuild new SNAPSHOT version [OK]"
 
 
