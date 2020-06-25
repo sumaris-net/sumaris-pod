@@ -453,6 +453,9 @@
     "OPERATION": {
       "COMMENTS": "Commentaires",
       "TITLE_PREFIX": "<small>{{vessel}} - Marée {{departureDateTime}}<br></small>",
+      "OPE_PREFIX": "OPE",
+      "BTN_NEW": "Ajouter",
+      "LAST_OPERATIONS": "Dernières opérations",
       "NEW": {
         "TITLE": "Nouvelle opération"
       },

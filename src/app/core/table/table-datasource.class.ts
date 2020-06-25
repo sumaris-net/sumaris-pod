@@ -5,23 +5,28 @@ import {Entity} from "../services/model/entity.model";
 import {ErrorCodes} from '../services/errors';
 import {catchError, first, map, takeUntil} from "rxjs/operators";
 import {OnDestroy} from "@angular/core";
+import {TableDataServiceWatchOptions} from "../../shared/services/data-service.class";
 
-export interface AppTableDataSourceOptions<T extends Entity<T>> {
+
+export declare interface AppTableDataServiceOptions<O extends TableDataServiceWatchOptions = TableDataServiceWatchOptions> extends TableDataServiceWatchOptions {
+  saveOnlyDirtyRows?: boolean;
+  readOnly?: boolean;
+  [key: string]: any;
+}
+export declare interface AppTableDataSourceOptions<T extends Entity<T>, O extends TableDataServiceWatchOptions = TableDataServiceWatchOptions> {
   prependNewElements: boolean;
   suppressErrors: boolean;
   onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
-  dataServiceOptions?: {
-    saveOnlyDirtyRows?: boolean;
-    readOnly?: boolean;
-    [key: string]: any;
-  };
+  dataServiceOptions?: AppTableDataServiceOptions<O>;
   [key: string]: any;
 }
 
-export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> implements OnDestroy {
+export class AppTableDataSource<T extends Entity<T>, F, O extends TableDataServiceWatchOptions = TableDataServiceWatchOptions>
+    extends TableDataSource<T>
+    implements OnDestroy {
 
   protected _debug = false;
-  protected _config: AppTableDataSourceOptions<T>;
+  protected _config: AppTableDataSourceOptions<T, O>;
   protected _creating = false;
   protected _saving = false;
   protected _useValidator = false;
@@ -30,7 +35,14 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
   $busy = new BehaviorSubject(false);
 
-  serviceOptions: any;
+  get serviceOptions(): AppTableDataServiceOptions<O> {
+    return this._config.dataServiceOptions;
+  }
+
+  set serviceOptions(value: AppTableDataServiceOptions<O>)  {
+    this._config.dataServiceOptions = value;
+  }
+
 
   set dataService(value: TableDataService<T, F>) {
     this._dataService = value;
@@ -40,7 +52,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     return this._dataService;
   }
 
-  get options(): AppTableDataSourceOptions<T> {
+  get options(): AppTableDataSourceOptions<T, O> {
     return this._config;
   }
 
@@ -57,12 +69,16 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
    * @param config Additional configuration for table.
    */
   constructor(dataType: new() => T,
-              private _dataService: TableDataService<T, F>,
+              private _dataService: TableDataService<T, F, O>,
               validatorService?: ValidatorService,
-              config?: AppTableDataSourceOptions<T>) {
+              config?: AppTableDataSourceOptions<T, O>) {
     super([], dataType, validatorService, config);
-    this.serviceOptions = config && config.dataServiceOptions || {};
-    this._config = config || {prependNewElements: false, suppressErrors: true};
+    this._config = {
+      prependNewElements: false,
+      suppressErrors: true,
+      dataServiceOptions: {},
+      ...config
+    };
     this._useValidator = isNotNil(validatorService);
 
     // For DEV ONLY
@@ -85,19 +101,19 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     this._stopWatchAll$.next(); // stop previous watch observable
 
     this.$busy.next(true);
-    return this._dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
+    return this._dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions as O)
       //.catch(err => this.handleError(err, 'Unable to load rows'))
       .pipe(
         // Stop this pipe next time we call watchAll()
         takeUntil(this._stopWatchAll$),
         catchError(err => this.handleError(err, 'ERROR.LOAD_DATA_ERROR')),
-        map(res => {
+        map((res: LoadResult<T>) => {
           if (this._saving) {
             console.error(`[table-datasource] Service ${this._dataService.constructor.name} sent data, while will saving... should skip ?`);
           } else {
             this.$busy.next(false);
             if (this._debug) console.debug(`[table-datasource] Service ${this._dataService.constructor.name} sent new data: updating datasource...`, res);
-            this.updateDatasource(res.data || []);
+            this.updateDatasource((res.data || []) as T[]);
           }
           return res;
         })

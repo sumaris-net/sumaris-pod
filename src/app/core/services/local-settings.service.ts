@@ -246,6 +246,10 @@ export class LocalSettingsService {
     return value.split(',');
   }
 
+  getPageFieldDefaultValue(pageId: string, fieldName: string): any {
+    return this.getPageSettings(pageId, `field.${fieldName}.defaultValue`);
+  }
+
   get additionalFields(): FormFieldDefinition[] {
     return this._additionalFields;
   }

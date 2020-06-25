@@ -24,9 +24,11 @@
 
     <ion-title [innerHTML]="title"></ion-title>
 
+    <ng-content select="ion-title"></ng-content>
+
     <ion-buttons slot="end">
 
-      <ng-content></ng-content>
+      <ng-content select="[slot=end]"></ng-content>
 
       <!-- search bar -->
       <ion-searchbar #searchbar animated

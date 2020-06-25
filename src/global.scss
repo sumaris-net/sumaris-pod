@@ -333,9 +333,11 @@ mat-option:not(:last-child) {
 }
 
 .mat-select-panel,
+.mat-menu-panel,
 .mat-autocomplete-panel {
 
   ion-row.mat-select-header,
+  ion-row.mat-menu-header,
   ion-row.mat-autocomplete-header {
     background-color: var(--ion-color-secondary);
     color: var(--ion-color-secondary-contrast);
@@ -360,6 +362,12 @@ mat-option:not(:last-child) {
       text-overflow: ellipsis;
       overflow: hidden;
     }
+
+
+  }
+
+  .odd {
+    background: var(--ion-light-color-shade, $light);
   }
 
   .mat-option[no-padding],
@@ -751,20 +759,31 @@ mat-tab-group.mat-tab-group-no-header .mat-tab-header {
 // Material menu
 // --------------------------------------------------
 
-// Small menu (e.g. for actions on a table row)
-.mat-menu-panel.mat-menu-small {
 
-  .mat-menu-content {
-    padding: 0;
+.mat-menu-panel {
 
-    .mat-menu-item {
-      padding: 0 8px;
-      height: 35px;
-      line-height: 35px;
+  // Max width
+  &.mat-menu-size-400 {
+    min-width: unset;
+    width: 400px;
+    max-width: calc(90vw);
+  }
+
+  // No padding
+  &.ion-no-padding {
+    .mat-menu-content {
+      padding: 0 !important;
     }
   }
-}
-.mat-menu-panel {
+
+  // Small menu item (e.g. for actions on a table row)
+  &.mat-menu-small-item-height .mat-menu-item,
+  .mat-menu-item.mat-menu-item-small-height
+  {
+    padding: 0 8px;
+    height: 35px;
+    line-height: 35px;
+  }
   //  Reduce the font size, on label just inside a mat-menu (e.g. see trips.page.html)
   .mat-menu-content > ion-label {
     font-size: 12px;

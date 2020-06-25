@@ -7,10 +7,16 @@ import {AppEditor, AppTableUtils, EntityUtils, environment} from '../../core/cor
 import {CatchBatchForm} from '../catch/catch.form';
 import {ReferentialUtils} from '../../core/services/model/referential.model';
 import {HistoryPageReference, UsageMode} from '../../core/services/model/settings.model';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
-import {BehaviorSubject, Subject} from 'rxjs';
+import {
+  EditorDataServiceLoadOptions,
+  fadeInOutAnimation,
+  isNil,
+  isNotEmptyArray,
+  isNotNil
+} from '../../shared/shared.module';
+import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
-import {debounceTime, distinctUntilChanged, filter, first, map, startWith, switchMap} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, first, map, startWith, switchMap, tap} from "rxjs/operators";
 import {FormGroup, Validators} from "@angular/forms";
 import * as moment from "moment";
 import {IndividualMonitoringSubSamplesTable} from "../sample/individualmonitoring/individual-monitoring-samples.table";
@@ -21,7 +27,7 @@ import {SamplesTable} from "../sample/samples.table";
 import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {isNotNilOrBlank} from "../../shared/functions";
-import {filterNotNil, firstNotNil} from "../../shared/observables";
+import {filterNotNil, firstNotNil, firstNotNilPromise, firstTruePromise} from "../../shared/observables";
 import {Operation, Trip} from "../services/model/trip.model";
 import {BatchGroup} from "../services/model/batch-group.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
@@ -43,6 +49,7 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
   programSubject = new BehaviorSubject<string>(null);
   onProgramChanged = new Subject<Program>();
   saveOptions: OperationSaveOptions = {};
+  $lastOperations = new BehaviorSubject<Operation[]>(null);
 
   rankOrder: number;
   selectedBatchTabIndex = 0;
@@ -336,22 +343,37 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
   }
 
   async onNewEntity(data: Operation, options?: EditorDataServiceLoadOptions): Promise<void> {
-    const tripId = options && isNotNil(options.tripId) ? options.tripId :
+    const tripId = options && isNotNil(options.tripId) ? +(options.tripId) :
       isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
     if (isNil(tripId)) throw new Error("Missing argument 'options.tripId'!");
-    data.tripId = tripId;
 
+    // Load parent trip
     const trip = await this.tripService.load(tripId);
+    data.tripId = tripId;
     data.trip = trip;
-
-    // If is on field mode, fill default values
-    if (this.isOnFieldMode) {
-      data.startDateTime = moment();
-    }
 
     // Use the default gear, if only one
     if (trip && trip.gears && trip.gears.length === 1) {
       data.physicalGear = trip.gears[0];
+    }
+
+
+    // If is on field mode, fill default values
+    if (this.isOnFieldMode) {
+      data.startDateTime = moment();
+
+      // Load last trip's operations
+      this.refreshLastOperations(tripId);
+
+      // Wait last operations to be loaded
+      const previousOperations = await firstNotNilPromise(this.$lastOperations);
+
+      // Copy from previous operation
+      if (isNotEmptyArray(previousOperations)) {
+        const previousOperation = previousOperations[0];
+        data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, previousOperation.physicalGear, 'id')) || data.physicalGear;
+        data.metier = previousOperation.metier;
+      }
     }
 
     this.defaultBackHref = trip ? `/trips/${trip.id}?tab=2` : undefined;
@@ -368,6 +390,11 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
 
     // Replace physical gear by the real entity
     data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
+
+    if (this.isOnFieldMode) {
+      // Load last trip's operations
+      this.refreshLastOperations(tripId, data.id);
+    }
 
     this.defaultBackHref = trip ? `/trips/${trip.id}?tab=2` : undefined;
   }
@@ -403,10 +430,12 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
    * Compute the title
    * @param data
    */
-  protected async computeTitle(data: Operation): Promise<string> {
+  protected async computeTitle(data: Operation, opts?: {
+    withPrefix?: boolean;
+  }): Promise<string> {
 
     // Trip exists
-    const titlePrefix = this.trip && (await this.translate.get('TRIP.OPERATION.TITLE_PREFIX', {
+    const titlePrefix = (!opts || opts.withPrefix !== false) && this.trip && (await this.translate.get('TRIP.OPERATION.TITLE_PREFIX', {
       vessel: this.trip && this.trip.vesselSnapshot && (this.trip.vesselSnapshot.exteriorMarking || this.trip.vesselSnapshot.name) || '',
       departureDateTime: this.trip && this.trip.departureDateTime && this.dateFormat.transform(this.trip.departureDateTime) as string || ''
     }).toPromise()) || '';
@@ -449,7 +478,7 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
     return changed;
   }
 
-  public onBatchTabChange(event: MatTabChangeEvent) {
+  onBatchTabChange(event: MatTabChangeEvent) {
     super.onSubTabChange(event);
     if (!this.loading) {
       // On each tables, confirm editing row
@@ -458,13 +487,30 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
     }
   }
 
-  public onSampleTabChange(event: MatTabChangeEvent) {
+  onSampleTabChange(event: MatTabChangeEvent) {
     super.onSubTabChange(event);
     if (!this.loading) {
       // On each tables, confirm editing row
       this.samplesTable.confirmEditCreate();
       this.individualMonitoringTable.confirmEditCreate();
       this.individualReleaseTable.confirmEditCreate();
+    }
+  }
+
+  async onOpenOperation(event: UIEvent, id?: number|'new'): Promise<any> {
+    if (isNil(id)) return; // skip
+
+    const canContinue = await this.saveIfDirtyAndConfirm(event, {
+      ...this.saveOptions,
+      emitEvent: false /*to not update view*/
+    });
+    if (canContinue) {
+      if (isNil(id) || id === 'new') {
+        this.load(undefined, {tripId: this.data.tripId});
+      }
+      else {
+        this.load(+id, {tripId: this.data.tripId});
+      }
     }
   }
 
@@ -712,6 +758,24 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
       queryParams: queryParams,
       queryParamsHandling: "preserve"
     });
+  }
+
+  protected refreshLastOperations(tripId: number, excludedId?: number) {
+    this.$lastOperations.next(null); // Reset, if was already loaded
+
+    // Load last trip's operations
+    this.registerSubscription(
+      this.dataService.watchAll(0, 5, 'startDateTime', 'desc', {
+        tripId
+      }, {
+        withBatchTree: false,
+        withSamples: false,
+        fetchPolicy: "cache-first"
+      }).pipe(
+        map(res => res && res.data || []),
+        // Exclude current operation
+        map(data => isNil(excludedId) ? data : data.filter(ope => ope.id !== excludedId))
+      ).subscribe(data => this.$lastOperations.next(data)));
   }
 
   protected markForCheck() {
