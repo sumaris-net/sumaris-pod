@@ -186,6 +186,7 @@
     <goals>deploy</goals>
     <arguments>-DperformFullRelease -Denv=hsqldb</arguments>
     <preparationGoals>verify</preparationGoals>
+		<gitflowPluginVersion>1.14.0</gitflowPluginVersion>
 
     <!-- Last JRE version to use -->
     <jreVersion>1.8.77</jreVersion>
@@ -1383,6 +1384,18 @@
           </dependency>
         </dependencies>
       </plugin>
+
+			<plugin>
+				<groupId>com.amashchenko.maven.plugin</groupId>
+				<artifactId>gitflow-maven-plugin</artifactId>
+				<version>${gitflowPluginVersion}</version>
+				<configuration>
+					<!-- optional configuration -->
+					<verbose>true</verbose>
+					<keepBranch>true</keepBranch>
+					<skipTestProject>true</skipTestProject>
+				</configuration>
+			</plugin>
 
     </plugins>
 

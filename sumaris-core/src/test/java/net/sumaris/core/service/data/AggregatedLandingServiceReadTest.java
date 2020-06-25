@@ -45,5 +45,6 @@ public class AggregatedLandingServiceReadTest extends AbstractServiceTest {
 
         log.info(String.format("aggregated landings loaded in %sms", System.currentTimeMillis() - start));
         Assert.assertNotNull(aggregatedLandings);
+        Assert.assertEquals(37, aggregatedLandings.size());
     }
 }
