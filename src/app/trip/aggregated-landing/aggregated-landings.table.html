@@ -63,25 +63,27 @@
       <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData.vesselSnapshot, autocompleteFields.vesselSnapshot.attributes)}}</ion-label>
+      <ion-label>{{referentialToString(row.currentData.vesselSnapshot, ['exteriorMarking', 'name'])}}</ion-label>
     </mat-cell>
   </ng-container>
 
-  <ng-container *ngFor="let date of $dates | async" [matColumnDef]="date.valueOf().toString()">
-    <mat-header-cell *matHeaderCellDef>
-      <ion-label>{{date | dateFormat: {pattern: 'dddd L'} }}</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="mat-cell-clickable" (click)="clickCell($event, row, date)">
-      <div *ngFor="let activity of getActivities(row, date)">
-        <div *ngFor="let pmfm of $pmfms | async">
-          {{measurementValueToString(activity.measurementValues[pmfm.pmfmId], pmfm)}}
+  <ng-container *ngIf="!mobile">
+    <ng-container *ngFor="let date of $dates | async" [matColumnDef]="date.valueOf().toString()">
+      <mat-header-cell *matHeaderCellDef>
+        <ion-label>{{date | dateFormat: {pattern: 'dddd L'} }}</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" class="mat-cell-clickable" (click)="clickCell($event, row, date)">
+        <div *ngFor="let activity of getActivities(row, date)">
+          <div *ngFor="let pmfm of $pmfms | async">
+            {{measurementValueToString(activity.measurementValues[pmfm.pmfmId], pmfm)}}
+          </div>
+          <div *ngFor="let metier of activity.metiers; last as isLast">
+            <span>{{referentialToString(metier, ['label'])}}</span><span *ngIf="!isLast">,</span>
+          </div>
+          <span class="comments-italic">{{activity.comments}}</span>
         </div>
-        <div *ngFor="let metier of activity.metiers; last as isLast">
-          <span>{{referentialToString(metier, ['label'])}}</span><span *ngIf="!isLast">,</span>
-        </div>
-        <span class="comments-italic">{{activity.comments}}</span>
-      </div>
-    </mat-cell>
+      </mat-cell>
+    </ng-container>
   </ng-container>
 
   <!-- Actions buttons column -->
@@ -96,17 +98,20 @@
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled mat-row-height-auto">
+  <mat-row *matRowDef="let row; columns: displayedColumns;"
+           class="mat-row-disabled mat-row-height-auto"
+           (click)="clickRow($event, row)"
+  >
   </mat-row>
 </mat-table>
 
 
 <!-- Add button -->
-<ion-fab vertical="bottom" horizontal="end"
-         *ngIf="canEdit"
-         visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="addRow()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+<!--<ion-fab vertical="bottom" horizontal="end"-->
+<!--         *ngIf="canEdit"-->
+<!--         visible-xs visible-sm visible-mobile>-->
+<!--  <ion-fab-button color="tertiary" (click)="addRow()">-->
+<!--    <ion-icon name="add"></ion-icon>-->
+<!--  </ion-fab-button>-->
+<!--</ion-fab>-->
 

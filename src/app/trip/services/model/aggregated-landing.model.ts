@@ -1,4 +1,4 @@
-import {Entity, EntityAsObjectOptions, fromDateISOString, toDateISOString} from "../../../core/core.module";
+import {Entity, EntityAsObjectOptions, fromDateISOString, isNotNil, ReferentialRef, toDateISOString} from "../../../core/core.module";
 import {Metier} from "../../../referential/services/model/taxon.model";
 import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Moment} from "moment";
@@ -19,7 +19,7 @@ export class VesselActivity extends Entity<VesselActivity> {
   rankOrder: number;
   comments: string;
   measurementValues: MeasurementModelValues | MeasurementFormValues;
-  metiers: Metier[];
+  metiers: ReferentialRef[];
   tripId: number;
 
   constructor() {
@@ -37,7 +37,7 @@ export class VesselActivity extends Entity<VesselActivity> {
     const target = super.asObject(opts);
     target.date = toDateISOString(this.date);
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
-    target.metiers = this.metiers && this.metiers.map(metier => metier.asObject(opts)) || undefined;
+    target.metiers = this.metiers && this.metiers.filter(isNotNil).map(p => p && p.asObject({...opts, ...NOT_MINIFY_OPTIONS})) || undefined;
     return target;
   }
 
@@ -47,7 +47,7 @@ export class VesselActivity extends Entity<VesselActivity> {
     this.rankOrder = source.rankOrder;
     this.comments = source.comments;
     this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
-    this.metiers = source.metiers && source.metiers.map(Metier.fromObject) || [];
+    this.metiers = source.metiers && source.metiers.map(ReferentialRef.fromObject) || [];
     this.tripId = source.tripId;
   }
 

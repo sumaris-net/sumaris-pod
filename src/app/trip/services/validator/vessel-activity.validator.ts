@@ -5,8 +5,9 @@ import {SharedFormArrayValidators, SharedValidators} from "../../../shared/valid
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {VesselActivity} from "../model/aggregated-landing.model";
 import {ValidatorService} from "angular4-material-table";
-import {Metier} from "../../../referential/services/model/taxon.model";
 import {DataEntityValidatorOptions} from "../../../data/services/validator/data-entity.validator";
+import {ReferentialRef} from "../../../core/services/model/referential.model";
+import {MeasurementsValidatorService} from "./measurement.validator";
 
 export interface VesselActivityValidatorOptions extends DataEntityValidatorOptions {
   required?: boolean;
@@ -18,7 +19,8 @@ export class VesselActivityValidatorService<T extends VesselActivity = VesselAct
 
   constructor(
     protected formBuilder: FormBuilder,
-    protected settings: LocalSettingsService) {
+    protected settings: LocalSettingsService
+  ) {
   }
 
   getRowValidator(opts?: O) {
@@ -42,8 +44,8 @@ export class VesselActivityValidatorService<T extends VesselActivity = VesselAct
       date: [data && data.date, Validators.compose([Validators.required, SharedValidators.validDate])],
       rankOrder: [data && data.rankOrder, Validators.compose([Validators.required, SharedValidators.integer])],
       comments: [data && data.comments, Validators.maxLength(2000)],
-      metiers: this.getMetiersFormArray(data),
-      measurementValues: [data && data.measurementValues || {}],
+      measurementValues: this.getMeasurementGroup(data),
+      metiers: this.getMetiersFormArray(data, opts),
       tripId: [data && data.tripId]
     };
   }
@@ -54,23 +56,35 @@ export class VesselActivityValidatorService<T extends VesselActivity = VesselAct
     return {};
   }
 
+  getMeasurementGroup(data?: T): FormGroup {
+    const config = data && data.measurementValues && Object.keys(data.measurementValues)
+        .reduce((res, pmfmId) => {
+          res[pmfmId] = [data.measurementValues[pmfmId]];
+          return res;
+        }, {})
+      || {};
+    return this.formBuilder.group(config);
+  }
+
+
   protected fillDefaultOptions(opts?: O): O {
     opts = opts || {} as O;
 
-    opts.required = toBoolean(opts.required, true);
+    opts.required = toBoolean(opts.required, false);
 
     return opts;
   }
 
 
-  private getMetiersFormArray(data?: VesselActivity) : FormArray {
+  private getMetiersFormArray(data: VesselActivity, opts: O): FormArray {
     return this.formBuilder.array(
-      (data && data.metiers || []).map(metier => this.getMetierFormControl(metier)),
+      (data && data.metiers || []).map(metier => this.getMetierFormControl(metier, opts)),
       SharedFormArrayValidators.requiredArrayMinLength(1)
-    )
+    );
   }
 
-  private getMetierFormControl(data?: Metier): FormControl {
-    return this.formBuilder.control(data || null, [Validators.required, SharedValidators.entity]);
+  public getMetierFormControl(data: ReferentialRef, opts?: O): FormControl {
+    opts = this.fillDefaultOptions(opts);
+    return this.formBuilder.control(data || null, opts.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
   }
 }

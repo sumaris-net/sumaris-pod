@@ -8,7 +8,7 @@ import {ValidatorService} from "angular4-material-table";
 import {DataEntityValidatorOptions} from "../../../data/services/validator/data-entity.validator";
 
 export interface AggregatedLandingValidatorOptions extends DataEntityValidatorOptions {
-  required?: boolean;
+  // required?: boolean;
 }
 
 @Injectable()
@@ -51,7 +51,7 @@ export class AggregatedLandingValidatorService<T extends AggregatedLanding = Agg
   protected fillDefaultOptions(opts?: O): O {
     opts = opts || {} as O;
 
-    opts.required = toBoolean(opts.required, true);
+    // opts.required = toBoolean(opts.required, false);
 
     return opts;
   }

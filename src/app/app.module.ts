@@ -1,7 +1,7 @@
 import "./vendor";
 
 import {APP_BASE_HREF, CommonModule} from "@angular/common";
-import {BrowserModule, HammerModule} from "@angular/platform-browser";
+import {BrowserModule} from "@angular/platform-browser";
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule} from "@angular/core";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
 import {DATE_ISO_PATTERN} from "./core/constants";

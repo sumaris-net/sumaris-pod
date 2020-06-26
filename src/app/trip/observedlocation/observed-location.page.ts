@@ -41,7 +41,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   @ViewChild('aggregatedLandingsTable', {static: false}) aggregatedLandingsTable: AggregatedLandingsTable;
 
   get landingEditor(): LandingEditor {
-    return this.landingsTable && this.landingsTable.detailEditor;
+    return this.landingsTable && this.landingsTable.detailEditor || 'landing';
   }
 
   set landingEditor(value: LandingEditor) {
@@ -293,5 +293,13 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // Add entity icon
     page.matIcon = 'verified_user';
     super.addToPageHistory(page);
+  }
+
+  addRow($event: MouseEvent) {
+    if (this.landingsTable) {
+      this.landingsTable.addRow($event);
+    } else if (this.aggregatedLandingsTable) {
+      this.aggregatedLandingsTable.addRow($event);
+    }
   }
 }

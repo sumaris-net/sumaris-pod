@@ -29,56 +29,95 @@
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <mat-swipe formControlName="empty"
-                        placeholder="placeholder"
-                         [items]="$dates"
-                         [config]="swipeDateOption"
+              <mat-swipe-field formControlName="empty"
+                               placeholder="placeholder"
+                               [items]="$dates"
+                               [displayWith]="displayDate()"
+                               [compareWithFn]="compareDate()"
+                               [tabindex]="1"
+                               [debug]="true"
               >
-              </mat-swipe>
+              </mat-swipe-field>
             </ion-card-content>
           </ion-card>
         </ion-col>
 
         <!-- date -->
-<!--        <ion-col>-->
-<!--          <ion-card>-->
-<!--            <ion-card-header>-->
-<!--              <ion-card-title>-->
-<!--                <ion-label color="primary">-->
-<!--                  Date-->
-<!--                </ion-label>-->
-<!--              </ion-card-title>-->
-<!--            </ion-card-header>-->
-<!--            <ion-card-content>-->
-<!--              <mat-swipe formControlName="date"-->
-<!--                         [items]="$dates"-->
-<!--                        [clearable]="true"-->
-<!--                         [config]="swipeDateOption"-->
-<!--              >-->
-<!--              </mat-swipe>-->
-<!--            </ion-card-content>-->
-<!--          </ion-card>-->
-<!--        </ion-col>-->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Date
+                </ion-label>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-swipe-field formControlName="date"
+                               placeholder="placeholder"
+                               [items]="$dates"
+                               [displayWith]="displayDate()"
+                               [compareWithFn]="compareDate()"
+                               [clearable]="true"
+                               [tabindex]="2"
+                               [debug]="true"
+              >
+              </mat-swipe-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
 
+      <ion-row>
         <!-- disable -->
-<!--        <ion-col>-->
-<!--          <ion-card>-->
-<!--            <ion-card-header>-->
-<!--              <ion-card-title>-->
-<!--                <ion-label color="primary">-->
-<!--                  Disabled control-->
-<!--                </ion-label>-->
-<!--              </ion-card-title>-->
-<!--            </ion-card-header>-->
-<!--            <ion-card-content>-->
-<!--              <mat-swipe formControlName="disabled"-->
-<!--                         [clearable]="false"-->
-<!--              >-->
-<!--              </mat-swipe>-->
-<!--            </ion-card-content>-->
-<!--          </ion-card>-->
-<!--        </ion-col>-->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Disabled empty
+                </ion-label>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-swipe-field formControlName="disabledEmpty"
+                               placeholder="placeholder"
+                               [items]="$dates"
+                               [displayWith]="displayDate()"
+                               [compareWithFn]="compareDate()"
+                               [clearable]="true"
+                               [tabindex]="3"
+                               [debug]="true"
+              >
+              </mat-swipe-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
 
+<!--         read-only-->
+        <ion-col>
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label color="primary">
+                  Disabled with date
+                </ion-label>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <mat-swipe-field formControlName="disabledDate"
+                               placeholder="placeholder"
+                               [items]="$dates"
+                               [displayWith]="displayDate()"
+                               [compareWithFn]="compareDate()"
+                               [clearable]="true"
+                               [tabindex]="4"
+                               [debug]="true"
+              >
+              </mat-swipe-field>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
 
       </ion-row>
 

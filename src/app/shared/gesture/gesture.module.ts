@@ -10,10 +10,10 @@ export {HammerSwipeAction, HammerSwipeEvent};
 @NgModule({
   imports: [
     CommonModule,
-    HammerModule
+    //HammerModule
   ],
   exports: [
-    HammerModule
+    //HammerModule
   ],
   providers: [
     // Configure hammer gesture

@@ -31,7 +31,7 @@ export class PacketSaleModal implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get valid() {
-    return this.packetSaleForm.valid;
+    return this.packetSaleForm && this.packetSaleForm.valid || false;
   }
 
 
@@ -43,12 +43,12 @@ export class PacketSaleModal implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.enable();
   }
 
   ngAfterViewInit(): void {
 
     setTimeout(() => {
+      this.enable();
       this.packetSaleForm.setValue(Packet.fromObject(this.packet));
       this.updateTitle();
     });

@@ -1,7 +1,7 @@
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component,
+  Component, ElementRef,
   EventEmitter,
   forwardRef,
   Input,
@@ -12,18 +12,19 @@ import {
   ViewChild
 } from "@angular/core";
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
-import {BehaviorSubject, isObservable, Observable, Subscription} from "rxjs";
-import {filter} from "rxjs/operators";
+import {BehaviorSubject, isObservable, noop, Observable, Subscription} from "rxjs";
 import {
-  isNilOrBlank,
-  isNotNilOrBlank,
+  isNil, isNotNil,
   joinPropertiesPath,
   toBoolean
 } from "../../functions";
 import {InputElement, selectInputContent} from "../../inputs";
-import {DisplayFn} from "../../form/field.model";
+import {CompareWithFn, DisplayFn} from "../../form/field.model";
 import {FloatLabelType} from "@angular/material/form-field";
 import {IonSlides} from "@ionic/angular";
+import {MatButton} from "@angular/material/button";
+import {firstNotNilPromise} from "../../observables";
+import {filter} from "rxjs/operators";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -31,16 +32,8 @@ export const DEFAULT_VALUE_ACCESSOR: any = {
   multi: true
 };
 
-export declare interface MatSwipeFieldConfig<T = any, F = any> {
-  attributes?: string[];
-  items?: Observable<T[]> | T[];
-  displayWith?: DisplayFn;
-  class?: string;
-  mobile?: boolean;
-}
-
 @Component({
-  selector: 'mat-swipe',
+  selector: 'mat-swipe-field',
   styleUrls: ['./material.swipe.scss'],
   templateUrl: './material.swipe.html',
   providers: [DEFAULT_VALUE_ACCESSOR],
@@ -48,27 +41,20 @@ export declare interface MatSwipeFieldConfig<T = any, F = any> {
 })
 export class MatSwipeField implements OnInit, InputElement, OnDestroy, ControlValueAccessor {
 
-  private _onChangeCallback = (_: any) => {
-  };
-  private _onTouchedCallback = () => {
-  };
-  private _implicitValue: any;
+  private _onChangeCallback: (_: any) => void = noop;
+  private _onTouchedCallback: () => void = noop;
+  private _value: any;
   private _subscription = new Subscription();
   private _itemsSubscription: Subscription;
-  private _itemCount: number;
+  private _writing = false;
+  private _tabindex: number;
   previousDisabled: boolean;
   nextDisabled: boolean;
+  showSlides = false;
+  $items = new BehaviorSubject<any[]>(undefined);
+  $loaded = new BehaviorSubject<boolean>(false);
 
-  _tabindex: number;
-  $inputItems = new BehaviorSubject<any[]>(undefined);
-
-  get itemCount(): number {
-    return this._itemCount;
-  }
-
-  @Input() compareWith: (o1: any, o2: any) => boolean;
-
-  @Input() logPrefix = "[mat-swipe] ";
+  @Input() logPrefix = "[mat-swipe-field]";
 
   @Input() formControl: FormControl;
 
@@ -78,37 +64,29 @@ export class MatSwipeField implements OnInit, InputElement, OnDestroy, ControlVa
 
   @Input() placeholder: string;
 
+  @Input() debug = false;
+
   @Input() required = false;
 
   @Input() mobile: boolean;
 
-  @Input() readonly = false;
-
   @Input() clearable = false;
 
-  @Input() debounceTime = 250;
+  @Input() compareWithFn: CompareWithFn | null;
 
   @Input() displayWith: DisplayFn | null;
 
   @Input() displayAttributes: string[];
 
-  @Input() showAllOnFocus: boolean;
-
-  @Input() showPanelOnFocus: boolean;
-
   @Input() appAutofocus: boolean;
-
-  @Input() config: MatSwipeFieldConfig;
-
-  @Input() i18nPrefix = 'REFERENTIAL.';
-
-  @Input() noResultMessage = 'COMMON.NO_RESULT';
 
   @Input('class') classList: string;
 
   @Input() set tabindex(value: number) {
-    this._tabindex = value;
-    this.markForCheck();
+    if (this._tabindex !== value) {
+      this._tabindex = value;
+      setTimeout(() => this.updateTabIndex());
+    }
   }
 
   get tabindex(): number {
@@ -118,26 +96,31 @@ export class MatSwipeField implements OnInit, InputElement, OnDestroy, ControlVa
   @Input() set items(value: Observable<any[]> | any[]) {
     // Remove previous subscription on items, (if exits)
     if (this._itemsSubscription) {
-      console.warn("Items received twice !");
+      console.warn(`${this.logPrefix} Items received twice !`);
       this._subscription.remove(this._itemsSubscription);
       this._itemsSubscription.unsubscribe();
     }
 
     if (isObservable<any[]>(value)) {
-
       this._itemsSubscription = this._subscription.add(
-        value.subscribe(v => this.$inputItems.next(v))
+        value.subscribe(v => {
+          this.loadItems(v);
+        })
       );
     } else {
-      if (value !== this.$inputItems.getValue()) {
-        this.$inputItems.next(value as any[]);
+      if (value !== this.$items.getValue()) {
+        this.loadItems(value as any[]);
       }
     }
   }
 
-  // get items(): Observable<any[]> | any[] {
-  //   return this.$inputItems;
-  // }
+  get items(): Observable<any[]> | any[] {
+    return this.$items.getValue();
+  }
+
+  get itemCount(): number {
+    return (this.$items.getValue() || []).length;
+  }
 
   @Output('click') onClick = new EventEmitter<MouseEvent>();
 
@@ -145,18 +128,23 @@ export class MatSwipeField implements OnInit, InputElement, OnDestroy, ControlVa
 
   @Output('focus') onFocus = new EventEmitter<FocusEvent>();
 
-  @ViewChild('ionSlides') ionSlides: IonSlides;
+  @ViewChild('fakeInput') fakeInput: ElementRef;
+
+  @ViewChild('slides', {static: true}) slides: IonSlides;
+
+  @ViewChild('prevButton') prevButton: MatButton;
+  @ViewChild('nextButton') nextButton: MatButton;
 
   get value(): any {
-    return this.formControl.value;
+    return this._value;
   }
 
   get disabled(): any {
-    return this.readonly || this.formControl.disabled;
+    return this.formControl.disabled;
   }
 
   get enabled(): any {
-    return !this.readonly && this.formControl.enabled;
+    return this.formControl.enabled;
   }
 
   constructor(
@@ -169,58 +157,106 @@ export class MatSwipeField implements OnInit, InputElement, OnDestroy, ControlVa
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-swipe-field>.");
 
-    // Configuration from config object
-    if (this.config) {
-      if (this.config.items) {
-        this.items = this.config.items;
-      }
-      this.displayAttributes = this.displayAttributes || this.config.attributes;
-      this.displayWith = this.displayWith || this.config.displayWith;
-      this.mobile = toBoolean(this.mobile, this.config.mobile);
-      this.classList = this.classList || this.config.class;
-    }
-
     // Default values
     this.displayAttributes = this.displayAttributes || ['label', 'name'];
     this.displayWith = this.displayWith || ((obj) => obj && joinPropertiesPath(obj, this.displayAttributes));
+    this.compareWithFn = this.compareWithFn || ((o1: any, o2: any) => o1 && o2 && o1.id === o2.id);
 
     this.mobile = toBoolean(this.mobile, false);
-
-    // Applying implicit value, on blur
-    this._subscription.add(
-      this.onBlur
-        .pipe(
-          // Skip if no implicit value, or has already a value
-          filter(_ => this._implicitValue)
-        )
-        .subscribe((_) => {
-          // When leave component without object, use implicit value if :
-          // - an explicit value
-          // - field is not empty (user fill something)
-          // - OR field empty but is required
-          const existingValue = this.formControl.value;
-          if ((this.required && isNilOrBlank(existingValue)) || (isNotNilOrBlank(existingValue) && typeof existingValue !== "object")) {
-            this.writeValue(this._implicitValue);
-            this.formControl.markAsPending({emitEvent: false, onlySelf: true});
-            this.formControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
-          }
-          this._implicitValue = null; // reset the implicit value
-          this.checkIfTouched();
-        }));
   }
 
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
-    this._implicitValue = undefined;
-    this.$inputItems.complete();
+    this._value = undefined;
+    this.$items.complete();
+  }
+
+  _onFocusFakeInput(event: FocusEvent) {
+    event.preventDefault();
+
+    // Hide the fake input
+    if (this.fakeInput) {
+      this.fakeInput.nativeElement.classList.add('hidden');
+      this.fakeInput.nativeElement.tabIndex = -1;
+    }
+
+    // Focus on first button
+    this.focus();
+  }
+
+  focus() {
+    // show slides component
+    this.showSlides = true;
+
+    setTimeout(() => {
+      if (this.prevButton) {
+        this.prevButton.focus();
+      }
+      this.updateTabIndex();
+    });
+
+    if (isNil(this._value)) {
+      // Slide to first and affect value
+      this.slideTo(0);
+      this.slideChanged();
+    }
+
+    this.markForCheck();
+  }
+
+  /**
+   * This is a special case, because, this component has a temporary component displayed before the first focus event
+   */
+  private updateTabIndex() {
+    if (isNil(this._tabindex) || this._tabindex === -1) return;
+
+    if (this.fakeInput) {
+      if (this.showSlides) {
+        this.fakeInput.nativeElement.classList.add('hidden');
+        this.fakeInput.nativeElement.tabIndex = -1;
+      } else {
+        this.fakeInput.nativeElement.classList.remove('hidden');
+        this.fakeInput.nativeElement.tabIndex = this._tabindex;
+      }
+    }
+    if (this.prevButton && this.nextButton) {
+      this.prevButton._elementRef.nativeElement.tabIndex = this.showSlides ? this._tabindex : -1;
+      this.nextButton._elementRef.nativeElement.tabIndex = this.showSlides ? this._tabindex + 1 : -1;
+    }
+    this.markForCheck();
   }
 
   writeValue(value: any): void {
-    //console.debug(this.logPrefix + " Writing value: ", value);
-    if (value !== this.formControl.value) {
-      this.formControl.patchValue(value, {emitEvent: false});
-      this._onChangeCallback(value);
+    if (this._writing) return;
+
+    this._writing = true;
+    if (!this.compareWithFn(value, this._value)) {
+      this._value = value;
+      this.showSlides = isNotNil(this._value);
+      this.updateSlides();
+      setTimeout(() => this.updateTabIndex());
     }
+    this._writing = false;
+
+    this.markForCheck();
+  }
+
+  clearValue(event: UIEvent) {
+    event.stopPropagation();
+    this._writing = true;
+    if (this.debug) console.debug(`${this.logPrefix} clear value`);
+    this._value = undefined;
+    this.formControl.patchValue(null, {emitEvent: false});
+    this.showSlides = false;
+    setTimeout(() => {
+      this.updateTabIndex();
+      this.slideTo(0);
+      setTimeout(() => {
+        this._writing = false;
+      }, 100);
+    });
+    this._onChangeCallback(null);
+    this.markForCheck();
   }
 
   registerOnChange(fn: any): void {
@@ -232,26 +268,18 @@ export class MatSwipeField implements OnInit, InputElement, OnDestroy, ControlVa
   }
 
   setDisabledState(isDisabled: boolean): void {
+    this.slides.lockSwipes(isDisabled).then(() => this.updateButtons());
     this.cd.markForCheck();
   }
 
   selectInputContent = selectInputContent;
 
-  focus() {
-      // focusInput(this.ionSlides);
-  }
-
-  clearValue(event: UIEvent) {
-    this.writeValue(null);
-    event.stopPropagation();
-  }
-
   previous() {
-    this.ionSlides.slidePrev();
+    this.slides.slidePrev();
   }
 
   next() {
-    this.ionSlides.slideNext();
+    this.slides.slideNext();
   }
 
   reachStart(reached: boolean) {
@@ -262,12 +290,36 @@ export class MatSwipeField implements OnInit, InputElement, OnDestroy, ControlVa
     this.nextDisabled = reached;
   }
 
+  slidesLoaded() {
+    this.$loaded.next(true);
+  }
+
+  slideChanged() {
+    this.slides.getActiveIndex()
+      .then(activeIndex => {
+        if (this._writing) return;
+        this._writing = true;
+        const value = (this.$items.getValue() || [])[activeIndex] || undefined;
+        if (this.debug) console.debug(`${this.logPrefix} slide changed ActiveIndex:${activeIndex}, new value:${value}`);
+        this.formControl.patchValue(value, {emitEvent: false});
+        this._writing = false;
+        this.checkIfTouched();
+        this._onChangeCallback(value);
+      });
+  }
+
   /* -- protected method -- */
 
+  private loadItems(items: any[]) {
+    this.$items.next(items);
+    if (this.$loaded.getValue() === true) {
+      this.slides.update();
+    }
+  }
 
   private checkIfTouched() {
     if (this.formControl.touched) {
-      this.cd.markForCheck();
+      this.markForCheck();
       this._onTouchedCallback();
     }
   }
@@ -275,4 +327,50 @@ export class MatSwipeField implements OnInit, InputElement, OnDestroy, ControlVa
   private markForCheck() {
     this.cd.markForCheck();
   }
+
+  private updateSlides() {
+    if (this.showSlides) {
+      const itemIndex = (this.$items.getValue() || []).findIndex(value => this.compareWithFn(value, this._value));
+      if (itemIndex >= 0) {
+        this.slideTo(itemIndex);
+      } else {
+        console.warn(`${this.logPrefix} Item not found`, this._value);
+        this.slideTo(0);
+      }
+    }
+  }
+
+  private slideTo(index: number) {
+    this.slides.slideTo(index, 0, false).then(() =>
+      this.slides.update().then(() =>
+        this.updateButtons()
+      )
+    );
+  }
+
+  private async updateButtons() {
+    const activeIndex = await this.slides.getActiveIndex();
+    if (this.debug) console.debug(`${this.logPrefix} update buttons ActiveIndex:${activeIndex}`);
+    this.previousDisabled = activeIndex === 0 || this.disabled;
+    this.nextDisabled = activeIndex === this.itemCount - 1 || this.disabled;
+  }
+
+
+  // not used ...
+  async getSlides(): Promise<IonSlides> {
+    await this.ready();
+    return this.slides;
+  }
+
+  async ready(): Promise<void> {
+    // Wait pmfms load, and controls load
+    if (this.$loaded.getValue() === false) {
+      if (this.debug) console.debug(`${this.logPrefix} waiting slides to be ready...`);
+      await firstNotNilPromise(this.$loaded
+        .pipe(
+          filter((loaded) => loaded === true)
+        ));
+    }
+  }
+
 }

@@ -32,7 +32,7 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get valid() {
-    return this.productSaleForm.valid;
+    return this.productSaleForm && this.productSaleForm.valid || false;
   }
 
 
@@ -44,12 +44,12 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.enable();
   }
 
   ngAfterViewInit(): void {
 
     setTimeout(() => {
+      this.enable();
       this.productSaleForm.setValue(Product.fromObject(this.product));
       this.updateTitle();
     });

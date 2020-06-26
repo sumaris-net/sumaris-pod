@@ -737,6 +737,9 @@
       "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé."
     }
   },
+  "AGGREGATED_LANDING": {
+    "TITLE": "Débarquement de {{vessel}}"
+  },
   "PACKET": {
     "LABEL": "Numéro de lot",
     "LABEL_VALUE": "Lot #{{rankOrder}}",

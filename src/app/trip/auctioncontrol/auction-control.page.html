@@ -81,8 +81,8 @@
           </ion-grid>
         </form>
 
+<!--                           [disabled]="!samplesTable.defaultTaxonGroup"-->
         <app-samples-table #samplesTable
-                           [disabled]="!samplesTable.defaultTaxonGroup"
                            [program]="programSubject|async"
                            [showLabelColumn]="true"
                            [showDateTimeColumn]="false"
