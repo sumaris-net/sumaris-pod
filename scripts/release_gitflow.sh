@@ -60,7 +60,7 @@ echo "* new build version: $2"
 echo "* new build android version: $3"
 echo "**********************************"
 
-git flow release start "&2"
+git flow release start "$2"
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
@@ -174,7 +174,7 @@ echo "**********************************"
 echo "* Finishing release"
 echo "**********************************"
 
-git flow release finish "&2"
+git flow release finish "$2"
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
