@@ -53,21 +53,17 @@ if [[ ! $2 =~ ^[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ || ! $3 =~ ^[0-9]+$ ]]; then
   exit 1
 fi
 
-echo "new build version: $2"
-echo "new build android version: $3"
+echo "**********************************"
+echo "* Starting release..."
+echo "**********************************"
+echo "* new build version: $2"
+echo "* new build android version: $3"
+echo "**********************************"
 
-echo
-echo "Check for uncommitted files"
-uncommittedChanges=$(git status --porcelain)
-if [[ $uncommittedChanges != "" ]]; then
-  echo ">> You have uncommitted changes. Please commit before release."
-  exit 1;
+git flow release start "&2"
+if [[ $? -ne 0 ]]; then
+    exit 1
 fi
-
-
-exit 0
-
-
 
 case "$1" in
 rel|pre)
@@ -110,9 +106,9 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-echo "----------------------------------"
+echo "-------------------------------------------"
 echo "- Compiling sources for Android platform..."
-echo "----------------------------------"
+echo "-------------------------------------------"
 
 # Removing previous APK..."
 rm ${PROJECT_DIR}/platforms/android/app/build/outputs/apk/release/*.apk
@@ -126,31 +122,27 @@ cd ${PROJECT_DIR}/scripts || exit 1
 ./release-android.sh
 [[ $? -ne 0 ]] && exit 1
 
-echo "----------------------------------"
-echo "- Executing git push, with tag: v$2"
-echo "----------------------------------"
-
 description="$4"
 if [[ "_$description" == "_" ]]; then
     description="Release v$2"
 fi
 
 # Commit
-cd $PROJECT_DIR
-git reset HEAD
-git add package.json config.xml src/assets/manifest.json install.sh
-git commit -m "v$2"
-git tag -f -a "v$2" -m "${description}"
-git push origin "v$2"
-[[ $? -ne 0 ]] && exit 1
+#cd $PROJECT_DIR
+#git reset HEAD
+#git add package.json config.xml src/assets/manifest.json install.sh
+#git commit -m "v$2"
+#git tag -f -a "v$2" -m "${description}"
+#git push origin "v$2"
+#[[ $? -ne 0 ]] && exit 1
 
 # Pause (if propagation is need between hosted git server and github)
-sleep 10s
+#sleep 10s
 
 echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
-
+cd $PROJECT_DIR
 ./github.sh $1 ''"$description"''
 [[ $? -ne 0 ]] && exit 1
 
@@ -177,6 +169,15 @@ echo "**********************************"
 # back to nodejs version 6
 #cd $PROJECT_DIR
 #nvm use 10
+
+echo "**********************************"
+echo "* Finishing release"
+echo "**********************************"
+
+git flow release finish "&2"
+if [[ $? -ne 0 ]]; then
+    exit 1
+fi
 
 echo "**********************************"
 echo "* Build release succeed !"
