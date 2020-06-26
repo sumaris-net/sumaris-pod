@@ -59,7 +59,7 @@ echo "new build android version: $3"
 echo
 echo "Check for uncommitted files"
 uncommittedChanges=`git status --porcelain`
-if [[ ! "$uncommittedChanges" = "_" ]]; then
+if [[ ! "_$uncommittedChanges" == "_" ]]; then
   echo ">> You have uncommitted changes. Please commit before release."
   exit 1;
 fi
