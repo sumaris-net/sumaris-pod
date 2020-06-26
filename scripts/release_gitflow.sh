@@ -14,11 +14,18 @@ cd ${PROJECT_DIR}
 
 
 ### Control that the script is run on `dev` branch
+resumeRelease=0
 branch=`git rev-parse --abbrev-ref HEAD`
-if [[ ! "$branch" = "develop" ]];
+if [[ ! "$branch" = "develop" ]]
 then
-  echo ">> This script must be run under \`develop\` branch"
-  exit 1
+  if [[ "$branch" = "release/$2" ]]
+  then
+    echo "Resuming release ..."
+    resumeRelease=1
+  else
+    echo ">> This script must be run under \`develop\` or \`release/$2\` branch"
+    exit 1
+  fi
 fi
 
 PROJECT_DIR=`pwd`
@@ -54,15 +61,23 @@ if [[ ! $2 =~ ^[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ || ! $3 =~ ^[0-9]+$ ]]; then
 fi
 
 echo "**********************************"
-echo "* Starting release..."
+if [[ $resumeRelease = 0 ]]
+then
+  echo "* Starting release..."
+else
+  echo "* Resuming release..."
+fi
 echo "**********************************"
 echo "* new build version: $2"
 echo "* new build android version: $3"
 echo "**********************************"
 
-git flow release start "$2"
-if [[ $? -ne 0 ]]; then
-    exit 1
+if [[ $resumeRelease = 0 ]]
+then
+  git flow release start "$2"
+  if [[ $? -ne 0 ]]; then
+      exit 1
+  fi
 fi
 
 case "$1" in
