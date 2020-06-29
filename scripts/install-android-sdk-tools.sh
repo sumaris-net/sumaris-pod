@@ -13,23 +13,28 @@ if [[ "_" == "_${ANDROID_SDK_TOOLS_ROOT}" ]]; then
   exit 1
 fi
 
-if [[ ! -d "${ANDROID_SDK_TOOLS_ROOT}/bin" ]]; then
-  echo "Installing Android SDK tools... ${ANDROID_SDK_TOOLS_ROOT}"
-  test -e "sdk-tools-linux-${ANDROID_SDK_TOOLS_VERSION}.zip" || wget -kL https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_TOOLS_VERSION}.zip
+if [[ ! -d "${ANDROID_SDK_TOOLS_ROOT}/tools/bin" ]]; then
+  echo "Installing Android SDK CLI tools... ${ANDROID_SDK_TOOLS_ROOT}"
+  ANDROID_SDK_CLI_TOOL_FILE="commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip"
+  test -e "${ANDROID_SDK_CLI_TOOL_FILE}" || wget -kL https://dl.google.com/android/repository/${ANDROID_SDK_CLI_TOOL_FILE}
   # Get parent folder
-  ANDROID_SDK_TOOLS_PARENT=$(dirname $ANDROID_SDK_ROOT)
-  test -e "${ANDROID_SDK_TOOLS_PARENT}" || mkdir -p "${ANDROID_SDK_TOOLS_PARENT}"
-  test -e "${ANDROID_SDK_TOOLS_ROOT}" || unzip -qq sdk-tools-linux-${ANDROID_SDK_TOOLS_VERSION}.zip -d "${ANDROID_SDK_TOOLS_PARENT}"
-  test -e "${ANDROID_SDK_TOOLS_ROOT}" && rm "sdk-tools-linux-${ANDROID_SDK_TOOLS_VERSION}.zip"
+  test -e "${ANDROID_SDK_TOOLS_ROOT}" || mkdir -p "${ANDROID_SDK_TOOLS_ROOT}"
+  test -e "${ANDROID_SDK_TOOLS_ROOT}" && unzip -qq ${ANDROID_SDK_CLI_TOOL_FILE} -d "${ANDROID_SDK_TOOLS_ROOT}"
+  test -e "${ANDROID_SDK_TOOLS_ROOT}" && rm "${ANDROID_SDK_CLI_TOOL_FILE}"
 fi
 
-export PATH=${ANDROID_SDK_TOOLS_ROOT}/bin:$PATH
+if [[ ! -d "${ANDROID_SDK_TOOLS_ROOT}/tools/bin" ]]; then
+  echo "Failed to install Android SDK CLI tools. If you are not root, try with sudo..."
+  exit 1
+fi
+
+export PATH=${ANDROID_SDK_TOOLS_ROOT}/tools/bin:$PATH
 
 mkdir -p ${ANDROID_SDK_ROOT}/licenses
 echo 8933bad161af4178b1185d1a37fbf41ea5269c55 > ${ANDROID_SDK_ROOT}/licenses/android-sdk-license
 echo 601085b94cd77f0b54ff86406957099ebe79c4d6 > ${ANDROID_SDK_ROOT}/licenses/android-googletv-license
 echo 33b6a2b64607f11b759f320ef9dff4ae5c47d97a > ${ANDROID_SDK_ROOT}/licenses/google-gdk-license
-yes | sdkmanager --licenses
+yes | sdkmanager --licenses "--sdk_root=${ANDROID_SDK_ROOT}"
 
 mkdir -p ~/.android
 touch ~/.android/repositories.cfg
