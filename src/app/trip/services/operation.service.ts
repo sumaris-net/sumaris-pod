@@ -28,13 +28,16 @@ import {
   SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS
 } from "../../data/services/model/data-entity.model";
 import {EntityStorage} from "../../core/services/entities-storage.service";
-import {Operation, VesselPosition} from "./model/trip.model";
+import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/trip.model";
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
 import {ReferentialFragments} from "../../referential/services/referential.queries";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {TableDataServiceWatchOptions} from "../../shared/services/data-service.class";
+import {DomEvent} from "leaflet";
+import off = DomEvent.off;
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -122,6 +125,11 @@ export class OperationFilter {
 
   static searchFilter<T extends Operation>(f: OperationFilter): (T) => boolean {
     return (o: T) => {
+      // Exclude id
+      if (isNotNil(f.excludeId) && o.id === f.excludeId) {
+        return false;
+      }
+
       // Trip
       if (isNotNil(f.tripId) &&
         ((isNotNil(o.tripId) && f.tripId !== o.tripId) ||
@@ -134,6 +142,7 @@ export class OperationFilter {
   }
 
   tripId?: number;
+  excludeId?: number;
 }
 
 const LoadAllQuery: any = gql`
@@ -191,9 +200,13 @@ export declare interface OperationSaveOptions {
   computeBatchIndividualCount?: boolean;
 }
 
+export declare interface OperationServiceOptions extends
+  OperationFromObjectOptions, TableDataServiceWatchOptions {
+}
+
 @Injectable({providedIn: 'root'})
 export class OperationService extends BaseDataService
-  implements TableDataService<Operation, OperationFilter>,
+  implements TableDataService<Operation, OperationFilter, OperationServiceOptions>,
              EditorDataService<Operation>{
 
   loading = false;
@@ -217,17 +230,21 @@ export class OperationService extends BaseDataService
    * @param sortBy
    * @param sortDirection
    * @param dataFilter
-   * @param options
+   * @param opts
    */
   watchAll(offset: number,
            size: number,
            sortBy?: string,
            sortDirection?: string,
            dataFilter?: OperationFilter,
-           options?: {
-            fetchPolicy?: WatchQueryFetchPolicy
-           }
+           opts?: OperationServiceOptions
   ): Observable<LoadResult<Operation>> {
+
+    // Load offline
+    const offlineData = this.network.offline || (dataFilter && dataFilter.tripId < 0) || false;
+    if (offlineData) {
+      return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
+    }
 
     if (!dataFilter || isNil(dataFilter.tripId)) {
       console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
@@ -242,63 +259,29 @@ export class OperationService extends BaseDataService
       filter: dataFilter
     };
 
-    let $loadResult: Observable<{operations?: Operation[]}>;
+    this._lastVariables.loadAll = variables;
+
     let now = this._debug && Date.now();
+    if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
 
-    const offlineData = this.network.offline || (dataFilter && dataFilter.tripId < 0) || false;
-    if (offlineData) {
-      if (this._debug) console.debug("[operation-service] Loading operations locally... using options:", variables);
-      $loadResult = this.entities.watchAll<Operation>('OperationVO', {
-        ...variables,
-        filter: OperationFilter.searchFilter<Operation>(dataFilter)
-      })
-        .pipe(
-          map(res => {
-            return res && {operations: res.data};
-          }));
-    }
-    else {
-      this._lastVariables.loadAll = variables;
-
-      if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
-      $loadResult = this.graphql.watchQuery({
-        query: LoadAllQuery,
-        variables: variables,
-        error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR"},
-        fetchPolicy: options && options.fetchPolicy || undefined
-      })
-        .pipe(
-          throttleTime(200), // avoid multiple call
-          filter(() => !this.loading)
-        );
-    }
-
-    return $loadResult
+    return this.graphql.watchQuery<{operations: any[]}>({
+      query: LoadAllQuery,
+      variables: variables,
+      error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || undefined
+    })
       .pipe(
+        throttleTime(200), // avoid multiple call
+        filter(() => !this.loading),
         map((res) => {
-          const data = (res && res.operations || []).map(Operation.fromObject);
+          const data = (res && res.operations || []).map(source => Operation.fromObject(source, opts));
           if (now) {
             console.debug(`[operation-service] Loaded ${data.length} operations in ${Date.now() - now}ms`);
             now = undefined;
           }
 
-          // Compute rankOrderOnPeriod, by tripId
-          if (dataFilter && dataFilter.tripId) {
-            let rankOrderOnPeriod = 1;
-            // apply a sorted copy (do NOT change original order), then compute rankOrder
-            data.slice().sort(sortByEndDateOrStartDateFn)
-              .forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
-
-            // sort by rankOrderOnPeriod (aka id)
-            if (!sortBy || sortBy === 'id') {
-              const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-              data.sort((a, b) => {
-                const valueA = a.rankOrderOnPeriod;
-                const valueB = b.rankOrderOnPeriod;
-                return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-              });
-            }
-          }
+          // Compute rankOrder and re-sort if need
+          this.computeRankOrderAndSort(data, sortBy, sortDirection, dataFilter);
 
           return {
             data: data,
@@ -568,7 +551,7 @@ export class OperationService extends BaseDataService
   }
 
   /**
-   * Save many operations
+   * Delete operation locally (from the entity storage)
    * @param tripId
    */
   async deleteLocallyByTripId(tripId: number): Promise<any> {
@@ -586,6 +569,48 @@ export class OperationService extends BaseDataService
       console.error(`[operation-service] Failed to delete operation from trip {${tripId}}`, err);
       throw err;
     }
+  }
+
+
+  /**
+   * Load many local operations
+   */
+  watchAllLocally(offset: number,
+                 size: number,
+                 sortBy?: string,
+                 sortDirection?: string,
+                 dataFilter?: OperationFilter,
+                 opts?: OperationFromObjectOptions): Observable<LoadResult<Operation>> {
+
+    if (!dataFilter || isNil(dataFilter.tripId)) {
+      console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
+      return EMPTY;
+    }
+    if (dataFilter.tripId >= 0) throw new Error("Invalid 'filter.tripId': must be a local trip (id<0)!");
+
+    const variables: any = {
+      offset: offset || 0,
+      size: size || 1000,
+      sortBy: (sortBy != 'id' && sortBy) || 'endDateTime',
+      sortDirection: sortDirection || 'asc',
+      filter: dataFilter
+    };
+
+    if (this._debug) console.debug("[operation-service] Loading operations locally... using options:", variables);
+    return this.entities.watchAll<Operation>('OperationVO', {
+      ...variables,
+      filter: OperationFilter.searchFilter<Operation>(dataFilter)
+    }).pipe(map(res => {
+      const data = (res && res.data || []).map(source => Operation.fromObject(source, opts));
+
+      // Compute rankOrder and re-sort if need
+      this.computeRankOrderAndSort(data, sortBy, sortDirection, dataFilter);
+
+      return {
+        data,
+        total: data.length
+      };
+    }))
   }
 
   /* -- protected methods -- */
@@ -752,6 +777,29 @@ export class OperationService extends BaseDataService
           this.copyIdAndUpdateDateOnBatch(sources, target.children);
         }
       });
+    }
+  }
+
+  protected computeRankOrderAndSort(data: Operation[],
+                                    sortBy: string,
+                                    sortDirection: string,
+                                    filter?: OperationFilter) {
+    // Compute rankOrderOnPeriod, by tripId
+    if (filter && isNotNil(filter.tripId)) {
+      let rankOrderOnPeriod = 1;
+      // apply a sorted copy (do NOT change original order), then compute rankOrder
+      data.slice().sort(sortByEndDateOrStartDateFn)
+        .forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
+
+      // sort by rankOrderOnPeriod (aka id)
+      if (!sortBy || sortBy === 'id') {
+        const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+        data.sort((a, b) => {
+          const valueA = a.rankOrderOnPeriod;
+          const valueB = b.rankOrderOnPeriod;
+          return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+        });
+      }
     }
   }
 }

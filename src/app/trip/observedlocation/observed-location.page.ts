@@ -41,7 +41,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   @ViewChild('aggregatedLandingsTable', {static: false}) aggregatedLandingsTable: AggregatedLandingsTable;
 
   get landingEditor(): LandingEditor {
-    return this.landingsTable && this.landingsTable.detailEditor || 'landing';
+    return this.landingsTable ? this.landingsTable.detailEditor : undefined;
   }
 
   set landingEditor(value: LandingEditor) {

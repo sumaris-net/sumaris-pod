@@ -466,7 +466,10 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
     this._subscription.add(sub);
   }
 
-  protected async saveIfDirtyAndConfirm(): Promise<boolean> {
+  protected async saveIfDirtyAndConfirm(event?: UIEvent, opts? : {
+    emitEvent: boolean;
+
+  }): Promise<boolean> {
     if (!this.dirty) return true;
 
     let confirm = false;
@@ -505,7 +508,7 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
       return !cancel;
     }
 
-    const saved = await this.save(event);
+    const saved = await this.save(event, opts);
     return saved;
   }
 

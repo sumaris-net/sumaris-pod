@@ -293,13 +293,21 @@ export class VesselPosition extends DataEntity<VesselPosition> {
 
 /* -- Operation -- */
 
-export class Operation extends DataEntity<Operation> {
+export interface OperationAsObjectOptions extends DataEntityAsObjectOptions {
+  batchAsTree?: boolean;
+}
+export interface OperationFromObjectOptions {
+  withSamples?: boolean;
+  withBatchTree?: boolean;
+}
+export class Operation extends DataEntity<Operation, OperationAsObjectOptions, OperationFromObjectOptions> {
 
   static TYPENAME = 'OperationVO';
 
-  static fromObject(source: any): Operation {
+  static fromObject(source: any, opts?: OperationFromObjectOptions): Operation {
+    if (!source || source instanceof Operation) return source;
     const res = new Operation();
-    res.fromObject(source);
+    res.fromObject(source, opts);
     return res;
   }
 
@@ -343,7 +351,7 @@ export class Operation extends DataEntity<Operation> {
     return target;
   }
 
-  asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
+  asObject(opts?: OperationAsObjectOptions): any {
     const target = super.asObject(opts);
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
@@ -413,8 +421,8 @@ export class Operation extends DataEntity<Operation> {
     return target;
   }
 
-  fromObject(source: any): Operation {
-    super.fromObject(source);
+  fromObject(source: any, opts?: OperationFromObjectOptions): Operation {
+    super.fromObject(source, opts);
     this.hasCatch = source.hasCatch;
     this.comments = source.comments;
     this.tripId = source.tripId;
@@ -446,19 +454,6 @@ export class Operation extends DataEntity<Operation> {
     }
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
 
-    // Samples
-    this.samples = source.samples && source.samples.map(source => Sample.fromObject(source, {withChildren: true})) || undefined;
-
-    // Batches
-    this.catchBatch = source.catchBatch && !source.batches ?
-      // Reuse existing catch batch (useful for local entity)
-      Batch.fromObject(source.catchBatch, {withChildren: true}) :
-      // Convert list to tree (useful when fetching from a pod)
-      Batch.fromObjectArrayAsTree(source.batches);
-
-    // Fishing areas
-    this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || undefined;
-
     // Remove fake dates (e.g. if endDateTime = startDateTime)
     if (this.endDateTime && this.endDateTime.isSameOrBefore(this.startDateTime)) {
       this.endDateTime = undefined;
@@ -468,6 +463,23 @@ export class Operation extends DataEntity<Operation> {
     }
     if (this.endPosition && this.endPosition.dateTime && this.startPosition && this.endPosition.dateTime.isSameOrBefore(this.startPosition.dateTime)) {
       this.endPosition.dateTime = undefined;
+    }
+
+    // Fishing areas
+    this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || undefined;
+
+    // Samples
+    if (!opts || opts.withSamples !== false) {
+      this.samples = source.samples && source.samples.map(source => Sample.fromObject(source, {withChildren: true})) || undefined;
+    }
+
+    // Batches
+    if (!opts || opts.withBatchTree !== false) {
+      this.catchBatch = source.catchBatch && !source.batches ?
+        // Reuse existing catch batch (useful for local entity)
+        Batch.fromObject(source.catchBatch, {withChildren: true}) :
+        // Convert list to tree (useful when fetching from a pod)
+        Batch.fromObjectArrayAsTree(source.batches);
     }
 
     return this;

@@ -53,6 +53,11 @@ export interface HistoryPageReference {
   matIcon?: string;
 
   children?: HistoryPageReference[];
+
+  // Manage visibility and data access
+  offline?: boolean;
+  onlinePeer?: string;
+
 }
 
 export class UserSettings extends Entity<UserSettings> {

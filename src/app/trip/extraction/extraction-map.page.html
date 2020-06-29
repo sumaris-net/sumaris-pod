@@ -1,14 +1,14 @@
 <app-toolbar [title]="$title | async" color="primary">
 
-  <ion-button mat-button (click)="openSelectTypeModal($event)">
+  <ion-button slot="end" mat-button (click)="openSelectTypeModal($event)">
     <ion-label translate>EXTRACTION.MAP.BTN_SELECT_TYPE</ion-label>
     <mat-icon slot="end">arrow_drop_down</mat-icon>
   </ion-button>
-    <ion-button mat-icon-button
-                *ngIf="canEdit"
-                [matMenuTriggerFor]="optionMenu">
-      <mat-icon slot="start">more_vert</mat-icon>
-    </ion-button>
+  <ion-button slot="end"  mat-icon-button
+              *ngIf="canEdit"
+              [matMenuTriggerFor]="optionMenu">
+    <mat-icon slot="start">more_vert</mat-icon>
+  </ion-button>
 </app-toolbar>
 
 

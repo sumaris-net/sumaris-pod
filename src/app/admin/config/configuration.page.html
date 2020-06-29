@@ -1,6 +1,6 @@
 <app-toolbar [title]="title$ | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
              [canGoBack]="false">
-  <ion-spinner *ngIf="loading"></ion-spinner>
+  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
 <ion-content>

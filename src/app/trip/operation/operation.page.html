@@ -1,4 +1,38 @@
-<app-toolbar [title]="title$ | async" color="primary"
+<mat-menu #operationsMenu="matMenu" class="mat-menu-size-400 ion-no-padding">
+  <ion-row class="mat-menu-header ion-no-padding">
+    <ion-col>
+      <ion-label translate>TRIP.OPERATION.LAST_OPERATIONS</ion-label>
+    </ion-col>
+  </ion-row>
+  <button *ngFor="let item of $lastOperations|async; odd as odd"
+          mat-menu-item (click)="onOpenOperation($event, item.id)"
+          class="mat-menu-item-small-height"
+          [class.odd]="odd">
+    <ion-row class="ion-no-padding">
+      <ion-col>
+        <ion-text>
+          <span translate>TRIP.OPERATION.OPE_PREFIX</span>
+          {{ item.startDateTime | dateFormat:{time: true} }}
+        </ion-text>
+      </ion-col>
+      <ion-col>
+        <ion-text color="medium"><small>
+          <ion-icon name="time-outline"></ion-icon>&nbsp;{{item.startDateTime|dateFromNow}}
+        </small></ion-text>
+      </ion-col>
+    </ion-row>
+  </button>
+
+  <ion-fab-button color="tertiary" size="small" visible-mobile visible-sm visible-xs
+                  style="margin-left: calc(100% - 50px); margin-top: -50px;"
+                  (click)="onOpenOperation($event, 'new')">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+  <!-- TODO: add ADD button for desktop-->
+
+</mat-menu>
+
+<app-toolbar color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
@@ -6,9 +40,14 @@
              (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
-  <ion-spinner *ngIf="loading"></ion-spinner>
 
-  <button mat-icon-button *ngIf="enabled && !isNewData"
+  <ion-title [matMenuTriggerFor]="operationsMenu"
+             [innerHTML]="title$|async">
+  </ion-title>
+
+  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
+
+  <button slot="end" mat-icon-button *ngIf="enabled && !isNewData"
           [matMenuTriggerFor]="optionsMenu"
           [title]=" 'COMMON.BTN_OPTIONS'|translate">
     <mat-icon>more_vert</mat-icon>

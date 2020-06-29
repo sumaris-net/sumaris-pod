@@ -139,7 +139,12 @@ export abstract class AppEditor<
    * @param id
    * @param opts
    */
-  async load(id?: number, opts?: EditorDataServiceLoadOptions) {
+  async load(id?: number, opts?: EditorDataServiceLoadOptions & {
+    emitEvent?: boolean;
+    openTabIndex?: number;
+    updateTabAndRoute?: boolean;
+    [key: string]: any;
+  }) {
     if (!this.dataService) throw new Error("Cannot load data: missing 'dataService'!");
 
     this.error = null;
@@ -151,7 +156,7 @@ export abstract class AppEditor<
       const data = new this.dataType();
       this._usageMode = this.computeUsageMode(data);
       await this.onNewEntity(data, opts);
-      this.updateView(data);
+      this.updateView(data, opts);
       this.loading = false;
     }
 
@@ -161,7 +166,7 @@ export abstract class AppEditor<
         const data = await this.dataService.load(id, opts);
         this._usageMode = this.computeUsageMode(data);
         await this.onEntityLoaded(data, opts);
-        this.updateView(data);
+        this.updateView(data, opts);
         this.loading = false;
         this.startListenRemoteChanges();
       }
@@ -198,39 +203,41 @@ export abstract class AppEditor<
   }
 
   updateView(data: T | null, opts?: {
+    emitEvent?: boolean;
     openTabIndex?: number;
     updateTabAndRoute?: boolean;
   }) {
     const idChanged = isNotNil(data.id) && (isNil(this.previousDataId) || this.previousDataId !== data.id) || false;
 
-    opts = opts || {};
-    opts.updateTabAndRoute = toBoolean(opts.updateTabAndRoute, idChanged && !this.loading);
-    opts.openTabIndex = this.tabCount > 1 ?
-      ((isNotNil(opts.openTabIndex) && opts.openTabIndex < this.tabCount) ? opts.openTabIndex :
-        // If new data: open the second tab (if it's not the select index)
-        (idChanged && isNil(this.previousDataId) && this.selectedTabIndex < this.tabCount - 1 ? this.selectedTabIndex + 1 : undefined)) : undefined;
+    opts = {
+      updateTabAndRoute: idChanged && !this.loading,
+      openTabIndex: idChanged && isNil(this.previousDataId) && this.selectedTabIndex < this.tabCount - 1 ? this.selectedTabIndex + 1 : undefined,
+      ...opts
+    };
 
     this.data = data;
     this.previousDataId = data.id;
+
     this.setValue(data);
 
-    this.markAsPristine();
-    this.markAsUntouched();
+    if (!opts || opts.emitEvent !== false) {
+      this.markAsPristine();
+      this.markAsUntouched();
+      this.updateViewState(data);
 
-    this.updateViewState(data);
+      // Need to update route
+      if (opts.updateTabAndRoute === true) {
+        this.updateTabAndRoute(data, opts)
+          // Update the title - should be executed AFTER updateTabAndRoute because of path change - fix #185
+          .then(() => this.updateTitle(data));
+      }
+      else {
+        // Update the title.
+        this.updateTitle(data);
+      }
 
-    // Need to update route
-    if (opts.updateTabAndRoute === true) {
-      this.updateTabAndRoute(data, opts)
-        // Update the title - should be executed AFTER updateTabAndRoute because of path change - fix #185
-        .then(() => this.updateTitle(data));
+      this.onUpdateView.emit(data);
     }
-    else {
-      // Update the title.
-      this.updateTitle(data);
-    }
-
-    this.onUpdateView.emit(data);
   }
 
   /**
@@ -296,7 +303,6 @@ export abstract class AppEditor<
   }
 
   async save(event?: Event, options?: any): Promise<boolean> {
-    // DEBUG console.debug("TODO call save");
     if (this.loading || this.saving) {
       console.debug("[data-editor] Skip save: editor is busy (loading or saving)");
       return false;
@@ -333,7 +339,7 @@ export abstract class AppEditor<
       const updatedData = await this.dataService.save(data, options);
 
       // Update the view (e.g metadata)
-      this.updateView(updatedData);
+      this.updateView(updatedData, options);
 
       // Subscribe to remote changes
       if (!this.hasRemoteListener) this.startListenRemoteChanges();
@@ -516,7 +522,10 @@ export abstract class AppEditor<
     }
   }
 
-  protected addToPageHistory(page: HistoryPageReference, opts?: {removePathQueryParams?: boolean; removeTitleSmallTag?: boolean; }) {
+  protected addToPageHistory(page: HistoryPageReference, opts?: {
+    removePathQueryParams?: boolean;
+    removeTitleSmallTag?: boolean;
+  }) {
     this.settings.addToPageHistory(page, {
       removePathQueryParams: true,
       removeTitleSmallTag: true,

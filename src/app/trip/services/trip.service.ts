@@ -779,7 +779,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const res = await this.entities.loadAll<Operation>('OperationVO', {
       filter: OperationFilter.searchFilter<Operation>({tripId: localId})
     });
-    entity.operations = (res && res.data || []).map(Operation.fromObject);
+    entity.operations = (res && res.data || []).map(ope => Operation.fromObject(ope));
     entity.synchronizationStatus = 'SYNC';
     entity.id = undefined;
 
