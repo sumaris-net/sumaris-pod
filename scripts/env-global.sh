@@ -82,34 +82,41 @@ fi
 # Add Java, Android SDK tools to path
 PATH=${ANDROID_SDK_TOOLS_ROOT}/bin:${GRADLE_HOME}/bin:${JAVA_HOME}/bin$:$PATH
 
+
+# Node JS (using nvm - Node Version Manager)
+NVM_DIR="$HOME/.config/nvm"
+if [[ ! -d "${NVM_DIR}" && -d "$HOME/.nvm" ]]; then
+  NVM_DIR="$HOME/.nvm"  ## Try alternative path
+fi
+if [[ -d "${NVM_DIR}" ]]; then
+
+  # Load NVM
+  . ${NVM_DIR}/nvm.sh
+
+  # Switch to expected version
+  nvm use ${NODE_VERSION}
+
+  # Or install it
+  if [[ $? -ne 0 ]]; then
+      nvm install ${NODE_VERSION}
+      [[ $? -ne 0 ]] && exit 1
+  fi
+else
+  echo "nvm (Node version manager) not found (directory ${NVM_DIR} not found)."
+  echo "Please install nvm (see https://github.com/nvm-sh/nvm), then retry"
+  exit 1
+fi
+
+
 # Export useful variables
 export PATH \
   PROJECT_DIR \
   JAVA_HOME \
+  NVM_DIR \
   NODE_OPTIONS \
   ANDROID_SDK_ROOT \
   ANDROID_SDK_TOOLS_ROOT \
   CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL
-
-# Node JS
-export NVM_DIR="$HOME/.nvm"
-if [[ -d "${NVM_DIR}" ]]; then
-
-    # Load NVM
-    . ${NVM_DIR}/nvm.sh
-
-    # Switch to expected version
-    nvm use ${NODE_VERSION}
-
-    # Or install it
-    if [[ $? -ne 0 ]]; then
-        nvm install ${NODE_VERSION}
-        [[ $? -ne 0 ]] && exit 1
-    fi
-else
-    echo "nvm (Node version manager) not found (directory ${NVM_DIR} not found). Please install, and retry"
-    exit 1
-fi
 
 # Install global dependencies
 IONIC_PATH=`which ionic`
