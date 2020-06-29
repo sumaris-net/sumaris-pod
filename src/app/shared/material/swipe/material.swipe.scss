@@ -1,27 +1,38 @@
-
 :host {
   display: inline-block;
+  width: 100%;
   position: relative;
-
-  &.text-wrap, &.ion-text-wrap {
-    ion-label {
-      white-space: normal !important;
-    }
-  }
 }
 
-button[hidden] {
+input.hidden {
   display: none;
 }
 
-// This try to copy style as .mat-select-arrow
-mat-icon.select-arrow {
-  color: rgba(0,0,0,0.47);
-  font-size: 150%;
+.slides-container {
+
+  .swiper-slide {
+    font-size: 16px !important;
+  }
+
+  &.hidden {
+    visibility: hidden;
+    height: 0 !important;
+  }
 }
 
-div.inline {
-  display: inline;
+.button-prev,
+.button-next {
+  position: absolute;
+  top: calc(50% - 20px);
+  z-index: 10;
 }
 
+.button-prev {
+  left: 0;
+  right: auto;
+}
 
+.button-next {
+  left: auto;
+  right: 0;
+}

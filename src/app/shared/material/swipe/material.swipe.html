@@ -1,75 +1,60 @@
-
-<mat-form-field [floatLabel]="floatLabel" [class.mat-form-field-disabled]="disabled">
-  <input matInput hidden type="text"
-         [placeholder]="placeholder"
+<mat-form-field [floatLabel]="showSlides && (!floatLabel || floatLabel === 'auto') ? 'always': floatLabel"
+                [class.mat-form-field-disabled]="disabled">
+  <mat-label *ngIf="placeholder && floatLabel!=='never'">
+    {{placeholder}}
+  </mat-label>
+  <input matInput #fakeInput type="text"
          [formControl]="formControl"
-         readonly>
+         [readonly]="true"
+         (focus)="_onFocusFakeInput($event)"
+         [required]="required"
+         [class.cdk-visually-hidden]="showSlides"
+         [tabindex]="tabindex">
 
-<!--  <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>-->
+  <div class="slides-container" [class.hidden]="!showSlides">
+    <ion-slides #slides
+                (ionSlidesDidLoad)="slidesLoaded()"
+                (ionSlideReachStart)="reachStart(true)"
+                (ionSlideReachEnd)="reachEnd(true)"
+                (ionSlideNextEnd)="reachStart(false)"
+                (ionSlidePrevEnd)="reachEnd(false)"
+                (ionSlideDidChange)="slideChanged()"
+    >
+      <ion-slide *ngFor="let item of $items | async">
+        <ion-label>{{ displayWith(item) }}</ion-label>
+      </ion-slide>
 
-  <!-- readonly
-  <ng-container *ngIf="readonly; else writable">
---          <ion-label>{{ displayWith(value) }}</ion-label>-
-    <ion-label>readonly</ion-label>
-  </ng-container>-->
+    </ion-slides>
+  </div>
 
-  <!--<ng-template #writable>-->
+  <button #prevButton
+          mat-icon-button
+          type="button"
+          class="button-prev"
+          [hidden]="!showSlides"
+          [disabled]="previousDisabled"
+          (click)="previous()">
+    <mat-icon>chevron_left</mat-icon>
+  </button>
+  <button #nextButton
+          mat-icon-button
+          type="button"
+          class="button-next"
+          [hidden]="!showSlides"
+          [disabled]="nextDisabled"
+          (click)="next()">
+    <mat-icon>chevron_right</mat-icon>
+  </button>
 
-    <ng-container *ngTemplateOutlet="prefix"></ng-container>
-
-
-<!--    <ion-slides #ionSlides-->
-<!--                (ionSlideReachStart)="reachStart(true)"-->
-<!--                (ionSlideReachEnd)="reachEnd(true)"-->
-<!--                (ionSlideNextEnd)="reachStart(false)"-->
-<!--                (ionSlidePrevEnd)="reachEnd(false)"-->
-<!--                hidden="true"-->
-<!--    >-->
-<!--      <ion-slide *ngFor="let item of $inputItems | async">-->
-<!--        <ion-label>{{ displayWith(item) }}</ion-label>-->
-<!--      </ion-slide>-->
-
-<!--    </ion-slides>-->
-  <ion-text>test</ion-text>
-
-
-
-<!--          <button matSuffix mat-icon-button tabindex="-1"-->
-<!--                  type="button"-->
-<!--                  *ngIf="clearable"-->
-<!--                  (click)="clearValue($event)"-->
-<!--                  [hidden]="disabled || !formControl.value">-->
-<!--            <mat-icon>close</mat-icon>-->
-<!--          </button>-->
-  <!--</ng-template>-->
-
-  <ng-container *ngTemplateOutlet="suffix"></ng-container>
-
+  <button matSuffix mat-icon-button tabindex="-1"
+          type="button"
+          *ngIf="clearable"
+          (click)="clearValue($event)"
+          [hidden]="disabled || !formControl.value">
+    <mat-icon>close</mat-icon>
+  </button>
 
   <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
 
-
 </mat-form-field>
-
-<ng-template #prefix>
-  <button matPrefix mat-icon-button
-          type="button"
-          [disabled]="previousDisabled"
-          (click)="previous()"
-          [hidden]="disabled">
-    <mat-icon>chevron_left</mat-icon>
-  </button>
-  <ng-content matPrefix select="[matPrefix]"></ng-content>
-</ng-template>
-
-<ng-template #suffix>
-  <button matSuffix mat-icon-button
-          type="button"
-          [disabled]="nextDisabled"
-          (click)="next()"
-          [hidden]="disabled">
-    <mat-icon>chevron_right</mat-icon>
-  </button>
-  <ng-content matSuffix select="[matSuffix]"></ng-content>
-</ng-template>

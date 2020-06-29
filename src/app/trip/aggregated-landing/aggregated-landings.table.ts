@@ -31,6 +31,9 @@ import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {ProgramService} from "../../referential/services/program.service";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {add} from "ionicons/icons";
+import {PacketModal} from "../packet/packet.modal";
+import {AggregatedLandingModal} from "./aggregated-landing.modal";
 
 @Component({
   selector: 'app-aggregated-landings-table',
@@ -45,8 +48,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   isAdmin: boolean;
   filterIsEmpty = true;
   offline = false;
-
-  hasOfflineMode = false;
+  mobile: boolean;
 
   private _onRefreshDates = new EventEmitter<any>();
   private _onRefreshPmfms = new EventEmitter<any>();
@@ -118,7 +120,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
       null,
       injector
     );
-    this.i18nColumnPrefix = 'TRIP.TABLE.';
+    this.i18nColumnPrefix = 'AGGREGATED_LANDING.TABLE.';
 
     this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
@@ -128,6 +130,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.saveBeforeDelete = false;
     this.autoLoad = false;
     this.pageSize = 1000; // Do not use paginator
+    this.mobile = this.settings.mobile;
 
     // default acquisition level
     this._acquisitionLevel = AcquisitionLevelCodes.LANDING;
@@ -146,15 +149,6 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
 
     // Listen network
     this.offline = this.network.offline;
-
-    // Combo: vessels
-    this.registerAutocompleteField('vesselSnapshot', {
-      service: this.vesselSnapshotService,
-      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
-    });
 
     this.registerSubscription(this._onRefreshDates.subscribe(() => this.refreshDates()));
     this.registerSubscription(this._onRefreshPmfms.subscribe(() => this.refreshPmfms()));
@@ -208,11 +202,16 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
 
   protected getDisplayColumns(): string[] {
 
-    const dateColumns = this.$dates.getValue()?.map(date => date.valueOf().toString()) || [];
+    const additionalColumns = [];
+    if (this.mobile) {
+      // add summary column
+    } else {
+      additionalColumns.push(...(this.$dates.getValue()?.map(date => date.valueOf().toString()) || []));
+    }
 
     return RESERVED_START_COLUMNS
       .concat(this.columns)
-      .concat(dateColumns)
+      .concat(additionalColumns)
       .concat(RESERVED_END_COLUMNS);
   }
 
@@ -233,8 +232,51 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.$pmfms.next(pmfms);
   }
 
-  clickCell($event: MouseEvent, row: TableElement<AggregatedLanding>, date: Moment) {
-    console.debug('clickCell', $event, row.currentData.vesselSnapshot.exteriorMarking + "|" + row.currentData.vesselActivities.length, date.toISOString());
+  protected async openRow(id: number, row: TableElement<AggregatedLanding>): Promise<boolean> {
+    if (!this.mobile) return false;
+    // on mobile mode
+
+    const today = moment().startOf("day");
+    await this.openModal(row, today);
+  }
+
+  async clickCell($event: MouseEvent, row: TableElement<AggregatedLanding>, date: Moment) {
+    if ($event) $event.stopPropagation();
+    if (this.debug)
+      console.debug('clickCell', $event, row.currentData.vesselSnapshot.exteriorMarking + "|" + row.currentData.vesselActivities.length, date.toISOString());
+
+    await this.openModal(row, date);
+  }
+
+  async openModal(row: TableElement<AggregatedLanding>, date?: Moment) {
+    const modal = await this.modalCtrl.create({
+      component: AggregatedLandingModal,
+      componentProps: {
+        data: row.currentData,
+        options: {
+          dates: this.$dates.getValue(),
+          initialDate: date,
+          program: this._program,
+          acquisitionLevel: this._acquisitionLevel
+        }
+      },
+      backdropDismiss: false,
+      // cssClass: 'modal-large'
+    });
+
+    await modal.present();
+    const res = await modal.onDidDismiss();
+
+    if (res && res.data) {
+      console.debug('data to update:', res.data);
+
+      // row.validator.patchValue(res.data, {onlySelf: false, emitEvent: true});
+
+      // update sales
+      // this.updateSaleProducts(row);
+
+      this.markAsDirty();
+    }
   }
 }
 

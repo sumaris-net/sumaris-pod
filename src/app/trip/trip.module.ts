@@ -91,11 +91,13 @@ import {TypedExpenseValidatorService} from "./services/validator/typed-expense.v
 import {FishingAreaForm} from "./fishing-area/fishing-area.form";
 import {FishingAreaValidatorService} from "./services/validator/fishing-area.validator";
 import {DataModule} from "../data/data.module";
-import {AggregatedLandingsForm} from "./aggregated-landing/aggregated-landings.form";
+import {AggregatedLandingForm} from "./aggregated-landing/aggregated-landing.form";
 import {AggregatedLandingValidatorService} from "./services/validator/aggregated-landing.validator";
 import {AggregatedLandingService} from "./services/aggregated-landing.service";
 import {AggregatedLandingsTable} from "./aggregated-landing/aggregated-landings.table";
 import {VesselActivityValidatorService} from "./services/validator/vessel-activity.validator";
+import {VesselActivityForm} from "./aggregated-landing/vessel-activity.form";
+import {AggregatedLandingModal} from "./aggregated-landing/aggregated-landing.modal";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -130,7 +132,9 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     LandingForm,
     SelectLandingsModal,
     AggregatedLandingsTable,
-    AggregatedLandingsForm,
+    AggregatedLandingModal,
+    AggregatedLandingForm,
+    VesselActivityForm,
     SamplesTable,
     SubSamplesTable,
     BatchGroupsTable,

@@ -35,6 +35,10 @@ export const environment: Environment = {
       port: 8080
     },
     {
+      host: 'localhost',
+      port: 8081
+    },
+    {
       host: '192.168.0.24',
       port: 8080
     },

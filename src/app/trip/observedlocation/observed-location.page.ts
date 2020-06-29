@@ -294,4 +294,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     page.matIcon = 'verified_user';
     super.addToPageHistory(page);
   }
+
+  addRow($event: MouseEvent) {
+    if (this.landingsTable) {
+      this.landingsTable.addRow($event);
+    } else if (this.aggregatedLandingsTable) {
+      this.aggregatedLandingsTable.addRow($event);
+    }
+  }
 }

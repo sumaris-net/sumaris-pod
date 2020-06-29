@@ -1,7 +1,7 @@
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 2, // TODO SFA=6  | SUMARiS=2
+  PORT: 6, // TODO SFA=6  | SUMARiS=2
   SEA_AREA: 7,
   AUCTION: 3
 };

@@ -88,7 +88,7 @@ export {
 @NgModule({
   imports: [
     CommonModule,
-    HammerModule,
+    //HammerModule,
     IonicModule,
     ReactiveFormsModule,
     SharedMaterialModule,

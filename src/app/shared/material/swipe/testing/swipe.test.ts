@@ -4,8 +4,9 @@ import {SharedValidators} from "../../../validator/validators";
 import * as moment from "moment";
 import {BehaviorSubject} from "rxjs";
 import {Moment} from "moment";
-import {MatSwipeFieldConfig} from "../material.swipe";
 import {DateFormatPipe} from "../../../pipes/date-format.pipe";
+import {DisplayFn} from "../../../form/field.model";
+import {distinctUntilChanged} from "rxjs/operators";
 
 @Component({
   selector: 'app-swipe-test',
@@ -15,10 +16,8 @@ export class SwipeTestPage implements OnInit {
 
   form: FormGroup;
 
-  swipeDateOption: MatSwipeFieldConfig;
-
   $dates = new BehaviorSubject<Moment[]>(undefined);
-  private _today = moment().startOf("day")
+  private _today = moment().startOf("day");
 
   constructor(
     protected formBuilder: FormBuilder,
@@ -27,14 +26,13 @@ export class SwipeTestPage implements OnInit {
     this.form = formBuilder.group({
       empty: [null, Validators.required],
       date: [null, Validators.compose([Validators.required, SharedValidators.validDate])],
-      disabled: [null, Validators.required]
+      disabledEmpty: [null, Validators.required],
+      disabledDate: [null, Validators.required]
     });
 
-    this.form.get('disabled').disable();
+    this.form.get('disabledEmpty').disable();
+    this.form.get('disabledDate').disable();
 
-    this.swipeDateOption = {
-      displayWith: (obj) => dateFormatPipe.transform(obj, {pattern: 'dddd L'}).toString()
-    };
   }
 
   ngOnInit() {
@@ -49,6 +47,9 @@ export class SwipeTestPage implements OnInit {
     this.loadData();
     //setTimeout(() => this.loadData(), 1500);
 
+    this.form.valueChanges.pipe(
+      distinctUntilChanged()
+    ).subscribe(() => console.debug(this.form.value));
   }
 
   // Load the form with data
@@ -56,7 +57,8 @@ export class SwipeTestPage implements OnInit {
     const data = {
       empty: null,
       date: this._today,
-      disabled: "disabled"
+      disabledEmpty: null,
+      disabledDate: this._today
     };
 
     this.form.patchValue(data);
@@ -68,6 +70,12 @@ export class SwipeTestPage implements OnInit {
 
   /* -- protected methods -- */
 
+  displayDate(): DisplayFn {
+    return (obj: any) => this.dateFormatPipe.transform(obj, {pattern: 'dddd L'}).toString();
+  }
 
+  compareDate() {
+    return (d1: Moment, d2: Moment) => d1 && d2 && d1.isSame(d2) || false;
+  }
 }
 

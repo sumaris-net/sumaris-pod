@@ -730,6 +730,9 @@
       "SUBSCRIBE_ERROR": "Error while subscribe to observed vessel changes."
     }
   },
+  "AGGREGATED_LANDING": {
+    "TITLE": "Landings of {{vessel}}"
+  },
   "PACKET": {
     "LABEL": "Batch number",
     "LABEL_VALUE": "Batch #{{rankOrder}}",
