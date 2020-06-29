@@ -27,9 +27,9 @@ import {
   suggestFromArray,
   toBoolean
 } from "../../functions";
-import {InputElement, focusInput, selectInputContent} from "../../inputs";
+import {focusInput, InputElement, selectInputContent} from "../../inputs";
 import {firstNotNilPromise} from "../../observables";
-import {DisplayFn} from "../../form/field.model";
+import {CompareWithFn, DisplayFn} from "../../form/field.model";
 import {FloatLabelType} from "@angular/material/form-field";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
@@ -46,8 +46,10 @@ export declare interface MatAutocompleteFieldConfig<T = any, F = any> {
   columnSizes?: (number|'auto'|undefined)[];
   columnNames?: (string|undefined)[];
   displayWith?: DisplayFn;
+  compareWith?: CompareWithFn;
   showAllOnFocus?: boolean;
   showPanelOnFocus?: boolean;
+  class?: string;
   mobile?: boolean;
 }
 
@@ -67,7 +69,7 @@ export class MatAutocompleteConfigHolder {
   }) {
     // Store the function from options (e.g. get from user settings)
     // or create a default function
-    this.getUserAttributes = options && options.getUserAttributes || 
+    this.getUserAttributes = options && options.getUserAttributes ||
       function (fieldName, defaultAttributes): string[] {
         return defaultAttributes || ['label', 'name'];
       };
@@ -77,7 +79,7 @@ export class MatAutocompleteConfigHolder {
     if (!fieldName) {
       throw new Error("Unable to add config, with name: " + (fieldName || 'undefined'));
     }
-    options = options || <MatAutocompleteFieldAddOptions>{};
+    options = options || <MatAutocompleteFieldAddOptions>{};
     const suggestFn: SuggestFn<T, F> = options.suggestFn
         || (options.service && ((v, f) => options.service.suggest(v, f)))
         || undefined;
@@ -89,6 +91,7 @@ export class MatAutocompleteConfigHolder {
       ...options.filter
     };
     const displayWith = options.displayWith || ((obj) => obj && joinPropertiesPath(obj, attributesOrFn));
+    const compareWith = options.compareWith || ((o1: any, o2: any) => o1 && o2 && o1.id === o2.id);
 
     const config: MatAutocompleteFieldConfig = {
       attributes: attributesOrFn,
@@ -96,12 +99,15 @@ export class MatAutocompleteConfigHolder {
       items: options.items,
       filter,
       displayWith,
+      compareWith,
       columnSizes: options.columnSizes,
       columnNames: options.columnNames,
       showAllOnFocus: options.showAllOnFocus,
       showPanelOnFocus: options.showPanelOnFocus,
-      mobile: options.mobile
+      mobile: options.mobile,
+      class: options.class
     };
+
     this.fields[fieldName] = config;
     return config;
   }
@@ -276,16 +282,17 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this.displayAttributes = this.displayAttributes || this.config.attributes;
       this.displayColumnSizes = this.displayColumnSizes || this.config.columnSizes;
       this.displayColumnNames = this.displayColumnNames || this.config.columnNames;
-      this.displayWith = this.displayWith || this.config.displayWith;
+      this.displayWith = this.displayWith || this.config.displayWith;
       this.mobile = toBoolean(this.mobile, this.config.mobile);
       this.showAllOnFocus = toBoolean(this.showAllOnFocus, toBoolean(this.config.showAllOnFocus, true));
       this.showPanelOnFocus = toBoolean(this.showPanelOnFocus, toBoolean(this.config.showPanelOnFocus, true));
+      this.classList = this.classList || this.config.class;
     }
 
     // Default values
     this.displayAttributes = this.displayAttributes || (this.filter && this.filter.attributes) || ['label', 'name'];
     this.displayWith = this.displayWith || ((obj) => obj && joinPropertiesPath(obj, this.displayAttributes));
-    this.displayColumnSizes = this.displayColumnSizes || this.displayAttributes.map(attr => (
+    this.displayColumnSizes = this.displayColumnSizes || this.displayAttributes.map(attr => (
         // If label then col size = 2
         attr && attr.endsWith('label')) ? 2 :
         // If rankOrder then col size = 1
@@ -304,18 +311,25 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     // No suggestFn: filter on the given items
     if (!this.suggestFn) {
       const suggestFromArrayFn: SuggestFn<any, any> = async (value, filter) => {
+        // DEBUG
+        //console.debug(this.logPrefix + " Calling suggestFromArray with value=", value);
+
         const res  = await suggestFromArray(this.$inputItems.getValue(), value, {
           searchAttributes: this.displayAttributes,
           ...filter
         });
-        this._itemCount = res && res.length || 0;
+        this._itemCount = res && res.length || 0;
         return res;
       }
       // Wait (once) that items are loaded, then call suggest from array fn
       this.suggestFn = async (value, filter) => {
         if (isNil(this.$inputItems.getValue())) {
+          // DEBUG
           //console.debug("[mat-autocomplete] Waiting items to be set...");
+
           await firstNotNilPromise(this.$inputItems);
+
+          // DEBUG
           //console.debug("[mat-autocomplete] Received items:", this.$inputItems.getValue());
         }
         this.suggestFn = suggestFromArrayFn;
@@ -333,12 +347,12 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
           .subscribe(async (filter) => {
             const res = await this.suggestFn('*', filter);
             this.$inputItems.next(res);
-            this._itemCount = res && res.length || 0;
+            this._itemCount = res && res.length || 0;
           })
       )
     }
 
-    this.matSelectItems$ = this.$inputItems.asObservable()
+    this.matSelectItems$ = this.$inputItems
       .pipe(
         takeWhile((_) => !this.searchable), // Close subscription, when enabling search (no more mat-select)
         filter(isNotNil),
@@ -374,11 +388,11 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
             //tap((value) => console.debug(this.logPrefix + " valueChanges:", value)),
             debounceTime(this.debounceTime)
           ),
-        this.$inputItems.asObservable()
+        this.$inputItems
           .pipe(
             map(items => this.formControl.value)
           ),
-        this._$filter.asObservable()
+        this._$filter
           .pipe(
             map(items => this.formControl.value)
           )
@@ -392,7 +406,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         switchMap(async (value) => {
           const res = await this.suggestFn(value, this.filter);
           // console.debug(this.logPrefix + " Filtered items by suggestFn:", value, res);
-          this._itemCount = res && res.length || 0;
+          this._itemCount = res && res.length || 0;
           return res;
         }),
         // Store implicit value (will use it onBlur if not other value selected)

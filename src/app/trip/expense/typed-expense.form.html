@@ -1,0 +1,47 @@
+<form class="form-container" [formGroup]="form">
+
+  <ion-grid class="ion-no-padding ion-padding-top form-container">
+    <ng-container *ngIf="$packagingPmfms | async">
+      <ion-row>
+        <ion-col size="12" size-md="2" size-lg="3">
+          <!-- type -->
+          <ng-container *ngIf="$typePmfm | async; let typePmfm">
+            <app-pmfm-qv-field [pmfm]="typePmfm"
+                                           [formControlName]="typePmfm.pmfmId.toString()"
+                                           [hidden]="typePmfm.hidden"
+                                           [style]="mobile? 'button' : 'autocomplete'"
+                                           [compact]="compact"
+                                           [tabindex]="tabindex+1">
+            </app-pmfm-qv-field>
+          </ng-container>
+        </ion-col>
+        <ion-col>
+          <!-- amount -->
+          <app-form-field [definition]="amountDefinition">
+          </app-form-field>
+        </ion-col>
+        <ion-col>
+          <mat-autocomplete-field [clearable]="false"
+                                  placeholder="{{ ('EXPENSE.' + expenseType.toUpperCase() + '.PACKAGING') | translate }}"
+                                  [config]="autocompleteFields.packaging"
+                                  formControlName="packaging">
+          </mat-autocomplete-field>
+        </ion-col>
+      </ion-row>
+    </ng-container>
+    <ng-container *ngIf="$totalPmfm | async; let totalPmfm">
+      <ion-row>
+        <ion-col size="12" size-md="2" size-lg="3">
+        </ion-col>
+        <ion-col>
+          <app-pmfm-field [pmfm]="totalPmfm"
+                                      [formControlName]="totalPmfm.pmfmId.toString()"
+                                      [hidden]="totalPmfm.hidden"
+                                      [compact]="compact"
+                                      [tabindex]="tabindex+2">
+          </app-pmfm-field>
+        </ion-col>
+      </ion-row>
+    </ng-container>
+  </ion-grid>
+</form>

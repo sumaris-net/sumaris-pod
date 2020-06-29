@@ -1,16 +1,16 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
+import {ValidatorService} from "angular4-material-table";
 import {EntityUtils, environment, joinPropertiesPath, referentialToString} from "../../core/core.module";
-import {PmfmIds, PmfmStrategy} from "../../referential/services/model";
-import {SubSampleValidatorService} from "../services/sub-sample.validator";
+import {PmfmIds} from "../../referential/services/model/model.enum";
+import {SubSampleValidatorService} from "../services/validator/sub-sample.validator";
 import {isNil, isNotNil} from "../../shared/functions";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {UsageMode} from "../../core/services/model";
+import {UsageMode} from "../../core/services/model/settings.model";
 import {filterNotNil, firstFalsePromise} from "../../shared/observables";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {Sample} from "../services/model/sample.model";
-import {Batch} from "../services/model/batch.model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -240,7 +240,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     data.forEach(s => {
       const parentId = s.parentId || (s.parent && s.parent.id);
       const parentLabel = (s.parent && s.parent.label);
-      s.parent = this._availableParents.find(p => (isNotNil(parentId) && p.id === parentId) || (parentLabel && p.label === parentLabel)) || null;
+      s.parent = this._availableParents.find(p => (isNotNil(parentId) && p.id === parentId) || (parentLabel && p.label === parentLabel)) || null;
       if (!s.parent) console.warn("[sub-samples-table] linkDataToParent() - Could not found parent for sub-sample:", s);
     });
   }

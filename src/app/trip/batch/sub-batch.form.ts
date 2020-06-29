@@ -14,42 +14,33 @@ import {Batch} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {MeasurementsValidatorService} from "../services/measurement.validator";
+import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {SubBatchValidatorService} from "../services/sub-batch.validator";
-import {EntityUtils, ReferentialRef, ReferentialUtils, UsageMode} from "../../core/services/model";
+import {SubBatchValidatorService} from "../services/validator/sub-batch.validator";
+import {EntityUtils} from "../../core/services/model/entity.model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {UsageMode} from "../../core/services/model/settings.model";
 import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
-import {
-  AcquisitionLevelCodes,
-  isNil,
-  isNotNil,
-  PmfmIds,
-  PmfmStrategy,
-  QualitativeLabels
-} from "../../referential/services/model";
+import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {BehaviorSubject, combineLatest} from "rxjs";
 import {
   getPropertyByPath,
+  isNil,
   isNilOrBlank,
+  isNotNil,
   isNotNilOrBlank,
   startsWithUpperCase,
-  toBoolean,
-  toNumber
+  toBoolean
 } from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppFormUtils} from "../../core/core.module";
-import {MeasurementFormField} from "../measurement/measurement.form-field.component";
-import {
-  asInputElement,
-  focusNextInput,
-  focusPreviousInput,
-  GetFocusableInputOptions,
-  isInputElement
-} from "../../shared/inputs";
+import {PmfmFormField} from "../../referential/pmfm/pmfm.form-field.component";
+import {focusNextInput, focusPreviousInput, GetFocusableInputOptions} from "../../shared/inputs";
 import {SharedValidators} from "../../shared/validator/validators";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 
@@ -67,12 +58,15 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   protected _parentAttributes: string[];
   protected _showTaxonName: boolean;
 
+  protected _disableByDefaultControls: AbstractControl[] = [];
+
   mobile: boolean;
   enableIndividualCountControl: AbstractControl;
   freezeTaxonNameControl: AbstractControl;
   freezeQvPmfmControl: AbstractControl;
   $taxonNames = new BehaviorSubject<TaxonNameRef[]>(undefined);
   selectedTaxonNameIndex = -1;
+
 
   @Input() tabindex: number;
 
@@ -168,7 +162,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     return this.form.controls.parent.value;
   }
 
-  @ViewChildren(MeasurementFormField) measurementFormFields: QueryList<MeasurementFormField>;
+  @ViewChildren(PmfmFormField) measurementFormFields: QueryList<PmfmFormField>;
   @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
 
   constructor(
@@ -243,7 +237,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       taxonNameControl.setValidators(Validators.compose([SharedValidators.entity, Validators.required]));
     }
     this.registerAutocompleteField('taxonName', {
-      items: this.$taxonNames.asObservable(),
+      items: this.$taxonNames,
       mobile: this.mobile
     });
 
@@ -366,7 +360,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // Reset taxon name button index
     if (this.mobile && data && data.taxonName && isNotNil(data.taxonName.id)) {
-      this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
+      this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
     }
     else {
       this.selectedTaxonNameIndex = -1;
@@ -384,7 +378,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // Reset taxon name button index
     if (this.mobile && data && data.taxonName && isNotNil(data.taxonName.id)) {
-      this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
+      this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
     }
     else {
       this.selectedTaxonNameIndex = -1;
@@ -399,6 +393,18 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     if (!this.enableIndividualCount) {
       this.form.get('individualCount').disable(opts);
+    }
+
+    // Other field to disable by default (e.g. discard reason, in SUMARiS program)
+    this._disableByDefaultControls.forEach(c => c.disable(opts));
+  }
+
+  protected restoreFormStatus(opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    super.restoreFormStatus(opts);
+
+    if (this._enable) {
+      // Other field to disable by default (e.g. discard reason, in SUMARiS program)
+      this._disableByDefaultControls.forEach(c => c.disable(opts));
     }
   }
 
@@ -457,9 +463,14 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // Manage DISCARD_REASON validator
     if (discardOrLandingControl && discardReasonControl) {
+      // Always disable by default, while discard/Landing not set
+      this._disableByDefaultControls.push(discardReasonControl);
+
       this.registerSubscription(discardOrLandingControl.valueChanges
-        // IMPORTANT: add a delay, to make sure to be executed AFTER the form.enable()
-        .pipe(delay(200))
+        .pipe(
+          // IMPORTANT: add a delay, to make sure to be executed AFTER the form.enable()
+          delay(200)
+        )
         .subscribe((value) => {
 
           if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
@@ -569,7 +580,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     // Parent not found
     if (!data.parent) {
       // Force to allow parent selection
-      this.showParent = this.showParent || true;
+      this.showParent = this.showParent || true;
     }
 
     // Get the parent of the parent (e.g. if parent is a sample batch)
@@ -577,4 +588,5 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       data.parent = data.parent.parent;
     }
   }
+
 }

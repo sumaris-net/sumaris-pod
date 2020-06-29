@@ -9,10 +9,16 @@ export function filterNotNil<T = any>(obs: Observable<T>): Observable<T> {
 export function firstNotNil<T = any>(obs: Observable<T>): Observable<T> {
   return obs.pipe(first(isNotNil));
 }
-export function firstTruePromise<Boolean>(obs: Observable<boolean>): Promise<boolean> {
+export function filterTrue(obs: Observable<boolean>): Observable<boolean> {
+  return obs.pipe(filter((v) => v === true));
+}
+export function filterFalse(obs: Observable<boolean>): Observable<boolean> {
+  return obs.pipe(filter((v) => v === false));
+}
+export function firstTruePromise(obs: Observable<boolean>): Promise<boolean> {
   return obs.pipe(first((v) => v === true)).toPromise();
 }
-export function firstFalsePromise<Boolean>(obs: Observable<boolean>): Promise<boolean> {
+export function firstFalsePromise(obs: Observable<boolean>): Promise<boolean> {
   return obs.pipe(first((v) => v === false)).toPromise();
 }
 export function firstNotNilPromise<T = any>(obs: Observable<T>): Promise<T> {

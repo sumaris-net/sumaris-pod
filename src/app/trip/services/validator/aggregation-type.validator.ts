@@ -1,25 +1,21 @@
 import {Injectable} from "@angular/core";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {ValidatorService} from "angular4-material-table";
-import {SharedValidators} from "../../../shared/validator/validators";
-import {AggregationStrata, AggregationType} from "../extraction.model";
-import {toInt} from "../../../shared/functions";
+import {SharedFormArrayValidators, SharedValidators} from "../../../shared/validator/validators";
+import {AggregationStrata, AggregationType} from "../model/extraction.model";
+import {AppValidatorService} from "../../../core/services/validator/base.validator.class";
 
 @Injectable()
-export class AggregationTypeValidatorService implements ValidatorService {
+export class AggregationTypeValidatorService extends AppValidatorService<AggregationType> {
 
   constructor(
     protected formBuilder: FormBuilder) {
-  }
-
-  getRowValidator(): FormGroup {
-    return this.getFormGroup();
+    super(formBuilder);
   }
 
   getFormGroup(data?: AggregationType): FormGroup {
     return this.formBuilder.group({
       __typename: ['AggregationTypeVO'],
-      id: [data && data.id || null],
+      id: [data && data.id || null],
       updateDate: [''],
       creationDate: [''],
       category: [''],
@@ -38,7 +34,7 @@ export class AggregationTypeValidatorService implements ValidatorService {
   getStratumArray(data?: AggregationType): FormArray {
     return this.formBuilder.array(
       (data && data.stratum || []).map(this.getStrataFormGroup),
-      SharedValidators.requiredArrayMinLength(1)
+      SharedFormArrayValidators.requiredArrayMinLength(1)
     );
   }
 

@@ -1,16 +1,30 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {AppEditorPage, EntityUtils, FormArrayHelper, isNil} from "../../core/core.module";
-import {Program, ProgramProperties, referentialToString} from "../services/model";
+import {TableElement, ValidatorService} from "angular4-material-table";
+import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
+import {AppEditor, EntityUtils, isNil} from "../../core/core.module";
+import {Program} from "../services/model/program.model";
+import {Strategy} from "../services/model/strategy.model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
-import {StrategiesTable} from "./strategies.table";
-import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
-import {EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
+import {StrategiesTable} from "../strategy/strategies.table";
+import {changeCaseToUnderscore, EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
-import {ReferentialUtils} from "../../core/services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {AppPropertiesForm} from "../../core/form/properties.form";
+import {ReferentialRefService} from "../services/referential-ref.service";
+import {ModalController} from "@ionic/angular";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
+import {StrategyForm} from "../strategy/strategy.form";
+import {animate, AnimationEvent, state, style, transition, trigger} from "@angular/animations";
+import {debounceTime, filter, first} from "rxjs/operators";
+import {AppFormHolder} from "../../core/form/form.utils";
+import {ProgramProperties} from "../services/config/program.config";
+
+export enum AnimationState {
+  ENTER = 'enter',
+  LEAVE = 'leave'
+}
 
 @Component({
   selector: 'app-program',
@@ -18,57 +32,57 @@ import {ReferentialUtils} from "../../core/services/model";
   providers: [
     {provide: ValidatorService, useExisting: ProgramValidatorService}
   ],
-  animations: [fadeInOutAnimation],
+  animations: [fadeInOutAnimation,
+    // Fade in
+    trigger('fadeIn', [
+      state('*', style({opacity: 0, display: 'none', visibility: 'hidden'})),
+      state(AnimationState.ENTER, style({opacity: 1, display: 'inherit', visibility: 'inherit'})),
+      state(AnimationState.LEAVE, style({opacity: 0, display: 'none', visibility: 'hidden'})),
+      // Modal
+      transition(`* => ${AnimationState.ENTER}`, [
+        style({display: 'inherit',  visibility: 'inherit', transform: 'translateX(50%)'}),
+        animate('0.4s ease-out', style({opacity: 1, transform: 'translateX(0)'}))
+      ]),
+      transition(`${AnimationState.ENTER} => ${AnimationState.LEAVE}`, [
+        animate('0.2s ease-out', style({opacity: 0, transform: 'translateX(50%)'})),
+        style({display: 'none',  visibility: 'hidden'})
+      ]) ])
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProgramPage extends AppEditorPage<Program> implements OnInit {
+export class ProgramPage extends AppEditor<Program, ProgramService> implements OnInit {
 
   propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
-  propertyDefinitionsByKey: FormFieldDefinitionMap = {};
-  propertyDefinitionsByIndex: { [index: number]: FormFieldDefinition } = {};
-  propertiesFormHelper: FormArrayHelper<{ key: string; value: string }>;
-
-  canEdit: boolean;
+  fieldDefinitions: FormFieldDefinitionMap = {};
   form: FormGroup;
+  i18nFieldPrefix = 'PROGRAM.';
+  strategyFormState: AnimationState;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
+  @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
   @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
-
-  get propertiesForm(): FormArray {
-    return this.form.get('properties') as FormArray;
-  }
+  @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
 
   constructor(
     protected injector: Injector,
+    protected formBuilder: FormBuilder,
     protected accountService: AccountService,
     protected validatorService: ProgramValidatorService,
-    protected programService: ProgramService
+    dataService: ProgramService,
+    protected referentialRefService: ReferentialRefService,
+    protected modalCtrl: ModalController
   ) {
     super(injector,
       Program,
-      programService);
+      dataService);
     this.form = validatorService.getFormGroup();
-    this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
-      injector.get(FormBuilder),
-      this.form,
-      'properties',
-      (value) => validatorService.getPropertyFormGroup(value),
-      (v1, v2) => (!v1 && !v2) || v1.key === v2.key,
-      (value) => isNil(value) || (isNil(value.key) && isNil(value.value)),
-      {
-        allowEmptyArray: true
-      }
-    );
 
     // default values
     this.defaultBackHref = "/referential/list?entity=Program";
-    this.canEdit = this.accountService.isAdmin();
+    this._enabled = this.accountService.isAdmin();
+    this.tabCount = 4;
 
-    // Fill options map
-    this.propertyDefinitionsByKey = {};
-    this.propertyDefinitions.forEach(o => {
-      this.propertyDefinitionsByKey[o.key] = o;
-    });
+
 
     //this.debug = !environment.production;
   }
@@ -83,39 +97,57 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     this.form.get('label')
       .setAsyncValidators(async (control: AbstractControl) => {
         const label = control.enabled && control.value;
-        return label && (await this.programService.existsByLabel(label)) ? {unique: true} : null;
+        return label && (await this.service.existsByLabel(label)) ? {unique: true} : null;
       });
+
+    this.registerFormField('gearClassification', {
+      type: 'entity',
+      autocomplete: {
+        suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
+        filter: {
+          entityName: 'GearClassification'
+        }
+      }
+    });
+
+    this.registerFormField('taxonGroupType', {
+      key: 'taxonGroupType',
+      type: 'entity',
+      autocomplete: {
+        suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
+        filter: {
+          entityName: 'TaxonGroupType'
+        }
+      }
+    });
+
+    // Listen start editing strategy
+    this.registerSubscription(this.strategiesTable.onStartEditingRow
+      .subscribe(row => this.onStartEditStrategy(row)));
+    this.registerSubscription(this.strategiesTable.onConfirmEditCreateRow
+      .subscribe(row => this.onConfirmEditCreateStrategy(row)));
+    this.registerSubscription(this.strategiesTable.onCancelOrDeleteRow
+      .subscribe(row => this.onCancelOrDeleteStrategy(row)));
   }
 
-  getPropertyDefinition(index: number): FormFieldDefinition {
-    let definition = this.propertyDefinitionsByIndex[index];
-    if (!definition) {
-      definition = this.updatePropertyDefinition(index);
-      this.propertyDefinitionsByIndex[index] = definition;
-    }
-    return definition;
-  }
-
-  updatePropertyDefinition(index: number): FormFieldDefinition {
-    const key = (this.propertiesForm.at(index) as FormGroup).controls.key.value;
-    const definition = key && this.propertyDefinitionsByKey[key] || null;
-    this.propertyDefinitionsByIndex[index] = definition; // update map by index
-    this.markForCheck();
-    return definition;
-  }
-
-  removePropertyAt(index: number) {
-    this.propertiesFormHelper.removeAt(index);
-    this.propertyDefinitionsByIndex = {}; // clear map by index
-    this.markForCheck();
-  }
-
-  isUnknownProperty(propertyForm: FormGroup) {
-    const key = propertyForm.controls['key'].value;
-    return key && isNil(this.propertyDefinitionsByKey[key]);
-  }
 
   /* -- protected methods -- */
+
+
+
+  async load(id?: number, opts?: EditorDataServiceLoadOptions): Promise<void> {
+    // Force the load from network
+    return super.load(id, {...opts, fetchPolicy: "network-only"});
+  }
+
+  protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>) {
+    const definition = <FormFieldDefinition>{
+      key: fieldName,
+      label: this.i18nFieldPrefix + changeCaseToUnderscore(fieldName).toUpperCase(),
+      ...def
+    }
+    this.fieldDefinitions[fieldName] = definition;
+  }
 
   protected canUserWrite(data: Program): boolean {
     // TODO : check user is in program managers
@@ -132,35 +164,44 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     }
   }
 
-  protected registerFormsAndTables() {
-    this.registerTable(this.strategiesTable)
-      .registerForm(this.referentialForm);
+  protected registerForms() {
+    this.addChildForms([
+      this.referentialForm,
+      this.propertiesForm,
+      this.strategiesTable,
+      this.strategyForm
+    ]);
   }
 
   protected setValue(data: Program) {
     if (!data) return; // Skip
 
-    const json = data.asObject();
+    this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
 
-    // Transform properties map into array
-    json.properties = EntityUtils.getObjectAsArray(json.properties);
-    this.propertiesFormHelper.resize(json.properties.length);
-
-    this.form.patchValue(json, {emitEvent: false});
+    this.propertiesForm.value = EntityUtils.getObjectAsArray(data.properties);
 
     // strategies
-    this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
+    this.strategiesTable.value = data.strategies && data.strategies.slice() || []; // force update
 
     this.markAsPristine();
   }
 
-  protected async getValue(): Promise<Program> {
-    const data = await super.getValue();
+  protected async getJsonValueToSave(): Promise<any> {
+
+    const data = await super.getJsonValueToSave();
 
     // Re add label, because missing when field disable
     data.label = this.form.get('label').value;
+    data.properties = this.propertiesForm.value;
 
-    await this.strategiesTable.save();
+    // Finish edition of strategy
+    if (this.strategiesTable.dirty) {
+      if (this.strategiesTable.editedRow) {
+        await this.onConfirmEditCreateStrategy(this.strategiesTable.editedRow);
+      }
+      await this.strategiesTable.save();
+    }
+
     data.strategies = this.strategiesTable.value;
 
     return data;
@@ -178,16 +219,126 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
 
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
+    if (this.propertiesForm.invalid) return 1;
+    if (this.strategiesTable.invalid || this.strategyForm.enabled && this.strategyForm.invalid) return 2;
     return 0;
   }
 
-  protected async onEntityLoaded(data: Program, options?: EditorDataServiceLoadOptions): Promise<void> {
-    super.onEntityLoaded(data, options);
+  protected async onStartEditStrategy(row: TableElement<Strategy>) {
+    if (!row) return; // skip
 
-    this.canEdit = this.canUserWrite(data);
+    const strategy = this.loadOrCreateStrategy(row.currentData);
+    console.debug("[program] Start editing strategy", strategy);
+
+    if (!row.isValid()) {
+      row.validator.valueChanges
+        .pipe(
+          debounceTime(450),
+          filter(() => row.isValid()),
+          first()
+        )
+        .subscribe(() => {
+          strategy.fromObject(row.currentData);
+          this.showStrategyForm(strategy);
+        });
+    }
+    else {
+
+
+      this.showStrategyForm(strategy);
+    }
+  }
+  protected async onCancelOrDeleteStrategy(row: TableElement<Strategy>) {
+    if (!row) return; // skip
+
+    this.hideStrategyForm();
   }
 
-  referentialToString = referentialToString;
+  protected async onConfirmEditCreateStrategy(row: TableElement<Strategy>) {
+    if (!row) return; // skip
+
+    // DEBUG
+    console.debug('[program] Confirm edit/create of a strategy row', row);
+
+    // Copy some properties from row
+    const source = row.currentData;
+    this.strategyForm.form.patchValue({
+      label: source.label,
+      name: source.name,
+      description: source.description,
+      statusId: source.statusId,
+      comments: source.comments
+    });
+
+    let target = await this.strategyForm.saveAndGetDataIfValid();
+    if (!target) throw new Error('strategyForm has error');
+
+    // Update the row
+    row.validator = this.strategyForm.form;
+
+    console.debug("[program] End editing strategy", row.currentData);
+
+    this.hideStrategyForm();
+  }
+
+  showStrategyForm(strategy: Strategy) {
+    this.strategyForm.program = this.data;
+    this.strategyForm.updateView(strategy);
+
+    if (this.strategyFormState !== AnimationState.ENTER) {
+      // Wait 200ms, during form loading, then start animation
+      setTimeout(() => {
+        this.strategyFormState = AnimationState.ENTER;
+        this.markForCheck();
+      }, 200);
+    }
+  }
+
+  hideStrategyForm() {
+    if (this.strategyFormState == AnimationState.ENTER) {
+      this.strategyFormState = AnimationState.LEAVE;
+      this.markForCheck();
+    }
+  }
+
+  onStrategyAnimationDone(event: AnimationEvent): void {
+    if (event.phaseName === 'done') {
+
+      // After enter
+      if (event.toState === AnimationState.ENTER) {
+        // Enable form
+        this.strategyForm.enable();
+      }
+
+      // After leave
+      else if (event.toState === AnimationState.LEAVE) {
+
+        // Disable form
+        this.strategyForm.disable({emitEvent: false});
+      }
+    }
+  }
+
+  protected loadOrCreateStrategy(json: any): Strategy|undefined {
+    const existingStrategy = this.data.strategies.find(s => s.equals(json));
+    if (existingStrategy) return existingStrategy;
+    return Strategy.fromObject(json);
+  }
+
+  protected updateStrategy(strategy: Strategy) {
+
+    const existingStrategy = this.data.strategies.find(s => s.equals(strategy));
+    if (!existingStrategy) {
+      this.data.strategies.push(strategy);
+      return strategy;
+    }
+    else {
+      // Copy
+      existingStrategy.fromObject(strategy);
+      return existingStrategy;
+    }
+
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

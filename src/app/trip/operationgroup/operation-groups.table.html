@@ -64,7 +64,7 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
 
-      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
+      <mat-autocomplete-field floatLabel="never" class="min-width-large ion-text-wrap"
                               [appAutofocus]="row.id == -1 && row.editing"
                               [formControl]="row.validator.controls.metier"
                               [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate"
@@ -108,10 +108,10 @@
 
     <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate"
               [class.mat-cell-computed]="pmfm.isComputed">
-      <mat-form-field-measurement
+      <app-pmfm-field
         [readonly]="!row.editing"
         [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
-        [compact]="true" floatLabel="never"></mat-form-field-measurement>
+        [compact]="true" floatLabel="never"></app-pmfm-field>
     </mat-cell>
 
   </ng-container>

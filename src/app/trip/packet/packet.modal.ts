@@ -1,12 +1,5 @@
-import {
-  AfterViewInit,
-  Component,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from "@angular/core";
-import {Packet, PacketComposition} from "../services/model/packet.model";
+import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {Packet} from "../services/model/packet.model";
 import {ModalController} from "@ionic/angular";
 import {Subject, Subscription} from "rxjs";
 import {PacketForm} from "./packet.form";
@@ -36,7 +29,7 @@ export class PacketModal implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get valid() {
-    return this.packetForm.valid;
+    return this.packetForm && this.packetForm.valid || false;
   }
 
 
@@ -48,12 +41,12 @@ export class PacketModal implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.enable();
   }
 
   ngAfterViewInit(): void {
 
     setTimeout(() => {
+      this.enable();
       this.packetForm.setValue(this.packet);
       this.updateTitle();
     });

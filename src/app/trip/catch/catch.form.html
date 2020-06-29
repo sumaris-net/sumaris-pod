@@ -16,10 +16,10 @@
         </ion-col>
 
         <ion-col size="6" size-md="auto" *ngFor="let pmfm of pmfms; index as i;">
-          <mat-form-field-measurement [pmfm]="pmfm"
+          <app-pmfm-field [pmfm]="pmfm"
                                       [formControlName]="pmfm.pmfmId.toString()"
                                       [tabindex]="tabindex+10+i">
-          </mat-form-field-measurement>
+          </app-pmfm-field>
         </ion-col>
       </ion-row>
     </ng-container>
@@ -32,10 +32,10 @@
         </ion-col>
 
         <ion-col size="12" size-md="3" *ngFor="let pmfm of pmfms; index as i;">
-          <mat-form-field-measurement [pmfm]="pmfm"
+          <app-pmfm-field [pmfm]="pmfm"
                                       [formControlName]="pmfm.pmfmId.toString()"
                                       [tabindex]="tabindex+20+i">
-          </mat-form-field-measurement>
+          </app-pmfm-field>
         </ion-col>
 
       </ion-row>
@@ -49,10 +49,10 @@
         </ion-col>
 
         <ion-col size="12" size-md="3" *ngFor="let pmfm of pmfms; index as i;">
-          <mat-form-field-measurement [pmfm]="pmfm"
+          <app-pmfm-field [pmfm]="pmfm"
                                       [formControlName]="pmfm.pmfmId.toString()"
                                       [tabindex]="tabindex+30+i">
-          </mat-form-field-measurement>
+          </app-pmfm-field>
         </ion-col>
 
       </ion-row>

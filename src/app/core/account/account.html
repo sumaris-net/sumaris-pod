@@ -1,5 +1,7 @@
-<app-toolbar [title]="'ACCOUNT.TITLE'|translate" color="primary" [hasValidate]="form.dirty && !saving" (onValidate)="save($event)"
-             [canGoBack]="true">
+<app-toolbar [title]="'ACCOUNT.TITLE'|translate" color="primary"
+             [hasValidate]="form.dirty && !saving"
+             (onValidate)="save($event)"
+             [canGoBack]="false">
 </app-toolbar>
 
 <ion-content>
@@ -113,7 +115,7 @@
               <mat-form-field>
                 <input matInput hidden readonly="true" [placeholder]="'ACCOUNT.USER_DETAILS.PROFILE'|translate"
                   formControlName="mainProfile" required>
-                <span>{{'USER.PROFILE_'+form.controls.mainProfile.value | translate}}</span>
+                <span>{{'USER.PROFILE_ENUM.'+form.controls.mainProfile.value | translate}}</span>
                 <mat-error *ngIf="form.controls.firstName.hasError('mainProfile') && form.controls.mainProfile.dirty"
                   translate>ERROR.FIELD_REQUIRED</mat-error>
               </mat-form-field>

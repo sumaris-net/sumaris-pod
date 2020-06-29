@@ -1,63 +1,75 @@
-<mat-form-field *ngIf="readonly" [floatLabel]="floatLabel">
-  <input matInput hidden type="text" readonly="true" [formControl]="formControl">
-  <span>{{(formControl.value ? 'COMMON.YES' : 'COMMON.NO') | translate }}</span>
+<mat-form-field  *ngIf="readonly; else writable"
+                 [floatLabel]="floatLabel"
+                 class="mat-form-field-disabled">
+  <input matInput hidden type="text" readonly
+         [placeholder]="placeholder"
+         [formControl]="formControl">
+  <ion-text>{{(formControl.value ? 'COMMON.YES' : 'COMMON.NO') | translate }}</ion-text>
 </mat-form-field>
 
-<mat-form-field *ngIf="!readonly && !compact"
-                class="mat-boolean-field mat-boolean-field-radio"
-                [floatLabel]="showRadio && (!floatLabel || floatLabel === 'auto') ? 'always': floatLabel">
-  <mat-label *ngIf="placeholder && floatLabel!=='never'">
-    {{placeholder}}
-    <span [hidden]="showRadio">({{'COMMON.YES'|translate}}/{{'COMMON.NO'|translate}})</span>
-  </mat-label>
+<ng-template #writable>
 
-  <input matInput #fakeInput type="text" readonly="true"
-         [formControl]="formControl"
-         (focus)="_onFocusFakeInput($event)"
-         [required]="required"
-         [class.cdk-visually-hidden]="showRadio"
-         [tabindex]="tabindex">
+  <!-- not compact (use radio buttons) -->
+  <mat-form-field *ngIf="!compact; else withCheckbox"
+                  class="mat-boolean-field mat-boolean-field-radio"
+                  [floatLabel]="showRadio && (!floatLabel || floatLabel === 'auto') ? 'always': floatLabel">
+    <mat-label *ngIf="placeholder && floatLabel!=='never'">
+      {{placeholder}}
+      <span [hidden]="showRadio">({{'COMMON.YES'|translate}}/{{'COMMON.NO'|translate}})</span>
+    </mat-label>
 
-  <!-- radio button -->
-  <mat-radio-group [hidden]="!showRadio"
-                   [formControl]="formControl"
-                   (change)="onRadioValueChanged($event)">
-    <mat-radio-button #yesButton [value]="true">
-      <span translate>COMMON.YES</span>
-    </mat-radio-button>&nbsp;
-    <mat-radio-button #noButton [value]="false">
-      <span translate>COMMON.NO</span>
-    </mat-radio-button>
-  </mat-radio-group>
+    <input matInput #fakeInput type="text" readonly="true"
+           [formControl]="formControl"
+           (focus)="_onFocusFakeInput($event)"
+           [required]="required"
+           [class.cdk-visually-hidden]="showRadio"
+           [tabindex]="tabindex">
 
-  <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-</mat-form-field>
+    <!-- radio button -->
+    <mat-radio-group [hidden]="!showRadio"
+                     [formControl]="formControl"
+                     (change)="onRadioValueChanged($event)">
+      <mat-radio-button #yesButton [value]="true">
+        <span translate>COMMON.YES</span>
+      </mat-radio-button>&nbsp;
+      <mat-radio-button #noButton [value]="false">
+        <span translate>COMMON.NO</span>
+      </mat-radio-button>
+    </mat-radio-group>
 
-<!-- compact mode -->
-<mat-form-field *ngIf="!readonly && compact"
-                class="mat-boolean-field mat-boolean-field-checkbox"
-                [floatLabel]="floatLabel">
-  <mat-label *ngIf="placeholder && !showRadio">
-    {{placeholder}}
-  </mat-label>
+    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+  </mat-form-field>
 
-  <input matInput #matInput
-         [formControl]="formControl"
-         (focus)="_onFocusFakeInput($event)"
-         [required]="required"
-         [class.cdk-visually-hidden]="showRadio"
-         [tabindex]="tabindex">
+  <!-- compact mode (use checkbox) -->
+  <ng-template #withCheckbox>
+    <mat-form-field class="mat-boolean-field mat-boolean-field-checkbox"
+                    [floatLabel]="floatLabel">
+      <mat-label *ngIf="placeholder && !showRadio">
+        {{placeholder}}
+      </mat-label>
 
-  <ion-label>&nbsp;</ion-label>
+      <input matInput #matInput
+             [formControl]="formControl"
+             (focus)="_onFocusFakeInput($event)"
+             [required]="required"
+             [class.cdk-visually-hidden]="showRadio"
+             [tabindex]="tabindex">
 
-  <!-- checkbox, when compact -->
-  <mat-checkbox #checkboxButton
-                [formControl]="formControl"
-                (change)="onCheckboxValueChanged($event)"
-                [indeterminate]="value===undefined"
-                [hidden]="!showRadio"
-                [tabindex]="tabindex">
-  </mat-checkbox>
+      <ion-label>&nbsp;</ion-label>
 
-  <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-</mat-form-field>
+      <!-- checkbox, when compact -->
+      <mat-checkbox #checkboxButton
+                    [formControl]="formControl"
+                    (change)="onCheckboxValueChanged($event)"
+                    [indeterminate]="value===undefined"
+                    [hidden]="!showRadio"
+                    [tabindex]="tabindex">
+      </mat-checkbox>
+
+      <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    </mat-form-field>
+  </ng-template>
+
+</ng-template>
+
+

@@ -1,18 +1,12 @@
-import {
-  AfterViewInit,
-  Component,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from "@angular/core";
+import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {ModalController} from "@ionic/angular";
 import {Subject, Subscription} from "rxjs";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {ProductSaleForm} from "./product-sale.form";
 import {Product} from "../services/model/product.model";
-import {PmfmStrategy, referentialToString} from "../../referential/services/model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {TranslateService} from "@ngx-translate/core";
+import {referentialToString} from "../../core/services/model/referential.model";
 
 @Component({
   selector: 'app-product-sale-modal',
@@ -38,7 +32,7 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get valid() {
-    return this.productSaleForm.valid;
+    return this.productSaleForm && this.productSaleForm.valid || false;
   }
 
 
@@ -50,12 +44,12 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.enable();
   }
 
   ngAfterViewInit(): void {
 
     setTimeout(() => {
+      this.enable();
       this.productSaleForm.setValue(Product.fromObject(this.product));
       this.updateTitle();
     });
@@ -66,8 +60,6 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
     const title = await this.translate.get('TRIP.PRODUCT.SALE.TITLE', {taxonGroupLabel: referentialToString(this.product.taxonGroup)}).toPromise();
     this.$title.next(title);
   }
-
-  referentialToString = referentialToString;
 
 
   async onSave(event: any): Promise<any> {
@@ -113,4 +105,5 @@ export class ProductSaleModal implements OnInit, OnDestroy, AfterViewInit {
     this.subscription.unsubscribe();
   }
 
+  referentialToString = referentialToString;
 }

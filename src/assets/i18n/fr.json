@@ -44,6 +44,7 @@
     "COMMENTS": "Commentaires",
     "BTN_DECIMAL_SEPARATOR": ",",
     "EMPTY_OPTION": "(Vide)",
+    "All_OPTION": "(Tous)",
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
@@ -119,7 +120,7 @@
     "PROPERTY_VALUE": "Valeur",
     "BTN_ADD_PROPERTY": "Ajouter une option",
     "BTN_CLEAR_CACHE": "Vider le cache serveur",
-    "CACHE_DIVIDER": "Statistique du cache server",
+    "CACHE_TITLE": "Statistique du cache serveur",
     "NEW": {
       "TITLE": "Nouvelle configuration"
     },
@@ -132,6 +133,7 @@
       "FAVICON": "favicon",
       "DEFAULT_LOCALE": "Langue par défaut",
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
+      "NOT_SELF_DATA_ACCESS_MIN_ROLE": "Role (min) pour l'accès aux données des autres",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
@@ -326,10 +328,12 @@
     "STATUS": "Etat",
     "PUBKEY": "Clé publique",
     "PROFILE": "Profil",
-    "PROFILE_ADMIN": "Administrateur",
-    "PROFILE_SUPERVISOR": "Superviseur",
-    "PROFILE_USER": "Observateur",
-    "PROFILE_GUEST": "Invité",
+    "PROFILE_ENUM": {
+      "ADMIN": "Administrateur",
+      "SUPERVISOR": "Superviseur",
+      "USER": "Observateur",
+      "GUEST": "Invité"
+    },
     "LIST": {
       "TITLE": "Utilisateurs",
       "FILTER": {
@@ -449,6 +453,9 @@
     "OPERATION": {
       "COMMENTS": "Commentaires",
       "TITLE_PREFIX": "<small>{{vessel}} - Marée {{departureDateTime}}<br></small>",
+      "OPE_PREFIX": "OPE",
+      "BTN_NEW": "Ajouter",
+      "LAST_OPERATIONS": "Dernières opérations",
       "NEW": {
         "TITLE": "Nouvelle opération"
       },
@@ -733,6 +740,9 @@
       "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé."
     }
   },
+  "AGGREGATED_LANDING": {
+    "TITLE": "Débarquement de {{vessel}}"
+  },
   "PACKET": {
     "LABEL": "Numéro de lot",
     "LABEL_VALUE": "Lot #{{rankOrder}}",
@@ -779,6 +789,36 @@
         "TITLE": "Lot controlé {{label}}"
       }
     }
+  },
+  "EXPENSE": {
+    "TOTAL_ESTIMATION": "Estimation des dépenses totales :",
+    "TOTAL_CALCULATED": "Total des dépenses saisis :",
+    "TAB_FLUID": "Fluides",
+    "FLUID": {
+      "ENGINE_OIL": "Huile moteur :",
+      "HYDRAULIC_OIL": "Huile hydraulique :"
+    },
+    "TAB_MISC": "Autre dépenses",
+    "MISC": {
+      "OTHER": "Frais annexes :"
+    },
+    "TAB_ICE": "Glace",
+    "ICE": {
+      "AMOUNT": "Quantité de glace",
+      "PACKAGING": "Unité"
+    },
+    "TAB_BAIT": "Appâts",
+    "BAIT": {
+      "AMOUNT": "Quantité d'appât",
+      "PACKAGING": "Unité"
+    }
+  },
+  "FISHING_AREA": {
+    "TITLE": "Zone de pêche",
+    "LOCATION": "Lieu",
+    "DISTANCE_TO_COAST_GRADIENT": "Gradient de distance à la côte",
+    "DEPTH_GRADIENT": "Gradient de profondeur",
+    "NEARBY_SPECIFIC_AREA": "Zone spécifique à proximité"
   },
   "QUALITY": {
     "BTN_CONTROL": "Controler la saisie",
@@ -994,7 +1034,10 @@
     "TAB_GENERAL": "Détails",
     "TAB_STRATEGIES": "Stratégies",
     "TAB_ACCESS_RIGHTS": "Droits d'accès",
-    "PROPERTIES_DIVIDER": "Options de configuration :",
+    "TAB_PROPERTIES": "Options",
+    "TAXON_GROUP_TYPE": "Référentiel des espèces commerciales",
+    "GEAR_CLASSIFICATION": "Référentiel engins",
+    "LOCATION_CLASSIFICATION": "Référentiel lieux",
     "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
@@ -1035,7 +1078,29 @@
       "LANDING_OBSERVERS_ENABLE": "Observation sur site > Débarquement : Saisir les observateurs ?"
     },
     "STRATEGY": {
-
+      "ACQUISITION_LEVELS": "Niveaux d'acquisition",
+      "LOCATIONS": "Lieux",
+      "GEARS": "Engins",
+      "TAXON_GROUPS": "Espèces commerciales",
+      "TAXON_NAMES": "Espèces scientifiques",
+      "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
+      "BTN_REMOVE_TO_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
+      "NEW": {
+        "TITLE": "Nouvelle stratégie"
+      },
+      "PMFM_STRATEGY": {
+        "ACQUISITION_LEVEL": "Niveau d'acquisition",
+        "RANK_ORDER": "Ordre",
+        "PMFM": "Paramètre collecté (PMFM)",
+        "IS_MANDATORY": "Oblig ?",
+        "ACQUISITION_NUMBER": "Nb acquis.",
+        "MIN_VALUE": "Min",
+        "MAX_VALUE": "Max",
+        "DEFAULT_VALUE": "Valeur par défaut",
+        "TABLE": {
+          "TITLE": "Paramètres collectés"
+        }
+      }
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Erreur lors de chargement du programme",
@@ -1269,7 +1334,10 @@
     "LOAD_DATA_ERROR": "Erreur de chargement des données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "NETWORK_REQUIRED": "Connexion au système impossible.<br/><b>Vérifiez votre connexion réseau</b> avant de réessayer.",
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
-    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne."
+    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
+    "PROFILE_ENUM": {
+
+    }
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

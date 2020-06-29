@@ -5,10 +5,10 @@ import {Moment} from "moment";
 import {AbstractControl, FormBuilder, FormControl} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {AcquisitionLevelCodes, isNotNil, PmfmStrategy, PmfmUtils} from "../../referential/services/model";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppFormUtils} from "../../core/core.module";
-import {BatchGroupValidatorService} from "../services/batch-group.validator";
+import {AppFormUtils, isNotNil} from "../../core/core.module";
+import {BatchGroupValidatorService} from "../services/validator/batch-group.validator";
 import {BehaviorSubject} from "rxjs";
 import {BatchForm} from "./batch.form";
 import {filter, switchMap} from "rxjs/operators";
@@ -16,8 +16,10 @@ import {PlatformService} from "../../core/services/platform.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {fadeInAnimation} from "../../shared/shared.module";
 import {BatchGroup} from "../services/model/batch-group.model";
-import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {ReferentialUtils} from "../../core/services/model";
+import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {PmfmUtils} from "../../referential/services/model/pmfm.model";
 
 @Component({
   selector: 'app-batch-group-form',
@@ -43,28 +45,28 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   get invalid(): boolean {
     return this.form.invalid || this.hasIndividualMeasureControl.invalid ||
-      ((this.childrenForms || []).find(child => child.invalid) && true) || false;
+      ((this.childrenForms || []).find(child => child.invalid) && true) || false;
   }
 
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (and NOT 'invalid')
     return this.form.valid && this.hasIndividualMeasureControl.valid &&
-      (!this.childrenForms || !this.childrenForms.find(child => !child.valid)) || false;
+      (!this.childrenForms || !this.childrenForms.find(child => !child.valid)) || false;
   }
 
   get pending(): boolean {
     return this.form.pending || this.hasIndividualMeasureControl.pending ||
-       (this.childrenForms && this.childrenForms.find(child => child.pending) && true) || false;
+       (this.childrenForms && this.childrenForms.find(child => child.pending) && true) || false;
   }
 
   get dirty(): boolean {
     return this.form.dirty || this.hasIndividualMeasureControl.dirty ||
-      (this.childrenForms && this.childrenForms.find(child => child.dirty) && true) || false;
+      (this.childrenForms && this.childrenForms.find(child => child.dirty) && true) || false;
   }
 
   markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
     super.markAsTouched(opts);
-    (this.childrenForms || []).forEach(child => child.markAsTouched(opts));
+    (this.childrenForms || []).forEach(child => child.markAsTouched(opts));
     this.hasIndividualMeasureControl.markAsTouched(opts);
   }
 
@@ -128,7 +130,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     // Set isSampling on each child forms, when has indiv. measure changed
     this.registerSubscription(
       this.hasIndividualMeasureControl.valueChanges
-        .pipe(filter(() => !this.loadingValue && !this.loading))
+        .pipe(filter(() => !this.applyingValue && !this.loading))
         .subscribe(value => {
           (this.childrenForms || []).forEach((childForm, index) => {
             childForm.setIsSampling(value, {emitEvent: true}/*Important, to force async validator*/);
@@ -250,7 +252,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   }
 
   protected mapPmfms(pmfms: PmfmStrategy[]) {
-    this.qvPmfm = this.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
+    this.qvPmfm = this.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
     if (this.qvPmfm) {
 
       // Create a copy, to keep original pmfm unchanged
@@ -305,7 +307,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         const child = form.value;
         child.rankOrder = index + 1;
         child.label = `${data.label}.${qv.label}`;
-        child.measurementValues = child.measurementValues || {};
+        child.measurementValues = child.measurementValues || {};
         child.measurementValues[this.qvPmfm.pmfmId.toString()] = '' + qv.id;
 
         // Special case: when sampling on individual count only (e.g. RJB - Pocheteau)
@@ -328,7 +330,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     // Generally, individual count are not need, on a root species batch, because filled in sub-batches,
     // but some species (e.g. RJB) can have no weight.
     const showTotalIndividualCount = data && ReferentialUtils.isNotEmpty(data.taxonGroup) &&
-      (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
+      (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
 
     if (showTotalIndividualCount !== this.showTotalIndividualCount) {
       this.showTotalIndividualCount = showTotalIndividualCount;

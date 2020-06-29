@@ -21,7 +21,7 @@ ionic cordova build android --prod --release --warning-mode=none --color
 [[ $? -ne 0 ]] && exit 1
 
 # Signature
-KEYSTORE_FILE=${PROJECT_DIR}/.local/Sumaris.keystore
+KEYSTORE_FILE=${PROJECT_DIR}/.local/android/Sumaris.keystore
 KEY_ALIAS=Sumaris
 KEY_PWD=
 APK_DIR=${PROJECT_DIR}/platforms/android/app/build/outputs/apk/release

@@ -10,7 +10,7 @@
 
     <!-- PROGRAM -->
     <ion-row *ngIf="showProgram">
-      <ion-col size="12" size-md="2" size-lg="3" hidden-xs hidden-sm>
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col>
@@ -26,7 +26,7 @@
 
     <!-- VESSEL -->
     <ion-row *ngIf="showVessel">
-      <ion-col size="12" size-md="2" size-lg="3" hidden-xs hidden-sm>
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col>
@@ -61,9 +61,10 @@
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="12" size-sm="auto" *ngIf="showDateTime">
+      <ion-col size="12" size-sm="" *ngIf="showDateTime">
         <mat-date-time-field [placeholder]="'LANDING.DATE_TIME'|translate" formControlName="dateTime"
                              [displayTime]="true" [required]="true">
+          <mat-icon *ngIf="!showLocation && !mobile" matPrefix>event</mat-icon>
         </mat-date-time-field>
       </ion-col>
     </ion-row>
@@ -110,13 +111,13 @@
         <ion-spinner *ngIf="loading"></ion-spinner>
 
         <!-- pmfms -->
-        <mat-form-field-measurement *ngFor="let pmfm of $pmfms | async; index as i;"
+        <app-pmfm-field *ngFor="let pmfm of $pmfms | async; index as i;"
                                     [pmfm]="pmfm"
                                     [formControl]="form.get('measurementValues.'+ pmfm.pmfmId.toString())"
                                     [compact]="compact"
                                     [tabindex]="50 + i*2"
                                     [floatLabel]="floatLabel">
-        </mat-form-field-measurement>
+        </app-pmfm-field>
       </ion-col>
     </ion-row>
 

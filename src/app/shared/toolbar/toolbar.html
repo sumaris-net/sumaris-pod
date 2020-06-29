@@ -2,11 +2,17 @@
   <ion-toolbar [color]="color">
 
     <ion-buttons slot="start">
-      <ion-button class="back-button" [class.can-go-back]="defaultBackHref" (click)="doBackClick($event)"
-                  routerDirection="back" *ngIf="canGoBack">
+
+      <!-- back button -->
+      <ion-button *ngIf="canGoBack"
+                  class="back-button"
+                  [class.can-go-back]="defaultBackHref"
+                  (click)="doBackClick($event)"
+                  routerDirection="back" >
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
 
+      <!-- show menu button -->
       <ion-menu-toggle [hidden]="canGoBack">
         <ion-button>
           <ion-icon slot="icon-only" name="menu"></ion-icon>
@@ -18,9 +24,11 @@
 
     <ion-title [innerHTML]="title"></ion-title>
 
+    <ng-content select="ion-title"></ng-content>
+
     <ion-buttons slot="end">
 
-      <ng-content></ng-content>
+      <ng-content select="[slot=end]"></ng-content>
 
       <!-- search bar -->
       <ion-searchbar #searchbar animated

@@ -1,19 +1,18 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
-import {AppEditorPage, EntityUtils, environment, isNil} from "../../core/core.module";
-import {referentialToString} from "../services/model";
+import {AppEditor, environment, isNil, referentialToString} from "../../core/core.module";
+
 import {ReferentialForm} from "../form/referential.form";
 import {ParameterValidatorService} from "../services/validator/parameter.validator";
 import {EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
-import {Parameter} from "../services/model/pmfm.model";
-import {ReferentialService} from "../services/referential.service";
+import {Parameter} from "../services/model/parameter.model";
 import {ParameterService} from "../services/parameter.service";
 import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {ReferentialTable} from "../list/referential.table";
-import {ReferentialUtils} from "../../core/services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 
 @Component({
   selector: 'app-parameter',
@@ -24,7 +23,7 @@ import {ReferentialUtils} from "../../core/services/model";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ParameterPage extends AppEditorPage<Parameter> implements OnInit {
+export class ParameterPage extends AppEditor<Parameter> implements OnInit {
 
   canEdit: boolean;
   form: FormGroup;
@@ -46,12 +45,14 @@ export class ParameterPage extends AppEditorPage<Parameter> implements OnInit {
     protected accountService: AccountService,
     protected validatorService: ParameterValidatorService,
     protected parameterService: ParameterService,
-    protected referentialService: ReferentialService,
     protected referentialRefService: ReferentialRefService
   ) {
     super(injector,
       Parameter,
-      parameterService);
+      parameterService,
+      {
+        tabCount: 1
+      });
     this.form = validatorService.getFormGroup();
 
     // default values
@@ -95,7 +96,6 @@ export class ParameterPage extends AppEditorPage<Parameter> implements OnInit {
   protected canUserWrite(data: Parameter): boolean {
     return (this.isNewData && this.accountService.isAdmin())
       || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
-
   }
 
   enable() {
@@ -106,9 +106,8 @@ export class ParameterPage extends AppEditorPage<Parameter> implements OnInit {
     }
   }
 
-  protected registerFormsAndTables() {
-    this.registerTable(this.qualitativeValuesTable)
-      .registerForm(this.referentialForm);
+  protected registerForms() {
+    this.addChildForms([this.qualitativeValuesTable, this.referentialForm]);
   }
 
   protected setValue(data: Parameter) {
@@ -120,7 +119,7 @@ export class ParameterPage extends AppEditorPage<Parameter> implements OnInit {
     this.form.patchValue(json, {emitEvent: false});
 
     // QualitativeValues
-    this.qualitativeValuesTable.value = data.qualitativeValues && data.qualitativeValues.slice() || []; // force update
+    this.qualitativeValuesTable.value = data.qualitativeValues && data.qualitativeValues.slice() || []; // force update
 
     this.markAsPristine();
   }

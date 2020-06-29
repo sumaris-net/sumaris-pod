@@ -1,5 +1,6 @@
-import { Injectable } from "@angular/core";
-import { sign, box, verify } from "tweetnacl";
+import {Injectable} from "@angular/core";
+import {box, sign, verify} from "tweetnacl";
+
 export const scrypt = require('scrypt-async')
 export const base58 = require('../../../lib/base58')
 
@@ -62,9 +63,9 @@ export class CryptoService {
 
   /**
    * Generate sign keypair, sugin scrypt, from a salt and a password
-   * @param salt 
-   * @param password 
-   * @param scryptParams 
+   * @param salt
+   * @param password
+   * @param scryptParams
    */
   public scryptKeypair(salt: string, password: string, scryptParams?: CryptoSaltParams): Promise<KeyPair> {
 

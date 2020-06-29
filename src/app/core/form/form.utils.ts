@@ -1,5 +1,14 @@
-import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
 import {
+  AbstractControl,
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ValidationErrors,
+  ValidatorFn
+} from "@angular/forms";
+import {
+  delay,
   filterNumberInput,
   isNil,
   nullIfUndefined,
@@ -8,13 +17,116 @@ import {
   toDateISOString
 } from "../../shared/shared.module";
 import {isMoment} from "moment";
-import {Entity, ObjectMap} from "../services/model";
+import {Entity, ObjectMap} from "../services/model/entity.model";
 import {timer} from "rxjs";
 import {filter, first, tap} from "rxjs/operators";
-import {SharedValidators} from "../../shared/validator/validators";
+import {SharedFormArrayValidators} from "../../shared/validator/validators";
 import {round} from "../../shared/functions";
 
 export {selectInputContent};
+
+export declare type IAppFormFactory = () => IAppForm;
+
+export interface IAppForm  {
+  invalid: boolean;
+  valid: boolean;
+  dirty: boolean;
+  empty?: boolean;
+  pending: boolean;
+  error: string;
+  //TODO
+  // enabled: boolean;
+
+  disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
+
+  markAsPristine(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
+  markAsUntouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
+  markAsTouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
+  markAsDirty(opts?: {onlySelf?: boolean, emitEvent?: boolean; });
+}
+
+/**
+ * A form that do nothing
+ */
+class AppNullForm implements IAppForm {
+  readonly invalid= false;
+  readonly valid = false;
+  readonly dirty = false;
+  readonly empty = true;
+  readonly pending = false;
+  readonly error = null;
+
+  disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
+
+  markAsPristine(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
+  markAsUntouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
+  markAsTouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
+  markAsDirty(opts?: {onlySelf?: boolean, emitEvent?: boolean; }){}
+}
+
+export class AppFormHolder<F extends IAppForm = IAppForm> implements IAppForm {
+  static NULL_FORM = new AppNullForm();
+
+  constructor(private getter: () => F) {
+  }
+
+  private delegate(): IAppForm {
+    return this.getter() || AppFormHolder.NULL_FORM;
+  }
+
+  async waitDelegate(opts?: {checkTimeMs?: number; maxTimeoutMs?: number; startTime?: number}): Promise<F> {
+    const content = this.getter();
+    if (!content) {
+      if (opts && opts.maxTimeoutMs && opts.startTime && (Date.now() >= opts.startTime + opts.maxTimeoutMs)) {
+        throw new Error("Timeout exception. Cannot get form instance");
+      }
+      await delay(opts && opts.checkTimeMs || 100);
+      return this.waitDelegate({startTime: Date.now(), ...opts}); // Loop
+    }
+    return content;
+  }
+
+  /* -- delegated methods -- */
+
+  get error(): string {
+    return this.delegate().error;
+  }
+  get invalid(): boolean {
+    return this.delegate().invalid;
+  }
+  get valid(): boolean {
+    return this.delegate().valid;
+  }
+  get dirty(): boolean {
+    return this.delegate().dirty;
+  }
+  get empty(): boolean {
+    return this.delegate().empty;
+  }
+  get pending(): boolean {
+    return this.delegate().pending;
+  }
+  disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    return this.delegate().disable(opts);
+  }
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    return this.delegate().enable(opts);
+  }
+  markAsPristine(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    return this.delegate().markAsPristine(opts);
+  }
+  markAsUntouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    return this.delegate().markAsUntouched(opts);
+  }
+  markAsTouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    return this.delegate().markAsTouched(opts);
+  }
+  markAsDirty(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    return this.delegate().markAsDirty(opts);
+  }
+}
 
 // TODO continue to use this kind of declaration ?
 export class AppFormUtils {
@@ -107,7 +219,7 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
             // Add empty values if need
             if (value[key].length < control.length) {
               console.warn(`WARN: Adding null value to array values`);
-              for (let i = value[key].length; i++; i < control.length) {
+              for (let i = value[key].length; i < control.length; i++) {
                 value[key].push(null);
               }
             }
@@ -115,7 +227,7 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
         }
       }
       else if (source[key] === undefined) {
-        console.warn("Invalid form value. Expected array but found:", source[key]);
+        console.warn("Invalid value for property '"+key+"'. Unable to set form control. Expected array but found: undefined");
         value[key] = [];
       }
     }
@@ -223,35 +335,25 @@ export function disableControls(form: FormGroup, paths: string[]) {
 }
 
 
-export function addValueInArray(formBuilder: FormBuilder,
-                                form: FormGroup,
-                                arrayName: string,
+export function addValueInArray(arrayControl: FormArray,
                                 createControl: (value?: any) => AbstractControl,
                                 equals: (v1: any, v2: any) => boolean,
                                 isEmpty: (value: any) => boolean,
                                 value: any,
                                 options?: { emitEvent: boolean; }): boolean {
   options = options || {emitEvent: true};
-  console.debug("[form] Adding " + arrayName);
 
-  let arrayControl = form.get(arrayName) as FormArray;
   let hasChanged = false;
   let index = -1;
 
-  if (!arrayControl) {
-    arrayControl = formBuilder.array([]);
-    form.addControl(arrayName, arrayControl);
-  } else {
+  // Search if value already exists
+  if (!isEmpty(value)) {
+    index = (arrayControl.value || []).findIndex(v => equals(value, v));
+  }
 
-    // Search if value already exists
-    if (!isEmpty(value)) {
-      index = (arrayControl.value || []).findIndex(v => equals(value, v));
-    }
-
-    // If value not exists, but last value is empty: use it
-    if (index === -1 && arrayControl.length && isEmpty(arrayControl.at(arrayControl.length - 1).value)) {
-      index = arrayControl.length - 1;
-    }
+  // If value not exists, but last value is empty: use it
+  if (index === -1 && arrayControl.length && isEmpty(arrayControl.at(arrayControl.length - 1).value)) {
+    index = arrayControl.length - 1;
   }
 
   // Replace the existing value
@@ -263,7 +365,6 @@ export function addValueInArray(formBuilder: FormBuilder,
   } else {
     const control = createControl(value);
     arrayControl.push(control);
-    index = arrayControl.length - 1;
     hasChanged = true;
   }
 
@@ -279,16 +380,9 @@ export function addValueInArray(formBuilder: FormBuilder,
   return hasChanged;
 }
 
-export function resizeArray(formBuilder: FormBuilder,
-                            form: FormGroup,
-                            arrayName: string,
+export function resizeArray(arrayControl: FormArray,
                             createControl: () => AbstractControl,
                             length: number): boolean {
-  let arrayControl = form.get(arrayName) as FormArray;
-  if (!arrayControl) {
-    arrayControl = formBuilder.array([]);
-    form.addControl(arrayName, arrayControl);
-  }
   const hasChanged = arrayControl.length !== length;
 
   // Increase size
@@ -308,25 +402,20 @@ export function resizeArray(formBuilder: FormBuilder,
   return hasChanged;
 }
 
-export function removeValueInArray(form: FormGroup,
-                                   arrayName: string,
+export function removeValueInArray(arrayControl: FormArray,
                                    isEmpty: (value: any) => boolean,
                                    index: number,
                                    opt?: {
                                      allowEmptyArray: boolean;
                                    }): boolean {
-  const arrayControl = form.get(arrayName) as FormArray;
-
   arrayControl.removeAt(index);
   arrayControl.markAsDirty();
   return true;
 }
 
-export function clearValueInArray(form: FormGroup,
-                                  arrayName: string,
+export function clearValueInArray(arrayControl: FormArray,
                                   isEmpty: (value: any) => boolean,
                                   index: number): boolean {
-  const arrayControl = form.get(arrayName) as FormArray;
 
   const control = arrayControl.at(index);
   if (isEmpty(control.value)) return false; // skip (not need to clear)
@@ -359,7 +448,7 @@ export function markControlAsTouched(control: AbstractControl, opts?: {onlySelf?
     markAsTouched(control, { ...opts, onlySelf: true}); // recursive call
   }
   else if (control instanceof FormArray) {
-    (control.controls || []).forEach(c => markControlAsTouched(c, { ...opts, onlySelf: true})); // recursive call
+    (control.controls || []).forEach(c => markControlAsTouched(c, { ...opts, onlySelf: true})); // recursive call
   }
   else {
     control.markAsTouched({onlySelf: true});
@@ -435,10 +524,25 @@ export function resetCalculatedValue(controls: ObjectMap<AbstractControl>, contr
   }
 }
 
+export declare type FormArrayHelperOptions = {
+  allowEmptyArray: boolean;
+  validators?: ValidatorFn[];
+}
 
 export class FormArrayHelper<T = Entity<any>> {
 
-  private readonly arrayControl: FormArray;
+  static getOrCreateArray(
+    formBuilder: FormBuilder,
+    form: FormGroup,
+    arrayName: string): FormArray {
+    let arrayControl = form.get(arrayName) as FormArray;
+    if (!arrayControl) {
+      arrayControl = formBuilder.array([]);
+      form.addControl(arrayName, arrayControl);
+    }
+    return arrayControl;
+  }
+
   private _allowEmptyArray: boolean;
   private readonly _validators: ValidatorFn[];
 
@@ -450,27 +554,17 @@ export class FormArrayHelper<T = Entity<any>> {
     this.setAllowEmptyArray(value);
   }
 
+  get formArray(): FormArray {
+    return this._formArray;
+  }
+
   constructor(
-    private formBuilder: FormBuilder,
-    private form: FormGroup,
-    private arrayName: string,
+    private readonly _formArray: FormArray,
     private createControl: (value?: T) => AbstractControl,
     private equals: (v1: T, v2: T) => boolean,
     private isEmpty: (value: T) => boolean,
-    options?: {
-      allowEmptyArray: boolean;
-      validators?: ValidatorFn[];
-    }
+    options?: FormArrayHelperOptions
   ) {
-
-    // Make sure to create the array
-    this.arrayControl = form.get(arrayName) as FormArray;
-    if (!this.arrayControl) {
-      console.warn(`[form] Missing array control ${arrayName}: will add it!`);
-      this.arrayControl = formBuilder.array([]);
-      form.addControl(arrayName, this.arrayControl);
-    }
-
     this._validators = options && options.validators;
 
     // empty array not allow by default
@@ -478,65 +572,65 @@ export class FormArrayHelper<T = Entity<any>> {
   }
 
   add(value?: T, options?: { emitEvent: boolean }): boolean {
-    return addValueInArray(this.formBuilder, this.form, this.arrayName, this.createControl, this.equals, this.isEmpty, value, options);
+    return addValueInArray(this._formArray, this.createControl, this.equals, this.isEmpty, value, options);
   }
 
   removeAt(index: number) {
     // Do not remove if last criterion
-    if (!this._allowEmptyArray && this.arrayControl.length === 1) {
-      return clearValueInArray(this.form, this.arrayName, this.isEmpty, index);
+    if (!this._allowEmptyArray && this._formArray.length === 1) {
+      return clearValueInArray(this._formArray, this.isEmpty, index);
     }
     else {
-      return removeValueInArray(this.form, this.arrayName, this.isEmpty, index);
+      return removeValueInArray(this._formArray, this.isEmpty, index);
     }
   }
 
   resize(length: number): boolean {
-    return resizeArray(this.formBuilder, this.form, this.arrayName, this.createControl, length);
+    return resizeArray(this._formArray, this.createControl, length);
   }
 
   clearAt(index: number): boolean {
-    return clearValueInArray(this.form, this.arrayName, this.isEmpty, index);
+    return clearValueInArray(this._formArray, this.isEmpty, index);
   }
 
   isLast(index: number): boolean {
-    return (this.arrayControl.length - 1) === index;
+    return (this._formArray.length - 1) === index;
   }
 
   removeAllEmpty() {
-    let index = this.arrayControl.controls.findIndex(c => this.isEmpty(c.value));
+    let index = this._formArray.controls.findIndex(c => this.isEmpty(c.value));
     while(index !== -1) {
       this.removeAt(index);
-      index = this.arrayControl.controls.findIndex(c => this.isEmpty(c.value));
+      index = this._formArray.controls.findIndex(c => this.isEmpty(c.value));
     }
   }
 
   size(): number {
-    return this.arrayControl.length;
+    return this._formArray.length;
   }
 
   at(index: number): AbstractControl {
-    return this.arrayControl.at(index) as AbstractControl;
+    return this._formArray.at(index) as AbstractControl;
   }
 
   disable(opts?: {
     onlySelf?: boolean;
     emitEvent?: boolean;
   }) {
-    this.arrayControl.controls.forEach(c => c.disable(opts));
+    this._formArray.controls.forEach(c => c.disable(opts));
   }
 
   enable(opts?: {
     onlySelf?: boolean;
     emitEvent?: boolean;
   }) {
-    this.arrayControl.controls.forEach(c => c.enable(opts));
+    this._formArray.controls.forEach(c => c.enable(opts));
   }
 
   forEach(ite: (control: AbstractControl) => void ) {
     const size = this.size();
     for(let i = 0; i < size; i++) {
-      const control = this.arrayControl.at(i);
+      const control = this._formArray.at(i);
       if (control) ite(control);
     }
   }
@@ -550,10 +644,10 @@ export class FormArrayHelper<T = Entity<any>> {
 
     // Set required (or reste) min length validator
     if (this._allowEmptyArray) {
-      this.arrayControl.setValidators(this._validators || null);
+      this._formArray.setValidators(this._validators || null);
     }
     else {
-      this.arrayControl.setValidators((this._validators || []).concat(SharedValidators.requiredArrayMinLength(1)));
+      this._formArray.setValidators((this._validators || []).concat(SharedFormArrayValidators.requiredArrayMinLength(1)));
     }
   }
 }

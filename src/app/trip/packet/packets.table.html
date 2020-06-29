@@ -65,7 +65,7 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
 
-      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
+      <mat-autocomplete-field floatLabel="never" class="min-width-large ion-text-wrap"
                               [appAutofocus]="row.id == -1 && row.editing"
                               [formControl]="row.validator.controls.parent"
                               [placeholder]="'PACKET.LIST.PARENT'|translate"

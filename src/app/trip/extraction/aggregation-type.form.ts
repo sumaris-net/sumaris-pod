@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Input, OnInit, ViewChild} from "@angular/core";
-import {AppForm, EntityUtils, FormArrayHelper, StatusIds} from "../../core/core.module";
-import {AggregationStrata, AggregationType, ExtractionColumn} from "../services/extraction.model";
+import {AppForm, FormArrayHelper, StatusIds} from "../../core/core.module";
+import {AggregationStrata, AggregationType, ExtractionColumn} from "../services/model/extraction.model";
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../referential/form/referential.form";
@@ -9,7 +9,7 @@ import {arraySize} from "../../shared/functions";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ReferentialUtils} from "../../core/services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 
 @Component({
   selector: 'app-aggregation-type-form',
@@ -65,10 +65,9 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
       settings);
 
     // Stratum
+    this.stratumFormArray = this.form.controls.stratum as FormArray;
     this.stratumHelper = new FormArrayHelper<AggregationStrata>(
-      this.formBuilder,
-      this.form,
-      'stratum',
+      this.stratumFormArray,
       (strata) => validatorService.getStrataFormGroup(strata),
       (v1, v2) => (!v1 && !v2) || (v1 && v2 && v1.label === v2.label),
       ReferentialUtils.isEmpty,
@@ -76,7 +75,7 @@ export class AggregationTypeForm extends AppForm<AggregationType> implements OnI
         allowEmptyArray: false
       }
     );
-    this.stratumFormArray = this.form.controls.stratum as FormArray;
+
 
   }
 

@@ -1,6 +1,11 @@
 <!-- readonly -->
-<mat-form-field *ngIf="readonly else writable">
-  <input matInput hidden type="text" readonly [formControl]="formControl">
+<mat-form-field *ngIf="readonly; else writable"
+                [floatLabel]="floatLabel"
+                class="mat-form-field-disabled">
+  <input matInput hidden type="text"
+         readonly
+         [placeholder]="placeholder"
+         [formControl]="formControl">
   <ion-text>{{formControl.value|dateFormat: {pattern: displayPattern} }}</ion-text>
 </mat-form-field>
 
@@ -187,7 +192,7 @@
               type="button"
               *ngIf="clearable"
               (click)="writeValue(null)"
-              [hidden]="formControl.disabled || !formControl.value">
+              [hidden]="formControl.disabled || !formControl.value">
         <mat-icon>close</mat-icon>
       </button>
 

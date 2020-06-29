@@ -1,10 +1,12 @@
 import {ChangeDetectionStrategy, Component, OnDestroy} from '@angular/core';
 import {Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
-import {Account, Locales, referentialToString, StatusIds} from '../services/model';
-import {UserSettingsValidatorService} from '../services/user-settings.validator';
+import {Account} from '../services/model/account.model';
+import {Locales} from '../services/model/settings.model';
+import {referentialToString} from '../services/model/referential.model';
+import {UserSettingsValidatorService} from '../services/validator/user-settings.validator';
 import {FormBuilder, FormGroup} from '@angular/forms';
-import {AccountValidatorService} from '../services/account.validator';
+import {AccountValidatorService} from '../services/validator/account.validator';
 import {AppForm} from '../form/form.class';
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
@@ -13,6 +15,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {LAT_LONG_PATTERNS} from "../../shared/material/latlong/latlong.utils";
+import {StatusIds} from "../services/model/model.enum";
 
 @Component({
   selector: 'page-account',

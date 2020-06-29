@@ -1,35 +1,33 @@
 import {
-  EntityUtils,
-  fromDateISOString,
-  isNotNil,
-  ReferentialAsObjectOptions,
-  toDateISOString
+    EntityUtils,
+    fromDateISOString,
+    isNotNil,
+    Person,
+    ReferentialRef,
+    toDateISOString
 } from "../../../core/core.module";
 import {Moment} from "moment/moment";
+import {DataEntity, DataEntityAsObjectOptions,} from "../../../data/services/model/data-entity.model";
 import {
-  DataEntity,
-  DataEntityAsObjectOptions,
-  RootDataEntity,
-  DataRootVesselEntity,
-  IWithObserversEntity, IWithPacketsEntity, IWithProductsEntity,
-  NOT_MINIFY_OPTIONS,
-  Person,
-  ReferentialRef
-} from "./base.model";
-import {
-  IEntityWithMeasurement,
-  Measurement, MeasurementFormValues,
-  MeasurementModelValues,
-  MeasurementUtils,
-  MeasurementValuesUtils
+    IEntityWithMeasurement,
+    Measurement,
+    MeasurementFormValues,
+    MeasurementModelValues,
+    MeasurementUtils,
+    MeasurementValuesUtils
 } from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Metier} from "../../../referential/services/model/taxon.model";
 import {isEmptyArray} from "../../../shared/functions";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
-import {Product} from "./product.model";
-import {Packet} from "./packet.model";
+import {IWithProductsEntity, Product} from "./product.model";
+import {IWithPacketsEntity, Packet} from "./packet.model";
+import {FishingArea} from "./fishing-area.model";
+import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
+import {DataRootVesselEntity} from "../../../data/services/model/root-vessel-entity.model";
+import {IWithObserversEntity} from "../../../data/services/model/model.utils";
+import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
 
 /* -- Helper function -- */
 
@@ -62,6 +60,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   metiers: ReferentialRef[];
   operations?: Operation[];
   operationGroups?: OperationGroup[];
+  fishingArea: FishingArea;
 
   landingId?: number;
   observedLocationId?: number;
@@ -74,6 +73,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.measurements = [];
     this.observers = [];
     this.metiers = [];
+    this.fishingArea = null;
   }
 
   clone(): Trip {
@@ -108,6 +108,9 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.operationGroups = this.operationGroups && this.operationGroups.filter(isNotNil).map(o => o.asObject(options)) || undefined;
     if (isEmptyArray(target.operationGroups)) delete target.operationGroups; // Clean if empty, for compat with previous version
 
+    // Fishing area
+    target.fishingArea = this.fishingArea && this.fishingArea.asObject(options) || undefined;
+
     return target;
   }
 
@@ -132,6 +135,8 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     if (this.returnDateTime && this.returnDateTime.isSameOrBefore(this.departureDateTime)) {
       this.returnDateTime = undefined;
     }
+
+    this.fishingArea = source.fishingArea && FishingArea.fromObject(source.fishingArea) || undefined;
 
     this.landingId = source.landingId;
     this.observedLocationId = source.observedLocationId;
@@ -288,13 +293,21 @@ export class VesselPosition extends DataEntity<VesselPosition> {
 
 /* -- Operation -- */
 
-export class Operation extends DataEntity<Operation> {
+export interface OperationAsObjectOptions extends DataEntityAsObjectOptions {
+  batchAsTree?: boolean;
+}
+export interface OperationFromObjectOptions {
+  withSamples?: boolean;
+  withBatchTree?: boolean;
+}
+export class Operation extends DataEntity<Operation, OperationAsObjectOptions, OperationFromObjectOptions> {
 
   static TYPENAME = 'OperationVO';
 
-  static fromObject(source: any): Operation {
+  static fromObject(source: any, opts?: OperationFromObjectOptions): Operation {
+    if (!source || source instanceof Operation) return source;
     const res = new Operation();
-    res.fromObject(source);
+    res.fromObject(source, opts);
     return res;
   }
 
@@ -317,6 +330,7 @@ export class Operation extends DataEntity<Operation> {
   measurements: Measurement[];
   samples: Sample[];
   catchBatch: Batch;
+  fishingAreas: FishingArea[];
 
   constructor() {
     super();
@@ -328,6 +342,7 @@ export class Operation extends DataEntity<Operation> {
     this.measurements = [];
     this.samples = [];
     this.catchBatch = null;
+    this.fishingAreas = [];
   }
 
   clone(): Operation {
@@ -336,7 +351,7 @@ export class Operation extends DataEntity<Operation> {
     return target;
   }
 
-  asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
+  asObject(opts?: OperationAsObjectOptions): any {
     const target = super.asObject(opts);
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
@@ -352,7 +367,7 @@ export class Operation extends DataEntity<Operation> {
       if (!target.endPosition.dateTime) {
         // Create a copy
         target.endPosition = target.endPosition.clone();
-        target.endPosition.dateTime = target.endPosition.dateTime || target.fishingEndDateTime || target.endDateTime;
+        target.endPosition.dateTime = target.endPosition.dateTime || target.fishingEndDateTime || target.endDateTime;
       }
     }
     // Invalid position (missing latitude or longitude - allowed in on FIELD mode): remove it
@@ -379,7 +394,7 @@ export class Operation extends DataEntity<Operation> {
     }
 
     // Metier
-    target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/} as ReferentialAsObjectOptions) || undefined;
+    target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/}) || undefined;
 
     // Measurements
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
@@ -400,11 +415,14 @@ export class Operation extends DataEntity<Operation> {
       }
     }
 
+    // Fishing areas
+    target.fishingAreas = this.fishingAreas && this.fishingAreas.map(value => value.asObject(opts)) || undefined;
+
     return target;
   }
 
-  fromObject(source: any): Operation {
-    super.fromObject(source);
+  fromObject(source: any, opts?: OperationFromObjectOptions): Operation {
+    super.fromObject(source, opts);
     this.hasCatch = source.hasCatch;
     this.comments = source.comments;
     this.tripId = source.tripId;
@@ -436,16 +454,6 @@ export class Operation extends DataEntity<Operation> {
     }
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
 
-    // Samples
-    this.samples = source.samples && source.samples.map(source => Sample.fromObject(source, {withChildren: true})) || undefined;
-
-    // Batches
-    this.catchBatch = source.catchBatch && !source.batches ?
-      // Reuse existing catch batch (useful for local entity)
-      Batch.fromObject(source.catchBatch, {withChildren: true}) :
-      // Convert list to tree (useful when fetching from a pod)
-      Batch.fromObjectArrayAsTree(source.batches);
-
     // Remove fake dates (e.g. if endDateTime = startDateTime)
     if (this.endDateTime && this.endDateTime.isSameOrBefore(this.startDateTime)) {
       this.endDateTime = undefined;
@@ -455,6 +463,23 @@ export class Operation extends DataEntity<Operation> {
     }
     if (this.endPosition && this.endPosition.dateTime && this.startPosition && this.endPosition.dateTime.isSameOrBefore(this.startPosition.dateTime)) {
       this.endPosition.dateTime = undefined;
+    }
+
+    // Fishing areas
+    this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || undefined;
+
+    // Samples
+    if (!opts || opts.withSamples !== false) {
+      this.samples = source.samples && source.samples.map(source => Sample.fromObject(source, {withChildren: true})) || undefined;
+    }
+
+    // Batches
+    if (!opts || opts.withBatchTree !== false) {
+      this.catchBatch = source.catchBatch && !source.batches ?
+        // Reuse existing catch batch (useful for local entity)
+        Batch.fromObject(source.catchBatch, {withChildren: true}) :
+        // Convert list to tree (useful when fetching from a pod)
+        Batch.fromObjectArrayAsTree(source.batches);
     }
 
     return this;
@@ -472,7 +497,8 @@ export class Operation extends DataEntity<Operation> {
 
 /* -- Operation Group -- */
 
-export class OperationGroup extends DataEntity<OperationGroup> implements IWithProductsEntity<OperationGroup>, IWithPacketsEntity<OperationGroup> {
+export class OperationGroup extends DataEntity<OperationGroup>
+    implements IWithProductsEntity<OperationGroup>, IWithPacketsEntity<OperationGroup> {
 
   static TYPENAME = 'OperationGroupVO';
 
@@ -499,10 +525,11 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
 
   products: Product[];
   packets: Packet[];
+  fishingAreas: FishingArea[];
 
   constructor() {
     super();
-    this.__typename = 'OperationGroupVO';
+    this.__typename = OperationGroup.TYPENAME;
     this.metier = null;
     this.physicalGear = null;
     this.measurementValues = {};
@@ -510,6 +537,7 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
     this.gearMeasurements = [];
     this.products = [];
     this.packets = [];
+    this.fishingAreas = [];
   }
 
   clone(): OperationGroup {
@@ -551,6 +579,9 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
       return p;
     }) || undefined;
 
+    // Fishing areas
+    target.fishingAreas = this.fishingAreas && this.fishingAreas.map(value => value.asObject(opts)) || undefined;
+
     return target;
   }
 
@@ -590,6 +621,9 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
     this.packets.forEach(packet => {
       packet.parent = this;
     });
+
+    // Fishing areas
+    this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || undefined;
 
     return this;
   }

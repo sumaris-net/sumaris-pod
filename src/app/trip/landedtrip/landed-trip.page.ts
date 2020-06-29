@@ -10,15 +10,14 @@ import {
   isNotNilOrBlank
 } from '../../shared/shared.module';
 import * as moment from "moment";
-import {AcquisitionLevelCodes, PmfmStrategy, ProgramProperties} from "../../referential/services/model";
-import {AppDataEditorPage} from "../form/data-editor-page.class";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
-import {LandingService} from "../services/landing.service";
 import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
 import {TripService, TripServiceSaveOption} from "../services/trip.service";
-import {HistoryPageReference, UsageMode} from "../../core/services/model";
+import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -27,17 +26,19 @@ import {OperationGroupTable} from "../operationgroup/operation-groups.table";
 import {MatAutocompleteConfigHolder, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {ProductsTable} from "../product/products.table";
-import {Product} from "../services/model/product.model";
+import {Product, ProductFilter} from "../services/model/product.model";
 import {PacketsTable} from "../packet/packets.table";
-import {Packet} from "../services/model/packet.model";
+import {Packet, PacketFilter} from "../services/model/packet.model";
 import {OperationGroup, Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
-import {fillRankOrder, isRankOrderValid} from "../services/model/base.model";
+import {fillRankOrder, isRankOrderValid} from "../../data/services/model/model.utils";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {debounceTime, filter} from "rxjs/operators";
 import {Sale} from "../services/model/sale.model";
 import {ExpenseForm} from "../expense/expense.form";
-import {Metier} from "../../referential/services/model/taxon.model";
+import {FishingAreaForm} from "../fishing-area/fishing-area.form";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ProgramProperties} from "../../referential/services/config/program.config";
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -46,7 +47,7 @@ import {Metier} from "../../referential/services/model/taxon.model";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandedTripPage extends AppDataEditorPage<Trip, TripService> implements OnInit {
+export class LandedTripPage extends AppRootDataEditor<Trip, TripService> implements OnInit {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   observedLocationId: number;
@@ -58,15 +59,14 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   showSaleTab = false;
   showExpenseTab = false;
 
-  autocompleteHelper: MatAutocompleteConfigHolder;
-  autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
-
   // List of trip's metier, used to populate operation group's metier combobox
   $metiers = new BehaviorSubject<ReferentialRef[]>(null);
 
   // List of trip's operation groups, use to populate product filter
   $operationGroups = new BehaviorSubject<OperationGroup[]>(null);
   catchFilterForm: FormGroup;
+  $productFilter = new BehaviorSubject<ProductFilter>(undefined);
+  $packetFilter = new BehaviorSubject<PacketFilter>(undefined);
 
   operationGroupAttributes = ['metier.label', 'metier.name'];
 
@@ -74,6 +74,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
+  @ViewChild('fishingAreaForm', {static: true}) fishingAreaForm: FishingAreaForm;
   @ViewChild('operationGroupTable', {static: true}) operationGroupTable: OperationGroupTable;
   @ViewChild('catchTabGroup', {static: true}) catchTabGroup: MatTabGroup;
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
@@ -85,7 +86,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   constructor(
     injector: Injector,
     protected entities: EntityStorage,
-    protected landingService: LandingService,
+    protected dataService: TripService,
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
     public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
@@ -93,14 +94,11 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
   ) {
     super(injector,
       Trip,
-      injector.get(TripService));
-    this.idAttribute = 'tripId';
-    // this.defaultBackHref = "/trips";
-
-    this.autocompleteHelper = new MatAutocompleteConfigHolder(this.settings && {
-      getUserAttributes: (a, b) => this.settings.getFieldDisplayAttributes(a, b)
-    });
-    this.autocompleteFields = this.autocompleteHelper.fields;
+      dataService,
+      {
+        pathIdAttribute: 'tripId',
+        tabCount: 4
+      });
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -136,12 +134,17 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     this.catchFilterForm = this.formBuilder.group({
       operationGroup: [null]
     });
+    this.registerSubscription(this.catchFilterForm.valueChanges.subscribe(() => {
+      this.$productFilter.next(new ProductFilter(this.catchFilterForm.value.operationGroup));
+      this.$packetFilter.next(new PacketFilter(this.catchFilterForm.value.operationGroup));
+    }));
 
     // Init operationGroupFilter combobox
-    this.autocompleteHelper.add('operationGroupFilter', {
+    this.registerAutocompleteField('operationGroupFilter', {
       showAllOnFocus: true,
       items: this.$operationGroups,
-      attributes: this.operationGroupAttributes
+      attributes: this.operationGroupAttributes,
+      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME']
     });
 
     // Update available operation groups for catches forms
@@ -162,14 +165,26 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       })
     );
 
+    // Update catch tab index
+    if (this.catchTabGroup) {
+      if (this.selectedTabIndex === 2) {
+        const queryParams = this.route.snapshot.queryParams;
+        this.selectedCatchTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
+      } else {
+        this.selectedCatchTabIndex = 0;
+      }
+      this.catchTabGroup.realignInkBar();
+    }
+
   }
 
-  protected registerFormsAndTables() {
-    this.registerForms([this.tripForm, this.measurementsForm,
+  protected registerForms() {
+    this.addChildForms([
+      this.tripForm, this.measurementsForm, this.fishingAreaForm,
       // this.landedSaleForm //, this.saleMeasurementsForm
-      this.expenseForm
-    ])
-      .registerTables([this.operationGroupTable, this.productsTable, this.packetsTable]);
+      this.expenseForm,
+      this.operationGroupTable, this.productsTable, this.packetsTable
+    ]);
   }
 
 
@@ -178,7 +193,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     this.observedLocationId = options && options.observedLocationId || this.observedLocationId;
     this.defaultBackHref = `/observations/${this.observedLocationId}`;
 
-    super.load(id, {isLandedTrip: true, ...options});
+    return super.load(id, {isLandedTrip: true, ...options});
   }
 
   protected async onNewEntity(data: Trip, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -221,6 +236,12 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       console.debug(`[landedTrip-page] Loading vessel {${vesselId}}...`);
       data.vesselSnapshot = await this.vesselService.load(vesselId, {fetchPolicy: 'cache-first'});
     }
+    // Get the landing id
+    if (isNotNil(queryParams['landing'])) {
+      const landingId = +queryParams['landing'];
+      console.debug(`[landedTrip-page] Get landing id {${landingId}}...`);
+      data.landingId = landingId;
+    }
 
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
@@ -231,7 +252,7 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
 
   protected async getObservedLocationById(observedLocationId: number): Promise<ObservedLocation> {
 
-    // Load parent landing
+    // Load parent observed location
     if (isNotNil(observedLocationId)) {
       console.debug(`[landedTrip-page] Loading parent observed location ${observedLocationId}...`);
       return this.observedLocationService.load(observedLocationId, {fetchPolicy: "cache-first"});
@@ -276,6 +297,9 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       this.productSalePmfms = await this.programService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
 
     }
+
+    // Fishing area
+    this.fishingAreaForm.value = data && data.fishingArea || {};
 
     // Trip measurements todo filter ????????
     const tripMeasurements = data && data.measurements || [];
@@ -453,7 +477,11 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     json.vesselSnapshot = this.data.vesselSnapshot;
 
     // json.sale = !this.saleForm.empty ? this.saleForm.value : null;
-    json.measurements = this.measurementsForm.value;
+    // Concat trip and expense measurements
+    json.measurements = (this.measurementsForm.value || []).concat(this.expenseForm.value);
+
+    // FishingArea
+    json.fishingArea = !this.fishingAreaForm.empty ? this.fishingAreaForm.value : null;
 
     const operationGroups: OperationGroup[] = this.operationGroupTable.value || [];
 
@@ -479,9 +507,6 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
     json.operationGroups = operationGroups;
     json.gears = operationGroups.map(operationGroup => operationGroup.physicalGear);
 
-
-    // todo affect others tables
-
     return json;
   }
 
@@ -505,24 +530,40 @@ export class LandedTripPage extends AppDataEditorPage<Trip, TripService> impleme
       saveOptions.withOperationGroup = true;
     }
 
-    // todo same for expenses
+    // todo same for other tables
 
     return await super.save(event, {...options, ...saveOptions});
   }
 
+  onNewFabButtonClick(event: UIEvent) {
+    if (this.showOperationGroupTab && this.selectedTabIndex === 1) {
+      this.operationGroupTable.addRow(event);
+    }
+    else if (this.showCatchTab && this.selectedTabIndex === 2) {
+      switch (this.selectedCatchTabIndex) {
+        case 0:
+          this.productsTable.addRow(event);
+          break;
+        case 1:
+          this.packetsTable.addRow(event);
+          break;
+      }
+    }
+  }
 
   /**
    * Get the first invalid tab
    */
   protected getFirstInvalidTabIndex(): number {
-    const tab0Invalid = this.tripForm.invalid || this.measurementsForm.invalid;
-    return 0; // test
+    const invalidTabs: boolean[] = [
+      this.tripForm.invalid || this.measurementsForm.invalid,
+      this.operationGroupTable.invalid,
+      this.productsTable.invalid || this.packetsTable.invalid,
+      this.expenseForm.invalid
+    ];
 
-
-    // const tab1Invalid = !tab0Invalid && this.physicalGearTable.invalid;
-    // const tab2Invalid = !tab1Invalid && this.operationTable.invalid;
-
-    // return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
+    const firstInvalidTab = invalidTabs.indexOf(true);
+    return firstInvalidTab > -1 ? firstInvalidTab : this.selectedTabIndex;
   }
 
   /**

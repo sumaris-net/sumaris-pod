@@ -1,4 +1,5 @@
-import { ServiceError } from '../../core/services/errors'
+import {ServiceError} from '../../core/services/errors';
+
 export { ServiceError }
 
 export const ErrorCodes = {
@@ -40,12 +41,15 @@ export const ErrorCodes = {
   SAVE_LANDINGS_ERROR: 253,
   SUBSCRIBE_LANDING_ERROR: 254,
 
+  LOAD_AGGREGATED_LANDINGS_ERROR: 260,
+
   LOAD_EXTRACTION_TYPES_ERROR: 300,
   LOAD_EXTRACTION_ROWS_ERROR: 301,
   DOWNLOAD_EXTRACTION_FILE_ERROR: 302,
   LOAD_EXTRACTION_GEO_TYPES_ERROR: 304,
   LOAD_EXTRACTION_GEO_DATA_ERROR: 305,
 
-  SAVE_AGGREGATION_ERROR: 400
+  SAVE_AGGREGATION_ERROR: 400,
+
 
 };

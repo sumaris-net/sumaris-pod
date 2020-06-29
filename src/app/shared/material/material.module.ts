@@ -36,6 +36,7 @@ import {SharedMatDurationModule} from "./duration/duration.module";
 import {SharedMatBooleanModule} from "./boolean/boolean.module";
 import {SharedMatNumpadModule} from "./numpad/numpad.module";
 import {InputElement} from "../inputs";
+import {SharedMatSwipeModule} from "./swipe/swipe.module";
 
 export { fadeInAnimation, slideInOutAnimation, InputElement };
 
@@ -76,7 +77,8 @@ const modules: Array<Type<any> | any[]> = [
   SharedMatDateTimeModule,
   SharedMatDurationModule,
   SharedMatBooleanModule,
-  SharedMatNumpadModule
+  SharedMatNumpadModule,
+  SharedMatSwipeModule
 ];
 
 @NgModule({

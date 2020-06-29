@@ -1,18 +1,14 @@
 import {fromDateISOString, Person, ReferentialRef, toDateISOString} from "../../../core/core.module";
 
-import {
-  DataEntityAsObjectOptions,
-  RootDataEntity,
-  DataRootVesselEntity,
-  IWithObserversEntity,
-  NOT_MINIFY_OPTIONS
-} from "./base.model";
+import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 
 
 import {Moment} from "moment/moment";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {Landing} from "./landing.model";
-import {ReferentialAsObjectOptions} from "../../../core/services/model";
+import {NOT_MINIFY_OPTIONS, ReferentialAsObjectOptions} from "../../../core/services/model/referential.model";
+import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
+import {IWithObserversEntity} from "../../../data/services/model/model.utils";
 
 
 export class ObservedLocation extends RootDataEntity<ObservedLocation>
@@ -94,73 +90,3 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
       );
   }
 }
-
-
-export class ObservedVessel extends DataRootVesselEntity<ObservedVessel> {
-
-  static fromObject(source: any): ObservedVessel {
-    const res = new ObservedVessel();
-    res.fromObject(source);
-    return res;
-  }
-
-  dateTime: Moment;
-  observedLocationId: number;
-  landingCount: number;
-  rankOrder: number;
-  observers: Person[];
-  measurementValues: { [key: string]: any };
-
-  constructor() {
-    super();
-    this.observers = [];
-    this.measurementValues = {};
-  }
-
-  clone(): ObservedVessel {
-    const target = new ObservedVessel();
-    target.fromObject(this.asObject());
-    return target;
-  }
-
-  copy(target: ObservedVessel) {
-    target.fromObject(this);
-  }
-
-
-  fromObject(source: any): ObservedVessel {
-    super.fromObject(source);
-    this.dateTime = fromDateISOString(source.dateTime);
-    this.observedLocationId = source.observedLocationId;
-    this.rankOrder = source.rankOrder;
-    this.landingCount = source.landingCount;
-    this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    if (source.measurementValues) {
-      this.measurementValues = source.measurementValues;
-    }
-    // Convert measurement to map
-    else if (source.measurements) {
-      this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
-        const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
-        if (value) map[m.pmfmId] = value;
-        return map;
-      }, {}) || undefined;
-    }
-
-
-    return this;
-  }
-
-  asObject(options?: DataEntityAsObjectOptions): any {
-    const target = super.asObject(options);
-    target.dateTime = toDateISOString(this.dateTime);
-    target.observers = this.observers && this.observers.map(o => o.asObject(options)) || undefined;
-
-    // Measurement: keep only the map
-    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, options);
-
-    return target;
-  }
-
-}
-

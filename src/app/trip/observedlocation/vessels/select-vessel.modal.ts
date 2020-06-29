@@ -1,18 +1,14 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
 import {LandingsTable} from "../../landing/landings.table";
 import {LandingFilter} from "../../services/landing.service";
-import {
-  AcquisitionLevelCodes,
-  AcquisitionLevelType,
-  isNotNil,
-  VesselSnapshot
-} from "../../../referential/services/model";
+import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {ModalController} from "@ionic/angular";
 import {Landing} from "../../services/model/landing.model";
 import {VesselFilter} from "../../../referential/services/vessel-service";
 import {VesselsTable} from "../../../referential/vessel/list/vessels.table";
 import {AppTable} from "../../../core/table/table.class";
-import {toBoolean} from "../../../shared/functions";
+import {isNotNil, toBoolean} from "../../../shared/functions";
+import {VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
 
 @Component({
   selector: 'app-select-vessel-modal',
@@ -36,7 +32,7 @@ export class SelectVesselsModal implements OnInit {
   }
 
   get table(): AppTable<any> {
-    return (!this.showLandings && this.vesselsTable) || (this.showLandings && this.landingsTable);
+    return (!this.showLandings && this.vesselsTable) || (this.showLandings && this.landingsTable);
   }
 
   get showLandings(): boolean {
@@ -58,7 +54,7 @@ export class SelectVesselsModal implements OnInit {
 
   ngOnInit() {
     // Init landing table
-    this.landingFilter = this.landingFilter || {};
+    this.landingFilter = this.landingFilter || {};
     this.landingsTable.filter = this.landingFilter;
     this.landingsTable.program = this.landingFilter.programLabel;
     this.landingsTable.acquisitionLevel = AcquisitionLevelCodes.LANDING;
@@ -94,14 +90,14 @@ export class SelectVesselsModal implements OnInit {
       if (this.hasSelection()) {
         let vessels: VesselSnapshot[];
         if (this.showLandings) {
-          vessels = (this.landingsTable.selection.selected || [])
+          vessels = (this.landingsTable.selection.selected || [])
             .map(row => row.currentData)
             .map(Landing.fromObject)
             .filter(isNotNil)
             .map(l => l.vesselSnapshot);
         }
         else {
-          vessels = (this.vesselsTable.selection.selected || [])
+          vessels = (this.vesselsTable.selection.selected || [])
             .map(row => row.currentData)
             .map(VesselSnapshot.fromObject)
             .filter(isNotNil);
@@ -121,7 +117,7 @@ export class SelectVesselsModal implements OnInit {
 
   hasSelection(): boolean {
     const table = this.table;
-    return table && table.selection.hasValue() && (this.allowMultiple || table.selection.selected.length === 1);
+    return table && table.selection.hasValue() && (this.allowMultiple || table.selection.selected.length === 1);
   }
 
   protected markForCheck() {

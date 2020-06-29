@@ -1,24 +1,15 @@
 import {Injectable} from "@angular/core";
 import {base58, CryptoService, KeyPair} from "./crypto.service";
-import {
-  Account,
-  Department,
-  getMainProfile,
-  hasUpperOrEqualsProfile,
-  Person,
-  Referential,
-  ReferentialUtils,
-  StatusIds,
-  UsageMode,
-  UserProfileLabel,
-  UserSettings
-} from "./model";
+import {Department} from "./model/department.model";
+import {Account} from "./model/account.model";
+import {Person, PersonUtils, UserProfileLabel} from "./model/person.model";
+import {UsageMode, UserSettings} from "./model/settings.model";
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import gql from "graphql-tag";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "apollo-client";
 
-import {toDateISOString} from "../../shared/shared.module";
+import {toDateISOString} from "../../shared/functions";
 import {BaseDataService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
@@ -28,6 +19,7 @@ import {FormFieldDefinition} from "../../shared/form/field.model";
 import {NetworkService} from "./network.service";
 import {FileService} from "../../shared/file/file.service";
 import {PlatformService} from "./platform.service";
+import {Referential, ReferentialUtils, StatusIds} from "./model/referential.model";
 
 
 export declare interface AccountHolder {
@@ -307,7 +299,7 @@ export class AccountService extends BaseDataService {
       (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY)) {
       return false;
     }
-    return hasUpperOrEqualsProfile(this.data.account.profiles, label as UserProfileLabel);
+    return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, label);
   }
 
   public hasExactProfile(label: UserProfileLabel): boolean {
@@ -318,11 +310,10 @@ export class AccountService extends BaseDataService {
     return !!this.data.account.profiles.find(profile => profile === label);
   }
 
-
   public hasProfileAndIsEnable(label: UserProfileLabel): boolean {
     // should be login, and status ENABLE
     if (!this.data.account || !this.data.account.pubkey || this.data.account.statusId != StatusIds.ENABLE) return false;
-    return hasUpperOrEqualsProfile(this.data.account.profiles, label as UserProfileLabel);
+    return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, label);
   }
 
   public isAdmin(): boolean {
@@ -351,7 +342,7 @@ export class AccountService extends BaseDataService {
       (this.data.account.statusId !== StatusIds.ENABLE && this.data.account.statusId !== StatusIds.TEMPORARY))
       return false;
     // Profile less then user
-    return !hasUpperOrEqualsProfile(this.data.account.profiles, 'USER');
+    return !PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, 'USER');
   }
 
   public canUserWriteDataForDepartment(recorderDepartment: Referential | any): boolean {
@@ -373,7 +364,7 @@ export class AccountService extends BaseDataService {
     if (this.data.account.department.id === recorderDepartment.id) return true;
 
     // Else, check if supervisor (or more)
-    return hasUpperOrEqualsProfile(this.data.account.profiles, 'SUPERVISOR');
+    return PersonUtils.hasUpperOrEqualsProfile(this.data.account.profiles, 'SUPERVISOR');
   }
 
   public async register(data: RegisterData): Promise<Account> {
@@ -400,7 +391,7 @@ export class AccountService extends BaseDataService {
 
       // Default values
       account.avatar = account.avatar || (environment.baseUrl + DEFAULT_AVATAR_IMAGE);
-      this.data.mainProfile = getMainProfile(account.profiles);
+      this.data.mainProfile = PersonUtils.getMainProfile(account.profiles);
 
       this.data.account = account;
       this.data.pubkey = account.pubkey;
@@ -424,7 +415,7 @@ export class AccountService extends BaseDataService {
   }
 
   async login(data: AuthData): Promise<Account> {
-    if (!data || !data.username || !data.password) throw new Error("Missing required username or password");
+    if (!data || !data.username || !data.password) throw new Error("Missing required username or password");
 
     console.debug("[account] Login...");
 
@@ -543,7 +534,7 @@ export class AccountService extends BaseDataService {
       account.settings.latLongFormat = account.settings.latLongFormat || this.settings.latLongFormat || 'DDMM';
 
       // Read main profile
-      this.data.mainProfile = getMainProfile(account.profiles);
+      this.data.mainProfile = PersonUtils.getMainProfile(account.profiles);
 
       if (this.data.account) {
         this.data.account.fromObject(account);
@@ -582,7 +573,7 @@ export class AccountService extends BaseDataService {
     if (!pubkey) return;
 
     // Quit if could not auth on pod
-    const canRemoteAuth = token || seckey || false;
+    const canRemoteAuth = token || seckey || false;
     if (!canRemoteAuth) return;
 
     if (this._debug) console.debug(`[account] Account restoration...`);
@@ -591,7 +582,7 @@ export class AccountService extends BaseDataService {
     this.data.keypair = seckey && {
       publicKey: base58.decode(pubkey),
       secretKey: base58.decode(seckey)
-    } || null;
+    } || null;
 
     // Online mode: try to connect to pod
     if (this.network.online) {
@@ -632,7 +623,7 @@ export class AccountService extends BaseDataService {
 
     // Update data
     this.data.account = account;
-    this.data.mainProfile = getMainProfile(account.profiles);
+    this.data.mainProfile = PersonUtils.getMainProfile(account.profiles);
     this.data.loaded = true;
 
     // Emit event
@@ -678,7 +669,7 @@ export class AccountService extends BaseDataService {
       this.storage.set(TOKEN_STORAGE_KEY, this.data.authToken),
       this.storage.set(`${ACCOUNT_STORAGE_KEY}#${this.data.pubkey}`, jsonAccount),
       // Secret key (optional)
-      seckey && this.storage.set(SECKEY_STORAGE_KEY, seckey) || this.storage.remove(SECKEY_STORAGE_KEY),
+      seckey && this.storage.set(SECKEY_STORAGE_KEY, seckey) || this.storage.remove(SECKEY_STORAGE_KEY),
       // Remove old storage key
       this.storage.remove(ACCOUNT_STORAGE_KEY)
     ]);
@@ -689,7 +680,6 @@ export class AccountService extends BaseDataService {
   /**
    * Create or update an user account, to the remote storage
    * @param account
-   * @param keyPair
    */
   public async saveRemotely(account: Account): Promise<Account> {
     if (!this.data.pubkey) return Promise.reject("User not logged");
@@ -699,7 +689,7 @@ export class AccountService extends BaseDataService {
 
     // Set defaults
     account.avatar = account.avatar || (environment.baseUrl + DEFAULT_AVATAR_IMAGE);
-    this.data.mainProfile = getMainProfile(account.profiles);
+    this.data.mainProfile = PersonUtils.getMainProfile(account.profiles);
 
     this.data.account = account;
     this.data.loaded = true;
@@ -727,7 +717,7 @@ export class AccountService extends BaseDataService {
         this.storage.remove(PUBKEY_STORAGE_KEY),
         this.storage.remove(TOKEN_STORAGE_KEY),
         this.storage.remove(ACCOUNT_STORAGE_KEY),
-        pubkey && this.storage.remove(ACCOUNT_STORAGE_KEY + '#' + pubkey) || Promise.resolve(),
+        pubkey && this.storage.remove(ACCOUNT_STORAGE_KEY + '#' + pubkey) || Promise.resolve(),
         this.storage.remove(SECKEY_STORAGE_KEY)
       ]);
 
@@ -766,7 +756,7 @@ export class AccountService extends BaseDataService {
     if (this._debug) console.debug(`[account] Loading account {${pubkey.substring(0, 6)}}...`);
     let accountJson: any;
 
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only') || (opts && opts.offline === true);
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only') || (opts && opts.offline === true);
     if (offline) {
       accountJson = await this.storage.get(ACCOUNT_STORAGE_KEY);
       accountJson = accountJson && (typeof accountJson === 'string') && JSON.parse(accountJson) || accountJson;
@@ -995,7 +985,7 @@ export class AccountService extends BaseDataService {
   }
 
   get $additionalFields(): Observable<FormFieldDefinition[]> {
-    return this._$additionalFields.asObservable();
+    return this._$additionalFields;
   }
 
   getAdditionalField(key: string): FormFieldDefinition | undefined {

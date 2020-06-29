@@ -291,7 +291,7 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
     if (this.writing) return; // Skip if call by self
     this.writing = true;
 
-    if (this.textFormControl.invalid || this.signFormControl.invalid) {
+    if (this.textFormControl.invalid || this.signFormControl.invalid) {
       this.formControl.markAsPending();
       this.formControl.setErrors({...this.textFormControl.errors, ...this.signFormControl.errors});
       this.writing = false;
@@ -322,7 +322,7 @@ export class MatLatLongField implements OnInit, AfterViewInit, OnDestroy, Contro
   }
 
   checkIfTouched(): boolean {
-    if (this.formControl.touched || this.textFormControl.touched) {
+    if (this.formControl.touched || this.textFormControl.touched) {
       this.markForCheck();
       this._onTouchedCallback();
       return true;

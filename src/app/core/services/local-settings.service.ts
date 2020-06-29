@@ -1,5 +1,6 @@
 import {EventEmitter, Inject, Injectable, InjectionToken, Optional} from "@angular/core";
-import {HistoryPageReference, LocalSettings, Peer, UsageMode} from "./model";
+import {HistoryPageReference, LocalSettings, UsageMode} from "./model/settings.model";
+import {Peer} from "./model/peer.model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
@@ -245,6 +246,10 @@ export class LocalSettingsService {
     return value.split(',');
   }
 
+  getPageFieldDefaultValue(pageId: string, fieldName: string): any {
+    return this.getPageSettings(pageId, `field.${fieldName}.defaultValue`);
+  }
+
   get additionalFields(): FormFieldDefinition[] {
     return this._additionalFields;
   }
@@ -268,7 +273,7 @@ export class LocalSettingsService {
     // If not inside recursive call: fill page history defaults
     if (!pageHistory) this.fillPageHistoryDefaults(page, opts);
 
-    pageHistory = pageHistory || this.data.pageHistory;
+    pageHistory = pageHistory || this.data.pageHistory;
 
     const index = pageHistory.findIndex(p => (
       // same path
@@ -296,7 +301,7 @@ export class LocalSettingsService {
         pageHistory.splice(index, 1);
 
         // Copy exiting children
-        page.children = existingPage.children || [];
+        page.children = existingPage.children || [];
 
         // Prepend to list
         pageHistory.splice(0, 0, page);
@@ -316,7 +321,7 @@ export class LocalSettingsService {
     }
 
     // Save locally (only if not a recursive execution)
-    if (pageHistory === this.data.pageHistory) {
+    if (pageHistory === this.data.pageHistory) {
 
       // If max has been reached, remove old pages
       if (this.data.pageHistory.length > this.data.pageHistoryMaxSize) {

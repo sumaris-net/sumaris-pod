@@ -1,21 +1,22 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Output} from "@angular/core";
-import {Batch} from "../services/model/batch.model";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
+import {FormBuilder} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {IReferentialRef, referentialToString, UsageMode} from "../../core/services/model";
-import {AcquisitionLevelCodes, isNil, isNotNil, PmfmStrategy} from "../../referential/services/model";
+import {IReferentialRef, referentialToString} from "../../core/services/model/referential.model";
+import {UsageMode} from "../../core/services/model/settings.model";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
-import {AppFormUtils} from "../../core/core.module";
+import {AppFormUtils, isNil, isNotNil} from "../../core/core.module";
 import {isNilOrBlank} from "../../shared/functions";
 import {PlatformService} from "../../core/services/platform.service";
-import {SampleValidatorService} from "../services/sample.validator";
+import {SampleValidatorService} from "../services/validator/sample.validator";
 import {Sample} from "../services/model/sample.model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 
 @Component({
   selector: 'app-sample-form',

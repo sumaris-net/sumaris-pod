@@ -1,11 +1,13 @@
 <!-- readonly -->
-<mat-form-field *ngIf="readonly; else writable">
-  <input matInput hidden type="text" readonly="true"
+<mat-form-field *ngIf="readonly; else writable"
+                [floatLabel]="floatLabel"
+                class="mat-form-field-disabled">
+  <input matInput hidden type="text"
+         readonly
+         [placeholder]="placeholder"
          [formControl]="formControl">
   <ion-text>{{formatFn(value, formatFnOptions)}}</ion-text>
 </mat-form-field>
-
-
 
 <!-- writable -->
 <ng-template #writable>
@@ -14,7 +16,7 @@
     <ion-row class="ion-no-padding no-wrap">
       <ion-col class="text ion-no-padding">
         <mat-form-field [floatLabel]="floatLabel"
-                        [class.mat-form-field-disabled]="formControl.disabled"
+                        [class.mat-form-field-disabled]="disabled"
                         [class.mat-form-field-invalid]="formControl.touched && formControl.invalid">
 
           <mat-label *ngIf="placeholder">{{placeholder}}</mat-label>

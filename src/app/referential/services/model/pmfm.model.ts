@@ -1,10 +1,15 @@
-import {EntityAsObjectOptions, Referential, ReferentialRef} from "../../../core/services/model";
+import {EntityAsObjectOptions} from "../../../core/services/model/entity.model";
+import {Referential, ReferentialRef} from "../../../core/services/model/referential.model";
 import {isNotNil} from "../../../shared/functions";
-
-
-export declare type ParameterType = 'double' | 'string' | 'qualitative_value' | 'date' | 'boolean' ;
+import {PmfmIds} from "./model.enum";
+import {Parameter, ParameterType} from "./parameter.model";
+import {PmfmStrategy} from "./pmfm-strategy.model";
 
 export declare type PmfmType = ParameterType | 'integer';
+
+export const PMFM_ID_REGEXP = /\d+/;
+
+export const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
 
 
 export class Pmfm extends Referential<Pmfm> {
@@ -97,59 +102,46 @@ export class Pmfm extends Referential<Pmfm> {
     this.method = source.method && ReferentialRef.fromObject(source.method);
     this.unit = source.unit && ReferentialRef.fromObject(source.unit);
 
-    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject) || [];
+    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject) || undefined;
     return this;
   }
 }
 
 
-export class Parameter extends Referential<Parameter> {
 
-  static TYPENAME = 'Parameter';
+export abstract class PmfmUtils {
 
-  static fromObject(source: any): Parameter {
-    if (!source || source instanceof Parameter) return source;
-    const res = new Parameter();
-    res.fromObject(source);
-    return res;
+  static getFirstQualitativePmfm(pmfms: PmfmStrategy[]): PmfmStrategy {
+    let qvPmfm = pmfms.find(p => p.isQualitative
+      // exclude hidden pmfm (see batch modal)
+      && !p.hidden
+    );
+    // If landing/discard: 'Landing' is always before 'Discard (see issue #122)
+    if (qvPmfm && qvPmfm.pmfmId === PmfmIds.DISCARD_OR_LANDING) {
+      qvPmfm = qvPmfm.clone(); // copy, to keep original array
+      qvPmfm.qualitativeValues.sort((qv1, qv2) => qv1.label === 'LAN' ? -1 : 1);
+    }
+    return qvPmfm;
   }
 
-  type: string | ParameterType;
-  qualitativeValues: Referential[];
-
-  constructor() {
-    super();
-    this.entityName = Parameter.TYPENAME;
+  static isNumeric(pmfm: PmfmStrategy | Pmfm): boolean {
+    return isNotNil(pmfm.type) && (pmfm.type === 'integer' || pmfm.type === 'double');
   }
 
-  clone(): Parameter {
-    const target = new Parameter();
-    target.fromObject(this);
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.clone()) || undefined;
-    return target;
+  static isAlphanumeric(pmfm: PmfmStrategy | Pmfm): boolean {
+    return isNotNil(pmfm.type) && (pmfm.type === 'string');
   }
 
-  asObject(options?: EntityAsObjectOptions): any {
-    const target: any = super.asObject(options);
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
-    return target;
+  static isDate(pmfm: PmfmStrategy | Pmfm): boolean {
+    return isNotNil(pmfm.type) && (pmfm.type === 'date');
   }
 
-  fromObject(source: any): Parameter {
-    super.fromObject(source);
-
-    this.type = source.type;
-    this.entityName = source.entityName || Parameter.TYPENAME;
-
-    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(Referential.fromObject) || [];
-    return this;
+  static hasUnit(pmfm: PmfmStrategy): boolean {
+    return isNotNil(pmfm.unitLabel) && PmfmUtils.isNumeric(pmfm);
   }
 
-  get isNumeric(): boolean {
-    return isNotNil(this.type) && (this.type === 'double');
-  }
-
-  get isQualitative(): boolean {
-    return isNotNil(this.type) && (this.type === 'qualitative_value');
+  static isWeight(pmfm: PmfmStrategy | Pmfm): boolean {
+    return isNotNil(pmfm.label) && pmfm.label.endsWith("WEIGHT");
   }
 }
+

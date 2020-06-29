@@ -1,15 +1,21 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {SharedValidators} from "../../../shared/validator/validators";
+import {
+  SharedFormArrayValidators,
+  SharedFormGroupValidators,
+  SharedValidators
+} from "../../../shared/validator/validators";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {Program} from "../../../referential/services/model";
+import {Program} from "../../../referential/services/model/program.model";
 import {toBoolean} from "../../../shared/functions";
-import {DataEntityValidatorOptions, DataEntityValidatorService} from "./base.validator";
-import {MeasurementsValidatorService} from "../measurement.validator";
+import {
+  DataEntityValidatorOptions,
+  DataEntityValidatorService
+} from "../../../data/services/validator/data-entity.validator";
+import {MeasurementsValidatorService} from "./measurement.validator";
 import {Product} from "../model/product.model";
 import {OperationGroup} from "../model/trip.model";
-import {SaleProduct} from "../model/sale-product.model";
 
 export interface ProductValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
@@ -78,8 +84,8 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
   getFormGroupOptions(data?: Product, opts?: O): { [p: string]: any } {
     return {
       validator: [
-        SharedValidators.requiredIfEmpty('weight', 'individualCount'),
-        SharedValidators.requiredIfEmpty('individualCount', 'weight')
+        SharedFormGroupValidators.requiredIfEmpty('weight', 'individualCount'),
+        SharedFormGroupValidators.requiredIfEmpty('individualCount', 'weight')
       ]
     };
   }
@@ -98,10 +104,10 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
     if (opts.withSaleProducts) {
       const saleValidators = this.getDefaultSaleProductValidators();
       if (formGroup.controls.individualCount.value) {
-        saleValidators.push(SharedValidators.validSumMaxValue('individualCount', formGroup.controls.individualCount.value));
+        saleValidators.push(SharedFormArrayValidators.validSumMaxValue('individualCount', formGroup.controls.individualCount.value));
       }
       if (formGroup.controls.weight.value) {
-        saleValidators.push(SharedValidators.validSumMaxValue('weight', formGroup.controls.weight.value));
+        saleValidators.push(SharedFormArrayValidators.validSumMaxValue('weight', formGroup.controls.weight.value));
       }
       if (saleValidators.length) {
         formGroup.controls.saleProducts.setValidators(saleValidators);
@@ -120,7 +126,7 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
 
   getDefaultSaleProductValidators(): ValidatorFn[] {
     return [
-      SharedValidators.validSumMaxValue('ratio', 100)
+      SharedFormArrayValidators.validSumMaxValue('ratio', 100)
     ];
   }
 
@@ -142,17 +148,17 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
       },
       {
         validators: [
-          SharedValidators.propagateIfDirty('ratio', 'ratioCalculated', false),
-          SharedValidators.propagateIfDirty('ratio', 'weightCalculated', true),
-          SharedValidators.propagateIfDirty('weight', 'weightCalculated', false),
-          SharedValidators.propagateIfDirty('weight', 'ratioCalculated', true),
-          SharedValidators.propagateIfDirty('averageWeightPrice', 'averageWeightPriceCalculated', false),
-          SharedValidators.propagateIfDirty('averageWeightPrice', 'totalPriceCalculated', true),
-          SharedValidators.propagateIfDirty('averagePackagingPrice', 'averagePackagingPriceCalculated', false),
-          SharedValidators.propagateIfDirty('averagePackagingPrice', 'totalPriceCalculated', true),
-          SharedValidators.propagateIfDirty('totalPrice', 'totalPriceCalculated', false),
-          SharedValidators.propagateIfDirty('totalPrice', 'averageWeightPriceCalculated', true),
-          SharedValidators.propagateIfDirty('totalPrice', 'averagePackagingPriceCalculated', true),
+          SharedFormGroupValidators.propagateIfDirty('ratio', 'ratioCalculated', false),
+          SharedFormGroupValidators.propagateIfDirty('ratio', 'weightCalculated', true),
+          SharedFormGroupValidators.propagateIfDirty('weight', 'weightCalculated', false),
+          SharedFormGroupValidators.propagateIfDirty('weight', 'ratioCalculated', true),
+          SharedFormGroupValidators.propagateIfDirty('averageWeightPrice', 'averageWeightPriceCalculated', false),
+          SharedFormGroupValidators.propagateIfDirty('averageWeightPrice', 'totalPriceCalculated', true),
+          SharedFormGroupValidators.propagateIfDirty('averagePackagingPrice', 'averagePackagingPriceCalculated', false),
+          SharedFormGroupValidators.propagateIfDirty('averagePackagingPrice', 'totalPriceCalculated', true),
+          SharedFormGroupValidators.propagateIfDirty('totalPrice', 'totalPriceCalculated', false),
+          SharedFormGroupValidators.propagateIfDirty('totalPrice', 'averageWeightPriceCalculated', true),
+          SharedFormGroupValidators.propagateIfDirty('totalPrice', 'averagePackagingPriceCalculated', true),
         ]
       });
   }

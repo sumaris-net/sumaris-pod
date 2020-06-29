@@ -9,16 +9,16 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../../core/core.module";
-import {OperationValidatorService} from "../services/operation.validator";
+import {OperationValidatorService} from "../services/validator/operation.validator";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
-import {ReferentialRefService} from "../../referential/referential.module";
-import {OperationFilter, OperationService} from "../services/operation.service";
+import {OperationFilter, OperationService, OperationServiceOptions} from "../services/operation.service";
 import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Operation, Trip} from "../services/model/trip.model";
-import {LatLongFormatFn, LatLongPattern} from "../../shared/material/latlong/latlong.utils";
+import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
 
 @Component({
@@ -70,13 +70,16 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
             'endPosition',
             'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Operation, OperationFilter>(Operation, dataService, null,
+      new AppTableDataSource<Operation, OperationFilter, OperationServiceOptions>(Operation, dataService,
+        null,
         // DataSource options
         {
           prependNewElements: false,
           suppressErrors: environment.production,
-          serviceOptions: {
-            readOnly: true
+          dataServiceOptions: {
+            readOnly: true,
+            withBatchTree: false,
+            withSamples: false
           }
         })
     );
@@ -86,6 +89,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.saveBeforeSort = false;
+    this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
     this.autoLoad = false; // waiting parent to be loaded
 

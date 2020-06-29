@@ -1,32 +1,25 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {BehaviorSubject, defer, Observable, of, Subject} from "rxjs";
+import {BehaviorSubject, defer, Observable, of} from "rxjs";
 import {filter, map} from "rxjs/operators";
-import {
-  AcquisitionLevelCodes,
-  EntityUtils,
-  isNil,
-  isNotNil,
-  IWithProgramEntity,
-  PmfmStrategy,
-  Program,
-  StatusIds
-} from "./model";
+import {AcquisitionLevelCodes} from "./model/model.enum";
 import {
   BaseDataService,
+  EntityUtils,
   environment,
-  IReferentialRef,
+  IReferentialRef, isNil,
+  isNotNil,
   LoadResult,
   ReferentialRef,
   TableDataService
 } from "../../core/core.module";
 import {ErrorCodes} from "./errors";
-import {ReferentialFragments} from "../services/referential.queries";
+import {ReferentialFragments} from "./referential.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {
   EditorDataService,
   EditorDataServiceLoadOptions,
-  fetchAllPagesWithProgress
+  fetchAllPagesWithProgress, FilterFn
 } from "../../shared/services/data-service.class";
 import {TaxonGroupIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 import {isNilOrBlank, isNotEmptyArray, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
@@ -37,12 +30,41 @@ import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {EntityStorage} from "../../core/services/entities-storage.service";
-import {ReferentialUtils} from "../../core/services/model";
+import {
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
+  ReferentialUtils,
+  SAVE_AS_OBJECT_OPTIONS
+} from "../../core/services/model/referential.model";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {Program} from "./model/program.model";
 
-export declare class ProgramFilter {
+import {PmfmStrategy} from "./model/pmfm-strategy.model";
+import {IWithProgramEntity} from "../../data/services/model/model.utils";
+
+
+export class ProgramFilter {
   searchText?: string;
+  searchAttribute?: string;
   statusIds?: number[];
-  withProperty?: string;
+
+  static searchFilter<T extends Program | IReferentialRef>(f: ProgramFilter): FilterFn<T>{
+    const filterFns: FilterFn<T>[] = [];
+
+    // Filter by status
+    if (f.statusIds) {
+      //filterFns.push((entity) => !!f.statusIds.find(v => entity.statusId === v));
+    }
+
+    if (f.searchText) {
+      const searchTextFilter = EntityUtils.searchTextFilter<T>(f.searchAttribute || ['label', 'name'], f.searchText);
+      if (searchTextFilter) filterFns.push(searchTextFilter);
+    }
+
+    if (!filterFns.length) return undefined;
+
+    return (entity) => !filterFns.find(fn => !fn(entity));
+  }
 }
 
 const ProgramFragments = {
@@ -85,6 +107,18 @@ const ProgramFragments = {
       creationDate
       statusId
       properties
+      taxonGroupType {
+        ...ReferentialFragment
+      }
+      gearClassification {
+        ...ReferentialFragment
+      }
+      locationClassifications {
+        ...ReferentialFragment
+      }
+      locations {
+        ...ReferentialFragment
+      }
       strategies {
         ...StrategyFragment
       }
@@ -156,7 +190,7 @@ const ProgramFragments = {
       isMandatory
       rankOrder
       acquisitionLevel
-      gears
+      gearIds
       taxonGroupIds
       referenceTaxonIds
       qualitativeValues {
@@ -171,6 +205,7 @@ const ProgramFragments = {
   }`,
   pmfmStrategy: gql`
     fragment PmfmStrategyFragment on PmfmStrategyVO {
+      id
       acquisitionLevel
       rankOrder
       isMandatory
@@ -180,9 +215,10 @@ const ProgramFragments = {
       pmfm {
         ...PmfmFragment
       }
-      gears
+      gearIds
       taxonGroupIds
       referenceTaxonIds
+      strategyId
       __typename
   }`,
   taxonGroupStrategy: gql`
@@ -307,12 +343,10 @@ const ProgramCacheKeys = {
   TAXON_NAMES: 'taxonNameByGroup'
 };
 
-const cacheBuster$ = new Subject<void>();
-
 @Injectable({providedIn: 'root'})
 export class ProgramService extends BaseDataService
   implements TableDataService<Program, ProgramFilter>,
-    EditorDataService<Program, ProgramFilter> {
+    EditorDataService<Program> {
 
 
   constructor(
@@ -383,13 +417,13 @@ export class ProgramService extends BaseDataService
    * @param size
    * @param sortBy
    * @param sortDirection
-   * @param filter
+   * @param dataFilter
    */
   async loadAll(offset: number,
            size: number,
            sortBy?: string,
            sortDirection?: string,
-           filter?: ProgramFilter,
+           dataFilter?: ProgramFilter,
            opts?: {
              query?: any,
              fetchPolicy: FetchPolicy;
@@ -403,21 +437,21 @@ export class ProgramService extends BaseDataService
       size: size || 100,
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: dataFilter
     };
-    const debug = this._debug && (!opts || opts.debug !== false);
+    const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();
     if (debug) console.debug("[program-service] Loading programs... using options:", variables);
 
     let loadResult: { programs: any[], referentialsCount?: number };
 
     // Offline mode
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
       loadResult = await this.entities.loadAll('ProgramVO',
         {
           ...variables,
-          filter: EntityUtils.searchTextFilter('label', filter.searchText)
+          filter: EntityUtils.searchTextFilter('label', dataFilter.searchText)
         }
       ).then(res => {
         return {
@@ -484,7 +518,7 @@ export class ProgramService extends BaseDataService
           })
           .pipe(
             map(res => {
-              return {program: res && res.data && res.data.length && res.data[0] || undefined};
+              return {program: res && res.data && res.data.length && res.data[0] || undefined};
             }));
         }
         else {
@@ -492,7 +526,7 @@ export class ProgramService extends BaseDataService
           $loadResult = this.graphql.watchQuery<{ program: any }>({
             query: query,
             variables: {
-              label: label
+              label
             },
             error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
           });
@@ -544,7 +578,7 @@ export class ProgramService extends BaseDataService
    */
   watchProgramPmfms(programLabel: string, options: {
     acquisitionLevel: string;
-    gear?: string;
+    gearId?: number;
     taxonGroupId?: number;
     referenceTaxonId?: number;
   }, debug?: boolean): Observable<PmfmStrategy[]> {
@@ -567,7 +601,7 @@ export class ProgramService extends BaseDataService
                       !options || (
                         (!options.acquisitionLevel || p.acquisitionLevel === options.acquisitionLevel)
                         // Filter on gear (if PMFM has gears = compatible with all gears)
-                        && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g === options.gear) !== -1)
+                        && (!options.gearId || !p.gearIds || !p.gearIds.length || p.gearIds.findIndex(id => id === options.gearId) !== -1)
                         // Filter on taxon group
                         && (!options.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === options.taxonGroupId) !== -1)
                         // Filter on reference taxon
@@ -599,7 +633,7 @@ export class ProgramService extends BaseDataService
    */
   loadProgramPmfms(programLabel: string, options?: {
     acquisitionLevel: string;
-    gear?: string;
+    gearId?: number;
     taxonGroupId?: number;
     referenceTaxonId?: number;
   }, debug?: boolean): Promise<PmfmStrategy[]> {
@@ -800,7 +834,7 @@ export class ProgramService extends BaseDataService
 
     // Fill default properties
     this.fillDefaultProperties(data);
-    const json = data.asObject({minify: false /* keep all properties */});
+    const json = this.asObject(data, SAVE_AS_OBJECT_OPTIONS);
 
     const now = Date.now();
     if (this._debug) console.debug("[program-service] Saving program...", json);
@@ -815,7 +849,8 @@ export class ProgramService extends BaseDataService
     const savedProgram = res && res.saveProgram;
     this.copyIdAndUpdateDate(savedProgram, data);
 
-    if (this._debug) console.debug(`[pogram-service] Program saved and updated in ${Date.now() - now}ms`, data);
+    //if (this._debug)
+      console.debug(`[pogram-service] Program saved and updated in ${Date.now() - now}ms`, data);
 
     return data;
   }
@@ -853,6 +888,14 @@ export class ProgramService extends BaseDataService
   }
 
   /* -- protected methods -- */
+
+  protected asObject(source: Program, opts?: ReferentialAsObjectOptions): any {
+    return source.asObject(
+      <ReferentialAsObjectOptions>{
+        ...opts,
+        ...NOT_MINIFY_OPTIONS, // Force NOT minify, because program is a referential that can be minify in just an ID
+      });
+  }
 
   protected async doExecuteImport(progression: BehaviorSubject<number>,
                                   maxProgression: number,
@@ -937,14 +980,24 @@ export class ProgramService extends BaseDataService
     if (target.strategies && source.strategies) {
       target.strategies.forEach(entity => {
 
-        // Make sure program id is copy (need by equals)
+        // Make sure tp copy programId (need by equals)
         entity.programId = source.id;
 
         const savedStrategy = source.strategies.find(json => entity.equals(json));
         EntityUtils.copyIdAndUpdateDate(savedStrategy, entity);
 
-        // Update pmfm strategy
-        // TODO
+        // Update pmfm strategy (id)
+        if (savedStrategy.pmfmStrategies && savedStrategy.pmfmStrategies.length > 0) {
+
+          entity.pmfmStrategies.forEach(targetPmfmStrategy => {
+
+            // Make sure to copy strategyId (need by equals)
+            targetPmfmStrategy.strategyId = savedStrategy.id;
+
+            const savedPmfmStrategy = entity.pmfmStrategies.find(srcPmfmStrategy => targetPmfmStrategy.equals(srcPmfmStrategy));
+            targetPmfmStrategy.id = savedPmfmStrategy.id;
+          });
+        }
 
       });
     }

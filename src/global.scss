@@ -155,6 +155,7 @@ ion-menu.menu-side-left {
 // --------------------------------------------------
 // Material Forms
 // --------------------------------------------------
+.form-container,
 form.form-container {
   color: rgba(0, 0, 0, 0.87);
 
@@ -219,30 +220,31 @@ form.form-container {
     color: var(--ion-color-primary-tint) !important;
     font-style: italic;
   }
+}
+// Manage first child grid inside a form
+form.form-container > ion-grid,
+ion-grid.form-container {
+  padding: 0;
 
-  > ion-grid {
+  ion-row {
+    // No between grid rows
     padding: 0;
 
-    ion-row {
-      // No between grid rows
-      padding: 0;
-
-      ion-col > ion-label {
-        color: var(--ion-color-primary100);
-        padding-inline-end: 5px;
-      }
-
-      ion-col > ion-label[text-wrap] {
-        word-wrap: normal;
-        white-space: normal;
-      }
+    ion-col > ion-label {
+      color: var(--ion-color-primary100);
+      padding-inline-end: 5px;
     }
-    ion-row > ion-col {
 
-      // No top/bottom padding between grid cell
-      padding-bottom: 0;
-      padding-top: 0;
+    ion-col > ion-label[text-wrap] {
+      word-wrap: normal;
+      white-space: normal;
     }
+  }
+  ion-row > ion-col {
+
+    // No top/bottom padding between grid cell
+    padding-bottom: 0;
+    padding-top: 0;
   }
 }
 
@@ -293,23 +295,49 @@ mat-option:not(:last-child) {
 }
 
 .mat-select-panel {
-  width: 250px !important;
+  --min-width: 200px;
+  min-width: var(--min-width) !important;
 }
 .mat-autocomplete-panel {
-  min-width: 200px !important;
+  --min-width: 250px;
+  min-width: var(--min-width) !important;
 }
+
+.mat-autocomplete-panel-medium-size .mat-autocomplete-panel,
+.mat-autocomplete-panel-medium-size.mat-autocomplete-panel,
 .min-width-medium .mat-autocomplete-panel,
-.mat-autocomplete-panel.min-width-medium {
-  min-width: 250px !important;
+.min-width-medium.mat-autocomplete-panel {
+  --min-width: 300px;
 }
+.mat-autocomplete-panel-large-size .mat-autocomplete-panel,
+.mat-autocomplete-panel.mat-autocomplete-panel-large-size,
 .min-width-large .mat-autocomplete-panel,
-.mat-autocomplete-panel.min-width-large {
-  min-width: 350px !important;
+.min-width-large.mat-autocomplete-panel {
+  --min-width: 400px;
 }
+.mat-autocomplete-panel-xlarge-size .mat-autocomplete-panel,
+.mat-autocomplete-panel-xlarge-size.mat-autocomplete-panel {
+  --min-width: 450px;
+}
+
+.mat-autocomplete-panel-center .mat-autocomplete-panel,
+.mat-autocomplete-panel-center.mat-autocomplete-panel {
+  margin-left: calc(var(--min-width, 200px) / -2 + 50%) !important;
+}
+
+.mat-autocomplete-panel-full-size .mat-autocomplete-panel,
+.mat-autocomplete-panel-full-size.mat-autocomplete-panel {
+  --min-width: calc(100vw);
+  position: fixed;
+  left: 0;
+}
+
 .mat-select-panel,
+.mat-menu-panel,
 .mat-autocomplete-panel {
 
   ion-row.mat-select-header,
+  ion-row.mat-menu-header,
   ion-row.mat-autocomplete-header {
     background-color: var(--ion-color-secondary);
     color: var(--ion-color-secondary-contrast);
@@ -331,9 +359,15 @@ mat-option:not(:last-child) {
     ion-col {
       padding: 0 !important;
       padding-left: 8px !important;
-      text-overflow: clip;
+      text-overflow: ellipsis;
       overflow: hidden;
     }
+
+
+  }
+
+  .odd {
+    background: var(--ion-light-color-shade, $light);
   }
 
   .mat-option[no-padding],
@@ -632,6 +666,10 @@ mat-table {
     margin-top: -1px;
     border: 2px dashed var(--ion-color-danger);
   }
+
+  .mat-row-height-auto {
+    max-height: unset !important;
+  }
 }
 
 
@@ -721,20 +759,31 @@ mat-tab-group.mat-tab-group-no-header .mat-tab-header {
 // Material menu
 // --------------------------------------------------
 
-// Small menu (e.g. for actions on a table row)
-.mat-menu-panel.mat-menu-small {
 
-  .mat-menu-content {
-    padding: 0;
+.mat-menu-panel {
 
-    .mat-menu-item {
-      padding: 0 8px;
-      height: 35px;
-      line-height: 35px;
+  // Max width
+  &.mat-menu-size-400 {
+    min-width: unset;
+    width: 400px;
+    max-width: calc(90vw);
+  }
+
+  // No padding
+  &.ion-no-padding {
+    .mat-menu-content {
+      padding: 0 !important;
     }
   }
-}
-.mat-menu-panel {
+
+  // Small menu item (e.g. for actions on a table row)
+  &.mat-menu-small-item-height .mat-menu-item,
+  .mat-menu-item.mat-menu-item-small-height
+  {
+    padding: 0 8px;
+    height: 35px;
+    line-height: 35px;
+  }
   //  Reduce the font size, on label just inside a mat-menu (e.g. see trips.page.html)
   .mat-menu-content > ion-label {
     font-size: 12px;

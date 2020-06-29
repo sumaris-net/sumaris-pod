@@ -1,5 +1,5 @@
 import {Entity, IReferentialRef, isNil, Referential, ReferentialRef} from "../../../core/core.module";
-import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model";
+import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {uncapitalizeFirstLetter} from "../../../shared/functions";
 
 
@@ -30,12 +30,13 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
   }
 
   static equalsOrSameReferenceTaxon(v1: TaxonNameRef, v2: TaxonNameRef): boolean {
-    return ReferentialUtils.equals(v1, v2) || (v1 && v2 && v1.referenceTaxonId === v2.referenceTaxonId);
+    return ReferentialUtils.equals(v1, v2) || (v1 && v2 && v1.referenceTaxonId === v2.referenceTaxonId);
   }
 
   label: string;
   name: string;
   statusId: number;
+  rankOrder: number;
   entityName: string;
 
   levelId: number;
@@ -95,6 +96,7 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef> implements IReferential
   label: string;
   name: string;
   statusId: number;
+  rankOrder: number;
   entityName: string;
 
   taxonNames: TaxonNameRef[];
@@ -150,7 +152,7 @@ export interface MetierFromObjectOptions {
 export class Metier extends Referential<Metier> {
 
   static fromObject(source: any, opts?: MetierFromObjectOptions): Metier {
-    if (isNil(source) || source instanceof Metier) return source;
+    if (isNil(source) || source instanceof Metier) return source;
     const target = new Metier();
     target.fromObject(source, opts);
     return target;
@@ -196,8 +198,8 @@ export class Metier extends Referential<Metier> {
     if (opts && opts.useChildAttributes) {
       const childKey = uncapitalizeFirstLetter(opts.useChildAttributes);
       if (source[childKey]) {
-        this.label = source[childKey].label || this.label;
-        this.name = source[childKey].name || this.name;
+        this.label = source[childKey].label || this.label;
+        this.name = source[childKey].name || this.name;
       }
     }
   }

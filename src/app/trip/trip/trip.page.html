@@ -1,4 +1,4 @@
-<app-toolbar [title]="$title | async" color="primary"
+<app-toolbar [title]="title$ | async" color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
@@ -6,9 +6,9 @@
              (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
-  <ion-spinner *ngIf="loading"></ion-spinner>
+  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 
-  <button mat-icon-button *ngIf="enabled && !isNewData || debug"
+  <button slot="end" mat-icon-button *ngIf="enabled && !isNewData || debug"
           [matMenuTriggerFor]="optionsMenu"
           [title]=" 'COMMON.BTN_OPTIONS'|translate">
     <mat-icon>more_vert</mat-icon>
@@ -61,7 +61,7 @@
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="error || (submitted && (tripForm.invalid || (saleForm.invalid && saleForm.dirty) || measurementsForm.invalid))"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="error || (submitted && (tripForm.invalid || (saleForm.invalid && saleForm.dirty) || measurementsForm.invalid))"></ion-icon>
       </ng-template>
 
       <!-- error -->

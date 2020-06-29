@@ -5,7 +5,8 @@ import {AppFormUtils} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {toBoolean} from "../../shared/functions";
 import {SubBatchForm} from "./sub-batch.form";
 import {PlatformService} from "../../core/services/platform.service";
@@ -86,7 +87,7 @@ export class SubBatchModal implements OnInit{
     this.disabled = !this.canEdit || toBoolean(this.disabled, true);
     this.isNew = toBoolean(this.isNew, false);
 
-    this.data = this.data || new Batch();
+    this.data = this.data || new Batch();
 
     // Compute the title
     this.computeTitle();

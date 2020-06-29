@@ -1,15 +1,13 @@
-import {Injectable, InjectionToken} from "@angular/core";
+import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {environment} from "../../../environments/environment";
 import {Observable, Subject} from "rxjs";
 import {ErrorCodes} from "./errors";
-import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {isNotNil} from "../../shared/functions";
 import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/shared.module";
-import {Software} from "../../core/services/model";
-import {BaseDataService} from "../../core/core.module";
+import {Software} from "../../core/services/model/config.model";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {ConfigService} from "../../core/services/config.service";
+import {BaseDataService} from "../../core/services/base.data-service.class";
 
 /* ------------------------------------
  * GraphQL queries
@@ -53,11 +51,12 @@ const SaveMutation: any = gql`
 @Injectable({
   providedIn: 'root'
 })
-export class SoftwareService<T extends Software<T> = Software<any>> extends BaseDataService<T> implements EditorDataService<T> {
+export class SoftwareService<T extends Software = Software>
+  extends BaseDataService<T>
+  implements EditorDataService<T> {
 
   constructor(
-    protected graphql: GraphqlService,
-    protected configService: ConfigService
+    protected graphql: GraphqlService
   ) {
     super(graphql);
     console.debug("[software-service] Creating configuration service");
@@ -77,8 +76,8 @@ export class SoftwareService<T extends Software<T> = Software<any>> extends Base
   }
 
   async existsByLabel(label: string): Promise<boolean> {
-    const existingConfig = await this.loadQuery(LoadQuery, {label}, {fetchPolicy: "network-only"});
-    return isNotNil(existingConfig && existingConfig.id);
+    const existingSoftware = await this.loadQuery(LoadQuery, {label}, {fetchPolicy: "network-only"});
+    return isNotNil(existingSoftware && existingSoftware.id);
   }
 
   /**
@@ -124,12 +123,12 @@ export class SoftwareService<T extends Software<T> = Software<any>> extends Base
     // if (this.$data.getValue() && this.$data.getValue().id === id) {
     //   return this.$data;
     // }
-    return new Subject(); // TODO
+    return new Subject<T>(); // TODO
   }
 
   /* -- private method -- */
 
-  private async loadQuery(
+  protected async loadQuery(
     query: any,
     variables: any,
     opts?: EditorDataServiceLoadOptions): Promise<T> {

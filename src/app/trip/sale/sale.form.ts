@@ -1,12 +1,15 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SaleValidatorService} from "../services/sale.validator";
+import {SaleValidatorService} from "../services/validator/sale.validator";
 import {Moment} from 'moment/moment';
-import {AppForm, referentialToString, StatusIds} from '../../core/core.module';
 import {DateAdapter} from "@angular/material/core";
-import {LocationLevelIds, ReferentialRefService, VesselService} from '../../referential/referential.module';
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {Sale} from "../services/model/sale.model";
+import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {AppForm} from "../../core/form/form.class";
+import {referentialToString} from "../../core/services/model/referential.model";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 @Component({
   selector: 'form-sale',

@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
 import {TableElement} from "angular4-material-table";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {Packet, PacketFilter, PacketUtils} from "../services/model/packet.model";
+import {IWithPacketsEntity, Packet, PacketFilter, PacketUtils} from "../services/model/packet.model";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {PacketValidatorService} from "../services/validator/packet.validator";
 import {ModalController, Platform} from "@ionic/angular";
@@ -11,14 +11,13 @@ import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AppTableDataSource, isNil} from "../../core/core.module";
 import {BehaviorSubject, Observable} from "rxjs";
-import {IWithProductsEntity} from "../services/model/base.model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {PacketModal} from "./packet.modal";
-import {AcquisitionLevelCodes, IWithPacketsEntity, PmfmStrategy} from "../services/model/base.model";
 import {PacketSaleModal} from "../sale/packet-sale.modal";
 import {ProgramService} from "../../referential/services/program.service";
 import {isNotEmptyArray} from "../../shared/functions";
 import {SaleProductUtils} from "../services/model/sale-product.model";
-import {filterNotNil} from "../../shared/observables";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 
 @Component({
   selector: 'app-packets-table',
@@ -27,16 +26,21 @@ import {filterNotNil} from "../../shared/observables";
   providers: [
     {
       provide: InMemoryTableDataService,
-      useFactory: () => new InMemoryTableDataService<Packet, PacketFilter>(Packet)
+      useFactory: () => new InMemoryTableDataService<Packet, PacketFilter>(Packet, {
+        filterFnFactory: PacketFilter.searchFilter
+      })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnInit {
 
-  @Input() $parentFilter: Observable<any>;
   @Input() $parents: BehaviorSubject<IWithPacketsEntity<any>[]>;
   @Input() parentAttributes: string[];
+
+  @Input() set parentFilter(packetFilter: PacketFilter) {
+    this.setFilter(packetFilter);
+  }
 
   private _program: string;
 
@@ -114,14 +118,12 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
     this.registerAutocompleteField('parent', {
       items: this.$parents,
-      attributes: this.parentAttributes
+      attributes: this.parentAttributes,
+      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
+      columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined)
     });
 
-    this.registerSubscription(this.$parentFilter.subscribe(parentFilter => {
-      // console.debug('parent test change', parentFilter);
-      this.setFilter(new PacketFilter(parentFilter));
-    }));
-
+    this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditPacket(row)));
   }
 
   private loadPmfms() {
@@ -221,4 +223,9 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
   }
 
+  private onStartEditPacket(row: TableElement<Packet>) {
+    if (this.filter && this.filter.parent && row.currentData && !row.currentData.parent) {
+      row.validator.patchValue({parent: this.filter.parent});
+    }
+  }
 }

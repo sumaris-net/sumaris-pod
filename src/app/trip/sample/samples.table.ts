@@ -11,15 +11,9 @@ import {
 } from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
-import {
-  AcquisitionLevelCodes,
-  getPmfmName,
-  PmfmStrategy,
-  ReferentialRefService
-} from "../../referential/referential.module";
-import {SampleValidatorService} from "../services/sample.validator";
+import {SampleValidatorService} from "../services/validator/sample.validator";
 import {isNilOrBlank, isNotNil} from "../../shared/functions";
-import {UsageMode} from "../../core/services/model";
+import {UsageMode} from "../../core/services/model/settings.model";
 import * as moment from "moment";
 import {Moment} from "moment";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
@@ -28,8 +22,9 @@ import {SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
 import {Sample} from "../services/model/sample.model";
-import {MatDialog} from "@angular/material/dialog";
-import {Batch} from "../services/model/batch.model";
+import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
 export interface SampleFilter {
   operationId?: number;

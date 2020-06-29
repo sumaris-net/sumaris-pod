@@ -8,11 +8,9 @@ import {SaleForm} from './sale/sale.form';
 import {OperationForm} from './operation/operation.form';
 import {OperationPage} from './operation/operation.page';
 import {MeasurementsForm} from './measurement/measurements.form.component';
-import {MeasurementQVFormField} from './measurement/measurement-qv.form-field.component';
-import {MeasurementFormField} from './measurement/measurement.form-field.component';
 import {CatchBatchForm} from './catch/catch.form';
-import {PhysicalGearForm} from './physicalgear/physicalgear.form';
-import {PhysicalGearTable} from './physicalgear/physicalgears.table';
+import {PhysicalGearForm} from './physicalgear/physical-gear.form';
+import {PhysicalGearTable} from './physicalgear/physical-gears.table';
 import {OperationTable} from './operation/operations.table';
 import {SamplesTable} from './sample/samples.table';
 import {SubSamplesTable} from './sample/sub-samples.table';
@@ -39,23 +37,23 @@ import {
   SubBatchValidatorService,
   SubSampleValidatorService,
   TripValidatorService
-} from './services/trip.validators';
+} from './services/validator/trip.validators';
 import {ObservedLocationForm} from "./observedlocation/observed-location.form";
 import {ObservedLocationPage} from "./observedlocation/observed-location.page";
 import {ObservedLocationsPage} from "./observedlocation/observed-locations.page";
 import {ObservedLocationService} from "./services/observed-location.service";
-import {ObservedLocationValidatorService} from "./services/observed-location.validator";
+import {ObservedLocationValidatorService} from "./services/validator/observed-location.validator";
 import {LandingsTable} from "./landing/landings.table";
 import {SaleService} from "./services/sale.service";
 import {LeafletModule} from "@asymmetrik/ngx-leaflet";
-import {LandingValidatorService} from "./services/landing.validator";
+import {LandingValidatorService} from "./services/validator/landing.validator";
 import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
 import {SelectLandingsModal} from "./landing/select-landings.modal";
 import {AuctionControlPage} from "./auctioncontrol/auction-control.page";
 import {SubBatchesModal} from "./batch/sub-batches.modal";
 import {SubBatchForm} from "./batch/sub-batch.form";
-import {PhysicalGearModal} from "./physicalgear/physicalgear.modal";
+import {PhysicalGearModal} from "./physicalgear/physical-gear.modal";
 import {BatchModal} from "./batch/batch.modal";
 import {BatchForm} from "./batch/batch.form";
 import {BatchGroupPage} from "./batch/batch-group.page";
@@ -78,7 +76,7 @@ import {PacketsTable} from "./packet/packets.table";
 import {PacketValidatorService} from "./services/validator/packet.validator";
 import {PacketForm} from "./packet/packet.form";
 import {PacketModal} from "./packet/packet.modal";
-import {SelectPhysicalGearModal} from "./physicalgear/select-physicalgear.modal";
+import {SelectPhysicalGearModal} from "./physicalgear/select-physical-gear.modal";
 import {PhysicalGearService} from "./services/physicalgear.service";
 import {ProductSaleForm} from "./sale/product-sale.form";
 import {PacketCompositionValidatorService} from "./services/validator/packet-composition.validator";
@@ -87,16 +85,30 @@ import {PacketSaleModal} from "./sale/packet-sale.modal";
 import {PacketSaleForm} from "./sale/packet-sale.form";
 import {ExpenseForm} from "./expense/expense.form";
 import {MatTabsModule} from "@angular/material/tabs";
+import {ExpenseValidatorService} from "./services/validator/expense.validator";
+import {TypedExpenseForm} from "./expense/typed-expense.form";
+import {TypedExpenseValidatorService} from "./services/validator/typed-expense.validator";
+import {FishingAreaForm} from "./fishing-area/fishing-area.form";
+import {FishingAreaValidatorService} from "./services/validator/fishing-area.validator";
+import {DataModule} from "../data/data.module";
+import {AggregatedLandingForm} from "./aggregated-landing/aggregated-landing.form";
+import {AggregatedLandingValidatorService} from "./services/validator/aggregated-landing.validator";
+import {AggregatedLandingService} from "./services/aggregated-landing.service";
+import {AggregatedLandingsTable} from "./aggregated-landing/aggregated-landings.table";
+import {VesselActivityValidatorService} from "./services/validator/vessel-activity.validator";
+import {VesselActivityForm} from "./aggregated-landing/vessel-activity.form";
+import {AggregatedLandingModal} from "./aggregated-landing/aggregated-landing.modal";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
 @NgModule({
     imports: [
-        CommonModule,
-        CoreModule,
-        LeafletModule,
-        ReferentialModule,
-        MatTabsModule
+      CommonModule,
+      CoreModule,
+      LeafletModule,
+      ReferentialModule,
+      MatTabsModule,
+      DataModule
     ],
   declarations: [
     TripTable,
@@ -114,13 +126,15 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     ObservedLocationPage,
     ObservedLocationsPage,
     MeasurementsForm,
-    MeasurementQVFormField,
-    MeasurementFormField,
     CatchBatchForm,
     LandingsTable,
     LandingPage,
     LandingForm,
     SelectLandingsModal,
+    AggregatedLandingsTable,
+    AggregatedLandingModal,
+    AggregatedLandingForm,
+    VesselActivityForm,
     SamplesTable,
     SubSamplesTable,
     BatchGroupsTable,
@@ -147,61 +161,38 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     ProductSaleModal,
     LandedSaleForm,
     ExpenseForm,
+    TypedExpenseForm,
     PacketsTable,
     PacketForm,
     PacketModal,
     PacketSaleForm,
-    PacketSaleModal
+    PacketSaleModal,
+    FishingAreaForm
   ],
   exports: [
-    TripTable,
-    TripPage,
-    TripForm,
-    PhysicalGearModal,
-    SaleForm,
-    PhysicalGearForm,
-    PhysicalGearTable,
-    OperationForm,
-    OperationPage,
-    OperationTable,
-    MeasurementsForm,
-    MeasurementQVFormField,
-    EntityQualityFormComponent,
-    LandingsTable,
-    LandingForm,
-    LandingPage,
-    SelectLandingsModal,
-    SelectVesselsModal,
-    AuctionControlPage,
-    BatchForm,
-    BatchGroupPage,
-    SubBatchForm,
-    SubBatchModal,
-    SampleForm
-  ],
-  entryComponents: [
-    TripTable,
-    TripPage,
-    PhysicalGearModal,
-    SelectPhysicalGearModal,
-    PhysicalGearTable,
-    OperationTable,
-    OperationPage,
-    ObservedLocationPage,
-    ObservedLocationsPage,
-    LandingPage,
-    SelectLandingsModal,
-    AuctionControlPage,
-    SubBatchesModal,
-    BatchModal,
-    BatchGroupModal,
-    BatchGroupPage,
-    SubBatchModal,
-    SampleModal,
-    SelectVesselsModal,
-    PacketModal,
-    ProductSaleModal,
-    PacketSaleModal
+      TripTable,
+      TripPage,
+      TripForm,
+      PhysicalGearModal,
+      SaleForm,
+      PhysicalGearForm,
+      PhysicalGearTable,
+      OperationForm,
+      OperationPage,
+      OperationTable,
+      MeasurementsForm,
+      EntityQualityFormComponent,
+      LandingsTable,
+      LandingForm,
+      LandingPage,
+      SelectLandingsModal,
+      SelectVesselsModal,
+      AuctionControlPage,
+      BatchForm,
+      BatchGroupPage,
+      SubBatchForm,
+      SubBatchModal,
+      SampleForm
   ],
   providers: [
     TripService,
@@ -214,10 +205,15 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     ObservedLocationValidatorService,
     LandingService,
     LandingValidatorService,
+    AggregatedLandingService,
+    AggregatedLandingValidatorService,
+    VesselActivityValidatorService,
     SaleService,
     SaleValidatorService,
     PositionValidatorService,
     MeasurementsValidatorService,
+    ExpenseValidatorService,
+    TypedExpenseValidatorService,
     BatchValidatorService,
     SubBatchValidatorService,
     BatchGroupValidatorService,
@@ -228,7 +224,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     ProductValidatorService,
     PacketValidatorService,
     PacketCompositionValidatorService,
-    PhysicalGearService
+    PhysicalGearService,
+    FishingAreaValidatorService
   ]
 })
 export class TripModule {

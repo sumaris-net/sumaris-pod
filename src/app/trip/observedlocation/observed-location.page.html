@@ -1,11 +1,11 @@
-<app-toolbar [title]="$title | async" color="primary"
+<app-toolbar [title]="title$ | async" color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
              [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true">
-  <ion-spinner *ngIf="loading"></ion-spinner>
+  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
 <ion-content>
@@ -61,15 +61,16 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="landingsTable?.invalid"></ion-icon>
       </ng-template>
 
-      <div class="ion-no-padding">
+      <div class="ion-no-padding" *ngIf="aggregatedLandings === false">
 
         <!-- error -->
         <ion-item *ngIf="landingsTable?.error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="landingsTable.error|translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="landingsTable?.error|translate"></ion-label>
         </ion-item>
 
         <app-landings-table #landingsTable
+                            [debug]="debug"
                             acquisitionLevel="LANDING"
                             [program]="programSubject|async"
                             [showObserversColumn]="false"
@@ -78,8 +79,23 @@
                             (onNewRow)="onNewLanding($event)"
                             (onNewTrip)="onNewTrip($event)">
         </app-landings-table>
+      </div>
+
+      <div class="ion-no-padding" *ngIf="aggregatedLandings === true">
+
+        <!-- error -->
+        <ion-item *ngIf="aggregatedLandingsTable?.error" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="aggregatedLandingsTable?.error|translate"></ion-label>
+        </ion-item>
+
+        <app-aggregated-landings-table #aggregatedLandingsTable
+                                 [debug]="debug"
+                                 >
+        </app-aggregated-landings-table>
 
       </div>
+
     </mat-tab>
 
   </mat-tab-group>
@@ -105,7 +121,7 @@
          *ngIf="selectedTabIndex === 1" @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
 
-  <ion-fab-button color="tertiary" (click)="landingsTable.addRow($event)">
+  <ion-fab-button color="tertiary" (click)="addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 

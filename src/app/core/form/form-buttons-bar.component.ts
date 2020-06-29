@@ -1,14 +1,12 @@
-import {Component, Input, Output, EventEmitter, OnDestroy} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
 import {Hotkeys} from "../../shared/hotkeys/hotkeys.service";
 import {Subscription} from "rxjs";
 import {filter} from "rxjs/operators";
 
 
-
 @Component({
     selector: 'form-buttons-bar',
     templateUrl: './form-buttons-bar.component.html',
-    //host: { '(window:keydown)': 'onHotkeys($event)' },
     styleUrls: ['./form-buttons-bar.component.scss']
 })
 export class FormButtonsBarComponent implements OnDestroy{

@@ -2,9 +2,8 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {EntityUtils, isNil, isNotNil, Referential, StatusIds} from "./model";
-import {LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService} from "../../core/core.module";
+import {isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
+import {BaseDataService, EntityUtils, Referential} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 
@@ -13,7 +12,8 @@ import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {environment} from "../../../environments/environment";
 import {Beans, KeysEnum} from "../../shared/functions";
-import {PersonFilterKeys} from "../../admin/services/person.service";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 export class ReferentialFilter {
   entityName: string;
@@ -26,14 +26,31 @@ export class ReferentialFilter {
   levelId?: number;
   levelIds?: number[];
 
-  searchJoin?: string; // If search is on a sub entity (e.g. Metier can esearch on TaxonGroup)
+  searchJoin?: string; // If search is on a sub entity (e.g. Metier can search on TaxonGroup)
   searchText?: string;
   searchAttribute?: string;
 
   static isEmpty(f: ReferentialFilter|any): boolean {
-    return Beans.isEmpty(f, ReferentialFilterKeys, {
+    return Beans.isEmpty<ReferentialFilter>(f, ReferentialFilterKeys, {
       blankStringLikeEmpty: true
     });
+  }
+
+  /**
+   * Clean a filter, before sending to the pod (e.g remove 'levelId', 'statusId')
+   * @param filter
+   */
+  static asPodObject(filter: ReferentialFilter): any {
+    if (!filter) return filter;
+    return {
+      label: filter.label,
+      name: filter.name,
+      searchText: filter.searchText,
+      searchAttribute: filter.searchAttribute,
+      searchJoin: filter.searchJoin,
+      levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
+      statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
+    };
   }
 }
 export const ReferentialFilterKeys: KeysEnum<ReferentialFilter> = {
@@ -140,7 +157,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     }
 
     const entityName = filter.entityName;
-    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
+    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
 
     const variables: any = {
       entityName,
@@ -148,17 +165,8 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       size: size || 100,
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: {
-        label: filter.label,
-        name: filter.name,
-        searchText: filter.searchText,
-        searchAttribute: filter.searchAttribute,
-        searchJoin: filter.searchJoin,
-        levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
-        statusIds: isNotNil(filter.statusId) ?  [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
-      }
+      filter: ReferentialFilter.asPodObject(filter)
     };
-
 
     const now = new Date();
     if (this._debug) console.debug(`[referential-service] Loading ${uniqueEntityName}...`, variables);
@@ -175,7 +183,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     })
       .pipe(
         map(({referentials, referentialsCount}) => {
-          const data = (referentials || []).map(Referential.fromObject);
+          const data = (referentials || []).map(ReferentialUtils.fromObject);
           data.forEach(r => r.entityName = uniqueEntityName);
           if (this._debug) console.debug(`[referential-service] ${uniqueEntityName} loaded in ${new Date().getTime() - now.getTime()}ms`, data);
           return {
@@ -205,8 +213,8 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     }
 
     const entityName = filter.entityName;
-    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
-    const debug = this._debug && (!opts || opts.debug !== false);
+    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
+    const debug = this._debug && (!opts || opts.debug !== false);
 
     const variables: any = {
       entityName: entityName,
@@ -214,15 +222,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       size: size || 100,
       sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: {
-        label: filter.label,
-        name: filter.name,
-        searchText: filter.searchText,
-        searchAttribute: filter.searchAttribute,
-        searchJoin: filter.searchJoin,
-        levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
-        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
-      }
+      filter: ReferentialFilter.asPodObject(filter)
     };
 
     const now = Date.now();
@@ -236,7 +236,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });
     const data = (!opts || opts.toEntity !== false) ?
-      (res && res.referentials || []).map(Referential.fromObject) :
+      (res && res.referentials || []).map(ReferentialUtils.fromObject) :
       (res && res.referentials || []) as Referential[];
     data.forEach(r => r.entityName = uniqueEntityName);
     if (debug) console.debug(`[referential-service] ${uniqueEntityName} items loaded in ${Date.now() - now}ms`);
@@ -311,7 +311,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
                       opts?: {
                         fetchPolicy: FetchPolicy
                       }): Promise<boolean> {
-    if (!filter || !filter.entityName || !label) {
+    if (!filter || !filter.entityName || !label) {
       console.error("[referential-service] Missing 'filter.entityName' or 'label'");
       throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
     }
@@ -322,11 +322,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       size: 2,
       sortBy: 'id',
       sortDirection: 'asc',
-      filter: {
-        label,
-        levelIds: filter && (isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds),
-        statusIds: filter && (isNotNil(filter.statusId) ? [filter.statusId] : filter.statusIds)
-      }
+      filter: ReferentialFilter.asPodObject(filter)
     };
 
     const res = await this.graphql.query<{ referentials: any }>({
@@ -480,7 +476,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       fetchPolicy: options && options.fetchPolicy || 'cache-first'
     });
 
-    const res = (data && data.referentialLevels || []).map(Referential.fromObject);
+    const res = (data && data.referentialLevels || []).map(ReferentialUtils.fromObject);
 
     if (this._debug) console.debug(`[referential-service] Levels for ${entityName} loading in ${Date.now() - now}`, res);
 

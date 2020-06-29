@@ -1,9 +1,9 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 import {VesselService} from '../../services/vessel-service';
 import {VesselForm} from '../form/form-vessel';
-import {Vessel} from '../../services/model';
+import {Vessel} from '../../services/model/vessel.model';
 import {AccountService} from "../../../core/services/account.service";
-import {AppEditorPage} from "../../../core/form/editor-page.class";
+import {AppEditor} from "../../../core/form/editor.class";
 import {FormGroup, Validators} from "@angular/forms";
 import {DateFormatPipe, EditorDataServiceLoadOptions} from "../../../shared/shared.module";
 import * as moment from "moment";
@@ -16,7 +16,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
   templateUrl: './vessel.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterViewInit {
+export class VesselPage extends AppEditor<Vessel, VesselService> implements OnInit, AfterViewInit {
 
   previousVessel: Vessel;
   isNewFeatures = false;
@@ -73,8 +73,8 @@ export class VesselPage extends AppEditorPage<Vessel> implements OnInit, AfterVi
 
   }
 
-  protected registerFormsAndTables() {
-    this.registerForm(this.vesselForm);
+  protected registerForms() {
+    this.addChildForm(this.vesselForm);
   }
 
   protected async onNewEntity(data: Vessel, options?: EditorDataServiceLoadOptions): Promise<void> {

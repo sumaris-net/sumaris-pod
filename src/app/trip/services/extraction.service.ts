@@ -15,14 +15,14 @@ import {
   ExtractionType,
   StrataAreaType,
   StrataTimeType
-} from "./extraction.model";
+} from "./model/extraction.model";
 import {FetchPolicy} from "apollo-client";
 import {isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {FeatureCollection} from "geojson";
 import {Fragments} from "./trip.queries";
-import {SAVE_AS_OBJECT_OPTIONS} from "./model/base.model";
-import {ReferentialUtils} from "../../core/services/model";
+import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 
 
 export const ExtractionFragments = {

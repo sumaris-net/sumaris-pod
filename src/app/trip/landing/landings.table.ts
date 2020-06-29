@@ -2,25 +2,30 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, EventEmitter,
+  Component,
+  EventEmitter,
   Injector,
   Input,
   OnDestroy,
-  OnInit, Output, ViewChild
+  OnInit,
+  Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {environment, isNil, personsToString, referentialToString, StatusIds} from "../../core/core.module";
+
+import {personsToString} from "../../core/services/model/person.model";
+import {referentialToString} from "../../core/services/model/referential.model";
 import {LandingFilter, LandingService} from "../services/landing.service";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {AcquisitionLevelCodes} from "../../referential/services/model";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {Moment} from "moment";
-import {LandingValidatorService} from "../services/landing.validator";
-import {PageEvent} from "@angular/material/paginator";
-import {Alerts, askSaveBeforeLeave} from "../../shared/alerts";
+import {LandingValidatorService} from "../services/validator/landing.validator";
 import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
 import {Landing} from "../services/model/landing.model";
+import {environment} from "../../../environments/environment";
+import {LandingEditor} from "../../referential/services/config/program.config";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'dateTime', 'observers'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -37,7 +42,7 @@ export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> implements OnInit, AfterViewInit, OnDestroy {
 
   private _parentDateTime;
-  private _tripEditor = false;
+  private _detailEditor: LandingEditor;
   private pageIndex;
 
   protected cd: ChangeDetectorRef;
@@ -50,14 +55,20 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   @Input() showFabButton = false;
   @Input() showError = true;
 
-  @Input()
-  set tripEditor(value: boolean) {
-    this._tripEditor = value;
-    this.inlineEdition = this._tripEditor;
+  @Input() set detailEditor(value: LandingEditor) {
+    if (value !== this._detailEditor) {
+      this._detailEditor = value;
+      // TODO: should be set with another setter, configure from a ProgramProperties option
+      this.inlineEdition = value === 'trip';
+    }
   }
 
-  get tripEditor() {
-    return this._tripEditor;
+  get detailEditor(): LandingEditor {
+    return this._detailEditor;
+  }
+
+  get isTripDetailEditor(): boolean {
+    return this._detailEditor === 'trip';
   }
 
   @Input()
@@ -76,6 +87,14 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   get showDateTimeColumn(): boolean {
     return this.getShowColumn('dateTime');
+  }
+
+  @Input()
+  set showIdColumn(value: boolean) {
+    this.setShowColumn('id', value);
+  }
+  get showIdColumn(): boolean {
+    return this.getShowColumn('id');
   }
 
   constructor(
@@ -174,33 +193,6 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     }
   }
 
-  /*
-  FIXME Can't intercept 'page' event before action. The pageIndex has changed async, then this event is emitted
-   */
-  async onPageChange(event: PageEvent) {
-    if (this.dirty && event.previousPageIndex !== event.pageIndex) {
-      const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, undefined);
-
-      // User cancelled
-      if (isNil(saveBeforeLeave)) {
-        this.pageIndex = event.previousPageIndex;
-        this.paginator.page.emit({
-          length: event.length,
-          pageIndex: this.pageIndex,
-          pageSize: event.pageSize
-        });
-        return;
-      }
-
-      // Is user confirm: close normally
-      if (saveBeforeLeave === true) {
-        this.save();
-        return;
-      }
-
-    }
-
-  }
 
   /* -- protected methods -- */
 

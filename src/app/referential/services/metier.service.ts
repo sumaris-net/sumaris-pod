@@ -1,11 +1,11 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
-import {BaseDataService, EntityUtils, environment, StatusIds} from "../../core/core.module";
+import {BaseDataService, EntityUtils, environment} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {FetchPolicy} from "apollo-client";
-import {SuggestionDataService} from "../../shared/services/data-service.class";
+import {FilterFn, SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {Metier} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
@@ -13,17 +13,51 @@ import {EntityStorage} from "../../core/services/entities-storage.service";
 import {ReferentialFragments} from "./referential.queries";
 import {ReferentialRefFilter} from "./referential-ref.service";
 import {Moment} from "moment";
-import {ReferentialUtils} from "../../core/services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {StatusIds} from "../../core/services/model/model.enum";
 
-export type MetierFilter = Partial<ReferentialRefFilter> & {
+export class MetierFilter extends ReferentialRefFilter {
+
+  static  searchFilter<T extends Metier>(f: MetierFilter): FilterFn<T>{
+    const filterFns: FilterFn<T>[] = [];
+
+    // Filter by levels ids FIXME entity.levelId doesn't exists
+    // const levelIds = f.levelIds || (isNotNil(f.levelId) && [f.levelId]) || undefined;
+    // if (levelIds) {
+    //   filterFns.push((entity: T) => !!levelIds.find(v => entity.levelId === v));
+    // }
+
+    // Filter by status
+    const statusIds = f.statusIds || (isNotNil(f.statusId) && [f.statusId]) || undefined;
+    if (statusIds) {
+      filterFns.push((entity) => !!statusIds.find(v => entity.statusId === v));
+    }
+
+    const searchTextFilter = EntityUtils.searchTextFilter(f.searchAttribute || f.searchAttributes, f.searchText);
+    if (searchTextFilter) filterFns.push(searchTextFilter);
+
+    if (!filterFns.length) return undefined;
+
+    return (entity) => {
+      return !filterFns.find(fn => !fn(entity));
+    };
+  }
+
+  constructor() {
+    super();
+    this.entityName = ''
+  }
 
   programLabel?: string;
   date?: Date | Moment;
   vesselId?: number;
   tripId?: number;
-};
+}
 
-export const METIER_DEFAULT_FILTER: MetierFilter = {statusId: StatusIds.ENABLE};
+export const METIER_DEFAULT_FILTER: MetierFilter = {
+  entityName: 'Metier',
+  statusId: StatusIds.ENABLE
+};
 
 const LoadAllQuery: any = gql`
   query Metiers($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: MetierFilterVOInput){
@@ -126,7 +160,7 @@ export class MetierService extends BaseDataService
       loadResult = await this.entities.loadAll('MetierVO',
         {
           ...variables,
-          filter: this.createSearchFilterFn(filter)
+          filter: MetierFilter.searchFilter(filter)
         }
       ).then(res => {
         return {
@@ -162,39 +196,8 @@ export class MetierService extends BaseDataService
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
       {...filter, searchText: value},
-      { withTotal: false /* total not need */ }
-      );
+      {withTotal: false /* total not need */}
+    );
     return res.data;
   }
-
-
-  /* -- protected methods -- */
-
-  protected createSearchFilterFn<T extends Metier>(f: Partial<MetierFilter>): (T) => boolean {
-
-    const filterFns: ((T) => boolean)[] = [];
-
-    // Filter by levels ids FIXME entity.levelId doesn't exists
-    // const levelIds = f.levelIds || (isNotNil(f.levelId) && [f.levelId]) || undefined;
-    // if (levelIds) {
-    //   filterFns.push((entity: T) => !!levelIds.find(v => entity.levelId === v));
-    // }
-
-    // Filter by status
-    const statusIds = f.statusIds || (isNotNil(f.statusId) && [f.statusId]) || undefined;
-    if (statusIds) {
-      filterFns.push((entity: T) => !!statusIds.find(v => entity.statusId === v));
-    }
-
-    const searchTextFilter = EntityUtils.searchTextFilter(f.searchAttribute || f.searchAttributes, f.searchText);
-    if (searchTextFilter) filterFns.push(searchTextFilter);
-
-    if (!filterFns.length) return undefined;
-
-    return (entity) => {
-      return !filterFns.find(fn => !fn(entity));
-    };
-  }
-
-
 }

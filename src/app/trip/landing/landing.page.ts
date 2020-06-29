@@ -1,18 +1,19 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild} from '@angular/core';
 
-import {EntityUtils, environment, isNil, isNotNil} from '../../core/core.module';
+import {isNil, isNotEmptyArray, isNotNil} from '../../shared/functions';
 import * as moment from "moment";
+import {Moment} from "moment";
 import {LandingForm} from "./landing.form";
-import {PmfmStrategy, ProgramProperties} from "../../referential/services/model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {SamplesTable} from "../sample/samples.table";
-import {ReferentialUtils, UsageMode} from "../../core/services/model";
+import {UsageMode} from "../../core/services/model/settings.model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {LandingService} from "../services/landing.service";
-import {AppDataEditorPage} from "../form/data-editor-page.class";
+import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
-import {isNotEmptyArray} from "../../shared/functions";
 import {filter, throttleTime} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
@@ -21,13 +22,24 @@ import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.
 import {Landing} from "../services/model/landing.model";
 import {Trip} from "../services/model/trip.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
+import {environment} from "../../../environments/environment";
+import {ProgramProperties} from "../../referential/services/config/program.config";
+import {AppEditorOptions} from "../../core/form/editor.class";
 
 @Component({
   selector: 'app-landing-page',
   templateUrl: './landing.page.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {
+      provide: AppEditorOptions,
+      useValue: {
+        pathIdAttribute: 'landingId'
+      }
+    }
+  ]
 })
-export class LandingPage extends AppDataEditorPage<Landing, LandingService> implements OnInit {
+export class LandingPage extends AppRootDataEditor<Landing, LandingService> implements OnInit {
 
   protected parent: Trip | ObservedLocation;
   protected dataService: LandingService;
@@ -51,15 +63,15 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
   }
 
   constructor(
-    injector: Injector
+    injector: Injector,
+    options: AppEditorOptions
   ) {
-    super(injector, Landing, injector.get(LandingService));
+    super(injector, Landing, injector.get(LandingService), options);
     this.observedLocationService = injector.get(ObservedLocationService);
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.vesselService = injector.get(VesselSnapshotService);
     this.platform = injector.get(PlatformService);
-    this.idAttribute = 'landingId';
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
@@ -83,14 +95,13 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
       this.landingForm.form.controls['dateTime'].valueChanges
         .pipe(throttleTime(200), filter(isNotNil))
         .subscribe((dateTime) => {
-          this.samplesTable.defaultSampleDate = dateTime;
+          this.samplesTable.defaultSampleDate = dateTime as Moment;
         })
     );
   }
 
-  protected registerFormsAndTables() {
-    this.registerForms([this.landingForm])
-      .registerTables([this.samplesTable]);
+  protected registerForms() {
+    this.addChildForms([this.landingForm, this.samplesTable]);
   }
 
   protected async onNewEntity(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -121,12 +132,17 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
           data.vesselSnapshot = await this.vesselService.load(vesselId, {fetchPolicy: 'cache-first'});
         }
 
+        // Define back link
+        this.defaultBackHref = `/observations/${this.parent.id}?tab=1`;
       }
       else if (this.parent instanceof Trip) {
         data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = this.parent.returnLocation || this.parent.departureLocation;
         data.dateTime = this.parent.returnDateTime || this.parent.departureDateTime;
         data.observedLocationId = undefined;
+
+        // Define back link
+        this.defaultBackHref = `/trips/${this.parent.id}?tab=2`;
       }
 
       // Set rankOrder
@@ -146,21 +162,27 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
 
     // Copy not fetched data
     if (this.parent) {
-      data.program = ReferentialUtils.isNotEmpty(data.program) && data.program || this.parent.program;
-      data.observers = isNotEmptyArray(data.observers) && data.observers || this.parent.observers;
+      data.program = ReferentialUtils.isNotEmpty(data.program) && data.program || this.parent.program;
+      data.observers = isNotEmptyArray(data.observers) && data.observers || this.parent.observers;
 
       if (this.parent instanceof ObservedLocation) {
-        data.location = data.location || this.parent.location;
+        data.location = data.location || this.parent.location;
         data.dateTime = data.dateTime || this.parent.startDateTime || this.parent.endDateTime;
         data.tripId = undefined;
+
+        // Define back link
+        this.defaultBackHref = `/observations/${this.parent.id}?tab=1`;
       }
       else if (this.parent instanceof Trip) {
         data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = data.location || this.parent.returnLocation || this.parent.departureLocation;
-        data.dateTime = data.dateTime || this.parent.returnDateTime || this.parent.departureDateTime;
+        data.dateTime = data.dateTime || this.parent.returnDateTime || this.parent.departureDateTime;
         data.observedLocationId = undefined;
+
+        this.defaultBackHref = `/trips/${this.parent.id}?tab=2`;
       }
     }
+
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
@@ -212,8 +234,6 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
 
     if (this.parent) {
       if (this.parent instanceof ObservedLocation) {
-        // Update the back ref link
-        this.defaultBackHref = `/observations/${this.parent.id}?tab=1`;
 
         this.landingForm.showProgram = false;
         this.landingForm.showVessel = true;
@@ -222,8 +242,6 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
         this.landingForm.showObservers = true;
 
       } else if (this.parent instanceof Trip) {
-        // Update the back ref link
-        this.defaultBackHref = `/trips/${this.parent.id}`;
 
         // Hide some fields
         this.landingForm.showProgram = false;
@@ -233,7 +251,6 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
         this.landingForm.showObservers = true;
       }
     } else {
-      this.defaultBackHref = null;
 
       this.landingForm.showVessel = true;
       this.landingForm.showLocation = true;
@@ -245,9 +262,9 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
   protected async computeTitle(data: Landing): Promise<string> {
     const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
       await this.translate.get('LANDING.TITLE_PREFIX', {
-        location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
+        location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
-      }).toPromise() || '';
+      }).toPromise() || '';
 
     // new data
     if (!data || isNil(data.id)) {
@@ -260,6 +277,10 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
     }).toPromise());
   }
 
+  protected computePageUrl(id: number|'new') {
+    let parentUrl = this.getParentPageUrl();
+    return `${parentUrl}/landing/${id}`;
+  }
 
   protected getFirstInvalidTabIndex(): number {
     return this.landingForm.invalid ? 0 : (this.samplesTable.invalid ? 1 : -1);

@@ -1,24 +1,20 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {
-  EntityUtils,
-  isNil,
-  isNotNil,
-  LocationLevelIds,
-  PmfmIds, referentialToString,
-  vesselSnapshotToString
-} from "../../referential/services/model";
+import {LocationLevelIds, PmfmIds} from "../../referential/services/model/model.enum";
 import {LandingPage} from "../landing/landing.page";
-import {LandingValidatorService} from "../services/landing.validator";
+import {LandingValidatorService} from "../services/validator/landing.validator";
 import {debounceTime, filter, map, mergeMap, startWith, switchMap} from "rxjs/operators";
 import {from, Subscription} from "rxjs";
 import {Landing} from "../services/model/landing.model";
 import {AuctionControlValidators} from "../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
-import {fadeInOutAnimation} from "../../shared/shared.module";
-import {HistoryPageReference, ReferentialUtils} from "../../core/services/model";
+import {fadeInOutAnimation, isNil, isNotNil} from "../../shared/shared.module";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {ObservedLocation} from "../services/model/observed-location.model";
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
 @Component({
   selector: 'app-auction-control',
@@ -34,12 +30,28 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   private _rowValidatorSubscription: Subscription;
 
+  filterForm: FormGroup;
+
   constructor(
     injector: Injector,
+    protected referentialRefService: ReferentialRefService,
+    protected formBuilder: FormBuilder,
     protected modalCtrl: ModalController
   ) {
-    super(injector);
-    this.idAttribute = 'controlId';
+    super(injector, {
+      pathIdAttribute: 'controlId',
+      tabCount: 2
+    });
+
+    this.filterForm = this.formBuilder.group({
+      taxonGroup: [null]
+    });
+    this.registerAutocompleteField('taxonGroupFilter', {
+      service: referentialRefService,
+      filter: {
+        entityName: 'TaxonGroup'
+      }
+    })
   }
 
   ngOnInit() {
@@ -133,6 +145,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       this.selectedTabIndex = 1;
       this.tabGroup.realignInkBar();
     }
+
+    // Define default back link
+    const observedLocationId = this.parent && this.parent.id || data && data.observedLocationId;
+    this.defaultBackHref = `/observations/${observedLocationId}?tab=1`;
   }
 
   protected async onEntityLoaded(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -144,6 +160,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     // Always open the second tab, when existing entity
     this.selectedTabIndex = 1;
     this.tabGroup.realignInkBar();
+
+    // Define default back link
+    const observedLocationId = this.parent && this.parent.id || data && data.observedLocationId;
+    this.defaultBackHref = `/observations/${observedLocationId}?tab=1`;
 
     this.markForCheck();
   }
@@ -164,6 +184,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   protected addToPageHistory(page: HistoryPageReference) {
     super.addToPageHistory({ ...page, icon: 'flag'});
+  }
+
+  async save(event?: Event, options?: any): Promise<boolean> {
+    return super.save(event, options);
   }
 
   // protected async getValue(): Promise<Landing> {
@@ -194,9 +218,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   protected async computeTitle(data: Landing): Promise<string> {
     const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
       await this.translate.get('AUCTION_CONTROL.TITLE_PREFIX', {
-        location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
+        location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
-      }).toPromise() || '';
+      }).toPromise() || '';
 
     // new data
     if (!data || (isNil(data.id) && ReferentialUtils.isEmpty(data.vesselSnapshot))) {
@@ -207,5 +231,15 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return titlePrefix + (await this.translate.get('AUCTION_CONTROL.EDIT.TITLE', {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name)
     }).toPromise());
+  }
+
+  protected computePageUrl(id: number|'new') {
+    let parentUrl = this.getParentPageUrl();
+    return `${parentUrl}/control/${id}`;
+  }
+
+  protected getFirstInvalidTabIndex(): number {
+    return this.landingForm.invalid && !this.landingForm.measurementValuesForm.invalid ? 0 : (
+      (this.samplesTable.invalid || this.landingForm.measurementValuesForm.invalid) ? 1 : -1);
   }
 }

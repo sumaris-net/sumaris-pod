@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {AppEditorPage, EntityUtils, isNil} from "../../core/core.module";
-import {AggregationType, ExtractionColumn, ExtractionUtils} from "../services/extraction.model";
+import {AppEditor, isNil} from "../../core/core.module";
+import {AggregationType, ExtractionColumn, ExtractionUtils} from "../services/model/extraction.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {ExtractionService} from "../services/extraction.service";
@@ -10,7 +10,7 @@ import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.c
 import {AggregationTypeForm} from "./aggregation-type.form";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ReferentialUtils} from "../../core/services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 
 @Component({
   selector: 'app-aggregation-type-page',
@@ -20,7 +20,7 @@ import {ReferentialUtils} from "../../core/services/model";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AggregationTypePage extends AppEditorPage<AggregationType> implements OnInit {
+export class AggregationTypePage extends AppEditor<AggregationType> implements OnInit {
 
   columns: ExtractionColumn[];
 
@@ -40,13 +40,17 @@ export class AggregationTypePage extends AppEditorPage<AggregationType> implemen
               protected settings: LocalSettingsService) {
     super(injector,
       AggregationType,
+      // Data service
       {
         load: (id: number, options) => extractionService.loadAggregationType(id, options),
         delete: (type, options) => extractionService.deleteAggregations([type]),
         save: (type, options) => extractionService.saveAggregation(type),
         listenChanges: (id, options) => undefined
+      },
+      // Editor options
+      {
+        pathIdAttribute: 'aggregationTypeId'
       });
-    this.idAttribute = 'aggregationTypeId';
   }
 
   ngOnInit() {
@@ -99,8 +103,8 @@ export class AggregationTypePage extends AppEditorPage<AggregationType> implemen
     return 0;
   }
 
-  protected registerFormsAndTables() {
-    this.registerForm(this.typeForm);
+  protected registerForms() {
+    this.addChildForm(this.typeForm);
   }
 
   protected canUserWrite(data: AggregationType): boolean {
@@ -109,7 +113,7 @@ export class AggregationTypePage extends AppEditorPage<AggregationType> implemen
       // New date allow for supervisors
       || (this.isNewData && this.accountService.isSupervisor())
       // Supervisor on existing data, and the same recorder department
-      || (ReferentialUtils.isNotEmpty(data && data.recorderDepartment) && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment));
+      || (ReferentialUtils.isNotEmpty(data && data.recorderDepartment) && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment));
   }
 
   protected async onEntityLoaded(data: AggregationType, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -117,7 +121,7 @@ export class AggregationTypePage extends AppEditorPage<AggregationType> implemen
 
     // If spatial, load columns
     if (data.isSpatial) {
-      this.columns = await this.extractionService.loadColumns(data) || [];
+      this.columns = await this.extractionService.loadColumns(data) || [];
 
       const map = ExtractionUtils.dispatchColumns(this.columns);
       console.debug('[aggregation-type] Columns repartition:', map);

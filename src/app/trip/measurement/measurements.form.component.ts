@@ -13,10 +13,11 @@ import {FloatLabelType} from "@angular/material/form-field";
 import {BehaviorSubject} from 'rxjs';
 import {filter, throttleTime} from "rxjs/operators";
 import {AppForm} from '../../core/core.module';
-import {PmfmStrategy, ProgramService} from "../../referential/referential.module";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ProgramService} from "../../referential/services/program.service";
 import {FormBuilder} from '@angular/forms';
-import {MeasurementsValidatorService} from '../services/measurement.validator';
-import {isNil, isNotNil, delay} from '../../shared/functions';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {delay, isNil, isNotNil} from '../../shared/functions';
 import {
   Measurement,
   MeasurementType,
@@ -36,7 +37,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   private _onRefreshPmfms = new EventEmitter<any>();
   private _program: string;
-  private _gear: string;
+  private _gearId: number;
   private _acquisitionLevel: string;
   private _forceOptional = false;
   protected data: Measurement[];
@@ -45,6 +46,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   loadingPmfms = true; // Important, must be true
   $loadingControls = new BehaviorSubject<boolean>(true);
   applyingValue = false;
+  keepRankOrder = false;
 
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
 
@@ -57,6 +59,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   @Input() requiredGear = false;
 
   @Input() entityName: MeasurementType;
+
+  @Input() animated = false;
 
   @Output()
   valueChanges: EventEmitter<any> = new EventEmitter<any>();
@@ -86,9 +90,9 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   }
 
   @Input()
-  set gear(value: string) {
-    if (this._gear !== value && isNotNil(value)) {
-      this._gear = value;
+  set gearId(value: number) {
+    if (this._gearId !== value && isNotNil(value)) {
+      this._gearId = value;
       if (this.requiredGear) {
         this._onRefreshPmfms.emit();
       }
@@ -98,8 +102,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     }
   }
 
-  get gear(): string {
-    return this._gear;
+  get gearId(): number {
+    return this._gearId;
   }
 
   @Input()
@@ -130,7 +134,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
               protected settings: LocalSettingsService,
               protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, formBuilder.group({}), settings);
+    super(dateAdapter, measurementValidatorService.getFormGroup([]), settings);
 
     // TODO: DEV only
     //this.debug = true;
@@ -166,7 +170,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     }
 
     const pmfms = this.$pmfms.getValue();
-    this.data = MeasurementUtils.initAllMeasurements(data, pmfms, this.entityName);
+    this.data = MeasurementUtils.initAllMeasurements(data, pmfms, this.entityName, this.keepRankOrder);
 
     const json = MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(this.data), pmfms);
 
@@ -227,7 +231,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   protected async refreshPmfms(event?: any) {
     // Skip if missing: program, acquisition (or gear, if required)
-    if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gear))) {
+    if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
       return;
     }
 
@@ -242,11 +246,11 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
         this._program,
         {
           acquisitionLevel: this._acquisitionLevel,
-          gear: this._gear
+          gearId: this._gearId
         })) || [];
 
       if (!pmfms.length && this.debug) {
-        console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gear}}. Make sure programs/strategies are filled`);
+        console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._program}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
       }
       else {
 
@@ -279,7 +283,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   }
 
-  setPmfms(pmfms: PmfmStrategy[]) {
+  protected setPmfms(pmfms: PmfmStrategy[]) {
     this.loadingPmfms = false;
     this.$pmfms.next(pmfms);
   }
@@ -319,7 +323,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
     else {
 
-      if (this.debug) console.debug(`${this.logPrefix} Updating form controls {force_optional: ${this._forceOptional}}, using pmfms:`, pmfms);
+      if (this.debug) console.debug(`${this.logPrefix} Updating form controls {event: ${event}, force_optional: ${this._forceOptional}}, using pmfms:`, pmfms);
 
       // Update the existing form
       this.measurementValidatorService.updateFormGroup(this.form, {
@@ -348,11 +352,12 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   }
 
   protected restoreFormStatus(opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+    const form = this.form;
     // Restore enable state (because form.setValue() can change it !)
     if (this._enable) {
-      this.form.enable(opts);
-    } else if (this.form.enabled) {
-      this.form.disable(opts);
+      form.enable(opts);
+    } else if (form.enabled) {
+      form.disable(opts);
     }
   }
 

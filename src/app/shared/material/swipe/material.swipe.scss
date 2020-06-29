@@ -1,0 +1,38 @@
+:host {
+  display: inline-block;
+  width: 100%;
+  position: relative;
+}
+
+input.hidden {
+  display: none;
+}
+
+.slides-container {
+
+  .swiper-slide {
+    font-size: 16px !important;
+  }
+
+  &.hidden {
+    visibility: hidden;
+    height: 0 !important;
+  }
+}
+
+.button-prev,
+.button-next {
+  position: absolute;
+  top: calc(50% - 20px);
+  z-index: 10;
+}
+
+.button-prev {
+  left: 0;
+  right: auto;
+}
+
+.button-next {
+  left: auto;
+  right: 0;
+}

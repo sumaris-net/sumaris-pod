@@ -1,15 +1,14 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {EntityUtils, isNil, isNotNil, Program, StatusIds} from "./model";
-import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/shared.module";
-import {BaseDataService} from "../../core/core.module";
+import {EditorDataService, EditorDataServiceLoadOptions, isNil, isNotNil} from "../../shared/shared.module";
+import {BaseDataService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {environment} from "../../../environments/environment";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
-import {Parameter, Pmfm} from "./model/pmfm.model";
+import {Parameter} from "./model/parameter.model";
 import {ReferentialFragments} from "./referential.queries";
 
 const SaveQuery: any = gql`

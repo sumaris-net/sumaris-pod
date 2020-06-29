@@ -2,19 +2,18 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {ProductValidatorService} from "../services/validator/product.validator";
-import {Product, ProductFilter} from "../services/model/product.model";
+import {IWithProductsEntity, Product, ProductFilter} from "../services/model/product.model";
 import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
-import {AcquisitionLevelCodes, isNotNil, PmfmStrategy} from "../../referential/services/model";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {BehaviorSubject, Observable} from "rxjs";
-import {IWithProductsEntity} from "../services/model/base.model";
-import {IReferentialRef} from "../../core/services/model";
+import {IReferentialRef} from "../../core/services/model/referential.model";
 import {TableElement} from "angular4-material-table";
 import {ProductSaleModal} from "../sale/product-sale.modal";
-import {$e} from "codelyzer/angular/styles/chars";
 import {isNotEmptyArray} from "../../shared/functions";
 import {SaleProductUtils} from "../services/model/sale-product.model";
 import {filterNotNil} from "../../shared/observables";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -27,7 +26,8 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
     {
       provide: InMemoryTableDataService,
       useFactory: () => new InMemoryTableDataService<Product, ProductFilter>(Product, {
-        equals: Product.equals
+        equals: Product.equals,
+        filterFnFactory: ProductFilter.searchFilter
       })
     }
   ],
@@ -35,10 +35,13 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
 })
 export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> implements OnInit, OnDestroy {
 
-  @Input() $parentFilter: Observable<any>;
+  @Input() showParent = true;
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
   @Input() parentAttributes: string[];
-  @Input() showParent = true;
+
+  @Input() set parentFilter(productFilter: ProductFilter) {
+    this.setFilter(productFilter);
+  }
 
   @Input()
   set value(data: Product[]) {
@@ -89,25 +92,18 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   ngOnInit() {
     super.ngOnInit();
 
-    // this.displayAttributes = {
-    //   parent: this.parentAttributes
-    // };
-
     this.registerAutocompleteField('parent', {
       items: this.$parents,
-      attributes: this.parentAttributes
+      attributes: this.parentAttributes,
+      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
+      columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined)
     });
 
+    const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
+      columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined)
     });
-
-    if (this.$parentFilter) {
-      this.registerSubscription(this.$parentFilter.subscribe(parentFilter => {
-        // console.debug('parent test change', parentFilter);
-        this.setFilter(new ProductFilter(parentFilter));
-      }));
-    }
 
     this.registerSubscription(
       filterNotNil(this.$pmfms)
@@ -117,6 +113,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
             .then(productSalePmfms => this.productSalePmfms = productSalePmfms);
         }));
 
+    this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditProduct(row)));
   }
 
   /* -- protected methods -- */
@@ -184,4 +181,9 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     // todo
   }
 
+  private onStartEditProduct(row: TableElement<Product>) {
+    if (this.filter && this.filter.parent && row.currentData && !row.currentData.parent) {
+      row.validator.patchValue({parent: this.filter.parent});
+    }
+  }
 }

@@ -96,7 +96,9 @@ export class AppendToInputDirective implements AfterViewInit {
     }
 
     private defineElementXByDirection(inputLeft: number, inputRight: number) {
-      console.log("defineElementXByDirection ", inputLeft, inputRight);
+      // DEBUG
+      //console.log("defineElementXByDirection ", inputLeft, inputRight);
+
       if (this._directionX === 'end') {
         return inputRight - this.element.offsetWidth;
       } else if (this._directionX === 'center') {

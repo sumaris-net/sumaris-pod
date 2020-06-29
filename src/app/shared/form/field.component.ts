@@ -74,8 +74,10 @@ export class AppFormField implements OnInit, ControlValueAccessor {
 
   @Input() tabindex: number;
 
-  @Output('keypress.enter')
-  onKeypressEnter: EventEmitter<any> = new EventEmitter<any>();
+  @Input('class') classList: string;
+
+  @Output('keyup.enter')
+  onKeyupEnter: EventEmitter<any> = new EventEmitter<any>();
 
   get value(): any {
     return this.formControl.value;
@@ -151,17 +153,9 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     }
   }
 
-  filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) {
-    if (event.keyCode === 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
-      this.onKeypressEnter.emit(event);
-      return;
-    }
-    filterNumberInput(event, allowDecimals);
-  }
-
   filterAlphanumericalInput(event: KeyboardEvent) {
-    if (event.keyCode === 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
-      this.onKeypressEnter.emit(event);
+    if (event.keyCode === 13 /*=Enter*/ && this.onKeyupEnter.observers.length) {
+      this.onKeyupEnter.emit(event);
       return;
     }
     // Add features (e.g. check against a pattern)
@@ -171,6 +165,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     if (this.matInput) this.matInput.nativeElement.focus();
   }
 
+  filterNumberInput = filterNumberInput;
   selectInputContent = selectInputContent;
 
   getDisplayValueFn(definition: FormFieldDefinition): DisplayFn {

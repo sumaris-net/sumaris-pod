@@ -15,7 +15,6 @@ export enum AnimationState {
   styleUrls: ['./numpad.container.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
-    matDatepickerAnimations.transformPanel,
     // Backdrop animation
     trigger('numpadBackdrop', [
       state('*', style({opacity: 0, background: 'transparent'})),
@@ -90,7 +89,7 @@ export class MatNumpadContainerComponent implements OnInit, OnDestroy, MatNumpad
   }
 
   ngOnInit(): void {
-    if (!this.keymap || !this.keymap.length) {
+    if (!this.keymap || !this.keymap.length) {
       throw new Error("An invalid 'keymap' was sent to numpad container");
     }
 
@@ -104,7 +103,7 @@ export class MatNumpadContainerComponent implements OnInit, OnDestroy, MatNumpad
       }
     }
 
-    this.noBackdrop = this.noBackdrop || this.appendToInput;
+    this.noBackdrop = this.noBackdrop || this.appendToInput;
     if (!this.noBackdrop) {
       this.backdropState = AnimationState.ENTER;
     }

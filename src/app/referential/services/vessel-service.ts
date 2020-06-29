@@ -2,24 +2,21 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {
-  Department,
-  EntityUtils,
-  isNil,
-  isNotNil,
-  Person,
-  QualityFlagIds,
-  StatusIds,
-  Vessel,
-  VesselSnapshot,
-} from "./model";
+  QualityFlagIds
+} from "./model/model.enum";
 import {
-  EditorDataService,
+  EditorDataService, EditorDataServiceLoadOptions, isNil,
   isNilOrBlank,
-  isNotEmptyArray,
+  isNotEmptyArray, isNotNil,
   LoadResult,
   TableDataService
 } from "../../shared/shared.module";
-import {BaseDataService, SAVE_AS_OBJECT_OPTIONS, SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../core/core.module";
+
+import {
+  MINIFY_OPTIONS,
+  SAVE_AS_OBJECT_OPTIONS,
+  SAVE_LOCALLY_AS_OBJECT_OPTIONS
+} from "../../core/services/model/referential.model";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
 
@@ -29,11 +26,17 @@ import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {FetchPolicy} from "apollo-client";
 import {isEmptyArray} from "../../shared/functions";
-import {EntityAsObjectOptions, MINIFY_OPTIONS} from "../../core/services/model";
+import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";
 import {LoadFeaturesQuery, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";
 import {LoadRegistrationsQuery, RegistrationFragments, VesselRegistrationService} from "./vessel-registration.service";
 import {NetworkService} from "../../core/services/network.service";
 import {EntityStorage} from "../../core/services/entities-storage.service";
+import {Vessel} from "./model/vessel.model";
+import {BaseDataService} from "../../core/services/base.data-service.class";
+import {Person} from "../../core/services/model/person.model";
+import {Department} from "../../core/services/model/department.model";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {VesselSnapshot} from "./model/vessel-snapshot.model";
 
 export class VesselFilter {
   date?: Date | Moment;
@@ -186,7 +189,7 @@ const DeleteVessels: any = gql`
 @Injectable({providedIn: 'root'})
 export class VesselService
   extends BaseDataService
-  implements TableDataService<Vessel, VesselFilter>, EditorDataService<Vessel, VesselFilter> {
+  implements TableDataService<Vessel, VesselFilter>, EditorDataService<Vessel> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -251,9 +254,7 @@ export class VesselService
       );
   }
 
-  async load(id: number, opts?: {
-    fetchPolicy?: FetchPolicy
-  }): Promise<Vessel | null> {
+  async load(id: number, opts?: EditorDataServiceLoadOptions): Promise<Vessel | null> {
     console.debug("[vessel-service] Loading vessel " + id);
 
     const variables: any = {vesselId: id};
@@ -479,7 +480,7 @@ export class VesselService
   /* -- protected methods -- */
 
   protected asObject(vessel: Vessel, opts?: EntityAsObjectOptions): any {
-    return vessel.asObject({...MINIFY_OPTIONS, options: opts} as EntityAsObjectOptions);
+    return vessel.asObject({...MINIFY_OPTIONS, ...opts} as EntityAsObjectOptions);
   }
 
   protected fillDefaultProperties(vessel: Vessel) {

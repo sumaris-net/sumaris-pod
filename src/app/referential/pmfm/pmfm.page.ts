@@ -1,13 +1,14 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
-import {AppEditorPage, environment, isNil, joinPropertiesPath} from "../../core/core.module";
-import {referentialToString} from "../services/model";
+import {AppEditor, environment, isNil, joinPropertiesPath} from "../../core/core.module";
+import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {ReferentialForm} from "../form/referential.form";
 import {PmfmValidatorService} from "../services/validator/pmfm.validator";
 import {EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
-import {Parameter, Pmfm} from "../services/model/pmfm.model";
+import {Pmfm} from "../services/model/pmfm.model";
+import {Parameter} from "../services/model/parameter.model";
 import {PmfmService} from "../services/pmfm.service";
 import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {ReferentialRefService} from "../services/referential-ref.service";
@@ -15,7 +16,6 @@ import {MatAutocompleteFieldConfig} from "../../shared/material/material.autocom
 import {ParameterService} from "../services/parameter.service";
 import {filter, mergeMap} from "rxjs/operators";
 import {Observable} from "rxjs";
-import {ReferentialUtils} from "../../core/services/model";
 
 @Component({
   selector: 'app-pmfm',
@@ -26,14 +26,12 @@ import {ReferentialUtils} from "../../core/services/model";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PmfmPage extends AppEditorPage<Pmfm> implements OnInit {
+export class PmfmPage extends AppEditor<Pmfm> implements OnInit {
 
   canEdit: boolean;
   form: FormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
   $parameter: Observable<Parameter>;
-
-
 
   get matrix(): any {
     return this.form.controls.matrix.value;
@@ -72,13 +70,6 @@ export class PmfmPage extends AppEditorPage<Pmfm> implements OnInit {
 
     // Set entity name (required for referential form validator)
     this.referentialForm.entityName = 'Pmfm';
-
-    // Check label is unique
-    this.form.get('label')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const label = control.enabled && control.value;
-        return label && (await this.pmfmService.existsByLabel(label, {excludedId: this.data.id})) ? {unique: true} : null;
-      });
 
     const autocompleteConfig: MatAutocompleteFieldConfig = {
       suggestFn: (value, opts) => this.referentialRefService.suggest(value, opts),
@@ -189,6 +180,7 @@ export class PmfmPage extends AppEditorPage<Pmfm> implements OnInit {
 
   /* -- protected methods -- */
 
+
   protected canUserWrite(data: Pmfm): boolean {
     // TODO : check user is in pmfm managers
     return (this.isNewData && this.accountService.isAdmin())
@@ -204,9 +196,9 @@ export class PmfmPage extends AppEditorPage<Pmfm> implements OnInit {
     }
   }
 
-  protected registerFormsAndTables() {
+  protected registerForms() {
     this // TODO QV .registerTable(this.strategiesTable)
-      .registerForm(this.referentialForm);
+      .addChildForm(this.referentialForm);
   }
 
   protected setValue(data: Pmfm) {
@@ -251,8 +243,19 @@ export class PmfmPage extends AppEditorPage<Pmfm> implements OnInit {
     return 0;
   }
 
+  protected async onNewEntity(data: Pmfm, options?: EditorDataServiceLoadOptions): Promise<void> {
+    await super.onNewEntity(data, options);
+
+    // Check label is unique
+    this.form.get('label')
+      .setAsyncValidators(async (control: AbstractControl) => {
+        const label = control.enabled && control.value;
+        return label && (await this.pmfmService.existsByLabel(label, {excludedId: this.data.id})) ? {unique: true} : null;
+      });
+  }
+
   protected async onEntityLoaded(data: Pmfm, options?: EditorDataServiceLoadOptions): Promise<void> {
-    super.onEntityLoaded(data, options);
+    await super.onEntityLoaded(data, options);
 
     this.canEdit = this.canUserWrite(data);
   }

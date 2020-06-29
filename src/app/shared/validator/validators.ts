@@ -1,12 +1,8 @@
-import {AbstractControl, Form, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
+import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
 import * as moment from 'moment/moment';
-import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
-import {fromDateISOString, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, isNotNilOrNaN, toDateISOString} from "../functions";
+import {DATE_ISO_PATTERN, PUBKEY_REGEXP} from "../constants";
+import {fromDateISOString, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotNilOrNaN} from "../functions";
 import {Moment} from "moment";
-import {DateFormatPipe} from "../shared.module";
-import {DateAdapter} from "@angular/material/core";
-import {MomentDateAdapter} from "@angular/material-moment-adapter";
-import {PipeTransform} from "@angular/core";
 
 export class SharedValidators {
 
@@ -14,7 +10,7 @@ export class SharedValidators {
     const value = control.value;
     const date = !value || moment.isMoment(value) ? value : moment(control.value, DATE_ISO_PATTERN);
     if (date && (!date.isValid() || date.year() < 1970)) {
-      return { validDate: true };
+      return {validDate: true};
     }
     return null;
   }
@@ -22,7 +18,7 @@ export class SharedValidators {
   static latitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
     if (isNotNil(value) && (value < -90 || value > 90)) {
-      return { latitude: true };
+      return {latitude: true};
     }
     return null;
   }
@@ -30,7 +26,7 @@ export class SharedValidators {
   static longitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
     if (isNotNil(value) && (value < -180 || value > 180)) {
-      return { longitude: true };
+      return {longitude: true};
     }
     return null;
   }
@@ -38,7 +34,7 @@ export class SharedValidators {
   static object(control: FormControl): ValidationErrors | null {
     const value = control.value;
     if (value && typeof value !== 'object') {
-      return { object: true };
+      return {object: true};
     }
     return null;
   }
@@ -46,56 +42,14 @@ export class SharedValidators {
   static entity(control: FormControl): ValidationErrors | null {
     const value = control.value;
     if (value && (typeof value !== 'object' || value.id === undefined || value.id === null)) {
-      return { entity: true };
+      return {entity: true};
     }
     return null;
   }
 
-  /**
-   * Validate uniqueness of an entity in a FormArray
-   * @param controlName the name of the control in FormArray
-   */
-  static uniqueEntity(controlName: string): ValidatorFn {
-    return (group: FormArray): ValidationErrors | null => {
-      const controls: AbstractControl[] = [];
-      if (group.length) {
-        // gather controls in array with valid entity
-        for (const control of group.controls) {
-          const fromGroup = control as FormGroup;
-          if (fromGroup.controls[controlName]) {
-            const value = fromGroup.controls[controlName].value;
-            if (!!value && !!value.id)
-              controls.push(fromGroup.controls[controlName]);
-          }
-        }
-        // get occurrences of entity by id
-        const occurrences = controls.reduce((acc, control) => {
-          const id = control.value.id;
-          acc[id] ? acc[id]++ : acc[id] = 1;
-          return acc;
-        } , {});
-        // get controls with value occurrences > 1
-        const error = {uniqueEntity: true};
-        let returnError = false;
-        controls.filter(control => occurrences[control.value.id] > 1)
-          .forEach(control => {
-                let errors: ValidationErrors = control.errors || {};
-                errors = {...errors, ...error};
-                control.setErrors(errors);
-                control.markAsTouched({onlySelf: true});
-                returnError = true;
-          });
-        if (returnError)
-          return error;
-      }
-      controls.forEach(control => SharedValidators.clearError(control, 'uniqueEntity'));
-      return null;
-    };
-  }
-
   static empty(control: FormControl): ValidationErrors | null {
     if (isNotNilOrBlank(control.value)) {
-      return { empty: true };
+      return {empty: true};
     }
     return null;
   }
@@ -103,7 +57,7 @@ export class SharedValidators {
   static pubkey(control: FormControl): ValidationErrors | null {
     const value = control.value;
     if (value && (typeof value !== 'string' || !PUBKEY_REGEXP.test(value))) {
-      return { pubkey: true };
+      return {pubkey: true};
     }
     return null;
   }
@@ -111,18 +65,17 @@ export class SharedValidators {
   static integer(control: FormControl): ValidationErrors | null {
     const value = control.value;
     if (isNotNil(value) && value !== "" && !Number.isInteger(value)) {
-      return { integer: true };
+      return {integer: true};
     }
     return null;
   }
 
-  static double(opts?: {maxDecimals?: number; }): ValidatorFn {
+  static double(opts?: { maxDecimals?: number; }): ValidatorFn {
     let regexpStr;
     if (opts && isNotNil(opts.maxDecimals)) {
       if (opts.maxDecimals < 0) throw new Error(`Invalid maxDecimals value: ${opts.maxDecimals}`);
       regexpStr = opts.maxDecimals > 1 ? `^[-]?[0-9]+([.,][0-9]{1,${opts.maxDecimals}})?$` : "^[-]?[0-9]+([.,][0-9])?$";
-    }
-    else {
+    } else {
       regexpStr = "^[-]?[0-9]+([.,][0-9]*)?$";
     }
 
@@ -134,28 +87,7 @@ export class SharedValidators {
         value = null;
       }
       if (isNotNil(value) && value !== "" && !regexp.test(value as string)) {
-        return { maxDecimals: true };
-      }
-      return null;
-    };
-  }
-
-  static dateRange(startDateField: string, endDateField: string): ValidatorFn {
-    return (group: FormGroup): ValidationErrors | null => {
-      const endField = group.get(endDateField);
-      const startDate = fromDateISOString(group.get(startDateField).value);
-      const endDate = fromDateISOString(endField.value);
-      if (isNotNil(startDate) && isNotNil(endDate)  && startDate >= endDate) {
-        // Update end field
-        const endFieldErrors: ValidationErrors = endField.errors || {};
-        endFieldErrors['dateRange'] = true;
-        endField.setErrors(endFieldErrors);
-        // Return the error (should be apply to the parent form)
-        return { dateRange: true};
-      }
-      // OK: remove the existing on the end field
-      else {
-        SharedValidators.clearError(endField, 'dateRange');
+        return {maxDecimals: true};
       }
       return null;
     };
@@ -166,81 +98,8 @@ export class SharedValidators {
       const value = fromDateISOString(control.value);
       if (isNotNil(value) && isNotNil(previousValue) && value.isSameOrBefore(previousValue, 'day')) {
         // Return the error
-        return { dateIsAfter: {minDate: errorParam} };
+        return {dateIsAfter: {minDate: errorParam}};
       }
-      return null;
-    };
-  }
-
-
-  static dateMaxDuration(startDateField: string, endDateField: string, maxDuration: number, durationUnit?: moment.unitOfTime.Diff): ValidatorFn {
-    return (group: FormGroup): ValidationErrors | null => {
-      const endField = group.get(endDateField);
-      const startDate = fromDateISOString(group.get(startDateField).value);
-      const endDate = fromDateISOString(endField.value);
-      if (isNotNil(startDate) && isNotNil(endDate) && Math.abs(startDate.diff(endDate, durationUnit)) > maxDuration) {
-        // Update end field
-        const endFieldErrors: ValidationErrors = endField.errors || {};
-        endFieldErrors['dateMaxDuration'] = true;
-        endField.setErrors(endFieldErrors);
-        endField.markAsTouched({onlySelf: true});
-        // Return the error (should be apply to the parent form)
-        return { dateMaxDuration: true};
-      }
-      // OK: remove the existing on the end field
-      else {
-        SharedValidators.clearError(endField, 'dateMaxDuration');
-      }
-      return null;
-    };
-  }
-
-  static dateMinDuration(startDateField: string, endDateField: string, minDuration: number, durationUnit?: moment.unitOfTime.Diff): ValidatorFn {
-    return (group: FormGroup): ValidationErrors | null => {
-      const endField = group.get(endDateField);
-      const startDate = fromDateISOString(group.get(startDateField).value);
-      const endDate = fromDateISOString(endField.value);
-      if (isNotNil(startDate) && isNotNil(endDate) && Math.abs(startDate.diff(endDate, durationUnit)) < minDuration) {
-        // Update end field
-        const endFieldErrors: ValidationErrors = endField.errors || {};
-        endFieldErrors['dateMinDuration'] = true;
-        endField.setErrors(endFieldErrors);
-        endField.markAsTouched({onlySelf: true});
-        // Return the error (should be apply to the parent form)
-        return { dateMinDuration: true};
-      }
-      // OK: remove the existing on the end field
-      else {
-        SharedValidators.clearError(endField, 'dateMinDuration');
-      }
-      return null;
-    };
-  }
-
-  static requiredIf(fieldName: string, anotherFieldToCheck: string|AbstractControl): ValidatorFn {
-    return (group: FormGroup): ValidationErrors | null => {
-      const control = group.get(fieldName);
-      const anotherControl = (anotherFieldToCheck instanceof AbstractControl) ? anotherFieldToCheck : group.get(anotherFieldToCheck);
-      if (!anotherControl) throw new Error('Unable to find field to check!');
-      if (isNil(control.value) && isNotNil(anotherControl.value)) {
-        const error = { required: true};
-        control.setErrors(error);
-        return error;
-      }
-      SharedValidators.clearError(control, 'required');
-      return null;
-    };
-  }
-
-  static requiredIfEmpty(fieldName: string, anotherFieldToCheck: string): ValidatorFn {
-    return (group: FormGroup): ValidationErrors | null => {
-      const control = group.get(fieldName);
-      if (isNil(control.value) && isNil(group.get(anotherFieldToCheck).value)) {
-        const error = { required: true};
-        control.setErrors(error);
-        return error;
-      }
-      SharedValidators.clearError(control, 'required');
       return null;
     };
   }
@@ -262,10 +121,166 @@ export class SharedValidators {
     }
   }
 
+}
+
+export class SharedFormGroupValidators {
+
+  static dateRange(startDateField: string, endDateField: string): ValidatorFn {
+    return (group: FormGroup): ValidationErrors | null => {
+      const endField = group.get(endDateField);
+      const startDate = fromDateISOString(group.get(startDateField).value);
+      const endDate = fromDateISOString(endField.value);
+      if (isNotNil(startDate) && isNotNil(endDate) && startDate >= endDate) {
+        // Update end field
+        const endFieldErrors: ValidationErrors = endField.errors || {};
+        endFieldErrors['dateRange'] = true;
+        endField.setErrors(endFieldErrors);
+        // Return the error (should be apply to the parent form)
+        return {dateRange: true};
+      }
+      // OK: remove the existing on the end field
+      else {
+        SharedValidators.clearError(endField, 'dateRange');
+      }
+      return null;
+    };
+  }
+
+  static dateMaxDuration(startDateField: string, endDateField: string, maxDuration: number, durationUnit?: moment.unitOfTime.Diff): ValidatorFn {
+    return (group: FormGroup): ValidationErrors | null => {
+      const endField = group.get(endDateField);
+      const startDate = fromDateISOString(group.get(startDateField).value);
+      const endDate = fromDateISOString(endField.value);
+      if (isNotNil(startDate) && isNotNil(endDate) && Math.abs(startDate.diff(endDate, durationUnit)) > maxDuration) {
+        // Update end field
+        const endFieldErrors: ValidationErrors = endField.errors || {};
+        endFieldErrors['dateMaxDuration'] = true;
+        endField.setErrors(endFieldErrors);
+        endField.markAsTouched({onlySelf: true});
+        // Return the error (should be apply to the parent form)
+        return {dateMaxDuration: true};
+      }
+      // OK: remove the existing on the end field
+      else {
+        SharedValidators.clearError(endField, 'dateMaxDuration');
+      }
+      return null;
+    };
+  }
+
+  static dateMinDuration(startDateField: string, endDateField: string, minDuration: number, durationUnit?: moment.unitOfTime.Diff): ValidatorFn {
+    return (group: FormGroup): ValidationErrors | null => {
+      const endField = group.get(endDateField);
+      const startDate = fromDateISOString(group.get(startDateField).value);
+      const endDate = fromDateISOString(endField.value);
+      if (isNotNil(startDate) && isNotNil(endDate) && Math.abs(startDate.diff(endDate, durationUnit)) < minDuration) {
+        // Update end field
+        const endFieldErrors: ValidationErrors = endField.errors || {};
+        endFieldErrors['dateMinDuration'] = true;
+        endField.setErrors(endFieldErrors);
+        endField.markAsTouched({onlySelf: true});
+        // Return the error (should be apply to the parent form)
+        return {dateMinDuration: true};
+      }
+      // OK: remove the existing on the end field
+      else {
+        SharedValidators.clearError(endField, 'dateMinDuration');
+      }
+      return null;
+    };
+  }
+
+  static requiredIf(fieldName: string, anotherFieldToCheck: string | AbstractControl): ValidatorFn {
+    return (group: FormGroup): ValidationErrors | null => {
+      const control = group.get(fieldName);
+      const anotherControl = (anotherFieldToCheck instanceof AbstractControl) ? anotherFieldToCheck : group.get(anotherFieldToCheck);
+      if (!anotherControl) throw new Error('Unable to find field to check!');
+      if (isNilOrBlank(control.value) && isNotNilOrBlank(anotherControl.value)) {
+        const error = {required: true};
+        control.setErrors(error);
+        control.markAsTouched({onlySelf: true});
+        return error;
+      }
+      SharedValidators.clearError(control, 'required');
+      return null;
+    };
+  }
+
+  static requiredIfEmpty(fieldName: string, anotherFieldToCheck: string): ValidatorFn {
+    return (group: FormGroup): ValidationErrors | null => {
+      const control = group.get(fieldName);
+      if (isNilOrBlank(control.value) && isNilOrBlank(group.get(anotherFieldToCheck).value)) {
+        const error = {required: true};
+        control.setErrors(error);
+        control.markAsTouched({onlySelf: true});
+        return error;
+      }
+      SharedValidators.clearError(control, 'required');
+      return null;
+    };
+  }
+
+  static propagateIfDirty(fieldName: string, fieldNameToPropagate: string, valueToPropagate: any): ValidatorFn {
+    return (group: FormGroup): null => {
+      const control = group.get(fieldName);
+      const controlToPropagate = group.get(fieldNameToPropagate);
+      if (control.dirty && controlToPropagate.value !== valueToPropagate) {
+        controlToPropagate.setValue(valueToPropagate);
+      }
+      return null;
+    };
+  }
+
+}
+
+export class SharedFormArrayValidators {
+
+  /**
+   * Validate uniqueness of an entity in a FormArray
+   * @param controlName the name of the control in FormArray
+   */
+  static uniqueEntity(controlName: string): ValidatorFn {
+    return (array: FormArray): ValidationErrors | null => {
+      const controls: AbstractControl[] = [];
+      if (array.length) {
+        // gather controls in array with valid entity
+        for (const control of array.controls) {
+          const fromGroup = control as FormGroup;
+          if (fromGroup.controls[controlName]) {
+            const value = fromGroup.controls[controlName].value;
+            if (!!value && !!value.id)
+              controls.push(fromGroup.controls[controlName]);
+          }
+        }
+        // get occurrences of entity by id
+        const occurrences = controls.reduce((acc, control) => {
+          const id = control.value.id;
+          acc[id] ? acc[id]++ : acc[id] = 1;
+          return acc;
+        }, {});
+        // get controls with value occurrences > 1
+        const error = {uniqueEntity: true};
+        let returnError = false;
+        controls.filter(control => occurrences[control.value.id] > 1)
+          .forEach(control => {
+            let errors: ValidationErrors = control.errors || {};
+            errors = {...errors, ...error};
+            control.setErrors(errors);
+            control.markAsTouched({onlySelf: true});
+            returnError = true;
+          });
+        if (returnError)
+          return error;
+      }
+      controls.forEach(control => SharedValidators.clearError(control, 'uniqueEntity'));
+      return null;
+    };
+  }
+
   static requiredArrayMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 1;
-    return (group: FormArray): ValidationErrors | null => {
-      if (!group || group.length < minLength) {
+    return (array: FormArray): ValidationErrors | null => {
+      if (!array || array.length < minLength) {
         return {required: true};
       }
       return null;
@@ -279,16 +294,16 @@ export class SharedValidators {
    * @param max the maximum value
    */
   static validSumMaxValue(controlName: string, max: number): ValidatorFn {
-    return (group: FormArray): ValidationErrors | null => {
+    return (array: FormArray): ValidationErrors | null => {
       const controls: AbstractControl[] = [];
-      if (group.length) {
-        for (const control of group.controls) {
+      if (array.length) {
+        for (const control of array.controls) {
           const fromGroup = control as FormGroup;
           if (fromGroup.controls[controlName] && isNotNilOrNaN(fromGroup.controls[controlName].value)) {
             controls.push(fromGroup.controls[controlName]);
           }
         }
-        if (controls.reduce((sum, control) => sum + control.value , 0) > max) {
+        if (controls.reduce((sum, control) => sum + control.value, 0) > max) {
           const error = {sumMaxValue: true};
           controls.forEach(control => {
             let errors: ValidationErrors = control.errors || {};
@@ -300,17 +315,6 @@ export class SharedValidators {
         }
       }
       controls.forEach(control => SharedValidators.clearError(control, 'sumMaxValue'));
-      return null;
-    };
-  }
-
-  static propagateIfDirty(fieldName: string, fieldNameToPropagate: string, valueToPropagate: any): ValidatorFn {
-    return (group: FormGroup): null => {
-      const control = group.get(fieldName);
-      const controlToPropagate = group.get(fieldNameToPropagate);
-      if (control.dirty && controlToPropagate.value !== valueToPropagate) {
-        controlToPropagate.setValue(valueToPropagate);
-      }
       return null;
     };
   }

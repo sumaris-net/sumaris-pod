@@ -1,13 +1,13 @@
-<app-toolbar [title]="$title | async" color="primary"
+<app-toolbar [title]="title$ | async" color="primary"
              [hasValidate]="!loading && dirty"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
              [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true">
-  <ion-spinner *ngIf="loading"></ion-spinner>
+  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 
-  <button mat-icon-button *ngIf="enabled && !isNewData || debug"
+  <button slot="end" mat-icon-button *ngIf="enabled && !isNewData || debug"
           [matMenuTriggerFor]="optionsMenu"
           [title]=" 'COMMON.BTN_OPTIONS'|translate">
     <mat-icon>more_vert</mat-icon>
@@ -56,11 +56,11 @@
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger"
-                  *ngIf="submitted && (tripForm.invalid || measurementsForm.invalid)"></ion-icon>
+                  *ngIf="submitted && (tripForm.invalid || measurementsForm.invalid || fishingAreaForm.invalid)"></ion-icon>
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="error||tripForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="error || tripForm.error || measurementsForm.error || fishingAreaForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
         <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
       </ion-item>
@@ -74,6 +74,17 @@
                        (onSubmit)="save($event)"
                        [showError]="false"
                        [showAddVessel]="false">
+
+              <!-- Main fishing area  -->
+              <app-fishing-area-form #fishingAreaForm
+                                     [showError]="false"
+                                     [showDepthGradient]="false"
+                                     [showNearbySpecificArea]="false"
+                                     [required]="false"
+                                     [debug]="debug"
+              >
+
+              </app-fishing-area-form>
 
               <!-- Other features (Measurements) -->
               <ion-grid class="ion-no-padding ion-padding-top">
@@ -144,13 +155,12 @@
               <ion-label class="ion-float-end" translate>TRIP.LANDED_CATCH.OPERATION_GROUP_FILTER</ion-label>
             </ion-col>
             <ion-col>
-              <mat-autocomplete-field floatLabel="never" clearable="true"
+              <mat-autocomplete-field floatLabel="never" [clearable]="true"
                 [placeholder]="'COMMON.EMPTY_OPTION'|translate"
                 [config]="autocompleteFields.operationGroupFilter"
                 formControlName="operationGroup">
                 <ion-icon matPrefix name="locate"></ion-icon>
               </mat-autocomplete-field>
-
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -174,7 +184,7 @@
                               [program]="programSubject | async"
                               acquisitionLevel="PRODUCT"
                               [$parents]="$operationGroups"
-                              [$parentFilter]="catchFilterForm.controls['operationGroup'].valueChanges"
+                              [parentFilter]="$productFilter | async"
                               [parentAttributes]="operationGroupAttributes"
           >
           </app-products-table>
@@ -189,9 +199,9 @@
 
           <app-packets-table #packetsTable
                              [debug]="debug"
-                             [program]="programSubject|async"
+                             [program]="programSubject | async"
                              [$parents]="$operationGroups"
-                             [$parentFilter]="catchFilterForm.controls['operationGroup'].valueChanges"
+                             [parentFilter]="$packetFilter | async"
                              [parentAttributes]="operationGroupAttributes"
             ></app-packets-table>
 
@@ -231,8 +241,12 @@
       </ng-template>
 
       <app-expense-form #expenseForm
+                        entityName="VesselUseMeasurement"
                         [program]="programSubject|async"
+                        acquisitionLevel="EXPENSE"
+                        [forceOptional]="isOnFieldMode"
                         [showError]="true"
+                        [debug]="debug"
       >
 
       </app-expense-form>
@@ -256,3 +270,13 @@
   </form-buttons-bar>
 </ion-footer>
 
+<!-- FAB button -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed"
+         *ngIf="enabled && (selectedTabIndex === 1 || selectedTabIndex === 2)" @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
+
+  <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+
+</ion-fab>

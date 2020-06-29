@@ -23,6 +23,13 @@ type AccountVO {
   updateDate: Date
 }
 
+type AggregatedLandingVO {
+  id: Int
+  vesselActivities: [VesselActivityVO]
+  vesselDateTime: Date
+  vesselSnapshot: VesselSnapshotVO
+}
+
 type AggregationResultVO {
   aggStrata: [String]
   columns: [ExtractionProductColumnVO]
@@ -210,6 +217,19 @@ type ExtractionTypeVO {
   version: String
 }
 
+type FishingAreaVO {
+  depthGradient: ReferentialVO
+  distanceToCoastGradient: ReferentialVO
+  id: Int
+  location: LocationVO
+  nearbySpecificArea: ReferentialVO
+  operation: OperationVO
+  operationId: Int
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+}
+
 type LandingVO {
   comments: String
   controlDate: Date
@@ -257,6 +277,7 @@ type LocationAssociationVO {
   levelId: Int
   name: String
   parentId: Int
+  rankOrder: Int
   statusId: Int
   updateDate: Date
   validityStatusId: Int
@@ -275,6 +296,7 @@ type LocationVO {
   levelId: Int
   name: String
   parents: [LocationAssociationVO]
+  rankOrder: Int
   statusId: Int
   updateDate: Date
   validityStatusId: Int
@@ -313,6 +335,7 @@ type MetierVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  rankOrder: Int
   statusId: Int
   taxonGroup: TaxonGroupVO
   updateDate: Date
@@ -445,6 +468,8 @@ type ObservedLocationVO {
 type OperationGroupVO {
   comments: String
   controlDate: Date
+  "Get operation group's fishing areas"
+  fishingAreas: [FishingAreaVO]
   "Get operation group's gear measurements"
   gearMeasurementValues: Map_Integer_StringScalar
   "Get operation group's gear measurements"
@@ -478,6 +503,8 @@ type OperationVO {
   comments: String
   controlDate: Date
   endDateTime: Date
+  "Get operation's fishing areas"
+  fishingAreas: [FishingAreaVO]
   fishingEndDateTime: Date
   fishingStartDateTime: Date
   "Get operation's gear measurements"
@@ -529,6 +556,7 @@ type PacketVO {
   rankOrder: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
+  saleProducts: [ProductVO]
   sampledWeights: [Float]
   updateDate: Date
   validationDate: Date
@@ -547,6 +575,7 @@ type ParameterVO {
   levelId: Int
   name: String
   qualitativeValues: [ReferentialVO]
+  rankOrder: Int
   statusId: Int
   type: String
   updateDate: Date
@@ -597,6 +626,7 @@ type PmfmStrategyVO {
   acquisitionLevel: String
   acquisitionNumber: Int
   defaultValue: Float
+  gearIds: [Int]
   gears: [String]
   id: Int
   isMandatory: Boolean
@@ -613,6 +643,7 @@ type PmfmStrategyVO {
   rankOrder: Int
   referenceTaxonIds: [Int]
   signifFiguresNumber: Int
+  strategyId: Int
   taxonGroupIds: [Int]
   type: String
   unitLabel: String
@@ -649,6 +680,7 @@ type PmfmVO {
   parameter: ParameterVO
   parameterId: Int
   qualitativeValues: [ReferentialVO]
+  rankOrder: Int
   signifFiguresNumber: Int
   statusId: Int
   type: String
@@ -686,6 +718,7 @@ type ProductVO {
   recorderPerson: PersonVO
   sale: SaleVO
   saleId: Int
+  saleProducts: [ProductVO]
   saleType: ReferentialVO
   sizeCategoryId: Int
   subgroupCount: Float
@@ -700,13 +733,23 @@ type ProgramVO {
   comments: String
   creationDate: Date
   description: String
+  "Get program's gear classification"
+  gearClassification: ReferentialVO
+  gearClassificationId: Int
   id: Int
   label: String
+  locationClassificationIds: [Int]
+  locationClassifications: [ReferentialVO]
+  locationIds: [Int]
+  locations: [ReferentialVO]
   name: String
   properties: Map_String_StringScalar
   statusId: Int
-  "Get program's strategie"
+  "Get program's strategies"
   strategies: [StrategyVO]
+  "Get program's taxon group type"
+  taxonGroupType: ReferentialVO
+  taxonGroupTypeId: Int
   updateDate: Date
 }
 
@@ -714,6 +757,8 @@ type ProgramVO {
 type Query {
   "Load a user account"
   account(pubkey: String): AccountVO
+  "Find aggregated landings by filter"
+  aggregatedLandings(filter: AggregatedLandingFilterVOInput): [AggregatedLandingVO]
   "Read columns from aggregation"
   aggregationColumns(sheet: String, type: AggregationTypeVOInput): [ExtractionProductColumnVO]
   "Execute an aggregation and return as GeoJson"
@@ -778,6 +823,8 @@ type Query {
   physicalGears(filter: PhysicalGearFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "rankOrder", sortDirection: String = "asc"): [PhysicalGearVO]
   "Get a PMFM"
   pmfm(id: Int, label: String): PmfmVO
+  "Search in PMFM"
+  pmfms(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [PmfmVO]
   "Get a program"
   program(id: Int, label: String): ProgramVO
   "Search in programs"
@@ -830,6 +877,7 @@ type ReferentialVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  rankOrder: Int
   statusId: Int
   updateDate: Date
   validityStatusId: Int
@@ -918,14 +966,18 @@ type StrategyVO {
   comments: String
   creationDate: Date
   description: String
+  gearIds: [Int]
   gears: [ReferentialVO]
   id: Int
   label: String
   name: String
+  "Get strategy's pmfms"
   pmfmStrategies: [PmfmStrategyVO]
   programId: Int
   statusId: Int
+  taxonGroupIds: [Int]
   taxonGroups: [TaxonGroupStrategyVO]
+  taxonNameIds: [Int]
   taxonNames: [TaxonNameStrategyVO]
   updateDate: Date
 }
@@ -981,6 +1033,7 @@ type TaxonGroupVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  rankOrder: Int
   statusId: Int
   "Get taxon group's taxons"
   taxonNames: [TaxonNameVO]
@@ -1008,6 +1061,7 @@ type TaxonNameVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  rankOrder: Int
   referenceTaxonId: Int
   statusId: Int
   "Get taxon groups from a taxon name"
@@ -1022,6 +1076,8 @@ type TripVO {
   creationDate: Date
   departureDateTime: Date
   departureLocation: LocationVO
+  "Get trip's fishing area"
+  fishingArea: FishingAreaVO
   "Get operation's gears"
   gears: [PhysicalGearVO]
   id: Int
@@ -1065,6 +1121,15 @@ type UserSettingsVO {
   locale: String
   nonce: String
   updateDate: Date
+}
+
+type VesselActivityVO {
+  comments: String
+  date: Date
+  measurementValues: Map_Integer_StringScalar
+  metiers: [MetierVO]
+  rankOrder: Int
+  tripId: Int
 }
 
 type VesselFeaturesVO {
@@ -1184,6 +1249,16 @@ input AccountVOInput {
   updateDate: Date
 }
 
+input AggregatedLandingFilterVOInput {
+  endDate: Date
+  locationId: Int
+  observedLocationId: Int
+  programLabel: String
+  recorderDepartmentId: Int
+  recorderPersonId: Int
+  startDate: Date
+}
+
 input AggregationStrataVOInput {
   aggColumnName: String
   aggFunction: String
@@ -1284,6 +1359,7 @@ input DepartmentVOInput {
   levelId: Int
   logo: String
   name: String
+  rankOrder: Int
   siteUrl: String
   statusId: Int
   updateDate: Date
@@ -1395,12 +1471,26 @@ input ExtractionTypeVOInput {
   version: String
 }
 
+input FishingAreaVOInput {
+  depthGradient: ReferentialVOInput
+  distanceToCoastGradient: ReferentialVOInput
+  id: Int
+  location: LocationVOInput
+  nearbySpecificArea: ReferentialVOInput
+  operation: OperationVOInput
+  operationId: Int
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+}
+
 input LandingFilterVOInput {
   endDate: Date
   locationId: Int
   observedLocationId: Int
   programLabel: String
   recorderDepartmentId: Int
+  recorderPersonId: Int
   startDate: Date
   tripId: Int
   vesselId: Int
@@ -1446,6 +1536,7 @@ input LocationAssociationVOInput {
   levelId: Int
   name: String
   parentId: Int
+  rankOrder: Int
   statusId: Int
   updateDate: Date
   validityStatusId: Int
@@ -1462,6 +1553,7 @@ input LocationVOInput {
   levelId: Int
   name: String
   parents: [LocationAssociationVOInput]
+  rankOrder: Int
   statusId: Int
   updateDate: Date
   validityStatusId: Int
@@ -1492,6 +1584,7 @@ input MetierFilterVOInput {
   levelId: Int
   levelIds: [Int]
   name: String
+  programLabel: String
   searchAttribute: String
   searchJoin: String
   searchText: String
@@ -1510,6 +1603,7 @@ input MetierVOInput {
   label: String
   levelId: Int
   name: String
+  rankOrder: Int
   statusId: Int
   taxonGroup: TaxonGroupVOInput
   updateDate: Date
@@ -1521,6 +1615,7 @@ input ObservedLocationFilterVOInput {
   locationId: Int
   programLabel: String
   recorderDepartmentId: Int
+  recorderPersonId: Int
   startDate: Date
 }
 
@@ -1552,6 +1647,7 @@ input OperationFilterVOInput {
 input OperationGroupVOInput {
   comments: String
   controlDate: Date
+  fishingAreas: [FishingAreaVOInput]
   gearMeasurementValues: Map_Integer_StringScalar
   gearMeasurements: [MeasurementVOInput]
   hasCatch: Boolean
@@ -1578,6 +1674,7 @@ input OperationVOInput {
   comments: String
   controlDate: Date
   endDateTime: Date
+  fishingAreas: [FishingAreaVOInput]
   fishingEndDateTime: Date
   fishingStartDateTime: Date
   gearMeasurementValues: Map_Integer_StringScalar
@@ -1622,6 +1719,7 @@ input PacketVOInput {
   rankOrder: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
+  saleProducts: [ProductVOInput]
   sampledWeights: [Float]
   updateDate: Date
   validationDate: Date
@@ -1638,6 +1736,7 @@ input ParameterVOInput {
   levelId: Int
   name: String
   qualitativeValues: [ReferentialVOInput]
+  rankOrder: Int
   statusId: Int
   type: String
   updateDate: Date
@@ -1707,6 +1806,7 @@ input PmfmStrategyVOInput {
   acquisitionLevel: String
   acquisitionNumber: Int
   defaultValue: Float
+  gearIds: [Int]
   gears: [String]
   id: Int
   isMandatory: Boolean
@@ -1722,6 +1822,7 @@ input PmfmStrategyVOInput {
   rankOrder: Int
   referenceTaxonIds: [Int]
   signifFiguresNumber: Int
+  strategyId: Int
   taxonGroupIds: [Int]
   type: String
   unitLabel: String
@@ -1748,6 +1849,7 @@ input PmfmVOInput {
   name: String
   parameterId: Int
   qualitativeValues: [ReferentialVOInput]
+  rankOrder: Int
   signifFiguresNumber: Int
   statusId: Int
   type: String
@@ -1782,6 +1884,7 @@ input ProductVOInput {
   recorderPerson: PersonVOInput
   sale: SaleVOInput
   saleId: Int
+  saleProducts: [ProductVOInput]
   saleType: ReferentialVOInput
   sizeCategoryId: Int
   subgroupCount: Float
@@ -1802,12 +1905,20 @@ input ProgramVOInput {
   comments: String
   creationDate: Date
   description: String
+  gearClassification: ReferentialVOInput
+  gearClassificationId: Int
   id: Int
   label: String
+  locationClassificationIds: [Int]
+  locationClassifications: [ReferentialVOInput]
+  locationIds: [Int]
+  locations: [ReferentialVOInput]
   name: String
   properties: Map_String_StringScalar
   statusId: Int
   strategies: [StrategyVOInput]
+  taxonGroupType: ReferentialVOInput
+  taxonGroupTypeId: Int
   updateDate: Date
 }
 
@@ -1831,6 +1942,7 @@ input ReferentialVOInput {
   label: String
   levelId: Int
   name: String
+  rankOrder: Int
   statusId: Int
   updateDate: Date
   validityStatusId: Int
@@ -1913,6 +2025,7 @@ input StrategyVOInput {
   comments: String
   creationDate: Date
   description: String
+  gearIds: [Int]
   gears: [ReferentialVOInput]
   id: Int
   label: String
@@ -1920,7 +2033,9 @@ input StrategyVOInput {
   pmfmStrategies: [PmfmStrategyVOInput]
   programId: Int
   statusId: Int
+  taxonGroupIds: [Int]
   taxonGroups: [TaxonGroupStrategyVOInput]
+  taxonNameIds: [Int]
   taxonNames: [TaxonNameStrategyVOInput]
   updateDate: Date
 }
@@ -1940,6 +2055,7 @@ input TaxonGroupVOInput {
   label: String
   levelId: Int
   name: String
+  rankOrder: Int
   statusId: Int
   taxonNames: [TaxonNameVOInput]
   updateDate: Date
@@ -1974,6 +2090,7 @@ input TaxonNameVOInput {
   label: String
   levelId: Int
   name: String
+  rankOrder: Int
   referenceTaxonId: Int
   statusId: Int
   updateDate: Date
@@ -1985,6 +2102,7 @@ input TripFilterVOInput {
   locationId: Int
   programLabel: String
   recorderDepartmentId: Int
+  recorderPersonId: Int
   startDate: Date
   vesselId: Int
 }
@@ -1995,6 +2113,7 @@ input TripVOInput {
   creationDate: Date
   departureDateTime: Date
   departureLocation: LocationVOInput
+  fishingArea: FishingAreaVOInput
   gears: [PhysicalGearVOInput]
   id: Int
   landingId: Int

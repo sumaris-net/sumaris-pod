@@ -2,6 +2,12 @@
 :host {
   display: inline-block;
   position: relative;
+
+  &.text-wrap, &.ion-text-wrap {
+    ion-label {
+      white-space: normal !important;
+    }
+  }
 }
 
 button[hidden] {
@@ -13,3 +19,5 @@ mat-icon.select-arrow {
   color: rgba(0,0,0,0.47);
   font-size: 150%;
 }
+
+

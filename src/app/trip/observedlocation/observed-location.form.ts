@@ -1,32 +1,23 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment/moment';
-import {
-  EntityUtils,
-  FormArrayHelper,
-  isNil,
-  isNotNil,
-  Person,
-  personToString,
-  referentialToString,
-  StatusIds
-} from '../../core/core.module';
+import {FormArrayHelper, isNil, isNotNil, Person, referentialToString} from '../../core/core.module';
 import {DateAdapter} from "@angular/material/core";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
-import {
-  AcquisitionLevelCodes,
-  LocationLevelIds,
-  ProgramService,
-  ReferentialRefService
-} from '../../referential/referential.module';
-import {ObservedLocationValidatorService} from "../services/observed-location.validator";
+import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {FormArray, FormBuilder} from "@angular/forms";
-import {ReferentialUtils, UserProfileLabel} from "../../core/services/model";
+import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
+import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
+
+import {personToString, UserProfileLabel} from "../../core/services/model/person.model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {toBoolean} from "../../shared/functions";
 import {ObservedLocation} from "../services/model/observed-location.model";
+import {AcquisitionLevelCodes, LocationLevelIds} from "../../referential/services/model/model.enum";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {ProgramService} from "../../referential/services/program.service";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 @Component({
   selector: 'form-observed-location',
@@ -88,6 +79,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     return this.form.get('observers') as FormArray;
   }
 
+  get measurementValuesForm(): FormGroup {
+    return this.form.get('measurementValues') as FormGroup;
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementValidatorService: MeasurementsValidatorService,
@@ -99,7 +94,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
+    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
+      validatorService.getFormGroup());
     this._enable = false;
     this.mobile = this.settings.mobile;
 
@@ -138,7 +134,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
           pluck('label'),
           distinctUntilChanged()
         )
-        .subscribe(programLabel => this.program = programLabel));
+        .subscribe(programLabel => this.program = programLabel as string));
 
     // Combo location
     this.registerAutocompleteField('location', {
@@ -217,9 +213,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     if (isNil(this._showObservers)) return; // skip if not loading yet
 
     this.observersHelper = new FormArrayHelper<Person>(
-      this.formBuilder,
-      this.form,
-      'observers',
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
       (person) => this.validatorService.getObserverControl(person),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,

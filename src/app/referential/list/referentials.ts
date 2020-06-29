@@ -3,9 +3,9 @@ import {BehaviorSubject, Observable, of} from "rxjs";
 import {debounceTime, filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {AppTable, AppTableDataSource, environment, isNil, isNotNil} from "../../core/core.module";
-import {ReferentialValidatorService} from "../services/referential.validator";
+import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {ReferentialFilter, ReferentialService} from "../services/referential.service";
-import {Referential, ReferentialRef} from "../services/model";
+import {DefaultStatusList, Referential} from "../../core/services/model/referential.model";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService} from '../../core/services/account.service';
@@ -13,10 +13,8 @@ import {Location} from '@angular/common';
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {sort, DefaultStatusList} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {isNotNilOrBlank} from "../../shared/functions";
-import {PersonFilter} from "../../admin/services/person.service";
+import {isNotNilOrBlank, sort} from "../../shared/functions";
 
 
 @Component({
@@ -78,7 +76,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       new AppTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        serviceOptions: {
+        dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
       }),

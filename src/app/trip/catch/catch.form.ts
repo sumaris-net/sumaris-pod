@@ -1,15 +1,16 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
-import {PmfmStrategy, ProgramService} from "../../referential/referential.module";
 import {FormBuilder} from '@angular/forms';
-import {MeasurementsValidatorService} from '../services/measurement.validator';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {Subject} from 'rxjs';
-import {BatchValidatorService} from '../services/batch.validator';
+import {BatchValidatorService} from '../services/validator/batch.validator';
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {Batch} from "../services/model/batch.model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {ProgramService} from "../../referential/services/program.service";
 
 @Component({
   selector: 'form-catch-batch',

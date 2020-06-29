@@ -147,11 +147,11 @@ export class NumpadDirective implements ControlValueAccessor, OnDestroy, OnChang
       value = value.length > 1 ? value.substr(0, value.length-1) : '';
     }
 
-    else if (event.key === 'Tab' || event.key === 'Enter') {
+    else if (event.key === 'Tab' || event.key === 'Enter') {
       // TODO
       return; // Skip
     }
-    else if (event.key === 'Escape' || event.keyCode == 27) {
+    else if (event.key === 'Escape' || event.keyCode == 27) {
       this._numpad.close();
       return;
     }
@@ -164,7 +164,6 @@ export class NumpadDirective implements ControlValueAccessor, OnDestroy, OnChang
   }
 
   private updateInputValue(): void {
-    console.log(this.elementRef.nativeElement);
     this.elementRef.nativeElement.value = this.value;
   }
 

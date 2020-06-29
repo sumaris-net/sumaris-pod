@@ -1,6 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {AccountService} from '../services/account.service';
-import {EntityUtils, Locales, LocalSettings, Peer, referentialToString, UsageMode} from '../services/model';
+import {EntityUtils} from '../services/model/entity.model';
+import {Locales, LocalSettings, UsageMode} from '../services/model/settings.model';
+import {Peer} from '../services/model/peer.model';
+import {referentialToString} from '../services/model/referential.model';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AppForm} from '../form/form.class';
 import {Moment} from 'moment/moment';
@@ -8,7 +11,7 @@ import {DateAdapter} from "@angular/material/core";
 import {AppFormUtils, FormArrayHelper} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
 import {ValidatorService} from "angular4-material-table";
-import {LocalSettingsValidatorService} from "../services/local-settings.validator";
+import {LocalSettingsValidatorService} from "../services/validator/local-settings.validator";
 import {PlatformService} from "../services/platform.service";
 import {NetworkService} from "../services/network.service";
 import {isNil, isNilOrBlank, toBoolean} from "../../shared/functions";
@@ -70,9 +73,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     super(dateAdapter, validatorService.getFormGroup(), settings);
 
     this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
-      this.formBuilder,
-      this.form,
-      'properties',
+      this.form.get('properties') as FormArray,
       (value) => this.validatorService.getPropertyFormGroup(value),
       (v1, v2) => (!v1 && !v2) || (v1.key === v2.key),
       (value) =>  isNil(value) || (isNil(value.key) && isNil(value.value)),
@@ -301,8 +302,8 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       const account = this.accountService.account;
       const userSettings = account && account.settings;
       console.debug(`[settings] Applying account inheritance {locale: '${userSettings.locale}', latLongFormat: '${userSettings.latLongFormat}'}...`);
-      json.locale = userSettings.locale || json.locale;
-      json.latLongFormat = userSettings.latLongFormat || json.latLongFormat;
+      json.locale = userSettings.locale || json.locale;
+      json.latLongFormat = userSettings.latLongFormat || json.latLongFormat;
     }
 
     return json;

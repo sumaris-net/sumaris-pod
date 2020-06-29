@@ -59,7 +59,7 @@
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData.rankOrder  || row.currentData.parent?.rankOrder}}</mat-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData.rankOrder  || row.currentData.parent?.rankOrder}}</mat-cell>
   </ng-container>
 
   <!-- taxon group (commercial species) -->
@@ -68,7 +68,7 @@
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_GROUP</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      {{referentialToString(row.currentData.taxonGroup || row.currentData.parent?.taxonGroup)}}
+      {{referentialToString(row.currentData.taxonGroup || row.currentData.parent?.taxonGroup)}}
     </mat-cell>
   </ng-container>
 

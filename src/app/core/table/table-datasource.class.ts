@@ -1,33 +1,48 @@
 import {TableDataSource, TableElement, ValidatorService} from 'angular4-material-table';
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {isNotEmptyArray, isNotNil, LoadResult, TableDataService, toBoolean} from '../../shared/shared.module';
-import {Entity} from "../services/model";
+import {Entity} from "../services/model/entity.model";
 import {ErrorCodes} from '../services/errors';
 import {catchError, first, map, takeUntil} from "rxjs/operators";
+import {OnDestroy} from "@angular/core";
+import {TableDataServiceWatchOptions} from "../../shared/services/data-service.class";
 
-export interface AppTableDataSourceOptions<T extends Entity<T>> {
+
+export declare interface AppTableDataServiceOptions<O extends TableDataServiceWatchOptions = TableDataServiceWatchOptions> extends TableDataServiceWatchOptions {
+  saveOnlyDirtyRows?: boolean;
+  readOnly?: boolean;
+  [key: string]: any;
+}
+export declare interface AppTableDataSourceOptions<T extends Entity<T>, O extends TableDataServiceWatchOptions = TableDataServiceWatchOptions> {
   prependNewElements: boolean;
   suppressErrors: boolean;
   onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
-  serviceOptions?: {
-    saveOnlyDirtyRows?: boolean;
-    [key: string]: any;
-  };
+  dataServiceOptions?: AppTableDataServiceOptions<O>;
   [key: string]: any;
 }
 
-export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> {
+export class AppTableDataSource<T extends Entity<T>, F, O extends TableDataServiceWatchOptions = TableDataServiceWatchOptions>
+    extends TableDataSource<T>
+    implements OnDestroy {
 
   protected _debug = false;
-  protected _config: AppTableDataSourceOptions<T>;
+  protected _config: AppTableDataSourceOptions<T, O>;
   protected _creating = false;
   protected _saving = false;
   protected _useValidator = false;
-  protected _stopWatchAll = new Subject();
+  protected _stopWatchAll$ = new Subject();
+  private _loaded = false;
 
-  public loadingSubject = new BehaviorSubject(false);
+  $busy = new BehaviorSubject(false);
 
-  public serviceOptions: any;
+  get serviceOptions(): AppTableDataServiceOptions<O> {
+    return this._config.dataServiceOptions;
+  }
+
+  set serviceOptions(value: AppTableDataServiceOptions<O>)  {
+    this._config.dataServiceOptions = value;
+  }
+
 
   set dataService(value: TableDataService<T, F>) {
     this._dataService = value;
@@ -37,8 +52,12 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     return this._dataService;
   }
 
-  get options(): AppTableDataSourceOptions<T> {
+  get options(): AppTableDataSourceOptions<T, O> {
     return this._config;
+  }
+
+  get loaded(): boolean {
+    return this._loaded;
   }
 
   /**
@@ -50,16 +69,27 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
    * @param config Additional configuration for table.
    */
   constructor(dataType: new() => T,
-              private _dataService: TableDataService<T, F>,
+              private _dataService: TableDataService<T, F, O>,
               validatorService?: ValidatorService,
-              config?: AppTableDataSourceOptions<T>) {
+              config?: AppTableDataSourceOptions<T, O>) {
     super([], dataType, validatorService, config);
-    this.serviceOptions = config && config.serviceOptions || {};
-    this._config = config || {prependNewElements: false, suppressErrors: true};
+    this._config = {
+      prependNewElements: false,
+      suppressErrors: true,
+      dataServiceOptions: {},
+      ...config
+    };
     this._useValidator = isNotNil(validatorService);
 
     // For DEV ONLY
     //this._debug = !environment.production;
+  }
+
+  ngOnDestroy() {
+    this._stopWatchAll$.next();
+    // Unsubscribe from the subject
+    this._stopWatchAll$.unsubscribe();
+    this.$busy.unsubscribe();
   }
 
   watchAll(offset: number,
@@ -68,22 +98,22 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
            sortDirection?: string,
            filter?: F): Observable<LoadResult<T>> {
 
-    this._stopWatchAll.next(); // stop previous watch observable
+    this._stopWatchAll$.next(); // stop previous watch observable
 
-    this.loadingSubject.next(true);
-    return this._dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
+    this.$busy.next(true);
+    return this._dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions as O)
       //.catch(err => this.handleError(err, 'Unable to load rows'))
       .pipe(
-        // Stop this pipe, on the next call of watchAll()
-        takeUntil(this._stopWatchAll),
+        // Stop this pipe next time we call watchAll()
+        takeUntil(this._stopWatchAll$),
         catchError(err => this.handleError(err, 'ERROR.LOAD_DATA_ERROR')),
-        map(res => {
+        map((res: LoadResult<T>) => {
           if (this._saving) {
             console.error(`[table-datasource] Service ${this._dataService.constructor.name} sent data, while will saving... should skip ?`);
           } else {
-            this.loadingSubject.next(false);
+            this.$busy.next(false);
             if (this._debug) console.debug(`[table-datasource] Service ${this._dataService.constructor.name} sent new data: updating datasource...`, res);
-            this.updateDatasource(res.data || []);
+            this.updateDatasource((res.data || []) as T[]);
           }
           return res;
         })
@@ -101,7 +131,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     }
 
     this._saving = true;
-    this.loadingSubject.next(true);
+    this.$busy.next(true);
 
     const onlyDirtyRows = toBoolean(this.serviceOptions.saveOnlyDirtyRows, false);
 
@@ -161,8 +191,13 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     } finally {
       this._saving = false;
       // Always update the loading indicator
-      this.loadingSubject.next(false);
+      this.$busy.next(false);
     }
+  }
+
+  updateDatasource(data: T[], options?: { emitEvent: boolean }) {
+    super.updateDatasource(data, options);
+    this._loaded = true;
   }
 
   // Overwrite default signature
@@ -172,7 +207,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
   disconnect() {
     super.disconnect();
-    this._stopWatchAll.next();
+    this._stopWatchAll$.next();
   }
 
   confirmCreate(row: TableElement<T>) {
@@ -206,20 +241,20 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   public handleError(error: any, message: string): Observable<LoadResult<T>> {
     const errorMsg = error && error.message || error;
     console.error(`${errorMsg} (dataService: ${this._dataService.constructor.name})`, error);
-    this.loadingSubject.next(false);
+    this.$busy.next(false);
     throw new Error(message || errorMsg);
   }
 
   public handleErrorPromise(error: any, message: string) {
     const errorMsg = error && error.message || error;
     console.error(`${errorMsg} (dataService: ${this._dataService.constructor.name})`, error);
-    this.loadingSubject.next(false);
+    this.$busy.next(false);
     throw new Error(message || errorMsg);
   }
 
   public delete(id: number): void {
     const row = this.getRow(id);
-    this.loadingSubject.next(true);
+    this.$busy.next(true);
 
     this._dataService.deleteAll([row.currentData], this.serviceOptions)
       .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
@@ -228,13 +263,13 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
           // make sure row has been deleted (because GrapQHl cache remove can failed)
           const present = this.getRow(id) === row;
           if (present) super.delete(id);
-          this.loadingSubject.next(false);
+          this.$busy.next(false);
         }, 300);
       });
   }
 
   public deleteAll(rows: TableElement<T>[]): Promise<any> {
-    this.loadingSubject.next(true);
+    this.$busy.next(true);
 
     const data = rows.map(r => r.currentData);
     const rowsById = rows.reduce((res, row) => {
@@ -259,7 +294,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
           console.warn(`[table-datasource] Force deletion of ${rowNotDeleted.length} rows (Is service applying deletion to observable ?)`);
           rowNotDeleted.forEach(r => selfDelete.call(self, r.id));
         }
-        this.loadingSubject.next(false);
+        this.$busy.next(false);
       });
   }
 

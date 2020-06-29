@@ -1,5 +1,5 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {CoreModule} from "../../core/core.module";
 import {ExtractionRoutingModule} from "./extraction-routing.module";
 import {ExtractionDataPage} from "./extraction-data.page";
@@ -27,9 +27,6 @@ import {LeafletModule} from "@asymmetrik/ngx-leaflet";
     ExtractionDataPage,
     ExtractionMapPage,
     ExtractionCriteriaForm
-  ],
-  entryComponents: [
-    AggregationTypeSelectModal
   ],
   providers: [
     ExtractionCriteriaValidatorService

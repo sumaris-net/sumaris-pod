@@ -6,14 +6,19 @@ This article will explain how to install your environment, then build the applic
 
 ## Installation tools, and get sources
 
-1. Install [Node.js](https://nodejs.org/en/) (v10)
+1. Install [NVM](https://github.com/nvm-sh/nvm)
 
-2. Install global dependency: 
+2. Install Node (v10) ex: 10.20.1
+```bash
+nvm install 10.20.1
+```
+
+3. Install global dependency: 
 ```bash
 npm install -g @ionic/cli cordova cordova-res native-run 
 ```
 
-2. Get sources (clone the repo) : `git clone ...`
+4. Get sources (clone the repo) : `git clone ...`
 
 ### Install additional tools (optional)
 ```bash

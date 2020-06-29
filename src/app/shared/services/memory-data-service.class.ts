@@ -1,24 +1,20 @@
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {Entity, isNotNil, LoadResult, TableDataService} from "../../core/core.module";
-import {EntityUtils, IEntity} from "../../core/services/model";
+import {isNotNil, LoadResult, TableDataService} from "../../core/core.module";
+import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
 import {filter, mergeMap} from "rxjs/operators";
 import {isNotEmptyArray} from "../functions";
+import {FilterFnFactory} from "./data-service.class";
 
 export interface InMemoryTableDataServiceOptions<T, F> {
   onSort?: (data: T[], sortBy?: string, sortDirection?: string) => T[];
   onLoad?: (data: T[]) => T[] | Promise<T[]>;
   onSave?: (data: T[]) => T[] | Promise<T[]>;
   equals?: (d1: T, d2: T) => boolean;
+  filterFnFactory?: FilterFnFactory<T, F>;
   onFilter?: (data: T[], filter: F) => T[] | Promise<T[]>;
 }
 
-export class DataFilter<T extends IEntity<T>> {
-  test(data: T): boolean {
-    return true;
-  }
-}
-
-export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter<T> | any = DataFilter<T>> implements TableDataService<T, F> {
+export class InMemoryTableDataService<T extends IEntity<T>, F = any> implements TableDataService<T, F> {
 
   private _onDataChange = new Subject();
   private _dataSubject = new BehaviorSubject<LoadResult<T>>(undefined);
@@ -27,7 +23,8 @@ export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter
   private readonly _onLoad: (data: T[]) => T[] | Promise<T[]>;
   private readonly _onSaveFn: (data: T[]) => T[] | Promise<T[]>;
   private readonly _equalsFn: (d1: T, d2: T) => boolean;
-  private readonly _filterFn: (data: T[], filter: F) => T[] | Promise<T[]>;
+  private readonly _onFilterFn: (data: T[], filter: F) => T[] | Promise<T[]>;
+  private readonly _filterFnFactory: FilterFnFactory<T, F>;
 
   protected data: T[];
   private _hiddenData: T[];
@@ -55,14 +52,21 @@ export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter
 
   constructor(
     protected dataType: new() => T,
-    protected options?: InMemoryTableDataServiceOptions<T, F>
+    options?: InMemoryTableDataServiceOptions<T, F>
   ) {
+    options = {
+      onSort: this.sort,
+      onFilter: this.filter,
+      equals: this.equals,
+      ...options
+    };
 
-    this._sortFn = options && options.onSort || this.sort;
-    this._onLoad = options && options.onLoad || null;
-    this._onSaveFn = options && options.onSave || null;
-    this._equalsFn = options && options.equals || this.equals;
-    this._filterFn = options && options.onFilter || this.filter;
+    this._sortFn = options.onSort;
+    this._onLoad = options.onLoad;
+    this._onSaveFn = options.onSave;
+    this._equalsFn = options.equals;
+    this._onFilterFn = options.onFilter;
+    this._filterFnFactory = options.filterFnFactory;
 
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
@@ -104,7 +108,7 @@ export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter
 
           // Apply filter
           {
-            const promiseOrData = this._filterFn(data, filterData);
+            const promiseOrData = this._onFilterFn(data, filterData);
             data = ((promiseOrData instanceof Promise)) ? await promiseOrData : promiseOrData;
           }
 
@@ -165,12 +169,13 @@ export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter
   filter(data: T[], _filter: F): T[] {
 
     // if filter is DataFilter instance, use its test function
-    if (_filter && _filter.test !== undefined) {
+    const testFn = this._filterFnFactory && this._filterFnFactory(_filter);
+    if (testFn) {
       this._hiddenData = [];
       const filteredData = [];
 
       data.forEach(value => {
-        if (_filter.test(value))
+        if (testFn(value))
           filteredData.push(value);
         else
           this._hiddenData.push(value);
@@ -184,7 +189,7 @@ export class InMemoryTableDataService<T extends IEntity<T>, F extends DataFilter
   }
 
   connect(): Observable<LoadResult<T>> {
-    return this._dataSubject.asObservable();
+    return this._dataSubject;
   }
 
   protected equals(d1: T, d2: T): boolean {

@@ -1,19 +1,21 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {BehaviorSubject, defer, Observable} from 'rxjs';
-import {Person} from './model';
 import {DataService, LoadResult, SuggestionDataService, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/services/base.data-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {EntityUtils, ReferentialUtils, StatusIds} from "../../core/services/model";
+import {EntityUtils} from "../../core/services/model/entity.model";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {fetchAllPagesWithProgress} from "../../shared/services/data-service.class";
 import {NetworkService} from "../../core/services/network.service";
 import {EntityStorage} from "../../core/services/entities-storage.service";
 import {environment} from "../../../environments/environment";
 import {Beans, KeysEnum} from "../../shared/functions";
+import {Person} from "../../core/services/model/person.model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {StatusIds} from "../../core/services/model/model.enum";
 
 export const PersonFragments = {
   person: gql`fragment PersonFragment on PersonVO {
@@ -68,7 +70,7 @@ export class PersonFilter {
   userProfiles?: string[];
 
   static isEmpty(personFilter: PersonFilter|any): boolean {
-    return Beans.isEmpty(personFilter, PersonFilterKeys, {
+    return Beans.isEmpty<PersonFilter>(personFilter, PersonFilterKeys, {
       blankStringLikeEmpty: true
     });
   }
@@ -176,14 +178,14 @@ export class PersonService extends BaseDataService<Person, PersonFilter>
       filter: Beans.copy(filter, PersonFilter, PersonFilterKeys)
     };
 
-    const debug = this._debug && (!opts || opts.debug !== false);
+    const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();
     if (debug) console.debug("[person-service] Loading persons, using filter: ", variables);
 
     let loadResult: { persons: Person[]; personsCount: number };
 
     // Offline: use local store
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
       const res = await this.entities.loadAll<Person>('PersonVO',
         {

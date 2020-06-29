@@ -6,22 +6,23 @@ import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {environment, fromDateISOString, ReferentialRef} from '../../core/core.module';
-import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
+import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
 import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray} from '../../shared/shared.module';
 import * as moment from "moment";
-import {AcquisitionLevelCodes, ProgramProperties, VesselSnapshot} from "../../referential/services/model";
-import {AppDataEditorPage} from "../form/data-editor-page.class";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripsPageSettingsEnum} from "./trips.table";
 import {EntityStorage} from "../../core/services/entities-storage.service";
-import {HistoryPageReference, UsageMode} from "../../core/services/model";
+import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {PhysicalGear, Trip} from "../services/model/trip.model";
-import {SelectPhysicalGearModal} from "../physicalgear/select-physicalgear.modal";
+import {SelectPhysicalGearModal} from "../physicalgear/select-physical-gear.modal";
 import {ModalController} from "@ionic/angular";
 import {PhysicalGearFilter} from "../services/physicalgear.service";
-import {isEmptyArray} from "../../shared/functions";
 import {PromiseEvent} from "../../shared/events";
+import {ProgramProperties} from "../../referential/services/config/program.config";
+import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 
 @Component({
   selector: 'app-trip-page',
@@ -30,7 +31,7 @@ import {PromiseEvent} from "../../shared/events";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripPage extends AppDataEditorPage<Trip, TripService> implements OnInit {
+export class TripPage extends AppRootDataEditor<Trip, TripService> implements OnInit {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   showSaleForm = false;
@@ -56,10 +57,12 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
   ) {
     super(injector,
       Trip,
-      injector.get(TripService));
-    this.idAttribute = 'tripId';
+      injector.get(TripService),
+      {
+        pathIdAttribute: 'tripId',
+        tabCount: 3
+      });
     this.defaultBackHref = "/trips";
-    this.tabCount = 3;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -91,9 +94,11 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     this.onUpdateView.subscribe(() => this.operationTable.onRefresh.emit());
   }
 
-  protected registerFormsAndTables() {
-    this.registerForms([this.tripForm, this.saleForm, this.measurementsForm])
-      .registerTables([this.physicalGearTable, this.operationTable]);
+  protected registerForms() {
+    this.addChildForms([
+      this.tripForm, this.saleForm, this.measurementsForm,
+      this.physicalGearTable, this.operationTable
+    ]);
   }
 
   protected async onNewEntity(data: Trip, options?: EditorDataServiceLoadOptions): Promise<void> {
@@ -241,11 +246,11 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
    * @param event
    */
   async openSelectPreviousGearsModal(event: PromiseEvent<PhysicalGear>) {
-    if (!event || !event.detail.success) return; // Skip (missing callback)
+    if (!event || !event.detail.success) return; // Skip (missing callback)
 
     const trip = Trip.fromObject(this.tripForm.value);
     const vessel = trip.vesselSnapshot;
-    const date = trip.departureDateTime || trip.returnDateTime;
+    const date = trip.departureDateTime || trip.returnDateTime;
     if (!vessel || !date) return; // Skip
 
     const filter = <PhysicalGearFilter>{

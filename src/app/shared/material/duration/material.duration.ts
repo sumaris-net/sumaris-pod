@@ -139,7 +139,7 @@ export class MatDuration implements OnInit, ControlValueAccessor, InputElement {
   writeValue(obj: any): void {
     if (this.writing) return;
 
-    console.debug('[mat-duration] writeValue:', obj);
+    // console.debug('[mat-duration] writeValue:', obj);
 
     if (isNil(obj)) {
       this.writing = true;

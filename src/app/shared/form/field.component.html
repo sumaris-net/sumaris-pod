@@ -1,7 +1,7 @@
 <ng-container [ngSwitch]="type">
 
   <!-- integer -->
-  <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
+  <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel" [class]="classList">
     <input matInput #matInput
            type="number"
            autocomplete="off"
@@ -11,6 +11,7 @@
            pattern="-?[0-9]*"
            step="1"
            [placeholder]="placeholder"
+           (keyup.enter)="onKeyupEnter.emit($event)"
            (keypress)="filterNumberInput($event, false)"
            [formControl]="formControl"
            [required]="required"
@@ -30,7 +31,7 @@
   </mat-form-field>
 
   <!-- double -->
-  <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel">
+  <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel" [class]="classList">
 
     <input matInput #matInput
            type="number"
@@ -58,6 +59,7 @@
 
   <!-- boolean -->
   <mat-boolean-field *ngSwitchCase="'boolean'" #matInput
+                     [class]="classList"
                      [formControl]="formControl"
                      [placeholder]="placeholder"
                      [floatLabel]="floatLabel"
@@ -72,6 +74,7 @@
 
   <!-- date -->
   <mat-date-time-field *ngSwitchCase="'date'" #matInput
+                       [class]="classList"
                        [formControl]="formControl"
                        [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                        [floatLabel]="floatLabel"
@@ -87,6 +90,7 @@
 
   <!-- date time -->
   <mat-date-time-field *ngSwitchCase="'dateTime'"
+                       [class]="classList"
                        [formControl]="formControl"
                        [placeholder]="compact ? ('COMMON.DATE_TIME_PLACEHOLDER'|translate): placeholder"
                        [floatLabel]="floatLabel"
@@ -101,12 +105,12 @@
   </mat-date-time-field>
 
   <!-- enum -->
-  <mat-form-field *ngSwitchCase="'enum'" [floatLabel]="floatLabel">
+  <mat-form-field *ngSwitchCase="'enum'" [floatLabel]="floatLabel" [class]="classList">
     <mat-select [formControl]="formControl"
                 [placeholder]="placeholder"
                 [required]="required"
                 [tabindex]="tabindex"
-                (keyup.enter)="onKeypressEnter.emit($event)">
+                (keyup.enter)="onKeyupEnter.emit($event)">
       <mat-option *ngFor="let item of definition.values" [value]="item.key">{{ item.value | translate }}</mat-option>
     </mat-select>
 
@@ -118,7 +122,7 @@
   </mat-form-field>
 
   <!-- color -->
-  <mat-form-field *ngSwitchCase="'color'" [floatLabel]="floatLabel">
+  <mat-form-field *ngSwitchCase="'color'" [floatLabel]="floatLabel" [class]="classList">
 
     <ion-icon margin-right name="color-fill" matPrefix></ion-icon>
 
@@ -137,7 +141,7 @@
   </mat-form-field>
 
   <!-- string -->
-  <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel">
+  <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel" [class]="classList">
     <input matInput #matInput
            autocomplete="off"
            [formControl]="formControl"
@@ -147,7 +151,7 @@
            [tabIndex]="tabindex"
            (click)="selectInputContent($event)"
            (keypress)="filterAlphanumericalInput($event)"
-           (keyup.enter)="onKeypressEnter.emit($event)">
+           (keyup.enter)="onKeyupEnter.emit($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
@@ -156,15 +160,11 @@
 
   <!-- auto-complete -->
   <mat-autocomplete-field *ngSwitchCase="'entity'"
+                          [class]="classList"
                           [placeholder]="placeholder"
                           [floatLabel]="floatLabel"
                           [formControl]="formControl"
-                          [suggestFn]="definition.autocomplete?.suggestFn"
-                          [filter]="definition.autocomplete?.filter"
-                          [items]="definition.autocomplete?.items"
-                          [displayColumnNames]="definition.autocomplete?.columnNames"
-                          [displayColumnSizes]="definition.autocomplete?.columnSizes"
-                          [displayAttributes]="definition.autocomplete?.attributes"
+                          [config]="definition.autocomplete"
                           [required]="required"
                           [displayWith]="getDisplayValueFn(definition)">
     <ng-content select="[matPrefix]"></ng-content>

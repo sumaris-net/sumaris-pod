@@ -1,32 +1,36 @@
+import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {
-  DataEntity,
-  DataEntityAsObjectOptions,
-  isNil,
-  isNotNil,
-  IWithPacketsEntity,
   NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
   ReferentialRef,
-  referentialToString
-} from "./base.model";
-import {ReferentialAsObjectOptions, ReferentialUtils} from "../../../core/services/model";
-import {DataFilter} from "../../../shared/services/memory-data-service.class";
+  referentialToString,
+  ReferentialUtils
+} from "../../../core/services/model/referential.model";
 import {Product} from "./product.model";
-import {equalsOrNil, isNotNilOrNaN} from "../../../shared/functions";
+import {equalsOrNil, isNil, isNotNilOrNaN} from "../../../shared/functions";
+import {IEntity} from "../../../core/services/model/entity.model";
 
-export class PacketFilter implements DataFilter<Packet> {
+export interface IWithPacketsEntity<T> extends IEntity<T> {
+  packets: Packet[];
+}
+
+export class PacketFilter {
+
+  constructor(parent: IWithPacketsEntity<any>) {
+    this.parent = parent;
+  }
+
+  static searchFilter(f: PacketFilter): (Packet) => boolean {
+    if (!f || isNil(f.parent)) return undefined;
+    return (p) => {
+      if (isNil(p.parent) || !f.parent.equals(p.parent)) {
+        return false;
+      }
+      return true;
+    }
+  }
 
   parent?: IWithPacketsEntity<any>;
-
-  constructor(parent?: IWithPacketsEntity<any>) {
-    this.parent = parent || null;
-  }
-
-  test(data: Packet): boolean {
-    if (isNotNil(this.parent)) {
-      return this.parent.equals(data.parent);
-    }
-    return true;
-  }
 }
 
 export class Packet extends DataEntity<Packet> {

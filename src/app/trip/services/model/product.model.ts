@@ -1,30 +1,40 @@
-import {isNotNil} from "../../../core/core.module";
-import {ReferentialAsObjectOptions, ReferentialRef, ReferentialUtils} from "../../../core/services/model";
-import {DataEntity, DataEntityAsObjectOptions, IWithProductsEntity, NOT_MINIFY_OPTIONS} from "./base.model";
+import {isNil, isNotNil} from "../../../core/core.module";
+import {
+  NOT_MINIFY_OPTIONS,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  ReferentialUtils
+} from "../../../core/services/model/referential.model";
+import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from "./measurement.model";
 import {equalsOrNil, isNotNilOrBlank} from "../../../shared/functions";
-import {DataFilter} from "../../../shared/services/memory-data-service.class";
+import {IEntity} from "../../../core/services/model/entity.model";
 
-export class ProductFilter implements DataFilter<Product> {
+export interface IWithProductsEntity<T> extends IEntity<T> {
+  products: Product[];
+}
+
+export class ProductFilter {
+
+  constructor(parent: IWithProductsEntity<any>) {
+    this.parent = parent;
+  }
 
   static searchFilter<P extends Product>(f: ProductFilter): (T) => boolean {
+    if (ProductFilter.isEmpty(f)) return undefined;
     return (p: P) => {
-      return f.test(p);
-    };
+      if (isNil(p.parent) || !f.parent.equals(p.parent)) {
+        return false;
+      }
+      return true;
+    }
+  }
+
+  static isEmpty(f: ProductFilter) {
+    return !f || isNil(f.parent);
   }
 
   parent?: IWithProductsEntity<any>;
-
-  constructor(parent?: IWithProductsEntity<any>) {
-    this.parent = parent || null;
-  }
-
-  test(data: Product): boolean {
-    if (isNotNil(this.parent)) {
-      return this.parent.equals(data.parent);
-    }
-    return true;
-  }
 }
 
 export class Product extends DataEntity<Product> implements IEntityWithMeasurement<Product> {

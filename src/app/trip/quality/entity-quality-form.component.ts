@@ -1,19 +1,10 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output
-} from '@angular/core';
-import {DataEntity, RootDataEntity, isNil, isNotNil, ReferentialRef, StatusIds} from '../services/model/base.model';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {DataEntity} from '../../data/services/model/data-entity.model';
 // import fade in animation
-import {fadeInAnimation} from '../../shared/shared.module';
+import {fadeInAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {AccountService} from "../../core/services/account.service";
 import {DataQualityService, isDataQualityService} from "../services/base.service";
-import {QualityFlags, qualityFlagToColor} from "../../referential/services/model";
+import {QualityFlags} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {merge, Subscription} from "rxjs";
 import {NetworkService} from "../../core/services/network.service";
@@ -23,9 +14,12 @@ import {ToastOptions} from "@ionic/core";
 import {Toasts} from "../../shared/toasts";
 import {ToastController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
-import {AppEditorPage} from "../../core/form/editor-page.class";
 import {environment} from "../../../environments/environment";
-import {AppDataEditorPage} from "../form/data-editor-page.class";
+import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
+import {RootDataEntity} from "../../data/services/model/root-data-entity.model";
+import {ReferentialRef} from "../../core/services/model/referential.model";
+import {qualityFlagToColor} from "../../data/services/model/model.utils";
+import {StatusIds} from "../../core/core.module";
 
 @Component({
   selector: 'app-entity-quality-form',
@@ -61,7 +55,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     return this.data;
   }
 
-  @Input() editor: AppDataEditorPage<T, any>;
+  @Input() editor: AppRootDataEditor<T, any>;
 
   @Input() service: DataQualityService<T>;
 
@@ -85,7 +79,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
 
     // Check data service exists
-    this.service = this.service || isDataQualityService(this.editor.service) && this.editor.service || null;
+    this.service = this.service || isDataQualityService(this.editor.service) && this.editor.service || null;
     if (!this.service) throw new Error("Missing mandatory 'dataService' input!");
 
     // Subscribe to refresh events
@@ -141,7 +135,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
   async terminate(event?: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
     // Control data
     const controlled = await this.control(event, {emitEvent: false});
-    if (!controlled || event && event.defaultPrevented) {
+    if (!controlled || event && event.defaultPrevented) {
 
       // If mode was on field: force desk mode, to show errors
       if (this.editor.isOnFieldMode) {
@@ -180,7 +174,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
 
     // Control data
     const controlled = await this.control(event, {emitEvent: false});
-    if (!controlled || event && event.defaultPrevented) return false;
+    if (!controlled || event && event.defaultPrevented) return false;
 
     // Disable the editor
     this.editor.disable();
@@ -216,19 +210,19 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
   async validate(event: Event) {
     // Control data
     const controlled = await this.control(event, {emitEvent: false});
-    if (!controlled || event.defaultPrevented) return;
+    if (!controlled || event.defaultPrevented) return;
 
     console.debug("[quality] Mark entity as validated...");
     const data = await this.service.validate(this.data);
     this.updateEditor(data);
   }
 
-  async unvalidate(event) {
+  async unvalidate(event: Event) {
     const data = await this.service.unvalidate(this.data);
     this.updateEditor(data);
   }
 
-  async qualify(event, qualityFlagId: number ) {
+  async qualify(event: Event, qualityFlagId: number ) {
     const data = await this.service.qualify(this.data, qualityFlagId);
     this.updateEditor(data);
   }
@@ -239,7 +233,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     if (qualityFlag && qualityFlag.label) return qualityFlag.label;
 
     // Or try to compute a label from the model enumeration
-    qualityFlag = qualityFlag || QualityFlags.find(qf => qf.id === qualityFlagId);
+    qualityFlag = qualityFlag || QualityFlags.find(qf => qf.id === qualityFlagId);
     return qualityFlag ? ('QUALITY.QUALITY_FLAGS.' + qualityFlag.label) : undefined;
   }
 
@@ -266,7 +260,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
       const canWrite = this.service.canUserWrite(data);
       const isSupervisor = this.accountService.isSupervisor();
       const isLocalData = data.id < 0;
-      this.canControl = canWrite && (isLocalData && data.synchronizationStatus === 'DIRTY' || isNil(data.controlDate));
+      this.canControl = canWrite && (isLocalData && data.synchronizationStatus === 'DIRTY' || isNil(data.controlDate));
       this.canTerminate = this.canControl && (!isLocalData || data.synchronizationStatus === 'DIRTY');
       this.canSynchronize = canWrite && isLocalData && data.synchronizationStatus === 'READY_TO_SYNC' && this.network.online;
       this.canValidate = canWrite && isSupervisor && !isLocalData && isNotNil(data.controlDate) && isNil(data.validationDate);
@@ -290,7 +284,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
       fetchPolicy: "cache-first"
     });
 
-    const items = res && res.data || [];
+    const items = res && res.data || [];
 
     // Try to get i18n key instead of label
     items.forEach(flag => flag.label = this.getI18nQualityFlag(flag.id) || flag.label);

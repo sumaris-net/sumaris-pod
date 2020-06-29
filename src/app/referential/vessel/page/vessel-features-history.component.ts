@@ -1,8 +1,8 @@
 import {ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
 import {ValidatorService} from "angular4-material-table";
-import {VesselValidatorService} from "../../services/vessel.validator";
+import {VesselValidatorService} from "../../services/validator/vessel.validator";
 import {AppTable} from "../../../core/table/table.class";
-import {referentialToString, VesselFeatures} from "../../services/model";
+import {VesselFeatures} from "../../services/model/vessel.model";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
@@ -12,7 +12,8 @@ import {VesselFilter} from "../../services/vessel-service";
 import {AppTableDataSource} from "../../../core/table/table-datasource.class";
 import {environment} from "../../../../environments/environment";
 import {VesselFeaturesService} from "../../services/vessel-features.service";
-import {VesselFeaturesValidatorService} from "../../services/vessel-features.validator";
+import {VesselFeaturesValidatorService} from "../../services/validator/vessel-features.validator";
+import {referentialToString} from "../../../core/services/model/referential.model";
 
 @Component({
   selector: 'app-vessel-features-history-table',
@@ -51,16 +52,16 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'lengthOverAll',
         'grossTonnageGt',
         'basePortLocation',
-        'comments']
-      ,
+        'comments'],
       new AppTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselFeaturesService, vesselFeaturesValidator, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        serviceOptions: {
+        dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
       }),
-      null, injector
+      null,
+      injector
     );
 
     this.i18nColumnPrefix = 'VESSEL.';

@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {environment, ReferentialRef, referentialToString} from "../../core/core.module";
 import {Platform} from "@ionic/angular";
-import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {OperationFilter} from "../services/operation.service";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {OperationGroupValidatorService} from "../services/validator/operation-group.validator";
@@ -10,6 +10,7 @@ import {TableElement, ValidatorService} from "angular4-material-table";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {MetierService} from "../../referential/services/metier.service";
 import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
 export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -89,9 +90,12 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     };
 
     // Metier combo
+    const metierAttributes = this.settings.getFieldDisplayAttributes('metier');
     this.registerAutocompleteField('metier', {
       showAllOnFocus: true,
-      items: this.$metiers
+      items: this.$metiers,
+      attributes: metierAttributes,
+      columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined)
     });
 
   }

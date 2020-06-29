@@ -1,8 +1,8 @@
 import {ChangeDetectorRef, Component, Injector, OnInit} from '@angular/core';
 import {ValidatorService} from "angular4-material-table";
-import {VesselValidatorService} from "../../services/vessel.validator";
+import {VesselValidatorService} from "../../services/validator/vessel.validator";
 import {AppTable} from "../../../core/table/table.class";
-import {referentialToString, VesselRegistration} from "../../services/model";
+
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
@@ -12,7 +12,9 @@ import {VesselFilter} from "../../services/vessel-service";
 import {AppTableDataSource} from "../../../core/table/table-datasource.class";
 import {environment} from "../../../../environments/environment";
 import {VesselRegistrationService} from "../../services/vessel-registration.service";
-import {VesselRegistrationValidatorService} from "../../services/vessel-registration.validator";
+import {VesselRegistrationValidatorService} from "../../services/validator/vessel-registration.validator";
+import {VesselRegistration} from "../../services/model/vessel.model";
+import {referentialToString} from "../../../core/services/model/referential.model";
 
 @Component({
   selector: 'app-vessel-registration-history-table',
@@ -51,7 +53,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
       new AppTableDataSource<VesselRegistration, VesselFilter>(VesselRegistration, vesselRegistrationService, vesselRegistrationValidator, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        serviceOptions: {
+        dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
       }),

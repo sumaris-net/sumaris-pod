@@ -10,19 +10,19 @@ import {
 } from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppFormUtils, EntityUtils, isNil} from "../../core/core.module";
+import {AppFormUtils, isNil} from "../../core/core.module";
 import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
+import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
+import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {BatchGroupForm} from "./batch-group.form";
 import {toBoolean} from "../../shared/functions";
 import {throttleTime} from "rxjs/operators";
 import {PlatformService} from "../../core/services/platform.service";
-import {environment} from "../../../environments/environment";
 import {Alerts} from "../../shared/alerts";
 import {BatchGroup} from "../services/model/batch-group.model";
-import {ReferentialUtils} from "../../core/services/model";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -144,7 +144,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
       const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
       // User cancelled
-      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
+      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
         return;
       }
 
@@ -167,14 +167,14 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     if (!this.enabled) this.form.enable({emitEvent: false});
 
     // Wait end of async validation
-    await AppFormUtils.waitWhilePending(this);
+    await AppFormUtils.waitWhilePending(this.form);
 
     if (this.invalid) {
 
       // DO not allow to close, if no taxon group nor a taxon name has been set
       const taxonGroup = this.form.form.get('taxonGroup').value;
       const taxonName = this.form.form.get('taxonName').value;
-      if (ReferentialUtils.isEmpty(taxonGroup) && ReferentialUtils.isEmpty(taxonName)) {
+      if (ReferentialUtils.isEmpty(taxonGroup) && ReferentialUtils.isEmpty(taxonName)) {
         this.form.error = "COMMON.FORM.HAS_ERROR";
         if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
         this.form.markAsTouched({emitEvent: true});

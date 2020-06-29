@@ -1,5 +1,6 @@
 import gql from "graphql-tag";
-import {ReferentialFragments} from "../../referential/referential.module";
+import {ReferentialFragments} from "../../referential/services/referential.queries";
+
 
 export const Fragments = {
   referential: ReferentialFragments.referential,
@@ -168,6 +169,29 @@ export const DataFragments = {
     __typename
   }
   ${Fragments.referential}
+  `,
+  fishingArea: gql`fragment FishingAreaFragment on FishingAreaVO {
+    id
+#    qualificationDate
+#    qualificationComments
+    qualityFlagId
+    location {
+      ...LocationFragment
+    }
+    distanceToCoastGradient {
+      ...ReferentialFragment
+    }
+    depthGradient {
+      ...ReferentialFragment
+    }
+    nearbySpecificArea {
+      ...ReferentialFragment
+    }
+    operationId
+    __typename
+  }
+  ${Fragments.location}
+  ${Fragments.referential}
   `
 };
 
@@ -219,11 +243,15 @@ export const OperationGroupFragment = {
     products {
       ...ProductFragment
     }
+    fishingAreas {
+      ...FishingAreaFragment
+    }
   }
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.metier}
   ${DataFragments.packet}
   ${DataFragments.product}
+  ${DataFragments.fishingArea}
   ${PhysicalGearFragments.physicalGear}
   ${Fragments.measurement}
   `

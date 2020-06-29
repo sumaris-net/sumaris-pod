@@ -3,8 +3,8 @@ import {EventEmitter, Injectable} from "@angular/core";
 import {Storage} from "@ionic/storage";
 import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
-import {catchError, map, switchMap, tap, throttleTime} from "rxjs/operators";
-import {Entity, EntityUtils} from "./model";
+import {catchError, map, switchMap, throttleTime} from "rxjs/operators";
+import {Entity, EntityUtils} from "./model/entity.model";
 import {isEmptyArray, isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {LoadResult} from "../../shared/services/data-service.class";
 
@@ -247,7 +247,6 @@ export class EntityStorage {
 
     const entityStore = this.getEntityStore<T>(entityName, {create: true});
     return entityStore.entitiesSubject
-      .asObservable()
       .pipe(
         map(data => this.reduceAndSort(data, opts))
       );
@@ -402,7 +401,7 @@ export class EntityStorage {
                               filter?: (T) => boolean;
                             }): LoadResult<T> {
 
-    if (!opts || !data.length) return {data, total: data.length};
+    if (!opts || !data.length) return {data, total: data.length};
 
     // Apply the filter, if any
     if (opts.filter) {
@@ -413,7 +412,7 @@ export class EntityStorage {
     const total = data.length;
 
     // If page size<=0 (e.g. only need total)
-    if (opts.size && opts.size < 0 || opts.size === 0) return {data: [], total};
+    if (opts.size && opts.size < 0 || opts.size === 0) return {data: [], total};
 
     // Sort by
     if (data.length && opts.sortBy) {

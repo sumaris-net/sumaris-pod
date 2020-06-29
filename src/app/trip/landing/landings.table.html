@@ -38,12 +38,16 @@
            matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
-    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
+    <mat-header-cell *matHeaderCellDef
+                     class="hidden-xs hidden-sm"
+                     [class.cdk-visually-hidden]="!canEdit">
       <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                     [indeterminate]="selection.hasValue() && !isAllSelected()">
       </mat-checkbox>
     </mat-header-cell>
-    <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+    <mat-cell *matCellDef="let row"
+              class="hidden-xs hidden-sm"
+              [class.cdk-visually-hidden]="!canEdit">
       <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
       </mat-checkbox>
     </mat-cell>
@@ -54,7 +58,7 @@
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label>#</ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder || row.currentData?.id }}</mat-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder || row.currentData?.id }}</mat-cell>
   </ng-container>
 
   <!-- Vessel Column -->
@@ -114,12 +118,14 @@
         <small *ngIf="pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')"><br/>({{pmfm.unitLabel}})</small>
       </ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate"
+    <mat-cell *matCellDef="let row"
+              [class.mat-cell-date-time]="pmfm.isDate"
               [class.mat-cell-computed]="pmfm.isComputed">
-      <mat-form-field-measurement
+      <app-pmfm-field
         [readonly]="!row.editing"
-        [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
-        floatLabel="never"></mat-form-field-measurement>
+        [pmfm]="pmfm"
+        [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId.toString()]"
+        floatLabel="never"></app-pmfm-field>
     </mat-cell>
   </ng-container>
 
@@ -134,9 +140,9 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition && !tripEditor">
+    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition && !tripEditor">
+    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
       <ion-spinner *ngIf="row.validator.pending" name="dots"
                    [ngClass]="{'center':true}"></ion-spinner>
 
@@ -155,17 +161,20 @@
       </button>
 
       <!-- edit trip -->
-      <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1 && tripEditor"
+      <button mat-icon-button color="light"
+              *ngIf="!row.editing && row.id !== -1 && isTripDetailEditor"
               [title]="'COMMON.BTN_EDIT'|translate"
               (click)="confirmAndEditTrip($event, row)">
-        <mat-icon>arrow_forward</mat-icon>
+        <ion-icon name="boat" slot="icon-only" [color]="row.currentData.tripId ? undefined : 'medium'"></ion-icon>
       </button>
     </mat-cell>
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-           [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing"
+  <mat-row *matRowDef="let row; columns: displayedColumns;"
+           [class.mat-row-error]="row.validator.invalid"
+           [class.mat-row-dirty]="row.validator.dirty"
+           [class.mat-row-disabled]="!row.editing"
            (click)="clickRow($event, row)"></mat-row>
 
 </mat-table>
@@ -174,7 +183,6 @@
   <ion-col></ion-col>
   <ion-col class="ion-no-padding" size="auto">
     <mat-paginator [length]="resultsLength" [pageSize]="pageSize" [pageSizeOptions]="[20, 50, 100, 200]" showFirstLastButtons>
-<!--       [pageIndex]="pageIndex" (page)="onPageChange($event)" FIXME-->
     </mat-paginator>
   </ion-col>
 </ion-row>

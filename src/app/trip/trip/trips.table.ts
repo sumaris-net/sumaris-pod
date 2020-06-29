@@ -6,25 +6,17 @@ import {
   environment,
   isNil,
   isNotNil,
-  personsToString,
-  personToString,
   ReferentialRef,
+  referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  StatusIds
 } from "../../core/core.module";
-import {TripValidatorService} from "../services/trip.validator";
+import {TripValidatorService} from "../services/validator/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
 import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {
-  LocationLevelIds,
-  qualityFlagToColor,
-  ReferentialRefService,
-  referentialToString
-} from "../../referential/referential.module";
 import {catchError, debounceTime, distinctUntilChanged, filter, map, tap, throttleTime} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 import {SharedValidators} from "../../shared/validator/validators";
@@ -34,11 +26,16 @@ import {AccountService} from "../../core/services/account.service";
 import {ConnectionType, NetworkService} from "../../core/services/network.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {BehaviorSubject} from "rxjs";
-import {SynchronizationStatus} from "../services/model/base.model";
+import {personsToString, personToString} from "../../core/services/model/person.model";
 import {concatPromises} from "../../shared/observables";
 import {isEmptyArray} from "../../shared/functions";
 import {Trip} from "../services/model/trip.model";
 import {PersonService} from "../../admin/services/person.service";
+import {StatusIds} from "../../core/services/model/model.enum";
+import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {qualityFlagToColor} from "../../data/services/model/model.utils";
+import {LocationLevelIds} from "../../referential/services/model/model.enum";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -70,7 +67,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   synchronizationStatusList: SynchronizationStatus[] = ['DIRTY', 'SYNC'];
 
   get synchronizationStatus(): SynchronizationStatus {
-    return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
+    return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
   }
 
   constructor(
@@ -108,7 +105,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       new AppTableDataSource<Trip, TripFilter>(Trip, service, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        serviceOptions: {
+        dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
       }),
@@ -133,6 +130,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.saveBeforeSort = false;
+    this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
     this.autoLoad = false;
 
@@ -404,7 +402,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     const tripFilter = json && typeof json === 'object' && {...json, synchronizationStatus: undefined} || undefined;
 
     this.hasOfflineMode = (synchronizationStatus && synchronizationStatus !== 'SYNC') ||
-      (this.settings.hasOfflineFeature() || await this.service.hasOfflineData());
+      (this.settings.hasOfflineFeature() || await this.service.hasOfflineData());
 
     // No default filter, nor synchronizationStatus
     if (TripFilter.isEmpty(tripFilter) && !synchronizationStatus) {
@@ -418,7 +416,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       else {
         // To avoid a delay (caused by debounceTime in a previous pipe), to refresh content manually
         this.onRefresh.emit();
-        // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
+        // But set a empty filter, to avoid automatic apply of next filter changes (caused by condition '|| isNil()' in a previous pipe)
         this.filterForm.patchValue({}, {emitEvent: false});
       }
     }

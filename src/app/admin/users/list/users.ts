@@ -1,8 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
 import {AppTable, AppTableDataSource, isNil, isNotNil} from "../../../core/core.module";
-import {DefaultStatusList, Person, PRIORITIZED_USER_PROFILES, referentialToString} from "../../../core/services/model";
+import { Person, PRIORITIZED_USER_PROFILES} from "../../../core/services/model/person.model";
+import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
 import {PersonFilter, PersonService} from "../../services/person.service";
-import {PersonValidatorService} from "../../services/person.validator";
+import {PersonValidatorService} from "../../services/validator/person.validator";
 import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService} from "../../../core/services/account.service";
@@ -65,7 +66,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
       new AppTableDataSource<Person, PersonFilter>(Person, dataService, validatorService, {
         prependNewElements: false,
         suppressErrors: true,
-        serviceOptions: {
+        dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
       }),

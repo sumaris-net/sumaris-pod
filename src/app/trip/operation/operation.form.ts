@@ -1,10 +1,18 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {OperationValidatorService} from "../services/operation.validator";
+import {OperationValidatorService} from "../services/validator/operation.validator";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
-import {AppForm, fromDateISOString, IReferentialRef, isNotNil, ReferentialRef} from '../../core/core.module';
-import {EntityUtils, ReferentialRefService} from '../../referential/referential.module';
-import {ReferentialUtils, UsageMode} from "../../core/services/model";
+import {
+  AppForm,
+  EntityUtils,
+  fromDateISOString,
+  IReferentialRef,
+  isNotNil,
+  ReferentialRef
+} from '../../core/core.module';
+
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {UsageMode} from "../../core/services/model/settings.model";
 import {FormGroup} from "@angular/forms";
 import * as moment from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -17,6 +25,7 @@ import {Operation, PhysicalGear, Trip} from "../services/model/trip.model";
 import {BehaviorSubject} from "rxjs";
 import {distinctUntilChanged} from "rxjs/operators";
 import {METIER_DEFAULT_FILTER} from "../../referential/services/metier.service";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
 @Component({
   selector: 'app-form-operation',
@@ -105,14 +114,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     // Combo: physicalGears
     this.registerAutocompleteField('physicalGear', {
-      items: this._physicalGearsSubject.asObservable(),
+      items: this._physicalGearsSubject,
       attributes: ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key)),
       mobile: this.mobile
     });
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      items: this._metiersSubject.asObservable(),
+      items: this._metiersSubject,
       mobile: this.mobile
     });
 
@@ -130,8 +139,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     // Use label and name from metier.taxonGroup
     if (data && data.metier) {
       data.metier = data.metier.clone(); // Leave original object unchanged
-      data.metier.label = data.metier.taxonGroup && data.metier.taxonGroup.label || data.metier.label;
-      data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
+      data.metier.label = data.metier.taxonGroup && data.metier.taxonGroup.label || data.metier.label;
+      data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
     }
     super.setValue(data, opts);
   }
@@ -206,7 +215,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     const gears = this._physicalGearsSubject.getValue() || this._trip && this._trip.gears;
     // Use same trip's gear Object (if found)
     if (hasPhysicalGear && isNotEmptyArray(gears)) {
-      physicalGear = (gears || []).find(g => g.id === physicalGear.id);
+      physicalGear = (gears || []).find(g => g.id === physicalGear.id);
       physicalGearControl.patchValue(physicalGear, {emitEvent: false});
     }
 
@@ -228,10 +237,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       const metier = metierControl.value;
       if (ReferentialUtils.isNotEmpty(metier)) {
         // Find new reference, by ID
-        let updatedMetier = (metiers || []).find(m => m.id === metier.id);
+        let updatedMetier = (metiers || []).find(m => m.id === metier.id);
 
         // If not found : retry using the label (WARN: because of searchJoin, label = taxonGroup.label)
-        updatedMetier = updatedMetier || (metiers || []).find(m => m.label === metier.label);
+        updatedMetier = updatedMetier || (metiers || []).find(m => m.label === metier.label);
 
         // Update the metier, if not found (=reset) or ID changed
         if (!updatedMetier || !ReferentialUtils.equals(metier, updatedMetier)) {

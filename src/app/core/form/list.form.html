@@ -1,0 +1,67 @@
+
+<ng-container *ngIf="!loading; else listSkeleton">
+
+  <!-- List -->
+  <ion-list class="ion-no-padding" >
+
+    <ng-container *ngFor="let itemControl of itemControls; index as i; last as last">
+      <ion-item *ngIf="itemControl.value; let item"
+                [class.disabled]="disabled"
+                (click)="onItemClick($event, item)"
+                [color]="selection.isSelected(item) ? 'secondary' : undefined"
+                [button]="selectionChanges.observers.length > 0">
+        <ion-label>{{displayWith(item)}}</ion-label>
+
+        <!-- buttons -->
+        <ion-buttons slot="end" *ngIf="enabled" class="action-buttons">
+          <ion-button fill="clear" (click)="removeAt(i)">
+            <ion-icon slot="icon-only" name="trash"></ion-icon>
+          </ion-button>
+
+          <ion-button *ngFor="let button of options.buttons"
+                      fill="clear" [color]="button.color"
+                      [class.cdk-visually-hidden]="button.disabled|async"
+                      (click)="onItemButtonClick(button, $event, item, i)"
+                      [title]="(button.title || '')|translate">
+            <ion-icon slot="icon-only" [name]="button.icon"></ion-icon>
+          </ion-button>
+
+        </ion-buttons>
+      </ion-item>
+    </ng-container>
+  </ion-list>
+
+  <!-- Add button -->
+  <ion-button color="tertiary" fill="clear"
+              *ngIf="enabled && onNewItem.observers.length; else emptyText"
+              [title]="'COMMON.BTN_ADD'|translate"
+              (click)="onNewClick($event)" >
+    <ion-icon slot="start" name="add"></ion-icon>
+    <ion-label translate>COMMON.BTN_ADD</ion-label>
+  </ion-button>
+
+  <!-- Empty (if readonly) -->
+  <ng-template #emptyText>
+    <ion-text  *ngIf="!length" color="medium"><i translate>COMMON.EMPTY_OPTION</i></ion-text>
+  </ng-template>
+</ng-container>
+
+<ng-template #listSkeleton>
+
+  <ion-list>
+    <ng-container *ngTemplateOutlet="itemSkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="itemSkeleton"></ng-container>
+    <ng-container *ngTemplateOutlet="itemSkeleton"></ng-container>
+  </ion-list>
+
+</ng-template>
+
+<ng-template #itemSkeleton>
+
+  <ion-item>
+    <ion-label>
+      <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+    </ion-label>
+  </ion-item>
+
+</ng-template>
