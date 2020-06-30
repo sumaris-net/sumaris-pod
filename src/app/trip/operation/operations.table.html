@@ -22,7 +22,10 @@
   </ion-item>
 
   <div class="toolbar-spacer"></div>
-
+  <button mat-icon-button *ngIf="showMap"
+          [title]="'TRIP.OPERATION.BTN_SHOW_MAP'|translate" (click)="openMapModal($event)">
+    <mat-icon><ion-icon name="earth"></ion-icon></mat-icon>
+  </button>
   <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
     <mat-icon>more_vert</mat-icon>
   </button>

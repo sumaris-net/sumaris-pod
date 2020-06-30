@@ -26,6 +26,9 @@ export class ToolbarComponent implements OnInit {
   class = '';
 
   @Input()
+  backHref: string;
+
+  @Input()
   defaultBackHref: string;
 
   @Input()
@@ -104,11 +107,17 @@ export class ToolbarComponent implements OnInit {
   }
 
   async goBack(): Promise<void> {
-    if (this.routerOutlet.canGoBack()) {
+    if (this.backHref) {
+      await this.router.navigateByUrl(this.backHref);
+    }
+    else if (this.routerOutlet.canGoBack()) {
       await this.routerOutlet.pop();
     }
-    else {
+    else if (this.defaultBackHref) {
       await this.router.navigateByUrl(this.defaultBackHref);
+    }
+    else {
+      console.error("Cannot go back. Missing value for 'defaultBackHref'");
     }
   }
 

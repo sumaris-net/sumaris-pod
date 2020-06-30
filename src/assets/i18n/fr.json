@@ -451,11 +451,14 @@
       }
     },
     "OPERATION": {
+      "BTN_SHOW_ALL": "Voir tout",
+      "BTN_HISTORY": "Historique",
+      "BTN_SHOW_MAP": "Carte des opérations",
       "COMMENTS": "Commentaires",
-      "TITLE_PREFIX": "<small>{{vessel}} - Marée {{departureDateTime}}<br></small>",
-      "OPE_PREFIX": "OPE",
-      "BTN_NEW": "Ajouter",
       "LAST_OPERATIONS": "Dernières opérations",
+      "NO_LAST_OPERATION": "Aucune opération précédente",
+      "OPE_PREFIX": "OPE",
+      "TITLE_PREFIX": "<small>{{vessel}} - Marée {{departureDateTime}}<br></small>",
       "NEW": {
         "TITLE": "Nouvelle opération"
       },
@@ -477,6 +480,9 @@
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin"
+      },
+      "MAP": {
+        "TITLE": "Carte des positions"
       },
       "LIST": {
         "PHYSICAL_GEAR": "Engin utilisé",

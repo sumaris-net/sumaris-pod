@@ -156,7 +156,10 @@ export abstract class AppEditor<
       const data = new this.dataType();
       this._usageMode = this.computeUsageMode(data);
       await this.onNewEntity(data, opts);
-      this.updateView(data, opts);
+      this.updateView(data, {
+        openTabIndex: 0,
+        ...opts
+      });
       this.loading = false;
     }
 
@@ -232,6 +235,9 @@ export abstract class AppEditor<
           .then(() => this.updateTitle(data));
       }
       else {
+        // Update the tag group index
+        this.updateTabIndex(opts.openTabIndex);
+
         // Update the title.
         this.updateTitle(data);
       }
@@ -265,24 +271,43 @@ export abstract class AppEditor<
 
     this.queryParams = this.queryParams || {};
 
-    // Open the second tab
-    if (opts && isNotNil(opts.openTabIndex)) {
-      if (this.selectedTabIndex < opts.openTabIndex) {
-        this.selectedTabIndex = opts.openTabIndex;
-        Object.assign(this.queryParams, {tab: this.selectedTabIndex});
-        this.markForCheck();
-      }
-    }
+    // Open the tab group
+    this.updateTabIndex(opts && opts.openTabIndex);
+
+    // Save the opened tab into the queryParams
+    Object.assign(this.queryParams, {tab: this.selectedTabIndex});
 
     // Update route location
     const forcedQueryParams = {};
-    forcedQueryParams[this._pathIdAttribute] = data.id;
-    await this.router.navigate(['.'], {
-      relativeTo: this.route,
-      queryParams: Object.assign(this.queryParams, forcedQueryParams)
-    });
+    forcedQueryParams[this._pathIdAttribute] = data && isNotNil(data.id) ? data.id : 'new';
+    if (data && isNotNil(data.id)) {
+      await this.router.navigate(['.'], {
+        relativeTo: this.route,
+        queryParams: {...this.queryParams, ...forcedQueryParams}
+      });
+    }
+    else {
+      await this.router.navigate(['../new'], {
+        relativeTo: this.route,
+        queryParams: {...this.queryParams, ...forcedQueryParams}
+      });
+    }
 
     return this.updateRoute(data, this.queryParams);
+  }
+
+  /**
+   * Update the route location, and open the next tab
+   */
+  updateTabIndex(tabIndex?: number) {
+
+    // Open the second tab
+    if (isNotNil(tabIndex)) {
+      if (this.selectedTabIndex !== tabIndex) {
+        this.selectedTabIndex = tabIndex;
+        this.markForCheck();
+      }
+    }
   }
 
   async saveAndClose(event: Event, options?: any): Promise<boolean> {

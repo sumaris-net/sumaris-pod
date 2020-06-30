@@ -19,6 +19,9 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Operation, Trip} from "../services/model/trip.model";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {toBoolean} from "../../shared/functions";
+import {BatchModal} from "../batch/batch.modal";
+import {OperationsMap} from "./map/operations.map";
 
 
 @Component({
@@ -30,7 +33,7 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
+export class OperationsTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
 
   displayAttributes: {
     [key: string]: string[]
@@ -39,6 +42,8 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
   @Input() latLongPattern: LatLongPattern;
 
   @Input() tripId: number;
+
+  @Input() showMap: boolean; // false by default
 
   constructor(
     protected route: ActivatedRoute,
@@ -108,6 +113,8 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
   ngOnInit() {
     super.ngOnInit();
 
+    this.showMap = toBoolean(this.showMap, false);
+
     this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
       taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
@@ -145,6 +152,23 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
       this.dataSource.serviceOptions.tripId = id;
       this.setFilter(filter, {emitEvent: isNotNil(id)});
     }
+  }
+
+  async openMapModal(event: UIEvent) {
+    const modal = await this.modalCtrl.create({
+      component: OperationsMap,
+      componentProps: {
+
+      },
+      keyboardClose: true
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const res = await modal.onDidDismiss();
+    console.log(res)
   }
 
   referentialToString = referentialToString;

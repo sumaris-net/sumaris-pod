@@ -13,6 +13,7 @@ import {AppFormHolder, AppFormUtils, IAppForm, IAppFormFactory} from "./form.uti
 import {ToastOptions} from "@ionic/core";
 import {Toasts} from "../../shared/toasts";
 import {HammerSwipeAction, HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
+import {TeardownLogic} from "rxjs/src/internal/types";
 
 export class AppTabFormOptions {
   /**
@@ -462,8 +463,12 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
     }, 16);
   }
 
-  protected registerSubscription(sub: Subscription) {
+  protected registerSubscription(sub: Subscription|TeardownLogic) {
     this._subscription.add(sub);
+  }
+
+  protected unregisterSubscription(sub: Subscription) {
+    this._subscription.remove(sub);
   }
 
   protected async saveIfDirtyAndConfirm(event?: UIEvent, opts? : {

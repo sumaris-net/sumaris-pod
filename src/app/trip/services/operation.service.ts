@@ -35,7 +35,7 @@ import {Sample} from "./model/sample.model";
 import {ReferentialFragments} from "../../referential/services/referential.queries";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {TableDataServiceWatchOptions} from "../../shared/services/data-service.class";
+import {FilterFn, TableDataServiceWatchOptions} from "../../shared/services/data-service.class";
 import {DomEvent} from "leaflet";
 import off = DomEvent.off;
 
@@ -124,21 +124,25 @@ export const OperationFragments = {
 export class OperationFilter {
 
   static searchFilter<T extends Operation>(f: OperationFilter): (T) => boolean {
-    return (o: T) => {
-      // Exclude id
-      if (isNotNil(f.excludeId) && o.id === f.excludeId) {
-        return false;
-      }
+    const filterFns: FilterFn<T>[] = [];
 
-      // Trip
-      if (isNotNil(f.tripId) &&
-        ((isNotNil(o.tripId) && f.tripId !== o.tripId) ||
-        (isNil(o.tripId) && o.trip && f.tripId !== o.trip.id))) {
-        return false;
-      }
+    // Exclude id
+    if (isNotNil(f.excludeId)) {
+      const excludeId = +(f.excludeId);
+      filterFns.push(o => o.id !== excludeId);
+    }
 
-      return true;
-    };
+    // Trip
+    if (isNotNil(f.tripId)) {
+      const tripId = +(f.tripId);
+      filterFns.push((o => (isNotNil(o.tripId) && o.tripId === tripId)
+        || (o.trip && o.trip.id === tripId)));
+    }
+
+
+    if (!filterFns.length) return undefined;
+
+    return (entity) => !filterFns.find(fn => !fn(entity));
   }
 
   tripId?: number;
@@ -591,7 +595,7 @@ export class OperationService extends BaseDataService
     const variables: any = {
       offset: offset || 0,
       size: size || 1000,
-      sortBy: (sortBy != 'id' && sortBy) || 'endDateTime',
+      sortBy: (sortBy !== 'id' && sortBy) || 'endDateTime',
       sortDirection: sortDirection || 'asc',
       filter: dataFilter
     };
@@ -600,17 +604,21 @@ export class OperationService extends BaseDataService
     return this.entities.watchAll<Operation>('OperationVO', {
       ...variables,
       filter: OperationFilter.searchFilter<Operation>(dataFilter)
-    }).pipe(map(res => {
-      const data = (res && res.data || []).map(source => Operation.fromObject(source, opts));
+    })
+      .pipe(map(res => {
+        const data = (res && res.data || []).map(source => Operation.fromObject(source, opts));
 
-      // Compute rankOrder and re-sort if need
-      this.computeRankOrderAndSort(data, sortBy, sortDirection, dataFilter);
+        // Compute rankOrder and re-sort if need
+        // (only if all operation have been loaded)
+        if (offset === 0 && size === 1000) {
+          this.computeRankOrderAndSort(data, sortBy, sortDirection, dataFilter);
+        }
 
-      return {
-        data,
-        total: data.length
-      };
-    }))
+        return {
+          data,
+          total: data.length
+        };
+      }))
   }
 
   /* -- protected methods -- */

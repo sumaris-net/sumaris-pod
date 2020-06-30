@@ -75,7 +75,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     this.cd = injector.get(ChangeDetectorRef);
     this.memoryDataService = (this.dataService as InMemoryTableDataService<PhysicalGear>);
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
-    this.autoLoad = false; // waiting parent to be loaded
+    this.autoLoad = true;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;

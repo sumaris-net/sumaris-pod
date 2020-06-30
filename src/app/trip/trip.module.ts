@@ -11,7 +11,7 @@ import {MeasurementsForm} from './measurement/measurements.form.component';
 import {CatchBatchForm} from './catch/catch.form';
 import {PhysicalGearForm} from './physicalgear/physical-gear.form';
 import {PhysicalGearTable} from './physicalgear/physical-gears.table';
-import {OperationTable} from './operation/operations.table';
+import {OperationsTable} from './operation/operations.table';
 import {SamplesTable} from './sample/samples.table';
 import {SubSamplesTable} from './sample/sub-samples.table';
 import {BatchGroupsTable} from './batch/batch-groups.table';
@@ -98,6 +98,7 @@ import {AggregatedLandingsTable} from "./aggregated-landing/aggregated-landings.
 import {VesselActivityValidatorService} from "./services/validator/vessel-activity.validator";
 import {VesselActivityForm} from "./aggregated-landing/vessel-activity.form";
 import {AggregatedLandingModal} from "./aggregated-landing/aggregated-landing.modal";
+import {OperationsMap} from "./operation/map/operations.map";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -121,7 +122,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     PhysicalGearTable,
     OperationForm,
     OperationPage,
-    OperationTable,
+    OperationsTable,
+    OperationsMap,
     ObservedLocationForm,
     ObservedLocationPage,
     ObservedLocationsPage,
@@ -179,7 +181,7 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       PhysicalGearTable,
       OperationForm,
       OperationPage,
-      OperationTable,
+      OperationsTable,
       MeasurementsForm,
       EntityQualityFormComponent,
       LandingsTable,

@@ -14,7 +14,7 @@ import {
   isNotEmptyArray,
   isNotNil
 } from '../../shared/shared.module';
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, Observable, Subject, Subscription} from 'rxjs';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {debounceTime, distinctUntilChanged, filter, first, map, startWith, switchMap, tap} from "rxjs/operators";
 import {FormGroup, Validators} from "@angular/forms";
@@ -50,6 +50,7 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
   onProgramChanged = new Subject<Program>();
   saveOptions: OperationSaveOptions = {};
   $lastOperations = new BehaviorSubject<Operation[]>(null);
+  _lastOperationsSubscription: Subscription;
 
   rankOrder: number;
   selectedBatchTabIndex = 0;
@@ -113,6 +114,8 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
           switchMap(programLabel => this.programService.watchByLabel(programLabel))
         )
         .subscribe(program => this.onProgramChanged.next(program)));
+
+    this.registerSubscription(() => this.$lastOperations.complete());
   }
 
   async ngAfterViewInit(): Promise<void> {
@@ -346,10 +349,10 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
     const tripId = options && isNotNil(options.tripId) ? +(options.tripId) :
       isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
     if (isNil(tripId)) throw new Error("Missing argument 'options.tripId'!");
+    data.tripId = tripId;
 
     // Load parent trip
     const trip = await this.tripService.load(tripId);
-    data.tripId = tripId;
     data.trip = trip;
 
     // Use the default gear, if only one
@@ -363,14 +366,14 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
       data.startDateTime = moment();
 
       // Load last trip's operations
-      this.refreshLastOperations(tripId);
+      this.loadLastOperations(tripId, data);
 
       // Wait last operations to be loaded
       const previousOperations = await firstNotNilPromise(this.$lastOperations);
 
       // Copy from previous operation
       if (isNotEmptyArray(previousOperations)) {
-        const previousOperation = previousOperations[0];
+        const previousOperation = previousOperations.find(ope => ope && ReferentialUtils.isNotEmpty(ope.metier));
         data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, previousOperation.physicalGear, 'id')) || data.physicalGear;
         data.metier = previousOperation.metier;
       }
@@ -380,7 +383,7 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
   }
 
   async onEntityLoaded(data: Operation, options?: EditorDataServiceLoadOptions): Promise<void> {
-    const tripId = options && isNotNil(options.tripId) ? options.tripId :
+    const tripId = options && isNotNil(options.tripId) ? +(options.tripId) :
       isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
     if (isNil(tripId)) throw new Error("Missing argument 'options.tripId'!");
     data.tripId = tripId;
@@ -393,7 +396,7 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
 
     if (this.isOnFieldMode) {
       // Load last trip's operations
-      this.refreshLastOperations(tripId, data.id);
+      this.loadLastOperations(tripId, data);
     }
 
     this.defaultBackHref = trip ? `/trips/${trip.id}?tab=2` : undefined;
@@ -497,20 +500,41 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
     }
   }
 
-  async onOpenOperation(event: UIEvent, id?: number|'new'): Promise<any> {
-    if (isNil(id)) return; // skip
+  async onOpenOperation(event: UIEvent, id: number): Promise<any> {
+    if (event && event.defaultPrevented) return; // Skip
 
-    const canContinue = await this.saveIfDirtyAndConfirm(event, {
-      ...this.saveOptions,
-      emitEvent: false /*to not update view*/
-    });
+    if (isNil(id) || this.data.id === id) return; // skip
+
+    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty && this.valid
+      // If on field mode: try to save silently
+      ? this.save(event)
+      // If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm(null, {
+        ...this.saveOptions,
+        emitEvent: false /*do not update view*/
+      });
+    const canContinue = await savePromise;
+
     if (canContinue) {
-      if (isNil(id) || id === 'new') {
-        this.load(undefined, {tripId: this.data.tripId});
-      }
-      else {
-        this.load(+id, {tripId: this.data.tripId});
-      }
+      return this.load(+id, {tripId: this.data.tripId, updateTabAndRoute: true});
+    }
+  }
+
+  async onNewOperation(event: UIEvent): Promise<any> {
+    if (event && event.defaultPrevented) return Promise.resolve(); // Skip
+    if (event) event.preventDefault();
+
+    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty && this.valid
+      // If on field mode: try to save silently
+      ? this.save(event)
+      // If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm(null, {
+        ...this.saveOptions,
+        emitEvent: false /*do not update view*/
+      });
+    const canContinue = await savePromise;
+    if (canContinue) {
+      return this.load(undefined, {tripId: this.data.tripId, updateTabAndRoute: true});
     }
   }
 
@@ -702,7 +726,8 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
   }
 
   async save(event, options?: any): Promise<boolean> {
-    return super.save(event, {...options, ...this.saveOptions});
+    // Force to pass specific saved options to dataService.save()
+    return await super.save(event, {...options, ...this.saveOptions});
   }
 
   protected canUserWrite(data: Operation): boolean {
@@ -753,29 +778,46 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
   }
 
   protected async updateRoute(data: Operation, queryParams: any): Promise<boolean> {
-    return await this.router.navigate([`/trips/${this.trip.id}/operations/${data.id}`], {
+    const id = data && isNotNil(data.id) ? data.id : 'new';
+    return await this.router.navigate([`/trips/${this.trip.id}/operations/${id}`], {
       replaceUrl: true,
       queryParams: queryParams,
       queryParamsHandling: "preserve"
     });
   }
 
-  protected refreshLastOperations(tripId: number, excludedId?: number) {
-    this.$lastOperations.next(null); // Reset, if was already loaded
+  protected loadLastOperations(tripId: number, data?: Operation): Observable<Operation[]> {
+    if (this._lastOperationsSubscription) {
+      this.unregisterSubscription(this._lastOperationsSubscription);
+    }
 
     // Load last trip's operations
-    this.registerSubscription(
-      this.dataService.watchAll(0, 5, 'startDateTime', 'desc', {
+    this._lastOperationsSubscription = this.dataService.watchAll(0, 1000, 'startDateTime', 'desc', {
         tripId
       }, {
         withBatchTree: false,
-        withSamples: false,
-        fetchPolicy: "cache-first"
+        withSamples: false
       }).pipe(
+        // Ignore event due to save action
+        //filter(res => !this.saving),
+        //debounceTime(500),
+
         map(res => res && res.data || []),
-        // Exclude current operation
-        map(data => isNil(excludedId) ? data : data.filter(ope => ope.id !== excludedId))
-      ).subscribe(data => this.$lastOperations.next(data)));
+
+        map(items => {
+          data = this.data || data;
+          // Make sure current OPE exists
+          const index = data && isNotNil(data.id) ? items.findIndex(item => item.id === data.id) : -1;
+          if (index === -1 && data) {
+            return [data].concat(items);
+          }
+          return items;
+        })
+      ).subscribe(data => this.$lastOperations.next(data));
+    this.registerSubscription(this._lastOperationsSubscription);
+
+
+    return this.$lastOperations;
   }
 
   protected markForCheck() {

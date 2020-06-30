@@ -681,6 +681,50 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return this.onEditRow(event, row);
   }
 
+
+  async openSelectColumnsModal(event?: UIEvent): Promise<any> {
+    const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
+    const hiddenColumns = this.columns.slice(fixedColumns.length)
+      .filter(name => this.displayedColumns.indexOf(name) == -1);
+    const columns = this.displayedColumns.slice(fixedColumns.length)
+      .concat(hiddenColumns)
+      .filter(name => name !== "actions")
+      .filter(name => !this.excludesColumns.includes(name))
+      .map(name => {
+        return {
+          name,
+          label: this.getI18nColumnName(name),
+          visible: this.displayedColumns.indexOf(name) !== -1
+        };
+      });
+
+    const modal = await this.modalCtrl.create({
+      component: TableSelectColumnsComponent,
+      componentProps: {columns: columns}
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res) return; // CANCELLED
+
+    // Apply columns
+    const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
+    this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
+    this.markForCheck();
+
+    // Update user settings
+    await this.settings.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
+  }
+
+  trackByFn(index: number, row: TableElement<T>) {
+    return row.id;
+  }
+
+  /* -- protected method -- */
+
   protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
@@ -731,51 +775,12 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       .concat(fixedEndColumns);
   }
 
-  public async openSelectColumnsModal(event?: UIEvent): Promise<any> {
-    const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
-    const hiddenColumns = this.columns.slice(fixedColumns.length)
-      .filter(name => this.displayedColumns.indexOf(name) == -1);
-    const columns = this.displayedColumns.slice(fixedColumns.length)
-      .concat(hiddenColumns)
-      .filter(name => name !== "actions")
-      .filter(name => !this.excludesColumns.includes(name))
-      .map(name => {
-        return {
-          name,
-          label: this.getI18nColumnName(name),
-          visible: this.displayedColumns.indexOf(name) !== -1
-        };
-      });
-
-    const modal = await this.modalCtrl.create({
-      component: TableSelectColumnsComponent,
-      componentProps: {columns: columns}
-    });
-
-    // Open the modal
-    await modal.present();
-
-    // On dismiss
-    const res = await modal.onDidDismiss();
-    if (!res) return; // CANCELLED
-
-    // Apply columns
-    const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
-    this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
-    this.markForCheck();
-
-    // Update user settings
-    await this.settings.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
-  }
-
-  public trackByFn(index: number, row: TableElement<T>) {
-    return row.id;
-  }
-
-  /* -- protected method -- */
-
   protected registerSubscription(sub: Subscription) {
     this._subscription.add(sub);
+  }
+
+  protected unregisterSubscription(sub: Subscription) {
+    this._subscription.remove(sub);
   }
 
   protected registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions): MatAutocompleteFieldConfig {

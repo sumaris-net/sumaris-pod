@@ -1,0 +1,20 @@
+<app-modal-toolbar [modalName]="modalName"
+                   [title]="'TRIP.OPERATION.MAP.TITLE'|translate"
+                   [showSpinner]="loading"
+                   [color]="'secondary'"
+                   (cancel)="cancel()">
+</app-modal-toolbar>
+
+
+<ion-content>
+
+  <!-- Leaflet map -->
+  <div *ngIf="ready"
+       leaflet
+       (leafletMapReady)="onMapReady($event)"
+       [leafletOptions]="options"
+       [leafletLayersControl]="layersControl">
+
+    <div *ngFor="let layer of $layers | async" [leafletLayer]="layer"></div>
+  </div>
+</ion-content>

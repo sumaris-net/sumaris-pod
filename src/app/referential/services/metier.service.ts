@@ -38,9 +38,7 @@ export class MetierFilter extends ReferentialRefFilter {
 
     if (!filterFns.length) return undefined;
 
-    return (entity) => {
-      return !filterFns.find(fn => !fn(entity));
-    };
+    return (entity) => !filterFns.find(fn => !fn(entity));
   }
 
   constructor() {

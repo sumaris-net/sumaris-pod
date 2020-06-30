@@ -4,7 +4,7 @@
              (onValidateAndClose)="saveAndClose($event)"
              [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
-             [defaultBackHref]="defaultBackHref"
+             [backHref]="defaultBackHref"
              [canGoBack]="true">
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 
@@ -154,8 +154,9 @@
       </ng-template>
 
       <app-operations-table #operationsTable
-                        (onOpenRow)="onOpenOperation($event)"
-                        (onNewRow)="onNewOperation($event)">
+                            (onOpenRow)="onOpenOperation($event)"
+                            (onNewRow)="onNewOperation($event)"
+                            [showMap]="false">
       </app-operations-table>
     </mat-tab>
   </mat-tab-group>

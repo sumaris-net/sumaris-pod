@@ -18,6 +18,18 @@ body {
   background: var(--ion-color-shade, rgba(0, 0, 0, 0.3));
 }
 
+// Text style
+// --------------------------------------------------
+*[text-italic],
+.text-italic {
+  font-style: italic;
+}
+*[text-wrap],
+.text-wrap {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
 // Page Container Structure
 // --------------------------------------------------
 .ion-page {
@@ -439,8 +451,8 @@ mat-table {
 
   .mat-header-cell > ion-label[text-wrap],
   .mat-header-cell button > ion-label[text-wrap] {
-    word-wrap: break-word;
     white-space: normal;
+    word-wrap: break-word;
   }
 
   .mat-header-cell[align-self-center] > ion-label,
@@ -762,10 +774,16 @@ mat-tab-group.mat-tab-group-no-header .mat-tab-header {
 
 .mat-menu-panel {
 
-  // Max width
+  // Max width = 400px
   &.mat-menu-size-400 {
     min-width: unset;
     width: 400px;
+    max-width: calc(90vw);
+  }
+  // Max width = 75vw
+  &.mat-menu-size-75vw {
+    min-width: unset;
+    width: calc(75vw);
     max-width: calc(90vw);
   }
 

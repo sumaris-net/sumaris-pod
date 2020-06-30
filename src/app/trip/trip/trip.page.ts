@@ -3,7 +3,7 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
 import {SaleForm} from '../sale/sale.form';
-import {OperationTable} from '../operation/operations.table';
+import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {environment, fromDateISOString, ReferentialRef} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
@@ -47,7 +47,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
 
-  @ViewChild('operationsTable', { static: true }) operationTable: OperationTable;
+  @ViewChild('operationsTable', { static: true }) operationTable: OperationsTable;
 
   constructor(
     injector: Injector,
