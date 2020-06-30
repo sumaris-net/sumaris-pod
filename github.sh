@@ -2,9 +2,9 @@
 
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
-if [[ ! "$branch" = "master" ]];
+if [[ ! "$branch" = "master" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ ]];
 then
-  echo ">> This script must be run under \`master\` branch"
+  echo ">> This script must be run under \`master\` or a \`release\` branch"
   exit 1
 fi
 
