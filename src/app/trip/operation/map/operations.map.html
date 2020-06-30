@@ -2,11 +2,36 @@
                    [title]="'TRIP.OPERATION.MAP.TITLE'|translate"
                    [showSpinner]="loading"
                    [color]="'secondary'"
-                   (cancel)="cancel()">
+                   (cancel)="cancel()"
+                   [canValidate]="false">
 </app-modal-toolbar>
 
 
 <ion-content>
+
+  <!-- Bottom right cards -->
+  <ion-grid class="bottom-right">
+
+    <ion-row>
+      <ion-col></ion-col>
+
+      <ion-col class="ion-align-self-end">
+
+        <!-- Details card -->
+        <ion-card color="light" class="details ng-hide" *ngIf="$selectedFeature | async as item" [@fadeInOutAnimation]>
+
+          <ion-card-header>
+            <ion-card-subtitle>{{'TRIP.OPERATION.OPE_PREFIX'|translate}} #{{item.properties.rankOrderOnPeriod}} </ion-card-subtitle>
+            <ion-card-title>{{item.properties.startDateTime}} </ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+            Lat: {{item.properties.startPosition.latitude}}, Long: {{item.properties.startPosition.longitude}}
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 
   <!-- Leaflet map -->
   <div *ngIf="ready"
@@ -18,3 +43,24 @@
     <div *ngFor="let layer of $layers | async" [leafletLayer]="layer"></div>
   </div>
 </ion-content>
+
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+
+  <ion-toolbar>
+    <ion-row class="ion-no-padding" nowrap>
+      <ion-col>
+      </ion-col>
+
+      <ion-col size="auto">
+
+        <ion-button fill="solid"
+                    (click)="cancel()" (keyup.enter)="cancel()"
+                    color="tertiary">
+          <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-toolbar>
+
+</ion-footer>

@@ -400,6 +400,7 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
     }
 
     this.defaultBackHref = trip ? `/trips/${trip.id}?tab=2` : undefined;
+    this.markForCheck();
   }
 
 

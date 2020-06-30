@@ -155,12 +155,16 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   async openMapModal(event: UIEvent) {
+    const operations = (await this.dataSource.getRows())
+      .map(row => row.currentData);
+
     const modal = await this.modalCtrl.create({
       component: OperationsMap,
       componentProps: {
-
+        operations
       },
-      keyboardClose: true
+      keyboardClose: true,
+      cssClass: 'modal-large'
     });
 
     // Open the modal

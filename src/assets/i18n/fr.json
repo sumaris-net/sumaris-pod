@@ -482,7 +482,9 @@
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin"
       },
       "MAP": {
-        "TITLE": "Carte des positions"
+        "TITLE": "Carte des positions",
+        "TRIP_LAYER": "Marée",
+        "OPERATIONS_LAYER": "Opérations"
       },
       "LIST": {
         "PHYSICAL_GEAR": "Engin utilisé",
