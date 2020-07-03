@@ -33,6 +33,7 @@ import {BatchGroup} from "../services/model/batch-group.model";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
 import {ProgramService} from "../../referential/services/program.service";
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'app-operation-page',
@@ -50,7 +51,8 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
   onProgramChanged = new Subject<Program>();
   saveOptions: OperationSaveOptions = {};
   $lastOperations = new BehaviorSubject<Operation[]>(null);
-  _lastOperationsSubscription: Subscription;
+  private _lastOperationsSubscription: Subscription;
+  private dateTimePattern: string;
 
   rankOrder: number;
   selectedBatchTabIndex = 0;
@@ -95,7 +97,9 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
       tabCount: 2
     });
 
-    // Init mobile (WARN
+    this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
+
+    // Init mobile
     this.mobile = this.settings.mobile;
 
     // FOR DEV ONLY ----
@@ -373,9 +377,13 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
 
       // Copy from previous operation
       if (isNotEmptyArray(previousOperations)) {
-        const previousOperation = previousOperations.find(ope => ope && ReferentialUtils.isNotEmpty(ope.metier));
-        data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, previousOperation.physicalGear, 'id')) || data.physicalGear;
-        data.metier = previousOperation.metier;
+        const previousOperation = previousOperations
+          .find(ope => ope && ope !== data && ReferentialUtils.isNotEmpty(ope.metier));
+        if (previousOperation) {
+          data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, previousOperation.physicalGear, 'id')) || data.physicalGear;
+          data.metier = previousOperation.metier;
+          data.rankOrderOnPeriod = previousOperation.rankOrderOnPeriod + 1;
+        }
       }
     }
 
@@ -539,53 +547,6 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
     }
   }
 
-  /**
-   * Open the first tab that is invalid
-   */
-  protected getFirstInvalidTabIndex(): number {
-    // tab 0
-    const tab0Invalid = this.opeForm.invalid || this.measurementsForm.invalid;
-    // tab 1
-    const subTab0Invalid = (this.showBatchTables && this.batchGroupsTable.invalid) || (this.showSampleTables && this.samplesTable.invalid);
-    const subTab1Invalid = (this.showBatchTables && this.subBatchesTable.invalid) || (this.showSampleTables && this.individualMonitoringTable.invalid);
-    const subTab2Invalid = this.showBatchTables && this.individualReleaseTable.invalid || false;
-    const tab1Invalid = this.catchBatchForm.invalid || subTab0Invalid || subTab1Invalid || subTab2Invalid;
-
-    // Open the first invalid tab
-    const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : -1);
-
-    // If tab 1, open the invalid sub tab
-    if (invalidTabIndex === 1) {
-      if (this.showBatchTables) {
-        const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedBatchTabIndex));
-        if (this.selectedBatchTabIndex === 0 && !subTab0Invalid) {
-          this.selectedBatchTabIndex = invalidSubTabIndex;
-        } else if (this.selectedBatchTabIndex === 1 && !subTab1Invalid) {
-          this.selectedBatchTabIndex = invalidSubTabIndex;
-        } else if (this.selectedBatchTabIndex === 2 && !subTab2Invalid) {
-          this.selectedBatchTabIndex = invalidSubTabIndex;
-        }
-      } else if (this.showSampleTables) {
-        const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedSampleTabIndex));
-        if (this.selectedSampleTabIndex === 0 && !subTab0Invalid) {
-          this.selectedSampleTabIndex = invalidSubTabIndex;
-        } else if (this.selectedSampleTabIndex === 1 && !subTab1Invalid) {
-          this.selectedSampleTabIndex = invalidSubTabIndex;
-        } else if (this.selectedSampleTabIndex === 2 && !subTab2Invalid) {
-          this.selectedSampleTabIndex = invalidSubTabIndex;
-        }
-      }
-    }
-    return invalidTabIndex;
-  }
-
-  protected computeUsageMode(operation: Operation): UsageMode {
-    return this.settings.isUsageMode('FIELD') && (
-      isNil(this.trip) || (
-        isNotNil(this.trip.departureDateTime)
-        && this.trip.departureDateTime.diff(moment(), "day") < 15))
-    ? 'FIELD' : 'DESK';
-  }
 
   setValue(data: Operation) {
 
@@ -648,6 +609,62 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
         this.programSubject.next(program);
       }, 250);
     }
+  }
+
+  /* -- protected method -- */
+
+  protected sameOperation(ope: Operation): boolean {
+    return (this.isNewData && isNil(ope.id))
+      || (this.data.id == ope.id);
+  }
+
+
+  /**
+   * Open the first tab that is invalid
+   */
+  protected getFirstInvalidTabIndex(): number {
+    // tab 0
+    const tab0Invalid = this.opeForm.invalid || this.measurementsForm.invalid;
+    // tab 1
+    const subTab0Invalid = (this.showBatchTables && this.batchGroupsTable.invalid) || (this.showSampleTables && this.samplesTable.invalid);
+    const subTab1Invalid = (this.showBatchTables && this.subBatchesTable.invalid) || (this.showSampleTables && this.individualMonitoringTable.invalid);
+    const subTab2Invalid = this.showBatchTables && this.individualReleaseTable.invalid || false;
+    const tab1Invalid = this.catchBatchForm.invalid || subTab0Invalid || subTab1Invalid || subTab2Invalid;
+
+    // Open the first invalid tab
+    const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : -1);
+
+    // If tab 1, open the invalid sub tab
+    if (invalidTabIndex === 1) {
+      if (this.showBatchTables) {
+        const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedBatchTabIndex));
+        if (this.selectedBatchTabIndex === 0 && !subTab0Invalid) {
+          this.selectedBatchTabIndex = invalidSubTabIndex;
+        } else if (this.selectedBatchTabIndex === 1 && !subTab1Invalid) {
+          this.selectedBatchTabIndex = invalidSubTabIndex;
+        } else if (this.selectedBatchTabIndex === 2 && !subTab2Invalid) {
+          this.selectedBatchTabIndex = invalidSubTabIndex;
+        }
+      } else if (this.showSampleTables) {
+        const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedSampleTabIndex));
+        if (this.selectedSampleTabIndex === 0 && !subTab0Invalid) {
+          this.selectedSampleTabIndex = invalidSubTabIndex;
+        } else if (this.selectedSampleTabIndex === 1 && !subTab1Invalid) {
+          this.selectedSampleTabIndex = invalidSubTabIndex;
+        } else if (this.selectedSampleTabIndex === 2 && !subTab2Invalid) {
+          this.selectedSampleTabIndex = invalidSubTabIndex;
+        }
+      }
+    }
+    return invalidTabIndex;
+  }
+
+  protected computeUsageMode(operation: Operation): UsageMode {
+    return this.settings.isUsageMode('FIELD') && (
+      isNil(this.trip) || (
+      isNotNil(this.trip.departureDateTime)
+      && this.trip.departureDateTime.diff(moment(), "day") < 15))
+      ? 'FIELD' : 'DESK';
   }
 
   protected registerForms() {

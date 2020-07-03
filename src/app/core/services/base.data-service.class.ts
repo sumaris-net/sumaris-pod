@@ -1,18 +1,19 @@
 import {GraphqlService} from "./graphql.service";
 
+export interface LoadAllVariables<F= any> {
+  offset?: number;
+  size?: number;
+  sortBy?: string;
+  sortDirection?: string;
+  filter?: F;
+  [key: string]: any;
+}
 
 export abstract class BaseDataService<T = any, F = any> {
 
   protected _debug = false;
   protected _lastVariables: {
-    [key: string]: {
-      offset?: number;
-      size?: number;
-      sortBy?: string;
-      sortDirection?: string;
-      filter?: F;
-      [key: string]: any;
-    } | undefined
+    [key: string]: LoadAllVariables<F> | undefined
   } = {
     loadAll: undefined
   };

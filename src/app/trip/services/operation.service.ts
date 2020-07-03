@@ -14,7 +14,6 @@ import {
 import {BaseDataService, Department, EntityUtils, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
-import {WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {isEmptyArray, isNilOrBlank} from "../../shared/functions";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
@@ -36,8 +35,8 @@ import {ReferentialFragments} from "../../referential/services/referential.queri
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {FilterFn, TableDataServiceWatchOptions} from "../../shared/services/data-service.class";
-import {DomEvent} from "leaflet";
-import off = DomEvent.off;
+import {LoadAllVariables} from "../../core/services/base.data-service.class";
+import {CryptoService} from "../../core/services/crypto.service";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -255,7 +254,7 @@ export class OperationService extends BaseDataService
       return EMPTY;
     }
 
-    const variables: any = {
+    const variables: LoadAllVariables<OperationFilter> = {
       offset: offset || 0,
       size: size || 1000,
       sortBy: (sortBy != 'id' && sortBy) || 'endDateTime',
@@ -271,6 +270,9 @@ export class OperationService extends BaseDataService
     return this.graphql.watchQuery<{operations: any[]}>({
       query: LoadAllQuery,
       variables: variables,
+      /*updatable: {
+        key: ''
+      },*/
       error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || undefined
     })
@@ -494,7 +496,7 @@ export class OperationService extends BaseDataService
             if (this._debug) console.debug(`[operation-service] Operation saved in ${Date.now() - now}ms`, entity);
 
             // Update the cache
-            if (isNew && this._lastVariables.loadAll) {
+            if (isNew && isNotEmptyArray(this._lastVariables.loadAll as Array<LoadAllVariables[]>)) {
               this.graphql.addToQueryCache(proxy, {
                 query: LoadAllQuery,
                 variables: this._lastVariables.loadAll
@@ -809,5 +811,9 @@ export class OperationService extends BaseDataService
         });
       }
     }
+  }
+
+  protected registerCacheVariables(){
+
   }
 }

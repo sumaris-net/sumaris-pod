@@ -1,6 +1,7 @@
 import {isNil} from "../../../shared/functions";
 import {Entity, EntityAsObjectOptions, PropertiesMap} from "./entity.model";
 import {Moment} from "moment";
+import {LatLongPattern} from "../../../shared/material/latlong/latlong.utils";
 
 export type UsageMode = 'DESK' | 'FIELD';
 
@@ -62,7 +63,7 @@ export interface HistoryPageReference {
 
 export class UserSettings extends Entity<UserSettings> {
   locale: string;
-  latLongFormat: string;
+  latLongFormat: LatLongPattern;
   content: {};
   nonce: string;
 
@@ -81,7 +82,7 @@ export class UserSettings extends Entity<UserSettings> {
   fromObject(source: any) {
     super.fromObject(source);
     this.locale = source.locale;
-    this.latLongFormat = source.latLongFormat;
+    this.latLongFormat = source.latLongFormat as LatLongPattern;
     if (isNil(source.content) || typeof source.content === 'object') {
       this.content = source.content || {};
     } else {

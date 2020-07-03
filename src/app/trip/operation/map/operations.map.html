@@ -4,6 +4,14 @@
                    [color]="'secondary'"
                    (cancel)="cancel()"
                    [canValidate]="false">
+
+  <!-- Add close button (on desktop screen) -->
+  <ion-button hidden-xs hidden-sm hidden-mobile
+              slot="end"
+              (click)="cancel()"
+              (keyup.enter)="cancel()">
+    <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+  </ion-button>
 </app-modal-toolbar>
 
 
@@ -34,7 +42,7 @@
   </ion-grid>
 
   <!-- Leaflet map -->
-  <div *ngIf="ready"
+  <div *ngIf="ready" #map
        leaflet
        (leafletMapReady)="onMapReady($event)"
        [leafletOptions]="options"
@@ -45,22 +53,3 @@
 </ion-content>
 
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
-
-  <ion-toolbar>
-    <ion-row class="ion-no-padding" nowrap>
-      <ion-col>
-      </ion-col>
-
-      <ion-col size="auto">
-
-        <ion-button fill="solid"
-                    (click)="cancel()" (keyup.enter)="cancel()"
-                    color="tertiary">
-          <ion-label translate>COMMON.BTN_CLOSE</ion-label>
-        </ion-button>
-      </ion-col>
-    </ion-row>
-  </ion-toolbar>
-
-</ion-footer>

@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AppTable,
   AppTableDataSource,
@@ -20,8 +20,8 @@ import {Operation, Trip} from "../services/model/trip.model";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {toBoolean} from "../../shared/functions";
-import {BatchModal} from "../batch/batch.modal";
 import {OperationsMap} from "./map/operations.map";
+import {AccountService} from "../../core/services/account.service";
 
 
 @Component({
@@ -45,6 +45,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
   @Input() showMap: boolean; // false by default
 
+  @Input() program: string;
+
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -57,6 +59,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     protected referentialRefService: ReferentialRefService,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
+    protected accountService: AccountService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, platform, location, modalCtrl, settings,
@@ -102,7 +105,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
     settings.ready().then(() => {
       if (this.settings.settings.accountInheritance) {
-
+        const account = this.accountService.account;
+        this.latLongPattern = account && account.settings && account.settings.latLongFormat || this.settings.latLongFormat;
       }
       else {
         this.latLongPattern = this.settings.latLongFormat;
@@ -139,6 +143,10 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     }
   }
 
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
+  }
+
   setTrip(data: Trip) {
     this.setTripId(data && data.id || undefined);
   }
@@ -154,6 +162,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     }
   }
 
+  protected selectedRow: TableElement<Operation>;
+
   async openMapModal(event: UIEvent) {
     const operations = (await this.dataSource.getRows())
       .map(row => row.currentData);
@@ -161,7 +171,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     const modal = await this.modalCtrl.create({
       component: OperationsMap,
       componentProps: {
-        operations
+        operations,
+        program: this.program
       },
       keyboardClose: true,
       cssClass: 'modal-large'
@@ -171,8 +182,21 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     await modal.present();
 
     // Wait until closed
-    const res = await modal.onDidDismiss();
-    console.log(res)
+    const {data} = await modal.onDidDismiss();
+    if (data && data instanceof Operation) {
+      // Select the row
+      const row = (await this.dataSource.getRows()).find(row => row.currentData.id === data.id);
+      if (row) {
+        this.clickRow(null, row);
+      }
+    }
+
+  }
+
+  clickRow(event?: MouseEvent, row: TableElement<Operation>): boolean {
+    this.selectedRow = row;
+
+    return super.clickRow(event, row);
   }
 
   referentialToString = referentialToString;

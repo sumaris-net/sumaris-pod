@@ -378,9 +378,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   ngAfterViewInit() {
-
     if (!this.table) console.warn(`[table] Missing <mat-table> in the HTML template! Component: ${this.constructor.name}`);
-
   }
 
   ngOnDestroy() {
@@ -649,9 +647,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return true;
   }
 
-  clickRow(event: MouseEvent, row: TableElement<T>): boolean {
+  clickRow(event?: MouseEvent, row: TableElement<T>): boolean {
     if (row.id === -1 || row.editing) return true;
-    if (event.defaultPrevented || this.loading) return false;
+    if (event && event.defaultPrevented || this.loading) return false;
 
     // Open the detail page (if not inline editing)
     if (!this.inlineEdition) {
@@ -659,8 +657,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
         console.warn("[table] Opening row details, but table has unsaved changes!");
       }
 
-      event.stopPropagation();
-      event.preventDefault();
+      if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+      }
 
       // No ID defined: unable to open details
       if (isNil(row.currentData.id)) {

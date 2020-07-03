@@ -98,7 +98,7 @@ export class Program extends Entity<Program> {
 
   getPropertyAsNumbers(definition: FormFieldDefinition): number[] {
     const value = this.getProperty(definition);
-    return value && value.split(',').map(parseInt) || undefined;
+    return value && value.split(',').map(parseFloat) || undefined;
   }
 
   getPropertyAsStrings(definition: FormFieldDefinition): string[] {

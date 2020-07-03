@@ -62,8 +62,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   ready = false;
   options = {
     layers: [this.sextantBaseLayer],
+    maxZoom: 10, // max zoom to sextant layer
     zoom: 5,
-    center: L.latLng(46.879966, -10)
+    center: L.latLng(46.879966, -10) // Atlantic centric
   };
   layersControl = {
     baseLayers: {

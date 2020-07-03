@@ -1061,6 +1061,8 @@
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
       "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Marée: Caractéritiques optionelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
+      "TRIP_MAP_CENTER": "Marée > Carte : Position du centre",
+      "TRIP_MAP_ZOOM": "Marée > Carte : Niveau du zoom",
       "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplisage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces commerciales sans poids :",

@@ -42,13 +42,19 @@
     <ion-list class="ion-no-padding">
       <ion-item *ngFor="let item of items"
                 tappable class="text-1x"
-                [color]="item.id===data.id ? 'secondary100' : undefined"
+                [color]="sameOperation(item) ? 'secondary100' : undefined"
                 (click)="onOpenOperation($event, item.id)">
         <ion-icon slot="start" name="navigate"></ion-icon>
-        <ion-label>
-          <span translate>TRIP.OPERATION.OPE_PREFIX</span>
-          {{ item.startDateTime | dateFormat:{time: true} }}
-        </ion-label>
+        <ion-grid>
+          <ion-row>
+            <ion-col size="3">
+              <span translate>TRIP.OPERATION.OPE_PREFIX</span> #{{ item.rankOrderOnPeriod}}
+            </ion-col>
+            <ion-col>
+              {{ item.startDateTime | dateFormat:{pattern: dateTimePattern} }}
+            </ion-col>
+          </ion-row>
+        </ion-grid>
         <ion-text slot="end">
           <small>
             <ion-icon name="time-outline"></ion-icon>&nbsp;{{item.startDateTime|dateFromNow}}
@@ -73,16 +79,18 @@
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
 
-    <ion-item class="hidden-mobile hidden-xs hidden-sm">
-      <div slot="end">
-        <ion-button size="small" fill="clear"
-                    (click)="appToolbar.doBackClick($event)"
-                    routerDirection="back"
-                    translate>TRIP.OPERATION.BTN_SHOW_ALL</ion-button>
-        <ion-button color="tertiary" fill="solid" size="small"
-                    (click)="onNewOperation($event)" translate>COMMON.BTN_ADD</ion-button>
-      </div>
-    </ion-item>
+    <ion-footer hidden-mobile hidden-xs hidden-sm>
+      <ion-toolbar>
+        <div slot="end" class="ion-padding-end">
+          <ion-button fill="clear"
+                      (click)="appToolbar.doBackClick($event)"
+                      routerDirection="back"
+                      translate>TRIP.OPERATION.BTN_SHOW_ALL</ion-button>
+          <ion-button color="tertiary" fill="solid"
+                      (click)="onNewOperation($event)" translate>COMMON.BTN_ADD</ion-button>
+        </div>
+      </ion-toolbar>
+    </ion-footer>
 
   </ng-container>
 

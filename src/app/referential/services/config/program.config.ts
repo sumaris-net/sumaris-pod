@@ -36,6 +36,25 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "false",
     type: 'boolean'
   },
+  // Trip map
+  TRIP_MAP_ENABLE: {
+    key: "sumaris.trip.map.enable",
+    label: "PROGRAM.OPTIONS.TRIP_MAP_ENABLE",
+    defaultValue: "true",
+    type: 'boolean'
+  },
+  TRIP_MAP_CENTER: {
+    key: "sumaris.trip.map.center",
+    label: "PROGRAM.OPTIONS.TRIP_MAP_CENTER",
+    defaultValue: "46.879966,-10",
+    type: 'string'
+  },
+  TRIP_MAP_ZOOM: {
+    key: "sumaris.trip.map.zoom",
+    label: "PROGRAM.OPTIONS.TRIP_MAP_ZOOM",
+    defaultValue: 5,
+    type: 'integer'
+  },
   TRIP_BATCH_TAXON_NAME_ENABLE: {
     key: "sumaris.trip.operation.batch.taxonName.enable",
     label: "PROGRAM.OPTIONS.TRIP_BATCH_TAXON_NAME_ENABLE",

@@ -156,7 +156,7 @@
       <app-operations-table #operationsTable
                             (onOpenRow)="onOpenOperation($event)"
                             (onNewRow)="onNewOperation($event)"
-                            [showMap]="true">
+                            [program]="programSubject|async">
       </app-operations-table>
     </mat-tab>
   </mat-tab-group>
