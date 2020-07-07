@@ -96,11 +96,10 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
 
     this.$busy.next(true);
     return this.dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions as O)
-      //.catch(err => this.handleError(err, 'Unable to load rows'))
       .pipe(
         // Stop this pipe next time we call watchAll()
-        //takeUntil(this._stopWatchAll$),
-        //catchError(err => this.handleError(err, 'ERROR.LOAD_DATA_ERROR')),
+        takeUntil(this._stopWatchAll$),
+        catchError(err => this.handleError(err, 'ERROR.LOAD_DATA_ERROR')),
         map((res: LoadResult<T>) => {
           if (this._saving) {
             console.error(`[table-datasource] Service ${this.dataService.constructor.name} sent data, while will saving... should skip ?`);
