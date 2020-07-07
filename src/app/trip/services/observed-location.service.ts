@@ -45,6 +45,8 @@ export class ObservedLocationFilter {
   }
 
   static searchFilter<T extends ObservedLocation>(f: ObservedLocationFilter): (T) => boolean {
+    if (!f) return undefined;
+
     const filterFns: FilterFn<T>[] = [];
 
     // Program
@@ -253,6 +255,12 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
            dataFilter?: ObservedLocationFilter,
            opts?: EntitiesServiceWatchOptions): Observable<LoadResult<ObservedLocation>> {
 
+    // Load offline
+    const offlineData = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    if (offlineData) {
+      return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
+    }
+
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
@@ -261,26 +269,10 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
       filter: ObservedLocationFilter.asPodObject(dataFilter)
     };
 
-    let now;
-    if (this._debug) {
-      now = Date.now();
-      console.debug("[observed-location-service] Watching observed locations... using options:", variables);
-    }
-    let $loadResult: Observable<{ observedLocations: ObservedLocation[]; observedLocationsCount?: number; }>;
+    let now = this._debug && Date.now();
+    if (this._debug) console.debug("[observed-location-service] Watching observed locations... using options:", variables);
 
-    // Offline
-    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
-    if (offline) {
-      $loadResult = this.entities.watchAll<ObservedLocation>(ObservedLocation.TYPENAME, {
-        ...variables,
-        filter: TripFilter.searchFilter<Trip>(dataFilter)
-      })
-        .pipe(
-          map(res => {
-            return {observedLocations: res && res.data, observedLocationsCount: res && res.total};
-          }));
-    } else {
-      $loadResult = this.mutableWatchQuery<{ observedLocations: ObservedLocation[]; observedLocationsCount: number }>({
+    return this.mutableWatchQuery<{ observedLocations: ObservedLocation[]; observedLocationsCount: number }>({
         queryName: 'LoadAll',
         query: LoadAllQuery,
         arrayFieldName: 'observedLocations',
@@ -290,12 +282,8 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
         error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ALL_ERROR"},
         fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
       })
-        .pipe(
-          filter(() => !this.loading)
-        );
-    }
-    return $loadResult
       .pipe(
+        filter(() => !this.loading),
         map(res => {
           const data = (res && res.observedLocations || []).map(ObservedLocation.fromObject);
           const total = res && isNotNil(res.observedLocationsCount) ? res.observedLocationsCount : undefined;
@@ -307,6 +295,32 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
               console.debug(`[observed-location-service] Refreshed {${data.length || 0}} observed locations`);
             }
           }
+          return {data, total};
+        }));
+  }
+
+  watchAllLocally(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
+           dataFilter?: ObservedLocationFilter,
+           opts?: EntitiesServiceWatchOptions): Observable<LoadResult<ObservedLocation>> {
+
+    const variables: any = {
+      offset: offset || 0,
+      size: size || 20,
+      sortBy: sortBy || 'startDateTime',
+      sortDirection: sortDirection || 'asc',
+      filter: ObservedLocationFilter.asPodObject(dataFilter)
+    };
+
+    console.debug("[observed-location-service] Loading observed locations locally... using options:", variables);
+
+    return this.entities.watchAll<ObservedLocation>(ObservedLocation.TYPENAME, {
+        ...variables,
+        filter: TripFilter.searchFilter<Trip>(dataFilter)
+      })
+      .pipe(
+        map(res => {
+          const data = (res && res.data || []).map(ObservedLocation.fromObject);
+          const total = res && isNotNil(res.total) ? res.total : undefined;
           return {data, total};
         }));
   }

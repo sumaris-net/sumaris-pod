@@ -235,6 +235,8 @@ export class TripFilter {
   }
 
   static searchFilter<T extends Trip>(f: TripFilter): (T) => boolean {
+    if (!f) return undefined;
+
     const filterFns: FilterFn<T>[] = [];
 
     // Program

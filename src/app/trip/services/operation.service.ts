@@ -132,6 +132,8 @@ export const OperationFragments = {
 export class OperationFilter {
 
   static searchFilter<T extends Operation>(f: OperationFilter): (T) => boolean {
+    if (!f) return undefined;
+
     const filterFns: FilterFn<T>[] = [];
 
     // Exclude id
