@@ -5,11 +5,11 @@ import {
   QualityFlagIds
 } from "./model/model.enum";
 import {
-  EditorDataService, EditorDataServiceLoadOptions, isNil,
+  EntityService, EntityServiceLoadOptions, isNil,
   isNilOrBlank,
   isNotEmptyArray, isNotNil,
   LoadResult,
-  TableDataService
+  EntitiesService
 } from "../../shared/shared.module";
 
 import {
@@ -30,13 +30,14 @@ import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/enti
 import {LoadFeaturesQuery, VesselFeaturesFragments, VesselFeaturesService} from "./vessel-features.service";
 import {LoadRegistrationsQuery, RegistrationFragments, VesselRegistrationService} from "./vessel-registration.service";
 import {NetworkService} from "../../core/services/network.service";
-import {EntityStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
 import {Vessel} from "./model/vessel.model";
-import {BaseDataService} from "../../core/services/base.data-service.class";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
 import {Person} from "../../core/services/model/person.model";
 import {Department} from "../../core/services/model/department.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {VesselSnapshot} from "./model/vessel-snapshot.model";
+import {SortDirection} from "@angular/material/sort";
 
 export class VesselFilter {
   date?: Date | Moment;
@@ -188,13 +189,13 @@ const DeleteVessels: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class VesselService
-  extends BaseDataService
-  implements TableDataService<Vessel, VesselFilter>, EditorDataService<Vessel> {
+  extends BaseEntityService
+  implements EntitiesService<Vessel, VesselFilter>, EntityService<Vessel> {
 
   constructor(
     protected graphql: GraphqlService,
     protected network: NetworkService,
-    protected entities: EntityStorage,
+    protected entities: EntitiesStorage,
     private accountService: AccountService,
     private vesselFeatureService: VesselFeaturesService,
     private vesselRegistrationService: VesselRegistrationService,
@@ -213,7 +214,7 @@ export class VesselService
   watchAll(offset: number,
            size: number,
            sortBy?: string,
-           sortDirection?: string,
+           sortDirection?: SortDirection,
            filter?: VesselFilter): Observable<LoadResult<Vessel>> {
 
     const variables: any = {
@@ -229,14 +230,15 @@ export class VesselService
       }
     };
 
-    this._lastVariables.loadAll = variables;
-    this._lastVariables.load = undefined;
-
     const now = Date.now();
     if (this._debug) console.debug("[vessel-service] Getting vessels using options:", variables);
 
-    return this.graphql.watchQuery<{ vessels: any[]; vesselsCount: number }>({
+    return this.mutableWatchQuery<{ vessels: any[]; vesselsCount: number }>({
+      queryName: 'LoadAll',
       query: LoadAllQuery,
+      arrayFieldName: 'vessels',
+      totalFieldName: 'vesselsCount',
+      insertFilterFn: VesselFilter.searchFilter(filter),
       variables: variables,
       error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"}
     })
@@ -254,13 +256,10 @@ export class VesselService
       );
   }
 
-  async load(id: number, opts?: EditorDataServiceLoadOptions): Promise<Vessel | null> {
+  async load(id: number, opts?: EntityServiceLoadOptions): Promise<Vessel | null> {
     console.debug("[vessel-service] Loading vessel " + id);
 
     const variables: any = {vesselId: id};
-
-    this._lastVariables.load = variables;
-    this._lastVariables.loadAll = undefined;
 
     const data = await this.graphql.query<{ vessel: any }>({
       query: LoadQuery,
@@ -313,21 +312,21 @@ export class VesselService
             });
 
             // update features history FIXME: marche pas
-            if (options && options.isNewFeatures && this.vesselFeatureService.lastVariables) {
+            if (options && options.isNewFeatures) {
               const lastFeatures = vessels[vessels.length - 1].features;
-              this.graphql.addToQueryCache(proxy, {
+              this.vesselFeatureService.insertIntoMutableCachedQuery(proxy, {
                 query: LoadFeaturesQuery,
-                variables: this.vesselFeatureService.lastVariables
-              }, 'vesselFeaturesHistory', lastFeatures);
+                data: lastFeatures
+              });
             }
 
             // update registration history FIXME: marche pas
-            if (options && options.isNewRegistration && this.vesselRegistrationService.lastVariables) {
+            if (options && options.isNewRegistration) {
               const lastRegistration = vessels[vessels.length - 1].registration;
-              this.graphql.addToQueryCache(proxy, {
+              this.vesselRegistrationService.insertIntoMutableCachedQuery(proxy, {
                 query: LoadRegistrationsQuery,
-                variables: this.vesselRegistrationService.lastVariables
-              }, 'vesselRegistrationHistory', lastRegistration);
+                data: lastRegistration
+              });
             }
 
           }
@@ -417,18 +416,11 @@ export class VesselService
             if (this._debug) console.debug(`[vessel-service] Vessel Feature saved in ${Date.now() - now}ms`, savedVessel);
 
             // Add to cache
-            if (isNew && this._lastVariables.loadAll) {
-              this.graphql.addToQueryCache(proxy, {
+            if (isNew) {
+              this.insertIntoMutableCachedQuery(proxy, {
                 query: LoadAllQuery,
-                variables: this._lastVariables.loadAll
-              }, 'vessels', savedVessel);
-            }
-            // Update cache
-            else if (this._lastVariables.load) {
-              this.graphql.updateToQueryCache(proxy, {
-                query: LoadQuery,
-                variables: this._lastVariables.load
-              }, 'vessel', savedVessel);
+                data: savedVessel
+              });
             }
 
           }
@@ -450,6 +442,7 @@ export class VesselService
       .map(t => t.id)
       .filter(id => (id > 0));
 
+    const now = Date.now();
     console.debug("[vessel-service] Deleting vessels... ids:", ids);
 
     await this.graphql.mutate<any>({
@@ -459,16 +452,11 @@ export class VesselService
       },
       update: (proxy, {data}) => {
         // Update the cache
-        if (this._lastVariables.loadAll) {
-          this.graphql.removeToQueryCacheByIds(proxy, {
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'vessels', ids);
-          this.graphql.updateToQueryCache(proxy, {
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'vesselCount', null);
-        }
+        this.removeFromMutableCachedQueryByIds(proxy, {
+          query: LoadAllQuery,
+          ids
+        });
+        if (this._debug) console.debug(`[vessel-service] Vessels deleted in ${Date.now() - now}ms`);
       }
     });
   }

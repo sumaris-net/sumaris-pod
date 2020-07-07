@@ -1,33 +1,21 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component, Inject,
-  Injector,
-  OnInit,
-  Optional,
-  ViewChild
-} from "@angular/core";
-import {ActivatedRouteSnapshot} from "@angular/router";
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {ChangeDetectorRef, Injector, OnInit, ViewChild} from "@angular/core";
+import {AbstractControl, FormArray, FormGroup} from "@angular/forms";
 import {EntityUtils} from '../../core/services/model/entity.model';
 import {Software} from '../../core/services/model/config.model';
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 import {PlatformService} from "../../core/services/platform.service";
-import {AppEditor, DataService, isNil} from "../../core/core.module";
+import {AppEntityEditor, isNil} from "../../core/core.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialForm} from "../form/referential.form";
 import {SoftwareService} from "../services/software.service";
 import {SoftwareValidatorService} from "../services/validator/software.validator";
-import {APP_CONFIG_OPTIONS, ConfigService} from "../../core/services/config.service";
-import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {AppEditorOptions} from "../../core/form/editor.class";
 import {ConfigOptions} from "../../core/services/config/core.config";
-import {Program} from "../services/model/program.model";
 
 
 export abstract class AbstractSoftwarePage<T extends Software<T>, S extends SoftwareService<T>>
-  extends AppEditor<T, S>
+  extends AppEntityEditor<T, S>
   implements OnInit {
 
   protected accountService: AccountService;

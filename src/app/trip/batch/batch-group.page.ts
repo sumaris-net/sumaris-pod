@@ -1,9 +1,9 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 import {isNil, isNotNilOrBlank} from '../../shared/functions';
-import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {ModalController} from "@ionic/angular";
 import {BehaviorSubject, of, Subject} from "rxjs";
-import {AppEditor} from "../../core/form/editor.class";
+import {AppEntityEditor} from "../../core/form/editor.class";
 import {FormGroup} from "@angular/forms";
 import {OperationService} from "../services/operation.service";
 import {ProgramService} from "../../referential/services/program.service";
@@ -19,7 +19,7 @@ import {BatchGroup} from "../services/model/batch-group.model";
   templateUrl: './batch-group.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupPage extends AppEditor<BatchGroup, any> implements OnInit {
+export class BatchGroupPage extends AppEntityEditor<BatchGroup, any> implements OnInit {
 
   programSubject = new BehaviorSubject<string>(undefined);
 
@@ -98,14 +98,14 @@ export class BatchGroupPage extends AppEditor<BatchGroup, any> implements OnInit
     this.addChildForm(this.batchGroupForm);
   }
 
-  protected async onNewEntity(data: Batch, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: Batch, options?: EntityServiceLoadOptions): Promise<void> {
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
       //data.startDateTime = moment();
     }
   }
 
-  protected async onEntityLoaded(data: Batch, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: Batch, options?: EntityServiceLoadOptions): Promise<void> {
     // nothing to do
   }
 

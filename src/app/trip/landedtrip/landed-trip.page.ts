@@ -3,7 +3,7 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {environment, isNotNil, ReferentialRef} from '../../core/core.module';
 import {
-  EditorDataServiceLoadOptions,
+  EntityServiceLoadOptions,
   fadeInOutAnimation,
   isNil,
   isNotEmptyArray,
@@ -18,7 +18,7 @@ import {TripForm} from "../trip/trip.form";
 import {BehaviorSubject} from "rxjs";
 import {TripService, TripServiceSaveOption} from "../services/trip.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
-import {EntityStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {isEmptyArray} from "../../shared/functions";
@@ -85,7 +85,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   constructor(
     injector: Injector,
-    protected entities: EntityStorage,
+    protected entities: EntitiesStorage,
     protected dataService: TripService,
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
@@ -188,7 +188,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   }
 
 
-  async load(id?: number, options?: EditorDataServiceLoadOptions): Promise<void> {
+  async load(id?: number, options?: EntityServiceLoadOptions): Promise<void> {
 
     this.observedLocationId = options && options.observedLocationId || this.observedLocationId;
     this.defaultBackHref = `/observations/${this.observedLocationId}`;
@@ -196,7 +196,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     return super.load(id, {isLandedTrip: true, ...options});
   }
 
-  protected async onNewEntity(data: Trip, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
 
     // Read options and query params
     console.info(options);

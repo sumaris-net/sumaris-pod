@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
-import {AppTable, AppTableDataSource, isNil, isNotNil} from "../../../core/core.module";
+import {AppTable, EntitiesTableDataSource, isNil, isNotNil} from "../../../core/core.module";
 import { Person, PRIORITIZED_USER_PROFILES} from "../../../core/services/model/person.model";
 import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
 import {PersonFilter, PersonService} from "../../services/person.service";
@@ -63,7 +63,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
         ])
         .concat(accountService.additionalFields.map(field => field.key))
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Person, PersonFilter>(Person, dataService, validatorService, {
+      new EntitiesTableDataSource<Person, PersonFilter>(Person, dataService, validatorService, {
         prependNewElements: false,
         suppressErrors: true,
         dataServiceOptions: {

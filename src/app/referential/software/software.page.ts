@@ -1,28 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component, Inject,
-  Injector,
-  OnInit,
-  Optional,
-  ViewChild
-} from "@angular/core";
-import {ActivatedRouteSnapshot} from "@angular/router";
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {EntityUtils} from '../../core/services/model/entity.model';
+import {ChangeDetectionStrategy, Component, Inject, Injector, Optional} from "@angular/core";
 import {Software} from '../../core/services/model/config.model';
-import {FormArrayHelper} from "../../core/form/form.utils";
-import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
-import {PlatformService} from "../../core/services/platform.service";
-import {AppEditor, DataService, isNil} from "../../core/core.module";
-import {AccountService} from "../../core/services/account.service";
-import {ReferentialForm} from "../form/referential.form";
+import {FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {SoftwareService} from "../services/software.service";
 import {SoftwareValidatorService} from "../services/validator/software.validator";
-import {APP_CONFIG_OPTIONS, ConfigService} from "../../core/services/config.service";
-import {EditorDataService} from "../../shared/services/data-service.class";
-import {AppEditorOptions} from "../../core/form/editor.class";
-import {ConfigOptions} from "../../core/services/config/core.config";
+import {APP_CONFIG_OPTIONS} from "../../core/services/config.service";
 import {AbstractSoftwarePage} from "./abstract-software.page";
 
 

@@ -9,7 +9,7 @@ import {Location} from "@angular/common";
 import {AccountService} from "../../../core/services/account.service";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {VesselFilter} from "../../services/vessel-service";
-import {AppTableDataSource} from "../../../core/table/table-datasource.class";
+import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
 import {environment} from "../../../../environments/environment";
 import {VesselRegistrationService} from "../../services/vessel-registration.service";
 import {VesselRegistrationValidatorService} from "../../services/validator/vessel-registration.validator";
@@ -50,7 +50,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
         'registrationCode',
         'registrationLocation']
       ,
-      new AppTableDataSource<VesselRegistration, VesselFilter>(VesselRegistration, vesselRegistrationService, vesselRegistrationValidator, {
+      new EntitiesTableDataSource<VesselRegistration, VesselFilter>(VesselRegistration, vesselRegistrationService, vesselRegistrationValidator, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

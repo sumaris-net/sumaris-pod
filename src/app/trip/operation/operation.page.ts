@@ -3,12 +3,12 @@ import {OperationSaveOptions, OperationService} from '../services/operation.serv
 import {OperationForm} from './operation.form';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AppEditor, AppTableUtils, EntityUtils, environment} from '../../core/core.module';
+import {AppEntityEditor, AppTableUtils, EntityUtils, environment} from '../../core/core.module';
 import {CatchBatchForm} from '../catch/catch.form';
 import {ReferentialUtils} from '../../core/services/model/referential.model';
 import {HistoryPageReference, UsageMode} from '../../core/services/model/settings.model';
 import {
-  EditorDataServiceLoadOptions,
+  EntityServiceLoadOptions,
   fadeInOutAnimation,
   isNil,
   isNotEmptyArray,
@@ -34,6 +34,7 @@ import {ProgramProperties} from "../../referential/services/config/program.confi
 import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
 import {ProgramService} from "../../referential/services/program.service";
 import {TranslateService} from "@ngx-translate/core";
+import {IEntity} from "../../core/services/model/entity.model";
 
 @Component({
   selector: 'app-operation-page',
@@ -42,7 +43,7 @@ import {TranslateService} from "@ngx-translate/core";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationPage extends AppEditor<Operation, OperationService> implements OnInit, AfterViewInit, OnDestroy {
+export class OperationPage extends AppEntityEditor<Operation, OperationService> implements OnInit, AfterViewInit, OnDestroy {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.OPERATION;
 
@@ -50,9 +51,9 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
   programSubject = new BehaviorSubject<string>(null);
   onProgramChanged = new Subject<Program>();
   saveOptions: OperationSaveOptions = {};
+  readonly dateTimePattern: string;
   $lastOperations = new BehaviorSubject<Operation[]>(null);
   private _lastOperationsSubscription: Subscription;
-  private dateTimePattern: string;
 
   rankOrder: number;
   selectedBatchTabIndex = 0;
@@ -349,7 +350,11 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
     );
   }
 
-  async onNewEntity(data: Operation, options?: EditorDataServiceLoadOptions): Promise<void> {
+  ngOnDestroy() {
+    super.ngOnDestroy();
+  }
+
+  async onNewEntity(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
     const tripId = options && isNotNil(options.tripId) ? +(options.tripId) :
       isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
     if (isNil(tripId)) throw new Error("Missing argument 'options.tripId'!");
@@ -390,7 +395,7 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
     this.defaultBackHref = trip ? `/trips/${trip.id}?tab=2` : undefined;
   }
 
-  async onEntityLoaded(data: Operation, options?: EditorDataServiceLoadOptions): Promise<void> {
+  async onEntityLoaded(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
     const tripId = options && isNotNil(options.tripId) ? +(options.tripId) :
       isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
     if (isNil(tripId)) throw new Error("Missing argument 'options.tripId'!");
@@ -408,7 +413,7 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
     }
 
     this.defaultBackHref = trip ? `/trips/${trip.id}?tab=2` : undefined;
-    this.markForCheck();
+    //this.markForCheck();
   }
 
 
@@ -611,12 +616,12 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
     }
   }
 
-  /* -- protected method -- */
-
-  protected sameOperation(ope: Operation): boolean {
-    return (this.isNewData && isNil(ope.id))
-      || (this.data.id == ope.id);
+  isCurrentData(other: IEntity<any>): boolean {
+    return (this.isNewData && isNil(other.id))
+      || (this.data && this.data.id == other.id);
   }
+
+  /* -- protected method -- */
 
 
   /**
@@ -806,15 +811,17 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
 
   protected loadLastOperations(tripId: number, data?: Operation): Observable<Operation[]> {
     if (this._lastOperationsSubscription) {
+      this._lastOperationsSubscription.unsubscribe();
       this.unregisterSubscription(this._lastOperationsSubscription);
     }
 
     // Load last trip's operations
-    this._lastOperationsSubscription = this.dataService.watchAll(0, 1000, 'startDateTime', 'desc', {
+    this._lastOperationsSubscription = this.dataService.watchAll(0, 10, 'startDateTime', 'desc', {
         tripId
       }, {
         withBatchTree: false,
-        withSamples: false
+        withSamples: false,
+        fetchPolicy: 'cache-first'
       }).pipe(
         // Ignore event due to save action
         //filter(res => !this.saving),
@@ -823,15 +830,18 @@ export class OperationPage extends AppEditor<Operation, OperationService> implem
         map(res => res && res.data || []),
 
         map(items => {
-          data = this.data || data;
+          data = this.data || data;
           // Make sure current OPE exists
           const index = data && isNotNil(data.id) ? items.findIndex(item => item.id === data.id) : -1;
           if (index === -1 && data) {
-            return [data].concat(items);
+            return [data].concat(items).sort(EntityUtils.sortComparator('startDateTime', 'desc'));
           }
           return items;
         })
       ).subscribe(data => this.$lastOperations.next(data));
+    this._lastOperationsSubscription.add(() => {
+      console.debug('[operation] Completed last operations observable');
+    })
     this.registerSubscription(this._lastOperationsSubscription);
 
 

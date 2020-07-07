@@ -215,7 +215,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         switchMap(() => {
           if (!this.ready || this.loading || isNil(this.type)) return; // avoid multiple load
           console.debug('[extraction-map] Refreshing...');
-          return this.loadData();
+          return this.load();
         })
       ).subscribe(() => this.markAsPristine())
     );
@@ -251,7 +251,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   }
 
   protected watchTypes(): Observable<AggregationType[]> {
-    return this.service.loadAggregationTypes(this.typesFilter)
+    return this.service.watchAggregationTypes(this.typesFilter)
       .pipe(
         map(types => {
           // Compute name, if need
@@ -349,7 +349,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         strata
       });
 
-      await this.loadData();
+      await this.load();
 
       hasData = this.hasData;
     }
@@ -358,7 +358,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     return hasData;
   }
 
-  protected async loadData() {
+  async loadData() {
     if (!this.ready) return;
     if (!this.type || !this.type.category || !this.type.label) {
       this.loading = false;

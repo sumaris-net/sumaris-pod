@@ -6,7 +6,7 @@ import {environment} from "../../../environments/environment";
 import {catchError, map, switchMap, throttleTime} from "rxjs/operators";
 import {Entity, EntityUtils} from "./model/entity.model";
 import {isEmptyArray, isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
-import {LoadResult} from "../../shared/services/data-service.class";
+import {LoadResult} from "../../shared/services/entity-service.class";
 
 
 export const ENTITIES_STORAGE_KEY = "entities";
@@ -199,7 +199,7 @@ export class EntityStore<T extends Entity<T>> {
 }
 
 @Injectable({providedIn: 'root'})
-export class EntityStorage {
+export class EntitiesStorage {
 
   private _started = false;
   private _startPromise: Promise<void>;

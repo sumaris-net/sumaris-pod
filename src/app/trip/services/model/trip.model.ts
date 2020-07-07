@@ -383,15 +383,9 @@ export class Operation extends DataEntity<Operation, OperationAsObjectOptions, O
     delete target.endPosition;
 
     // Physical gear
-    if (opts && opts.minify && this.physicalGear && this.physicalGear.id >= 0) {
-      // Existing gear: keep only the id
-      target.physicalGearId = this.physicalGear && this.physicalGear.id;
-      delete target.physicalGear;
-    } else if (this.physicalGear) {
-      // Not minify or local physical gear (id < 0)
-      target.physicalGear = this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
-      delete target.physicalGear.measurementValues;
-    }
+    target.physicalGear = this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
+    delete target.physicalGear.measurementValues;
+    target.physicalGearId = this.physicalGear && this.physicalGear.id;
 
     // Metier
     target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/}) || undefined;
@@ -469,12 +463,12 @@ export class Operation extends DataEntity<Operation, OperationAsObjectOptions, O
     this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || undefined;
 
     // Samples
-    if (!opts || opts.withSamples !== false) {
+    if (!opts || opts.withSamples !== false) {
       this.samples = source.samples && source.samples.map(source => Sample.fromObject(source, {withChildren: true})) || undefined;
     }
 
     // Batches
-    if (!opts || opts.withBatchTree !== false) {
+    if (!opts || opts.withBatchTree !== false) {
       this.catchBatch = source.catchBatch && !source.batches ?
         // Reuse existing catch batch (useful for local entity)
         Batch.fromObject(source.catchBatch, {withChildren: true}) :

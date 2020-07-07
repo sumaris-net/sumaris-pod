@@ -5,12 +5,13 @@ import {PmfmIds} from "../../referential/services/model/model.enum";
 import {SubSampleValidatorService} from "../services/validator/sub-sample.validator";
 import {isNil, isNotNil} from "../../shared/functions";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {filterNotNil, firstFalsePromise} from "../../shared/observables";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {Sample} from "../services/model/sample.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {SortDirection} from "@angular/material/sort";
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -38,7 +39,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   private _availableParents: Sample[] = [];
 
   protected cd: ChangeDetectorRef;
-  protected memoryDataService: InMemoryTableDataService<Sample, SubSampleFilter>;
+  protected memoryDataService: InMemoryEntitiesService<Sample, SubSampleFilter>;
 
   displayParentPmfm: PmfmStrategy;
 
@@ -86,7 +87,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   ) {
     super(injector,
       Sample,
-      new InMemoryTableDataService<Sample, SubSampleFilter>(Sample, {
+      new InMemoryEntitiesService<Sample, SubSampleFilter>(Sample, {
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => {
           this.linkDataToParent(data);
@@ -102,7 +103,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
         reservedEndColumns: SUB_SAMPLE_RESERVED_END_COLUMNS
       }
     );
-    this.memoryDataService = (this.dataService as InMemoryTableDataService<Sample, SubSampleFilter>);
+    this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SubSampleFilter>);
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
     // TODO: override openDetailModal(), then uncomment :
@@ -296,7 +297,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     }
   }
 
-  protected sortData(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {
+  protected sortData(data: Sample[], sortBy?: string, sortDirection?: SortDirection): Sample[] {
     sortBy = (sortBy !== 'parent') && sortBy || 'parent.rankOrder'; // Replace parent by its rankOrder
     return this.memoryDataService.sort(data, sortBy, sortDirection);
   }

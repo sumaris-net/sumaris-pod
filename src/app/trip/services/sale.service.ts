@@ -2,8 +2,8 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService, EntityUtils} from "../../core/core.module";
+import {LoadResult, EntitiesService} from "../../shared/shared.module";
+import {BaseEntityService, EntityUtils} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
@@ -13,6 +13,7 @@ import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.mode
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {Sale} from "./model/sale.model";
 import {Sample} from "./model/sample.model";
+import {SortDirection} from "@angular/material/sort";
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {
@@ -127,7 +128,7 @@ const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
 };
 
 @Injectable({providedIn: 'root'})
-export class SaleService extends BaseDataService<Sale, SaleFilter> implements TableDataService<Sale, SaleFilter>{
+export class SaleService extends BaseEntityService<Sale, SaleFilter> implements EntitiesService<Sale, SaleFilter>{
 
   constructor(
     protected graphql: GraphqlService,
@@ -150,7 +151,7 @@ export class SaleService extends BaseDataService<Sale, SaleFilter> implements Ta
   watchAll(offset: number,
            size: number,
            sortBy?: string,
-           sortDirection?: string,
+           sortDirection?: SortDirection,
            filter?: SaleFilter,
            options?: {
              fetchPolicy?: WatchQueryFetchPolicy
@@ -163,10 +164,13 @@ export class SaleService extends BaseDataService<Sale, SaleFilter> implements Ta
       sortDirection: sortDirection || 'asc',
       filter: filter
     };
-    this._lastVariables.loadAll = variables;
 
     if (this._debug) console.debug("[sale-service] Loading sales... using options:", variables);
-    return this.graphql.watchQuery<{ sales?: Sale[] }>({
+    return this.mutableWatchQuery<{ sales: Sale[] }>({
+      queryName: 'LoadAll',
+      arrayFieldName: 'sales',
+      //TODO implement SaleFilter.searchFilter()
+      // mutationFilterFn: SaleFilter.searchFilter(filter),
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_SALES_ERROR, message: "TRIP.SALE.ERROR.LOAD_SALES_ERROR" },
@@ -331,11 +335,11 @@ export class SaleService extends BaseDataService<Sale, SaleFilter> implements Ta
         }
 
         // Update the cache
-        if (isNew && this._lastVariables.loadAll) {
-          this.graphql.addToQueryCache(proxy, {
+        if (isNew) {
+          this.insertIntoMutableCachedQuery(proxy, {
             query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'sales', entity.asObject());
+            data: savedEntity
+          });
         }
       }
     });
@@ -359,16 +363,14 @@ export class SaleService extends BaseDataService<Sale, SaleFilter> implements Ta
     await this.graphql.mutate<any>({
       mutation: DeleteSales,
       variables: {
-        ids: ids
+        ids
       },
       update: (proxy) => {
         // Remove from cache
-        if (this._lastVariables.loadAll) {
-          this.graphql.removeToQueryCacheByIds(proxy,{
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'sales', ids);
-        }
+        this.removeFromMutableCachedQueryByIds(proxy,{
+          query: LoadAllQuery,
+          ids
+        });
 
         if (this._debug) console.debug(`[sale-service] Sale deleted in ${Date.now() - now}ms`);
       }

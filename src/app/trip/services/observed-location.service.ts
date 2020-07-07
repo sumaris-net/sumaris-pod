@@ -1,11 +1,12 @@
 import {Injectable, Injector} from "@angular/core";
 import {
-  EditorDataService,
-  EditorDataServiceLoadOptions,
-  LoadResult,
-  TableDataService,
-  TableDataServiceWatchOptions
-} from "../../shared/services/data-service.class";
+  EntitiesService,
+  EntitiesServiceWatchOptions,
+  EntityService,
+  EntityServiceLoadOptions,
+  FilterFn,
+  LoadResult
+} from "../../shared/services/entity-service.class";
 import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import {Moment} from "moment";
@@ -13,14 +14,19 @@ import {environment} from "../../../environments/environment";
 import gql from "graphql-tag";
 import {Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
-import {map} from "rxjs/operators";
+import {filter, map} from "rxjs/operators";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {RootDataService} from "./root-data-service.class";
 import {DataEntityAsObjectOptions, SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {FormErrors} from "../../core/form/form.utils";
 import {ObservedLocation} from "./model/observed-location.model";
-import {Beans, isNil, isNotNil, KeysEnum, toDateISOString} from "../../shared/functions";
+import {Beans, fromDateISOString, isNil, isNotNil, KeysEnum, toDateISOString} from "../../shared/functions";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
+import {SortDirection} from "@angular/material/sort";
+import {Trip} from "./model/trip.model";
+import {TripFilter} from "./trip.service";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {NetworkService} from "../../core/services/network.service";
 
 
 export class ObservedLocationFilter {
@@ -36,6 +42,71 @@ export class ObservedLocationFilter {
     return Beans.isEmpty<ObservedLocationFilter>({...f, synchronizationStatus: null}, ObservedLocationFilterKeys, {
       blankStringLikeEmpty: true
     });
+  }
+
+  static searchFilter<T extends ObservedLocation>(f: ObservedLocationFilter): (T) => boolean {
+    const filterFns: FilterFn<T>[] = [];
+
+    // Program
+    if (f.programLabel) {
+      filterFns.push(t => (t.program && t.program.label === f.programLabel));
+    }
+
+    // Location
+    if (isNotNil(f.locationId)) {
+      filterFns.push(t => (t.location && t.location.id === f.locationId))
+    }
+
+    // Start/end period
+    const startDate = fromDateISOString(f.startDate);
+    let endDate = fromDateISOString(f.endDate);
+    if (startDate) {
+      filterFns.push(t => t.endDateTime ? startDate.isSameOrBefore(t.endDateTime) : startDate.isSameOrBefore(t.startDateTime))
+    }
+    if (endDate) {
+      endDate = endDate.add(1, 'day');
+      filterFns.push(t => t.startDateTime && endDate.isAfter(t.startDateTime))
+    }
+
+    // Recorder department
+    if (isNotNil(f.recorderDepartmentId)) {
+      filterFns.push(t => (t.recorderDepartment && t.recorderDepartment.id === f.recorderDepartmentId));
+    }
+
+    // Recorder person
+    if (isNotNil(f.recorderPersonId)) {
+      filterFns.push(t => (t.recorderPerson && t.recorderPerson.id === f.recorderPersonId));
+    }
+
+    // Synchronization status
+    if (f.synchronizationStatus) {
+      filterFns.push(t => // Check trip synchro status, if any
+        (t.synchronizationStatus && t.synchronizationStatus === f.synchronizationStatus)
+        // Else, if SYNC is wanted: must be remote (not local) id
+        || (f.synchronizationStatus === 'SYNC' && !t.synchronizationStatus && t.id >= 0)
+        // Or else, if DIRTY or READY_TO_SYNC wanted: must be local id
+        || (f.synchronizationStatus !== 'SYNC' && !t.synchronizationStatus && t.id < 0));
+    }
+
+    if (!filterFns.length) return undefined;
+
+    return (entity) => !filterFns.find(fn => !fn(entity));
+  }
+
+  /**
+   * Clean a filter, before sending to the pod (e.g remove 'synchronizationStatus')
+   * @param f
+   */
+  static asPodObject(f: ObservedLocationFilter): any {
+    if (!f) return f;
+    return {
+      ...f,
+      // Serialize all dates
+      startDate: f && toDateISOString(f.startDate),
+      endDate: f && toDateISOString(f.endDate),
+      // Remove fields that not exists in pod
+      synchronizationStatus: undefined
+    };
   }
 }
 
@@ -160,13 +231,17 @@ const UpdateSubscription = gql`
 
 @Injectable({providedIn: "root"})
 export class ObservedLocationService extends RootDataService<ObservedLocation, ObservedLocationFilter>
-  implements TableDataService<ObservedLocation, ObservedLocationFilter>,
-    EditorDataService<ObservedLocation> {
+  implements EntitiesService<ObservedLocation, ObservedLocationFilter>,
+    EntityService<ObservedLocation> {
+
+  protected loading = false;
 
   constructor(
     injector: Injector,
     protected graphql: GraphqlService,
-    protected accountService: AccountService
+    protected accountService: AccountService,
+    protected network: NetworkService,
+    protected entities: EntitiesStorage
   ) {
     super(injector);
 
@@ -174,38 +249,52 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
     this._debug = !environment.production;
   }
 
-  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: string,
+  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
            dataFilter?: ObservedLocationFilter,
-           opts?: TableDataServiceWatchOptions): Observable<LoadResult<ObservedLocation>> {
+           opts?: EntitiesServiceWatchOptions): Observable<LoadResult<ObservedLocation>> {
 
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
       sortBy: sortBy || 'startDateTime',
       sortDirection: sortDirection || 'asc',
-      filter: {
-        ...dataFilter,
-        // Serialize all dates
-        startDate: dataFilter && toDateISOString(dataFilter.startDate),
-        endDate: dataFilter && toDateISOString(dataFilter.endDate),
-        // Remove fields that not exists in pod
-        synchronizationStatus: undefined
-      }
+      filter: ObservedLocationFilter.asPodObject(dataFilter)
     };
-
-    this._lastVariables.loadAll = variables;
 
     let now;
     if (this._debug) {
       now = Date.now();
       console.debug("[observed-location-service] Watching observed locations... using options:", variables);
     }
-    return this.graphql.watchQuery<{ observedLocations: ObservedLocation[]; observedLocationsCount: number }>({
-      query: LoadAllQuery,
-      variables: variables,
-      error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ALL_ERROR"},
-      fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
-    })
+    let $loadResult: Observable<{ observedLocations: ObservedLocation[]; observedLocationsCount?: number; }>;
+
+    // Offline
+    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    if (offline) {
+      $loadResult = this.entities.watchAll<ObservedLocation>(ObservedLocation.TYPENAME, {
+        ...variables,
+        filter: TripFilter.searchFilter<Trip>(dataFilter)
+      })
+        .pipe(
+          map(res => {
+            return {observedLocations: res && res.data, observedLocationsCount: res && res.total};
+          }));
+    } else {
+      $loadResult = this.mutableWatchQuery<{ observedLocations: ObservedLocation[]; observedLocationsCount: number }>({
+        queryName: 'LoadAll',
+        query: LoadAllQuery,
+        arrayFieldName: 'observedLocations',
+        totalFieldName: 'observedLocationsCount',
+        insertFilterFn: ObservedLocationFilter.searchFilter(dataFilter),
+        variables: variables,
+        error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ALL_ERROR"},
+        fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
+      })
+        .pipe(
+          filter(() => !this.loading)
+        );
+    }
+    return $loadResult
       .pipe(
         map(res => {
           const data = (res && res.observedLocations || []).map(ObservedLocation.fromObject);
@@ -218,31 +307,34 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
               console.debug(`[observed-location-service] Refreshed {${data.length || 0}} observed locations`);
             }
           }
-          return {
-            data: data,
-            total: total
-          };
+          return {data, total};
         }));
   }
 
-  async load(id: number, opts?: EditorDataServiceLoadOptions): Promise<ObservedLocation> {
+  async load(id: number, opts?: EntityServiceLoadOptions): Promise<ObservedLocation> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = Date.now();
     if (this._debug) console.debug(`[observed-location-service] Loading observed location {${id}}...`);
+    this.loading = true;
 
-    const res = await this.graphql.query<{ observedLocation: ObservedLocation }>({
-      query: LoadQuery,
-      variables: {
-        id: id
-      },
-      error: {code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR"},
-      fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
-    });
-    const data = res && res.observedLocation && ObservedLocation.fromObject(res.observedLocation);
-    if (data && this._debug) console.debug(`[observed-location-service] Observed location #${id} loaded in ${Date.now() - now}ms`, data);
+    try {
+      const res = await this.graphql.query<{ observedLocation: ObservedLocation }>({
+        query: LoadQuery,
+        variables: {
+          id: id
+        },
+        error: {code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR"},
+        fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
+      });
+      const data = res && res.observedLocation && ObservedLocation.fromObject(res.observedLocation);
+      if (data && this._debug) console.debug(`[observed-location-service] Observed location #${id} loaded in ${Date.now() - now}ms`, data);
 
-    return data;
+      return data;
+    }
+    finally {
+      this.loading = false;
+    }
   }
 
   public listenChanges(id: number): Observable<ObservedLocation> {
@@ -302,11 +394,11 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
         }
 
         // Add to cache
-        if (isNew && this._lastVariables.loadAll) {
-          this.graphql.addToQueryCache(proxy, {
+        if (isNew) {
+          this.insertIntoMutableCachedQuery(proxy, {
             query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'observedLocations', savedEntity);
+            data: savedEntity
+          });
         }
       }
     });
@@ -364,12 +456,10 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
       },
       update: (proxy) => {
         // Update the cache
-        if (this._lastVariables.loadAll) {
-          this.graphql.removeToQueryCacheByIds(proxy, {
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'observedLocations', ids);
-        }
+        this.removeFromMutableCachedQueryByIds(proxy, {
+          query: LoadAllQuery,
+          ids
+        });
 
         if (this._debug) console.debug(`[observed-location-service] Observed locations deleted in ${Date.now() - now}ms`);
 

@@ -1,13 +1,13 @@
 import {Directive, Injector, Input} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {AppTable, AppTableDataSource, Entity} from "../../core/core.module";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {AppTable, EntitiesTableDataSource, Entity} from "../../core/core.module";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {isEmptyArray} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppTableDataSourceOptions} from "./table-datasource.class";
+import {AppTableDataSourceOptions} from "./entities-table-datasource.class";
 
 @Directive()
 export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends AppTable<T, F> {
@@ -31,7 +31,7 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
     protected injector: Injector,
     protected columns: string[],
     protected dataType: new () => T,
-    protected memoryDataService: InMemoryTableDataService<T, F>,
+    protected memoryDataService: InMemoryEntitiesService<T, F>,
     protected validatorService: ValidatorService,
     options?: AppTableDataSourceOptions<T>,
     filter?: F
@@ -43,7 +43,7 @@ export abstract class AppInMemoryTable<T extends Entity<T>, F = any> extends App
       injector.get(ModalController),
       injector.get(LocalSettingsService),
       columns,
-      new AppTableDataSource<T, F>(dataType, memoryDataService, validatorService, {
+      new EntitiesTableDataSource<T, F>(dataType, memoryDataService, validatorService, {
         suppressErrors: true,
         prependNewElements: false,
         ...options

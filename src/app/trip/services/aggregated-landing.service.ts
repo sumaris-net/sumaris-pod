@@ -1,10 +1,10 @@
 import {Injectable, Injector} from "@angular/core";
-import {BaseDataService, environment, isNotNil, LoadResult, TableDataService, toDateISOString} from "../../core/core.module";
+import {BaseEntityService, environment, isNotNil, LoadResult, EntitiesService, toDateISOString} from "../../core/core.module";
 import {AggregatedLanding} from "./model/aggregated-landing.model";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {NetworkService} from "../../core/services/network.service";
-import {EntityStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {Beans} from "../../shared/functions";
 import gql from "graphql-tag";
@@ -13,6 +13,7 @@ import {ReferentialFragments} from "../../referential/services/referential.queri
 import {Observable} from "rxjs";
 import {filter, map, tap} from "rxjs/operators";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
+import {SortDirection} from "@angular/material/sort";
 
 export class AggregatedLandingFilter {
   programLabel?: string;
@@ -80,15 +81,15 @@ const LoadAllQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class AggregatedLandingService
-  extends BaseDataService<AggregatedLanding, AggregatedLandingFilter>
-  implements TableDataService<AggregatedLanding, AggregatedLandingFilter> {
+  extends BaseEntityService<AggregatedLanding, AggregatedLandingFilter>
+  implements EntitiesService<AggregatedLanding, AggregatedLandingFilter> {
 
   protected loading = false;
 
   constructor(
     injector: Injector,
     protected network: NetworkService,
-    protected entities: EntityStorage
+    protected entities: EntitiesStorage
   ) {
     super(injector.get(GraphqlService));
 
@@ -99,7 +100,7 @@ export class AggregatedLandingService
   watchAll(offset: number,
            size: number,
            sortBy?: string,
-           sortDirection?: string,
+           sortDirection?: SortDirection,
            dataFilter?: AggregatedLandingFilter,
            options?: any): Observable<LoadResult<AggregatedLanding>> {
 
@@ -137,14 +138,13 @@ export class AggregatedLandingService
 
     } else {
 
-      this._lastVariables.loadAll = variables;
-
-
-      $loadResult = this.graphql.watchQuery<{ aggregatedLandings: AggregatedLanding[] }>({
+      $loadResult = this.mutableWatchQuery<{ aggregatedLandings: AggregatedLanding[] }>({
+        queryName: 'LoadAll',
         query: LoadAllQuery,
+        arrayFieldName: 'aggregatedLandings',
         variables,
         error: {code: ErrorCodes.LOAD_AGGREGATED_LANDINGS_ERROR, message: "AGGREGATED_LANDING.ERROR.LOAD_ALL_ERROR"},
-        fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
+        fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
       })
         .pipe(
           filter(() => !this.loading)

@@ -7,8 +7,8 @@ import {environment} from '../../../environments/environment';
 import {Subject} from 'rxjs';
 import {
   DateFormatPipe,
-  EditorDataService,
-  EditorDataServiceLoadOptions,
+  EntityService,
+  EntityServiceLoadOptions,
   isNil,
   isNilOrBlank,
   isNotNil,
@@ -20,15 +20,15 @@ import {filter} from "rxjs/operators";
 import {Entity} from "../services/model/entity.model";
 import {HistoryPageReference, UsageMode} from "../services/model/settings.model";
 import {FormGroup} from "@angular/forms";
-import {AppTabForm, AppTabFormOptions} from "./tab-form.class";
+import {AppTabEditor, AppTabFormOptions} from "./tab-form.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
 @Directive()
-export abstract class AppEditor<
+export abstract class AppEntityEditor<
   T extends Entity<T>,
-  S extends EditorDataService<T> = EditorDataService<T>
+  S extends EntityService<T> = EntityService<T>
   >
-  extends AppTabForm<T, EditorDataServiceLoadOptions>
+  extends AppTabEditor<T, EntityServiceLoadOptions>
   implements OnInit, OnDestroy {
 
   private _usageMode: UsageMode;
@@ -40,6 +40,7 @@ export abstract class AppEditor<
   protected cd: ChangeDetectorRef;
   protected settings: LocalSettingsService;
 
+  data: T;
   title$ = new Subject<string>();
   saving = false;
   hasRemoteListener = false;
@@ -59,6 +60,10 @@ export abstract class AppEditor<
 
   get isOnFieldMode(): boolean {
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+  }
+
+  get isNewData(): boolean {
+    return !this.data || this.data.id === undefined || this.data.id === null;
   }
 
   get service(): S {
@@ -139,7 +144,7 @@ export abstract class AppEditor<
    * @param id
    * @param opts
    */
-  async load(id?: number, opts?: EditorDataServiceLoadOptions & {
+  async load(id?: number, opts?: EntityServiceLoadOptions & {
     emitEvent?: boolean;
     openTabIndex?: number;
     updateTabAndRoute?: boolean;
@@ -489,13 +494,14 @@ export abstract class AppEditor<
     this.form.reset();
     this.registerForms();
     this._dirty = false;
+    this.data = null;
   }
 
-  protected async onNewEntity(data: T, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: T, options?: EntityServiceLoadOptions): Promise<void> {
     // can be overwrite by subclasses
   }
 
-  protected async onEntityLoaded(data: T, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: T, options?: EntityServiceLoadOptions): Promise<void> {
     // can be overwrite by subclasses
   }
 
@@ -527,6 +533,11 @@ export abstract class AppEditor<
 
   protected getJsonValueToSave(): Promise<any> {
     return Promise.resolve(this.form.value);
+  }
+
+  async reload() {
+    this.loading = true;
+    await this.load(this.data && this.data.id);
   }
 
   /**

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestr
 import {ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource,
+  EntitiesTableDataSource,
   environment,
   isNil,
   isNotNil,
@@ -102,7 +102,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Trip, TripFilter>(Trip, service, null, {
+      new EntitiesTableDataSource<Trip, TripFilter>(Trip, service, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

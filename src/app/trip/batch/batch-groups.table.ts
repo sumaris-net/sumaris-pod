@@ -16,7 +16,7 @@ import {
 } from "../../shared/functions";
 import {MethodIds, QualityFlagIds} from "../../referential/services/model/model.enum";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {MeasurementFormValues, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {ModalController} from "@ionic/angular";
 import {Batch, BatchUtils, BatchWeight} from "../services/model/batch.model";
@@ -146,7 +146,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   ) {
     super(injector,
       injector.get(ValidatorService),
-      new InMemoryTableDataService<BatchGroup, BatchFilter>(BatchGroup, {
+      new InMemoryEntitiesService<BatchGroup, BatchFilter>(BatchGroup, {
         onLoad: (data) => this.onLoad(data),
         onSave: (data) => this.onSave(data),
         equals: Batch.equals

@@ -25,7 +25,7 @@ import {
   tap
 } from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
-import {AppTableDataSource} from "./table-datasource.class";
+import {EntitiesTableDataSource} from "./entities-table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
 import {Entity} from "../services/model/entity.model";
 import {AlertController, ModalController, Platform, ToastController} from "@ionic/angular";
@@ -108,11 +108,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   @Input() readOnly = false;
 
-  @Input() set dataSource(value: AppTableDataSource<T, F>) {
+  @Input() set dataSource(value: EntitiesTableDataSource<T, F>) {
     this.setDatasource(value);
   }
 
-  get dataSource(): AppTableDataSource<T, F> {
+  get dataSource(): EntitiesTableDataSource<T, F> {
     return this._dataSource;
   }
 
@@ -260,7 +260,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected columns: string[],
-    protected _dataSource?: AppTableDataSource<T, F>,
+    protected _dataSource?: EntitiesTableDataSource<T, F>,
     private _filter?: F,
     injector?: Injector
   ) {
@@ -325,7 +325,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           filter(res => res === true)
         ) || EMPTY,
 
-      this.onRefresh
+      this.onRefresh.pipe(
+        tap(event => {
+          if (this.debug) console.debug("[table] Received onRefresh event " + this.constructor.name);
+        })
+      )
     )
       .pipe(
         startWith<any, any>(this.autoLoad ? {} : 'skip'),
@@ -351,7 +355,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
               this._filter
             );
           }),
-        takeUntil(this._destroy$),
+        //takeUntil(this._destroy$),
         catchError(err => {
           this.error = err && err.message || err;
           if (this.debug) console.error(err);
@@ -397,7 +401,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  setDatasource(datasource: AppTableDataSource<T, F>) {
+  setDatasource(datasource: EntitiesTableDataSource<T, F>) {
     if (this._dataSource) throw new Error("[table] dataSource already set !");
     if (datasource && this._dataSource != datasource) {
       this._dataSource = datasource;
@@ -439,7 +443,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  protected listenDatasource(dataSource: AppTableDataSource<T, F>) {
+  protected listenDatasource(dataSource: EntitiesTableDataSource<T, F>) {
     if (!dataSource) throw new Error("[table] dataSource not set !");
 
     // Cleaning previous subscription on datasource
@@ -647,7 +651,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return true;
   }
 
-  clickRow(event?: MouseEvent, row: TableElement<T>): boolean {
+  clickRow(event: MouseEvent|undefined, row: TableElement<T>): boolean {
     if (row.id === -1 || row.editing) return true;
     if (event && event.defaultPrevented || this.loading) return false;
 

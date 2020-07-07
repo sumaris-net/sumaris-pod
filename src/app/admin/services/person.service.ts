@@ -1,21 +1,22 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {BehaviorSubject, defer, Observable} from 'rxjs';
-import {DataService, LoadResult, SuggestionDataService, TableDataService} from "../../shared/shared.module";
-import {BaseDataService} from "../../core/services/base.data-service.class";
+import {EntitiesService, LoadResult, SuggestService} from "../../shared/shared.module";
+import {BaseEntityService, MutableWatchQueryOptions} from "../../core/services/base.data-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {EntityUtils} from "../../core/services/model/entity.model";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
-import {fetchAllPagesWithProgress} from "../../shared/services/data-service.class";
+import {fetchAllPagesWithProgress} from "../../shared/services/entity-service.class";
 import {NetworkService} from "../../core/services/network.service";
-import {EntityStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
 import {environment} from "../../../environments/environment";
-import {Beans, KeysEnum} from "../../shared/functions";
+import {Beans, KeysEnum, toNumber} from "../../shared/functions";
 import {Person} from "../../core/services/model/person.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
+import {SortDirection} from "@angular/material/sort";
 
 export const PersonFragments = {
   person: gql`fragment PersonFragment on PersonVO {
@@ -98,14 +99,13 @@ const DeletePersons: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class PersonService extends BaseDataService<Person, PersonFilter>
-  implements TableDataService<Person, PersonFilter>, DataService<Person, PersonFilter>,
-    SuggestionDataService<Person, PersonFilter> {
+export class PersonService extends BaseEntityService<Person, PersonFilter>
+  implements EntitiesService<Person, PersonFilter>, SuggestService<Person, PersonFilter> {
 
   constructor(
     protected graphql: GraphqlService,
     protected network: NetworkService,
-    protected entities: EntityStorage
+    protected entities: EntitiesStorage
   ) {
     super(graphql);
 
@@ -126,7 +126,7 @@ export class PersonService extends BaseDataService<Person, PersonFilter>
     offset: number,
     size: number,
     sortBy?: string,
-    sortDirection?: string,
+    sortDirection?: SortDirection,
     filter?: PersonFilter,
     opts?: {
       fetchPolicy?: WatchQueryFetchPolicy;
@@ -142,28 +142,48 @@ export class PersonService extends BaseDataService<Person, PersonFilter>
       filter: Beans.copy(filter, PersonFilter, PersonFilterKeys)
     };
 
-    this._lastVariables.loadAll = variables;
     if (this._debug) console.debug("[person-service] Watching persons, using filter: ", variables);
 
-    const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
-
-    return this.graphql.watchQuery<{ persons: Person[]; personsCount: number }>({
-      query,
-      variables,
-      error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
-      fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
-    })
+    if ((!opts || opts.withTotal !== false)) {
+      return this.mutableWatchQuery<{ persons: Person[]; personsCount?: number }>({
+        queryName: 'LoadAllWithTotal',
+        query: LoadAllWithTotalQuery,
+        arrayFieldName: 'persons',
+        totalFieldName: 'personsCount',
+        variables,
+        error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
+        fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
+      })
       .pipe(
         map((res) => {
           return {
-            data: res && (res.persons || []).map(Person.fromObject),
-            total: res && (res.personsCount || (res.persons && res.persons.length)) || 0
+            data: (res && res.persons || []).map(Person.fromObject),
+            total: res && res.personsCount || 0
           };
         })
       );
+    }
+    else {
+      return this.mutableWatchQuery<{ persons: Person[] }>({
+        queryName: 'LoadAll',
+        query: LoadAllQuery,
+        arrayFieldName: 'persons',
+        variables,
+        error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
+        fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
+      })
+        .pipe(
+          map((res) => {
+            return {
+              data: (res && res.persons || []).map(Person.fromObject),
+              total: res && res.persons && res.persons.length || 0
+            };
+          })
+        );
+    }
   }
 
-  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: string, filter?: PersonFilter, opts?: {
+  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: PersonFilter, opts?: {
     [key: string]: any;
     fetchPolicy?: FetchPolicy;
     debug?: boolean;
@@ -202,8 +222,6 @@ export class PersonService extends BaseDataService<Person, PersonFilter>
 
     // Online: use GraphQL
     else {
-      this._lastVariables.loadAll = variables;
-
       const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
       loadResult = await this.graphql.query<{ persons: Person[]; personsCount: number }>({
         query,
@@ -287,12 +305,10 @@ export class PersonService extends BaseDataService<Person, PersonFilter>
         if (this._debug) console.debug(`[person-service] Trips deleted in ${Date.now() - now}ms`);
 
         // Update the cache
-        if (this._lastVariables.loadAll) {
-          this.graphql.removeToQueryCacheByIds(proxy, {
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'persons', ids);
-        }
+        this.removeFromMutableCachedQueryByIds(proxy, {
+          query: LoadAllQuery,
+          ids
+        });
       }
     });
 

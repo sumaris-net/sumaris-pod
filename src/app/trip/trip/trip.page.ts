@@ -7,14 +7,14 @@ import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {environment, fromDateISOString, ReferentialRef} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray} from '../../shared/shared.module';
+import {EntityServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray} from '../../shared/shared.module';
 import * as moment from "moment";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripsPageSettingsEnum} from "./trips.table";
-import {EntityStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {PhysicalGear, Trip} from "../services/model/trip.model";
 import {SelectPhysicalGearModal} from "../physicalgear/select-physical-gear.modal";
@@ -52,7 +52,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   constructor(
     injector: Injector,
-    protected entities: EntityStorage,
+    protected entities: EntitiesStorage,
     protected modalCtrl: ModalController,
     public network: NetworkService // Used for DEV (to debug OFFLINE mode)
   ) {
@@ -103,7 +103,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     ]);
   }
 
-  protected async onNewEntity(data: Trip, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
 
@@ -170,7 +170,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     // Operations table
     if (!isNew && this.operationTable) {
-      this.operationTable.setTrip(data);
+      this.operationTable.setTripId(data.id, {emitEvent: false});
+      //this.operationTable.onRefresh.emit();
     }
   }
 

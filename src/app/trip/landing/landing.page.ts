@@ -11,7 +11,7 @@ import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {LandingService} from "../services/landing.service";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
-import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
 import {filter, throttleTime} from "rxjs/operators";
@@ -104,7 +104,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.addChildForms([this.landingForm, this.samplesTable]);
   }
 
-  protected async onNewEntity(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
     if (this.isOnFieldMode) {
       data.dateTime = moment();
@@ -156,7 +156,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   }
 
-  protected async onEntityLoaded(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
     this.parent = await this.loadParent(data);
 

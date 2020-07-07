@@ -1,13 +1,13 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {
-  EditorDataService,
-  EditorDataServiceLoadOptions, isNil, isNotNil,
+  EntityService,
+  EntityServiceLoadOptions, isNil, isNotNil,
   LoadResult,
-  SuggestionDataService,
-  TableDataService
+  SuggestService,
+  EntitiesService
 } from "../../shared/shared.module";
-import {BaseDataService, EntityUtils, StatusIds} from "../../core/core.module";
+import {BaseEntityService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/services/graphql.service";
@@ -19,6 +19,7 @@ import {ReferentialFragments} from "./referential.queries";
 import {map} from "rxjs/operators";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {ReferentialUtils, SAVE_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";
+import {SortDirection} from "@angular/material/sort";
 
 const LoadAllQuery: any = gql`
   query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -79,9 +80,9 @@ export class PmfmFilter extends ReferentialFilter {
 }
 
 @Injectable({providedIn: 'root'})
-export class PmfmService extends BaseDataService implements EditorDataService<Pmfm>,
-  TableDataService<Pmfm, PmfmFilter>,
-  SuggestionDataService<Pmfm, PmfmFilter>
+export class PmfmService extends BaseEntityService implements EntityService<Pmfm>,
+  EntitiesService<Pmfm, PmfmFilter>,
+  SuggestService<Pmfm, PmfmFilter>
 {
 
   constructor(
@@ -100,7 +101,7 @@ export class PmfmService extends BaseDataService implements EditorDataService<Pm
     return await this.referentialService.existsByLabel(label, { ...opts, entityName: 'Pmfm' });
   }
 
-  async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Pmfm> {
+  async load(id: number, options?: EntityServiceLoadOptions): Promise<Pmfm> {
 
     if (this._debug) console.debug(`[pmfm-service] Loading pmfm {${id}}...`);
 
@@ -122,13 +123,12 @@ export class PmfmService extends BaseDataService implements EditorDataService<Pm
    * Save a pmfm entity
    * @param entity
    */
-  async save(entity: Pmfm, options?: EditorDataServiceLoadOptions): Promise<Pmfm> {
+  async save(entity: Pmfm, options?: EntityServiceLoadOptions): Promise<Pmfm> {
 
     this.fillDefaultProperties(entity);
 
     // Transform into json
     const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
-    const isNew = !json.id;
 
     const now = Date.now();
     if (this._debug) console.debug(`[pmfm-service] Saving Pmfm...`, json);
@@ -146,16 +146,6 @@ export class PmfmService extends BaseDataService implements EditorDataService<Pm
           if (this._debug) console.debug(`[pmfm-service] Pmfm saved in ${Date.now() - now}ms`, entity);
           this.copyIdAndUpdateDate(savedEntity, entity);
         }
-
-        // Update the cache
-        if (isNew && this._lastVariables.loadAll) {
-          if (this._debug) console.debug(`[pmfm-service] Updating cache with saved ${entity.entityName}...`);
-          this.graphql.addToQueryCache(proxy, {
-            query: LoadQuery,
-            variables: this._lastVariables.load
-          }, 'pmfm', entity.asObject());
-        }
-
       }
     });
 
@@ -169,17 +159,7 @@ export class PmfmService extends BaseDataService implements EditorDataService<Pm
 
     entity.entityName = 'Pmfm';
 
-    await this.referentialService.deleteAll([entity], {
-      update: (proxy) => {
-        // Remove from cache
-        if (this._lastVariables.load) {
-          this.graphql.removeToQueryCacheById(proxy, {
-            query: LoadQuery,
-            variables: this._lastVariables.loadAll
-          }, 'pmfm', entity.id);
-        }
-      }
-    });
+    await this.referentialService.deleteAll([entity]);
   }
 
   listenChanges(id: number, options?: any): Observable<Pmfm | undefined> {
@@ -192,7 +172,7 @@ export class PmfmService extends BaseDataService implements EditorDataService<Pm
     offset: number,
     size: number,
     sortBy?: string,
-    sortDirection?: string,
+    sortDirection?: SortDirection,
     filter?: PmfmFilter,
     opts?: {
       fetchPolicy?: WatchQueryFetchPolicy;
@@ -240,7 +220,7 @@ export class PmfmService extends BaseDataService implements EditorDataService<Pm
   async loadAll(offset: number,
                 size: number,
                 sortBy?: string,
-                sortDirection?: string,
+                sortDirection?: SortDirection,
                 filter?: PmfmFilter,
                 opts?: {
                   query?: any,

@@ -4,10 +4,10 @@ import {environment} from "../../../environments/environment";
 import {Observable, Subject} from "rxjs";
 import {ErrorCodes} from "./errors";
 import {isNotNil} from "../../shared/functions";
-import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/shared.module";
+import {EntityService, EntityServiceLoadOptions} from "../../shared/shared.module";
 import {Software} from "../../core/services/model/config.model";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {BaseDataService} from "../../core/services/base.data-service.class";
+import {BaseEntityService} from "../../core/services/base.data-service.class";
 
 /* ------------------------------------
  * GraphQL queries
@@ -52,8 +52,8 @@ const SaveMutation: any = gql`
   providedIn: 'root'
 })
 export class SoftwareService<T extends Software = Software>
-  extends BaseDataService<T>
-  implements EditorDataService<T> {
+  extends BaseEntityService<T>
+  implements EntityService<T> {
 
   constructor(
     protected graphql: GraphqlService
@@ -66,7 +66,7 @@ export class SoftwareService<T extends Software = Software>
 
   async load(
     id: number,
-    opts?: EditorDataServiceLoadOptions): Promise<T> {
+    opts?: EntityServiceLoadOptions): Promise<T> {
 
     return this.loadQuery(
       LoadQuery,
@@ -131,7 +131,7 @@ export class SoftwareService<T extends Software = Software>
   protected async loadQuery(
     query: any,
     variables: any,
-    opts?: EditorDataServiceLoadOptions): Promise<T> {
+    opts?: EntityServiceLoadOptions): Promise<T> {
 
     const now = Date.now();
     console.debug("[software-service] Loading software ...");

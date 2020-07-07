@@ -3,7 +3,7 @@ import {ValidatorService} from "angular4-material-table";
 import {environment, referentialToString, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {Strategy} from "../services/model/strategy.model";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {toBoolean} from "../../shared/functions";
 import {DefaultStatusList} from "../../core/services/model/referential.model";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
@@ -18,8 +18,8 @@ export declare interface StrategyFilter {
   providers: [
     {provide: ValidatorService, useExisting: StrategyValidatorService},
     {
-      provide: InMemoryTableDataService,
-      useFactory: () => new InMemoryTableDataService<Strategy, StrategyFilter>(Strategy, {})
+      provide: InMemoryEntitiesService,
+      useFactory: () => new InMemoryEntitiesService<Strategy, StrategyFilter>(Strategy, {})
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -35,7 +35,7 @@ export class StrategiesTable extends AppInMemoryTable<Strategy, StrategyFilter> 
 
   constructor(
     protected injector: Injector,
-    protected memoryDataService: InMemoryTableDataService<Strategy, StrategyFilter>,
+    protected memoryDataService: InMemoryEntitiesService<Strategy, StrategyFilter>,
     protected validatorService: ValidatorService,
     protected cd: ChangeDetectorRef
   ) {

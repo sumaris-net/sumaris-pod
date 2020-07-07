@@ -15,7 +15,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {personToString, personsToString} from "../../core/services/model/person.model";
 import {ReferentialRef, referentialToString} from "../../core/services/model/referential.model";
-import {AppTableDataSource} from "../../core/table/table-datasource.class";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {debounceTime, filter, tap} from "rxjs/operators";
 import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocationValidatorService} from "../services/validator/observed-location.validator";
@@ -74,7 +74,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, null, {
+      new EntitiesTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

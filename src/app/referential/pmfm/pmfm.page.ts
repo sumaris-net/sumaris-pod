@@ -1,11 +1,11 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
-import {AppEditor, environment, isNil, joinPropertiesPath} from "../../core/core.module";
+import {AppEntityEditor, environment, isNil, joinPropertiesPath} from "../../core/core.module";
 import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
 import {ReferentialForm} from "../form/referential.form";
 import {PmfmValidatorService} from "../services/validator/pmfm.validator";
-import {EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
+import {EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {Pmfm} from "../services/model/pmfm.model";
 import {Parameter} from "../services/model/parameter.model";
@@ -26,7 +26,7 @@ import {Observable} from "rxjs";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PmfmPage extends AppEditor<Pmfm> implements OnInit {
+export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
 
   canEdit: boolean;
   form: FormGroup;
@@ -243,7 +243,7 @@ export class PmfmPage extends AppEditor<Pmfm> implements OnInit {
     return 0;
   }
 
-  protected async onNewEntity(data: Pmfm, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: Pmfm, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onNewEntity(data, options);
 
     // Check label is unique
@@ -254,7 +254,7 @@ export class PmfmPage extends AppEditor<Pmfm> implements OnInit {
       });
   }
 
-  protected async onEntityLoaded(data: Pmfm, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: Pmfm, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onEntityLoaded(data, options);
 
     this.canEdit = this.canUserWrite(data);

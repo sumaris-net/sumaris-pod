@@ -9,7 +9,7 @@ import {AlertController, ModalController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../../shared/functions";
 import {filter, tap, throttleTime} from "rxjs/operators";
-import {AppTabForm} from "../../../core/form/tab-form.class";
+import {AppTabEditor} from "../../../core/form/tab-form.class";
 import {fadeInOutAnimation} from "../../../shared/material/material.animations";
 import {ActivatedRoute, Router} from "@angular/router";
 import {DateFormatPipe} from "../../../shared/pipes/date-format.pipe";
@@ -26,7 +26,7 @@ import {LeafletControlLayersConfig} from "@asymmetrik/ngx-leaflet/src/leaflet/la
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationsMap extends AppTabForm<Operation[]> implements OnInit {
+export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
 
   private _program: string;
   private _dateTimePattern: string;
@@ -71,6 +71,10 @@ export class OperationsMap extends AppTabForm<Operation[]> implements OnInit {
   $onOverFeature = new Subject<Feature>();
   $onOutFeature = new Subject<Feature>();
   $selectedFeature = new BehaviorSubject<Feature>(null);
+
+  get isNewData(): boolean {
+    return false;
+  }
 
   get modalName(): string {
     return this.constructor.name;
@@ -157,7 +161,11 @@ export class OperationsMap extends AppTabForm<Operation[]> implements OnInit {
     await this.load();
   }
 
-  protected async load() {
+  async save(event, options?: any): Promise<any> {
+    throw new Error('Nothing to save');
+  }
+
+  async load(id?: number, opts?:  any) {
     if (!this.ready) return; // Skip
 
     this.loading = true;
@@ -237,6 +245,10 @@ export class OperationsMap extends AppTabForm<Operation[]> implements OnInit {
       this.loading = false;
       this.markForCheck();
     }
+  }
+
+  async reload(): Promise<any> {
+    return this.load();
   }
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {

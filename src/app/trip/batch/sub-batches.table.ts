@@ -17,7 +17,7 @@ import {FormGroup, Validators} from "@angular/forms";
 import {isNil, isNilOrBlank, isNotNil, startsWithUpperCase, toBoolean} from "../../shared/functions";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {UsageMode} from "../../core/services/model/settings.model";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {SubBatchValidatorService} from "../services/validator/sub-batch.validator";
@@ -28,6 +28,7 @@ import {selectInputContent} from "../../shared/inputs";
 import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {SortDirection} from "@angular/material/sort";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -70,7 +71,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
-  protected memoryDataService: InMemoryTableDataService<Batch, SubBatchFilter>;
+  protected memoryDataService: InMemoryEntitiesService<Batch, SubBatchFilter>;
 
   @Input() displayParentPmfm: PmfmStrategy;
 
@@ -170,7 +171,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   ) {
     super(injector,
       Batch,
-      new InMemoryTableDataService<Batch, SubBatchFilter>(Batch, {
+      new InMemoryEntitiesService<Batch, SubBatchFilter>(Batch, {
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
         onSave: (data) => this.onSaveData(data),
@@ -184,7 +185,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.memoryDataService = (this.dataService as InMemoryTableDataService<Batch, SubBatchFilter>);
+    this.memoryDataService = (this.dataService as InMemoryEntitiesService<Batch, SubBatchFilter>);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
     this.tabindex = 1;
     this.inlineEdition = !this.mobile;
@@ -705,7 +706,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     }
   }
 
-  protected sortData(data: Batch[], sortBy?: string, sortDirection?: string): Batch[] {
+  protected sortData(data: Batch[], sortBy?: string, sortDirection?: SortDirection): Batch[] {
     sortBy = (sortBy && sortBy !== 'parent') ? sortBy : 'parent.rankOrder'; // Replace parent by its rankOrder
     return this.memoryDataService.sort(data, sortBy, sortDirection);
   }

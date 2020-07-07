@@ -1,20 +1,21 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
-import {BaseDataService, EntityUtils, environment} from "../../core/core.module";
+import {BaseEntityService, EntityUtils, environment} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {FetchPolicy} from "apollo-client";
-import {FilterFn, SuggestionDataService} from "../../shared/services/data-service.class";
+import {FilterFn, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {Metier} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
-import {EntityStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
 import {ReferentialFragments} from "./referential.queries";
 import {ReferentialRefFilter} from "./referential-ref.service";
 import {Moment} from "moment";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
+import {SortDirection} from "@angular/material/sort";
 
 export class MetierFilter extends ReferentialRefFilter {
 
@@ -75,14 +76,14 @@ const LoadQuery: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class MetierService extends BaseDataService
-  implements SuggestionDataService<Metier, MetierFilter> {
+export class MetierService extends BaseEntityService
+  implements SuggestService<Metier, MetierFilter> {
 
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService,
     protected network: NetworkService,
-    protected entities: EntityStorage
+    protected entities: EntitiesStorage
   ) {
     super(graphql);
 
@@ -112,7 +113,7 @@ export class MetierService extends BaseDataService
   async loadAll(offset: number,
                 size: number,
                 sortBy?: string,
-                sortDirection?: string,
+                sortDirection?: SortDirection,
                 filter?: MetierFilter,
                 opts?: {
                   [key: string]: any;

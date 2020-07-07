@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy,
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource,
+  EntitiesTableDataSource,
   environment,
   isNotNil,
   referentialToString,
@@ -38,6 +38,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   displayAttributes: {
     [key: string]: string[]
   };
+  selectedRow: TableElement<Operation>;
 
   @Input() latLongPattern: LatLongPattern;
 
@@ -78,7 +79,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
             'endPosition',
             'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Operation, OperationFilter, OperationServiceOptions>(Operation, dataService,
+      new EntitiesTableDataSource<Operation, OperationFilter, OperationServiceOptions>(Operation, dataService,
         null,
         // DataSource options
         {
@@ -147,22 +148,21 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     super.ngAfterViewInit();
   }
 
-  setTrip(data: Trip) {
-    this.setTripId(data && data.id || undefined);
-  }
-
-  setTripId(id: number) {
+  setTripId(id: number, opts?: {emitEvent?: boolean;}) {
     if (this.tripId !== id) {
       this.tripId = id;
       const filter = this.filter || {};
       filter.tripId = id;
       this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
       this.dataSource.serviceOptions.tripId = id;
-      this.setFilter(filter, {emitEvent: isNotNil(id)});
+      this.setFilter(filter, {emitEvent: (!opts || opts.emitEvent !== false) && isNotNil(id)});
+    }
+    else if ((!opts || opts.emitEvent !== false) && isNotNil(this.filter.tripId)){
+      this.onRefresh.emit();
     }
   }
 
-  protected selectedRow: TableElement<Operation>;
+
 
   async openMapModal(event: UIEvent) {
     const operations = (await this.dataSource.getRows())
@@ -193,7 +193,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
   }
 
-  clickRow(event?: MouseEvent, row: TableElement<Operation>): boolean {
+  clickRow(event: MouseEvent|undefined, row: TableElement<Operation>): boolean {
     this.selectedRow = row;
 
     return super.clickRow(event, row);

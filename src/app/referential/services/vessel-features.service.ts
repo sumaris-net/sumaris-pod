@@ -1,14 +1,16 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {VesselFeatures} from "./model/vessel.model";
-import {LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService} from "../../core/core.module";
+import {VesselFeatures, VesselRegistration} from "./model/vessel.model";
+import {LoadResult, EntitiesService} from "../../shared/shared.module";
+import {BaseEntityService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {VesselFilter} from "./vessel-service";
+import {SortDirection} from "@angular/material/sort";
+import {VesselFeaturesHistoryComponent} from "../vessel/page/vessel-features-history.component";
 
 export const VesselFeaturesFragments = {
     vesselFeatures: gql`fragment VesselFeaturesFragment on VesselFeaturesVO {
@@ -50,8 +52,8 @@ export const LoadFeaturesQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class VesselFeaturesService
-  extends BaseDataService
-  implements TableDataService<VesselFeatures, VesselFilter> {
+  extends BaseEntityService
+  implements EntitiesService<VesselFeatures, VesselFilter> {
 
   constructor(
     protected graphql: GraphqlService
@@ -59,9 +61,6 @@ export class VesselFeaturesService
     super(graphql);
   }
 
-  get lastVariables() {
-    return this._lastVariables;
-  }
 
   /**
    * Load vessel features history
@@ -74,7 +73,7 @@ export class VesselFeaturesService
   watchAll(offset: number,
            size: number,
            sortBy?: string,
-           sortDirection?: string,
+           sortDirection?: SortDirection,
            filter?: VesselFilter): Observable<LoadResult<VesselFeatures>> {
 
     const variables: any = {
@@ -85,23 +84,25 @@ export class VesselFeaturesService
       vesselId: filter.vesselId
     };
 
-    this._lastVariables.loadAll = variables;
-
-    const now = Date.now();
+    let now = Date.now();
     if (this._debug) console.debug("[vessel-features-history-service] Getting vessel features history using options:", variables);
 
-    return this.graphql.watchQuery<{ vesselFeaturesHistory: any[] }>({
+    return this.mutableWatchQuery<{ vesselFeaturesHistory: any[] }>({
+      queryName: 'LoadFeatures',
       query: LoadFeaturesQuery,
-      variables: variables,
+      arrayFieldName: 'vesselFeaturesHistory',
+      insertFilterFn: (vr: VesselFeatures) => vr.vesselId === filter.vesselId,
+      variables,
       error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"}
     })
       .pipe(
         map(({vesselFeaturesHistory}) => {
             const data = (vesselFeaturesHistory || []).map(VesselFeatures.fromObject);
-            if (this._debug) console.debug(`[vessel-features-history-service] Vessel features history loaded in ${Date.now() - now}ms`, data);
-            return {
-              data: data
-            };
+            if (this._debug && now) {
+              console.debug(`[vessel-features-history-service] Vessel features history loaded in ${Date.now() - now}ms`, data);
+              now = null;
+            }
+            return { data };
           }
         )
       );

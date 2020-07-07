@@ -42,7 +42,7 @@
     <ion-list class="ion-no-padding">
       <ion-item *ngFor="let item of items"
                 tappable class="text-1x"
-                [color]="sameOperation(item) ? 'secondary100' : undefined"
+                [color]="isCurrentData(item) ? 'secondary100' : undefined"
                 (click)="onOpenOperation($event, item.id)">
         <ion-icon slot="start" name="navigate"></ion-icon>
         <ion-grid>
@@ -53,13 +53,16 @@
             <ion-col>
               {{ item.startDateTime | dateFormat:{pattern: dateTimePattern} }}
             </ion-col>
+            <ion-col size="auto">
+              <ion-text>
+                <small>
+                  <ion-icon name="time-outline"></ion-icon>&nbsp;{{item.startDateTime|dateFromNow}}
+                </small>
+              </ion-text>
+            </ion-col>
           </ion-row>
         </ion-grid>
-        <ion-text slot="end">
-          <small>
-            <ion-icon name="time-outline"></ion-icon>&nbsp;{{item.startDateTime|dateFromNow}}
-          </small>
-        </ion-text>
+
       </ion-item>
 
       <!-- If no last operations -->

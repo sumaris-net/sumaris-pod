@@ -10,10 +10,10 @@ import {
   Output
 } from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {environment, referentialToString, TableDataService} from "../../core/core.module";
+import {environment, referentialToString, EntitiesService} from "../../core/core.module";
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PhysicalGearModal} from "./physical-gear.modal";
 import {PhysicalGear} from "../services/model/trip.model";
@@ -33,7 +33,7 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
     {provide: ValidatorService, useExisting: PhysicalGearValidatorService},
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE,
-      useFactory: () => new InMemoryTableDataService<PhysicalGear, PhysicalGearFilter>(PhysicalGear)
+      useFactory: () => new InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>(PhysicalGear)
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -41,7 +41,7 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
 export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
 
   protected cd: ChangeDetectorRef;
-  protected memoryDataService: InMemoryTableDataService<PhysicalGear>;
+  protected memoryDataService: InMemoryEntitiesService<PhysicalGear>;
 
   set value(data: PhysicalGear[]) {
     this.memoryDataService.value = data;
@@ -59,7 +59,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
   constructor(
     injector: Injector,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE) dataService?: TableDataService<PhysicalGear, PhysicalGearFilter>
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE) dataService?: EntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
       PhysicalGear,
@@ -73,7 +73,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)
       });
     this.cd = injector.get(ChangeDetectorRef);
-    this.memoryDataService = (this.dataService as InMemoryTableDataService<PhysicalGear>);
+    this.memoryDataService = (this.dataService as InMemoryEntitiesService<PhysicalGear>);
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
     this.autoLoad = true;
 

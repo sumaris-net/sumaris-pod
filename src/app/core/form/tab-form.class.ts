@@ -33,7 +33,7 @@ export class AppTabFormOptions {
 }
 
 @Directive()
-export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppForm, OnInit, OnDestroy {
+export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit, OnDestroy {
 
   private _children: IAppForm[];
   private _subscription = new Subscription();
@@ -46,7 +46,6 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
   tabGroupAnimationDuration = '200ms';
 
   debug = false;
-  data: T;
   previousDataId: number;
   selectedTabIndex = 0;
 
@@ -65,9 +64,6 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
   @ViewChild(ToolbarComponent, { static: true }) appToolbar: ToolbarComponent;
   @ViewChild(FormButtonsBarComponent, { static: true }) formButtonsBar: FormButtonsBarComponent;
 
-  get isNewData(): boolean {
-    return !this.data || this.data.id === undefined || this.data.id === null;
-  }
 
   get tables(): AppTable<any>[] {
     return this._children && (this._children.filter(c => c instanceof AppTable) as AppTable<any>[]);
@@ -108,6 +104,8 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
   get empty(): boolean {
     return this._enabled;
   }
+
+  abstract get isNewData(): boolean;
 
   protected constructor(
     protected route: ActivatedRoute,
@@ -163,7 +161,9 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
 
   abstract async save(event, options?: any): Promise<any>;
 
-  addChildForm(form: IAppForm | IAppFormFactory): AppTabForm<T> {
+  abstract async reload();
+
+  addChildForm(form: IAppForm | IAppFormFactory): AppTabEditor<T> {
     if (!form) throw new Error('Trying to register an undefined child form');
     this._children = this._children || [];
     if (typeof form === "function") {
@@ -175,7 +175,7 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
     return this;
   }
 
-  addChildForms(forms: (IAppForm | IAppFormFactory)[]): AppTabForm<T> {
+  addChildForms(forms: (IAppForm | IAppFormFactory)[]): AppTabEditor<T> {
     (forms || []).forEach(form => this.addChildForm(form));
     return this;
   }
@@ -290,8 +290,8 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
   }
 
   async cancel(event?: Event) {
-    if (!this.dirty) return;
-    await this.reload();
+    if (!this.dirty) return; // Skip reload, if not need
+    await this.reloadWithConfirmation();
   }
 
   /**
@@ -395,7 +395,7 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
             this.unload(); // async reset
           }
           else {
-            this.doReload(); // async reload
+            this.reload(); // async reload
           }
         }
 
@@ -406,7 +406,7 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
     }, 300);
   }
 
-  async reload(confirm?: boolean) {
+  async reloadWithConfirmation(confirm?: boolean) {
     const needConfirm = this.dirty;
     // if not confirm yet: ask confirmation
     if (!confirm && needConfirm) {
@@ -438,17 +438,9 @@ export abstract class AppTabForm<T extends Entity<T>, O = any> implements IAppFo
     if (confirm || !needConfirm) {
       this.scrollToTop();
       this.disable();
-      return await this.doReload();
+      return await this.reload();
     }
   }
-
-  async doReload() {
-    this.loading = true;
-    await this.load(this.data && this.data.id);
-  }
-
-
-
   /* -- protected methods -- */
 
   protected async scrollToTop() {

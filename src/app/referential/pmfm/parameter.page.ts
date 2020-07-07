@@ -1,11 +1,11 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormGroup} from "@angular/forms";
-import {AppEditor, environment, isNil, referentialToString} from "../../core/core.module";
+import {AppEntityEditor, environment, isNil, referentialToString} from "../../core/core.module";
 
 import {ReferentialForm} from "../form/referential.form";
 import {ParameterValidatorService} from "../services/validator/parameter.validator";
-import {EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
+import {EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {Parameter} from "../services/model/parameter.model";
 import {ParameterService} from "../services/parameter.service";
@@ -23,7 +23,7 @@ import {ReferentialUtils} from "../../core/services/model/referential.model";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ParameterPage extends AppEditor<Parameter> implements OnInit {
+export class ParameterPage extends AppEntityEditor<Parameter> implements OnInit {
 
   canEdit: boolean;
   form: FormGroup;
@@ -153,7 +153,7 @@ export class ParameterPage extends AppEditor<Parameter> implements OnInit {
     return 0;
   }
 
-  protected async onEntityLoaded(data: Parameter, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: Parameter, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onEntityLoaded(data, options);
 
     this.canEdit = this.canUserWrite(data);

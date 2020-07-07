@@ -1,19 +1,22 @@
 import {TableDataSource, TableElement, ValidatorService} from 'angular4-material-table';
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {isNotEmptyArray, isNotNil, LoadResult, TableDataService, toBoolean} from '../../shared/shared.module';
-import {Entity} from "../services/model/entity.model";
+import {isNotEmptyArray, isNotNil, LoadResult, EntitiesService, toBoolean} from '../../shared/shared.module';
+import {Entity, IEntity} from "../services/model/entity.model";
 import {ErrorCodes} from '../services/errors';
 import {catchError, first, map, takeUntil} from "rxjs/operators";
 import {OnDestroy} from "@angular/core";
-import {TableDataServiceWatchOptions} from "../../shared/services/data-service.class";
+import {EntitiesServiceWatchOptions} from "../../shared/services/entity-service.class";
+import {SortDirection} from "@angular/material/sort";
+import {CollectionViewer} from "@angular/cdk/collections";
+import {firstNotNilPromise} from "../../shared/observables";
 
 
-export declare interface AppTableDataServiceOptions<O extends TableDataServiceWatchOptions = TableDataServiceWatchOptions> extends TableDataServiceWatchOptions {
+export declare interface AppTableDataServiceOptions<O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> extends EntitiesServiceWatchOptions {
   saveOnlyDirtyRows?: boolean;
   readOnly?: boolean;
   [key: string]: any;
 }
-export declare interface AppTableDataSourceOptions<T extends Entity<T>, O extends TableDataServiceWatchOptions = TableDataServiceWatchOptions> {
+export declare interface AppTableDataSourceOptions<T extends Entity<T>, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> {
   prependNewElements: boolean;
   suppressErrors: boolean;
   onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
@@ -21,7 +24,7 @@ export declare interface AppTableDataSourceOptions<T extends Entity<T>, O extend
   [key: string]: any;
 }
 
-export class AppTableDataSource<T extends Entity<T>, F, O extends TableDataServiceWatchOptions = TableDataServiceWatchOptions>
+export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions>
     extends TableDataSource<T>
     implements OnDestroy {
 
@@ -43,15 +46,6 @@ export class AppTableDataSource<T extends Entity<T>, F, O extends TableDataServi
     this._config.dataServiceOptions = value;
   }
 
-
-  set dataService(value: TableDataService<T, F>) {
-    this._dataService = value;
-  }
-
-  get dataService() {
-    return this._dataService;
-  }
-
   get options(): AppTableDataSourceOptions<T, O> {
     return this._config;
   }
@@ -63,13 +57,13 @@ export class AppTableDataSource<T extends Entity<T>, F, O extends TableDataServi
   /**
    * Creates a new TableDataSource instance, that can be used as datasource of `@angular/cdk` data-table.
    * @param data Array containing the initial values for the TableDataSource. If not specified, then `dataType` must be specified.
-   * @param _dataService A service to load and save data
+   * @param dataService A service to load and save data
    * @param dataType Type of data contained by the Table. If not specified, then `data` with at least one element must be specified.
    * @param validatorService Service that create instances of the FormGroup used to validate row fields.
    * @param config Additional configuration for table.
    */
   constructor(dataType: new() => T,
-              private _dataService: TableDataService<T, F, O>,
+              public readonly dataService: EntitiesService<T, F, O>,
               validatorService?: ValidatorService,
               config?: AppTableDataSourceOptions<T, O>) {
     super([], dataType, validatorService, config);
@@ -95,24 +89,24 @@ export class AppTableDataSource<T extends Entity<T>, F, O extends TableDataServi
   watchAll(offset: number,
            size: number,
            sortBy?: string,
-           sortDirection?: string,
+           sortDirection?: SortDirection,
            filter?: F): Observable<LoadResult<T>> {
 
     this._stopWatchAll$.next(); // stop previous watch observable
 
     this.$busy.next(true);
-    return this._dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions as O)
+    return this.dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions as O)
       //.catch(err => this.handleError(err, 'Unable to load rows'))
       .pipe(
         // Stop this pipe next time we call watchAll()
-        takeUntil(this._stopWatchAll$),
-        catchError(err => this.handleError(err, 'ERROR.LOAD_DATA_ERROR')),
+        //takeUntil(this._stopWatchAll$),
+        //catchError(err => this.handleError(err, 'ERROR.LOAD_DATA_ERROR')),
         map((res: LoadResult<T>) => {
           if (this._saving) {
-            console.error(`[table-datasource] Service ${this._dataService.constructor.name} sent data, while will saving... should skip ?`);
+            console.error(`[table-datasource] Service ${this.dataService.constructor.name} sent data, while will saving... should skip ?`);
           } else {
             this.$busy.next(false);
-            if (this._debug) console.debug(`[table-datasource] Service ${this._dataService.constructor.name} sent new data: updating datasource...`, res);
+            if (this._debug) console.debug(`[table-datasource] Service ${this.dataService.constructor.name} sent new data: updating datasource...`, res);
             this.updateDatasource((res.data || []) as T[]);
           }
           return res;
@@ -179,7 +173,7 @@ export class AppTableDataSource<T extends Entity<T>, F, O extends TableDataServi
 
       if (this._debug) console.debug('[table-datasource] Row to save:', dataToSave);
 
-      const savedData = await this._dataService.saveAll(dataToSave, this.serviceOptions);
+      const savedData = await this.dataService.saveAll(dataToSave, this.serviceOptions);
 
       if (this._debug) console.debug('[table-datasource] Data saved. Updated data received by service:', savedData);
       if (this._debug) console.debug('[table-datasource] Updating datasource...', data);
@@ -205,8 +199,8 @@ export class AppTableDataSource<T extends Entity<T>, F, O extends TableDataServi
     this.asyncCreateNew();
   }
 
-  disconnect() {
-    super.disconnect();
+  disconnect(collectionViewer?: CollectionViewer) {
+    super.disconnect(collectionViewer);
     this._stopWatchAll$.next();
   }
 
@@ -240,14 +234,14 @@ export class AppTableDataSource<T extends Entity<T>, F, O extends TableDataServi
 
   public handleError(error: any, message: string): Observable<LoadResult<T>> {
     const errorMsg = error && error.message || error;
-    console.error(`${errorMsg} (dataService: ${this._dataService.constructor.name})`, error);
+    console.error(`${errorMsg} (dataService: ${this.dataService.constructor.name})`, error);
     this.$busy.next(false);
     throw new Error(message || errorMsg);
   }
 
   public handleErrorPromise(error: any, message: string) {
     const errorMsg = error && error.message || error;
-    console.error(`${errorMsg} (dataService: ${this._dataService.constructor.name})`, error);
+    console.error(`${errorMsg} (dataService: ${this.dataService.constructor.name})`, error);
     this.$busy.next(false);
     throw new Error(message || errorMsg);
   }
@@ -256,7 +250,7 @@ export class AppTableDataSource<T extends Entity<T>, F, O extends TableDataServi
     const row = this.getRow(id);
     this.$busy.next(true);
 
-    this._dataService.deleteAll([row.currentData], this.serviceOptions)
+    this.dataService.deleteAll([row.currentData], this.serviceOptions)
       .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
       .then(() => {
         setTimeout(() => {
@@ -279,7 +273,7 @@ export class AppTableDataSource<T extends Entity<T>, F, O extends TableDataServi
     const self = this;
     const selfDelete = super.delete;
 
-    return this._dataService.deleteAll(data, this.serviceOptions)
+    return this.dataService.deleteAll(data, this.serviceOptions)
       .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
       .then(() => {
         // Workaround, to be sure all rows has been deleted
@@ -299,7 +293,7 @@ export class AppTableDataSource<T extends Entity<T>, F, O extends TableDataServi
   }
 
   public getRows(): Promise<TableElement<T>[]> {
-    return this.connect().pipe(first()).toPromise();
+    return firstNotNilPromise(this.connect(null)) as Promise<TableElement<T>[]>;
   }
 
   public async asyncCreateNew(): Promise<void> {

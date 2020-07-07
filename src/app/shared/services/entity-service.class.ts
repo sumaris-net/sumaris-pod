@@ -3,10 +3,10 @@ import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {isNil, isNotNil} from "../functions";
 import {SortDirection} from "@angular/material/sort";
 
-export declare interface LoadPage<T> {
+export declare interface Page<T> {
   offset: number;
   size: number;
-  sortBy?: keyof T;
+  sortBy?: string;
   sortDirection?: 'asc'|'desc';
 }
 
@@ -15,37 +15,21 @@ export declare interface LoadResult<T> {
   total?: number;
 }
 
-export declare type SuggestFn<T, F> = (value: any, filter?: F, sortBy?: keyof T, sortDirection?: SortDirection) => Promise<T[]>;
+export declare type SuggestFn<T, F> = (value: any, filter?: F, sortBy?: string, sortDirection?: SortDirection) => Promise<T[]>;
 
-export declare interface SuggestionDataService<T, F> {
+export declare interface SuggestService<T, F> {
   suggest: SuggestFn<T, F>;
 }
 
 export declare type FilterFn<T> = (data: T) => boolean;
 export declare type FilterFnFactory<T, F> = (filter: F) => FilterFn<T>;
 
-export declare interface DataService<T, F> {
-
-  loadAll(
-    offset: number,
-    size: number,
-    sortBy?: string,
-    sortDirection?: string,
-    filter?: F,
-    options?: any
-  ): Promise<LoadResult<T>>;
-
-  saveAll(data: T[], options?: any): Promise<T[]>;
-
-  deleteAll(data: T[], options?: any): Promise<any>;
-}
-
-export declare interface EditorDataServiceLoadOptions {
+export declare interface EntityServiceLoadOptions {
   fetchPolicy?: FetchPolicy;
   [key: string]: any;
 }
 
-export declare interface EditorDataService<T, O = EditorDataServiceLoadOptions> {
+export declare interface EntityService<T, O = EntityServiceLoadOptions> {
 
   load(
     id: number,
@@ -59,31 +43,32 @@ export declare interface EditorDataService<T, O = EditorDataServiceLoadOptions> 
   listenChanges(id: number, options?: any): Observable<T | undefined>;
 }
 
-export declare interface TableDataServiceWatchOptions {
+export declare interface EntitiesServiceWatchOptions {
   fetchPolicy?: WatchQueryFetchPolicy;
   [key: string]: any;
 }
 
-export declare interface TableDataService<T, F, O extends TableDataServiceWatchOptions = TableDataServiceWatchOptions> {
+export declare interface EntitiesService<T, F, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions> {
 
   watchAll(
     offset: number,
     size: number,
     sortBy?: string,
-    sortDirection?: string,
+    sortDirection?: SortDirection,
     filter?: F,
     options?: O
   ): Observable<LoadResult<T>>;
 
+  // TODO
+  /*watchPage(
+    page: Page<T>,
+    filter?: F,
+    options?: O
+  ): Observable<LoadResult<T>>;*/
+
   saveAll(data: T[], options?: any): Promise<T[]>;
 
   deleteAll(data: T[], options?: any): Promise<any>;
-}
-
-export declare interface ImportDataService<T, F> {
-  executeImport(opts?: {
-    maxProgression?: number;
-  }): Observable<number>;
 }
 
 export declare type LoadResultByPageFn<T> = (offset: number, size: number) => Promise<LoadResult<T>>;

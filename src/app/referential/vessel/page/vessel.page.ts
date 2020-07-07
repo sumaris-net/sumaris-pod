@@ -3,9 +3,9 @@ import {VesselService} from '../../services/vessel-service';
 import {VesselForm} from '../form/form-vessel';
 import {Vessel} from '../../services/model/vessel.model';
 import {AccountService} from "../../../core/services/account.service";
-import {AppEditor} from "../../../core/form/editor.class";
+import {AppEntityEditor} from "../../../core/form/editor.class";
 import {FormGroup, Validators} from "@angular/forms";
-import {DateFormatPipe, EditorDataServiceLoadOptions} from "../../../shared/shared.module";
+import {DateFormatPipe, EntityServiceLoadOptions} from "../../../shared/shared.module";
 import * as moment from "moment";
 import {VesselFeaturesHistoryComponent} from "./vessel-features-history.component";
 import {VesselRegistrationHistoryComponent} from "./vessel-registration-history.component";
@@ -16,7 +16,7 @@ import {SharedValidators} from "../../../shared/validator/validators";
   templateUrl: './vessel.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselPage extends AppEditor<Vessel, VesselService> implements OnInit, AfterViewInit {
+export class VesselPage extends AppEntityEditor<Vessel, VesselService> implements OnInit, AfterViewInit {
 
   previousVessel: Vessel;
   isNewFeatures = false;
@@ -77,7 +77,7 @@ export class VesselPage extends AppEditor<Vessel, VesselService> implements OnIn
     this.addChildForm(this.vesselForm);
   }
 
-  protected async onNewEntity(data: Vessel, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: Vessel, options?: EntityServiceLoadOptions): Promise<void> {
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
       data.features.startDate = moment();
@@ -116,10 +116,10 @@ export class VesselPage extends AppEditor<Vessel, VesselService> implements OnIn
   }
 
   async cancel(): Promise<void> {
-    await this.reload();
+    await this.reloadWithConfirmation();
   }
 
-  async doReload(): Promise<void> {
+  async reload(): Promise<void> {
     this.loading = true;
     await this.load(this.data && this.data.id);
   }

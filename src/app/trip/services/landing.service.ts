@@ -1,10 +1,10 @@
 import {Injectable, Injector} from "@angular/core";
 import {
-  EditorDataService,
-  EditorDataServiceLoadOptions,
+  EntityService,
+  EntityServiceLoadOptions,
   LoadResult,
-  TableDataService
-} from "../../shared/services/data-service.class";
+  EntitiesService
+} from "../../shared/services/entity-service.class";
 import {Observable} from "rxjs";
 import {environment} from "../../../environments/environment";
 import {Landing} from "./model/landing.model";
@@ -34,12 +34,13 @@ import {WatchQueryFetchPolicy} from "apollo-client";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
 import {FormErrors} from "../../core/form/form.utils";
 import {NetworkService} from "../../core/services/network.service";
-import {EntityStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
 import {Trip} from "./model/trip.model";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {Moment} from "moment";
 import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+import {SortDirection} from "@angular/material/sort";
 
 
 export class LandingFilter {
@@ -252,14 +253,14 @@ const sortByDateFn = (n1: Landing, n2: Landing) => {
 
 @Injectable({providedIn: 'root'})
 export class LandingService extends RootDataService<Landing, LandingFilter>
-  implements TableDataService<Landing, LandingFilter>, EditorDataService<Landing> {
+  implements EntitiesService<Landing, LandingFilter>, EntityService<Landing> {
 
   protected loading = false;
 
   constructor(
     injector: Injector,
     protected network: NetworkService,
-    protected entities: EntityStorage
+    protected entities: EntitiesStorage
   ) {
     super(injector);
 
@@ -268,7 +269,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
   }
 
   watchAll(offset: number, size: number,
-           sortBy?: string, sortDirection?: string,
+           sortBy?: string, sortDirection?: SortDirection,
            dataFilter?: LandingFilter,
            options?: {
              fetchPolicy?: WatchQueryFetchPolicy
@@ -310,16 +311,12 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     }
     else {
 
-      // Save filter if load for a tables
-      // This is need to update cache, when save new entity (see save())
-      if (dataFilter && (isNotNil(dataFilter.observedLocationId) || isNotNil(dataFilter.tripId))) {
-        this._lastVariables.loadByParent = variables;
-      } else {
-        this._lastVariables.loadAll = variables;
-      }
-
-      $loadResult = this.graphql.watchQuery<{ landings: Landing[]; landingsCount: number; }>({
+      $loadResult = this.mutableWatchQuery<{ landings: Landing[]; landingsCount: number; }>({
+        queryName: 'LoadAll',
         query: LoadAllQuery,
+        arrayFieldName: "landings",
+        totalFieldName: "landingsCount",
+        insertFilterFn: LandingFilter.searchFilter(dataFilter),
         variables,
         error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
         fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
@@ -367,7 +364,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
         }));
   }
 
-  async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Landing> {
+  async load(id: number, options?: EntityServiceLoadOptions): Promise<Landing> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = Date.now();
@@ -525,27 +522,10 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
           // Add to cache
           if (isNew) {
             // Cache load by parent
-            if (this._lastVariables.loadByParent && this._lastVariables.loadByParent.filter && (
-                // If same observedLocation or trip
-                (isNotNil(entity.observedLocationId) && this._lastVariables.loadByParent.filter.observedLocationId === entity.observedLocationId) ||
-                (isNotNil(entity.tripId) && this._lastVariables.loadByParent.filter.tripId === entity.tripId))) {
-              this.graphql.addToQueryCache(proxy, {
-                query: LoadAllQuery,
-                variables: this._lastVariables.loadByParent
-              }, 'landings', savedEntity);
-            }
-            else if (this._lastVariables.loadAll) {
-              this.graphql.addToQueryCache(proxy, {
-                query: LoadAllQuery,
-                variables: this._lastVariables.loadAll
-              }, 'landings', savedEntity);
-            }
-          }
-          else if (this._lastVariables.load) {
-            this.graphql.updateToQueryCache(proxy, {
-              query: LoadQuery,
-              variables: this._lastVariables.load
-            }, 'landing', savedEntity);
+            this.insertIntoMutableCachedQuery(proxy, {
+              query: LoadAllQuery,
+              data: savedEntity
+            });
           }
         }
       }
@@ -570,34 +550,23 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       await this.entities.deleteMany<Landing>(localIds, 'LandingVO');
     }
 
-    const remoteIds = entities && entities
+    const ids = entities && entities
       .map(t => t.id)
       .filter(id => id >= 0);
-    if (isEmptyArray(remoteIds)) return; // stop, if nothing else to do
+    if (isEmptyArray(ids)) return; // stop, if nothing else to do
 
     const now = Date.now();
-    if (this._debug) console.debug("[landing-service] Deleting landings... ids:", remoteIds);
+    if (this._debug) console.debug("[landing-service] Deleting landings... ids:", ids);
 
     await this.graphql.mutate<any>({
       mutation: DeleteByIdsMutation,
       variables: {
-        ids: remoteIds
+        ids
       },
       update: (proxy) => {
 
         // Remove from cache
-        if (this._lastVariables.loadByParent) {
-          this.graphql.removeToQueryCacheByIds(proxy, {
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadByParent
-          }, 'landings', remoteIds);
-        }
-        if (this._lastVariables.loadAll) {
-          this.graphql.removeToQueryCacheByIds(proxy, {
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'landings', remoteIds);
-        }
+        this.removeFromMutableCachedQueryByIds(proxy, {query: LoadAllQuery, ids});
 
         if (this._debug) console.debug(`[landing-service] Landings deleted in ${Date.now() - now}ms`);
       }

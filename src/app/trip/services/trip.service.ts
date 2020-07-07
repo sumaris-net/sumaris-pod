@@ -1,15 +1,15 @@
 import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
 import {
-  EditorDataService,
-  EditorDataServiceLoadOptions,
+  EntityService,
+  EntityServiceLoadOptions,
   fromDateISOString,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  TableDataService,
+  EntitiesService,
   toBoolean,
   toDateISOString
 } from "../../shared/shared.module";
@@ -31,8 +31,8 @@ import {
 } from "../../data/services/model/data-entity.model";
 import {NetworkService} from "../../core/services/network.service";
 import {concat, defer, Observable, of, timer} from "rxjs";
-import {EntityStorage} from "../../core/services/entities-storage.service";
-import {isEmptyArray} from "../../shared/functions";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {Beans, isEmptyArray, KeysEnum} from "../../shared/functions";
 import {DataQualityService} from "./base.service";
 import {OperationFilter, OperationService} from "./operation.service";
 import {VesselSnapshotFragments, VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -49,6 +49,9 @@ import {Sample} from "./model/sample.model";
 import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {fillRankOrder, IWithRecorderDepartmentEntity} from "../../data/services/model/model.utils";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
+import {SortDirection} from "@angular/material/sort";
+import {FilterFn} from "../../shared/services/entity-service.class";
+import {ObservedLocationFilter, ObservedLocationFilterKeys} from "./observed-location.service";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -216,69 +219,6 @@ export const TripFragments = {
 export const TRIP_FEATURE = 'trip';
 
 export class TripFilter {
-
-  static isEmpty(tripFilter: TripFilter|any): boolean {
-    return !tripFilter || (isNilOrBlank(tripFilter.programLabel) && isNilOrBlank(tripFilter.vesselId) && isNilOrBlank(tripFilter.locationId)
-      && !tripFilter.startDate && !tripFilter.endDate
-      && isNil(tripFilter.recorderDepartmentId)
-      && isNil(tripFilter.recorderPersonId))
-      // && !tripFilter.synchronizationStatus -- not included, because separated button
-      ;
-  }
-
-  static searchFilter<T extends Trip>(f: TripFilter): (T) => boolean {
-    if (this.isEmpty(f)) return undefined; // no filter need
-    return (t: T) => {
-
-      // Program
-      if (f.programLabel && (!t.program || t.program.label !== f.programLabel)) {
-        return false;
-      }
-
-      // Vessel
-      if (isNotNil(f.vesselId) && t.vesselSnapshot && t.vesselSnapshot.id !== f.vesselId) {
-        return false;
-      }
-
-      // Location
-      if (isNotNil(f.locationId) && ((t.departureLocation && t.departureLocation.id !== f.locationId) ? (t.returnLocation && t.returnLocation.id !== f.locationId) : true)) {
-        return false;
-      }
-
-      // Start/end period
-      const startDate = fromDateISOString(f.startDate);
-      const endDate = fromDateISOString(f.endDate);
-      if ((startDate && t.returnDateTime && startDate.isAfter(t.returnDateTime))
-        || (endDate && t.departureDateTime && endDate.add(1, 'day').isSameOrBefore(t.departureDateTime))) {
-        return false;
-      }
-
-      // Recorder department
-      if (isNotNil(f.recorderDepartmentId) && t.recorderDepartment && t.recorderDepartment.id !== f.recorderDepartmentId) {
-        return false;
-      }
-
-      // Recorder person
-      if (isNotNil(f.recorderPersonId) && (!t.recorderPerson || t.recorderPerson.id !== f.recorderPersonId)) {
-        return false;
-      }
-
-      // Synchronization status
-      if (f.synchronizationStatus && (
-        // Check trip synchro status, if any
-        (t.synchronizationStatus && t.synchronizationStatus !== f.synchronizationStatus)
-        // Else, if SYNC is wanted: exclude if local id
-        || (f.synchronizationStatus === 'SYNC' && !t.synchronizationStatus && t.id < 0)
-        // Or else, if DIRTY or READY_TO_SYNC wanted: exclude if id is NOT local
-        || (f.synchronizationStatus !== 'SYNC' && !t.synchronizationStatus && t.id >= 0))
-      ) {
-        return false;
-      }
-
-      return true;
-    };
-  }
-
   programLabel?: string;
   vesselId?: number;
   locationId?: number;
@@ -287,9 +227,96 @@ export class TripFilter {
   recorderDepartmentId?: number;
   recorderPersonId?: number;
   synchronizationStatus?: SynchronizationStatus;
+
+  static isEmpty(f: TripFilter|any): boolean {
+    return Beans.isEmpty<TripFilter>({...f, synchronizationStatus: null}, TripFilterKeys, {
+      blankStringLikeEmpty: true
+    });
+  }
+
+  static searchFilter<T extends Trip>(f: TripFilter): (T) => boolean {
+    const filterFns: FilterFn<T>[] = [];
+
+    // Program
+    if (f.programLabel) {
+      filterFns.push(t => (t.program && t.program.label === f.programLabel));
+    }
+
+    // Vessel
+    if (f.vesselId) {
+      filterFns.push(t => (t.vesselSnapshot && t.vesselSnapshot.id === f.vesselId));
+    }
+
+    // Location
+    if (isNotNil(f.locationId)) {
+      filterFns.push(t => ((t.departureLocation && t.departureLocation.id === f.locationId) || (t.returnLocation && t.returnLocation.id === f.locationId)))
+    }
+
+    // Start/end period
+    const startDate = fromDateISOString(f.startDate);
+    let endDate = fromDateISOString(f.endDate);
+    if (startDate) {
+      filterFns.push(t => t.returnDateTime ? startDate.isSameOrBefore(t.returnDateTime) : startDate.isSameOrBefore(t.departureDateTime))
+    }
+    if (endDate) {
+      endDate = endDate.add(1, 'day');
+      filterFns.push(t => t.departureDateTime && endDate.isAfter(t.departureDateTime))
+    }
+
+    // Recorder department
+    if (isNotNil(f.recorderDepartmentId)) {
+      filterFns.push(t => (t.recorderDepartment && t.recorderDepartment.id === f.recorderDepartmentId));
+    }
+
+    // Recorder person
+    if (isNotNil(f.recorderPersonId)) {
+      filterFns.push(t => (t.recorderPerson && t.recorderPerson.id === f.recorderPersonId));
+    }
+
+    // Synchronization status
+    if (f.synchronizationStatus) {
+      filterFns.push(t => // Check trip synchro status, if any
+        (t.synchronizationStatus && t.synchronizationStatus === f.synchronizationStatus)
+        // Else, if SYNC is wanted: must be remote (not local) id
+        || (f.synchronizationStatus === 'SYNC' && !t.synchronizationStatus && t.id >= 0)
+        // Or else, if DIRTY or READY_TO_SYNC wanted: must be local id
+        || (f.synchronizationStatus !== 'SYNC' && !t.synchronizationStatus && t.id < 0));
+    }
+
+    if (!filterFns.length) return undefined;
+
+    return (entity) => !filterFns.find(fn => !fn(entity));
+  }
+
+  /**
+   * Clean a filter, before sending to the pod (e.g remove 'synchronizationStatus')
+   * @param f
+   */
+  static asPodObject(f: TripFilter): any {
+    if (!f) return f;
+    return {
+      ...f,
+      // Serialize all dates
+      startDate: f && toDateISOString(f.startDate),
+      endDate: f && toDateISOString(f.endDate),
+      // Remove fields that not exists in pod
+      synchronizationStatus: undefined
+    };
+  }
 }
 
-export interface TripServiceLoadOption extends EditorDataServiceLoadOptions {
+export const TripFilterKeys: KeysEnum<TripFilter> = {
+  programLabel: true,
+  vesselId: true,
+  startDate: true,
+  endDate: true,
+  locationId: true,
+  recorderDepartmentId: true,
+  recorderPersonId: true,
+  synchronizationStatus: true
+}
+
+export interface TripServiceLoadOption extends EntityServiceLoadOptions {
   isLandedTrip?: boolean;
   withOperation?: boolean;
   withOperationGroup?: boolean;
@@ -405,8 +432,8 @@ const UpdateSubscription = gql`
 @Injectable({providedIn: 'root'})
 export class TripService extends RootDataService<Trip, TripFilter>
   implements
-    TableDataService<Trip, TripFilter>,
-    EditorDataService<Trip, TripServiceLoadOption>,
+    EntitiesService<Trip, TripFilter>,
+    EntityService<Trip, TripServiceLoadOption>,
     DataQualityService<Trip> {
 
   protected $importationProgress: Observable<number>;
@@ -421,7 +448,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     protected vesselSnapshotService: VesselSnapshotService,
     protected personService: PersonService,
     protected programService: ProgramService,
-    protected entities: EntityStorage,
+    protected entities: EntitiesStorage,
     protected operationService: OperationService,
     protected settings: LocalSettingsService,
     protected validatorService: TripValidatorService
@@ -444,7 +471,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
   watchAll(offset: number,
            size: number,
            sortBy?: string,
-           sortDirection?: string,
+           sortDirection?: SortDirection,
            dataFilter?: TripFilter,
            options?: {
              fetchPolicy?: WatchQueryFetchPolicy
@@ -454,14 +481,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
       size: size || 20,
       sortBy: sortBy || 'departureDateTime',
       sortDirection: sortDirection || 'asc',
-      filter: {
-        ...dataFilter,
-        // Serialize all dates
-        startDate: dataFilter && toDateISOString(dataFilter.startDate),
-        endDate: dataFilter && toDateISOString(dataFilter.endDate),
-        // Remove fields that not exists in pod
-        synchronizationStatus: undefined
-      }
+      filter: TripFilter.asPodObject(dataFilter)
     };
 
     let now = this._debug && Date.now();
@@ -471,7 +491,7 @@ export class TripService extends RootDataService<Trip, TripFilter>
     // Offline
     const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
     if (offline) {
-      $loadResult = this.entities.watchAll<Trip>('TripVO', {
+      $loadResult = this.entities.watchAll<Trip>(Trip.TYPENAME, {
         ...variables,
         filter: TripFilter.searchFilter<Trip>(dataFilter)
       })
@@ -481,15 +501,15 @@ export class TripService extends RootDataService<Trip, TripFilter>
           }));
     }
     else {
-
-      this._lastVariables.loadAll = variables;
-
-      const query = LoadAllQuery;
-      $loadResult = this.graphql.watchQuery<{ trips: Trip[]; tripsCount: number; }>({
-        query,
+      $loadResult = this.mutableWatchQuery<{ trips: Trip[]; tripsCount: number; }>({
+        queryName: 'LoadAll',
+        query: LoadAllQuery,
+        arrayFieldName: 'trips',
+        totalFieldName: 'tripsCount',
+        insertFilterFn: TripFilter.searchFilter(dataFilter),
         variables,
         error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
-        fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
+        fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
       })
         .pipe(
           filter(() => !this.loading)
@@ -503,11 +523,10 @@ export class TripService extends RootDataService<Trip, TripFilter>
           if (now) {
             console.debug(`[trip-service] Loaded {${data.length || 0}} trips in ${Date.now() - now}ms`, data);
             now = undefined;
+          }else {
+            console.debug(`[trip-service] Refreshed {${data.length || 0}} trips`);
           }
-          return {
-            data: data,
-            total: total
-          };
+          return {data, total};
         })
       );
   }
@@ -736,18 +755,11 @@ export class TripService extends RootDataService<Trip, TripFilter>
            if (this._debug) console.debug(`[trip-service] Trip saved remotely in ${Date.now() - now}ms`, entity);
 
            // Add to cache
-           if (isNew && this._lastVariables.loadAll) {
-             this.graphql.addToQueryCache(proxy, {
+           if (isNew) {
+             this.insertIntoMutableCachedQuery(proxy, {
                query: LoadAllQuery,
-               variables: this._lastVariables.loadAll
-             }, 'trips', savedEntity);
-           }
-           else if (this._lastVariables.load) {
-             const query = (isLandedTrip) ? LoadLandedTripQuery : LoadTripQuery;
-             this.graphql.updateToQueryCache(proxy, {
-               query,
-               variables: this._lastVariables.load
-             }, 'trip', savedEntity);
+               data: savedEntity
+             });
            }
          }
 
@@ -1064,27 +1076,25 @@ export class TripService extends RootDataService<Trip, TripFilter>
         }));
     }
 
-    const remoteIds = entities && entities
+    const ids = entities && entities
       .map(t => t.id)
       .filter(id => id >= 0);
-    if (isEmptyArray(remoteIds)) return; // stop, if nothing else to do
+    if (isEmptyArray(ids)) return; // stop, if nothing else to do
 
     const now = Date.now();
-    if (this._debug) console.debug("[trip-service] Deleting trips... ids:", remoteIds);
+    if (this._debug) console.debug("[trip-service] Deleting trips... ids:", ids);
 
     await this.graphql.mutate<any>({
       mutation: DeleteByIdsMutation,
       variables: {
-        ids: remoteIds
+        ids
       },
       update: (proxy) => {
         // Update the cache
-        if (this._lastVariables.loadAll) {
-          this.graphql.removeToQueryCacheByIds(proxy, {
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'trips', remoteIds);
-        }
+        this.removeFromMutableCachedQueryByIds(proxy, {
+          query: LoadAllQuery,
+          ids
+        });
 
         if (this._debug) console.debug(`[trip-service] Trips deleted remotely in ${Date.now() - now}ms`);
       }

@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {environment} from "../../../environments/environment";
 import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
 import {AppInMemoryTable} from "../../core/table/memory-table.class";
@@ -19,7 +19,7 @@ import {
   referentialToString,
   ReferentialUtils
 } from "../../core/services/model/referential.model";
-import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
+import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
 import {debounceTime, map, startWith, switchMap} from "rxjs/operators";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
@@ -145,7 +145,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         ])
         .concat(RESERVED_END_COLUMNS),
       PmfmStrategy,
-      new InMemoryTableDataService<PmfmStrategy, PmfmStrategyFilter>(PmfmStrategy, {
+      new InMemoryEntitiesService<PmfmStrategy, PmfmStrategyFilter>(PmfmStrategy, {
         onLoad: (data) => this.onLoad(data),
         onSave: (data) => this.onSave(data),
         filterFnFactory: PmfmStrategyFilter.searchFilter

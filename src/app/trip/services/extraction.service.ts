@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {BaseDataService, EntityUtils, environment, isNil, isNotNil, StatusIds} from "../../core/core.module";
+import {BaseEntityService, EntityUtils, environment, isNil, isNotNil, StatusIds} from "../../core/core.module";
 import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "./trip.errors";
@@ -23,6 +23,9 @@ import {FeatureCollection} from "geojson";
 import {Fragments} from "./trip.queries";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {SortDirection} from "@angular/material/sort";
+import {Operation} from "./model/trip.model";
+import {FilterFn} from "../../shared/services/entity-service.class";
 
 
 export const ExtractionFragments = {
@@ -185,13 +188,32 @@ const DeleteAggregations: any = gql`
   }
 `;
 
-export interface AggregationTypeFilter {
+export class AggregationTypeFilter {
+
+  static searchFilter<T extends AggregationType>(f: AggregationTypeFilter): (T) => boolean{
+    const filterFns: FilterFn<T>[] = [];
+
+    // Filter by status
+    if (f.statusIds) {
+      filterFns.push((entity) => !!f.statusIds.find(v => entity.statusId === v));
+    }
+
+    // Filter by spatial
+    if (isNotNil(f.isSpatial)) {
+      filterFns.push((entity) => f.isSpatial === f.isSpatial);
+    }
+
+    if (!filterFns.length) return undefined;
+
+    return (entity) => !filterFns.find(fn => !fn(entity));
+  }
+
   statusIds?: number[];
   isSpatial?: boolean;
 }
 
 @Injectable({providedIn: 'root'})
-export class ExtractionService extends BaseDataService {
+export class ExtractionService extends BaseEntityService {
 
   constructor(
     protected graphql: GraphqlService,
@@ -209,13 +231,9 @@ export class ExtractionService extends BaseDataService {
   async loadTypes(): Promise<ExtractionType[]> {
     if (this._debug) console.debug("[extraction-service] Loading extraction types...");
 
-    const variables = {};
-
-    this._lastVariables.loadTypes = variables;
-
     const data = await this.graphql.query<{ extractionTypes: ExtractionType[] }>({
       query: LoadTypes,
-      variables: variables,
+      variables: {},
       error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"}
     });
 
@@ -225,19 +243,15 @@ export class ExtractionService extends BaseDataService {
   /**
    * Load extraction types
    */
-  watchTypes(): Observable<ExtractionType[]> {
+  watchExtractionTypes(): Observable<ExtractionType[]> {
     let now = Date.now();
     if (this._debug) console.debug("[extraction-service] Loading extraction types...");
 
-    const variables = {
-
-    };
-
-    this._lastVariables.loadTypes = variables;
-
-    return this.graphql.watchQuery<{ extractionTypes: ExtractionType[] }>({
+    return this.mutableWatchQuery<{ extractionTypes: ExtractionType[] }>({
+      queryName: 'LoadTypes',
       query: LoadTypes,
-      variables: variables,
+      arrayFieldName: 'extractionTypes',
+      variables: {},
       error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"}
     })
       .pipe(
@@ -266,7 +280,7 @@ export class ExtractionService extends BaseDataService {
     offset: number,
     size: number,
     sortBy?: string,
-    sortDirection?: string,
+    sortDirection?: SortDirection,
     filter?: ExtractionFilter,
     options?: {
       fetchPolicy?: FetchPolicy
@@ -283,8 +297,6 @@ export class ExtractionService extends BaseDataService {
       sortDirection: sortDirection || 'asc',
       filter: filter
     };
-
-    this._lastVariables.loadAll = variables;
 
     const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Loading rows... using options:", variables);
@@ -366,8 +378,6 @@ export class ExtractionService extends BaseDataService {
       filter: filter
     };
 
-    this._lastVariables.loadAll = variables;
-
     const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Download extraction file... using options:", variables);
     const res = await this.graphql.query<{ extractionFile: string }>({
@@ -387,20 +397,20 @@ export class ExtractionService extends BaseDataService {
   /**
    * Load spatial types
    */
-  loadAggregationTypes(filter?: AggregationTypeFilter,
-                       options?: { fetchPolicy?: FetchPolicy }
+  watchAggregationTypes(dataFilter?: AggregationTypeFilter,
+                        options?: { fetchPolicy?: FetchPolicy }
   ): Observable<AggregationType[]> {
     if (this._debug) console.debug("[extraction-service] Loading geo types...");
 
     const variables = {
-      filter: filter
+      filter: dataFilter
     };
 
-    // Remember variables, to be able to update the cache in saveAggregation()
-    this._lastVariables.loadAggregationTypes = variables;
-
-    return this.graphql.watchQuery<{ aggregationTypes: AggregationType[] }>({
+    return this.mutableWatchQuery<{ aggregationTypes: AggregationType[] }>({
+      queryName: 'LoadAggregationTypes',
       query: LoadAggregationTypes,
+      arrayFieldName: 'aggregationTypes',
+      insertFilterFn: AggregationTypeFilter.searchFilter(dataFilter),
       variables: variables,
       error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
@@ -433,7 +443,7 @@ export class ExtractionService extends BaseDataService {
                                offset: number,
                                size: number,
                                sortBy?: string,
-                               sortDirection?: string,
+                               sortDirection?: SortDirection,
                                filter?: ExtractionFilter,
                                options?: {
                                  fetchPolicy?: FetchPolicy
@@ -556,28 +566,19 @@ export class ExtractionService extends BaseDataService {
           savedEntity.category = 'product';
           savedEntity.isSpatial = entity.isSpatial;
 
+          // Add to cached queries
           if (isNew) {
-            // Add to cache (extraction types)
-            let addToCache = this._lastVariables.loadTypes &&
-              // Check if cache on the same statusId
-              (isNil(this._lastVariables.loadTypes.statusIds) || this._lastVariables.loadTypes.statusIds.findIndex(s => s === entity.statusId) !== -1);
-            if (addToCache) {
-              this.graphql.addToQueryCache(proxy, {
-                query: LoadTypes,
-                variables: this._lastVariables.loadTypes
-              }, 'extractionTypes', savedEntity);
-            }
+            // Extraction types
+            this.insertIntoMutableCachedQuery(proxy, {
+              query: LoadTypes,
+              data: savedEntity
+            });
 
-            // Add to cache (aggregation types)
-            addToCache = this._lastVariables.loadAggregationTypes &&
-              // Check if cache on the same statusId
-              (this._lastVariables.loadAggregationTypes.statusIds || []).findIndex(s => s === entity.statusId) !== -1;
-            if (addToCache) {
-              this.graphql.addToQueryCache(proxy, {
-                query: LoadAggregationTypes,
-                variables: this._lastVariables.loadAggregationTypes
-              }, 'aggregationTypes', savedEntity);
-            }
+            // Aggregation types
+            this.insertIntoMutableCachedQuery(proxy, {
+              query: LoadAggregationTypes,
+              data: savedEntity
+            });
           }
         }
       }
@@ -597,24 +598,23 @@ export class ExtractionService extends BaseDataService {
     await this.graphql.mutate<any>({
       mutation: DeleteAggregations,
       variables: {
-        ids: ids
+        ids
       },
       update: (proxy) => {
 
-        // Remove from cache (extraction types)
-        if (this._lastVariables.loadTypes) {
-          this.graphql.removeToQueryCacheByIds(proxy,{
+        // Remove from cache
+        {
+          // Extraction types
+          this.removeFromMutableCachedQueryByIds(proxy, {
             query: LoadTypes,
-            variables: this._lastVariables.loadTypes
-          }, 'extractionTypes', ids);
-        }
+            ids
+          });
 
-        // Remove from cache (aggregation types)
-        if (this._lastVariables.loadAggregationTypes) {
-          this.graphql.removeToQueryCacheByIds(proxy,{
+          // Aggregation types
+          this.removeFromMutableCachedQueryByIds(proxy, {
             query: LoadAggregationTypes,
-            variables: this._lastVariables.loadAggregationTypes
-          }, 'aggregationTypes', ids);
+            ids
+          });
         }
 
         if (this._debug) console.debug(`[extraction-service] Aggregations deleted in ${Date.now() - now}ms`);

@@ -17,7 +17,7 @@ import {UsageMode} from "../../core/services/model/settings.model";
 import * as moment from "moment";
 import {Moment} from "moment";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {SampleModal} from "./sample.modal";
 import {FormGroup} from "@angular/forms";
 import {TaxonGroupRef, TaxonNameRef} from "../../referential/services/model/taxon.model";
@@ -49,7 +49,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
-  protected memoryDataService: InMemoryTableDataService<Sample, SampleFilter>;
+  protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
   @Input()
   set value(data: Sample[]) {
@@ -100,7 +100,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   ) {
     super(injector,
       Sample,
-      new InMemoryTableDataService<Sample, SampleFilter>(Sample, {
+      new InMemoryEntitiesService<Sample, SampleFilter>(Sample, {
         equals: Sample.equals
       }),
       injector.get(ValidatorService),
@@ -113,7 +113,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.memoryDataService = (this.dataService as InMemoryTableDataService<Sample, SampleFilter>);
+    this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
     this.inlineEdition = !this.mobile;
 

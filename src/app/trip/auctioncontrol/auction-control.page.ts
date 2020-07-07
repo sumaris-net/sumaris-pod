@@ -8,7 +8,7 @@ import {from, Subscription} from "rxjs";
 import {Landing} from "../services/model/landing.model";
 import {AuctionControlValidators} from "../services/validator/auction-control.validators";
 import {ModalController} from "@ionic/angular";
-import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {fadeInOutAnimation, isNil, isNotNil} from "../../shared/shared.module";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
@@ -134,7 +134,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this._rowValidatorSubscription = AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 
-  protected async onNewEntity(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
     await super.onNewEntity(data, options);
 
@@ -151,7 +151,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this.defaultBackHref = `/observations/${observedLocationId}?tab=1`;
   }
 
-  protected async onEntityLoaded(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onEntityLoaded(data, options);
 
     // Send landing date time to sample tables, but leave empty if FIELD mode (= will use current date)

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource,
+  EntitiesTableDataSource,
   environment,
   isNil,
   isNotNil, referentialToString,
@@ -86,7 +86,7 @@ export class VesselsTable extends AppTable<Vessel, VesselFilter> implements OnIn
           'features.basePortLocation',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, null, {
+      new EntitiesTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

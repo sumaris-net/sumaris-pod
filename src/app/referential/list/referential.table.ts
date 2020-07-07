@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} 
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {environment, referentialToString, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {Referential} from "../../core/services/model/referential.model";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
@@ -21,9 +21,9 @@ import {AppInMemoryTable} from "../../core/table/memory-table.class";
   providers: [
     {provide: ValidatorService, useExisting: ReferentialValidatorService},
     {
-      provide: InMemoryTableDataService,
+      provide: InMemoryEntitiesService,
       useFactory: () => {
-        return new InMemoryTableDataService<Referential, ReferentialFilter>(Referential);
+        return new InMemoryEntitiesService<Referential, ReferentialFilter>(Referential);
       }
     }
   ],
@@ -58,7 +58,7 @@ export class ReferentialTable extends AppInMemoryTable<Referential, ReferentialF
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
-    protected memoryDataService: InMemoryTableDataService<Referential, ReferentialFilter>,
+    protected memoryDataService: InMemoryEntitiesService<Referential, ReferentialFilter>,
     protected cd: ChangeDetectorRef,
     protected injector: Injector
   ) {

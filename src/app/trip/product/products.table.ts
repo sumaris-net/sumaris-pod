@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {ProductValidatorService} from "../services/validator/product.validator";
 import {IWithProductsEntity, Product, ProductFilter} from "../services/model/product.model";
@@ -24,8 +24,8 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
   styleUrls: ['products.table.scss'],
   providers: [
     {
-      provide: InMemoryTableDataService,
-      useFactory: () => new InMemoryTableDataService<Product, ProductFilter>(Product, {
+      provide: InMemoryEntitiesService,
+      useFactory: () => new InMemoryEntitiesService<Product, ProductFilter>(Product, {
         equals: Product.equals,
         filterFnFactory: ProductFilter.searchFilter
       })
@@ -62,7 +62,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     injector: Injector,
     protected platform: Platform,
     protected validatorService: ProductValidatorService,
-    protected memoryDataService: InMemoryTableDataService<Product, ProductFilter>,
+    protected memoryDataService: InMemoryEntitiesService<Product, ProductFilter>,
     protected cd: ChangeDetectorRef
   ) {
     super(injector,

@@ -5,7 +5,7 @@ import {Configuration} from "../../core/services/model/config.model";
 import {Department} from "../../core/services/model/department.model";
 import {isEmptyArray, isNilOrBlank, isNotEmptyArray} from "../../shared/functions";
 import {BehaviorSubject} from "rxjs";
-import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {NetworkService} from "../../core/services/network.service";
 import {Alerts} from "../../shared/alerts";
 import {ConfigOptions} from "../../core/services/config/core.config";
@@ -59,7 +59,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     //this.debug = !environment.production;
   }
 
-  async load(id?: number, opts?: EditorDataServiceLoadOptions): Promise<void> {
+  async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
 
     const config = await firstNotNilPromise(this.service.config);
 

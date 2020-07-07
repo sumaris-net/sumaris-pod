@@ -105,3 +105,29 @@ The application should be accessible at [localhost:4200](http://localhost:4200)
 - Migration to Ionic 4 tips: https://www.joshmorony.com/my-method-for-upgrading-from-ionic-3-to-ionic-4/
 - Signing Android APK: See doc at 
    https://www.c-sharpcorner.com/article/create-ionic-4-release-build-for-android/
+
+## Troubleshooting
+
+### Error on datasource, or angular material table
+
+- Checkout the project https://github.com/e-is/angular4-material-table
+```bash
+git clone https://github.com/e-is/angular4-material-table.git
+cd angular4-material-table
+```
+- Build the project: 
+```bash
+npm install
+npm run build
+cp package*.json ./dist
+```
+- Link to your local NPM repo:
+```bash
+cd dist
+npm link 
+```
+- Use it from Sumaris project:
+```bash
+cd <sumaris_app_root>
+npm link angular4-material-table
+```

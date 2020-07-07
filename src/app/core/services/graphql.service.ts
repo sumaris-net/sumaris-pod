@@ -21,9 +21,34 @@ import QueueLink from 'apollo-link-queue';
 import SerializingLink from 'apollo-link-serialize';
 import loggerLink from 'apollo-link-logger';
 import {Platform} from "@ionic/angular";
-import {EntityUtils} from "./model/entity.model";
+import {EntityUtils, IEntity} from "./model/entity.model";
 import {DataProxy} from 'apollo-cache';
 import {isNotNil} from "../../shared/functions";
+import {Resolvers} from "apollo-client/core/types";
+import {ReferentialUtils} from "./model/referential.model";
+import {CompareWithFn} from "../../shared/form/field.model";
+import {SelectCompareFn} from "@ionic/core";
+
+export interface WatchQueryOptions<V> {
+  query: any,
+  variables: V,
+  error?: ServiceError,
+  fetchPolicy?: WatchQueryFetchPolicy
+}
+
+export interface MutateQueryOptions<T, V = R> {
+  mutation: any;
+  variables: V;
+  error?: ServiceError;
+  context?: {
+    serializationKey?: string;
+    tracked?: boolean;
+  };
+  optimisticResponse?: T;
+  offlineResponse?: T | ((context: any) => Promise<T>);
+  update?: MutationUpdaterFn<T>;
+  forceOffline?: boolean;
+}
 
 @Injectable({providedIn: 'root'})
 export class GraphqlService {
@@ -36,7 +61,7 @@ export class GraphqlService {
   private httpParams: Options;
   private wsParams;
   private wsConnectionParams: { authToken?: string } = {};
-  private _defaultFetchPolicy: WatchQueryFetchPolicy;
+  private readonly _defaultFetchPolicy: WatchQueryFetchPolicy;
 
   public onStart = new Subject<void>();
 
@@ -124,6 +149,19 @@ export class GraphqlService {
     }
   }
 
+  /**
+   * Allow to add a field resolver
+   *  (see doc: https://www.apollographql.com/docs/react/data/local-state/#handling-client-fields-with-resolvers)
+   * @param resolvers
+   */
+  async addResolver(resolvers: Resolvers | Resolvers[]) {
+    if (!this._started) {
+      this.onStart.toPromise().then(() => this.addResolver(resolvers)); // Loop
+    }
+    const client = this.apollo.getClient();
+    client.addResolvers(resolvers);
+  }
+
   async query<T, V = R>(opts: {
     query: any,
     variables: V,
@@ -146,18 +184,17 @@ export class GraphqlService {
     return res.data;
   }
 
-  watchQuery<T, V = R>(opts: {
-    query: any,
-    variables: V,
-    error?: ServiceError,
-    fetchPolicy?: WatchQueryFetchPolicy
-  }): Observable<T> {
-    return this.apollo.watchQuery<T, V>({
+  watchQuery<T, V = R>(opts: WatchQueryOptions<V>): Observable<T> {
+    const queryRef = this.apollo.watchQuery<T, V>({
       query: opts.query,
       variables: opts.variables,
       fetchPolicy: opts.fetchPolicy || (this._defaultFetchPolicy as FetchPolicy) || undefined,
       notifyOnNetworkStatusChange: true
-    })
+    });
+
+    console.log("TODO check queryId=" + queryRef.queryId);
+
+    return queryRef
       .valueChanges
       .pipe(
         catchError(error => this.onApolloError<T>(error, opts.error)),
@@ -170,19 +207,7 @@ export class GraphqlService {
       );
   }
 
-  async mutate<T, V = R>(opts: {
-    mutation: any;
-    variables: V;
-    error?: ServiceError;
-    context?: {
-      serializationKey?: string;
-      tracked?: boolean;
-    };
-    optimisticResponse?: T;
-    offlineResponse?: T | ((context: any) => Promise<T>);
-    update?: MutationUpdaterFn<T>;
-    forceOffline?: boolean;
-  }): Promise<T> {
+  async mutate<T, V = R>(opts: MutateQueryOptions<T, V>): Promise<T> {
 
     // If offline, compute an optimistic response for tracked queries
     if ((opts.forceOffline || this.network.offline) && opts.offlineResponse) {
@@ -217,7 +242,7 @@ export class GraphqlService {
           // To debug, if need:
           //tap((res) => (!res) && console.error('[graphql] Unknown error during mutation. Check errors in console (may be an invalid generated cache id ?)'))
         ).toPromise();
-    if (res.errors) {
+    if (res.errors instanceof Array) {
       throw res.errors[0];
     }
     return res.data as T;
@@ -246,164 +271,256 @@ export class GraphqlService {
       );
   }
 
-  addToQueryCache<V = R>(proxy: DataProxy,
-                         opts: {
-    query: any,
-    variables: V
-  }, propertyName: string, newValue: any) {
+  insertIntoQueryCache<T, V = R>(proxy: DataProxy,
+                                 opts: DataProxy.Query<V> & {
+                                   arrayFieldName: string;
+                                   totalFieldName?: string;
+                                   data: T
+                                 }) {
 
     proxy = proxy || this.apollo.getClient();
+    opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const values = proxy.readQuery(opts);
+      const res = proxy.readQuery<any, V>(opts);
 
-      if (values && values[propertyName]) {
-        values[propertyName].push(newValue);
+      if (res && res[opts.arrayFieldName]) {
+        // Append to result array
+        res[opts.arrayFieldName].push(opts.data);
 
-        proxy.writeQuery({
+        // Increment total
+        if (isNotNil(opts.totalFieldName)) {
+          if (res[opts.totalFieldName]) {
+            res[opts.totalFieldName] += 1;
+          }
+          else {
+            console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
+          }
+        }
+
+        proxy.writeQuery<T[], V>({
           query: opts.query,
           variables: opts.variables,
-          data: values
+          data: res
         });
-        return; // OK: stop here
+      }
+      else {
+        console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.arrayFieldName);
       }
     } catch (err) {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
+      if (this._debug) console.error("[graphql] Error while updating cache: ", err);
     }
-    if (this._debug) console.debug("[graphql] Unable to add entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  addManyToQueryCache<V = R>(proxy: DataProxy,
-                             opts: {
-    query: any,
-    variables: V
-  }, propertyName: string, newValues: any[]) {
+  addManyToQueryCache<T = any, V = R>(proxy: DataProxy,
+                             opts: DataProxy.Query<V> & {
+                               arrayFieldName: string;
+                               totalFieldName?: string;
+                               data: T[],
+                               equalsFn?: (d1: T, d2: T) => boolean;
+                             }) {
 
-    if (!newValues || !newValues.length) return; // nothing to process
+    if (!opts.data || !opts.data.length) return; // nothing to process
 
     proxy = proxy || this.apollo.getClient();
+    opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const values = proxy.readQuery(opts);
+      const res = proxy.readQuery(opts);
 
-      if (values && values[propertyName]) {
-        // Keep only not existing values
-        newValues = newValues.filter(nv => !values[propertyName].find(v => nv['id'] === v['id'] && nv['entityName'] === v['entityName']));
+      if (res && res[opts.arrayFieldName]) {
+        // Keep only not existing res
+        const equalsFn = opts.equalsFn || ((d1, d2) => d1['id'] === d2['id'] && d1['entityName'] === d2['entityName']);
+        const data = opts.data.filter(inputValue => res[opts.arrayFieldName].findIndex(existingValue => equalsFn(inputValue, existingValue)) === -1);
 
-        if (!newValues.length) return; // No new value
+        if (!data.length) return; // No new value
 
-        // Update the cache
-        values[propertyName] = values[propertyName].concat(newValues);
+        // Append to result array
+        res[opts.arrayFieldName] = res[opts.arrayFieldName].concat(data);
+
+        // Increment the total
+        if (isNotNil(opts.totalFieldName)) {
+          if (res[opts.totalFieldName]) {
+            res[opts.totalFieldName] += data.length;
+          }
+          else {
+            console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
+          }
+        }
+
+        // Write to cache
         proxy.writeQuery({
           query: opts.query,
           variables: opts.variables,
-          data: values
+          data: res
         });
-        return; // OK: stop here
+      }
+      else {
+        console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.arrayFieldName);
       }
     } catch (err) {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
+      if (this._debug) console.warn("[graphql] Error while updating cache: ", err);
     }
-
-    if (this._debug) console.debug("[graphql] Unable to add entities to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  removeToQueryCacheById<V = R>(proxy: DataProxy,
-                                opts: {
-    query: any,
-    variables: V
-  }, propertyName: string, idToRemove: number) {
+  removeFromCachedQueryById<V = R>(proxy: DataProxy,
+                                   opts: DataProxy.Query<V> & {
+                                     arrayFieldName: string;
+                                     totalFieldName?: string;
+                                     id: number
+                                   }) {
 
     proxy = proxy || this.apollo.getClient();
+    opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const values = proxy.readQuery(opts);
+      const res = proxy.readQuery(opts);
 
-      if (values && values[propertyName]) {
+      if (res && res[opts.arrayFieldName]) {
 
-        values[propertyName] = (values[propertyName] || []).filter(item => item['id'] !== idToRemove);
+        const index = res[opts.arrayFieldName].findIndex(item => item['id'] === opts.id);
+        if (index === -1) return; // Skip (nothing removed)
+
+        // Remove the item
+        res[opts.arrayFieldName].splice(index, 1);
+
+        // Increment the total
+        if (isNotNil(opts.totalFieldName)) {
+          if (res[opts.totalFieldName]) {
+            res[opts.totalFieldName] -= 1;
+          }
+          else {
+            console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
+          }
+        }
+
+        // Write to cache
         proxy.writeQuery({
           query: opts.query,
           variables: opts.variables,
-          data: values
+          data: res
         });
-
-        return;
+      }
+      else {
+        console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.arrayFieldName);
       }
     } catch (err) {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
+      if (this._debug) console.warn("[graphql] Error while removing from cache: ", err);
     }
-    console.warn("[graphql] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  removeToQueryCacheByIds<V = R>(proxy: DataProxy, opts: {
-    query: any,
-    variables: V
-  }, propertyName: string, idsToRemove: number[]) {
+  removeFromCachedQueryByIds<V = R>(proxy: DataProxy,
+                                    opts: DataProxy.Query<V> & {
+                                      arrayFieldName: string;
+                                      totalFieldName?: string;
+                                      ids: number[]
+                                    }) {
+
+    proxy = proxy || this.apollo.getClient();
+    opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const values = proxy.readQuery(opts);
+      const res = proxy.readQuery(opts);
 
-      if (values && values[propertyName]) {
+      if (res && res[opts.arrayFieldName]) {
 
-        values[propertyName] = (values[propertyName] || []).reduce((result: any[], item: any) => {
-          return idsToRemove.indexOf(item['id']) === -1 ? result.concat(item) : result;
+        const newArray = res[opts.arrayFieldName].reduce((result: any[], item: any) => {
+          return opts.ids.includes(item['id']) ?
+              // Remove it
+            result :
+            // Or keep it
+            result.concat(item);
         }, []);
+
+        const deleteCount = res[opts.arrayFieldName].length - newArray.length;
+        if (deleteCount <= 0) return; // Skip (nothing removed)
+
+        res[opts.arrayFieldName] = newArray;
+
+        // Increment the total
+        if (isNotNil(opts.totalFieldName)) {
+          if (res[opts.totalFieldName]) {
+            res[opts.totalFieldName] -= deleteCount; // Remove deletion count
+          }
+          else {
+            console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
+          }
+        }
+
         proxy.writeQuery({
           query: opts.query,
           variables: opts.variables,
-          data: values
+          data: res
         });
-
-        return;
+      }
+      else {
+        console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.arrayFieldName);
       }
     } catch (err) {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
+      if (this._debug) console.warn("[graphql] Error while removing from cache: ", err);
     }
-    console.warn("[graphql] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  updateToQueryCache<V = R>(proxy: DataProxy,
-                            opts: {
-    query: any,
-    variables: V
-  }, propertyName: string, newValue: any) {
+  updateToQueryCache<T extends IEntity<any>, V = R>(proxy: DataProxy,
+                      opts:DataProxy.Query<V> & {
+                        arrayFieldName: string;
+                        totalFieldName?: string;
+                        data: any,
+                        equalsFn?: (d1: T, d2: T) => boolean
+                      }) {
+    proxy = proxy || this.apollo.getClient();
+    opts.arrayFieldName = opts.arrayFieldName || 'data';
 
     try {
-      const values = proxy.readQuery(opts);
+      const res = proxy.readQuery(opts);
 
-      if (values && values[propertyName]) {
-        const existingIndex = (values[propertyName] || []).findIndex(v => EntityUtils.equals(newValue, v, 'id'));
-        if (existingIndex !== -1) {
-          values[propertyName].splice(existingIndex, 1, newValue);
+      if (res && res[opts.arrayFieldName]) {
+        const equalsFn = opts.equalsFn || ((d1,d2) => EntityUtils.equals(d1, d2, 'id'));
+        const index = res[opts.arrayFieldName].findIndex(v => equalsFn(opts.data, v));
+        if (index !== -1) {
+          res[opts.arrayFieldName].splice(index, 1, opts.data);
         }
         else {
-          values[propertyName].push(newValue);
+          res[opts.arrayFieldName].push(opts.data);
+
+          // Increment the total
+          if (isNotNil(opts.totalFieldName)) {
+            if (res[opts.totalFieldName]) {
+              res[opts.totalFieldName] += 1;
+            }
+            else {
+              console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);
+            }
+          }
         }
 
         proxy.writeQuery({
           query: opts.query,
           variables: opts.variables,
-          data: values
+          data: res
         });
         return; // OK: stop here
       }
     } catch (err) {
       // continue
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
+      if (this._debug) console.warn("[graphql] Error while updating cache: ", err);
     }
-    if (this._debug) console.debug("[graphql] Unable to update entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
   async clearCache(client?: ApolloClient<any>): Promise<void> {
     client = client || this.apollo.getClient();
     if (client) {
       let now = this._debug && Date.now();
-      console.debug("[graphql] Clearing Apollo client's cache... ");
+      console.info("[graphql] Clearing Apollo client's cache... ");
       await client.cache.reset();
       if (this._debug) console.debug(`[graphql] Apollo client's cache cleared, in ${Date.now() - now}ms`);
     }
@@ -667,7 +784,5 @@ export class GraphqlService {
     }
     return this.apollo;
   }
-
-
 
 }

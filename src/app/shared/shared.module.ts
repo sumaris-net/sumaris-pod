@@ -14,13 +14,12 @@ import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
 import {
-  DataService,
-  EditorDataService,
-  EditorDataServiceLoadOptions,
+  EntityService,
+  EntityServiceLoadOptions,
   LoadResult,
-  SuggestionDataService,
-  TableDataService
-} from "./services/data-service.class";
+  SuggestService,
+  EntitiesService
+} from "./services/entity-service.class";
 import {
   changeCaseToUnderscore,
   delay,
@@ -71,8 +70,8 @@ export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
 }
 
 export {
-  DataService, SuggestionDataService, TableDataService, LoadResult,
-  EditorDataService, EditorDataServiceLoadOptions,
+  SuggestService, EntitiesService, LoadResult,
+  EntityService, EntityServiceLoadOptions,
   isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotEmptyArray, nullIfUndefined, delay,
   toBoolean, toFloat, toInt,
   toDateISOString, fromDateISOString, filterNumberInput,

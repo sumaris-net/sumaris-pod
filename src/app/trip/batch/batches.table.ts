@@ -17,7 +17,7 @@ import {TableElement, ValidatorService} from "angular4-material-table";
 import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
 import {isNilOrBlank, isNotNil} from "../../shared/functions";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {UsageMode} from "../../core/services/model/settings.model";
 import {SubBatchesModal} from "./sub-batches.modal";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
@@ -48,8 +48,8 @@ export const DATA_TYPE_ACCESSOR = new InjectionToken<new() => Batch>('BatchesTab
   providers: [
     {provide: ValidatorService, useValue: null},  // important: do NOT use validator, to be sure to keep all PMFMS, and not only displayed pmfms
     {
-      provide: InMemoryTableDataService,
-      useFactory: () => new InMemoryTableDataService<Batch, BatchFilter>(Batch, {
+      provide: InMemoryEntitiesService,
+      useFactory: () => new InMemoryEntitiesService<Batch, BatchFilter>(Batch, {
         equals: Batch.equals
       })
     },
@@ -120,7 +120,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   constructor(
     injector: Injector,
     protected validatorService: ValidatorService,
-    protected memoryDataService: InMemoryTableDataService<T, F>,
+    protected memoryDataService: InMemoryEntitiesService<T, F>,
     @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T
   ) {
     super(injector,
@@ -277,10 +277,10 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     const availableParents =
       // If mobile, create an observable, linked to table rows
       this.mobile ?
-        this.dataSource.connect()
+        this.dataSource.connect(null)
         .pipe(
           takeUntil(onModalDismiss),
-          map((res) => res.map((row) => row.currentData as T))
+          map((res) => (res as TableElement<T>[]).map((row) => row.currentData as T))
         ) :
       // else (if desktop), create a copy
       of((await this.dataSource.getRows()).map(row => this.getRowEntity(row)));

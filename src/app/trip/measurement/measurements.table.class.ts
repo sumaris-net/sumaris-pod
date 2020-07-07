@@ -3,12 +3,12 @@ import {BehaviorSubject, Observable} from 'rxjs';
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource,
+  EntitiesTableDataSource,
   environment,
   isNil,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  TableDataService
+  EntitiesService
 } from "../../core/core.module";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -19,7 +19,7 @@ import {MeasurementsValidatorService} from "../services/validator/trip.validator
 import {isNotNil} from "../../shared/functions";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {MeasurementsDataService} from "./measurements.service";
-import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
+import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasource.class";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {AcquisitionLevelType} from "../../referential/services/model/model.enum";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -102,21 +102,21 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
 
-  @Input() set dataService(value: TableDataService<T, F>) {
+  @Input() set dataService(value: EntitiesService<T, F>) {
     this.measurementsDataService.delegate = value;
     if (!this.loading) {
       this.onRefresh.emit("new dataService");
     }
   }
 
-  get dataService(): TableDataService<T, F> {
+  get dataService(): EntitiesService<T, F> {
     return this.measurementsDataService.delegate;
   }
 
   protected constructor(
     protected injector: Injector,
     protected dataType: new() => T,
-    dataService?: TableDataService<T, F>,
+    dataService?: EntitiesService<T, F>,
     protected validatorService?: ValidatorService,
     protected options?: AppMeasurementsTableOptions<T>
   ) {
@@ -157,7 +157,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     }
 
     const encapsulatedValidator = this.validatorService ? this : null;
-    this.setDatasource(new AppTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, options));
+    this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, options));
 
     // For DEV only
     //this.debug = !environment.production;

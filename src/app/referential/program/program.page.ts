@@ -1,14 +1,14 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {AppEditor, EntityUtils, isNil} from "../../core/core.module";
+import {AppEntityEditor, EntityUtils, isNil} from "../../core/core.module";
 import {Program} from "../services/model/program.model";
 import {Strategy} from "../services/model/strategy.model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "../strategy/strategies.table";
-import {changeCaseToUnderscore, EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
+import {changeCaseToUnderscore, EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {AppPropertiesForm} from "../../core/form/properties.form";
@@ -50,7 +50,7 @@ export enum AnimationState {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProgramPage extends AppEditor<Program, ProgramService> implements OnInit {
+export class ProgramPage extends AppEntityEditor<Program, ProgramService> implements OnInit {
 
   propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
   fieldDefinitions: FormFieldDefinitionMap = {};
@@ -135,7 +135,7 @@ export class ProgramPage extends AppEditor<Program, ProgramService> implements O
 
 
 
-  async load(id?: number, opts?: EditorDataServiceLoadOptions): Promise<void> {
+  async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
     return super.load(id, {...opts, fetchPolicy: "network-only"});
   }

@@ -13,7 +13,7 @@ import {isNotEmptyArray, isNotNil} from "../../shared/functions";
 import {FileService} from "../../shared/file/file.service";
 import {NetworkService} from "./network.service";
 import {PlatformService} from "./platform.service";
-import {EditorDataServiceLoadOptions} from "../../shared/shared.module";
+import {EntityServiceLoadOptions} from "../../shared/shared.module";
 import {ConfigOptions} from "./config/core.config";
 import {SoftwareService} from "../../referential/services/software.service";
 
@@ -190,7 +190,7 @@ export class ConfigService extends SoftwareService<Configuration> {
 
   async load(
     id: number,
-    opts?: EditorDataServiceLoadOptions & { label?: string; query?: any }): Promise<Configuration> {
+    opts?: EntityServiceLoadOptions & { label?: string; query?: any }): Promise<Configuration> {
 
     return this.loadQuery({
       variables: {
@@ -201,7 +201,7 @@ export class ConfigService extends SoftwareService<Configuration> {
 
   loadByLabel(
     label: string,
-    opts?: EditorDataServiceLoadOptions): Promise<Configuration> {
+    opts?: EntityServiceLoadOptions): Promise<Configuration> {
 
     return this.loadQuery({
       variables: {

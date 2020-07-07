@@ -1,12 +1,13 @@
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {isNotNil, LoadResult, TableDataService} from "../../core/core.module";
+import {EntitiesService, isNotNil, LoadResult} from "../../core/core.module";
 import {EntityUtils, IEntity} from "../../core/services/model/entity.model";
 import {filter, mergeMap} from "rxjs/operators";
 import {isNotEmptyArray} from "../functions";
-import {FilterFnFactory} from "./data-service.class";
+import {FilterFnFactory} from "./entity-service.class";
+import {SortDirection} from "@angular/material/sort";
 
-export interface InMemoryTableDataServiceOptions<T, F> {
-  onSort?: (data: T[], sortBy?: string, sortDirection?: string) => T[];
+export interface InMemoryEntitiesServiceOptions<T, F> {
+  onSort?: (data: T[], sortBy?: string, sortDirection?: SortDirection) => T[];
   onLoad?: (data: T[]) => T[] | Promise<T[]>;
   onSave?: (data: T[]) => T[] | Promise<T[]>;
   equals?: (d1: T, d2: T) => boolean;
@@ -14,12 +15,12 @@ export interface InMemoryTableDataServiceOptions<T, F> {
   onFilter?: (data: T[], filter: F) => T[] | Promise<T[]>;
 }
 
-export class InMemoryTableDataService<T extends IEntity<T>, F = any> implements TableDataService<T, F> {
+export class InMemoryEntitiesService<T extends IEntity<T>, F = any> implements EntitiesService<T, F> {
 
   private _onDataChange = new Subject();
   private _dataSubject = new BehaviorSubject<LoadResult<T>>(undefined);
 
-  private readonly _sortFn: (data: T[], sortBy?: string, sortDirection?: string) => T[];
+  private readonly _sortFn: (data: T[], sortBy?: string, sortDirection?: SortDirection) => T[];
   private readonly _onLoad: (data: T[]) => T[] | Promise<T[]>;
   private readonly _onSaveFn: (data: T[]) => T[] | Promise<T[]>;
   private readonly _equalsFn: (d1: T, d2: T) => boolean;
@@ -52,7 +53,7 @@ export class InMemoryTableDataService<T extends IEntity<T>, F = any> implements 
 
   constructor(
     protected dataType: new() => T,
-    options?: InMemoryTableDataServiceOptions<T, F>
+    options?: InMemoryEntitiesServiceOptions<T, F>
   ) {
     options = {
       onSort: this.sort,
@@ -76,7 +77,7 @@ export class InMemoryTableDataService<T extends IEntity<T>, F = any> implements 
     offset: number,
     size: number,
     sortBy?: string,
-    sortDirection?: string,
+    sortDirection?: SortDirection,
     filterData?: F,
     options?: any
   ): Observable<LoadResult<T>> {
@@ -158,7 +159,7 @@ export class InMemoryTableDataService<T extends IEntity<T>, F = any> implements 
 
   }
 
-  sort(data: T[], sortBy?: string, sortDirection?: string): T[] {
+  sort(data: T[], sortBy?: string, sortDirection?: SortDirection): T[] {
     // Replace id with rankOrder
     sortBy = this.hasRankOrder && (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy || 'id';
 

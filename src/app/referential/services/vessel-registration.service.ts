@@ -2,13 +2,14 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {VesselRegistration} from "./model/vessel.model";
-import {LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService} from "../../core/core.module";
+import {LoadResult, EntitiesService} from "../../shared/shared.module";
+import {BaseEntityService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
 import {VesselFilter} from "./vessel-service";
+import {SortDirection} from "@angular/material/sort";
 
 export const RegistrationFragments = {
   registration: gql`fragment RegistrationFragment on VesselRegistrationVO {
@@ -35,17 +36,13 @@ export const LoadRegistrationsQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class VesselRegistrationService
-  extends BaseDataService
-  implements TableDataService<VesselRegistration, VesselFilter> {
+  extends BaseEntityService
+  implements EntitiesService<VesselRegistration, VesselFilter> {
 
   constructor(
     protected graphql: GraphqlService
   ) {
     super(graphql);
-  }
-
-  get lastVariables() {
-    return this._lastVariables;
   }
 
   /**
@@ -59,7 +56,7 @@ export class VesselRegistrationService
   watchAll(offset: number,
            size: number,
            sortBy?: string,
-           sortDirection?: string,
+           sortDirection?: SortDirection,
            filter?: VesselFilter): Observable<LoadResult<VesselRegistration>> {
 
     const variables: any = {
@@ -70,13 +67,14 @@ export class VesselRegistrationService
       vesselId: filter.vesselId
     };
 
-    this._lastVariables.loadAll = variables;
-
     const now = Date.now();
     if (this._debug) console.debug("[vessel-registration-history-service] Getting vessel registration history using options:", variables);
 
-    return this.graphql.watchQuery<{ vesselRegistrationHistory: any[] }>({
+    return this.mutableWatchQuery<{ vesselRegistrationHistory: any[] }>({
+      queryName: 'LoadRegistrations',
       query: LoadRegistrationsQuery,
+      arrayFieldName: 'vesselRegistrationHistory',
+      insertFilterFn: (vr: VesselRegistration) => vr.vesselId === filter.vesselId,
       variables: variables,
       error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"}
     })
