@@ -23,6 +23,26 @@ import {FormGroup} from "@angular/forms";
 import {AppTabEditor, AppTabFormOptions} from "./tab-form.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
+
+
+export class AppEditorOptions extends AppTabFormOptions {
+  autoLoad?: boolean;
+  pathIdAttribute?: string;
+  enableListenChanges?: boolean;
+
+  /**
+   * Change page route (window URL) when saving for the first time
+   */
+  autoUpdateRoute?: boolean; // Default to true
+
+  /**
+   * Open the next tab, after saving for the first time
+   */
+  autoOpenNextTab?: boolean; // Default to true
+
+}
+
+
 @Directive()
 export abstract class AppEntityEditor<
   T extends Entity<T>,
@@ -32,9 +52,11 @@ export abstract class AppEntityEditor<
   implements OnInit, OnDestroy {
 
   private _usageMode: UsageMode;
-  private readonly _autoLoad: boolean;
-  private readonly _pathIdAttribute: string;
   private readonly _enableListenChanges: boolean;
+  private readonly _pathIdAttribute: string;
+  private readonly _autoLoad: boolean;
+  private readonly _autoUpdateRoute: boolean;
+  private readonly _autoOpenNextTab: boolean;
 
   protected dateFormat: DateFormatPipe;
   protected cd: ChangeDetectorRef;
@@ -82,9 +104,13 @@ export abstract class AppEntityEditor<
       injector.get(TranslateService),
       options);
     options = <AppEditorOptions>{
+      // Default options
       enableListenChanges: (environment.listenRemoteChanges === true),
       pathIdAttribute: 'id',
       autoLoad: true,
+      autoUpdateRoute: true,
+      autoOpenNextTab: true,
+      // Override defaults
       ...options
     };
 
@@ -95,6 +121,8 @@ export abstract class AppEntityEditor<
     this._enableListenChanges = options.enableListenChanges;
     this._pathIdAttribute = options.pathIdAttribute;
     this._autoLoad = options.autoLoad;
+    this._autoUpdateRoute = options.autoUpdateRoute;
+    this._autoOpenNextTab = options.autoOpenNextTab;
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -213,18 +241,18 @@ export abstract class AppEntityEditor<
   updateView(data: T | null, opts?: {
     emitEvent?: boolean;
     openTabIndex?: number;
-    updateTabAndRoute?: boolean;
+    updateRoute?: boolean;
   }) {
-    const idChanged = isNotNil(data.id) && (isNil(this.previousDataId) || this.previousDataId !== data.id) || false;
+    const idChanged = isNotNil(data.id) && (this.previousDataId === null || this.previousDataId !== data.id) || false;
 
     opts = {
-      updateTabAndRoute: idChanged && !this.loading,
-      openTabIndex: idChanged && isNil(this.previousDataId) && this.selectedTabIndex < this.tabCount - 1 ? this.selectedTabIndex + 1 : undefined,
+      updateRoute: this._autoUpdateRoute && idChanged && !this.loading,
+      openTabIndex: this._autoOpenNextTab && idChanged && isNil(this.previousDataId) && this.selectedTabIndex < this.tabCount - 1 ? this.selectedTabIndex + 1 : undefined,
       ...opts
     };
 
     this.data = data;
-    this.previousDataId = data.id;
+    this.previousDataId = data.id || null;
 
     this.setValue(data);
 
@@ -234,9 +262,9 @@ export abstract class AppEntityEditor<
       this.updateViewState(data);
 
       // Need to update route
-      if (opts.updateTabAndRoute === true) {
+      if (opts.updateRoute === true) {
         this.updateTabAndRoute(data, opts)
-          // Update the title - should be executed AFTER updateTabAndRoute because of path change - fix #185
+          // Update the title - should be executed AFTER updateRoute because of path change - fix #185
           .then(() => this.updateTitle(data));
       }
       else {
@@ -599,9 +627,3 @@ export abstract class AppEntityEditor<
 }
 
 import {ServerErrorCodes} from "../services/errors";
-
-export class AppEditorOptions extends AppTabFormOptions {
-  autoLoad?: boolean;
-  pathIdAttribute?: string;
-  enableListenChanges?: boolean;
-}

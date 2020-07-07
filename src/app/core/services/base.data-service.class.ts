@@ -4,8 +4,9 @@ import {R} from "apollo-angular/types";
 import {Observable} from "rxjs";
 import {DataProxy} from "apollo-cache";
 import {FetchResult} from "apollo-link";
-import {tap} from "rxjs/operators";
-import {isNotNil} from "../../shared/functions";
+import {environment} from "../../../environments/environment";
+import {variable} from "@angular/compiler/src/output/output_ast";
+import {EntityUtils} from "./model/entity.model";
 
 const sha256 =  require('hash.js/lib/hash/sha/256');
 
@@ -39,7 +40,7 @@ export interface MutableWatchQueryInfo<D, T = any, V = R> {
   variables: V;
   arrayFieldName: keyof D;
   totalFieldName?: keyof D;
-  filterFn?: (data: T) => boolean;
+  insertFilterFn?: (data: T) => boolean;
   counter: number;
 }
 
@@ -56,7 +57,7 @@ export abstract class BaseEntityService<T = any, F = any>{
     this._mutableWatchQueriesMaxCount = 1;
 
     // for DEV only
-   // this._debug = !environment.production;
+    this._debug = !environment.production;
   }
 
   mutableWatchQuery<D, V = R>(opts: MutableWatchQueryOptions<D, T, V>): Observable<D> {
@@ -68,7 +69,7 @@ export abstract class BaseEntityService<T = any, F = any>{
       // Create the query info to remember
       const queryName = opts.queryName || sha256().update(JSON.stringify(opts.query)).digest('hex').substring(0, 8);
       const variablesKey = sha256().update(JSON.stringify(opts.variables)).digest('hex').substring(0, 8);
-      const mutableQueryId = [queryName, opts.arrayFieldName, variablesKey].join('|');
+      const queryId = [queryName, opts.arrayFieldName, variablesKey].join('|');
 
       // TODO Remove old queries
       /*if (this._mutableWatchQueries.length >= this._mutableWatchQueriesMaxCount) {
@@ -77,52 +78,41 @@ export abstract class BaseEntityService<T = any, F = any>{
           removedWatchQueries.map(q => q.id));
       }*/
 
-      const existingQueries = opts.queryName ? this._mutableWatchQueries.filter(q => q.id === mutableQueryId) :
+      const existingQueries = opts.queryName ? this._mutableWatchQueries.filter(q => q.id === queryId) :
         this._mutableWatchQueries.filter(q => q.query === opts.query);
       let mutableQuery: MutableWatchQueryInfo<D, T, V>;
 
       if (existingQueries.length === 1) {
         mutableQuery = existingQueries[0] as MutableWatchQueryInfo<D, T, V>;
         mutableQuery.counter += 1;
-        console.debug('[base-data-service] Find existing mutable watching query (same variables): ' + mutableQueryId);
+        console.debug('[base-data-service] Find existing mutable watching query (same variables): ' + queryName);
+        if (mutableQuery.counter > 3) {
+          console.warn('[base-data-service] TODO: clean previous queries with name: ' + queryName);
+        }
       }
       else {
-        console.debug('[base-data-service] Adding new mutable watching query: ' + mutableQueryId);
+        console.debug('[base-data-service] Adding new mutable watching query: ' + queryId);
         mutableQuery = {
-          id: mutableQueryId,
+          id: queryId,
           query: opts.query,
           variables: opts.variables,
           arrayFieldName: opts.arrayFieldName,
-          filterFn: opts.insertFilterFn,
+          insertFilterFn: opts.insertFilterFn,
           counter: 1
         };
         this._mutableWatchQueries.push(mutableQuery);
       }
 
       return this.graphql.watchQuery(opts);
-      // TODO find a way to evict previous query
-        /*.pipe(tap({
-          complete: () => {
-            this._mutableWatchQueries = this._mutableWatchQueries
-              .filter(q => {
-                if (q.id !== mutableQuery.id) return true;
-                q.counter -= 1;
-                if (q.counter <= 0) {
-                  console.debug('[base-data-service] Removing mutable watching query (completed): ' + mutableQuery.id);
-                  return false
-                }
-                return true;
-              });
-          }
-        }));*/
     }
   }
 
   insertIntoMutableCachedQuery(proxy: DataProxy, opts: {
-    query: any;
+    query?: any;
     queryName?: string;
     data?: T[] | T;
   }) {
+    if (!opts.query && !opts.queryName) throw Error("Missing one of 'query' or 'queryName' in the given options");
     const existingQueries = opts.queryName ?
       this._mutableWatchQueries.filter(q => q.id.startsWith(opts.queryName + '|')) :
       this._mutableWatchQueries.filter(q => q.query === opts.query);
@@ -130,20 +120,24 @@ export abstract class BaseEntityService<T = any, F = any>{
 
     existingQueries.forEach(watchQuery => {
 
+      const sortFn = watchQuery.variables && watchQuery.variables.sortBy
+        && EntityUtils.sortComparator(watchQuery.variables.sortBy, watchQuery.variables.sortDirection || 'asc');
+
         if (opts.data instanceof Array) {
           // Filter values, if a filter function exists
-          const data = watchQuery.filterFn ? opts.data.filter(i => watchQuery.filterFn(i)) : opts.data;
+          const data = watchQuery.insertFilterFn ? opts.data.filter(i => watchQuery.insertFilterFn(i)) : opts.data;
           if (this._debug && data.length) console.debug(`[base-data-service] Inserting data into watching query: `, watchQuery.id);
           this.graphql.addManyToQueryCache(proxy, {
             query: opts.query,
             variables: watchQuery.variables,
             arrayFieldName: watchQuery.arrayFieldName as string,
+            sortFn,
             data
           });
         }
         else {
           // Filter value, if a filter function exists
-          if (!watchQuery.filterFn || watchQuery.filterFn(opts.data)) {
+          if (!watchQuery.insertFilterFn || watchQuery.insertFilterFn(opts.data)) {
             if (this._debug) console.debug(`[base-data-service] Inserting data into watching query: `, watchQuery.id);
             this.graphql.insertIntoQueryCache(proxy, {
               query: opts.query,
@@ -157,10 +151,11 @@ export abstract class BaseEntityService<T = any, F = any>{
   }
 
   removeFromMutableCachedQueryByIds(proxy: DataProxy, opts: {
-    queryName?: string,
-    query: any;
+    query?: any;
+    queryName?: string;
     ids?: number|number[];
   }){
+    if (!opts.query && !opts.queryName) throw Error("Missing one of 'query' or 'queryName' in the given options");
     const existingQueries = opts.queryName ?
       this._mutableWatchQueries.filter(q => q.id.startsWith(opts.queryName + '|')) :
       this._mutableWatchQueries.filter(q => q.query === opts.query);

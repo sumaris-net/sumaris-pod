@@ -156,7 +156,9 @@
       <app-operations-table #operationsTable
                             (onOpenRow)="onOpenOperation($event)"
                             (onNewRow)="onNewOperation($event)"
-                            [program]="programSubject|async">
+                            [program]="programSubject|async"
+                            [sortBy]="mobile ? 'startDateTime': 'endDateTime'"
+                            [sortDirection]="mobile ?'desc': 'asc'">
       </app-operations-table>
     </mat-tab>
   </mat-tab-group>

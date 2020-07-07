@@ -149,7 +149,8 @@
   </ion-item>
 
   <!-- table -->
-  <mat-table #table [dataSource]="dataSource" matSort matSortActive="startDateTime" matSortDirection="asc"
+  <mat-table #table [dataSource]="dataSource" matSort
+             [matSortActive]="sortBy" [matSortDirection]="sortDirection"
              matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">

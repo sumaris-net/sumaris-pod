@@ -22,6 +22,7 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {toBoolean} from "../../shared/functions";
 import {OperationsMap} from "./map/operations.map";
 import {AccountService} from "../../core/services/account.service";
+import {SortDirection} from "@angular/material/sort";
 
 
 @Component({
@@ -103,6 +104,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.autoLoad = false; // waiting parent to be loaded
 
     this.pageSize = 1000; // Do not use paginator
+    this.sortBy = this.mobile ? 'startDateTime' : 'endDateTime';
+    this.sortDirection = this.mobile ? 'desc' : 'asc';
 
     settings.ready().then(() => {
       if (this.settings.settings.accountInheritance) {

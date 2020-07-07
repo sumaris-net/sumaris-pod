@@ -37,7 +37,9 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
+<mat-table [dataSource]="dataSource" matSort
+           [matSortActive]="sortBy"
+           [matSortDirection]="sortDirection"
            matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">

@@ -279,7 +279,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
 
     return this.mutableWatchQuery<{operations: any[], operationsCount: number}>({
-      queryName: 'LoadAllQuery',
+      queryName: 'LoadAll',
       query: LoadAllQuery,
       arrayFieldName: 'operations',
       totalFieldName: 'operationsCount',

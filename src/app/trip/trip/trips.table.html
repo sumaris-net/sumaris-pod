@@ -226,7 +226,9 @@
   </ion-item>
 
   <!-- table -->
-  <mat-table [dataSource]="dataSource" matSort matSortActive="departureDateTime" matSortDirection="desc"
+  <mat-table [dataSource]="dataSource" matSort
+             [matSortActive]="sortBy"
+             [matSortDirection]="sortDirection"
     matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">

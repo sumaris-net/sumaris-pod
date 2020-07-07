@@ -10,7 +10,7 @@ import {
   ViewChild
 } from "@angular/core";
 import {MatPaginator} from "@angular/material/paginator";
-import {MatSort} from "@angular/material/sort";
+import {MatSort, MatSortable, SortDirection} from "@angular/material/sort";
 import {MatTable} from "@angular/material/table";
 import {BehaviorSubject, EMPTY, merge, Observable, of, Subject, Subscription} from 'rxjs';
 import {
@@ -34,7 +34,7 @@ import {TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils, IAppForm} from "../form/form.utils";
-import {isNil, isNotNil, toBoolean} from "../../shared/functions";
+import {isNil, isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../services/platform.service";
@@ -48,6 +48,7 @@ import {Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
+export const SETTINGS_SORTED_COLUMN = "sortedColumn";
 export const DEFAULT_PAGE_SIZE = 20;
 export const RESERVED_START_COLUMNS = ['select', 'id'];
 export const RESERVED_END_COLUMNS = ['actions'];
@@ -108,6 +109,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   @Input() readOnly = false;
 
+  @Input() sortBy: string;
+  @Input() sortDirection: SortDirection;
+
   @Input() set dataSource(value: EntitiesTableDataSource<T, F>) {
     this.setDatasource(value);
   }
@@ -127,7 +131,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   get empty(): boolean {
     return this.loading || this.resultsLength === 0;
   }
-
 
   @Output() onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>();
 
@@ -293,6 +296,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
     this.displayedColumns = this.getDisplayColumns();
 
+    const sortedColumn = this.getSortedColumn();
+    this.sortBy = sortedColumn.id;
+    this.sortDirection = sortedColumn.start;
+
     // If the user changes the sort order, reset back to the first page.
     this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
@@ -308,7 +315,12 @@ export abstract class AppTable<T extends Entity<T>, F = any>
             }
             return true;
           }),
-          filter(res => res === true)
+          filter(res => res === true),
+          // Save sort in settings
+          tap(() => {
+            const value = [this.sort.active,this.sort.direction||'asc'].join(':')
+            this.settings.savePageSetting(this.settingsId, value, SETTINGS_SORTED_COLUMN);
+          })
         )
       || EMPTY,
       // Listen paginator events
@@ -757,6 +769,18 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   protected getUserColumns(): string[] {
     return this.settings.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
+  }
+
+  protected getSortedColumn(): MatSortable {
+    const data = this.settings.getPageSettings(this.settingsId, SETTINGS_SORTED_COLUMN);
+    const parts = data && data.split(':');
+    if (parts && parts.length === 2 && this.columns.includes(parts[0])) {
+      return {id: parts[0], start: parts[1] === 'desc' ? 'desc' : 'asc', disableClear: false};
+    }
+    if (this.sortBy) {
+       return {id: this.sortBy, start: this.sortDirection || 'asc', disableClear: false};
+    }
+    return {id: 'id', start: 'asc', disableClear: false};
   }
 
   protected getDisplayColumns(): string[] {

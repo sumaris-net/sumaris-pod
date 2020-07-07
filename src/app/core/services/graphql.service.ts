@@ -23,11 +23,8 @@ import loggerLink from 'apollo-link-logger';
 import {Platform} from "@ionic/angular";
 import {EntityUtils, IEntity} from "./model/entity.model";
 import {DataProxy} from 'apollo-cache';
-import {isNotNil} from "../../shared/functions";
+import {isNotNil, toNumber} from "../../shared/functions";
 import {Resolvers} from "apollo-client/core/types";
-import {ReferentialUtils} from "./model/referential.model";
-import {CompareWithFn} from "../../shared/form/field.model";
-import {SelectCompareFn} from "@ionic/core";
 
 export interface WatchQueryOptions<V> {
   query: any,
@@ -318,8 +315,9 @@ export class GraphqlService {
                              opts: DataProxy.Query<V> & {
                                arrayFieldName: string;
                                totalFieldName?: string;
-                               data: T[],
+                               data: T[];
                                equalsFn?: (d1: T, d2: T) => boolean;
+                               sortFn?: (d1: T, d2: T) => number;
                              }) {
 
     if (!opts.data || !opts.data.length) return; // nothing to process
@@ -333,12 +331,23 @@ export class GraphqlService {
       if (res && res[opts.arrayFieldName]) {
         // Keep only not existing res
         const equalsFn = opts.equalsFn || ((d1, d2) => d1['id'] === d2['id'] && d1['entityName'] === d2['entityName']);
-        const data = opts.data.filter(inputValue => res[opts.arrayFieldName].findIndex(existingValue => equalsFn(inputValue, existingValue)) === -1);
+        let data = opts.data.filter(inputValue => res[opts.arrayFieldName].findIndex(existingValue => equalsFn(inputValue, existingValue)) === -1);
 
         if (!data.length) return; // No new value
 
         // Append to result array
         res[opts.arrayFieldName] = res[opts.arrayFieldName].concat(data);
+
+        // Resort, if need
+        if (opts.sortFn) {
+          res[opts.arrayFieldName].sort(opts.sortFn);
+        }
+
+        // Exclude if exceed max size
+        const size = toNumber(opts.variables && opts.variables['size'], -1);
+        if (size > 0 && data.length > size) {
+          res[opts.arrayFieldName].splice(size, data.length - size);
+        }
 
         // Increment the total
         if (isNotNil(opts.totalFieldName)) {

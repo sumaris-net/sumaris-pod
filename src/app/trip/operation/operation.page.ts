@@ -35,6 +35,7 @@ import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referenti
 import {ProgramService} from "../../referential/services/program.service";
 import {TranslateService} from "@ngx-translate/core";
 import {IEntity} from "../../core/services/model/entity.model";
+import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'app-operation-page',
@@ -91,11 +92,14 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     injector: Injector,
     protected dataService: OperationService,
     protected tripService: TripService,
-    protected programService: ProgramService
+    protected programService: ProgramService,
+    protected platform: PlatformService
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
-      tabCount: 2
+      tabCount: 2,
+      autoUpdateRoute: !platform.mobile,
+      autoOpenNextTab: !platform.mobile
     });
 
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
@@ -824,20 +828,14 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         fetchPolicy: 'cache-first'
       }).pipe(
         // Ignore event due to save action
-        //filter(res => !this.saving),
-        //debounceTime(500),
+        filter(res => !this.saving),
+        debounceTime(500),
 
         map(res => res && res.data || []),
 
-        map(items => {
-          data = this.data || data;
-          // Make sure current OPE exists
-          const index = data && isNotNil(data.id) ? items.findIndex(item => item.id === data.id) : -1;
-          if (index === -1 && data) {
-            return [data].concat(items).sort(EntityUtils.sortComparator('startDateTime', 'desc'));
-          }
-          return items;
-        })
+        /*map(items => {
+          items.sort(EntityUtils.sortComparator('startDateTime', 'desc'));
+        })*/
       ).subscribe(data => this.$lastOperations.next(data));
     this._lastOperationsSubscription.add(() => {
       console.debug('[operation] Completed last operations observable');

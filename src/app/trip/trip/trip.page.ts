@@ -23,6 +23,7 @@ import {PhysicalGearFilter} from "../services/physicalgear.service";
 import {PromiseEvent} from "../../shared/events";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
+import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'app-trip-page',
@@ -37,7 +38,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;
-  showOperationMap = false;
+  mobile = false;
   forceMeasurementAsOptional = false;
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
@@ -54,6 +55,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     injector: Injector,
     protected entities: EntitiesStorage,
     protected modalCtrl: ModalController,
+    protected platform: PlatformService,
     public network: NetworkService // Used for DEV (to debug OFFLINE mode)
   ) {
     super(injector,
@@ -61,9 +63,12 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       injector.get(TripService),
       {
         pathIdAttribute: 'tripId',
-        tabCount: 3
+        tabCount: 3,
+        autoUpdateRoute: !platform.mobile,
+        autoOpenNextTab: !platform.mobile
       });
     this.defaultBackHref = "/trips";
+    this.mobile = platform.mobile;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -134,17 +139,24 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           data.departureLocation = ReferentialRef.fromObject(tripFilter.location);
         }
       }
+
+      // Display all tabs, in mobile mode
+      this.showGearTable = true;
+      this.showOperationTable = true;
     }
 
-    this.showGearTable = false;
-    this.showOperationTable = false;
-
+    // Desktop mode
+    else {
+      this.showGearTable = false;
+      this.showOperationTable = false;
+    }
   }
 
   updateViewState(data: Trip) {
     super.updateViewState(data);
 
-    if (this.isNewData) {
+    // If new data and desktop mode: disable gears and ope tabs
+    if (this.isNewData && !this.isOnFieldMode) {
       this.showGearTable = false;
       this.showOperationTable = false;
     }
