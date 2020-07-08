@@ -39,7 +39,6 @@
     "BTN_SHOW_MENU": "Afficher le menu",
     "BTN_SHOW_MORE": "Afficher plus",
     "BTN_LOGOUT": "Quitter",
-    "BTN_INIT_OFFLINE_MODE": "Activer le mode hors-ligne",
     "CREATED_ON": "Créé le ",
     "COMMENTS": "Commentaires",
     "BTN_DECIMAL_SEPARATOR": ",",
@@ -1271,6 +1270,8 @@
   },
   "NETWORK": {
     "BTN_CHECK_ALIVE": "Actualiser",
+    "BTN_INIT_OFFLINE_MODE": "Activer le mode hors-ligne",
+    "BTN_UPDATE_OFFLINE_MODE": "Actualiser le mode hors-ligne",
     "PEER": {
       "OFFLINE": "Noeud injoignable",
       "SELECT_MODAL": {
@@ -1287,6 +1288,7 @@
       "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%",
       "IMPORTATION_SUCCEED": "Importation terminée avec succès !<br/>La <b>saisie hors-ligne</b> est maintenant possible.",
       "OFFLINE": "Aucune connexion réseau.",
+      "ONLINE": "Connexion réseau <b>établie avec succès<b> !",
       "OFFLINE_HELP": "L'application fonctionne en <b>mode hors-ligne</b>."
     }
   },

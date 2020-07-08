@@ -185,7 +185,9 @@ export class NetworkService {
     }
   }
 
-  async tryOnline(): Promise<boolean> {
+  async tryOnline(opts?: {
+    displaySuccessToast?: boolean;
+  }): Promise<boolean> {
     // If offline mode not forced, and device says there is no connection: skip
     if (!this._forceOffline || this._deviceConnectionType === 'none') return false;
 
@@ -203,6 +205,11 @@ export class NetworkService {
 
     // Restart
     await this.restart(peer);
+
+    if (opts.displaySuccessToast) {
+      // Display toast (without await, because not need to wait toast close event)
+      this.showToast({message: 'NETWORK.INFO.ONLINE', cssClass: 'secondary'});
+    }
 
     return this._started;
   }

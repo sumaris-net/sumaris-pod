@@ -42,7 +42,6 @@ export class AppEditorOptions extends AppTabFormOptions {
 
 }
 
-
 @Directive()
 export abstract class AppEntityEditor<
   T extends Entity<T>,

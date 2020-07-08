@@ -227,8 +227,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   updateView(data: Landing | null, opts?: {
-    openSecondTab?: boolean;
-    updateTabAndRoute?: boolean;
+    emitEvent?: boolean;
+    openTabIndex?: number;
+    updateRoute?: boolean;
   }) {
     super.updateView(data, opts);
 

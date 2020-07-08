@@ -20,7 +20,7 @@
 
   <ion-spinner *ngIf="loading"></ion-spinner>
 
-  <button slot="end" mat-icon-button *ngIf="enabled && !isNewData"
+  <button slot="end" mat-icon-button
           [matMenuTriggerFor]="optionsMenu"
           [title]=" 'COMMON.BTN_OPTIONS'|translate">
     <mat-icon>more_vert</mat-icon>
@@ -103,7 +103,7 @@
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
   <!-- delete -->
-  <button mat-menu-item *ngIf="!isNewData" (click)="delete($event)">
+  <button mat-menu-item [disabled]="isNewData" (click)="delete($event)">
     <ion-label>
       <mat-icon>delete</mat-icon>&nbsp;
       <span translate>COMMON.BTN_DELETE</span>
@@ -111,7 +111,7 @@
   </button>
 
   <!-- reset -->
-  <button mat-menu-item *ngIf="!isNewData" (click)="cancel($event)"
+  <button mat-menu-item (click)="cancel($event)"
     [disabled]="!dirty">
     <ion-label>
       <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;

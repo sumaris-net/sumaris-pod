@@ -252,7 +252,7 @@ html:not(.plt-mobile) {
   }
 
   .visible-lg {
-    display: inherit !important;
+    display: unset !important;
     visibility: visible !important;
   }
 }

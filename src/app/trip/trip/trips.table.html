@@ -6,15 +6,17 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
+
+  <!-- Init the offline mode -->
+  <button mat-menu-item (click)="prepareOfflineMode($event)">
+    <ion-label *ngIf="!hasOfflineMode" translate>NETWORK.BTN_INIT_OFFLINE_MODE</ion-label>
+    <ion-label *ngIf="hasOfflineMode" translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
+  </button>
+
+  <!-- display columns -->
   <button mat-menu-item
           (click)="openSelectColumnsModal($event)">
     <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
-  </button>
-
-  <!-- Init the offline mode -->
-  <button mat-menu-item *ngIf="!offline"
-          (click)="prepareOfflineMode($event)">
-    <ion-label translate>COMMON.BTN_INIT_OFFLINE_MODE</ion-label>
   </button>
 
   <!-- menu items for DEV ONLY -->

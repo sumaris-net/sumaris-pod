@@ -417,7 +417,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
 
     this.defaultBackHref = trip ? `/trips/${trip.id}?tab=2` : undefined;
-    //this.markForCheck();
   }
 
 

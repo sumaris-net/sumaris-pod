@@ -196,7 +196,7 @@ export class HomePage implements OnDestroy {
 
       // Use background color
       else {
-        const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
+        const primaryColor = config.properties && config.properties['sumaris.color.primary'] || 'var(--ion-color-primary)';
         this.contentStyle = {'background-color': primaryColor};
       }
     }

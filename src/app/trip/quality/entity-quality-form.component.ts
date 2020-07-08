@@ -196,7 +196,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
       const data = await this.service.terminate(remoteData);
 
       // Update the editor (Will refresh the component)
-      this.updateEditor(data, {updateTabAndRoute: true});
+      this.updateEditor(data, {updateRoute: true});
     }
     catch(err) {
       this.editor.setError(err);
@@ -300,7 +300,9 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
   }
 
   protected updateEditor(data: T, opts?: {
-      updateTabAndRoute?: boolean;
+      emitEvent?: boolean;
+      openTabIndex?: number;
+      updateRoute?: boolean;
     }) {
     this.editor.updateView(data, opts);
   }

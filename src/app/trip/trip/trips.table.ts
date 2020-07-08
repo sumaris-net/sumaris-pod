@@ -276,12 +276,27 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   async prepareOfflineMode(event?: UIEvent) {
     if (this.importing) return; // skip
 
+    // If offline, warn user and ask to reconnect
     if (this.network.offline) {
-      return this.showToast({
+      const result = await this.showToast({
         message: "ERROR.NETWORK_REQUIRED",
-        error: true,
-        showCloseButton: true
+        cssClass: 'danger',
+        showCloseButton: true,
+        buttons: [
+          // reconnect button
+          {role: 'connect', text: this.translate.instant('NETWORK.BTN_CHECK_ALIVE')}
+        ]
       });
+      if (!result || result.role !== 'connect' || this.network.online) return;
+      // Try to reconnect
+      this.markAsLoading();
+      try {
+        await this.network.tryOnline({displaySuccessToast: true});
+        return this.prepareOfflineMode(); // Retry (will display error again, if cannot connect)
+      }
+      finally {
+        this.markAsLoaded();
+      }
     }
 
     this.$importProgression.next(0);
@@ -313,7 +328,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
       // Enable sync status button
       this.setSynchronizationStatus('DIRTY');
-      this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED'});
+      this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true});
       success = true;
     }
     catch (err) {

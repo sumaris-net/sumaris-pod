@@ -5,7 +5,7 @@ import {TripForm} from './trip.form';
 import {SaleForm} from '../sale/sale.form';
 import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment, fromDateISOString, ReferentialRef} from '../../core/core.module';
+import {EntityUtils, environment, fromDateISOString, ReferentialRef} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
 import {EntityServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray} from '../../shared/shared.module';
 import * as moment from "moment";
@@ -24,6 +24,14 @@ import {PromiseEvent} from "../../shared/events";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 import {PlatformService} from "../../core/services/platform.service";
+import {filter, first} from "rxjs/operators";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+
+const TripPageTabs = {
+  GENERAL: 0,
+  PHYSICAL_GEARS: 1,
+  OPERATIONS: 2
+}
 
 @Component({
   selector: 'app-trip-page',
@@ -64,7 +72,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       {
         pathIdAttribute: 'tripId',
         tabCount: 3,
-        autoUpdateRoute: !platform.mobile,
         autoOpenNextTab: !platform.mobile
       });
     this.defaultBackHref = "/trips";
@@ -94,6 +101,12 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
           this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
           this.operationTable.showMap = program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
+
+          // If new data, enable gears and operations tabs
+          if (this.isNewData) {
+            this.showGearTable = true;
+            this.showOperationTable = true;
+          }
         })
     );
 
@@ -139,26 +152,37 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           data.departureLocation = ReferentialRef.fromObject(tripFilter.location);
         }
       }
-
-      // Display all tabs, in mobile mode
-      this.showGearTable = true;
-      this.showOperationTable = true;
     }
 
-    // Desktop mode
-    else {
-      this.showGearTable = false;
-      this.showOperationTable = false;
+    // If on field mode
+    if (this.isOnFieldMode) {
+      // Listen first opening the operations tab, then save
+      this.tabGroup.selectedTabChange
+        .pipe(
+          filter(event => event.index === TripPageTabs.OPERATIONS)
+        )
+        .subscribe(event => this.save());
     }
+
+    this.showGearTable = false;
+    this.showOperationTable = false;
   }
 
   updateViewState(data: Trip) {
     super.updateViewState(data);
 
-    // If new data and desktop mode: disable gears and ope tabs
-    if (this.isNewData && !this.isOnFieldMode) {
-      this.showGearTable = false;
-      this.showOperationTable = false;
+    // If new data
+    if (this.isNewData) {
+      // Enable gears and operations tabs, if a program has been selected
+      if (ReferentialUtils.isNotEmpty(this.programSubject.getValue())) {
+        this.showGearTable = true;
+        this.showOperationTable = true;
+
+      }
+      else {
+        this.showGearTable = false;
+        this.showOperationTable = false;
+      }
     }
     else {
       this.showGearTable = true;
