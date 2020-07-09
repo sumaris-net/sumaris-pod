@@ -38,6 +38,7 @@ import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
@@ -321,7 +322,10 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
                         .map(PhysicalGear::getId)
                         .findFirst().orElse(null);
                 if (physicalGearId == null) {
-                    throw new DataIntegrityViolationException("An operation use a unknown PhysicalGear with rankOrder=" + source.getPhysicalGear().getRankOrder());
+                    throw new DataIntegrityViolationException(String.format("Operation {starDateTime: '%s'} use a unknown PhysicalGear. PhysicalGear with {rankOrder: %s} not found in gears Trip.",
+                            Dates.toISODateTimeString(source.getStartDateTime()),
+                            source.getPhysicalGear().getRankOrder()
+                    ));
                 }
                 source.setPhysicalGearId(physicalGearId);
                 source.setPhysicalGear(null);
