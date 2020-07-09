@@ -55,7 +55,7 @@ export abstract class AppEntityEditor<
   private readonly _pathIdAttribute: string;
   private readonly _autoLoad: boolean;
   private readonly _autoUpdateRoute: boolean;
-  private readonly _autoOpenNextTab: boolean;
+  private _autoOpenNextTab: boolean;
 
   protected dateFormat: DateFormatPipe;
   protected cd: ChangeDetectorRef;
@@ -108,7 +108,10 @@ export abstract class AppEntityEditor<
       pathIdAttribute: 'id',
       autoLoad: true,
       autoUpdateRoute: true,
-      autoOpenNextTab: true,
+
+      // Following options are override inside ngOnInit()
+      // autoOpenNextTab: ...,
+
       // Override defaults
       ...options
     };
@@ -129,6 +132,9 @@ export abstract class AppEntityEditor<
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Defaults
+    this._autoOpenNextTab = toBoolean(this._autoOpenNextTab, !this.isOnFieldMode);
 
     // Register forms
     this.registerForms();
@@ -242,7 +248,9 @@ export abstract class AppEntityEditor<
     openTabIndex?: number;
     updateRoute?: boolean;
   }) {
-    const idChanged = isNotNil(data.id) && (this.previousDataId === null || this.previousDataId !== data.id) || false;
+    const idChanged = isNotNil(data.id)
+      && this.previousDataId !== undefined // Ignore if first loading (=undefined)
+      && this.previousDataId !== data.id;
 
     opts = {
       updateRoute: this._autoUpdateRoute && idChanged && !this.loading,
@@ -307,7 +315,7 @@ export abstract class AppEntityEditor<
     this.updateTabIndex(opts && opts.openTabIndex);
 
     // Save the opened tab into the queryParams
-    Object.assign(this.queryParams, {tab: this.selectedTabIndex});
+    this.queryParams.tab = this.selectedTabIndex;
 
     // Update route location
     const forcedQueryParams = {};

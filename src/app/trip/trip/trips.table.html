@@ -7,10 +7,18 @@
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
 
-  <!-- Init the offline mode -->
-  <button mat-menu-item (click)="prepareOfflineMode($event)">
-    <ion-label *ngIf="!hasOfflineMode" translate>NETWORK.BTN_INIT_OFFLINE_MODE</ion-label>
-    <ion-label *ngIf="hasOfflineMode" translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
+  <!-- Init offline mode -->
+  <button mat-menu-item
+          *ngIf="!hasOfflineMode"
+          (click)="prepareOfflineMode($event)">
+    <ion-label translate>NETWORK.BTN_INIT_OFFLINE_MODE</ion-label>
+  </button>
+
+  <!-- Update offline mode -->
+  <button mat-menu-item
+          *ngIf="hasOfflineMode"
+          (click)="prepareOfflineMode($event)">
+    <ion-label translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
   </button>
 
   <!-- display columns -->
@@ -259,16 +267,18 @@
         <ion-label translate>TRIP.TABLE.QUALITY</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ng-container *ngIf="row.currentData.id > 0; else synchronizationStatus">
+        <ng-container *ngIf="row.currentData.id >= 0; else synchronizationStatus">
           <ion-icon color="secondary" name="pencil" *ngIf="!row.currentData.controlDate" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
           <ion-icon color="tertiary" name="checkmark" *ngIf="row.currentData.controlDate && !row.currentData.validationDate" slot="icon-only" [title]="'QUALITY.CONTROLLED'|translate"></ion-icon>
           <ion-icon color="tertiary" name="checkmark-circle" *ngIf="row.currentData.validationDate && !row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.VALIDATED'|translate"></ion-icon>
           <ion-icon [color]="qualityFlagToColor(row.currentData.qualityFlagId)" name="flag" *ngIf="row.currentData.validationDate && row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.QUALIFIED'|translate"></ion-icon>
         </ng-container>
-        <ng-template #synchronizationStatus>
-          <ion-icon color="secondary" name="pencil" *ngIf="row.currentData.synchronizationStatus == 'DIRTY'" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
-          <ion-icon color="tertiary" name="checkmark" *ngIf="row.currentData.synchronizationStatus == 'READY_TO_SYNC'" slot="icon-only" [title]="'QUALITY.CONTROLLED'|translate"></ion-icon>
-          <ion-icon color="tertiary" name="checkmark-circle" *ngIf="row.currentData.synchronizationStatus == 'SYNC'" slot="icon-only" [title]="'QUALITY.VALIDATED'|translate"></ion-icon>
+        <ng-template #synchronizationStatus >
+          <ng-container [ngSwitch]="row.currentData.synchronizationStatus">
+            <ion-icon *ngSwitchCase="'DIRTY'" color="secondary" name="pencil" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
+            <ion-icon *ngSwitchCase="'READY_TO_SYNC'" color="tertiary" name="checkmark" slot="icon-only" [title]="'QUALITY.CONTROLLED'|translate"></ion-icon>
+            <ion-icon *ngSwitchCase="'SYNC'" color="tertiary" name="checkmark-circle" slot="icon-only" [title]="'QUALITY.VALIDATED'|translate"></ion-icon>
+          </ng-container>
         </ng-template>
       </mat-cell>
     </ng-container>

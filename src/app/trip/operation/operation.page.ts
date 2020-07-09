@@ -97,7 +97,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
-      tabCount: 2,
+      tabCount: 3,
       autoUpdateRoute: !platform.mobile,
       autoOpenNextTab: !platform.mobile
     });
