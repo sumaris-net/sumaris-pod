@@ -269,7 +269,7 @@ export class AccountService extends BaseEntityService {
   async restart() {
     if (this._started || this._startPromise) {
       this._started = false;
-      this._startPromise = null;
+      this._startPromise = undefined;
     }
     return this.start();
   }

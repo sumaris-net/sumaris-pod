@@ -99,7 +99,7 @@ export class LocalSettingsService {
 
   async start(): Promise<LocalSettings> {
     if (this._startPromise) return this._startPromise;
-    if (this._started) return;
+    if (this._started) return this.data;
 
     // Restoring local settings
     this._startPromise = this.platform.ready()
