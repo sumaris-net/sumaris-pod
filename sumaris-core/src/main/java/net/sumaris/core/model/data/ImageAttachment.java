@@ -93,7 +93,7 @@ public class ImageAttachment implements IDataEntity<Integer>,
     private String contentType;
 
     @Lob
-    @Column(length=20971520, nullable = false)
+    @Column(length=20971520)
     private String content;
 
     public int hashCode() {

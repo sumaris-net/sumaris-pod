@@ -23,6 +23,8 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimaps;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
@@ -39,6 +41,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
+import org.antlr.v4.runtime.misc.MultiMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -111,6 +114,14 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
                 .setFirstResult(offset)
                 .setMaxResults(size);
         return toVOs(q.getResultList());
+    }
+
+    @Override
+    public Long countByTripId(int tripId) {
+        return getEntityManager()
+                .createNamedQuery("Operation.countByTripId", Long.class)
+                .setParameter("tripId", tripId)
+                .getSingleResult();
     }
 
     @Override

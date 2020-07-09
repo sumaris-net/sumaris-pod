@@ -281,6 +281,27 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
     }
 
     @Override
+    public Date getLastUpdateDate() {
+        return getLastUpdateDate(entityClassMap.keySet());
+    }
+
+    @Override
+    public Date getLastUpdateDate(Collection<String> entityNames) {
+        return entityNames.parallelStream()
+                .map(entityName -> {
+                    try {
+                        return this.maxUpdateDate(entityName);
+                    } catch(Exception e) {
+                        log.warn(String.format("Error while getting max(updateDate) of entity %s: %s", entityName, e.getMessage()), e);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
+    }
+
+    @Override
     public List<ReferentialTypeVO> getAllTypes() {
 
         return entityClassMap.keySet().stream()
@@ -458,6 +479,24 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         entityManager.clear();
 
         return source;
+    }
+
+    @Override
+    public Date maxUpdateDate(String entityName) {
+        Preconditions.checkNotNull(entityName, "Missing entityName argument");
+
+        // Get entity class from entityName
+        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Timestamp> criteriaQuery = builder.createQuery(Timestamp.class);
+        Root<? extends IReferentialEntity> root = criteriaQuery.from(entityClass);
+        criteriaQuery.select(root.get(IReferentialEntity.Fields.UPDATE_DATE));
+        criteriaQuery.orderBy(builder.desc(root.get(IReferentialEntity.Fields.UPDATE_DATE)));
+
+        return getEntityManager().createQuery(criteriaQuery)
+                .setMaxResults(1)
+                .getSingleResult();
     }
 
     /* -- protected methods -- */

@@ -103,7 +103,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
     public <T> Stream<T> streamAll(ModelVocabulary domain, String className, Class<T> aClass, Page page) {
         Preconditions.checkNotNull(page);
 
-        String hql = getSelectHqlQuery(domain, className, page.getSortAttribute(), page.getSortDirection());
+        String hql = getSelectHqlQuery(domain, className, page.getSortBy(), page.getSortDirection());
         TypedQuery<T> typedQuery = entityManager.createQuery(hql, aClass)
                 .setFirstResult((int)page.getOffset())
                 .setMaxResults(page.getSize());

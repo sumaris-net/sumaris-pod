@@ -28,7 +28,7 @@ import com.google.common.collect.Lists;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.LandingRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.LandingMeasurement;
 import net.sumaris.core.model.data.Vessel;
@@ -67,26 +67,16 @@ public class LandingServiceImpl implements LandingService {
 	protected SampleService sampleService;
 
 	@Override
-	public List<LandingVO> getAll(int offset, int size) {
-		return findAll(null, offset, size, null, null, null);
-	}
+	public List<LandingVO> findAll(LandingFilterVO filter, Page page, DataFetchOptions fetchOptions) {
 
-	@Override
-	public List<LandingVO> findAll(LandingFilterVO filter, int offset, int size) {
-		return findAll(filter, offset, size, null, null, null);
-	}
-
-	@Override
-	public List<LandingVO> findAll(LandingFilterVO filter, int offset, int size, String sortAttribute,
-                                   SortDirection sortDirection, DataFetchOptions fetchOptions) {
-
-		// LP test: sorting by 'vessel' will sort by registration code
-		if (Landing.Fields.VESSEL.equals(sortAttribute)) {
-			sortAttribute = StringUtils.doting(Landing.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE);
+		// Sorting by 'vessel' must sort by registration code
+		if (page != null && Landing.Fields.VESSEL.equals(page.getSortBy())) {
+			page.setSortBy(
+					StringUtils.doting(Landing.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
+			);
 		}
 
-		return landingRepository.findAll(filter, offset, size, sortAttribute, sortDirection, fetchOptions)
-				.stream().collect(Collectors.toList());
+		return landingRepository.findAll(filter, page, fetchOptions);
 	}
 
 	@Override

@@ -145,8 +145,8 @@
     <scrypt.version>1.4.0</scrypt.version>
     <geojson-jackson.version>1.12</geojson-jackson.version>
     <graphql-java.version>13.0</graphql-java.version>
-    <graphql-java-tools.version>5.2.4</graphql-java-tools.version>
-    <graphql-java-servlet.version>6.1.3</graphql-java-servlet.version>
+    <graphql-java-tools.version>6.1.0</graphql-java-tools.version>
+    <graphql-java-servlet.version>9.2.0</graphql-java-servlet.version>
     <spqr.version>0.10.0</spqr.version>
 
     <!-- database version management -->
@@ -483,12 +483,17 @@
         <version>${graphql-java.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.graphql-java</groupId>
+        <groupId>com.graphql-java-kickstart</groupId>
         <artifactId>graphql-java-tools</artifactId>
         <version>${graphql-java-tools.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.graphql-java</groupId>
+        <groupId>com.graphql-java-kickstart</groupId>
+        <artifactId>graphiql-spring-boot-starter</artifactId>
+        <version>7.1.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.graphql-java-kickstart</groupId>
         <artifactId>graphql-java-servlet</artifactId>
         <version>${graphql-java-servlet.version}</version>
       </dependency>

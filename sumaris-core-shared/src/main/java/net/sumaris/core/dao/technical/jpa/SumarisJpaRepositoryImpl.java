@@ -27,8 +27,10 @@ import com.google.common.collect.Sets;
 import com.querydsl.jpa.impl.JPAQuery;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
@@ -56,6 +58,7 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -71,15 +74,23 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     private EntityManager entityManager;
 
+    private Class<V> voClass;
+
     @Autowired
     private DataSource dataSource;
 
     protected SumarisJpaRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
+        this(domainClass, null, entityManager);
+
+    }
+
+    protected SumarisJpaRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, entityManager);
+
+        this.voClass = voClass;
 
         // This is the recommended method for accessing inherited class dependencies.
         this.entityManager = entityManager;
-
     }
 
     @Override
@@ -96,6 +107,16 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         E entity = toEntity(vo);
 
         boolean isNew = entity.getId() == null;
+
+        // Entity has update date
+        if (entity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
+            // Check update date
+            Daos.checkUpdateDateForUpdate((IUpdateDateEntityBean)vo, (IUpdateDateEntityBean)entity);
+
+            // Update update_dt
+            Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+            ((IUpdateDateEntityBean)entity).setUpdateDate(newUpdateDate);
+        }
 
         E savedEntity = save(entity);
 
@@ -142,7 +163,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     public Class<V> getVOClass() {
-        throw new NotImplementedException("Not implemented yet. Should be override by subclass");
+        if (voClass == null) throw new NotImplementedException("Not implemented yet. Should be override by subclass");
+        return voClass;
     }
 
     /* -- protected method -- */
@@ -182,7 +204,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @param clazz a {@link Class} object.
      * @param identifierAttribute name of the identifier attribute
      * @param identifiers list of identifiers.
-     * @param <T> a T object.
+     * @param failedIfMissing Throw error if missing ?
      * @return a list of T object.
      */
     @SuppressWarnings("unchecked")
@@ -280,20 +302,6 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             }
         }
         return result;
-    }
-
-    protected Pageable getPageable(int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        if (sortAttribute != null) {
-            return PageRequest.of(offset / size, size,
-                    (sortDirection == null) ? Sort.Direction.ASC :
-                            Sort.Direction.fromString(sortDirection.toString()),
-                    sortAttribute);
-        }
-        return PageRequest.of(offset / size, size);
-    }
-
-    protected Pageable getPageable(Page page) {
-        return getPageable((int)page.getOffset(), page.getSize(), page.getSortAttribute(), page.getSortDirection());
     }
 
     protected <E, T extends Object> TypedQuery<E> setParameterIfExists(TypedQuery<E> query, String parameterName, T value) {

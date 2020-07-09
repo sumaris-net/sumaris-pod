@@ -24,6 +24,7 @@ package net.sumaris.core.dao.referential;
 
 
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -103,7 +104,7 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
 
     @Override
     public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
-        return findAll(toSpecification(filter), getPageable(offset, size, sortAttribute, sortDirection))
+        return findAll(toSpecification(filter), Pageables.create(offset, size, sortAttribute, sortDirection))
             .map(e -> this.toVO(e, fetchOptions));
     }
 

@@ -22,37 +22,32 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.io.Serializable;
 
 /**
+ * Helper class
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Page implements Serializable {
+public class Pageables  {
 
-    @Builder.Default
-    private long offset = 0L;
+    protected Pageables() {
 
-    @Builder.Default
-    private int size = 100;
+    }
 
-    @Builder.Default
-    private String sortBy = "id";
-
-    @Builder.Default
-    private SortDirection sortDirection = SortDirection.ASC;
-
-    public Pageable asPageable() {
-        return Pageables.create((int)offset, size, sortBy, sortDirection);
+    public static Pageable create(int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        if (sortAttribute != null) {
+            return PageRequest.of(offset / size, size,
+                    (sortDirection == null) ? Sort.Direction.ASC :
+                            Sort.Direction.fromString(sortDirection.toString()),
+                    sortAttribute);
+        }
+        return PageRequest.of(offset / size, size);
     }
 }
 

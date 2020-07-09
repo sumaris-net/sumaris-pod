@@ -23,6 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.LandingVO;
@@ -57,7 +58,7 @@ public class LandingServiceReadTest extends AbstractServiceTest{
     @Test
     public void findAll() {
 
-        List<LandingVO> vos = service.findAll(null, 0, 100);
+        List<LandingVO> vos = service.findAll(null, Page.builder().size(100).build(), null);
         Assert.assertNotNull(vos);
         Assert.assertTrue(vos.size() > 0);
     }
@@ -73,7 +74,7 @@ public class LandingServiceReadTest extends AbstractServiceTest{
                 .build();
 
 
-        List<LandingVO> vos = service.findAll(filter, 0, 100);
+        List<LandingVO> vos = service.findAll(filter, Page.builder().size(100).build(), null);
         Assert.assertNotNull(vos);
         Assert.assertTrue(vos.size() > 0);
     }
