@@ -10,8 +10,7 @@ import {merge, Subscription} from "rxjs";
 import {NetworkService} from "../../core/services/network.service";
 import {Router} from "@angular/router";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {ToastOptions} from "@ionic/core";
-import {Toasts} from "../../shared/toasts";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {ToastController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {environment} from "../../../environments/environment";
@@ -184,9 +183,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
       const remoteData = await this.service.synchronize(this.data);
 
       // Success message
-      this.showToast({
-        message: 'INFO.SYNCHRONIZATION_SUCCEED'
-      });
+      this.showToast({message: 'INFO.SYNCHRONIZATION_SUCCEED', type: 'info', showCloseButton: true});
 
       // Remove the page from the history (because of local id)
       await this.settings.removeHistory(path);
@@ -294,7 +291,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
   }
 
 
-  protected async showToast(opts: ToastOptions & { error?: boolean; }) {
+  protected async showToast(opts: ShowToastOptions) {
     if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     await Toasts.show(this.toastController, this.translate, opts);
   }

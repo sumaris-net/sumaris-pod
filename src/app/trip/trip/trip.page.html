@@ -75,8 +75,10 @@
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
             <!-- trip -->
-            <form-trip #tripForm (onSubmit)="save($event)" [showError]="false">
-
+            <form-trip #tripForm
+                       [showError]="false"
+                       [usageMode]="usageMode"
+                       (onSubmit)="save($event)">
               <!-- sale -->
               <form-sale #saleForm [hidden]="!showSaleForm"
                          [showVessel]="false" [showError]="false" [showComment]="false" [showEndDateTime]="false"

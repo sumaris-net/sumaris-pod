@@ -80,7 +80,7 @@ export abstract class AppEntityEditor<
   }
 
   get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+    return this._usageMode ? this._usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
 
   get isNewData(): boolean {

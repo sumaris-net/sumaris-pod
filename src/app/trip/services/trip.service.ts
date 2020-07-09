@@ -861,9 +861,9 @@ export class TripService extends RootDataService<Trip, TripFilter>
     const program = await this.programService.loadByLabel(programLabel);
 
     const form = this.validatorService.getFormGroup(entity, {
-      isOnFieldMode: false,
+      isOnFieldMode: false, // Always disable 'on field mode'
       program,
-      withMeasurements: true
+      withMeasurements: true // Need by full validation
     });
 
     if (!form.valid) {
