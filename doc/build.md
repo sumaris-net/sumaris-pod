@@ -8,9 +8,9 @@ This article will explain how to install your environment, then build the applic
 
 1. Install [NVM](https://github.com/nvm-sh/nvm)
 
-2. Install Node (v10) ex: 10.20.1
+2. Install Node (v12) ex: 12.18.2
 ```bash
-nvm install 10.20.1
+nvm install 12.18.2
 ```
 
 3. Install global dependency: 
