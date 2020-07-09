@@ -6,11 +6,13 @@ import {UsersPage} from './users/list/users';
 import {AdminRoutingModule} from "./admin-routing.module";
 import {ReferentialModule} from "../referential/referential.module";
 import {ConfigurationPage} from "./config/configuration.page";
+import {SocialModule} from "../social/social.module";
 
 @NgModule({
   imports: [
     CommonModule,
     CoreModule,
+    SocialModule,
     ReferentialModule,
     AdminRoutingModule
   ],

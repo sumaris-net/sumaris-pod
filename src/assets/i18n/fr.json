@@ -107,7 +107,8 @@
   },
   "CONFIGURATION": {
     "TAB_GENERAL": "Détails",
-    "TAB_CACHE": "Cache serveur",
+    "TAB_CACHE": "Données en cache",
+    "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Nom de l'application",
     "DESCRIPTION": "Description (page d'accueil)",
     "STATUS": "Etat",
@@ -184,7 +185,7 @@
     "MAP": "Cartes",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "LOCAL_SETTINGS": "Paramètres",
-    "SERVER_SETTINGS": "Configuration serveur",
+    "SERVER": "Gestion du serveur",
     "LOGOUT": "Se déconnecter",
     "ABOUT": "À propos"
   },
@@ -217,7 +218,7 @@
     "BTN_LOGIN": "Se connecter",
     "BTN_REGISTER": "Créer un compte",
     "NO_ACCOUNT_QUESTION": "Vous n'avez pas encore de compte ?",
-    "OFFLINE_MODE": "Forcer le mode hors ligne ?",
+    "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
     "LOGOUT": {
       "CONFIRM_TITLE": "Confirmation",
       "CONFIRM_MESSAGE": "Êtes-vous sûr de vouloir vous déconnecter ?",
@@ -277,7 +278,7 @@
     "BTN_CHANGE_PEER": "Voir les noeuds disponibles",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "BTN_CLEAR_CACHE": "Nettoyer les données en cache",
-    "OFFLINE_MODE": "Forcer le mode avion ? (expérimentale)",
+    "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
     "USAGE_MODE": "Mode de saisie",
     "USAGE_MODES":  {
@@ -1271,7 +1272,7 @@
   "NETWORK": {
     "BTN_CHECK_ALIVE": "Actualiser",
     "BTN_INIT_OFFLINE_MODE": "Activer le mode hors-ligne",
-    "BTN_UPDATE_OFFLINE_MODE": "Actualiser le mode hors-ligne",
+    "BTN_UPDATE_OFFLINE_MODE": "Mettre à jour le mode hors-ligne",
     "PEER": {
       "OFFLINE": "Noeud injoignable",
       "SELECT_MODAL": {
@@ -1288,8 +1289,20 @@
       "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%",
       "IMPORTATION_SUCCEED": "Importation terminée avec succès !<br/>La <b>saisie hors-ligne</b> est maintenant possible.",
       "OFFLINE": "Aucune connexion réseau.",
+      "OFFLINE_OR_UNAUTHORIZED": "Aucune connexion réseau, ou accès non autorisé.",
       "ONLINE": "Connexion réseau <b>établie avec succès<b> !",
-      "OFFLINE_HELP": "L'application fonctionne en <b>mode hors-ligne</b>."
+      "OFFLINE_HELP": "L'application fonctionne en <b>mode hors-ligne</b>.",
+      "RETRY_TO_CONNECT": "<i>Tentative de <b>connexion au réseau...</b></i>"
+    }
+  },
+  "SOCIAL": {
+    "EVENT_TYPE_ENUM": {
+      "DEBUG_DATA": "Donnée de debuggage",
+      "INBOX_MESSAGE": "Message entrant"
+    },
+    "ERROR": {
+      "LOAD_USER_EVENTS_ERROR": "Erreur de chargement des notifications",
+      "SAVE_USER_EVENT_ERROR": "Erreur de sauvegarde du message utilisateur"
     }
   },
   "ERROR": {
@@ -1346,10 +1359,7 @@
     "LOAD_DATA_ERROR": "Erreur de chargement des données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "NETWORK_REQUIRED": "Connexion au système impossible.<br/><b>Vérifiez votre connexion réseau</b> avant de réessayer.",
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
-    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
-    "PROFILE_ENUM": {
-
-    }
+    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne."
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

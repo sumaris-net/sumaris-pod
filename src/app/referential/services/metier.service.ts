@@ -10,7 +10,7 @@ import {GraphqlService} from "../../core/services/graphql.service";
 import {Metier} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/entities-storage.service";
-import {ReferentialFragments} from "./referential.queries";
+import {ReferentialFragments} from "./referential.fragments";
 import {ReferentialRefFilter} from "./referential-ref.service";
 import {Moment} from "moment";
 import {ReferentialUtils} from "../../core/services/model/referential.model";

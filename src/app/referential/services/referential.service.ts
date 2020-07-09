@@ -9,7 +9,7 @@ import {AccountService} from "../../core/services/account.service";
 
 import {FetchPolicy, MutationUpdaterFn} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {ReferentialFragments} from "./referential.queries";
+import {ReferentialFragments} from "./referential.fragments";
 import {environment} from "../../../environments/environment";
 import {Beans, KeysEnum, toNumber} from "../../shared/functions";
 import {ReferentialUtils} from "../../core/services/model/referential.model";

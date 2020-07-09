@@ -32,7 +32,6 @@ import {DOCUMENT} from "@angular/common";
 export interface MenuItem {
   title: string;
   path?: string;
-  page?: string | any;
   action?: string | any;
   icon?: string;
   matIcon?: string;
@@ -59,7 +58,7 @@ export class MenuItems {
     if (item.profile) {
       const hasProfile = accountService.isLogin() && accountService.hasMinProfile(item.profile);
       if (!hasProfile) {
-        if (opts.debug) console.debug("[menu] User does not have minimal profile '" + item.profile + "' for ", (item.path || item.page));
+        if (opts.debug) console.debug("[menu] User does not have minimal profile '" + item.profile + "' for ", item.path);
         return false;
       }
     }
@@ -67,7 +66,7 @@ export class MenuItems {
     else if (item.exactProfile) {
       const hasExactProfile =  accountService.isLogin() && accountService.hasExactProfile(item.profile);
       if (!hasExactProfile) {
-        if (opts.debug) console.debug("[menu] User does not have exact profile '" + item.exactProfile + "' for ", (item.path || item.page));
+        if (opts.debug) console.debug("[menu] User does not have exact profile '" + item.exactProfile + "' for ", item.path);
         return false;
       }
     }
@@ -76,7 +75,7 @@ export class MenuItems {
     if (item.ifProperty) {
       const isEnableByConfig = config && config.properties[item.ifProperty] === 'true';
       if (!isEnableByConfig) {
-        if (opts.debug) console.debug("[menu] Config property '" + item.ifProperty + "' not 'true' for ", (item.path || item.page));
+        if (opts.debug) console.debug("[menu] Config property '" + item.ifProperty + "' not 'true' for ", item.path);
         return false;
       }
     }
@@ -140,7 +139,7 @@ export class MenuComponent implements OnInit {
   }
 
   @HostListener('window:resize', ['$event'])
-  onResize(event?) {
+  onResize(event?: UIEvent) {
     this._screenWidth = window.innerWidth;
     console.debug("[menu] Screen size (px): " + this._screenWidth);
   }

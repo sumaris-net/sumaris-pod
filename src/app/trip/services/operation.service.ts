@@ -31,7 +31,7 @@ import {Operation, OperationFromObjectOptions, VesselPosition} from "./model/tri
 import {Measurement} from "./model/measurement.model";
 import {Batch, BatchUtils} from "./model/batch.model";
 import {Sample} from "./model/sample.model";
-import {ReferentialFragments} from "../../referential/services/referential.queries";
+import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {EntitiesServiceWatchOptions, FilterFn} from "../../shared/services/entity-service.class";

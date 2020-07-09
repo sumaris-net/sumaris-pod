@@ -9,7 +9,7 @@ import {GraphqlService} from "../../core/services/graphql.service";
 import {Beans} from "../../shared/functions";
 import gql from "graphql-tag";
 import {VesselSnapshotFragments} from "../../referential/services/vessel-snapshot.service";
-import {ReferentialFragments} from "../../referential/services/referential.queries";
+import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {Observable} from "rxjs";
 import {filter, map, tap} from "rxjs/operators";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";

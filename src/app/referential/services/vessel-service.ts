@@ -23,7 +23,7 @@ import {Moment} from "moment";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {ReferentialFragments} from "./referential.queries";
+import {ReferentialFragments} from "./referential.fragments";
 import {FetchPolicy} from "apollo-client";
 import {isEmptyArray} from "../../shared/functions";
 import {EntityAsObjectOptions, EntityUtils} from "../../core/services/model/entity.model";

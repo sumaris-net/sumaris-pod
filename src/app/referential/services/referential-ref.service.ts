@@ -23,7 +23,7 @@ import {LocationLevelIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.
 import {TaxonNameRef} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
 import {EntitiesStorage} from "../../core/services/entities-storage.service";
-import {ReferentialFragments} from "./referential.queries";
+import {ReferentialFragments} from "./referential.fragments";
 import {SortDirection} from "@angular/material/sort";
 
 export class ReferentialRefFilter extends ReferentialFilter {

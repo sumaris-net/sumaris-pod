@@ -4,7 +4,7 @@ import {isNotEmptyArray, isNotNil, LoadResult, EntitiesService, toBoolean} from 
 import {Entity, IEntity} from "../services/model/entity.model";
 import {ErrorCodes} from '../services/errors';
 import {catchError, first, map, takeUntil} from "rxjs/operators";
-import {OnDestroy} from "@angular/core";
+import {Directive, OnDestroy} from "@angular/core";
 import {EntitiesServiceWatchOptions} from "../../shared/services/entity-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {CollectionViewer} from "@angular/cdk/collections";
@@ -24,6 +24,7 @@ export declare interface AppTableDataSourceOptions<T extends Entity<T>, O extend
   [key: string]: any;
 }
 
+@Directive()
 export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions>
     extends TableDataSource<T>
     implements OnDestroy {

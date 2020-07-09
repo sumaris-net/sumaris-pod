@@ -182,16 +182,12 @@ export class GraphqlService {
   }
 
   watchQuery<T, V = R>(opts: WatchQueryOptions<V>): Observable<T> {
-    const queryRef = this.apollo.watchQuery<T, V>({
+    return this.apollo.watchQuery<T, V>({
       query: opts.query,
       variables: opts.variables,
       fetchPolicy: opts.fetchPolicy || (this._defaultFetchPolicy as FetchPolicy) || undefined,
       notifyOnNetworkStatusChange: true
-    });
-
-    console.log("TODO check queryId=" + queryRef.queryId);
-
-    return queryRef
+    })
       .valueChanges
       .pipe(
         catchError(error => this.onApolloError<T>(error, opts.error)),

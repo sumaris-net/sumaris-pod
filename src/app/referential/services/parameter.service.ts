@@ -9,7 +9,7 @@ import {environment} from "../../../environments/environment";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
 import {Parameter} from "./model/parameter.model";
-import {ReferentialFragments} from "./referential.queries";
+import {ReferentialFragments} from "./referential.fragments";
 
 const SaveQuery: any = gql`
   mutation SaveParameter($parameter:ParameterVOInput){

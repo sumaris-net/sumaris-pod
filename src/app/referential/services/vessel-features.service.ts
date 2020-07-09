@@ -7,7 +7,7 @@ import {BaseEntityService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {ErrorCodes} from "./errors";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {ReferentialFragments} from "./referential.queries";
+import {ReferentialFragments} from "./referential.fragments";
 import {VesselFilter} from "./vessel-service";
 import {SortDirection} from "@angular/material/sort";
 import {VesselFeaturesHistoryComponent} from "../vessel/page/vessel-features-history.component";

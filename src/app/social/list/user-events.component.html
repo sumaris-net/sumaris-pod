@@ -1,0 +1,65 @@
+
+<ion-list>
+  <ng-container *ngIf="$events | async; let events">
+
+    <!-- no result -->
+    <ion-item *ngIf="!events.length" lines="none">
+      <ion-label color="danger" translate>COMMON.NO_RESULT</ion-label>
+    </ion-item>
+
+    <ng-container *ngFor="let item of events">
+      <ng-template #itemContent>
+        <ion-grid>
+          <ion-row>
+            <!-- title -->
+            <ion-col>
+              <ion-label translate>{{item.title}}</ion-label>
+            </ion-col>
+
+            <!-- date -->
+            <ion-col size="2">
+              {{ item.time | dateFormat:{pattern: dateTimePattern} }}
+            </ion-col>
+            <ion-col size="auto">
+              <ion-text>
+                <small>
+                  <ion-icon name="time-outline"></ion-icon>&nbsp;{{item.time|dateFromNow}}
+                </small>
+              </ion-text>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ng-template>
+
+      <!-- link -->
+      <ion-item *ngIf="item.path"
+                class="{{item.cssClass}} {{item.color}} text-1x"
+                tappable
+                [routerLink]="item.path"
+                routerDirection="root"
+                routerLinkActive="selected"
+                [routerLinkActiveOptions]="{exact: (item.path === '/')}">
+        <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
+        <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
+        <ng-container *ngTemplateOutlet="itemContent"></ng-container>
+      </ion-item>
+
+      <!-- action -->
+      <ion-item *ngIf="item.action"
+                class="{{item.cssClass}} {{item.color}} text-1x"
+                tappable
+                (click)="doAction(item.action, item)">
+        <ion-icon *ngIf="item.icon" slot="start" [name]="item.icon"></ion-icon>
+        <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
+        <ng-container *ngTemplateOutlet="itemContent"></ng-container>
+      </ion-item>
+    </ng-container>
+  </ng-container>
+
+  <!-- loader -->
+  <ion-item lines="none" *ngIf="loading">
+    <ion-label class="ion-text-center">
+      <ion-spinner></ion-spinner>
+    </ion-label>
+  </ion-item>
+</ion-list>

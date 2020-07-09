@@ -15,7 +15,7 @@ import {TripFilter} from "./trip.service";
 import {ErrorCodes} from "./trip.errors";
 import gql from "graphql-tag";
 import {PhysicalGearFragments} from "./trip.queries";
-import {ReferentialFragments} from "../../referential/services/referential.queries";
+import {ReferentialFragments} from "../../referential/services/referential.fragments";
 import {SortDirection} from "@angular/material/sort";
 
 

@@ -291,7 +291,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       // Try to reconnect
       this.markAsLoading();
       try {
-        await this.network.tryOnline({displaySuccessToast: true});
+        await this.network.tryOnline();
         return this.prepareOfflineMode(); // Retry (will display error again, if cannot connect)
       }
       finally {

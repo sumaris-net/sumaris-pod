@@ -90,17 +90,29 @@
       <ion-grid>
         <ion-row>
           <ion-col>
-            <ion-text class="ion-text-wrap">
-              <b [innerHTML]="'NETWORK.INFO.OFFLINE'| translate"></b><br/>
+            <ion-text class="ion-text-wrap" *ngIf="!waitingNetwork; else waitingNetworkText">
+              <b *ngIf="isLogin; else notLogin"  [innerHTML]="'NETWORK.INFO.OFFLINE_OR_UNAUTHORIZED'| translate"></b>
+              <ng-template #notLogin>
+                <b [innerHTML]="'NETWORK.INFO.OFFLINE'| translate"></b>
+              </ng-template>
+              <br/>
               <small [innerHTML]="'NETWORK.INFO.OFFLINE_HELP'|translate"></small>
             </ion-text>
+            <ng-template #waitingNetworkText>
+              <ion-text class="ion-text-wrap" [innerHTML]="'NETWORK.INFO.RETRY_TO_CONNECT'| translate"></ion-text>
+            </ng-template>
           </ion-col>
           <ion-col size="auto">
             <!-- Retry button -->
-            <ion-button color="tertiary" class="ion-float-end"
-                        (click)="network.tryOnline()">
+            <ion-button *ngIf="!waitingNetwork; else waitingSpinner" color="tertiary" class="ion-float-end"
+                        (click)="tryOnline()">
               <span translate>NETWORK.BTN_CHECK_ALIVE</span>
             </ion-button>
+
+            <!-- Waiting spinner -->
+            <ng-template #waitingSpinner>
+              <ion-spinner *ngIf="waitingNetwork" color="light"></ion-spinner>
+            </ng-template>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -135,7 +147,7 @@
       <!-- If NOT login -->
       <ng-container *ngIf="!isLogin; else loginButtons;">
 
-        <ion-button expand="block" color="primary" (click)="register()">
+        <ion-button expand="block" color="tertiary" (click)="register()">
           <span translate>HOME.BTN_REGISTER</span>
         </ion-button>
         <ion-button expand="block" color="light" [routerLink]="['/']" (click)="login()">

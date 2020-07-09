@@ -99,6 +99,7 @@ import {VesselActivityValidatorService} from "./services/validator/vessel-activi
 import {VesselActivityForm} from "./aggregated-landing/vessel-activity.form";
 import {AggregatedLandingModal} from "./aggregated-landing/aggregated-landing.modal";
 import {OperationsMap} from "./operation/map/operations.map";
+import {SocialModule} from "../social/social.module";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -109,7 +110,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       LeafletModule,
       ReferentialModule,
       MatTabsModule,
-      DataModule
+      DataModule,
+      SocialModule
     ],
   declarations: [
     TripTable,

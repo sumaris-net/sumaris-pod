@@ -7,7 +7,7 @@ import {
   OnDestroy,
   Optional
 } from '@angular/core';
-import {ModalController} from '@ionic/angular';
+import {ModalController, ToastController} from '@ionic/angular';
 import {RegisterModal} from '../register/modal/modal-register';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
@@ -26,6 +26,8 @@ import {environment} from "../../../environments/environment";
 import {NetworkService} from "../services/network.service";
 import {MenuItem, MenuItems} from "../menu/menu.component";
 import {ConfigOptions} from "../services/config/core.config";
+import {Toasts} from "../../shared/toasts";
+import {ToastOptions} from "@ionic/core";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -49,6 +51,7 @@ export class HomePage implements OnDestroy {
   private _config: Configuration;
 
   loading = true;
+  waitingNetwork = false;
   showSpinner = true;
   displayName: String = '';
   isLogin: boolean;
@@ -74,6 +77,7 @@ export class HomePage implements OnDestroy {
     private accountService: AccountService,
     private modalCtrl: ModalController,
     private translate: TranslateService,
+    private toastController: ToastController,
     private configService: ConfigService,
     private platform: PlatformService,
     private cd: ChangeDetectorRef,
@@ -101,8 +105,13 @@ export class HomePage implements OnDestroy {
     return modal.present();
   }
 
-  logout(event: any) {
-    this.accountService.logout();
+  async logout(event: any) {
+    await this.accountService.logout();
+
+    // If was offline, try to reconnect (because can be a forced offline mode)
+    if (this.offline) {
+      await this.tryOnline();
+    }
   }
 
   changeLanguage(locale: string) {
@@ -124,6 +133,11 @@ export class HomePage implements OnDestroy {
       this.platform.open(this.appInstallUrl, '_system', 'location=yes');
       return false;
     }
+  }
+
+  async tryOnline() {
+    this.waitingNetwork = true;
+    await this.network.tryOnline({displayToast: false});
   }
 
   /* -- protected method  -- */
@@ -157,14 +171,22 @@ export class HomePage implements OnDestroy {
     // Listen network changes
     this._subscription.add(
       this.network.onNetworkStatusChanges
-        .pipe(map(connectionType => connectionType === 'none'))
+        .pipe(
+          map(connectionType => connectionType === 'none'),
+          debounceTime(450)
+        )
         .subscribe(offline => {
           if (this.offline !== offline) {
             this.offline = offline;
             this.markForCheck();
           }
+          this.waitingNetwork = false;
         })
     );
+  }
+
+  protected async showToast(opts: ToastOptions & { error?: boolean; }) {
+    await Toasts.show(this.toastController, this.translate, opts);
   }
 
   protected onConfigLoaded(config: Configuration) {

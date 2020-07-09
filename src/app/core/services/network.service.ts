@@ -17,7 +17,7 @@ import {DOCUMENT} from "@angular/common";
 import {CacheService} from "ionic-cache";
 import {Toasts} from "../../shared/toasts";
 import {distinctUntilChanged, filter, map} from "rxjs/operators";
-import {ToastOptions} from "@ionic/core";
+import {OverlayEventDetail, ToastOptions} from "@ionic/core";
 
 export interface NodeInfo {
   softwareName: string;
@@ -186,7 +186,7 @@ export class NetworkService {
   }
 
   async tryOnline(opts?: {
-    displaySuccessToast?: boolean;
+    displayToast?: boolean;
   }): Promise<boolean> {
     // If offline mode not forced, and device says there is no connection: skip
     if (!this._forceOffline || this._deviceConnectionType === 'none') return false;
@@ -206,7 +206,8 @@ export class NetworkService {
     // Restart
     await this.restart(peer);
 
-    if (opts.displaySuccessToast) {
+    // Display a toast to user
+    if (!opts || opts.displayToast !== false) {
       // Display toast (without await, because not need to wait toast close event)
       this.showToast({message: 'NETWORK.INFO.ONLINE', cssClass: 'secondary'});
     }
@@ -381,12 +382,12 @@ export class NetworkService {
     return Promise.resolve(peers);
   }
 
-  protected showToast(opts: ToastOptions): Promise<void> {
+  protected showToast<T = any>(opts: ToastOptions): Promise<OverlayEventDetail<T>> {
     if (!this.toastController || !this.translate) {
       console.error("[network] Cannot show toast - missing toastController or translate");
       if (opts.message instanceof IonicSafeString) console.info("[network] toast message: " + (this.translate && this.translate.instant(opts.message.value) || opts.message.value));
       else if (typeof opts.message === "string") console.info("[network] toast message: " + (this.translate && this.translate.instant(opts.message) || opts.message));
-      return Promise.resolve();
+      return Promise.resolve({});
     }
     return Toasts.show(this.toastController, this.translate, opts);
   }

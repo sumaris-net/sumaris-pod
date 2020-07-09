@@ -5,12 +5,11 @@ import {Observable} from "rxjs";
 import {DataProxy} from "apollo-cache";
 import {FetchResult} from "apollo-link";
 import {environment} from "../../../environments/environment";
-import {variable} from "@angular/compiler/src/output/output_ast";
 import {EntityUtils} from "./model/entity.model";
 
 const sha256 =  require('hash.js/lib/hash/sha/256');
 
-export interface QueryVariables<T=any,F= any> extends Partial<Page<T>> {
+export interface QueryVariables<F= any> extends Partial<Page> {
   filter?: F;
   [key: string]: any;
 }

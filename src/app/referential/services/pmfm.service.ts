@@ -15,7 +15,7 @@ import {environment} from "../../../environments/environment";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
 import {Pmfm} from "./model/pmfm.model";
 import {Observable, of} from "rxjs";
-import {ReferentialFragments} from "./referential.queries";
+import {ReferentialFragments} from "./referential.fragments";
 import {map} from "rxjs/operators";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {ReferentialUtils, SAVE_AS_OBJECT_OPTIONS} from "../../core/services/model/referential.model";

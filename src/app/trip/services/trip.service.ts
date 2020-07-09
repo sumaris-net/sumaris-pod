@@ -52,6 +52,9 @@ import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
 import {FilterFn} from "../../shared/services/entity-service.class";
 import {ObservedLocationFilter, ObservedLocationFilterKeys} from "./observed-location.service";
+import {UserEventService} from "../../social/services/user-event.service";
+import {UserEvent} from "../../social/services/model/user-event.model";
+import {showError} from "../../shared/alerts";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -328,6 +331,7 @@ export interface TripServiceSaveOption {
   isLandedTrip: boolean;
   withOperation?: boolean;
   withOperationGroup?: boolean;
+  enableOptimisticResponse?: boolean; // True by default
 }
 
 const LoadAllQuery: any = gql`
@@ -453,7 +457,8 @@ export class TripService extends RootDataService<Trip, TripFilter>
     protected entities: EntitiesStorage,
     protected operationService: OperationService,
     protected settings: LocalSettingsService,
-    protected validatorService: TripValidatorService
+    protected validatorService: TripValidatorService,
+    protected userEventService: UserEventService
   ) {
     super(injector);
 
@@ -696,17 +701,18 @@ export class TripService extends RootDataService<Trip, TripFilter>
       return entity;
     }
 
-    // When offline, provide an optimistic response
-    const offlineResponse = async (context) => {
-      // Make sure to fill id, with local ids
-      await this.fillOfflineDefaultProperties(entity);
+    // Provide an optimistic response, if connection lost
+    const offlineResponse = (!options || options.enableOptimisticResponse !== false) ?
+      async (context) => {
+        // Make sure to fill id, with local ids
+        await this.fillOfflineDefaultProperties(entity);
 
-      // For the query to be tracked (see tracked query link) with a unique serialization key
-      context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
-      if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
+        // For the query to be tracked (see tracked query link) with a unique serialization key
+        context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
+        if (isNotNil(entity.id)) context.serializationKey = dataIdFromObject(entity);
 
-      return { saveTrip: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)], saveLandedTrip: undefined };
-    };
+        return { saveTrip: [this.asObject(entity, SAVE_OPTIMISTIC_AS_OBJECT_OPTIONS)], saveLandedTrip: undefined };
+      } : undefined;
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
@@ -798,11 +804,28 @@ export class TripService extends RootDataService<Trip, TripFilter>
     entity.id = undefined;
 
     try {
-      entity = await this.save(entity, {isLandedTrip: false, withOperation: true}); // todo comment synchroniser un landedTrip ?
-      if (entity.id < 0) {
-        throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
+      // todo comment synchroniser un landedTrip ?
+      entity = await this.save(entity, {
+        isLandedTrip: false,
+        withOperation: true,
+        enableOptimisticResponse: false // Optimistice response not need
+      });
+      if (isNil(entity.id) || entity.id < 0) {
+        throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR};
       }
     } catch (err) {
+      // Restore local id (for next try)
+      entity.id = localId;
+
+      // Send data to admin
+      if (this.network.online) {
+        setTimeout(async () => {
+          console.info("Synchronisation failed: sending trip to admin..")
+          const userEvent = await this.userEventService.sendDataForDebug(entity.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS));
+          console.info("Trip successfully sent to admin", userEvent);
+        });
+      }
+
       throw {...err, code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
     }
 

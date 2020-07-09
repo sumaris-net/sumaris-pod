@@ -163,6 +163,20 @@
       </div>
     </mat-tab>
 
+    <!-- TAB: notifications -->
+    <mat-tab label="{{'CONFIGURATION.TAB_NOTIFICATIONS'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="notifications"></ion-icon>
+        </mat-icon>
+        <ion-label translate>CONFIGURATION.TAB_NOTIFICATIONS</ion-label>
+      </ng-template>
+
+      <app-user-events-list recipient="SYSTEM"
+                            showContent="true">
+      </app-user-events-list>
+    </mat-tab>
+
     <!-- TAB: cache -->
     <mat-tab label="{{'CONFIGURATION.TAB_CACHE'|translate}}">
       <ng-template mat-tab-label>

@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Injector, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectorRef, Directive, Injector, OnInit, ViewChild} from "@angular/core";
 import {AbstractControl, FormArray, FormGroup} from "@angular/forms";
 import {EntityUtils} from '../../core/services/model/entity.model';
 import {Software} from '../../core/services/model/config.model';
@@ -13,7 +13,7 @@ import {SoftwareValidatorService} from "../services/validator/software.validator
 import {AppEditorOptions} from "../../core/form/editor.class";
 import {ConfigOptions} from "../../core/services/config/core.config";
 
-
+@Directive()
 export abstract class AbstractSoftwarePage<T extends Software<T>, S extends SoftwareService<T>>
   extends AppEntityEditor<T, S>
   implements OnInit {

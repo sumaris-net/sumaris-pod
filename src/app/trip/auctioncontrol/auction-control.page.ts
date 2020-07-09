@@ -169,8 +169,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   }
 
   updateView(data: Landing | null, opts?: {
-    openSecondTab?: boolean;
-    updateTabAndRoute?: boolean;
+    emitEvent?: boolean;
+    openTabIndex?: number;
+    updateRoute?: boolean;
   }) {
     super.updateView(data, opts);
 
@@ -178,8 +179,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this.landingForm.showLocation = false;
     this.landingForm.showDateTime = false;
     this.landingForm.showObservers = false;
-
-
   }
 
   protected addToPageHistory(page: HistoryPageReference) {

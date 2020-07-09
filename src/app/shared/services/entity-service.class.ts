@@ -3,11 +3,11 @@ import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {isNil, isNotNil} from "../functions";
 import {SortDirection} from "@angular/material/sort";
 
-export declare interface Page<T> {
+export declare interface Page {
   offset: number;
   size: number;
   sortBy?: string;
-  sortDirection?: 'asc'|'desc';
+  sortDirection?: SortDirection;
 }
 
 export declare interface LoadResult<T> {

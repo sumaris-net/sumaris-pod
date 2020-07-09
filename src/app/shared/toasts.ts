@@ -15,7 +15,7 @@ export class Toasts {
   static async show<T = any>(
     toastController: ToastController,
     translate: TranslateService,
-    opts: ToastOptions & { error?: boolean; showCloseButton?: boolean; mobile?: boolean; }
+    opts: ToastOptions & { error?: boolean; showCloseButton?: boolean; }
   ): Promise<OverlayEventDetail<T>> {
     if (!toastController || !translate) throw new Error("Missing required argument 'toastController' or 'translate'");
 
