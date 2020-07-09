@@ -44,8 +44,9 @@ import {
   MatAutocompleteFieldConfig
 } from "../../shared/material/material.autocomplete";
 import {ToastOptions} from "@ionic/core";
-import {Toasts} from "../../shared/toasts";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
+import {NetworkService} from "../services/network.service";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const SETTINGS_SORTED_COLUMN = "sortedColumn";
@@ -933,11 +934,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
   }
 
-  protected async showToast(opts: ToastOptions & { error?: boolean; showCloseButton?: boolean }) {
-    if (!this.toastController) {
-      console.warn("[table] Missing toastController in component's constructor. Cannot show toast");
-      return;
-    }
+  protected async showToast(opts: ShowToastOptions) {
+    if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     return Toasts.show(this.toastController, this.translate, opts);
   }
 
@@ -950,5 +948,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       this.markForCheck();
     }
   }
+
+
 }
 

@@ -11,7 +11,7 @@ import {AppForm} from './form.class';
 import {FormButtonsBarComponent} from './form-buttons-bar.component';
 import {AppFormHolder, AppFormUtils, IAppForm, IAppFormFactory} from "./form.utils";
 import {ToastOptions} from "@ionic/core";
-import {Toasts} from "../../shared/toasts";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {HammerSwipeAction, HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
 import {TeardownLogic} from "rxjs/src/internal/types";
 
@@ -509,7 +509,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     return saved;
   }
 
-  protected async showToast(opts: ToastOptions & { error?: boolean; }) {
+  protected async showToast(opts: ShowToastOptions) {
     if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     await Toasts.show(this.toastController, this.translate, opts);
   }

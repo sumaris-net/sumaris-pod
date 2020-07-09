@@ -26,7 +26,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {Moment} from "moment/moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR, KEYBOARD_HIDE_DELAY_MS} from '../../constants';
 import {SharedValidators} from '../../validator/validators';
-import {delay, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
+import {sleep, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {first} from "rxjs/operators";
 import {InputElement, setTabIndex} from "../../inputs";
@@ -355,7 +355,7 @@ export class MatDate implements OnInit, ControlValueAccessor, InputElement {
 
     // Wait an additional delay if need (depending on the OS)
     if (this.keyboardHideDelay > 0 && waitKeyboardDelay) {
-      await delay(this.keyboardHideDelay);
+      await sleep(this.keyboardHideDelay);
     }
   }
 

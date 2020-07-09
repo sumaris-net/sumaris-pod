@@ -278,25 +278,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     // If offline, warn user and ask to reconnect
     if (this.network.offline) {
-      const result = await this.showToast({
-        message: "ERROR.NETWORK_REQUIRED",
-        cssClass: 'danger',
-        showCloseButton: true,
-        buttons: [
-          // reconnect button
-          {role: 'connect', text: this.translate.instant('NETWORK.BTN_CHECK_ALIVE')}
-        ]
-      });
-      if (!result || result.role !== 'connect' || this.network.online) return;
-      // Try to reconnect
-      this.markAsLoading();
-      try {
-        await this.network.tryOnline();
-        return this.prepareOfflineMode(); // Retry (will display error again, if cannot connect)
-      }
-      finally {
-        this.markAsLoaded();
-      }
+      return this.showOfflineToast(() => this.prepareOfflineMode()) // Loop if enable to reconnect
     }
 
     this.$importProgression.next(0);
@@ -341,22 +323,18 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     }
   }
 
-  async setSynchronizationStatus(synchronizationStatus: SynchronizationStatus) {
-    if (!synchronizationStatus) return; // Skip if empty
+  async setSynchronizationStatus(value: SynchronizationStatus) {
+    if (!value) return; // Skip if empty
 
     // Make sure network is UP
-    if (this.offline && synchronizationStatus === 'SYNC') {
-      return this.showToast({
-        message: "ERROR.NETWORK_REQUIRED",
-        error: true,
-        showCloseButton: true
-      });
+    if (this.offline && value === 'SYNC') {
+      return this.showOfflineToast(() => this.setSynchronizationStatus(value)) // Loop if enable to reconnect
     }
 
-    console.debug("[trips] Applying filter to synchronization status: " + synchronizationStatus);
+    console.debug("[trips] Applying filter to synchronization status: " + value);
     this.error = null;
-    this.filterForm.patchValue({synchronizationStatus}, {emitEvent: false});
-    const json = { ...this.filter, synchronizationStatus};
+    this.filterForm.patchValue({synchronizationStatus: value}, {emitEvent: false});
+    const json = { ...this.filter, synchronizationStatus: value};
     this.setFilter(json, {emitEvent: true});
 
     // Save filter to settings (need to be done here, because new trip can stored filter)
@@ -457,6 +435,20 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   }
 
 
+  protected showOfflineToast(onlineCallback: () => void): Promise<any> {
+    if (this.accountService.isLogin()) {
+      return this.network.showOfflineToast({
+        message: 'NETWORK.INFO.OFFLINE_OR_UNAUTHORIZED',
+        afterRetryDelay: 200, // Wait 200ms
+        afterRetryPromise: () => this.accountService.ready(),
+        onlineCallback
+      });
+
+    }
+    else {
+      return this.network.showOfflineToast();
+    }
+  }
 
 }
 

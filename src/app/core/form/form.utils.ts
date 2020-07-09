@@ -8,7 +8,7 @@ import {
   ValidatorFn
 } from "@angular/forms";
 import {
-  delay,
+  sleep,
   filterNumberInput,
   isNil,
   nullIfUndefined,
@@ -82,7 +82,7 @@ export class AppFormHolder<F extends IAppForm = IAppForm> implements IAppForm {
       if (opts && opts.maxTimeoutMs && opts.startTime && (Date.now() >= opts.startTime + opts.maxTimeoutMs)) {
         throw new Error("Timeout exception. Cannot get form instance");
       }
-      await delay(opts && opts.checkTimeMs || 100);
+      await sleep(opts && opts.checkTimeMs || 100);
       return this.waitDelegate({startTime: Date.now(), ...opts}); // Loop
     }
     return content;

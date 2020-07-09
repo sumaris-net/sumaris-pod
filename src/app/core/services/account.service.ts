@@ -227,23 +227,9 @@ export class AccountService extends BaseEntityService {
 
     // Listen network restart
     this.graphql.onStart.subscribe(async () => {
-      if (this.isLogin() && this._started) {
-        this.restoreLocally();
-        // if (this.data.authToken) {
-        //   try {
-        //     console.debug("[account] Graphql restarted. Trying to re-auth on pod...");
-        //     const newToken = await this.authenticateAndGetToken(this.data.authToken);
-        //     this.data.authToken = newToken;
-        //
-        //     await this.saveLocally();
-        //
-        //     this.onLogin.next(this.data.account);
-        //   }
-        //   catch (err) {
-        //     console.error("[account] Authentication failed. Force logout: " + (err && err.message || err), err);
-        //     await this.logout();
-        //   }
-        // }
+      if (this._started && this.isLogin()) {
+        console.debug("[account] Graphql restarted. Restarting, to auth the account if possible...");
+        this.restart();
       }
     });
 
@@ -278,6 +264,14 @@ export class AccountService extends BaseEntityService {
 
   public get started(): boolean {
     return this._started;
+  }
+
+  async restart() {
+    if (this._started || this._startPromise) {
+      this._started = false;
+      this._startPromise = null;
+    }
+    return this.start();
   }
 
   public ready(): Promise<void> {

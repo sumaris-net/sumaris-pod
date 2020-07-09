@@ -4,9 +4,16 @@ import {OverlayEventDetail, ToastOptions} from "@ionic/core";
 import {ToastButton} from "@ionic/core/dist/types/components/toast/toast-interface";
 import {isNotNil} from "./functions";
 import {AnimationBuilder} from "@angular/animations";
+import {Toast} from "@ionic/core/dist/types/components/toast/toast";
 
 const TOAST_MAX_HEIGHT_PX = 75;
 const TOAST_MAX_STACK_SIZE = 4;
+
+export declare interface ShowToastOptions extends ToastOptions {
+  type?: 'error'|'warning'|'info';
+  showCloseButton?: boolean;
+  onWillPresent?: (toast: HTMLIonToastElement) => void;
+}
 
 export class Toasts {
   static counter = 0;
@@ -15,9 +22,14 @@ export class Toasts {
   static async show<T = any>(
     toastController: ToastController,
     translate: TranslateService,
-    opts: ToastOptions & { error?: boolean; showCloseButton?: boolean; }
+    opts: ShowToastOptions
   ): Promise<OverlayEventDetail<T>> {
-    if (!toastController || !translate) throw new Error("Missing required argument 'toastController' or 'translate'");
+    if (!toastController || !translate) {
+      console.error("Missing required argument 'toastController' or 'translate'");
+      if (opts.message instanceof IonicSafeString) console.info("[toasts] message: " + (translate && translate.instant(opts.message.value) || opts.message.value));
+      else if (typeof opts.message === "string") console.info("[toasts] message: " + (translate && translate.instant(opts.message) || opts.message));
+      return Promise.resolve({});
+    }
 
     this.counter++; // Increment toast counter
     let currentOffset = this.stackSize;
@@ -55,8 +67,19 @@ export class Toasts {
     const cssArray = opts.cssClass && typeof opts.cssClass === 'string' && opts.cssClass.split(',') || (opts.cssClass as Array<string>) || [];
 
     // Add 'error' class, if need
-    if (opts.error && !cssArray.includes('danger')) {
-      cssArray.push('danger');
+    if (opts.type) {
+      switch (opts.type) {
+        case "error":
+          opts.header = "ERROR";
+          cssArray.push('danger');
+          break;
+        case "warning":
+          cssArray.push('accent');
+          break;
+        case "info":
+          cssArray.push('secondary');
+          break;
+      }
     }
 
     opts.cssClass = cssArray;
@@ -67,10 +90,11 @@ export class Toasts {
       closeButton.text = translations[closeButton.text];
     }
 
-    const position = opts.mode === 'ios' ? 'bottom' : 'top'; // Top by default
+    // Retrieve the toast position
+    const position = opts.position || (opts.mode === 'ios' ? 'bottom' : 'top');
 
     if (!opts.enterAnimation) {
-      // Compute Y end position, using the stack offset
+      // Compute positions, using the stack offset
       const direction = position === 'top' ? 1 : -1;
       const start = (currentOffset) * TOAST_MAX_HEIGHT_PX  - direction * TOAST_MAX_HEIGHT_PX;
       const end = direction * (currentOffset) * TOAST_MAX_HEIGHT_PX;
@@ -91,6 +115,10 @@ export class Toasts {
       message: translations[message],
       header: opts.header && translations[opts.header] || undefined
     });
+
+    if (opts.onWillPresent) {
+      opts.onWillPresent(toast);
+    }
 
     await toast.present();
     const result = await toast.onDidDismiss();

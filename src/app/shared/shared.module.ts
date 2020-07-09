@@ -22,7 +22,7 @@ import {
 } from "./services/entity-service.class";
 import {
   changeCaseToUnderscore,
-  delay,
+  sleep,
   fromDateISOString,
   isNil,
   isNilOrBlank,
@@ -72,7 +72,7 @@ export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
 export {
   SuggestService, EntitiesService, LoadResult,
   EntityService, EntityServiceLoadOptions,
-  isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotEmptyArray, nullIfUndefined, delay,
+  isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotEmptyArray, nullIfUndefined, sleep,
   toBoolean, toFloat, toInt,
   toDateISOString, fromDateISOString, filterNumberInput,
   startsWithUpperCase,

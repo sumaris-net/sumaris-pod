@@ -35,7 +35,7 @@ import {InputElement, setTabIndex} from "../../inputs";
 import {isFocusableElement} from "../../focusable";
 import {BehaviorSubject} from "rxjs";
 import {MatDatepicker, MatDatepickerInputEvent} from "@angular/material/datepicker";
-import {delay, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
+import {sleep, isNil, isNilOrBlank, toBoolean, toDateISOString} from "../../functions";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -494,7 +494,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
     // Wait an additional delay if need (depending on the OS)
     if (this.keyboardHideDelay > 0 && waitKeyboardDelay) {
-      await delay(this.keyboardHideDelay);
+      await sleep(this.keyboardHideDelay);
     }
   }
 

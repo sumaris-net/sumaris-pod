@@ -5,19 +5,19 @@ import {Storage} from '@ionic/storage';
 import {environment} from "../../../environments/environment";
 import {Peer} from "./model/peer.model";
 import {LocalSettings} from "./model/settings.model";
-import {IonicSafeString, ModalController, ToastController} from "@ionic/angular";
+import {ModalController, ToastController} from "@ionic/angular";
 import {SelectPeerModal} from "../peer/select-peer.modal";
 import {BehaviorSubject, Subject, Subscription} from "rxjs";
 import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.service";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient} from "@angular/common/http";
-import {isNotNilOrBlank, toBoolean} from "../../shared/shared.module";
+import {isNotNilOrBlank, toBoolean, sleep} from "../../shared/functions";
 import {Connection, Network} from '@ionic-native/network/ngx';
 import {DOCUMENT} from "@angular/common";
 import {CacheService} from "ionic-cache";
-import {Toasts} from "../../shared/toasts";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {distinctUntilChanged, filter, map} from "rxjs/operators";
-import {OverlayEventDetail, ToastOptions} from "@ionic/core";
+import {OverlayEventDetail} from "@ionic/core";
 
 export interface NodeInfo {
   softwareName: string;
@@ -207,12 +207,106 @@ export class NetworkService {
     await this.restart(peer);
 
     // Display a toast to user
-    if (!opts || opts.displayToast !== false) {
+    if (this.online && !opts || opts.displayToast !== false) {
       // Display toast (without await, because not need to wait toast close event)
-      this.showToast({message: 'NETWORK.INFO.ONLINE', cssClass: 'secondary'});
+      this.showToast({message: 'NETWORK.INFO.ONLINE', type: 'info'});
     }
 
-    return this._started;
+    return this._started && this.online;
+  }
+
+  async showOfflineToast(opts?: ShowToastOptions & {
+    showRetryButton?: boolean;
+    afterRetryDelay?: number;
+    afterRetryPromise?: () => Promise<any>
+    onlineCallback: () => void
+  }): Promise<boolean> {
+    let online = this.online;
+
+    // If offline: display toast
+    if (!online) {
+
+      // Toast with a retry button
+      if (!opts || opts.showRetryButton !== false) {
+
+        const toastResult = await this.showToast({
+          message: (opts && opts.message || "ERROR.NETWORK_REQUIRED"),
+          type: 'error',
+          showCloseButton: true,
+          buttons: [
+            // reconnect button
+            {role: 'connect', text: this.translate.instant('NETWORK.BTN_CHECK_ALIVE')}
+          ]
+        });
+
+        // User don't click reconnect: return
+        if (!toastResult || toastResult.role !== 'connect') return false;
+
+        // if network state changed to online: exit here
+        online = this.online;
+        if (!online) {
+
+          const now = Date.now();
+          let loadingToast: HTMLIonToastElement;
+          this.showToast({message: 'NETWORK.INFO.RETRY_TO_CONNECT',
+            duration: 10000,
+            onWillPresent: t => loadingToast = t});
+
+          // Try to reconnect
+          online = await this.tryOnline({displayToast: false});
+
+          // Wait a delay before recheck
+          if (online && opts && opts.afterRetryDelay > 0) {
+            await sleep(opts.afterRetryDelay);
+
+            // Recheck network status
+            online = this.online;
+          }
+
+          // Wait a promise, before recheck
+          if (online && opts && opts.afterRetryPromise) {
+            try {
+              const promise = opts.afterRetryPromise();
+              if (promise instanceof Promise) {
+                await promise;
+              }
+            } catch(err) {
+              console.error("Error while executing opts.afterRetryPromise() :", err && err.message || err);
+            }
+            // Recheck network status
+            online = this.online;
+          }
+
+          // Close loading toast (with a minimal display duration of 2s)
+          if (loadingToast) {
+            await sleep(2000 - (Date.now() - now));
+            await loadingToast.dismiss();
+          }
+        }
+
+        if (!online) {
+          // Loop
+          return this.showOfflineToast({...opts, showRetryButton: false, showCloseButton: true});
+        }
+      }
+
+      // Toast without retry button
+      else {
+        // Not 'await', because not need to wait toast's dismiss
+        this.showToast({
+          message: "ERROR.NETWORK_REQUIRED",
+          type: 'error',
+          ...opts
+        });
+      }
+    }
+
+    // Execute the online callback (if any)
+    if (online && opts && opts.onlineCallback) {
+      setTimeout(() => opts.onlineCallback());
+    }
+
+    return online;
   }
 
   /**
@@ -382,13 +476,7 @@ export class NetworkService {
     return Promise.resolve(peers);
   }
 
-  protected showToast<T = any>(opts: ToastOptions): Promise<OverlayEventDetail<T>> {
-    if (!this.toastController || !this.translate) {
-      console.error("[network] Cannot show toast - missing toastController or translate");
-      if (opts.message instanceof IonicSafeString) console.info("[network] toast message: " + (this.translate && this.translate.instant(opts.message.value) || opts.message.value));
-      else if (typeof opts.message === "string") console.info("[network] toast message: " + (this.translate && this.translate.instant(opts.message) || opts.message));
-      return Promise.resolve({});
-    }
+  protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     return Toasts.show(this.toastController, this.translate, opts);
   }
 }

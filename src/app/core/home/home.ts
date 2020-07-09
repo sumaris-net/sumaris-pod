@@ -17,17 +17,16 @@ import {Department} from '../services/model/department.model';
 import {HistoryPageReference, LocalSettings} from '../services/model/settings.model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
-import {fadeInAnimation, isNotNil, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
+import {sleep, fadeInAnimation, isNotNil, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
-import {debounceTime, map, startWith} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, map, startWith, tap} from "rxjs/operators";
 import {AuthModal} from "../auth/modal/modal-auth";
 import {environment} from "../../../environments/environment";
 import {NetworkService} from "../services/network.service";
 import {MenuItem, MenuItems} from "../menu/menu.component";
 import {ConfigOptions} from "../services/config/core.config";
-import {Toasts} from "../../shared/toasts";
-import {ToastOptions} from "@ionic/core";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -135,14 +134,37 @@ export class HomePage implements OnDestroy {
     }
   }
 
-  async tryOnline() {
+  tryOnline() {
     this.waitingNetwork = true;
-    await this.network.tryOnline({displayToast: false});
+    const isLogin = this.isLogin;
+    this.markForCheck();
+
+    this.network.tryOnline({displayToast: true})
+      .then(async online => {
+        if (online && isLogin) {
+          // Wait propagation to account service, that can force offline if auth failed
+          await sleep(300);
+
+          await this.accountService.ready();
+
+          // Wait propagation of a force offline event
+          await sleep(200);
+        }
+        else {
+          // Make sure user show spinner
+          await sleep(1000);
+        }
+        this.waitingNetwork = false;
+        this.markForCheck();
+      })
+
   }
 
   /* -- protected method  -- */
 
   protected async start() {
+    await this.accountService.ready();
+
     this.isLogin = this.accountService.isLogin();
     if (this.isLogin) {
       this.onLogin(this.accountService.account);
@@ -172,20 +194,19 @@ export class HomePage implements OnDestroy {
     this._subscription.add(
       this.network.onNetworkStatusChanges
         .pipe(
+          //debounceTime(450),
+          //tap(() => this.waitingNetwork = false),
           map(connectionType => connectionType === 'none'),
-          debounceTime(450)
+          distinctUntilChanged()
         )
         .subscribe(offline => {
-          if (this.offline !== offline) {
-            this.offline = offline;
-            this.markForCheck();
-          }
-          this.waitingNetwork = false;
+          this.offline = offline;
+          this.markForCheck();
         })
     );
   }
 
-  protected async showToast(opts: ToastOptions & { error?: boolean; }) {
+  protected async showToast(opts: ShowToastOptions) {
     await Toasts.show(this.toastController, this.translate, opts);
   }
 

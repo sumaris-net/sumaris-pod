@@ -186,7 +186,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
           reject(err);
         },
         // Options
-        { maximumAge: 3000, timeout: 1000, enableHighAccuracy: true }
+        { maximumAge: 3000, timeout: 1000, enableHighAccuracy: false }
       );
     });
   }
