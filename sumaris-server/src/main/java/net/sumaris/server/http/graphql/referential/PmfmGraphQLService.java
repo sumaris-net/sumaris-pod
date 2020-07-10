@@ -27,7 +27,6 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLContext;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
-import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.pmfm.Fraction;
 import net.sumaris.core.model.referential.pmfm.Matrix;
@@ -36,21 +35,16 @@ import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.ParameterService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
-import net.sumaris.core.service.referential.taxon.TaxonGroupService;
-import net.sumaris.core.service.referential.taxon.TaxonNameService;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.filter.TaxonNameFilterVO;
-import net.sumaris.core.vo.referential.*;
+import net.sumaris.core.vo.referential.ParameterVO;
+import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.http.security.IsAdmin;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -67,6 +61,23 @@ public class PmfmGraphQLService {
     private ReferentialService referentialService;
 
     /* -- Pmfm -- */
+
+    @GraphQLQuery(name = "pmfms", description = "Search in PMFM")
+    @Transactional(readOnly = true)
+    public List<PmfmVO> findPmfmsByFilter(
+            @GraphQLArgument(name = "filter") ReferentialFilterVO filter,
+            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+            @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.LABEL) String sort,
+            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
+    ) {
+
+        return pmfmService.findByFilter(filter != null ? filter : new ReferentialFilterVO(),
+                offset == null ? 0 : offset,
+                size == null ? 1000 : size,
+                sort == null ? ReferentialVO.Fields.LABEL : sort,
+                direction == null ? SortDirection.ASC : SortDirection.valueOf(direction.toUpperCase()));
+    }
 
     @GraphQLQuery(name = "pmfm", description = "Get a PMFM")
     @Transactional(readOnly = true)

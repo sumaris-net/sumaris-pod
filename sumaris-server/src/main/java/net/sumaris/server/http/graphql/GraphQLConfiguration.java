@@ -38,6 +38,7 @@ import net.sumaris.server.http.graphql.referential.PmfmGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
 import net.sumaris.server.http.graphql.security.AuthGraphQLService;
 import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
+import net.sumaris.server.http.graphql.social.UserEventGraphQLService;
 import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,10 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     private ProgramGraphQLService programService;
 
     @Autowired
-    private ConfigurationGraphQLService podConfigurationService;
+    private ConfigurationGraphQLService configurationService;
+
+    @Autowired
+    private UserEventGraphQLService userEventGraphQLService;
 
     @Autowired
     private DataGraphQLService dataService;
@@ -98,7 +102,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
                 // Auth and configuration
                 .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
-                .withOperationsFromSingleton(podConfigurationService, ConfigurationGraphQLService.class)
+                .withOperationsFromSingleton(configurationService, ConfigurationGraphQLService.class)
 
                 // Administration & Referential
                 .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
@@ -113,6 +117,8 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 .withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class)
                 .withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class)
 
+                // User event
+                .withOperationsFromSingleton(userEventGraphQLService, UserEventGraphQLService.class)
 
                 .withTypeTransformer(new DefaultTypeTransformer(false, true)
                         // Replace unbounded IEntity<ID> with IEntity<Serializable>

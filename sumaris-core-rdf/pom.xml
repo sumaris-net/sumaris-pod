@@ -3,7 +3,7 @@
     <parent>
         <artifactId>sumaris-pod</artifactId>
         <groupId>net.sumaris</groupId>
-        <version>1.2.7-SNAPSHOT</version>
+        <version>1.2.8-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -21,8 +21,6 @@
         </i18n.bundleCsvFile>
         <config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
 
-        <!-- Jena (RDF) -->
-        <jena.version>3.14.0</jena.version>
     </properties>
 
     <dependencies>
@@ -32,13 +30,15 @@
             <artifactId>sumaris-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>net.sumaris</groupId>
-            <artifactId>sumaris-test-shared</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
 
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -52,13 +52,17 @@
         </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
-            <artifactId>apache-jena-libs</artifactId>
+            <artifactId>jena-shacl</artifactId>
             <version>${jena.version}</version>
-            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-arq</artifactId>
+            <version>${jena.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-tdb2</artifactId>
             <version>${jena.version}</version>
         </dependency>
 
@@ -77,10 +81,17 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
         <dependency>
-            <groupId>org.apache.jena</groupId>
-            <artifactId>jena-tdb2</artifactId>
-            <version>${jena.version}</version>
+            <groupId>com.github.owlcs</groupId>
+            <artifactId>ontapi</artifactId>
+            <version>${ontapi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.jena</groupId>
+                    <artifactId>jena-arq</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -99,16 +110,13 @@
             </exclusions>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.apache.logging.log4j</groupId>-->
-<!--            <artifactId>log4j-to-slf4j</artifactId>-->
-<!--        </dependency>-->
-
-        <!--<dependency>-->
-        <!--<groupId>com.thewebsemantic</groupId>-->
-        <!--<artifactId>jenabean</artifactId>-->
-        <!--<version>1.0.6</version>-->
-        <!--</dependency>-->
+        <!-- Unit test -->
+        <dependency>
+            <groupId>net.sumaris</groupId>
+            <artifactId>sumaris-test-shared</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

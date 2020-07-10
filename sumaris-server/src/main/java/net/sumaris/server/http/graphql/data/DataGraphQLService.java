@@ -36,10 +36,12 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.aggregatedLanding.AggregatedLandingVO;
 import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -61,6 +63,9 @@ import java.util.Set;
 public class DataGraphQLService {
 
     @Autowired
+    private SumarisServerConfiguration config;
+
+    @Autowired
     private VesselService vesselService;
 
     @Autowired
@@ -77,6 +82,9 @@ public class DataGraphQLService {
 
     @Autowired
     private LandingService landingService;
+
+    @Autowired
+    private AggregatedLandingService aggregatedLandingService;
 
     @Autowired
     private SaleService saleService;
@@ -113,6 +121,9 @@ public class DataGraphQLService {
 
     @Autowired
     private PacketService packetService;
+
+    @Autowired
+    private FishingAreaService fishingAreaService;
 
     @Autowired
     private AuthService authService;
@@ -230,7 +241,7 @@ public class DataGraphQLService {
         return result;
     }
 
-    @GraphQLQuery(name = "tripsCount", description = "Get total trips count")
+    @GraphQLQuery(name = "tripsCount", description = "Get trips count")
     @Transactional(readOnly = true)
     @IsUser
     public long getTripsCount(@GraphQLArgument(name = "filter") TripFilterVO filter) {
@@ -383,7 +394,7 @@ public class DataGraphQLService {
         Preconditions.checkNotNull(filter.getVesselId(), "Missing filter.vesselId");
         Page page = Page.builder().offset(offset)
                 .size(size)
-                .sortAttribute(sort)
+                .sortBy(sort)
                 .sortDirection(direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null)
                 .build();
         return physicalGearService.findAll(filter, page, getFetchOptions(fields));
@@ -576,6 +587,13 @@ public class DataGraphQLService {
             return trip.getOperations();
         }
         return operationService.getAllByTripId(trip.getId(), 0, 1000, OperationVO.Fields.START_DATE_TIME, SortDirection.ASC);
+    }
+
+    @GraphQLQuery(name = "operationsCount", description = "Get operations count")
+    @Transactional(readOnly = true)
+    @IsUser
+    public long getOperationsCount(@GraphQLArgument(name = "filter") OperationFilterVO filter) {
+        return operationService.countByTripId(filter.getTripId());
     }
 
     @GraphQLQuery(name = "operation", description = "Get an operation")
@@ -800,8 +818,12 @@ public class DataGraphQLService {
                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                         @GraphQLEnvironment() Set<String> fields
     ) {
-        final List<LandingVO> result = landingService.findAll(filter, offset, size, sort,
-                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
+        Page page = Page.builder().offset(offset)
+                .size(size)
+                .sortBy(sort)
+                .sortDirection(direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null)
+                .build();
+        final List<LandingVO> result = landingService.findAll(filter, page,
                 getFetchOptions(fields));
 
         // Add additional properties if needed
@@ -874,6 +896,21 @@ public class DataGraphQLService {
         return changesPublisherService.getPublisher(Landing.class, LandingVO.class, id, minIntervalInSecond, true);
     }
 
+    /* -- Aggregated landings -- */
+
+    @GraphQLQuery(name = "aggregatedLandings", description = "Find aggregated landings by filter")
+    public List<AggregatedLandingVO> findAggregatedLandings(
+        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+        @GraphQLEnvironment() Set<String> fields
+    ) {
+
+        final List<AggregatedLandingVO> result = aggregatedLandingService.findAll(filter);
+
+        fillVesselSnapshot(result, fields);
+
+        return result;
+    }
+
     /* -- Measurements -- */
 
     // Trip
@@ -943,6 +980,31 @@ public class DataGraphQLService {
         }
         return measurementService.getOperationGearUseMeasurementsMap(operationGroup.getId());
     }
+
+
+    // Fishing area
+
+    @GraphQLQuery(name = "fishingArea", description = "Get trip's fishing area")
+    public FishingAreaVO getTripFishingArea(@GraphQLContext TripVO trip) {
+        return fishingAreaService.getByFishingTripId(trip.getId());
+    }
+
+    @GraphQLQuery(name = "fishingAreas", description = "Get operation's fishing areas")
+    public List<FishingAreaVO> getOperationFishingAreas(@GraphQLContext OperationVO operation) {
+        if (operation.getFishingAreas() != null) {
+            return operation.getFishingAreas();
+        }
+        return fishingAreaService.getAllByOperationId(operation.getId());
+    }
+
+    @GraphQLQuery(name = "fishingAreas", description = "Get operation group's fishing areas")
+    public List<FishingAreaVO> getOperationGroupFishingAreas(@GraphQLContext OperationGroupVO operationGroup) {
+        if (operationGroup.getFishingAreas() != null) {
+            return operationGroup.getFishingAreas();
+        }
+        return fishingAreaService.getAllByOperationId(operationGroup.getId());
+    }
+
 
     // Sale
     @GraphQLQuery(name = "measurements", description = "Get sale measurements")
@@ -1205,9 +1267,8 @@ public class DataGraphQLService {
     protected TripFilterVO fillTripFilterDefaults(TripFilterVO filter) {
         TripFilterVO result = filter != null ? filter : new TripFilterVO();
 
-        // Force filter by recorder person (=self) if NOT supervisor - issue #
-        // TODO: rendre configurable, par variable de config
-        if (!authService.isSupervisor()) {
+        // Restrict to self data - issue #199
+        if (!canAccessNotSelfData()) {
             PersonVO user = authService.getAuthenticatedUser().orElse(null);
             if (user != null) {
                 result.setRecorderDepartmentId(null);
@@ -1219,5 +1280,10 @@ public class DataGraphQLService {
         }
 
         return result;
+    }
+
+    protected boolean canAccessNotSelfData() {
+        String minRole = config.getAuthNotSelfDataRole();
+        return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
     }
 }

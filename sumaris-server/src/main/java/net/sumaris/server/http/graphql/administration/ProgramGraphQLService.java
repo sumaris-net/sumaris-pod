@@ -28,16 +28,14 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
-import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
-import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.server.http.security.IsAdmin;
@@ -107,10 +105,38 @@ public class ProgramGraphQLService {
         return programService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
 
-    @GraphQLQuery(name = "strategies", description = "Get program's strategie")
+    @GraphQLQuery(name = "taxonGroupType", description = "Get program's taxon group type")
+    public ReferentialVO getProgramTaxonGroupType(@GraphQLContext ProgramVO program) {
+        if (program.getTaxonGroupTypeId() != null && program.getTaxonGroupType() == null) {
+            return referentialService.get("TaxonGroupType", program.getTaxonGroupTypeId());
+        }
+        return program.getTaxonGroupType();
+    }
+
+    @GraphQLQuery(name = "gearClassification", description = "Get program's gear classification")
+    public ReferentialVO getProgramGearClassification(@GraphQLContext ProgramVO program) {
+        if (program.getGearClassificationId() != null && program.getGearClassification() == null) {
+            return referentialService.get("GearClassification", program.getGearClassificationId());
+        }
+        return program.getGearClassification();
+    }
+
+    @GraphQLQuery(name = "strategies", description = "Get program's strategies")
     public List<StrategyVO> getStrategiesByProgram(@GraphQLContext ProgramVO program,
                                                    @GraphQLEnvironment() Set<String> fields) {
+        if (program.getStrategies() != null) {
+            return program.getStrategies();
+        }
         return strategyService.findByProgram(program.getId(), getFetchOptions(fields));
+    }
+
+    @GraphQLQuery(name = "pmfmStrategies", description = "Get strategy's pmfms")
+    public List<PmfmStrategyVO> getPmfmStrategiesByStrategy(@GraphQLContext StrategyVO strategy,
+                                                   @GraphQLEnvironment() Set<String> fields) {
+        if (strategy.getPmfmStrategies() != null) {
+            return strategy.getPmfmStrategies();
+        }
+        return strategyService.findPmfmStrategiesByStrategy(strategy.getId(), getFetchOptions(fields).isWithPmfmStrategyInheritance());
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get strategy pmfm")
@@ -138,7 +164,8 @@ public class ProgramGraphQLService {
     @IsSupervisor
     public ProgramVO saveProgram(
             @GraphQLArgument(name = "program") ProgramVO program) {
-        return programService.save(program);
+        ProgramVO result = programService.save(program);
+        return result;
     }
 
     @GraphQLMutation(name = "deleteProgram", description = "Delete a program")
@@ -148,6 +175,20 @@ public class ProgramGraphQLService {
     }
 
     /* -- Protected methods -- */
+
+    protected ProgramFetchOptions getProgramFetchOptions(Set<String> fields) {
+        return ProgramFetchOptions.builder()
+                .withLocations(
+                        fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATIONS, ReferentialVO.Fields.ID))
+                        || fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATION_CLASSIFICATIONS, ReferentialVO.Fields.ID))
+                        || fields.contains(ProgramVO.Fields.LOCATION_CLASSIFICATION_IDS)
+                )
+                .withProperties(
+                        fields.contains(ProgramVO.Fields.PROPERTIES)
+                )
+                .build();
+    }
+
     protected StrategyFetchOptions getFetchOptions(Set<String> fields) {
         return StrategyFetchOptions.builder()
                 .withPmfmStrategyInheritance(

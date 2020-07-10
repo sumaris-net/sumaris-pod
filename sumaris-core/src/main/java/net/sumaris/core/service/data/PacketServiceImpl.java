@@ -1,9 +1,35 @@
 package net.sumaris.core.service.data;
 
+/*-
+ * #%L
+ * SUMARiS:: Core
+ * %%
+ * Copyright (C) 2018 - 2020 SUMARiS Consortium
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.BatchDao;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.schema.DatabaseSchemaDao;
+import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
+import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
@@ -32,7 +58,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 09/04/2020.
  */
 @Service("packetService")
-public class PacketServiceImpl implements PacketService {
+public class PacketServiceImpl implements PacketService, DatabaseSchemaListener {
 
     private static final Logger logger = LoggerFactory.getLogger(PacketServiceImpl.class);
     private Integer calculatedWeightPmfmId;
@@ -53,9 +79,22 @@ public class PacketServiceImpl implements PacketService {
     @Autowired
     private ReferentialDao referentialDao;
 
+    @Autowired
+    private DatabaseSchemaDao databaseSchemaDao;
+
     @PostConstruct
     protected void init() {
-        // TODO: allow to start service, even some PMFM are missing
+        initPmfms();
+        databaseSchemaDao.addListener(this);
+    }
+
+    @Override
+    public void onSchemaUpdated(SchemaUpdatedEvent event) {
+        // allow to start service, even some PMFM are missing
+        initPmfms();
+    }
+
+    private void initPmfms() {
         // (e.g. use findByLabel())
         this.calculatedWeightPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_CALCULATED_WEIGHT.getLabel()).getId();
         this.measuredWeightPmfmId = pmfmService.getByLabel(PmfmEnum.BATCH_MEASURED_WEIGHT.getLabel()).getId();

@@ -25,7 +25,7 @@ package net.sumaris.core.vo.administration.user;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.vo.IValueObject;
+import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.util.Date;
 

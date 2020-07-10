@@ -37,8 +37,11 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Root;
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface ReferentialDao {
 
@@ -51,12 +54,27 @@ public interface ReferentialDao {
 
     ReferentialVO get(Class<? extends IReferentialEntity> entityClass, int id);
 
+
+    Date getLastUpdateDate();
+
+    Date getLastUpdateDate(Collection<String> entityNames);
+
+    @Cacheable(cacheNames = CacheNames.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE)
+    Date maxUpdateDate(String entityName);
+
     @Cacheable(cacheNames = CacheNames.REFERENTIAL_TYPES)
     List<ReferentialTypeVO> getAllTypes();
 
     List<ReferentialVO> getAllLevels(String entityName);
 
     ReferentialVO getLevelById(String entityName, int levelId);
+
+    <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
+                                                        ReferentialFilterVO filter,
+                                                        int offset,
+                                                        int size,
+                                                        String sortAttribute,
+                                                        SortDirection sortDirection);
 
     List<ReferentialVO> findByFilter(String entityName,
                                      ReferentialFilterVO filter,
@@ -67,7 +85,7 @@ public interface ReferentialDao {
 
     Long countByFilter(final String entityName, ReferentialFilterVO filter);
 
-    @Cacheable(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, key = "#entityName+':'+#label", condition = "#entityName == 'LocationLevel'")
+    @Cacheable(cacheNames = CacheNames.LOCATION_LEVEL_BY_LABEL, key = "#label", condition = "#entityName == 'LocationLevel'")
     ReferentialVO findByUniqueLabel(String entityName, String label);
 
     <T extends IReferentialEntity> ReferentialVO toReferentialVO(T source);
@@ -77,13 +95,14 @@ public interface ReferentialDao {
 
     @Caching(
             evict = {
+                    @CacheEvict(cacheNames = CacheNames.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, key = "#source.entityName"),
                     @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, key = "#source.id", condition = "#source.entityName == 'Person'"),
                     @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#source.id", condition = "#source.entityName == 'Department'"),
                     @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Pmfm'"),
                     @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
                     @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
                     @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#source.id", condition = "#source.entityName == 'Program'"),
-                    @CacheEvict(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, key = "#source.label", condition = "#source.entityName == 'LocationLevel'"),
+                    @CacheEvict(cacheNames = CacheNames.LOCATION_LEVEL_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'LocationLevel'"),
                     @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'Program'"),
                     @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Program'")
             }
@@ -91,13 +110,14 @@ public interface ReferentialDao {
     ReferentialVO save(ReferentialVO source);
 
     @Caching(evict= {
+            @CacheEvict(cacheNames = CacheNames.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, key = "#entityName"),
             @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, key = "#id", condition = "#entityName == 'Person'"),
             @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id", condition = "#entityName == 'Department'"),
             @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#id", condition = "#entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheNames.PMFM_HAS_SUFFIX, allEntries = true, condition = "#entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheNames.PMFM_HAS_PREFIX, allEntries = true, condition = "#entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#id", condition = "#entityName == 'Program'"),
-            @CacheEvict(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'"),
+            @CacheEvict(cacheNames = CacheNames.LOCATION_LEVEL_BY_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'"),
             @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, allEntries = true, condition = "#entityName == 'Program'"),
             @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_ID, key = "#id", condition = "#entityName == 'Program'")
     })

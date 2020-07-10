@@ -1,9 +1,33 @@
 package net.sumaris.core.dao.data;
 
+/*-
+ * #%L
+ * SUMARiS:: Core
+ * %%
+ * Copyright (C) 2018 - 2020 SUMARiS Consortium
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -51,8 +75,8 @@ import java.util.stream.Collectors;
  * @author peck7 on 30/03/2020.
  */
 @NoRepositoryBean
-public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V extends IDataVO<ID>, F extends Serializable>
-    extends SumarisJpaRepositoryImpl<E, ID>
+public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V extends IDataVO<ID>, F extends Serializable>
+    extends SumarisJpaRepositoryImpl<E, ID, V>
     implements DataRepository<E, ID, V, F> {
 
     /**
@@ -73,7 +97,7 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
     @Autowired
     private DepartmentDao departmentDao;
 
-    public DataRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
+    protected DataRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         super(domainClass, entityManager);
     }
 
@@ -103,7 +127,7 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
     @Override
     public List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, DataFetchOptions fetchOptions) {
-        return findAll(filter, getPageable(page), fetchOptions)
+        return findAll(filter, page.asPageable(), fetchOptions)
                 .stream().collect(Collectors.toList());
     }
 
@@ -115,7 +139,7 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
     @Override
     public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
-        return findAll(toSpecification(filter), getPageable(offset, size, sortAttribute, sortDirection))
+        return findAll(toSpecification(filter), Pageables.create(offset, size, sortAttribute, sortDirection))
             .map(e -> this.toVO(e, fetchOptions));
     }
 
@@ -175,7 +199,7 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         E savedEntity = save(entity);
 
         // Update VO
-        onAfterSaveEntity(vo, savedEntity, newUpdateDate, entity.getId() == null);
+        onAfterSaveEntity(vo, savedEntity, isNew);
 
         return vo;
     }
@@ -268,21 +292,6 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         return vo;
     }
 
-
-    public E toEntity(V vo) {
-        Preconditions.checkNotNull(vo);
-        E entity;
-        if (vo.getId() != null) {
-            entity = getOne(vo.getId());
-        } else {
-            entity = createEntity();
-        }
-
-        toEntity(vo, entity, true);
-
-        return entity;
-    }
-
     public void toEntity(V source, E target, boolean copyIfNull) {
         DataDaos.copyDataProperties(getEntityManager(), source, target, copyIfNull, getCopyExcludeProperties());
     }
@@ -328,18 +337,6 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
         }
     }
 
-    public V createVO() {
-        try {
-            return getVOClass().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Class<V> getVOClass() {
-        throw new NotImplementedException("Not implemented yet. Should be override by subclass");
-    }
-
     @Override
     public Specification<E> toSpecification(@Nullable F filter) {
         throw new NotImplementedException("Not implemented yet. Should be override by subclass");
@@ -347,12 +344,10 @@ public class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends Integer, V
 
     /* -- protected methods -- */
 
-    protected void onAfterSaveEntity(V vo, E savedEntity, Timestamp newUpdateDate, boolean isNew) {
+    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
         vo.setId(savedEntity.getId());
-        vo.setUpdateDate(newUpdateDate);
+        vo.setUpdateDate(savedEntity.getUpdateDate());
     }
-
-
 
     protected boolean isCheckUpdateDate() {
         return checkUpdateDate;

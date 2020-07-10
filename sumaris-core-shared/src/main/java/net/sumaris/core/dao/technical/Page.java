@@ -22,8 +22,11 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Pageable;
 
 import java.io.Serializable;
 
@@ -32,6 +35,8 @@ import java.io.Serializable;
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Page implements Serializable {
 
     @Builder.Default
@@ -41,9 +46,13 @@ public class Page implements Serializable {
     private int size = 100;
 
     @Builder.Default
-    private String sortAttribute = "id";
+    private String sortBy = "id";
 
     @Builder.Default
     private SortDirection sortDirection = SortDirection.ASC;
+
+    public Pageable asPageable() {
+        return Pageables.create((int)offset, size, sortBy, sortDirection);
+    }
 }
 

@@ -54,7 +54,8 @@ public abstract class BaseReferentialDaoImpl<
 
         E entity = toEntity(vo);
 
-        if (entity.getId() == null) {
+        boolean isNew = entity.getId() == null;
+        if (isNew) {
             entity.setCreationDate(new Date());
         }
 
@@ -69,9 +70,8 @@ public abstract class BaseReferentialDaoImpl<
         E savedEntity = save(entity);
 
         // Update VO
-        vo.setId(savedEntity.getId());
-        vo.setCreationDate(savedEntity.getCreationDate());
-        vo.setUpdateDate(newUpdateDate);
+        onAfterSaveEntity(vo, savedEntity, isNew);
+
 
         return vo;
     }
@@ -113,6 +113,12 @@ public abstract class BaseReferentialDaoImpl<
     }
 
     /* -- protected methods -- */
+
+    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
+        vo.setId(savedEntity.getId());
+        vo.setCreationDate(savedEntity.getCreationDate());
+        vo.setUpdateDate(savedEntity.getUpdateDate());
+    }
 
     protected void toEntity(V source, E target, boolean copyIfNull) {
         Beans.copyProperties(source, target);

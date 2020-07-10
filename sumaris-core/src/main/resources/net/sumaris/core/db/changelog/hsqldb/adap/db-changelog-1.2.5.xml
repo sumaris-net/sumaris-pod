@@ -206,6 +206,7 @@
         </preConditions>
         <sql endDelimiter=";">
             update TAXON_GROUP_HISTORICAL_RECORD set END_DATE='2018-12-31 00:00:00' where TAXON_GROUP_FK=1014 AND REFERENCE_TAXON_FK=1014;
+            commit;
         </sql>
     </changeSet>
 

@@ -612,7 +612,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         }
 
         // Remove unused measurements
-        if (!config.isPreserveHistoricalMeasurements() && MapUtils.isNotEmpty(sourceToRemove)) {
+        if (MapUtils.isNotEmpty(sourceToRemove)) {
             sourceToRemove.values().forEach(em::remove);
         }
 
@@ -723,10 +723,9 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
 
         // Remove unused measurements
         if (MapUtils.isNotEmpty(sourceToRemove)) {
-            boolean preserveHistoricalMeasurements = config.isPreserveHistoricalMeasurements();
             sourceToRemove.values().stream()
-                // if the measurement is part of the sources or if the historical measurements have not to be preserved
-                .filter(entity -> sources.containsKey(entity.getPmfm().getId()) || !preserveHistoricalMeasurements)
+                // if the measurement is part of the sources
+                .filter(entity -> sources.containsKey(entity.getPmfm().getId()))
                 .forEach(entity -> getEntityManager().remove(entity));
         }
 

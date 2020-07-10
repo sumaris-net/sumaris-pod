@@ -26,6 +26,7 @@ package net.sumaris.core.dao.technical.hibernate;
 
 
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -57,15 +58,13 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * <p>HibernateDaoSupport class.</p>
  *
  */
+@Deprecated
 public abstract class HibernateDaoSupport {
 
     /**
@@ -172,6 +171,44 @@ public abstract class HibernateDaoSupport {
             }
         }
         return entityManager.unwrap(Session.class).load(clazz, id);
+    }
+
+    /**
+     * <p>load many entities.</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param ids list of identifiers.
+     * @param <T> a T object.
+     * @return a list of T object.
+     */
+    @SuppressWarnings("unchecked")
+    protected <T> List<T> loadAll(Class<? extends T> clazz, Collection<? extends Serializable> ids, boolean failedIfMissing) {
+
+        List result = getEntityManager().createQuery(String.format("from %s where id in (:id)", clazz.getSimpleName()))
+                .setParameter("id", ids)
+                .getResultList();
+        if (failedIfMissing && result.size() != ids.size()) {
+            throw new DataIntegrityViolationException(String.format("Unable to load entities %s from ids. Expected %s entities, but found %s entities.",
+                    clazz.getName(),
+                    ids.size(),
+                    result.size()));
+        }
+        return (List<T>)result;
+    }
+
+    /**
+     * <p>load.</p>
+     *
+     * @param clazz a {@link Class} object.
+     * @param ids list of identifiers.
+     * @param <T> a T object.
+     * @return a list of T object.
+     */
+    @SuppressWarnings("unchecked")
+    protected <T> Set<T> loadAllAsSet(Class<? extends T> clazz, Collection<? extends Serializable> ids, boolean failedIfMissing) {
+
+        List<T> result = loadAll(clazz, ids, failedIfMissing);
+        return Sets.newHashSet(result);
     }
 
     /**

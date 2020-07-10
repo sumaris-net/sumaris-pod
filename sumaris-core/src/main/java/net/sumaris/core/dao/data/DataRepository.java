@@ -27,7 +27,6 @@ import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
-import net.sumaris.core.vo.data.TripVO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -46,7 +45,7 @@ public interface DataRepository<
         V extends IDataVO<ID>,
         F extends Serializable
         >
-        extends SumarisJpaRepository<E, ID> {
+        extends SumarisJpaRepository<E, ID, V> {
 
 
     // From a filter
@@ -90,11 +89,8 @@ public interface DataRepository<
 
     V qualify(V vo);
 
-//    V toVO(E entity);
-//
-//    void toEntity(V source, E target, boolean copyIfNull);
-//
-//    V createVO();
-//
-//    Class<V> getVOClass();
+    V toVO(E source, DataFetchOptions fetchOptions);
+
+    void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull);
+
 }

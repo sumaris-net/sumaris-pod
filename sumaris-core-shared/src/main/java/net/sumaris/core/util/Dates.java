@@ -485,4 +485,8 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
         }
         return isoDate;
     }
+
+    public static String toISODateTimeString(Date date) {
+        return formatDate(date, ISO_TIMESTAMP_SPEC);
+    }
 }

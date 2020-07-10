@@ -31,6 +31,7 @@ import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.referential.pmfm.PmfmDao;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
@@ -97,7 +98,8 @@ public class TaxonGroupRepositoryImpl
 
         String searchText = Daos.getEscapedSearchText(filter.getSearchText());
 
-        TypedQuery<TaxonGroup> query = getQuery(toSpecification(filter), TaxonGroup.class, getPageable(offset, size, sortAttribute, sortDirection));
+        TypedQuery<TaxonGroup> query = getQuery(toSpecification(filter), TaxonGroup.class,
+                Pageables.create(offset, size, sortAttribute, sortDirection));
 
         Parameter<String> searchTextParam = query.getParameter(ReferentialSpecifications.SEARCH_TEXT_PARAMETER, String.class);
         if (searchTextParam != null) {

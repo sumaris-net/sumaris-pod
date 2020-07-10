@@ -39,24 +39,6 @@
     </addColumn>
   </changeSet>
 
-  <!-- add FISHING_AREA table -->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-3">
-    <preConditions onFail="MARK_RAN">
-      <not>
-        <tableExists tableName="FISHING_AREA"/>
-      </not>
-    </preConditions>
-    <createTable tableName="FISHING_AREA">
-      <column name="ID" type="INT">
-        <constraints primaryKey="true" primaryKeyName="fishing_area_pk"/>
-      </column>
-      <column name="LOCATION_FK" type="INT">
-        <constraints foreignKeyName="FISHING_AREA_LOCATION_FKC" referencedTableName="LOCATION" referencedColumnNames="ID"/>
-      </column>
-<!--      TODO create fishing_area_measurement and corresponding pmfm_strategy for depth_gradient, nearby_specific_area and distance_to_coast_gradient-->
-    </createTable>
-  </changeSet>
-
   <!-- Add missing PRODUCT columns -->
   <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897716-10-1">
     <preConditions onFail="MARK_RAN">
@@ -179,7 +161,6 @@
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
       <column name="LABEL">1.1.1</column>
       <column name="DESCRIPTION">
-          - Add tables FISHING_AREA;
           - add LANDING.RANK_ORDER_ON_VESSEL
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>

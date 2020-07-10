@@ -23,8 +23,8 @@ package net.sumaris.core.vo.data;
  */
 
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
-import net.sumaris.core.vo.IValueObject;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 
 import java.io.Serializable;

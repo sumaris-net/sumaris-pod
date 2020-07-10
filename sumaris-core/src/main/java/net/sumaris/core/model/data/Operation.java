@@ -58,7 +58,11 @@ import java.util.List;
             "       OR o2.fishingStartDateTime != :startDateTime " +
             "       OR o2.endDateTime != :endDateTime " +
             "       OR o2.fishingEndDateTime != :endDateTime) " +
-            ")")
+            ")"),
+        @NamedQuery(name = "Operation.countByTripId",
+                query = "SELECT COUNT(*) " +
+                        "FROM Operation o " +
+                        "WHERE o.trip.id = :tripId")
 })
 public class Operation implements IDataEntity<Integer>,
     IWithSamplesEntity<Integer, Sample>,
@@ -152,4 +156,10 @@ public class Operation implements IDataEntity<Integer>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Product.class, mappedBy = Product.Fields.OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Product> products = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = FishingArea.class, mappedBy = FishingArea.Fields.OPERATION)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<FishingArea> fishingAreas = new ArrayList<>();
+
+
 }

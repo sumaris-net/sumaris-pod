@@ -31,7 +31,8 @@ import graphql.GraphQLError;
 import graphql.GraphQLException;
 import graphql.execution.AbortExecutionException;
 import graphql.execution.ExecutionPath;
-import graphql.servlet.GenericGraphQLError;
+
+import graphql.kickstart.execution.error.GenericGraphQLError;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.exception.ErrorCodes;

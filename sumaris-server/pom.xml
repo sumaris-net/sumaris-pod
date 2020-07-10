@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.2.7-SNAPSHOT</version>
+    <version>1.2.8-SNAPSHOT</version>
   </parent>
 
   <artifactId>sumaris-server</artifactId>
@@ -38,12 +38,12 @@
     <jdbc.url>jdbc:hsqldb:file:data/db/sumaris</jdbc.url>
     <server.port>8080</server.port>
     <server.url>http://localhost:${server.port}</server.url>
-    <server.account.register.confirm.url>${server.url}/confirm/{email}/{code}</server.account.register.confirm.url>
+    <server.account.register.confirm.url>${server.url}/api/confirmEmail/?email={email}&amp;code={code}</server.account.register.confirm.url>
     <admin.email>sumaris.net@gmail.com</admin.email>
 
     <maven.jar.main.class>net.sumaris.server.config.Application</maven.jar.main.class>
 
-
+    <kotlin.version>1.3.70</kotlin.version>
   </properties>
 
   <dependencies>
@@ -123,11 +123,15 @@
       <artifactId>graphql-java</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.graphql-java</groupId>
+      <groupId>com.graphql-java-kickstart</groupId>
       <artifactId>graphql-java-tools</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.graphql-java</groupId>
+      <groupId>com.graphql-java-kickstart</groupId>
+      <artifactId>graphiql-spring-boot-starter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.graphql-java-kickstart</groupId>
       <artifactId>graphql-java-servlet</artifactId>
     </dependency>
     <dependency>
@@ -342,7 +346,7 @@
         <jdbc.url>jdbc:hsqldb:hsql://localhost/sumaris</jdbc.url>
         <server.url>https://www.sumaris.net</server.url>
         <server.port>8080</server.port>
-        <server.account.register.confirm.url>https://www.sumaris.net/confirm/{email}/{code}</server.account.register.confirm.url>
+        <server.account.register.confirm.url>https://www.sumaris.net/api/confirmEmail/?email={email}&amp;code={code}</server.account.register.confirm.url>
         <admin.email>sumaris.net@gmail.com</admin.email>
       </properties>
 
@@ -355,19 +359,6 @@
       </dependencies>
     </profile>
 
-    <profile>
-      <id>dev</id>
-
-      <properties>
-        <jdbc.url>jdbc:hsqldb:hsql://localhost/sumaris</jdbc.url>
-        <!--<jdbc.url>jdbc:hsqldb:file:C:/dev/sumaris/_src/sumaris-pod/.local/db/sumaris</jdbc.url>-->
-
-        <server.port>8080</server.port>
-        <server.url>http://localhost:${server.port}</server.url>
-        <server.account.register.confirm.url>http://localhost:8100/confirm/{email}/{code}</server.account.register.confirm.url>
-        <admin.email>root@localhost</admin.email>
-      </properties>
-    </profile>
   </profiles>
 
 </project>

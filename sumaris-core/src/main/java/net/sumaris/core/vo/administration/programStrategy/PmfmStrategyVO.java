@@ -25,7 +25,7 @@ package net.sumaris.core.vo.administration.programStrategy;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.vo.IValueObject;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
@@ -34,7 +34,7 @@ import java.util.List;
 
 @Data
 @FieldNameConstants
-public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer>  {
+public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
     private Integer id;
 
@@ -47,12 +47,18 @@ public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IVa
     private Double defaultValue;
     private Date updateDate;
 
+    @Deprecated
     private List<String> gears;
+
+    private List<Integer> gearIds;
     private List<Integer> taxonGroupIds;
     private List<Integer> referenceTaxonIds;
 
     private Integer pmfmId;
     private PmfmVO pmfm;
+
+    // Link to parent
+    private Integer strategyId;
 
     // **** Copy from PMFM or parameter
     private String unitLabel;

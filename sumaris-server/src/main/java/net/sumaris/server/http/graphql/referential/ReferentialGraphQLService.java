@@ -66,6 +66,12 @@ public class ReferentialGraphQLService {
 
     /* -- Referential queries -- */
 
+    @GraphQLQuery(name = "lastUpdateDate", description = "Get last update date of all referential")
+    @Transactional(readOnly = true)
+    public Date getLastUpdateDate() {
+        return referentialService.getLastUpdateDate();
+    }
+
     @GraphQLQuery(name = "referentialTypes", description = "Get all types of referential")
     @Transactional(readOnly = true)
     public List<ReferentialTypeVO> getAllReferentialTypes() {

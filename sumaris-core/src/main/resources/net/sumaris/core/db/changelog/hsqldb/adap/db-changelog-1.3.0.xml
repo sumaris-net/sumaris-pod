@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.3.0.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- add 'ANE - Anchois' taxon group for ADAP-CONTROL -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-400">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP where TAXON_GROUP_TYPE_FK=2 AND LABEL='ANE'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID">1170</column>
+            <column name="LABEL">ANX</column>
+            <column name="NAME">Anchois, etc. nca</column>
+            <column name="COMMENTS">Engraulidae</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="STATUS_FK" valueNumeric="0"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID">1171</column>
+            <column name="LABEL">ANE</column>
+            <column name="NAME">Anchois</column>
+            <column name="COMMENTS">Engraulis encrasicolus</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="PARENT_TAXON_GROUP_FK" valueNumeric="1170"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add 'SCR - Araignée européenne' taxon group for ADAP-CONTROL -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-401">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP where TAXON_GROUP_TYPE_FK=2 AND LABEL='SCR'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID">1173</column>
+            <column name="LABEL">Majidae</column>
+            <column name="NAME">Majidae</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="STATUS_FK" valueNumeric="0"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID">1174</column>
+            <column name="LABEL">SCR</column>
+            <column name="NAME">Araignée européenne</column>
+            <column name="COMMENTS">Maja squinado</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="PARENT_TAXON_GROUP_FK" valueNumeric="1173"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add 'BSS - Bar européen' taxon group for ADAP-CONTROL -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-402">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP where TAXON_GROUP_TYPE_FK=2 AND LABEL='BSS'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID">1175</column>
+            <column name="LABEL">Moronidae</column>
+            <column name="NAME">Moronidae</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="STATUS_FK" valueNumeric="0"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID">1176</column>
+            <column name="LABEL">BSS</column>
+            <column name="NAME">Bar européen</column>
+            <column name="COMMENTS">Dicentrarchus labrax</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="PARENT_TAXON_GROUP_FK" valueNumeric="1175"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add 'SCE' taxon group for ADAP-CONTROL -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-403">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP where TAXON_GROUP_TYPE_FK=2 AND LABEL='SCE'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID">1177</column>
+            <column name="LABEL">SCX</column>
+            <column name="NAME">Peignes nca</column>
+            <column name="COMMENTS">Pectinidae</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="STATUS_FK" valueNumeric="0"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID">1178</column>
+            <column name="LABEL">SCE</column>
+            <column name="NAME">Coquille St-Jacques</column>
+            <column name="COMMENTS">Pecten maximus</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="PARENT_TAXON_GROUP_FK" valueNumeric="1177"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add 'PIL - Sardine commune' taxon group for ADAP-CONTROL -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-404">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM TAXON_GROUP where TAXON_GROUP_TYPE_FK=2 AND LABEL='PIL'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID">1180</column>
+            <column name="LABEL">CLP</column>
+            <column name="NAME">Harengs, sardines nca</column>
+            <column name="COMMENTS">Clupeidae</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="STATUS_FK" valueNumeric="0"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID">1179</column>
+            <column name="LABEL">PIL</column>
+            <column name="NAME">Sardine commune</column>
+            <column name="COMMENTS">Sardina pilchardus</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="PARENT_TAXON_GROUP_FK" valueNumeric="1180"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

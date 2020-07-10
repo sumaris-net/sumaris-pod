@@ -80,34 +80,44 @@ public class CacheConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean maxUpdateDateByTypeCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 200);
+    }
+
+    @Bean
     public EhCacheFactoryBean departmentByIdCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.DEPARTMENT_BY_ID, 1500, 1500, 600);
+        return Caches.createHeapCache(ehcache(), CacheNames.DEPARTMENT_BY_ID, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 600);
     }
 
 
     @Bean
     public EhCacheFactoryBean departmentByLabelCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.DEPARTMENT_BY_LABEL, 1500, 1500, 600);
+        return Caches.createHeapCache(ehcache(), CacheNames.DEPARTMENT_BY_LABEL, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 600);
     }
 
     @Bean
     public EhCacheFactoryBean personByIdCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.PERSON_BY_ID, 1500, 1500, 600);
+        return Caches.createHeapCache(ehcache(), CacheNames.PERSON_BY_ID, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 600);
     }
 
     @Bean
     public EhCacheFactoryBean personByPubkeyCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.PERSON_BY_PUBKEY, 1500, 1500, 600);
+        return Caches.createHeapCache(ehcache(), CacheNames.PERSON_BY_PUBKEY, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 600);
+    }
+
+    @Bean
+    public EhCacheFactoryBean strategiesByProgramId() {
+        return Caches.createHeapCache(ehcache(), CacheNames.STRATEGIES_BY_PROGRAM_ID, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 100);
     }
 
     @Bean
     public EhCacheFactoryBean pmfmByStrategyIdCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_STRATEGY_ID, 1500, 1500, 100);
+        return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_STRATEGY_ID, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 100);
     }
 
     @Bean
     public EhCacheFactoryBean programByIdCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.PROGRAM_BY_ID, 100, 1500, 100);
+        return Caches.createHeapCache(ehcache(), CacheNames.PROGRAM_BY_ID, 100, CacheDurations.DEFAULT, 100);
     }
 
     @Bean
@@ -146,8 +156,8 @@ public class CacheConfiguration {
     }
 
     @Bean
-    public EhCacheFactoryBean referentialLevelByUniqueLabel() {
-        return Caches.createEternalHeapCache(ehcache(), CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, 600);
+    public EhCacheFactoryBean locationLevelByLabel() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.LOCATION_LEVEL_BY_LABEL, 600);
     }
 
     @Bean
@@ -167,7 +177,7 @@ public class CacheConfiguration {
 
     @Bean
     public EhCacheFactoryBean tableMetaByNameCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.TABLE_META_BY_NAME, 1500, 1500, 500);
+        return Caches.createHeapCache(ehcache(), CacheNames.TABLE_META_BY_NAME, CacheDurations.DEFAULT, CacheDurations.DEFAULT, 500);
     }
 
 

@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.vo.IValueObject;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.rdf.config.RdfConfiguration;
 import net.sumaris.rdf.config.RdfConfigurationOption;
 import net.sumaris.rdf.dao.RdfModelDao;

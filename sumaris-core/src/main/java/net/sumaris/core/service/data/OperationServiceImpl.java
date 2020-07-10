@@ -70,10 +70,17 @@ public class OperationServiceImpl implements OperationService {
 	@Autowired
 	protected BatchService batchService;
 
+	@Autowired
+	protected FishingAreaService fishingAreaService;
+
 	@Override
-	public List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute,
-                                     SortDirection sortDirection) {
+	public List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
 		return operationDao.getAllByTripId(tripId, offset, size, sortAttribute, sortDirection);
+	}
+
+	@Override
+	public Long countByTripId(int tripId) {
+		return operationDao.countByTripId(tripId);
 	}
 
 	@Override
@@ -220,6 +227,15 @@ public class OperationServiceImpl implements OperationService {
 			source.setBatches(batches);
 		}
 
+		// Save Fishing areas
+		{
+			if (source.getFishingAreas() != null) {
+
+				source.getFishingAreas().forEach(fishingArea -> fillDefaultProperties(source, fishingArea));
+				fishingAreaService.saveAllByOperationId(source.getId(), source.getFishingAreas());
+			}
+		}
+
 	}
 
 	protected void fillDefaultProperties(OperationVO parent, VesselPositionVO position) {
@@ -297,6 +313,10 @@ public class OperationServiceImpl implements OperationService {
 		sample.setOperationId(parent.getId());
 	}
 
+	protected void fillDefaultProperties(OperationVO parent, FishingAreaVO fishingArea) {
+
+		fishingArea.setOperationId(parent.getId());
+	}
 
 
 	protected List<BatchVO> getAllBatches(OperationVO operation) {

@@ -309,8 +309,8 @@ public class Beans {
         return collection.stream().filter(predicate).collect(Collectors.toList());
     }
 
-    public static <O, E> List<O> transformCollection(Collection<? extends E> collection, Function<E, O> funtion) {
-        return collection.stream().map(funtion).collect(Collectors.toList());
+    public static <O, E> List<O> transformCollection(Collection<? extends E> collection, Function<E, O> function) {
+        return collection.stream().map(function).collect(Collectors.toList());
     }
 
     public static <T> Comparator<T> naturalComparator(final String sortAttribute, final SortDirection sortDirection) {

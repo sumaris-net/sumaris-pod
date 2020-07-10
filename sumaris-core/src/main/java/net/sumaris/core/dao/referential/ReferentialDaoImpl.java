@@ -126,6 +126,10 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     GroupingClassification.class,
                     GroupingLevel.class,
                     Grouping.class,
+                    // Fishing Area
+                    DistanceToCoastGradient.class,
+                    DepthGradient.class,
+                    NearbySpecificArea.class,
                     // Product
                     ExtractionProduct.class,
                     ExtractionProductTable.class,
@@ -166,6 +170,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         I18n.n("sumaris.persistence.table.groupingClassification");
         I18n.n("sumaris.persistence.table.groupingLevel");
         I18n.n("sumaris.persistence.table.grouping");
+        I18n.n("sumaris.persistence.table.distanceToCoastGradient");
+        I18n.n("sumaris.persistence.table.depthGradient");
+        I18n.n("sumaris.persistence.table.nearbySpecificArea");
         I18n.n("sumaris.persistence.table.extractionProduct");
         I18n.n("sumaris.persistence.table.extractionProductTable");
         I18n.n("sumaris.persistence.table.systemVersion");
@@ -206,17 +213,14 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
 
     @Override
-    public List<ReferentialVO> findByFilter(final String entityName,
+    public <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
                                             ReferentialFilterVO filter,
                                             int offset,
                                             int size,
                                             String sortAttribute,
                                             SortDirection sortDirection) {
-        Preconditions.checkNotNull(entityName, "Missing entityName argument");
-        Preconditions.checkNotNull(filter);
-
-        // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        Preconditions.checkNotNull(entityClass, "Missing 'entityClass' argument");
+        Preconditions.checkNotNull(filter, "Missing 'filter' argument");
 
         return createFindQuery(entityClass,
                 filter,
@@ -224,9 +228,30 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                 sortDirection,
                 null
         )
-        .setFirstResult(offset)
-        .setMaxResults(size)
-        .getResultStream()
+                .setFirstResult(offset)
+                .setMaxResults(size)
+                .getResultStream();
+    }
+
+    @Override
+    public List<ReferentialVO> findByFilter(final String entityName,
+                                            ReferentialFilterVO filter,
+                                            int offset,
+                                            int size,
+                                            String sortAttribute,
+                                            SortDirection sortDirection) {
+        Preconditions.checkNotNull(entityName, "Missing entityName argument");
+
+        // Get entity class from entityName
+        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+
+        return streamByFilter(entityClass,
+                filter,
+                offset,
+                size,
+                sortAttribute,
+                sortDirection
+        )
         .map(s -> toReferentialVO(entityName, s))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
@@ -253,6 +278,27 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
 
         return toReferentialVO(entityName, createFindByUniqueLabelQuery(entityClass, label).getSingleResult());
+    }
+
+    @Override
+    public Date getLastUpdateDate() {
+        return getLastUpdateDate(entityClassMap.keySet());
+    }
+
+    @Override
+    public Date getLastUpdateDate(Collection<String> entityNames) {
+        return entityNames.parallelStream()
+                .map(entityName -> {
+                    try {
+                        return this.maxUpdateDate(entityName);
+                    } catch(Exception e) {
+                        log.warn(String.format("Error while getting max(updateDate) of entity %s: %s", entityName, e.getMessage()), e);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
     }
 
     @Override
@@ -433,6 +479,24 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         entityManager.clear();
 
         return source;
+    }
+
+    @Override
+    public Date maxUpdateDate(String entityName) {
+        Preconditions.checkNotNull(entityName, "Missing entityName argument");
+
+        // Get entity class from entityName
+        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Timestamp> criteriaQuery = builder.createQuery(Timestamp.class);
+        Root<? extends IReferentialEntity> root = criteriaQuery.from(entityClass);
+        criteriaQuery.select(root.get(IReferentialEntity.Fields.UPDATE_DATE));
+        criteriaQuery.orderBy(builder.desc(root.get(IReferentialEntity.Fields.UPDATE_DATE)));
+
+        return getEntityManager().createQuery(criteriaQuery)
+                .setMaxResults(1)
+                .getSingleResult();
     }
 
     /* -- protected methods -- */

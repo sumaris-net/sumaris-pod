@@ -26,16 +26,11 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.TripVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
-public interface TripRepositoryExtend
-    extends IEntityConverter<Trip, TripVO> {
+public interface TripRepositoryExtend {
 
     default Specification<Trip> hasRecorderPersonId(Integer personId) {
         if (personId == null) return null;

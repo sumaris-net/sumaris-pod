@@ -23,6 +23,8 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimaps;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
@@ -36,9 +38,11 @@ import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
+import org.antlr.v4.runtime.misc.MultiMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -111,6 +115,14 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
                 .setFirstResult(offset)
                 .setMaxResults(size);
         return toVOs(q.getResultList());
+    }
+
+    @Override
+    public Long countByTripId(int tripId) {
+        return getEntityManager()
+                .createNamedQuery("Operation.countByTripId", Long.class)
+                .setParameter("tripId", tripId)
+                .getSingleResult();
     }
 
     @Override
@@ -310,7 +322,10 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
                         .map(PhysicalGear::getId)
                         .findFirst().orElse(null);
                 if (physicalGearId == null) {
-                    throw new DataIntegrityViolationException("An operation use a unknown PhysicalGear with rankOrder=" + source.getPhysicalGear().getRankOrder());
+                    throw new DataIntegrityViolationException(String.format("Operation {starDateTime: '%s'} use a unknown PhysicalGear. PhysicalGear with {rankOrder: %s} not found in gears Trip.",
+                            Dates.toISODateTimeString(source.getStartDateTime()),
+                            source.getPhysicalGear().getRankOrder()
+                    ));
                 }
                 source.setPhysicalGearId(physicalGearId);
                 source.setPhysicalGear(null);

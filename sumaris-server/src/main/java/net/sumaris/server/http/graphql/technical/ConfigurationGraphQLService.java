@@ -112,6 +112,9 @@ public class ConfigurationGraphQLService {
         @GraphQLEnvironment() Set<String> fields) {
 
         SoftwareVO software = service.save(configuration);
+
+        // Applying default
+
         return toConfiguration(software, fields);
     }
 

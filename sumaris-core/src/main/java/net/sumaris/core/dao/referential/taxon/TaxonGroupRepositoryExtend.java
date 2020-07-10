@@ -23,7 +23,6 @@ package net.sumaris.core.dao.referential.taxon;
  */
 
 import com.google.common.collect.ImmutableList;
-import net.sumaris.core.dao.data.IEntityConverter;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.Status;
@@ -43,7 +42,7 @@ import java.util.List;
 
 @NoRepositoryBean
 public interface TaxonGroupRepositoryExtend
-    extends IEntityConverter<TaxonGroup, TaxonGroupVO>, ReferentialSpecifications {
+    extends ReferentialSpecifications {
 
     default Specification<TaxonGroup> hasType(Integer taxonGroupTypeId) {
         if (taxonGroupTypeId == null) return null;

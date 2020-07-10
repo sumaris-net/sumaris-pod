@@ -49,7 +49,6 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.hibernate.exception.SQLGrammarException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,7 +158,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
             programLabels.stream()
                     .map(programService::getByLabel)
                     .map(ProgramVO::getId)
-                    .forEach(programId -> pmfmStrategiesByProgramId.putAll(programId, strategyService.getPmfmStrategies(programId)));
+                    .forEach(programId -> {
+                        Collection<PmfmStrategyVO> pmfms = strategyService.findPmfmStrategiesByProgram(programId, true);
+                        pmfmStrategiesByProgramId.putAll(programId, pmfms);
+                    });
             List<ExtractionPmfmInfoVO> pmfmInfos = getPmfmInfos(context, pmfmStrategiesByProgramId);
             context.setPmfmInfos(pmfmInfos);
 

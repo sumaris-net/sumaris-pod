@@ -41,13 +41,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.LockTimeoutException;
 import java.sql.Timestamp;
 
-public class RootDataRepositoryImpl<
+@NoRepositoryBean
+public abstract class RootDataRepositoryImpl<
     E extends IRootDataEntity<ID>,
     ID extends Integer,
     V extends IRootDataVO<ID>,
@@ -68,7 +70,7 @@ public class RootDataRepositoryImpl<
     @Autowired
     private ProgramDao programDao;
 
-    public RootDataRepositoryImpl(Class<E> domainClass,
+    protected RootDataRepositoryImpl(Class<E> domainClass,
                                   EntityManager entityManager) {
         super(domainClass, entityManager);
         setCopyExcludeProperties(
@@ -182,8 +184,8 @@ public class RootDataRepositoryImpl<
     /* -- protected method -- */
 
     @Override
-    protected void onAfterSaveEntity(V vo, E savedEntity, Timestamp newUpdateDate, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, newUpdateDate, isNew);
+    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
 
         if (isNew) {
             vo.setCreationDate(savedEntity.getCreationDate());

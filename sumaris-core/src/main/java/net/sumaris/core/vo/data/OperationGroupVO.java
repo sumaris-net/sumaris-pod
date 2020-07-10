@@ -66,6 +66,8 @@ public class OperationGroupVO implements IUpdateDateEntityBean<Integer, Date> {
 
     private List<PacketVO> packets;
 
+    private List<FishingAreaVO> fishingAreas;
+
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }

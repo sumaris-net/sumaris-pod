@@ -26,6 +26,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.referential.IReferentialVO;
+import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
 import java.util.List;
@@ -48,6 +50,18 @@ public class ProgramVO implements IReferentialVO {
     private Integer statusId;
 
     private Map<String, String> properties;
+
+    private Integer taxonGroupTypeId;
+    private ReferentialVO taxonGroupType;
+
+    private Integer gearClassificationId;
+    private ReferentialVO gearClassification;
+
+    private List<Integer> locationClassificationIds;
+    private List<ReferentialVO> locationClassifications;
+
+    private List<Integer> locationIds;
+    private List<ReferentialVO> locations;
 
     private List<StrategyVO> strategies;
 

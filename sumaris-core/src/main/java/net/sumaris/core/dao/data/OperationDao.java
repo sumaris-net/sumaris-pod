@@ -32,6 +32,8 @@ public interface OperationDao {
 
     List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
+    Long countByTripId(int tripId);
+
     OperationVO get(int id);
 
     void delete(int id);
