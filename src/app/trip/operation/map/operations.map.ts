@@ -9,7 +9,7 @@ import {AlertController, ModalController} from "@ionic/angular";
 import {TranslateService} from "@ngx-translate/core";
 import {isNotEmptyArray, isNotNil, isNotNilOrBlank} from "../../../shared/functions";
 import {filter, tap, throttleTime} from "rxjs/operators";
-import {AppTabEditor} from "../../../core/form/tab-form.class";
+import {AppTabEditor} from "../../../core/form/tab-editor.class";
 import {fadeInOutAnimation} from "../../../shared/material/material.animations";
 import {ActivatedRoute, Router} from "@angular/router";
 import {DateFormatPipe} from "../../../shared/pipes/date-format.pipe";

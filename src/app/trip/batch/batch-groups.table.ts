@@ -4,12 +4,12 @@ import {BatchGroupValidatorService} from "../services/validator/trip.validators"
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
 import {
-  sleep,
   isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
   propertiesPathComparator,
+  sleep,
   toFloat,
   toInt,
   toNumber
@@ -27,6 +27,7 @@ import {FormFieldDefinition} from "../../shared/form/field.model";
 import {firstFalsePromise} from "../../shared/observables";
 import {BatchGroup} from "../services/model/batch-group.model";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {PlatformService} from "../../core/services/platform.service";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
@@ -116,36 +117,38 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   @Input() taxonGroupsNoWeight: string[];
 
-  disable() {
-    super.disable();
-    if (this.weightMethodForm) this.weightMethodForm.disable({onlySelf: true, emitEvent: false});
+  disable(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    super.disable(opts);
+    if (this.weightMethodForm) this.weightMethodForm.disable(opts);
   }
 
-  enable() {
-    super.enable();
-    if (this.weightMethodForm) this.weightMethodForm.enable({onlySelf: true, emitEvent: false});
+  enable(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    super.enable(opts);
+    if (this.weightMethodForm) this.weightMethodForm.enable(opts);
   }
 
-  markAsPristine() {
+  markAsPristine(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
     super.markAsPristine();
-    if (this.weightMethodForm) this.weightMethodForm.markAsPristine({onlySelf: true});
+    if (this.weightMethodForm) this.weightMethodForm.markAsPristine(opts);
   }
 
-  markAsTouched() {
-    super.markAsTouched();
-    if (this.weightMethodForm) this.weightMethodForm.markAsTouched({onlySelf: true});
+  markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    super.markAsTouched(opts);
+    if (this.weightMethodForm) this.weightMethodForm.markAsTouched(opts);
   }
 
-  markAsUntouched() {
-    super.markAsUntouched();
-    if (this.weightMethodForm) this.weightMethodForm.markAsUntouched({onlySelf: true});
+  markAsUntouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    super.markAsUntouched(opts);
+    if (this.weightMethodForm) this.weightMethodForm.markAsUntouched(opts);
   }
 
   constructor(
-    injector: Injector
+    injector: Injector,
+    protected platform: PlatformService
   ) {
     super(injector,
-      injector.get(ValidatorService),
+      // Force no validator (readonly mode, if mobile)
+      platform.mobile ? null : injector.get(ValidatorService),
       new InMemoryEntitiesService<BatchGroup, BatchFilter>(BatchGroup, {
         onLoad: (data) => this.onLoad(data),
         onSave: (data) => this.onSave(data),
@@ -154,13 +157,12 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       BatchGroup
     );
     this.modalCtrl = injector.get(ModalController);
-    this.inlineEdition = !this.mobile;
+    this.inlineEdition = this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
 
     // Set default values
     // this.showCommentsColumn = false; // Already set in batches-table
     // this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH; // Already set in batches-table
-
 
     // -- For DEV only
     //this.debug = !environment.production;

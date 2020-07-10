@@ -2,9 +2,10 @@ import {createAnimation, IonicSafeString, ToastController} from "@ionic/angular"
 import {TranslateService} from "@ngx-translate/core";
 import {OverlayEventDetail, ToastOptions} from "@ionic/core";
 import {ToastButton} from "@ionic/core/dist/types/components/toast/toast-interface";
-import {isNotNil} from "./functions";
+import {isEmptyArray, isNotEmptyArray, isNotNil} from "./functions";
 import {AnimationBuilder} from "@angular/animations";
 import {Toast} from "@ionic/core/dist/types/components/toast/toast";
+import {dismiss} from "@ionic/core/dist/types/utils/overlays";
 
 const TOAST_MAX_HEIGHT_PX = 75;
 const TOAST_MAX_STACK_SIZE = 4;
@@ -39,6 +40,18 @@ export class Toasts {
     else {
       this.stackSize = 1; // Reset the stack
       currentOffset = 0;
+    }
+    const updateCounters = () => {
+      // Decrease counter
+      this.counter--;
+      // If all toast closed: reset the stack offset
+      if (this.counter === 0) {
+        this.stackSize = 0;
+      }
+      // If current toast is the last one, decrease the offset
+      else if (this.stackSize == currentOffset + 1){
+        this.stackSize--;
+      }
     }
 
 
@@ -93,7 +106,7 @@ export class Toasts {
     // Retrieve the toast position
     const position = opts.position || (opts.mode === 'ios' ? 'bottom' : 'top');
 
-    if (!opts.enterAnimation) {
+    if (!opts.enterAnimation && position !== 'middle') {
       // Compute positions, using the stack offset
       const direction = position === 'top' ? 1 : -1;
       const start = (currentOffset) * TOAST_MAX_HEIGHT_PX  - direction * TOAST_MAX_HEIGHT_PX;
@@ -116,24 +129,23 @@ export class Toasts {
       header: opts.header && translations[opts.header] || undefined
     });
 
-    if (opts.onWillPresent) {
-      opts.onWillPresent(toast);
-    }
+    if (opts.onWillPresent) opts.onWillPresent(toast);
 
     await toast.present();
-    const result = await toast.onDidDismiss();
 
-    // Decrease counter
-    this.counter--;
-    // If all toast closed: reset the stack offset
-    if (this.counter === 0) {
-      this.stackSize = 0;
-    }
-    // If current toast is the last one, decrease the offset
-    else if (this.stackSize == currentOffset + 1){
-      this.stackSize--;
+    if (isEmptyArray(opts.buttons)) {
+      // Not need to wait dismiss (no 'await')
+      toast.onDidDismiss().then(updateCounters);
+      return null; // no result
     }
 
-    return result;
+    else {
+      // Wait for button result
+      const result = await toast.onDidDismiss();
+
+      updateCounters();
+
+      return result;
+    }
   }
 }

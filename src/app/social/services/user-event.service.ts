@@ -14,6 +14,12 @@ import {EntitiesServiceWatchOptions, Page} from "../../shared/services/entity-se
 import {map} from "rxjs/operators";
 import {toNumber} from "../../shared/functions";
 import {IEntity} from "../../core/services/model/entity.model";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
+import {OverlayEventDetail} from "@ionic/core";
+import {ToastController} from "@ionic/angular";
+import {TranslateService} from "@ngx-translate/core";
+import {NetworkService} from "../../core/services/network.service";
+import {options} from "ionicons/icons";
 
 export class UserEventFilter {
   issuer?: string;
@@ -58,7 +64,10 @@ export class UserEventService extends BaseEntityService<UserEvent>
 
   constructor(
     protected graphql: GraphqlService,
-    protected accountService: AccountService
+    protected accountService: AccountService,
+    protected network: NetworkService,
+    protected translate: TranslateService,
+    protected toastController: ToastController
   ) {
     super(graphql);
 
@@ -203,26 +212,104 @@ export class UserEventService extends BaseEntityService<UserEvent>
     return of();
   }
 
-  sendDataForDebug<T extends IEntity<any>>(data: T): Promise<UserEvent> {
+  async showToastErrorWithContext(opts: {
+    error?: any,
+    message?: string;
+    context: any | (() => any) | Promise<any>}) {
+
+    let message = opts.message || (opts.error && opts.error.message || opts.error);
+
+    // Make sure message a string
+    if (!message || typeof message !== 'string') {
+      message = 'ERROR.UNKNOWN_TECHNICAL_ERROR';
+    }
+
+    // If offline, display a simple alert
+    if (this.network.offline) {
+      this.showToast({message, type: 'error'});
+      return;
+    }
+
+    // Translate the message (to be able to extract details content)
+    message = this.translate.instant(message);
+
+    // Clean details parts
+    if (message && message.indexOf('<small>') != -1) {
+      message = message.substr(0, message.indexOf('<small>') -1);
+    }
+
+    const res = await this.showToast({
+      type: 'error',
+      duration: 15000,
+      message: message + '<br/><br/><b>' + this.translate.instant('CONFIRM.SEND_DEBUG_DATA') + '</b>',
+      buttons: [{
+        icon: 'bug',
+        text: this.translate.instant('COMMON.BTN_SEND'),
+        role: 'send'
+      }]
+    });
+    if (!res || res.role !== 'send') return;
+
+    // Send debug data
+    try {
+      if (this._debug) console.debug("Sending debug data...")
+
+      // Call content factory
+      let context: any = opts && opts.context;
+      if (typeof context === 'function') {
+        context = context();
+      }
+      if (context instanceof Promise) {
+        context = await opts.context;
+      }
+
+      // Send the message
+      const userEvent = await this.sendDataForDebug({
+        message,
+        error: opts.error || undefined,
+        context: this.convertObjectToString(context)
+      });
+
+      console.info("Debug data successfully sent to admin", userEvent);
+      this.showToast({
+        type: 'info',
+        message: 'INFO.DEBUG_DATA_SEND',
+        showCloseButton: true
+      });
+    }
+    catch(err) {
+      console.error("Error while sending debug data:", err);
+    }
+  }
+
+  sendDataForDebug(data: any): Promise<UserEvent> {
     const userEvent = new UserEvent();
     userEvent.eventType = UserEventTypes.DEBUG_DATA;
-
-    if (typeof data === 'string'){
-      userEvent.content = data;
-    }
-    // Serialize content into string
-    else if (typeof data === 'object'){
-      if (data instanceof Entity) {
-        userEvent.content = JSON.stringify(data.asObject({keepTypename: true, keepLocalId: true, minify: false}));
-      }
-      else {
-        userEvent.content = JSON.stringify(data);
-      }
-    }
+    userEvent.content = this.convertObjectToString(data);
     return this.save(userEvent);
   }
 
   /* -- protected methods -- */
+
+  protected convertObjectToString(data: any): string {
+    if (typeof data === 'string'){
+      return data;
+    }
+    // Serialize content into string
+    else if (typeof data === 'object'){
+      if (data instanceof Entity) {
+        return JSON.stringify(data.asObject({keepTypename: true, keepLocalId: true, minify: false}));
+      }
+      else {
+        return JSON.stringify(data);
+      }
+    }
+  }
+
+  protected async showToast<T=any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+    if (!this.toastController) throw new Error("Missing toastController in component's constructor");
+    return await Toasts.show(this.toastController, this.translate, opts);
+  }
 
   protected fillDefaultProperties(entity: UserEvent) {
     entity.issuer = this.accountService.account.pubkey;

@@ -4,7 +4,7 @@ import {LocationLevelIds} from "../model/model.enum";
 
 export type LandingEditor = 'landing' | 'control' | 'trip';
 
-export const ProgramProperties: FormFieldDefinitionMap = {
+export const ProgramProperties: FormFieldDefinitionMap = Object.freeze({
   // Trip
   TRIP_SALE_ENABLE: {
     key: "sumaris.trip.sale.enable",
@@ -233,6 +233,5 @@ export const ProgramProperties: FormFieldDefinitionMap = {
     defaultValue: "true",
     type: 'boolean'
   }
-
-};
+});
 

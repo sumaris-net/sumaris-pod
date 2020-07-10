@@ -175,7 +175,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
         .subscribe(pmfms => {
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(null, {pmfms});
 
-
           // Update the settings id, as program could have changed
           this.settingsId = this.generateTableId();
 

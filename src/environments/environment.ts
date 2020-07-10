@@ -6,7 +6,7 @@ import {Environment} from "./environment.class";
 
 const pkg = require('../../package.json');
 
-export const environment: Environment = {
+export const environment: Environment = Object.freeze({
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: false,
@@ -37,6 +37,10 @@ export const environment: Environment = {
     {
       host: 'localhost',
       port: 8081
+    },
+    {
+      host: '192.168.0.20',
+      port: 8080
     },
     {
       host: '192.168.0.24',
@@ -71,7 +75,7 @@ export const environment: Environment = {
 
   defaultAppName: 'SUMARiS',
   defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app'
-};
+});
 
 /*
  * In development mode, to ignore zone related error stack frames such as

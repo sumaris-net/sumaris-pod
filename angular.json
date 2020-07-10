@@ -23,6 +23,13 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "aot": true,
+            "allowedCommonJsDependencies": [
+              "hammerjs",
+              "angular2-text-mask",
+              "uuid",
+              "hash.js",
+              "scrypt-async"
+            ],
             "assets": [
               {
                 "glob": "**/*",

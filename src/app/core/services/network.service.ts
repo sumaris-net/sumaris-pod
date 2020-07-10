@@ -11,7 +11,7 @@ import {BehaviorSubject, Subject, Subscription} from "rxjs";
 import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.service";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient} from "@angular/common/http";
-import {isNotNilOrBlank, toBoolean, sleep} from "../../shared/functions";
+import {isNotNilOrBlank, toBoolean, sleep, isNotEmptyArray} from "../../shared/functions";
 import {Connection, Network} from '@ionic-native/network/ngx';
 import {DOCUMENT} from "@angular/common";
 import {CacheService} from "ionic-cache";
@@ -49,6 +49,8 @@ export function getConnectionType(type: number) {
   }
 }
 
+export declare type NetworkEventType = 'start'|'peerChanged'|'statusChanged'|'resetCache'|'beforeTryOnlineFinish';
+
 @Injectable({providedIn: 'root'})
 export class NetworkService {
 
@@ -59,6 +61,9 @@ export class NetworkService {
   private _peer: Peer;
   private _deviceConnectionType: ConnectionType;
   private _forceOffline: boolean;
+  private _listeners: {
+   [key: string]: ((data?: any) => Promise<void>)[]
+  } = {};
 
   onStart = new Subject<Peer>();
   onPeerChanges = this.onStart.pipe(
@@ -68,6 +73,7 @@ export class NetworkService {
   );
   onNetworkStatusChanges = new BehaviorSubject<ConnectionType>(null);
   onResetNetworkCache = new EventEmitter(true);
+
 
   get online(): boolean {
     return this.connectionType !== 'none';
@@ -117,6 +123,31 @@ export class NetworkService {
     // For DEV only
     this._debug = !environment.production;
   }
+
+  /**
+   * Register to network event
+   * @param eventType
+   * @param callback
+   */
+  on<T=any>(eventType: NetworkEventType, callback: (data?: T) => Promise<void>): Subscription {
+    switch (eventType) {
+      case "start":
+        return this.onStart.subscribe(() => callback());
+
+      case "peerChanged":
+        return this.onPeerChanges.subscribe(() => callback());
+
+      case "statusChanged":
+        return this.onNetworkStatusChanges.subscribe((type) => callback(type as unknown as T));
+
+      case "resetCache":
+        return this.onResetNetworkCache.subscribe(() => callback());
+
+      default:
+        return this.addListener(eventType, callback);
+    }
+  }
+
 
   async start(peer?: Peer): Promise<any> {
     if (this._startPromise) return this._startPromise;
@@ -186,127 +217,132 @@ export class NetworkService {
   }
 
   async tryOnline(opts?: {
-    displayToast?: boolean;
+    showOfflineToast?: boolean;
+    showOnlineToast?: boolean;
+    showLoadingToast?: boolean;
+    afterRetryDelay?: number;
+    afterRetryPromise?: () => Promise<any>
   }): Promise<boolean> {
     // If offline mode not forced, and device says there is no connection: skip
     if (!this._forceOffline || this._deviceConnectionType === 'none') return false;
 
-    console.info("[network] Checking connection to pod...");
-    const settings: LocalSettings = await this.settings.ready();
+    // SHow loading toast
+    const now = Date.now();
+    const showLoadingToast = !opts || opts.showLoadingToast !== false;
+    let loadingToast: HTMLIonToastElement;
+    if (showLoadingToast) {
+      await this.showToast({message: 'NETWORK.INFO.RETRY_TO_CONNECT',
+        duration: 10000,
+        onWillPresent: t => loadingToast = t});
+    }
 
-    if (!settings.peerUrl) return false; // No peer define. Skip
+    try {
+      console.info("[network] Checking connection to pod...");
+      const settings: LocalSettings = await this.settings.ready();
 
-    const peer = Peer.parseUrl(settings.peerUrl);
-    const alive = await this.checkPeerAlive(peer);
-    if (!alive)  return false;
+      if (!settings.peerUrl) return false; // No peer define. Skip
 
-    // Disable the offline mode
-    this.setForceOffline(false);
+      const peer = Peer.parseUrl(settings.peerUrl);
+      const alive = await this.checkPeerAlive(peer);
+      if (alive) {
+        // Disable the offline mode
+        this.setForceOffline(false);
 
-    // Restart
-    await this.restart(peer);
+        // Restart
+        await this.restart(peer);
+
+        // Wait a promise, before recheck
+        await this.emit('beforeTryOnlineFinish', this.online);
+
+      }
+    }
+    catch(err) {
+      console.error(err && err.message || err);
+      // Continue
+    }
+
+    // Close loading toast (with a minimal display duration of 2s)
+    if (showLoadingToast) {
+      await sleep(2000 - (Date.now() - now));
+      if (loadingToast) await loadingToast.dismiss();
+    }
+
+    // Recheck network status
+    const online = this.online;
 
     // Display a toast to user
-    if (this.online && !opts || opts.displayToast !== false) {
+    if (online) {
+      if (!opts || opts.showOnlineToast !== false) {
+        // Display toast (without await, because not need to wait toast close event)
+        this.showToast({message: 'NETWORK.INFO.ONLINE', type: 'info'});
+      }
+    }
+    else if (opts && opts.showOfflineToast === true) {
       // Display toast (without await, because not need to wait toast close event)
-      this.showToast({message: 'NETWORK.INFO.ONLINE', type: 'info'});
+      return this.showOfflineToast({showRetryButton: false});
     }
 
-    return this._started && this.online;
+    return this._started && online;
   }
 
-  async showOfflineToast(opts?: ShowToastOptions & {
+  async showOfflineToast(opts?: {
+    message?: string;
+    showCloseButton?: boolean;
     showRetryButton?: boolean;
-    afterRetryDelay?: number;
-    afterRetryPromise?: () => Promise<any>
-    onlineCallback: () => void
+    showRetrySuccessToast?: boolean;
+    showRetryLoadingToast?: boolean;
+    onRetrySuccess?: () => void
   }): Promise<boolean> {
-    let online = this.online;
+    if (this.online) return; // Skip if online
 
-    // If offline: display toast
-    if (!online) {
+    // Toast with a retry button
+    if (!opts || opts.showRetryButton !== false) {
 
-      // Toast with a retry button
-      if (!opts || opts.showRetryButton !== false) {
+      const toastResult = await this.showToast({
+        message: (opts && opts.message || "ERROR.NETWORK_REQUIRED"),
+        type: 'error',
+        showCloseButton: true,
+        buttons: [
+          // reconnect button
+          {role: 'connect', text: this.translate.instant('NETWORK.BTN_CHECK_ALIVE')}
+        ]
+      });
 
-        const toastResult = await this.showToast({
-          message: (opts && opts.message || "ERROR.NETWORK_REQUIRED"),
-          type: 'error',
-          showCloseButton: true,
-          buttons: [
-            // reconnect button
-            {role: 'connect', text: this.translate.instant('NETWORK.BTN_CHECK_ALIVE')}
-          ]
-        });
+      // User don't click reconnect: return
+      if (!toastResult || toastResult.role !== 'connect') return false;
 
-        // User don't click reconnect: return
-        if (!toastResult || toastResult.role !== 'connect') return false;
+      // if network state changed to online: exit here
+      if (this.online) return true;
 
-        // if network state changed to online: exit here
-        online = this.online;
-        if (!online) {
-
-          const now = Date.now();
-          let loadingToast: HTMLIonToastElement;
-          this.showToast({message: 'NETWORK.INFO.RETRY_TO_CONNECT',
-            duration: 10000,
-            onWillPresent: t => loadingToast = t});
-
-          // Try to reconnect
-          online = await this.tryOnline({displayToast: false});
-
-          // Wait a delay before recheck
-          if (online && opts && opts.afterRetryDelay > 0) {
-            await sleep(opts.afterRetryDelay);
-
-            // Recheck network status
-            online = this.online;
-          }
-
-          // Wait a promise, before recheck
-          if (online && opts && opts.afterRetryPromise) {
-            try {
-              const promise = opts.afterRetryPromise();
-              if (promise instanceof Promise) {
-                await promise;
-              }
-            } catch(err) {
-              console.error("Error while executing opts.afterRetryPromise() :", err && err.message || err);
-            }
-            // Recheck network status
-            online = this.online;
-          }
-
-          // Close loading toast (with a minimal display duration of 2s)
-          if (loadingToast) {
-            await sleep(2000 - (Date.now() - now));
-            await loadingToast.dismiss();
-          }
+      // Try to reconnect
+      const online = await this.tryOnline({
+        showOfflineToast: false,
+        showOnlineToast: toBoolean(opts && opts.showRetrySuccessToast, true),
+        showLoadingToast: toBoolean(opts && opts.showRetryLoadingToast, true)
+      });
+      if (online) {
+        // Call success callback (async)
+        if (opts && opts.onRetrySuccess) {
+          setTimeout(opts.onRetrySuccess);
         }
-
-        if (!online) {
-          // Loop
-          return this.showOfflineToast({...opts, showRetryButton: false, showCloseButton: true});
-        }
+        return true;
       }
 
-      // Toast without retry button
-      else {
-        // Not 'await', because not need to wait toast's dismiss
-        this.showToast({
-          message: "ERROR.NETWORK_REQUIRED",
-          type: 'error',
-          ...opts
-        });
-      }
+      opts = {
+        ...opts,
+        showRetryButton: false,
+        showCloseButton: true
+      };
     }
 
-    // Execute the online callback (if any)
-    if (online && opts && opts.onlineCallback) {
-      setTimeout(() => opts.onlineCallback());
-    }
+    // Simple toast, without 'await', because not need to wait toast's dismiss
+    this.showToast({
+      message: "ERROR.NETWORK_REQUIRED",
+      type: 'error',
+      ...opts
+    });
 
-    return online;
+    return false;
   }
 
   /**
@@ -344,7 +380,8 @@ export class NetworkService {
    * Check if the peer is alive
    * @param email
    */
-  async checkPeerAlive(peer: string | Peer): Promise<boolean> {
+  async checkPeerAlive(peer?: string | Peer): Promise<boolean> {
+    peer = peer || this.peer;
     try {
       await this.getNodeInfo(peer);
       return true;
@@ -478,5 +515,31 @@ export class NetworkService {
 
   protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     return Toasts.show(this.toastController, this.translate, opts);
+  }
+
+  protected addListener<T=any>(name: NetworkEventType, callback: (data?: T) => Promise<void>): Subscription {
+    this._listeners[name] = this._listeners[name] || [];
+    this._listeners[name].push(callback);
+
+    // When unsubcribe, remove from the listener
+    return new Subscription(() => {
+      const index = this._listeners[name].indexOf(callback);
+      if (index !== -1) {
+        this._listeners[name].splice(index, 1);
+      }
+    })
+  }
+
+  protected async emit<T=any>(name: NetworkEventType, data?: T) {
+    const hooks = this._listeners[name];
+    if (isNotEmptyArray(hooks)) {
+      console.info(`[network-service] Trigger ${name} hook: Executing ${hooks.length} callbacks...`);
+
+      return Promise.all(hooks.map(callback => {
+        const promise = callback(data);
+        if (!promise) return;
+        return promise.catch(err => console.error("Error while executing hook " + name, err));
+      }));
+    }
   }
 }

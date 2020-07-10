@@ -36,6 +36,9 @@ import {SynchronizationStatus} from "../../data/services/model/root-data-entity.
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
+import {OperationService} from "../services/operation.service";
+import {UserEventService} from "../../social/services/user-event.service";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -81,6 +84,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected settings: LocalSettingsService,
     protected accountService: AccountService,
     protected service: TripService,
+    protected userEventService: UserEventService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
@@ -278,7 +282,11 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     // If offline, warn user and ask to reconnect
     if (this.network.offline) {
-      return this.showOfflineToast(() => this.prepareOfflineMode()) // Loop if enable to reconnect
+      return this.network.showOfflineToast({
+        // Allow to retry to connect
+        showRetryButton: true,
+        onRetrySuccess: () => this.prepareOfflineMode()
+      });
     }
 
     this.$importProgression.next(0);
@@ -328,7 +336,12 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     // Make sure network is UP
     if (this.offline && value === 'SYNC') {
-      return this.showOfflineToast(() => this.setSynchronizationStatus(value)) // Loop if enable to reconnect
+      this.network.showOfflineToast({
+        // Allow to retry to connect
+        showRetryButton: true,
+        onRetrySuccess: () => this.setSynchronizationStatus(value)
+      });
+      return;
     }
 
     console.debug("[trips] Applying filter to synchronization status: " + value);
@@ -342,15 +355,23 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   }
 
   hasReadyToSyncSelection(): boolean {
-    if (!this._enable) return false;
+    if (!this._enabled) return false;
     if (this.loading || this.selection.isEmpty()) return false;
     return (this.selection.selected || [])
       .findIndex(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'READY_TO_SYNC') !== -1;
   }
 
   async synchronizeSelection() {
-    if (!this._enable) return;
+    if (!this._enabled) return;
     if (this.loading || this.selection.isEmpty()) return;
+
+    if (this.offline) {
+      this.network.showOfflineToast({
+        showRetryButton: true,
+        onRetrySuccess: () => this.synchronizeSelection()
+      });
+      return;
+    }
 
     if (this.debug) console.debug("[trips] Starting synchronization...");
 
@@ -362,6 +383,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     if (isEmptyArray(tripIds)) return; // Nothing to sync
 
     this.markAsLoading();
+    this.error = null;
 
     try {
       await concatPromises(tripIds.map(tripId => () => this.service.synchronizeById(tripId)));
@@ -371,8 +393,11 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.showToast({
         message: 'INFO.SYNCHRONIZATION_SUCCEED'
       });
-    } catch (err) {
-      this.error = err && err.message || err;
+    } catch (error) {
+      this.userEventService.showToastErrorWithContext({
+        error,
+        context: () => concatPromises(tripIds.map(tripId => () => this.service.load(tripId, {withOperation: true, toEntity: false})))
+      });
     }
     finally {
       this.onRefresh.emit();
@@ -434,21 +459,6 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.cd.markForCheck();
   }
 
-
-  protected showOfflineToast(onlineCallback: () => void): Promise<any> {
-    if (this.accountService.isLogin()) {
-      return this.network.showOfflineToast({
-        message: 'NETWORK.INFO.OFFLINE_OR_UNAUTHORIZED',
-        afterRetryDelay: 200, // Wait 200ms
-        afterRetryPromise: () => this.accountService.ready(),
-        onlineCallback
-      });
-
-    }
-    else {
-      return this.network.showOfflineToast();
-    }
-  }
 
 }
 

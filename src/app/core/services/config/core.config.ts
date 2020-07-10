@@ -6,7 +6,7 @@ import {StatusIds} from "../model/model.enum";
 import {PRIORITIZED_USER_PROFILES} from "../model/person.model";
 import {Locales} from "../model/settings.model";
 
-export const ConfigOptions: FormFieldDefinitionMap = {
+export const ConfigOptions: FormFieldDefinitionMap = Object.freeze({
     LOGO: {
         key: 'sumaris.logo',
         label: 'CONFIGURATION.OPTIONS.LOGO',
@@ -148,4 +148,4 @@ export const ConfigOptions: FormFieldDefinitionMap = {
         label: 'CONFIGURATION.OPTIONS.ANDROID_INSTALL_URL',
         type: 'string'
     }
-};
+});

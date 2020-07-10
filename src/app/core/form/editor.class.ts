@@ -20,7 +20,7 @@ import {filter} from "rxjs/operators";
 import {Entity} from "../services/model/entity.model";
 import {HistoryPageReference, UsageMode} from "../services/model/settings.model";
 import {FormGroup} from "@angular/forms";
-import {AppTabEditor, AppTabFormOptions} from "./tab-form.class";
+import {AppTabEditor, AppTabFormOptions} from "./tab-editor.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
 

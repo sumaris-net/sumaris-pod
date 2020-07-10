@@ -13,7 +13,7 @@ if [[ ! -f "${PROJECT_DIR}/package.json" ]]; then
 fi;
 
 echo "Preparing project environment.."
-NODE_VERSION=10
+NODE_VERSION=12
 NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
 
 #ANDROID_NDK_VERSION=r19c

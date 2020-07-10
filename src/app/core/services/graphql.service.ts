@@ -3,7 +3,7 @@ import {Apollo} from "apollo-angular";
 import {ApolloClient, ApolloQueryResult, FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";
 import {ErrorCodes, ServerErrorCodes, ServiceError} from "./errors";
-import {catchError, distinctUntilChanged, filter, first, map, mergeMap} from "rxjs/operators";
+import {catchError, distinctUntilChanged, filter, first, map, mergeMap, throttleTime} from "rxjs/operators";
 
 import {environment} from '../../../environments/environment';
 import {Injectable} from "@angular/core";
@@ -53,12 +53,13 @@ export class GraphqlService {
   private _started = false;
   private _startPromise: Promise<any>;
   private _subscription = new Subscription();
-  private _$networkStatusChanged: Observable<ConnectionType>;
+  private _networkStatusChanged$: Observable<ConnectionType>;
 
   private httpParams: Options;
   private wsParams;
   private wsConnectionParams: { authToken?: string } = {};
   private readonly _defaultFetchPolicy: WatchQueryFetchPolicy;
+  private onNetworkError = new Subject();
 
   public onStart = new Subject<void>();
 
@@ -84,21 +85,30 @@ export class GraphqlService {
     }
 
     // Restart if network restart
-    this.network.onStart.subscribe(() => this.restart());
+    this.network.on('start', () => this.restart());
 
     // Clear cache
-    this.network.onResetNetworkCache
-      .pipe(
-        mergeMap(() => this.ready())
-      )
-      .subscribe(() => this.clearCache());
+    this.network.on("resetCache", async () => {
+      await this.ready();
+      await this.clearCache();
+    });
 
     // Listen network status
-    this._$networkStatusChanged = network.onNetworkStatusChanges
+    this._networkStatusChanged$ = network.onNetworkStatusChanges
       .pipe(
         filter(isNotNil),
         distinctUntilChanged()
       );
+
+    // When getting network error: try to ping peer, and toggle to offline
+    this.onNetworkError
+      .pipe(
+        throttleTime(300),
+        filter(() => this.network.online),
+        mergeMap(() => this.network.checkPeerAlive()),
+        filter(alive => !alive)
+      )
+      .subscribe(() => this.network.setForceOffline(true, {displayToast: true}))
 
     this._debug = !environment.production;
   }
@@ -573,7 +583,7 @@ export class GraphqlService {
 
       // Creating a mutation queue
       const queueLink = new QueueLink();
-      this._subscription.add(this._$networkStatusChanged
+      this._subscription.add(this._networkStatusChanged$
         .subscribe(type => {
           // Network is offline: start buffering into queue
           if (type === 'none') {
@@ -591,7 +601,7 @@ export class GraphqlService {
       const retryLink = new RetryLink();
       const trackerLink = createTrackerLink({
         storage,
-        onNetworkStatusChange: this._$networkStatusChanged,
+        onNetworkStatusChange: this._networkStatusChanged$,
         debounce: 1000,
         debug: true
       });
@@ -732,8 +742,10 @@ export class GraphqlService {
       (err.graphQLErrors && err.graphQLErrors[0]) ||
       err;
     console.error("[graphql] " + (error && error.message || error), error.stack || '');
-    if (error && error.code === ErrorCodes.UNKNOWN_NETWORK_ERROR && err.networkError && err.networkError.message)
+    if (error && error.code === ErrorCodes.UNKNOWN_NETWORK_ERROR && err.networkError && err.networkError.message) {
       console.error("[graphql] original error: " + err.networkError.message);
+      this.onNetworkError.next(error);
+    }
     if ((!error || !error.code) && defaultError) {
       error = {...defaultError, details: error, stack: err.stack};
     }

@@ -83,8 +83,10 @@
     <ng-template #hasSelection>
 
       <!-- synchronize -->
-      <ion-button *ngIf="!offline && hasReadyToSyncSelection()"
-                  (click)="synchronizeSelection()" expand="block" color="danger">
+      <ion-button *ngIf="hasReadyToSyncSelection()"
+                  expand="block"
+                  [color]="offline ? 'danger100' : 'danger'"
+                  (click)="synchronizeSelection()">
         <ion-icon slot="start" name="cloud-upload"></ion-icon>
         <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
       </ion-button>

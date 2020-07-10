@@ -1,10 +1,11 @@
 import {Injectable} from "@angular/core";
-import {box, sign, verify, hash} from "tweetnacl";
+import {box, sign, verify, hash, randomBytes} from "tweetnacl";
 
-export const scrypt = require('scrypt-async')
-export const base58 = require('../../../lib/base58')
-export const sha256 =  require('hash.js/lib/hash/sha/256');
-export const sha512 =  require('hash.js/lib/hash/sha/512');
+const scrypt = require('scrypt-async');
+const sha256 =  require('hash.js/lib/hash/sha/256');
+const sha512 =  require('hash.js/lib/hash/sha/512');
+
+export const base58 = require('../../../lib/base58');
 
 const nacl = {
   sign,

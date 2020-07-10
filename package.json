@@ -84,7 +84,7 @@
     "ember-cli-roboto-fontface": "^2.0.5",
     "geojson": "^0.5.0",
     "graphql": "^15.3.0",
-    "graphql-tag": "^2.10.3",
+    "graphql-tag": "^2.10.4",
     "hammer-timejs": "^1.1.0",
     "hammerjs": "^2.0.8",
     "integrator-cordova-plugin-downloader": "^1.1.0",

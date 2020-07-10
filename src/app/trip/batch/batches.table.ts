@@ -119,7 +119,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
   constructor(
     injector: Injector,
-    protected validatorService: ValidatorService,
+    validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<T, F>,
     @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T
   ) {
@@ -138,7 +138,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
-    this.inlineEdition = !this.mobile;
+    this.inlineEdition = this.validatorService && !this.mobile;
 
     // Set default value
     this.showCommentsColumn = false;

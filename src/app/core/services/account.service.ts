@@ -9,7 +9,7 @@ import gql from "graphql-tag";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "apollo-client";
 
-import {toDateISOString} from "../../shared/functions";
+import {sleep, toDateISOString} from "../../shared/functions";
 import {BaseEntityService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
@@ -228,10 +228,21 @@ export class AccountService extends BaseEntityService {
     // Listen network restart
     this.graphql.onStart.subscribe(async () => {
       if (this._started && this.isLogin()) {
-        console.debug("[account] Graphql restarted. Restarting, to auth the account if possible...");
+        console.debug("[account] Restarting, to retry to authenticate...");
         this.restart();
       }
     });
+
+    // Force network to wait account service, after getting connection to the peer
+    this.network.on('beforeTryOnlineFinish', async (online) => {
+      // If online, wait a full restart, because it can force offline mode
+      if (online && (!this._started || this.isLogin())) {
+        console.debug("[account] Force networkService.tryOnline() to wait, that account service is restarted...");
+        //await this.stop();
+        await sleep(500);
+        return this.ready();
+      }
+    })
 
     // For DEV only
     this._debug = !environment.production;
@@ -266,11 +277,19 @@ export class AccountService extends BaseEntityService {
     return this._started;
   }
 
-  async restart() {
+  async stop() {
     if (this._started || this._startPromise) {
       this._started = false;
       this._startPromise = undefined;
+
+      const hadAuthToken = this.data.authToken && true;
+      this.resetData();
+      if (hadAuthToken) this.onAuthTokenChange.next(undefined);
     }
+  }
+
+  async restart() {
+    await this.stop();
     return this.start();
   }
 
@@ -699,7 +718,7 @@ export class AccountService extends BaseEntityService {
 
   public async logout(): Promise<void> {
 
-    let hadAuthToken = this.data.authToken && true;
+    const hadAuthToken = this.data.authToken && true;
     const pubkey = this.data && this.data.pubkey;
 
     this.resetData();

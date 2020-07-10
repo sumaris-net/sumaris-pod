@@ -79,6 +79,11 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
   @Input() tabindex: number;
 
+  @Input() usageMode: UsageMode;
+
+  // FIXME: Workaround to avoid refresh, when table is present but hidden -  see markForCheck()
+  @Input() hidden: boolean;
+
   @Input() set qvPmfm(value: PmfmStrategy) {
     this._qvPmfm = value;
     // If already loaded, re apply pmfms, to be able to execute mapPmfms
@@ -160,7 +165,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     return this._dirty || this.memoryDataService.dirty;
   }
 
-  @Input() usageMode: UsageMode;
+
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
 
@@ -313,27 +318,32 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     if (this.form) this.form.markAsUntouched();
   }
 
-  enable() {
-    super.enable();
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    super.enable(opts);
 
     if (this.showForm && this.form && this.form.disabled) {
-      this.form.enable();
+      this.form.enable(opts);
     }
   }
 
-  disable() {
-    super.disable();
+  disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    super.disable(opts);
 
     if (this.showForm && this.form && this.form.enabled) {
-      this.form.disable();
+      this.form.disable(opts);
     }
+  }
+
+  /**
+   * Allow to
+   * @param data
+   * @param os
+   */
+  setValue(data: Batch[], opts?: { emitEvent?: boolean; }) {
+    this.memoryDataService.value = data;
   }
 
   /* -- protected methods -- */
-
-  protected setValue(data: Batch[]) {
-    this.memoryDataService.value = data;
-  }
 
   protected getValue(): Batch[] {
     return this.memoryDataService.value;
@@ -464,7 +474,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       // Remove QV pmfms
       const index = pmfms.findIndex(pmfm => pmfm.pmfmId === this.qvPmfm.pmfmId);
       if (index !== -1) {
-        // Replace original pmfm by a copy, with hidden=true
+        // Replace original pmfm by a clone, with hidden=true
         const qvPmfm = this.qvPmfm.clone();
         qvPmfm.hidden = true;
         qvPmfm.required = true;
@@ -586,7 +596,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     return res;
   }
 
-  protected async setAvailableParents(parents: Batch[], opts?: { emitEvent?: boolean; linkDataToParent?: boolean; }) {
+  async setAvailableParents(parents: Batch[], opts?: { emitEvent?: boolean; linkDataToParent?: boolean; }) {
     opts = opts || {emitEvent: true, linkDataToParent: true};
 
     this._availableParents = parents;
@@ -725,6 +735,9 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   referentialToString = referentialToString;
 
   protected markForCheck() {
-    this.cd.markForCheck();
+    // Workaround to avoid refresh, if table exists but is hidden
+    if (!this.hidden) {
+      this.cd.markForCheck();
+    }
   }
 }

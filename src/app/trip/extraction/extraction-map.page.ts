@@ -467,7 +467,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       this.showLegend = isNotNilOrBlank(strata.aggColumnName);
       this.enable();
     }
-
   }
 
   setYear(event: UIEvent, value) {

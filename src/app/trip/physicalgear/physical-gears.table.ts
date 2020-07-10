@@ -87,7 +87,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   ngOnInit() {
     super.ngOnInit();
 
-    this._enable = this.canEdit;
+    this._enabled = this.canEdit;
   }
 
   protected async openNewRowDetail(): Promise<boolean> {

@@ -27,6 +27,7 @@
 
   <!-- enable burst input -->
   <ion-button color="light"
+              [disabled]="disabled"
               [title]="'TRIP.BATCH.TABLE.BTN_BURST_INPUT_HELP'|translate"
               (click)="toggleForm()" hidden-xs hidden-sm hidden-mobile>
     <ion-label translate>TRIP.BATCH.TABLE.BTN_BURST_INPUT</ion-label>

@@ -2,7 +2,7 @@ import { Environment } from "./environment.class";
 const pkg = require('../../package.json')
 
 /* tslint:disable */
-export const environment: Environment = {
+export const environment: Environment = Object.freeze({
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: true,
@@ -39,5 +39,5 @@ export const environment: Environment = {
 
   defaultAppName: 'SUMARiS',
   defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app'
-};
+});
 /* tslint:enable */

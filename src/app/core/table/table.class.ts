@@ -72,11 +72,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     [key: string]: CellValueChangeListener
   } = {};
 
-  protected _enable = true;
+  protected _enabled = true;
   protected _dirty = false;
-  protected allowRowDetail = true;
   protected _destroy$ = new Subject();
   protected _autocompleteConfigHolder: MatAutocompleteConfigHolder;
+  protected allowRowDetail = true;
   protected translate: TranslateService;
   protected alertCtrl: AlertController;
   protected toastController: ToastController;
@@ -93,23 +93,19 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   onRefresh = new EventEmitter<any>();
   settingsId: string;
   autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
-
   mobile: boolean;
 
   // Table options
   @Input() i18nColumnPrefix = 'COMMON.';
   @Input() autoLoad = true;
-  @Input() inlineEdition;
+  @Input() readOnly: boolean;
+  @Input() inlineEdition: boolean;
   @Input() focusFirstColumn = false;
   @Input() confirmBeforeDelete = false;
   @Input() saveBeforeDelete: boolean;
   @Input() saveBeforeSort: boolean;
   @Input() saveBeforeFilter: boolean;
-
   @Input() debug = false;
-
-  @Input() readOnly = false;
-
   @Input() sortBy: string;
   @Input() sortDirection: SortDirection;
 
@@ -164,31 +160,29 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    if (!this._initialized || !this.table) return;
     if (this.sort) this.sort.disabled = true;
-    this._enable = false;
+    this._enabled = false;
   }
 
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    if (!this._initialized || !this.table) return;
     if (this.sort) this.sort.disabled = false;
-    this._enable = true;
+    this._enabled = true;
   }
 
   get enabled(): boolean {
-    return this._enable;
+    return this._enabled;
   }
 
   // FIXME: need to hidden buttons (in HTML), etc. when disabled
-  // @Input() set disabled(disabled: boolean) {
-  //   if (disabled !== !this._enable) {
-  //     if (disabled) this.disable()
-  //     else this.enable();
-  //   }
-  // }
+  @Input() set disabled(disabled: boolean) {
+    if (disabled !== !this._enabled) {
+      if (disabled) this.disable({emitEvent: false})
+      else this.enable({emitEvent: false});
+    }
+  }
 
   get disabled(): boolean {
-    return !this._enable;
+    return !this._enabled;
   }
 
   markAsDirty(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
@@ -324,26 +318,25 @@ export abstract class AppTable<T extends Entity<T>, F = any>
           })
         )
       || EMPTY,
+
       // Listen paginator events
       this.paginator && this.paginator.page
-        .pipe(
-          mergeMap(async () => {
-            if (this._dirty && this.saveBeforeSort) {
-              const saved = await this.save();
-              this.markAsDirty(); // restore dirty flag
-              return saved;
-            }
-            return true;
-          }),
-          filter(res => res === true)
-        ) || EMPTY,
+          .pipe(
+            mergeMap(async () => {
+              if (this._dirty && this.saveBeforeSort) {
+                const saved = await this.save();
+                this.markAsDirty(); // restore dirty flag
+                return saved;
+              }
+              return true;
+            }),
+            filter(res => res === true)
+          ) || EMPTY,
 
-      this.onRefresh.pipe(
-        tap(event => {
-          if (this.debug) console.debug("[table] Received onRefresh event " + this.constructor.name);
-        })
+        this.onRefresh
+          // DEBUG
+          //.pipe(tap(event => this._debug && console.debug("[table] Received onRefresh event " + this.constructor.name)))
       )
-    )
       .pipe(
         startWith<any, any>(this.autoLoad ? {} : 'skip'),
         switchMap(
@@ -540,7 +533,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   addRow(event?: any): boolean {
-    if (!this._enable) return false;
+    if (!this._enabled) return false;
     if (this.debug) console.debug("[table] Asking for new row...");
 
     // Use modal if inline edition is disabled
@@ -611,7 +604,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     if (this.readOnly) {
       throw {code: ErrorCodes.TABLE_READ_ONLY, message: 'ERROR.TABLE_READ_ONLY'};
     }
-    if (!this._enable) return;
+    if (!this._enabled) return;
     if (this.loading || this.selection.isEmpty()) return;
 
     if (this.confirmBeforeDelete && !confirm) {
@@ -648,7 +641,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   onEditRow(event: MouseEvent, row: TableElement<T>): boolean {
-    if (!this._enable) return false;
+    if (!this._enabled) return false;
     if (this.editedRow === row || event.defaultPrevented) return;
 
     if (!this.confirmEditCreate()) {
@@ -693,7 +686,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
       return true;
     }
-
 
     return this.onEditRow(event, row);
   }

@@ -13,7 +13,7 @@ import {
   toBoolean,
   toDateISOString
 } from "../../shared/shared.module";
-import {AppFormUtils, Department, EntityUtils, environment} from "../../core/core.module";
+import {AppFormUtils, Department, Entity, EntityUtils, environment} from "../../core/core.module";
 import {catchError, filter, map, switchMap, tap} from "rxjs/operators";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
@@ -325,6 +325,7 @@ export interface TripServiceLoadOption extends EntityServiceLoadOptions {
   isLandedTrip?: boolean;
   withOperation?: boolean;
   withOperationGroup?: boolean;
+  toEntity?: boolean;
 }
 
 export interface TripServiceSaveOption {
@@ -538,11 +539,11 @@ export class TripService extends RootDataService<Trip, TripFilter>
       );
   }
 
-  async load(id: number, options?: TripServiceLoadOption): Promise<Trip | null> {
+  async load(id: number, opts?: TripServiceLoadOption): Promise<Trip | null> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     // use landedTrip option if itself or withOperationGroups is present in service options
-    const isLandedTrip = options && (options.isLandedTrip || options.withOperationGroup);
+    const isLandedTrip = opts && (opts.isLandedTrip || opts.withOperationGroup);
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[trip-service] Loading trip #${id}...`);
@@ -554,6 +555,12 @@ export class TripService extends RootDataService<Trip, TripFilter>
       // If local entity
       if (id < 0) {
         json = await this.entities.load<Trip>(id, Trip.TYPENAME);
+
+        if (opts && opts.withOperation) {
+          json.operations = await this.entities.loadAll<Operation>('OperationVO', {
+            filter: OperationFilter.searchFilter<Operation>({tripId: id})
+          });
+        }
       }
 
       else {
@@ -566,21 +573,20 @@ export class TripService extends RootDataService<Trip, TripFilter>
             id: id
           },
           error: { code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR" },
-          fetchPolicy: options && options.fetchPolicy || undefined
+          fetchPolicy: opts && opts.fetchPolicy || undefined
         });
         json = res && res.trip;
       }
 
       // Transform to entity
-      const data = Trip.fromObject(json);
+      const data:Trip = (!opts || opts.toEntity !== false) ? Trip.fromObject(json) : (json as Trip);
+
       if (data && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, data);
       return data;
     }
     finally {
       this.loading = false;
     }
-
-
   }
 
   async hasOfflineData(): Promise<boolean> {
@@ -795,13 +801,16 @@ export class TripService extends RootDataService<Trip, TripFilter>
       throw new Error("Could not synchronize if network if offline");
     }
 
-    // Load operations
+    // Clone (to keep original entity unchanged)
+    entity = entity instanceof Entity ? entity.clone() : entity;
+    entity.synchronizationStatus = 'SYNC';
+    entity.id = undefined;
+
+    // Fill operations
     const res = await this.entities.loadAll<Operation>('OperationVO', {
       filter: OperationFilter.searchFilter<Operation>({tripId: localId})
     });
     entity.operations = (res && res.data || []).map(ope => Operation.fromObject(ope));
-    entity.synchronizationStatus = 'SYNC';
-    entity.id = undefined;
 
     try {
       // todo comment synchroniser un landedTrip ?
@@ -814,18 +823,6 @@ export class TripService extends RootDataService<Trip, TripFilter>
         throw {code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR};
       }
     } catch (err) {
-      // Restore local id (for next try)
-      entity.id = localId;
-
-      // Send data to admin
-      if (this.network.online) {
-        setTimeout(async () => {
-          console.info("Synchronisation failed: sending trip to admin..")
-          const userEvent = await this.userEventService.sendDataForDebug(entity.asObject(SAVE_LOCALLY_AS_OBJECT_OPTIONS));
-          console.info("Trip successfully sent to admin", userEvent);
-        });
-      }
-
       throw {...err, code: ErrorCodes.SYNCHRONIZE_TRIP_ERROR, message: "TRIP.ERROR.SYNCHRONIZE_TRIP_ERROR"};
     }
 

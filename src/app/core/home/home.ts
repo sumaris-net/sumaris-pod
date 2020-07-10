@@ -136,27 +136,17 @@ export class HomePage implements OnDestroy {
 
   tryOnline() {
     this.waitingNetwork = true;
-    const isLogin = this.isLogin;
     this.markForCheck();
 
-    this.network.tryOnline({displayToast: true})
-      .then(async online => {
-        if (online && isLogin) {
-          // Wait propagation to account service, that can force offline if auth failed
-          await sleep(300);
-
-          await this.accountService.ready();
-
-          // Wait propagation of a force offline event
-          await sleep(200);
-        }
-        else {
-          // Make sure user show spinner
-          await sleep(1000);
-        }
+    this.network.tryOnline({
+      showLoadingToast: false,
+      showOnlineToast: true,
+      showOfflineToast: false
+    })
+      .then(() => {
         this.waitingNetwork = false;
         this.markForCheck();
-      })
+      });
 
   }
 

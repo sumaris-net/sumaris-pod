@@ -3,14 +3,18 @@
   width: 100%;
 }
 
-
-
-
-mat-table {
+.mat-table {
   background-color: transparent !important;
 
   // First row header
   .mat-header-row.first-header-row {
+    --qv-visible-column-count: 5;
+
+    // Reduce visible columns, if mobile
+    &.plt-mobile {
+      --qv-visible-column-count: 2;
+    }
+
     max-height: 58px;
     min-height: 58px;
     margin-top: -58px;
@@ -31,7 +35,7 @@ mat-table {
     .mat-header-cell.qv.show {
       display: flex;
       visibility: visible;
-      flex: 5;
+      flex: var(--qv-visible-column-count);
 
       ion-label,
       mat-label {
@@ -81,13 +85,3 @@ mat-table {
   }
 }
 
-
-
-//  Resize on mobile device
-.plt-mobile {
-  .mat-header-row.first-header-row {
-    .mat-header-cell.qv.show {
-      flex: 2 !important;
-    }
-  }
-}

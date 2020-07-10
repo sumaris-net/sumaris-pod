@@ -215,10 +215,10 @@
         </form-catch-batch>
       </div>
 
-      <!-- tab group for batches -->
+      <!-- Tab group for batches -->
       <mat-tab-group #batchTabGroup
+                     [class.mat-tab-group-header-hidden]="mobile"
                      [class.cdk-visually-hidden]="!showBatchTables"
-                     [class.mat-tab-group-no-header]="mobile"
                      [(selectedIndex)]="selectedBatchTabIndex"
                      (selectedTabChange)="onBatchTabChange($event)"
                      animationDuration="0s">
@@ -237,6 +237,7 @@
                                   acquisitionLevel="SORTING_BATCH"
                                   [program]="programSubject | async"
                                   [usageMode]="usageMode"
+                                  [disabled]="disabled"
                                   [debug]="debug"
                                   [showTaxonGroupColumn]="true"
                                   [showTaxonNameColumn]="true"
@@ -250,7 +251,7 @@
 
         <!-- TAB: individual measure -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
-                 [disabled]="!enableSubBatchesTable || mobile">
+                 [disabled]="!enableSubBatchesTable">
           <ng-template mat-tab-label>
             <mat-icon>assessment</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
@@ -263,6 +264,7 @@
                                  [program]="programSubject | async"
                                  [qvPmfm]="batchGroupsTable.qvPmfm"
                                  [usageMode]="usageMode"
+                                 [hidden]="!enableSubBatchesTable"
                                  [debug]="debug"
                                  [tabindex]="200">
           </app-sub-batches-table>

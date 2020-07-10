@@ -677,9 +677,9 @@ export class ProgramService extends BaseEntityService
    * Watch program taxon groups
    * TODO: add an 'options' argument (with date/time and location), to be able to select the strategy
    */
-  watchTaxonGroups(programLabel: string): Observable<TaxonGroupRef[]> {
+  watchTaxonGroups(programLabel: string, opts?: { toEntity?: boolean; }): Observable<TaxonGroupRef[]> {
     const cacheKey = [ProgramCacheKeys.TAXON_GROUPS, programLabel].join('|');
-    return this.cache.loadFromObservable(cacheKey,
+    const $res = this.cache.loadFromObservable(cacheKey,
       this.watchByLabel(programLabel, {toEntity: false})
         .pipe(
           map(program => {
@@ -702,18 +702,29 @@ export class ProgramService extends BaseEntityService
         ),
         ProgramCacheKeys.CACHE_GROUP
     )
-    // Convert into model (after cache)
-    .pipe(map(res => res.map(TaxonGroupRef.fromObject)));
+
+    // Convert into model, after cache (convert by default)
+    if (!opts || opts.toEntity !== false) {
+      return $res.pipe(map(res => res.map(TaxonGroupRef.fromObject)));
+    }
+    return $res;
   }
 
   /**
    * Load program taxon groups
    */
-  loadTaxonGroups(programLabel: string): Promise<TaxonGroupRef[]> {
-    const mapCacheKey = [ProgramCacheKeys.TAXON_GROUP_ENTITIES, programLabel].join('|');
-    return this.cache.getOrSetItem(mapCacheKey,
-      () => firstNotNilPromise(this.watchTaxonGroups(programLabel)),
+  async loadTaxonGroups(programLabel: string, opts?: { toEntity?: boolean; }): Promise<TaxonGroupRef[]> {
+    const mapCacheKey = [ProgramCacheKeys.TAXON_GROUPS, programLabel].join('|');
+    const res = await this.cache.getOrSetItem(mapCacheKey,
+      () => this.watchTaxonGroups(programLabel, {toEntity: false}).toPromise(),
       ProgramCacheKeys.CACHE_GROUP);
+
+    // Convert to entity, after cache (convert by default)
+    if (!opts || opts.toEntity !== false) {
+      return res.map(TaxonGroupRef.fromObject);
+    }
+
+    return res;
   }
 
   /**

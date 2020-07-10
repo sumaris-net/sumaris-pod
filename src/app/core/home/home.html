@@ -82,7 +82,7 @@
   </ion-card>
 
   <!-- Offline mode card-->
-  <ion-card *ngIf="!loading && (offline)"
+  <ion-card *ngIf="!loading && offline || waitingNetwork"
             color="accent"
             class="main ion-no-margin"
             @slideUpDownAnimation>

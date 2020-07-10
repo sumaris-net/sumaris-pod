@@ -164,29 +164,26 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         .pipe(
           debounceTime(400),
           // skip if loading
-          filter(() => !this.loading && this.enableSubBatchesTable)
+          filter(() => !this.loading)
         )
         // Will refresh the tables (inside the setter):
-        .subscribe(rootBatches => this.subBatchesTable.availableParents = (rootBatches || []))
+        .subscribe(rootBatches => this.subBatchesTable.setAvailableParents(rootBatches || [], {emitEvent: this.enableSubBatchesTable}))
     );
 
-
-    // Enable sub batches when table pmfms ready
-    this.registerSubscription(
-      filterNotNil(this.subBatchesTable.$pmfms)
-        .subscribe(pmfms => {
-          if (!this.enableSubBatchesTable && pmfms.length > 0) {
-            this.enableSubBatchesTable = true;
-            this.markForCheck();
-          }
-        }));
+    // Enable sub batches table, only when table pmfms ready, and if NOT mobile
+    if (!this.mobile) {
+      firstTruePromise(this.subBatchesTable.$pmfms.pipe(map(isNotEmptyArray)))
+        .then(() => {
+          this.enableSubBatchesTable = true;
+          this.markForCheck();
+        });
+    }
 
     // Link group table to individual
     this.batchGroupsTable.availableSubBatchesFn = async () => {
       if (this.subBatchesTable.dirty) await this.subBatchesTable.save();
       return this.subBatchesTable.value;
     };
-
 
     this.ngAfterViewInitExtension();
 
@@ -474,9 +471,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   async onSubBatchesChanges(subbatches: Batch[]) {
     if (isNil(subbatches)) return; // user cancelled
 
-    // TODO: for mobile, hide sub-batches tables, and store data else where ?
     this.subBatchesTable.value = subbatches;
-    await AppTableUtils.waitIdle(this.subBatchesTable);
+
+    // If table is visible, wait table not busy
+    if (!this.subBatchesTable.hidden) {
+      await AppTableUtils.waitIdle(this.subBatchesTable);
+    }
 
     this.subBatchesTable.markAsDirty();
   }
@@ -604,18 +604,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"))
       .map(BatchGroup.fromBatch);
 
-    // make sure PMFMs are loaded (need the QV pmfm)
-    this.batchGroupsTable.$pmfms
-      .pipe(filter(isNotNil), first())
-      .subscribe((_) => {
-        this.subBatchesTable.setValueFromParent(this.batchGroupsTable.value, this.batchGroupsTable.qvPmfm);
-      });
+    // Wait batch group ready (need to be sure the QV pmfm is set)
+    this.batchGroupsTable.onReady()
+      .then(() => this.subBatchesTable.setValueFromParent(this.batchGroupsTable.value, this.batchGroupsTable.qvPmfm));
 
     // Applying program to tables (async)
     if (program) {
-      setTimeout(() => {
-        this.programSubject.next(program);
-      }, 250);
+      setTimeout(() => this.programSubject.next(program), 250);
     }
   }
 
@@ -722,17 +717,26 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (this.showBatchTables) {
       let batches;
       if (this.mobile) {
-        await this.batchGroupsTable.save();
-
-        // get batches
         console.warn("TODO: When mobile=true, should use a better implementation (e.g. without using subBatchesTable)");
-        await this.subBatchesTable.save();
+
+        await Promise.all([
+          // Save batches groups
+          this.batchGroupsTable.save(),
+
+          // Wait sub-batches added (can be still busy)
+          AppTableUtils.waitIdle(this.subBatchesTable)
+        ])
+        // Save sub batches
+        .then(() => this.subBatchesTable.save());
 
         batches = BatchUtils.prepareRootBatchesForSaving(this.batchGroupsTable.value, this.subBatchesTable.value, this.batchGroupsTable.qvPmfm);
       }
       else {
-        await this.batchGroupsTable.save();
-        await this.subBatchesTable.save();
+        // Save bacthes
+        await Promise.all([
+          this.batchGroupsTable.save(),
+          this.subBatchesTable.save()
+        ]);
 
         batches = BatchUtils.prepareRootBatchesForSaving(this.batchGroupsTable.value, this.subBatchesTable.value, this.batchGroupsTable.qvPmfm);
       }

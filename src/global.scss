@@ -779,7 +779,7 @@ mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
 }
 
 // --- mat-tag-group component
-mat-tab-group.mat-tab-group-no-header .mat-tab-header {
+mat-tab-group.mat-tab-group-header-hidden .mat-tab-header {
     display: none !important;
 }
 

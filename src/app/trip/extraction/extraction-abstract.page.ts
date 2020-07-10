@@ -10,7 +10,6 @@ import {
 } from "../services/model/extraction.model";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {mergeMap} from "rxjs/operators";
-import {AppTabEditor} from "../../core/core.module";
 import {firstNotNilPromise} from "../../shared/observables";
 import {ExtractionCriteriaForm} from "./extraction-criteria.form";
 import {TranslateService} from "@ngx-translate/core";
@@ -21,6 +20,7 @@ import {capitalizeFirstLetter} from "apollo-client/util/capitalizeFirstLetter";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PlatformService} from "../../core/services/platform.service";
+import {AppTabEditor} from "../../core/form/tab-editor.class";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
