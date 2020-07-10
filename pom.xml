@@ -107,7 +107,7 @@
     <jackson.version>2.10.2</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
     <stringtemplate.version>4.0.2</stringtemplate.version>
     <jTextUtilsVersion>0.3.3</jTextUtilsVersion>
-    <commonBeanutilsVersion>1.9.3</commonBeanutilsVersion>
+    <commonBeanutilsVersion>1.9.4</commonBeanutilsVersion>
     <opencsv.version>2.4.3</opencsv.version>
 
     <!-- /!\ error with 5.3.10 -->
@@ -304,7 +304,7 @@
       <dependency>
         <groupId>commons-beanutils</groupId>
         <artifactId>commons-beanutils</artifactId>
-        <version>1.9.1</version>
+        <version>1.9.4</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
