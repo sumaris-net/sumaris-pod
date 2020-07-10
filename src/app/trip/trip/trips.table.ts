@@ -318,7 +318,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
       // Enable sync status button
       this.setSynchronizationStatus('DIRTY');
-      this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true});
+      this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true, type: 'info'});
       success = true;
     }
     catch (err) {

@@ -714,9 +714,9 @@ export class ProgramService extends BaseEntityService
    * Load program taxon groups
    */
   async loadTaxonGroups(programLabel: string, opts?: { toEntity?: boolean; }): Promise<TaxonGroupRef[]> {
-    const mapCacheKey = [ProgramCacheKeys.TAXON_GROUPS, programLabel].join('|');
+    const mapCacheKey = [ProgramCacheKeys.TAXON_GROUP_ENTITIES, programLabel].join('|');
     const res = await this.cache.getOrSetItem(mapCacheKey,
-      () => this.watchTaxonGroups(programLabel, {toEntity: false}).toPromise(),
+      () => this.watchTaxonGroups(programLabel, {toEntity: true}).toPromise(),
       ProgramCacheKeys.CACHE_GROUP);
 
     // Convert to entity, after cache (convert by default)

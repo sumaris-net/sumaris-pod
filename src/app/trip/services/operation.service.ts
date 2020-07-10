@@ -55,7 +55,7 @@ export const OperationFragments = {
       id
       rankOrder
       gear {
-          ...ReferentialRefFragment
+          ...ReferentialFragment
       }
     }
     metier {
