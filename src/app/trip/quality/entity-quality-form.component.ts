@@ -67,7 +67,7 @@ export class EntityQualityFormComponent<T extends RootDataEntity<T> = RootDataEn
     protected settings: LocalSettingsService,
     protected toastController: ToastController,
     protected translate: TranslateService,
-    protected network: NetworkService,
+    public network: NetworkService,
     protected userEventService: UserEventService,
     protected cd: ChangeDetectorRef
   ) {
