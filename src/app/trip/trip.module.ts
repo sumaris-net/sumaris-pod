@@ -14,9 +14,9 @@ import {PhysicalGearTable} from './physicalgear/physical-gears.table';
 import {OperationsTable} from './operation/operations.table';
 import {SamplesTable} from './sample/samples.table';
 import {SubSamplesTable} from './sample/sub-samples.table';
-import {BatchGroupsTable} from './batch/batch-groups.table';
-import {BatchesTable} from './batch/batches.table';
-import {SubBatchesTable} from './batch/sub-batches.table';
+import {BatchGroupsTable} from './batch/table/batch-groups.table';
+import {BatchesTable} from './batch/table/batches.table';
+import {SubBatchesTable} from './batch/table/sub-batches.table';
 import {IndividualMonitoringSubSamplesTable} from './sample/individualmonitoring/individual-monitoring-samples.table';
 import {MeasurementValuesForm} from './measurement/measurement-values.form.class';
 import {EntityQualityFormComponent} from "./quality/entity-quality-form.component";
@@ -51,15 +51,14 @@ import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
 import {SelectLandingsModal} from "./landing/select-landings.modal";
 import {AuctionControlPage} from "./auctioncontrol/auction-control.page";
-import {SubBatchesModal} from "./batch/sub-batches.modal";
-import {SubBatchForm} from "./batch/sub-batch.form";
+import {SubBatchesModal} from "./batch/modal/sub-batches.modal";
+import {SubBatchForm} from "./batch/form/sub-batch.form";
 import {PhysicalGearModal} from "./physicalgear/physical-gear.modal";
-import {BatchModal} from "./batch/batch.modal";
-import {BatchForm} from "./batch/batch.form";
-import {BatchGroupPage} from "./batch/batch-group.page";
-import {BatchGroupForm} from "./batch/batch-group.form";
-import {BatchGroupModal} from "./batch/batch-group.modal";
-import {SubBatchModal} from "./batch/sub-batch.modal";
+import {BatchForm} from "./batch/form/batch.form";
+import {BatchTreeComponent} from "./batch/batch-tree.component";
+import {BatchGroupForm} from "./batch/form/batch-group.form";
+import {BatchGroupModal} from "./batch/modal/batch-group.modal";
+import {SubBatchModal} from "./batch/modal/sub-batch.modal";
 import {FullscreenOverlayContainer, OverlayContainer} from "@angular/cdk/overlay";
 import {AggregationTypeValidatorService} from "./services/validator/aggregation-type.validator";
 import {ReferentialModule} from "../referential/referential.module";
@@ -100,6 +99,7 @@ import {VesselActivityForm} from "./aggregated-landing/vessel-activity.form";
 import {AggregatedLandingModal} from "./aggregated-landing/aggregated-landing.modal";
 import {OperationsMap} from "./operation/map/operations.map";
 import {SocialModule} from "../social/social.module";
+import {BatchModal} from "./batch/modal/batch.modal";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -149,7 +149,7 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     BatchForm,
     BatchModal,
     BatchGroupModal,
-    BatchGroupPage,
+    BatchTreeComponent,
     BatchGroupForm,
     SubBatchModal,
     SampleForm,
@@ -174,29 +174,29 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     FishingAreaForm
   ],
   exports: [
-      TripTable,
-      TripPage,
-      TripForm,
-      PhysicalGearModal,
-      SaleForm,
-      PhysicalGearForm,
-      PhysicalGearTable,
-      OperationForm,
-      OperationPage,
-      OperationsTable,
-      MeasurementsForm,
-      EntityQualityFormComponent,
-      LandingsTable,
-      LandingForm,
-      LandingPage,
-      SelectLandingsModal,
-      SelectVesselsModal,
-      AuctionControlPage,
-      BatchForm,
-      BatchGroupPage,
-      SubBatchForm,
-      SubBatchModal,
-      SampleForm
+    TripTable,
+    TripPage,
+    TripForm,
+    PhysicalGearModal,
+    SaleForm,
+    PhysicalGearForm,
+    PhysicalGearTable,
+    OperationForm,
+    OperationPage,
+    OperationsTable,
+    MeasurementsForm,
+    EntityQualityFormComponent,
+    LandingsTable,
+    LandingForm,
+    LandingPage,
+    SelectLandingsModal,
+    SelectVesselsModal,
+    AuctionControlPage,
+    BatchForm,
+    BatchTreeComponent,
+    SubBatchForm,
+    SubBatchModal,
+    SampleForm
   ],
   providers: [
     TripService,

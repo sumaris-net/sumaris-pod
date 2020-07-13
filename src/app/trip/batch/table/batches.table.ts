@@ -14,22 +14,22 @@ import {
 import {of, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
-import {isNilOrBlank, isNotNil} from "../../shared/functions";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {UsageMode} from "../../core/services/model/settings.model";
-import {SubBatchesModal} from "./sub-batches.modal";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {BatchModal} from "./batch.modal";
-import {TaxonNameRef} from "../../referential/services/model/taxon.model";
-import {Batch} from "../services/model/batch.model";
-import {Operation} from "../services/model/trip.model";
-import {Landing} from "../services/model/landing.model";
-import {AcquisitionLevelCodes, PmfmLabelPatterns} from "../../referential/services/model/model.enum";
-import {PmfmUtils} from "../../referential/services/model/pmfm.model";
-import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../../core/core.module";
+import {isNilOrBlank, isNotNil} from "../../../shared/functions";
+import {AppMeasurementsTable} from "../../measurement/measurements.table.class";
+import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
+import {UsageMode} from "../../../core/services/model/settings.model";
+import {SubBatchesModal} from "../modal/sub-batches.modal";
+import {MeasurementValuesUtils} from "../../services/model/measurement.model";
+import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
+import {Batch} from "../../services/model/batch.model";
+import {Operation} from "../../services/model/trip.model";
+import {Landing} from "../../services/model/landing.model";
+import {AcquisitionLevelCodes, PmfmLabelPatterns} from "../../../referential/services/model/model.enum";
+import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
+import {getPmfmName, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
+import {BatchModal} from "../modal/batch.modal";
 
 export interface BatchFilter {
   operationId?: number;
@@ -190,7 +190,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
       return true;
     }
 
-    const data = this.getRowEntity(row, true);
+    const data = this.toEntity(row, true);
 
     // Prepare entity measurement values
     this.prepareEntityToSave(data);
@@ -252,7 +252,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     showParent?: boolean;
   }): Promise<Batch[] | undefined> {
     if (event) event.preventDefault();
-    const selectedParent = this.getRowEntity(row);
+    const selectedParent = this.toEntity(row);
     return await this.openSubBatchesModal(selectedParent, opts);
   }
 
@@ -283,7 +283,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
           map((res) => (res as TableElement<T>[]).map((row) => row.currentData as T))
         ) :
       // else (if desktop), create a copy
-      of((await this.dataSource.getRows()).map(row => this.getRowEntity(row)));
+      of((await this.dataSource.getRows()).map(row => this.toEntity(row)));
 
     const modal = await this.modalCtrl.create({
       component: SubBatchesModal,

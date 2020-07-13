@@ -1,5 +1,5 @@
-import {Directive, OnDestroy, OnInit, Optional, ViewChild} from '@angular/core';
-import {ActivatedRoute, Router} from "@angular/router";
+import {Directive, Input, OnDestroy, OnInit, Optional, ViewChild} from '@angular/core';
+import {ActivatedRoute, Params, Router} from "@angular/router";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
 import {Entity} from '../services/model/entity.model';
 import {AlertController, ToastController} from '@ionic/angular';
@@ -16,6 +16,7 @@ import {HammerSwipeAction, HammerSwipeEvent} from "../../shared/gesture/hammer.u
 import {TeardownLogic} from "rxjs/src/internal/types";
 
 export class AppTabFormOptions {
+
   /**
    * Number of tab. 1 by default
    */
@@ -52,11 +53,9 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   submitted = false;
   error: string;
   loading = true;
-  queryParams: {
-    tab?: number;
-    subtab?: number;
-    [key: string]: any
-  };
+  queryParams: Params;
+
+  @Input() queryTabIndexParamName: string;
 
   protected toastController: ToastController;
 
@@ -126,19 +125,23 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
   }
 
   ngOnInit() {
+
+    this.queryTabIndexParamName = this.queryTabIndexParamName || 'tab';
+
     // Read route query parameters
     const queryParams = this.route.snapshot.queryParams;
 
     // Copy original queryParams, for reuse in onTabChange()
-    this.queryParams = Object.assign({}, queryParams);
+    this.queryParams = {...queryParams};
 
+    // Read the selected tab index, from path query params
     if (this.tabGroup) {
       // Parse tab param
-      if (this.tabCount > 1) {
-        const tabIndex = queryParams["tab"];
-        this.queryParams.tab = tabIndex && parseInt(tabIndex) || undefined;
-        if (isNotNil(this.queryParams.tab)) {
-          this.selectedTabIndex = this.queryParams.tab;
+      if (this.tabCount > 1 && this.queryTabIndexParamName) {
+        const tabIndex = queryParams[this.queryTabIndexParamName];
+        this.queryParams[this.queryTabIndexParamName] = tabIndex && parseInt(tabIndex) || undefined;
+        if (isNotNil(this.queryParams[this.queryTabIndexParamName])) {
+          this.selectedTabIndex = this.queryParams[this.queryTabIndexParamName];
         }
       }
       this.tabGroup.realignInkBar();
@@ -159,7 +162,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
 
   abstract async load(id?: number, options?: O);
 
-  abstract async save(event, options?: any): Promise<any>;
+  abstract async save(event?: Event, options?: any): Promise<any>;
 
   abstract async reload();
 
@@ -218,14 +221,17 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
   }
 
-  onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
-    queryParamName = queryParamName || 'tab';
-    if (!this.queryParams || +this.queryParams[queryParamName] !== event.index) {
+  onTabChange(event: MatTabChangeEvent, queryTabIndexParamName?: string): boolean {
+    queryTabIndexParamName = queryTabIndexParamName || this.queryTabIndexParamName;
+
+    if (!queryTabIndexParamName) return true; // Skip if tab query param not set
+
+    if (!this.queryParams || +this.queryParams[queryTabIndexParamName] !== event.index) {
 
       this.queryParams = this.queryParams || {};
-      this.queryParams[queryParamName] = event.index;
+      this.queryParams[queryTabIndexParamName] = event.index;
 
-      if (queryParamName === 'tab' && isNotNil(this.queryParams.subtab)) {
+      if (queryTabIndexParamName === 'tab' && isNotNil(this.queryParams['subtab'])) {
         delete this.queryParams.subtab; // clean subtab
       }
       this.router.navigate(['.'], {
@@ -505,8 +511,7 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
       return !cancel;
     }
 
-    const saved = await this.save(event, opts);
-    return saved;
+    return await this.save(event, opts);
   }
 
   protected async showToast(opts: ShowToastOptions) {

@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector, Input} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {BatchGroupValidatorService} from "../services/validator/trip.validators";
+import {BatchGroupValidatorService} from "../../services/validator/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
 import {
@@ -13,21 +13,21 @@ import {
   toFloat,
   toInt,
   toNumber
-} from "../../shared/functions";
-import {MethodIds, QualityFlagIds} from "../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {MeasurementFormValues, MeasurementValuesUtils} from "../services/model/measurement.model";
+} from "../../../shared/functions";
+import {MethodIds, QualityFlagIds} from "../../../referential/services/model/model.enum";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
+import {MeasurementFormValues, MeasurementValuesUtils} from "../../services/model/measurement.model";
 import {ModalController} from "@ionic/angular";
-import {Batch, BatchUtils, BatchWeight} from "../services/model/batch.model";
-import {ColumnItem, TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
-import {BatchGroupModal} from "./batch-group.modal";
-import {FormFieldDefinition} from "../../shared/form/field.model";
-import {firstFalsePromise} from "../../shared/observables";
-import {BatchGroup} from "../services/model/batch-group.model";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {PlatformService} from "../../core/services/platform.service";
+import {Batch, BatchUtils, BatchWeight} from "../../services/model/batch.model";
+import {ColumnItem, TableSelectColumnsComponent} from "../../../core/table/table-select-columns.component";
+import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, SETTINGS_DISPLAY_COLUMNS} from "../../../core/table/table.class";
+import {BatchGroupModal} from "../modal/batch-group.modal";
+import {FormFieldDefinition} from "../../../shared/form/field.model";
+import {firstFalsePromise} from "../../../shared/observables";
+import {BatchGroup} from "../../services/model/batch-group.model";
+import {ReferentialUtils} from "../../../core/services/model/referential.model";
+import {PlatformService} from "../../../core/services/platform.service";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
@@ -37,8 +37,6 @@ declare interface ColumnDefinition extends FormFieldDefinition {
   rankOrder: number;
   qvIndex: number;
 }
-
-
 
 @Component({
   selector: 'app-batch-groups-table',
@@ -116,6 +114,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }
 
   @Input() taxonGroupsNoWeight: string[];
+  @Input() mobile: boolean;
 
   disable(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
     super.disable(opts);
@@ -157,8 +156,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       BatchGroup
     );
     this.modalCtrl = injector.get(ModalController);
-    this.inlineEdition = this.validatorService && !this.mobile;
-    this.allowRowDetail = !this.inlineEdition;
+
 
     // Set default values
     // this.showCommentsColumn = false; // Already set in batches-table
@@ -166,6 +164,13 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // -- For DEV only
     //this.debug = !environment.production;
+  }
+
+  ngOnInit() {
+    this.inlineEdition = this.validatorService && !this.mobile;
+    this.allowRowDetail = !this.inlineEdition;
+
+    super.ngOnInit();
   }
 
   onLoad(data: BatchGroup[]): BatchGroup[] {
@@ -595,13 +600,13 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       .filter(name => !this.excludesColumns.includes(name));
   }
 
-  async onOpenSubBatchesFromModal(parent) {
+  async onOpenSubBatchesFromModal(parent: Batch, valid?: boolean) {
 
     // If row not added yet
     if (!this.editedRow) {
       // wait 100ms, then loop
       await sleep(100);
-      return this.onOpenSubBatchesFromModal(parent);
+      return this.onOpenSubBatchesFromModal(parent, valid);
     }
 
     await this.onSubBatchesClick(null, this.editedRow, {
@@ -609,7 +614,10 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       emitLoaded: false
     });
 
-    return await this.openRow(null, this.editedRow); // Reopen the detail modal
+    // TODO: oopen the parent modal only if not valid
+    //if (valid) this.markAsLoaded();
+    //else
+    return await this.openRow(null, this.editedRow);
   };
 
   async openDetailModal(batch?: BatchGroup): Promise<BatchGroup | undefined> {
@@ -633,7 +641,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
         taxonGroupsNoWeight: this.taxonGroupsNoWeight,
-        showSubBatchesCallback: (parent) => this.onOpenSubBatchesFromModal(parent)
+        showSubBatchesCallback: (parent, valid) => this.onOpenSubBatchesFromModal(parent, valid)
       },
       keyboardClose: true
     });
@@ -737,19 +745,20 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       parent.observedIndividualCount = BatchUtils.sumObservedIndividualCount(children);
     }
     else {
-      parent.observedIndividualCount = 0;
+      let observedIndividualCount = 0;
       this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
 
         const qvChildren = children.filter(c => {
           const qvValue = c.measurementValues[this.qvPmfm.pmfmId];
-          return qvValue && qvValue.id == qv.id;
+          return qvValue && (qvValue == qv.id || qvValue.id == qv.id);
         });
         const samplingIndividualCount = BatchUtils.sumObservedIndividualCount(qvChildren);
         const qvOffset = (qvIndex * BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length);
         const hasSampling = !!(parent.measurementValues[qvOffset + 2] || parent.measurementValues[qvOffset + 3]);
         parent.measurementValues[qvOffset + 4] = hasSampling || samplingIndividualCount ? samplingIndividualCount : undefined;
-        parent.observedIndividualCount += (samplingIndividualCount || 0);
+        observedIndividualCount += (samplingIndividualCount || 0);
       });
+      parent.observedIndividualCount = observedIndividualCount;
     }
 
     if (row.validator) {

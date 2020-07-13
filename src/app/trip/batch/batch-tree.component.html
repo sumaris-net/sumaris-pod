@@ -1,0 +1,77 @@
+<!-- catch batch form -->
+<div [hidden]="!catchBatchForm.hasPmfms" class="ion-padding">
+  <form-catch-batch #catchBatchForm
+                    (onSubmit)="save($event)" [showError]="false" [debug]="debug"
+                    acquisitionLevel="CATCH_BATCH"
+                    [program]="programSubject|async"
+                    [tabindex]="200">
+  </form-catch-batch>
+</div>
+
+<mat-tab-group #tabGroup
+               [class.mat-tab-group-header-hidden]="mobile"
+               [(selectedIndex)]="selectedTabIndex"
+               (selectedTabChange)="onTabChange($event)"
+               [animationDuration]="tabGroupAnimationDuration">
+
+  <!-- TAB: Catch
+  <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_CATCH_DETAILS'|translate}}"
+           [disabled]="!enableCatchForm">
+    <ng-template mat-tab-label>
+      <mat-icon><ion-icon name="file-tray-stacked"></ion-icon></mat-icon>
+      <ion-label translate>TRIP.OPERATION.EDIT.TAB_CATCH_TOTAL</ion-label>
+      <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && catchBatchForm.invalid"></ion-icon>
+    </ng-template>
+
+
+  </mat-tab> -->
+
+  <!-- TAB: species list -->
+  <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
+    <ng-template mat-tab-label>
+      <mat-icon><ion-icon name="file-tray"></ion-icon></mat-icon>
+      <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES</ion-label>
+      <ion-icon slot="end" name="alert-circle" color="danger"
+                *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
+    </ng-template>
+
+    <!-- Batches group -->
+    <app-batch-groups-table #batchGroupsTable
+                            acquisitionLevel="SORTING_BATCH"
+                            [program]="programSubject | async"
+                            [usageMode]="usageMode"
+                            [disabled]="disabled"
+                            [debug]="debug"
+                            [mobile]="mobile"
+                            [showTaxonGroupColumn]="true"
+                            [showTaxonNameColumn]="true"
+                            [showCommentsColumn]="false"
+                            [defaultTaxonGroups]="defaultTaxonGroups"
+                            (onSubBatchesChanges)="onSubBatchesChanges($event)">
+    </app-batch-groups-table>
+
+    <!-- final space-->
+    <p visible-xs visible-sm visible-mobile>&nbsp;</p>
+  </mat-tab>
+
+
+  <!-- TAB: individual measure -->
+  <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
+           *ngIf="showSubBatchesTable"
+           [disabled]="!enableSubBatchesTab">
+    <ng-template mat-tab-label>
+      <mat-icon>assessment</mat-icon>
+      <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
+      <ion-icon slot="end" name="alert-circle" color="danger"
+                *ngIf="submitted && (subBatchesTable?.invalid || false)"></ion-icon>
+    </ng-template>
+
+    <app-sub-batches-table #subBatchesTable
+                           acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
+                           [program]="programSubject | async"
+                           [usageMode]="usageMode"
+                           [debug]="debug"
+                           [tabindex]="200">
+    </app-sub-batches-table>
+  </mat-tab>
+</mat-tab-group>

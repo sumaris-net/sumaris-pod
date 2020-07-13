@@ -1,5 +1,5 @@
 import {EntityUtils, isNil, isNotNil, ReferentialRef, referentialToString} from "../../../core/core.module";
-import {AcquisitionLevelCodes, QualityFlagIds} from "../../../referential/services/model/model.enum";
+import {AcquisitionLevelCodes, PmfmIds, QualityFlagIds} from "../../../referential/services/model/model.enum";
 import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
 import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {isNilOrBlank, isNotEmptyArray, isNotNilOrBlank, toNumber} from "../../../shared/functions";
@@ -306,6 +306,13 @@ export class BatchUtils {
     return (parent.children || []).find(b => b.label === samplingLabel);
   }
 
+  /**
+   * Will copy root (species) batch id into subBatch.parentId
+   * AND copy the QV sorting measurement hold by direct parent
+   * @param rootBatches
+   * @param subAcquisitionLevel
+   * @param qvPmfm
+   */
   static prepareSubBatchesForTable(rootBatches: Batch[], subAcquisitionLevel: string, qvPmfm?: PmfmStrategy): Batch[] {
     if (qvPmfm) {
       return rootBatches.reduce((res, rootBatch) => {
@@ -352,22 +359,28 @@ export class BatchUtils {
     (rootBatches || []).forEach(rootBatch => {
       // Add children
       (rootBatch.children || []).forEach(b => {
-        const children = subBatches.filter(childBatch => childBatch.parent && rootBatch.equals(childBatch.parent) &&
-          (!qvPmfm || (childBatch.measurementValues[qvPmfm.pmfmId] == b.measurementValues[qvPmfm.pmfmId]))
-        );
+        const children = subBatches.filter(childBatch => {
+          //console.table([childBatch.label, childBatch.parent && rootBatch.equals(childBatch.parent), (childBatch.measurementValues[qvPmfm.pmfmId] == b.measurementValues[qvPmfm.pmfmId])]);
+          return childBatch.parent && rootBatch.equals(childBatch.parent) &&
+            (!qvPmfm || (childBatch.measurementValues[qvPmfm.pmfmId] == b.measurementValues[qvPmfm.pmfmId]))
+        });
         // If has sampling batch, use it as parent
         if (b.children && b.children.length === 1 && BatchUtils.isSampleBatch(b.children[0])) {
           b.children[0].children = children;
-          children.forEach(c => c.parentId = b.children[0].id);
+          children.forEach(c => {
+            c.parentId = b.children[0].id;
+          });
         } else {
           b.children = children;
-          children.forEach(c => c.parentId = b.id);
+          children.forEach(c => {
+            c.parentId = b.id;
+          });
         }
       });
     });
+
     return rootBatches;
   }
-
 
   /**
    * Compute individual count, from individual measures
@@ -456,28 +469,60 @@ export class BatchUtils {
       }, 0);
   }
 
-  static logTree(batch: Batch, opts?: {indent?: string; nextIndent?: string}) {
+  static logTree(batch: Batch, opts?: {
+    println?: (message: string) => void;
+    indent?: string;
+    nextIndent?: string;
+    showTaxon?: boolean;
+    showMeasure?: boolean;
+  }) {
+    opts = opts || {};
     const indent = opts && opts.indent || '';
     const nextIndent = opts && opts.nextIndent || indent;
     let message = indent + batch.label + ' id=' + batch.id;
     if (batch.parent || isNotNil(batch.parentId)) {
       message += ' - parentId=' + (batch.parent && batch.parent.id || batch.parentId);
     }
-    console.debug(message);
+    // Taxon
+    if (opts.showTaxon !== false) {
+      if (batch.taxonGroup) {
+        message += ' - taxonGroup=' + (batch.taxonGroup && (batch.taxonGroup.label || batch.taxonGroup.id));
+      }
+      if (batch.taxonName) {
+        message += ' - taxonName=' + (batch.taxonName && (batch.taxonName.label || batch.taxonName.id));
+      }
+    }
+    // Measurement
+    if (opts.showMeasure !== false) {
+      if (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING]) {
+        message += ' - ' + (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == 190 ? 'LAN' : 'DIS');
+      }
+      if (isNotNil(batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM])) {
+        message += ' - ' + batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM] + 'cm';
+      }
+    }
+
+    // Print
+    if (opts.println) opts.println(message);
+    else  console.debug(message);
+
     const childrenCount = batch.children && batch.children.length || 0;
     if (childrenCount) {
       batch.children.forEach((b, index, ) => {
-        const opts = (index === childrenCount - 1) ? {
+        const childOpts = (index === childrenCount - 1) ? {
+          println: opts.println,
           indent: nextIndent + ' \\- ',
-          nextIndent: nextIndent + '   '
+          nextIndent: nextIndent + '\t'
         } : {
+          println: opts.println,
           indent: nextIndent + ' |- '
         };
 
-        this.logTree(b, opts);
+        this.logTree(b, childOpts); // Loop
       });
     }
   }
+
 
 
 }

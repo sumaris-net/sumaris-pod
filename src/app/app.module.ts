@@ -34,6 +34,7 @@ import {APP_MENU_ITEMS} from "./core/menu/menu.component";
 import {APP_HOME_BUTTONS} from "./core/home/home";
 import {ConfigOptions} from "./core/services/config/core.config";
 import {SocialModule} from "./social/social.module";
+import {APP_TESTING_PAGES, TestingPage} from "./shared/material/testing/material.testing.page";
 
 
 @NgModule({
@@ -156,7 +157,12 @@ import {SocialModule} from "./social/social.module";
         },
         { title: '' /*empty divider*/, cssClass: 'visible-mobile'}
       ]
-    }
+    },
+
+    // Test pages
+    { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
+      {label: 'Batch tree', page: '/testing/trip/batchTree'}
+    ]},
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

@@ -699,7 +699,10 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
     // Fill all batches id
     const batches = entity.catchBatch && EntityUtils.treeToArray(entity.catchBatch) || [];
     await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues('BatchVO', count));
-    //if (this._debug) BatchUtils.logTree(entity.catchBatch);
+    if (this._debug) {
+      console.debug("[Operation-service] Preparing batches to be saved locally:")
+      BatchUtils.logTree(entity.catchBatch);
+    }
   }
 
   protected fillBatchTreeDefaults(catchBatch: Batch, options?: Partial<OperationSaveOptions>) {

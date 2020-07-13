@@ -21,10 +21,10 @@ import {FormGroup, Validators} from "@angular/forms";
 import * as moment from "moment";
 import {IndividualMonitoringSubSamplesTable} from "../sample/individualmonitoring/individual-monitoring-samples.table";
 import {Program} from "../../referential/services/model/program.model";
-import {SubBatchesTable} from "../batch/sub-batches.table";
+import {SubBatchesTable} from "../batch/table/sub-batches.table";
 import {SubSamplesTable} from "../sample/sub-samples.table";
 import {SamplesTable} from "../sample/samples.table";
-import {BatchGroupsTable} from "../batch/batch-groups.table";
+import {BatchGroupsTable} from "../batch/table/batch-groups.table";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {filterNotNil, firstNotNil, firstNotNilPromise, firstTruePromise} from "../../shared/observables";
@@ -36,6 +36,7 @@ import {ProgramService} from "../../referential/services/program.service";
 import {TranslateService} from "@ngx-translate/core";
 import {IEntity} from "../../core/services/model/entity.model";
 import {PlatformService} from "../../core/services/platform.service";
+import {BatchTreeComponent} from "../batch/batch-tree.component";
 
 @Component({
   selector: 'app-operation-page',
@@ -65,18 +66,23 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   enableSubBatchesTable = false;
 
   mobile: boolean;
+  tempSubBatches: Batch[];
 
   @ViewChild('batchTabGroup', { static: true }) batchTabGroup: MatTabGroup;
   @ViewChild('sampleTabGroup', { static: true }) sampleTabGroup: MatTabGroup;
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
-  @ViewChild('catchBatchForm', { static: true }) catchBatchForm: CatchBatchForm;
 
   // Sample tables
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
   @ViewChild('individualMonitoringTable', { static: true }) individualMonitoringTable: IndividualMonitoringSubSamplesTable;
   @ViewChild('individualReleaseTable', { static: true }) individualReleaseTable: SubSamplesTable;
 
+
+
+  @ViewChild('batchTree', { static: true }) batchTree: BatchTreeComponent;
+
+  @ViewChild('catchBatchForm', { static: true }) catchBatchForm: CatchBatchForm;
   @ViewChild('batchGroupsTable', { static: true }) batchGroupsTable: BatchGroupsTable;
   @ViewChild('subBatchesTable', { static: true }) subBatchesTable: SubBatchesTable;
 
@@ -158,32 +164,36 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           this.individualReleaseTable.availableParents = availableParents;
         }));
 
-    // Update available parent on individual batch table, when batch group changes
-    this.registerSubscription(
-      this.batchGroupsTable.dataSource.datasourceSubject
-        .pipe(
-          debounceTime(400),
-          // skip if loading
-          filter(() => !this.loading)
-        )
-        // Will refresh the tables (inside the setter):
-        .subscribe(rootBatches => this.subBatchesTable.setAvailableParents(rootBatches || [], {emitEvent: this.enableSubBatchesTable}))
-    );
+    if (this.subBatchesTable) {
 
-    // Enable sub batches table, only when table pmfms ready, and if NOT mobile
-    if (!this.mobile) {
+      // Enable sub batches table, only when table pmfms ready
       firstTruePromise(this.subBatchesTable.$pmfms.pipe(map(isNotEmptyArray)))
         .then(() => {
           this.enableSubBatchesTable = true;
           this.markForCheck();
         });
-    }
 
-    // Link group table to individual
-    this.batchGroupsTable.availableSubBatchesFn = async () => {
-      if (this.subBatchesTable.dirty) await this.subBatchesTable.save();
-      return this.subBatchesTable.value;
-    };
+      // Update available parent on individual batch table, when batch group changes
+      this.registerSubscription(
+        this.batchGroupsTable.dataSource.datasourceSubject
+          .pipe(
+            debounceTime(400),
+            // skip if loading
+            filter(() => !this.loading && this.enableSubBatchesTable)
+          )
+          // Will refresh the tables (inside the setter):
+          .subscribe(rootBatches => this.subBatchesTable.availableParents = (rootBatches || []))
+      );
+
+      // Link group table to sub batches table
+      this.batchGroupsTable.availableSubBatchesFn = async () => {
+        if (this.subBatchesTable.dirty) await this.subBatchesTable.save();
+        return this.subBatchesTable.value;
+      };
+    }
+    else {
+      this.batchGroupsTable.availableSubBatchesFn = (() => Promise.resolve(this.tempSubBatches));
+    }
 
     this.ngAfterViewInitExtension();
 
@@ -192,7 +202,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const subTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
     this.selectedBatchTabIndex = subTabIndex > 1 ? 1 : subTabIndex;
     this.selectedSampleTabIndex = subTabIndex;
-    if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
+    if (this.batchTabGroup && !this.mobile) this.batchTabGroup.realignInkBar();
     if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
   }
 
@@ -471,14 +481,18 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   async onSubBatchesChanges(subbatches: Batch[]) {
     if (isNil(subbatches)) return; // user cancelled
 
-    this.subBatchesTable.value = subbatches;
+    if (this.subBatchesTable) {
+      this.subBatchesTable.value = subbatches;
 
-    // If table is visible, wait table not busy
-    if (!this.subBatchesTable.hidden) {
+      // Wait table not busy
       await AppTableUtils.waitIdle(this.subBatchesTable);
-    }
 
-    this.subBatchesTable.markAsDirty();
+      this.subBatchesTable.markAsDirty();
+    }
+    else {
+      this.tempSubBatches = subbatches;
+      if (!this._dirty) this.markAsDirty();
+    }
   }
 
   protected getBatchChildrenByLevel(batch: Batch, acquisitionLevel: string): Batch[] {
@@ -503,7 +517,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (!this.loading) {
       // On each tables, confirm editing row
       this.batchGroupsTable.confirmEditCreate();
-      this.subBatchesTable.confirmEditCreate();
+      if (this.subBatchesTable) this.subBatchesTable.confirmEditCreate();
     }
   }
 
@@ -578,16 +592,21 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.measurementsForm.program = program;
     this.measurementsForm.value = data && data.measurements || [];
 
+
+    // set batch tree
+    this.batchTree.gearId = gearId;
+    this.batchTree.value = data && data.catchBatch || null;
+
     // Get all batches (and children), and samples
     const batches = (data && data.catchBatch && data.catchBatch.children) || [];
     const samples = (data && data.samples || []).reduce((res, sample) => !sample.children ? res.concat(sample) : res.concat(sample).concat(sample.children), []);
 
     // Set catch batch
-    this.catchBatchForm.gearId = gearId;
+    /*this.catchBatchForm.gearId = gearId;
     this.catchBatchForm.value = data && data.catchBatch || Batch.fromObject({
       rankOrder: 1,
       label: AcquisitionLevelCodes.CATCH_BATCH
-    });
+    });*/
 
     // Set samples
     this.samplesTable.value = samples.filter(s => s.label && s.label.startsWith(this.samplesTable.acquisitionLevel + "#"));
@@ -601,12 +620,19 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
     // Set batches table (with root batches)
-    this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"))
+   /* this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"))
       .map(BatchGroup.fromBatch);
 
     // Wait batch group ready (need to be sure the QV pmfm is set)
     this.batchGroupsTable.onReady()
-      .then(() => this.subBatchesTable.setValueFromParent(this.batchGroupsTable.value, this.batchGroupsTable.qvPmfm));
+      .then(() => {
+        if (this.subBatchesTable) {
+          this.subBatchesTable.setValueFromParent(this.batchGroupsTable.value, this.batchGroupsTable.qvPmfm)
+        }
+        else {
+          this.tempSubBatches = BatchUtils.prepareSubBatchesForTable(this.batchGroupsTable.value, AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL, this.batchGroupsTable.qvPmfm);
+        }
+      });*/
 
     // Applying program to tables (async)
     if (program) {
@@ -630,7 +656,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const tab0Invalid = this.opeForm.invalid || this.measurementsForm.invalid;
     // tab 1
     const subTab0Invalid = (this.showBatchTables && this.batchGroupsTable.invalid) || (this.showSampleTables && this.samplesTable.invalid);
-    const subTab1Invalid = (this.showBatchTables && this.subBatchesTable.invalid) || (this.showSampleTables && this.individualMonitoringTable.invalid);
+    const subTab1Invalid = (this.showBatchTables && this.subBatchesTable && this.subBatchesTable.invalid) || (this.showSampleTables && this.individualMonitoringTable.invalid);
     const subTab2Invalid = this.showBatchTables && this.individualReleaseTable.invalid || false;
     const tab1Invalid = this.catchBatchForm.invalid || subTab0Invalid || subTab1Invalid || subTab2Invalid;
 
@@ -679,9 +705,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.samplesTable,
       this.individualMonitoringTable,
       this.individualReleaseTable,
-      this.batchGroupsTable,
-      this.subBatchesTable
+      this.batchGroupsTable
     ]);
+    if (!this.mobile) {
+      this.addChildForm(() => this.subBatchesTable);
+    }
   }
 
   protected async waitWhilePending(): Promise<void> {
@@ -715,32 +743,17 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Save batch sampling tables
     if (this.showBatchTables) {
-      let batches;
-      if (this.mobile) {
-        console.warn("TODO: When mobile=true, should use a better implementation (e.g. without using subBatchesTable)");
+      await this.batchGroupsTable.save();
 
-        await Promise.all([
-          // Save batches groups
-          this.batchGroupsTable.save(),
-
-          // Wait sub-batches added (can be still busy)
-          AppTableUtils.waitIdle(this.subBatchesTable)
-        ])
-        // Save sub batches
-        .then(() => this.subBatchesTable.save());
-
-        batches = BatchUtils.prepareRootBatchesForSaving(this.batchGroupsTable.value, this.subBatchesTable.value, this.batchGroupsTable.qvPmfm);
+      let subBatches: Batch[];
+      if (this.subBatchesTable) {
+        await this.subBatchesTable.save();
+        subBatches = this.subBatchesTable.value;
+      } else {
+        subBatches = this.tempSubBatches;
       }
-      else {
-        // Save bacthes
-        await Promise.all([
-          this.batchGroupsTable.save(),
-          this.subBatchesTable.save()
-        ]);
-
-        batches = BatchUtils.prepareRootBatchesForSaving(this.batchGroupsTable.value, this.subBatchesTable.value, this.batchGroupsTable.qvPmfm);
-      }
-      data.catchBatch.children = batches;
+      data.catchBatch.children = BatchUtils.prepareRootBatchesForSaving(this.batchGroupsTable.value, subBatches, this.batchGroupsTable.qvPmfm);
+      BatchUtils.logTree(data.catchBatch);
     } else {
       data.catchBatch.children = undefined;
     }
@@ -772,6 +785,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   protected async setAutoFillSpecies(enable: boolean) {
     if (!this.showBatchTables || !this.batchGroupsTable.showTaxonGroupColumn || !enable) {
       // Reset table's default taxon groups
+      this.batchTree.defaultTaxonGroups = null;
       this.batchGroupsTable.defaultTaxonGroups = null;
       return; // Skip
     }
@@ -798,11 +812,14 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
 
     // Set table's default taxon groups
+    this.batchTree.defaultTaxonGroups = includeTaxonGroups;
     this.batchGroupsTable.defaultTaxonGroups = includeTaxonGroups;
     this.markForCheck();
 
     // If new data, auto fill the table
     if (this.isNewData) {
+      await this.batchTree.autoFill();
+
       await this.batchGroupsTable.autoFillTable();
     }
   }
@@ -823,7 +840,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
 
     // Load last trip's operations
-    this._lastOperationsSubscription = this.dataService.watchAll(0, 10, 'startDateTime', 'desc', {
+    this._lastOperationsSubscription = this.dataService.watchAll(0, 5, 'startDateTime', 'desc', {
         tripId
       }, {
         withBatchTree: false,
@@ -834,17 +851,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         filter(res => !this.saving),
         debounceTime(500),
 
-        map(res => res && res.data || []),
-
-        /*map(items => {
-          items.sort(EntityUtils.sortComparator('startDateTime', 'desc'));
-        })*/
+        map(res => res && res.data || [])
       ).subscribe(data => this.$lastOperations.next(data));
-    this._lastOperationsSubscription.add(() => {
-      console.debug('[operation] Completed last operations observable');
-    })
-    this.registerSubscription(this._lastOperationsSubscription);
 
+    this.registerSubscription(this._lastOperationsSubscription);
 
     return this.$lastOperations;
   }

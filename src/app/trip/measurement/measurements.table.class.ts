@@ -8,7 +8,7 @@ import {
   isNil,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  EntitiesService
+  EntitiesService, Entity
 } from "../../core/core.module";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -300,14 +300,27 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return rows.findIndex(row => row.currentData.rankOrder === rankOrder) !== -1;
   }
 
-  protected getRowEntity(row: TableElement<T>, clone?: boolean): T {
-    if (!row.validator) {
-      const res = (row.currentData as T);
-      return (res && clone === true ? res.clone() : res) as T;
+
+  /**
+   * Convert (or clone) a row currentData, into <T> instance (that extends Entity)
+   * @param row
+   * @param clone
+   */
+  toEntity(row: TableElement<T>, clone?: boolean): T {
+    // If no validator, use currentData
+    const currentData = row.currentData;
+
+    // Already an entity (e.g. when no validator used): use it
+    if (currentData instanceof Entity) {
+      return (currentData && clone === true ? currentData.clone() : currentData) as T;
     }
-    const target = new this.dataType();
-    target.fromObject(row.validator.value);
-    return target;
+
+    // If JSON object (e.g. when using validator): create a new entity
+    else {
+      const target = new this.dataType();
+      target.fromObject(currentData);
+      return target;
+    }
   }
 
   protected async onRowCreated(row: TableElement<T>): Promise<void> {

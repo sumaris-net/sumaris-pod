@@ -1,22 +1,22 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {Batch, BatchUtils} from "../services/model/batch.model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppFormUtils} from "../../core/core.module";
+import {Batch, BatchUtils} from "../../services/model/batch.model";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {AppFormUtils} from "../../../core/core.module";
 import {ModalController} from "@ionic/angular";
-import {BatchForm} from "./batch.form";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {toBoolean} from "../../shared/functions";
-import {PlatformService} from "../../core/services/platform.service";
+import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {toBoolean} from "../../../shared/functions";
+import {SubBatchForm} from "../form/sub-batch.form";
+import {PlatformService} from "../../../core/services/platform.service";
 
 @Component({
-  selector: 'app-batch-modal',
-  templateUrl: 'batch.modal.html',
+  selector: 'app-sub-batch-modal',
+  templateUrl: 'sub-batch.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchModal implements OnInit {
+export class SubBatchModal implements OnInit{
 
   debug = false;
   loading = false;
@@ -32,26 +32,26 @@ export class BatchModal implements OnInit {
 
   @Input() disabled: boolean;
 
-  @Input() isNew = false;
+  @Input() isNew: boolean;
 
-  @Input() showTaxonGroup = true;
+  @Input() showParent = true;
 
   @Input() showTaxonName = true;
 
   @Input() showIndividualCount = false;
 
-  @Input() showTotalIndividualCount = false;
-
   @Input() qvPmfm: PmfmStrategy;
 
   @Input() showSampleBatch = false;
+
+  @Input() availableParents: Batch[];
 
   @Input()
   set value(value: Batch) {
     this.data = value;
   }
 
-  @ViewChild('form', { static: true }) form: BatchForm;
+  @ViewChild('form', { static: true }) form: SubBatchForm;
 
   get dirty(): boolean {
     return this.form.dirty;
@@ -82,22 +82,28 @@ export class BatchModal implements OnInit {
   }
 
 
-  ngOnInit() {
+  async ngOnInit() {
     this.canEdit = toBoolean(this.canEdit, !this.disabled);
     this.disabled = !this.canEdit || toBoolean(this.disabled, true);
+    this.isNew = toBoolean(this.isNew, false);
 
-    if (this.disabled) {
-      this.form.disable();
-    }
-
-    this.form.value = this.data || new Batch();
+    this.data = this.data || new Batch();
 
     // Compute the title
     this.computeTitle();
 
+    await this.form.ready();
+    this.form.value = this.data;
+
     if (!this.isNew) {
       // Update title each time value changes
       this.form.valueChanges.subscribe(batch => this.computeTitle(batch));
+    }
+
+    if (!this.disabled) {
+      //setTimeout(() => {
+        this.form.enable({emitEvent: false});
+      //}, 500);
     }
 
   }
@@ -110,7 +116,7 @@ export class BatchModal implements OnInit {
     if (this.loading) return; // avoid many call
 
     if (this.invalid) {
-      if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[batch-modal] ");
+      if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-modal] ");
       this.form.error = "COMMON.FORM.HAS_ERROR";
       this.form.markAsTouched({emitEvent: true});
       return;
@@ -133,11 +139,11 @@ export class BatchModal implements OnInit {
   protected async computeTitle(data?: Batch) {
     data = data || this.data;
     if (this.isNew || !data) {
-      this.$title.next(await this.translate.get('TRIP.BATCH.NEW.TITLE').toPromise());
+      this.$title.next(await this.translate.get('TRIP.SUB_BATCH.NEW.TITLE').toPromise());
     }
     else {
       const label = BatchUtils.parentToString(data);
-      this.$title.next(await this.translate.get('TRIP.BATCH.EDIT.TITLE', {label}).toPromise());
+      this.$title.next(await this.translate.get('TRIP.SUB_BATCH.EDIT.TITLE', {label}).toPromise());
     }
   }
 }

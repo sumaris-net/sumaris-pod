@@ -10,21 +10,21 @@ import {
   QueryList,
   ViewChildren
 } from "@angular/core";
-import {Batch} from "../services/model/batch.model";
-import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
+import {Batch} from "../../services/model/batch.model";
+import {MeasurementValuesForm} from "../../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
+import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
 import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {ProgramService} from "../../referential/services/program.service";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {SubBatchValidatorService} from "../services/validator/sub-batch.validator";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {UsageMode} from "../../core/services/model/settings.model";
+import {ProgramService} from "../../../referential/services/program.service";
+import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
+import {SubBatchValidatorService} from "../../services/validator/sub-batch.validator";
+import {EntityUtils} from "../../../core/services/model/entity.model";
+import {ReferentialUtils} from "../../../core/services/model/referential.model";
+import {UsageMode} from "../../../core/services/model/settings.model";
 import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
-import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from "../../../referential/services/model/model.enum";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BehaviorSubject, combineLatest} from "rxjs";
 import {
   getPropertyByPath,
@@ -34,15 +34,15 @@ import {
   isNotNilOrBlank,
   startsWithUpperCase,
   toBoolean
-} from "../../shared/functions";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {PlatformService} from "../../core/services/platform.service";
-import {AppFormUtils} from "../../core/core.module";
-import {PmfmFormField} from "../../referential/pmfm/pmfm.form-field.component";
-import {focusNextInput, focusPreviousInput, GetFocusableInputOptions} from "../../shared/inputs";
-import {SharedValidators} from "../../shared/validator/validators";
-import {TaxonNameRef} from "../../referential/services/model/taxon.model";
+} from "../../../shared/functions";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {MeasurementValuesUtils} from "../../services/model/measurement.model";
+import {PlatformService} from "../../../core/services/platform.service";
+import {AppFormUtils} from "../../../core/core.module";
+import {PmfmFormField} from "../../../referential/pmfm/pmfm.form-field.component";
+import {focusNextInput, focusPreviousInput, GetFocusableInputOptions} from "../../../shared/inputs";
+import {SharedValidators} from "../../../shared/validator/validators";
+import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 
 
 @Component({

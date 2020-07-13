@@ -732,6 +732,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return row.id;
   }
 
+
   /* -- protected method -- */
 
   protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {

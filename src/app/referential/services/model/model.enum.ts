@@ -36,6 +36,7 @@ export const PmfmIds = {
   IS_SAMPLING: 121,
 
   /* ADAP pmfms */
+  LENGTH_TOTAL_CM: 81, // Use for test only
   SELF_SAMPLING_PROGRAM: 28,
   CONTROLLED_SPECIES: 134,
   SAMPLE_MEASURED_WEIGHT: 140,
