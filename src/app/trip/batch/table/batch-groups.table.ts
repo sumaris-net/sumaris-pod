@@ -255,10 +255,18 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
    */
   async autoFillTable(opts?: {defaultTaxonGroups?: string[]; }) {
     // Wait table is ready
-    if (this.loading || !this.program) {
+    await this.onReady();
+
+    // Wait table loaded
+    if (this.loading) {
       await firstFalsePromise(this.loadingSubject);
     }
-    if (this.disabled || !this.confirmEditCreate()) return; // Skip when disabled or still editing a row
+
+    // Skip when disabled or still editing a row
+    if (this.disabled || !this.confirmEditCreate()) {
+      console.warn("[batch-group-table] Skipping autofill, as table is disabled or still editing a row");
+      return;
+    }
 
     this.markAsLoading();
 

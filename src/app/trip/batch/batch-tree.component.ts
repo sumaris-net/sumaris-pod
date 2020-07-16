@@ -32,16 +32,12 @@ import {InMemoryEntitiesService} from "../../shared/services/memory-entity-servi
 export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnInit, AfterViewInit{
 
   private _gearId: number;
-  private _defaultTaxonGroups: string[];
-
 
   enableCatchForm = false;
   enableSubBatchesTab = false;
-  subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>
-  saveOptions = {
-    computeBatchRankOrder: false,
-    computeBatchIndividualCount: false,
-  }
+
+  // Need when subbatches table not visible
+  subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
   data: Batch;
   programSubject = new BehaviorSubject<string>(undefined);
@@ -81,14 +77,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
   @Input() set defaultTaxonGroups(value: string[]) {
-    if (this._defaultTaxonGroups !== value) {
-      this._defaultTaxonGroups = value;
-      if (!this.loading) this.batchGroupsTable.defaultTaxonGroups = value;
-    }
+    this.batchGroupsTable.defaultTaxonGroups = value;
   }
 
   get defaultTaxonGroups(): string[] {
-    return this._defaultTaxonGroups;
+    return this.batchGroupsTable.defaultTaxonGroups;
   }
 
   get dirty(): boolean {
@@ -261,6 +254,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   /* -- protected method -- */
 
   async setValue(catchBatch: Batch) {
+    //this.batchGroupsTable.markAsLoading({emitEvent: false});
+
     // Make sure this is catch batch
     if (catchBatch && catchBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
       throw new Error('Catch batch should have label=' + AcquisitionLevelCodes.CATCH_BATCH)
@@ -275,7 +270,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     // Set catch batch
     this.catchBatchForm.gearId = this._gearId;
-    this.catchBatchForm.value = catchBatch.clone();
+    this.catchBatchForm.value = catchBatch.clone({withChildren: false});
 
     if (this.batchGroupsTable) {
       // Retrieve batch group (make sure label start with acquisition level)
@@ -346,8 +341,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
 
-  autoFill(): Promise<void> {
-    return this.batchGroupsTable.autoFillTable();
+  autoFill(opts?: {defaultTaxonGroups?: string[]; }): Promise<void> {
+    return this.batchGroupsTable.autoFillTable(opts);
   }
 
   setSelectedTabIndex(value: number, opts?: {emitEvent?: boolean; realignInkBar?: boolean; }) {
