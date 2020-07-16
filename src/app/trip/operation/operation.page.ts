@@ -418,7 +418,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   updateView(data: Operation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
     super.updateView(data, opts);
 
-    if (this.isNewData && this.showBatchTables && this.batchTree.defaultTaxonGroups) {
+    if (this.isNewData && this.showBatchTables && isNotEmptyArray(this.batchTree.defaultTaxonGroups)) {
       this.batchTree.autoFill();
     }
   }
@@ -648,10 +648,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     await this.batchTree.save()
 
-    // TODO check this
+    // Get batch tree,rom the batch tree component
     data.catchBatch = this.batchTree.value;
-    BatchUtils.logTree(data.catchBatch);
-    //data.catchBatch = this.catchBatchForm.value;
+
+    // Make sure to clean species groups, if not batch enable
+    if (!this.showBatchTables) {
+      data.catchBatch.children = undefined;
+    }
 
     // save survival tables
     if (this.showSampleTables) {
@@ -670,23 +673,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     } else {
       data.samples = undefined;
-    }
-
-    // Save batch sampling tables
-    if (this.showBatchTables) {
-     /* await this.batchGroupsTable.save();
-
-      let subBatches: Batch[];
-      if (this.subBatchesTable) {
-        await this.subBatchesTable.save();
-        subBatches = this.subBatchesTable.value;
-      } else {
-        subBatches = this.tempSubBatches;
-      }
-      data.catchBatch.children = BatchUtils.prepareRootBatchesForSaving(this.batchGroupsTable.value, subBatches, this.batchGroupsTable.qvPmfm);
-      BatchUtils.logTree(data.catchBatch);
-    } else {
-      data.catchBatch.children = undefined;*/
     }
 
     return data;
@@ -721,7 +707,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
 
     if (this.debug) console.debug("[operation] Check if can auto fill species...");
-    let includeTaxonGroups: string[];
+    let defaultTaxonGroups: string[];
 
     // Retrieve the trip measurements on SELF_SAMPLING_PROGRAM, if any
     const qvMeasurement = (this.trip.measurements || []).find(m => m.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
@@ -734,7 +720,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
       // Transform QV.label has a list of TaxonGroup.label
       if (qualitativeValue && qualitativeValue.label) {
-        includeTaxonGroups = qualitativeValue.label
+        defaultTaxonGroups = qualitativeValue.label
           .split(/[^\w]+/) // Split by separator (= not a word)
           .filter(isNotNilOrBlank)
           .map(label => label.trim().toUpperCase());
@@ -742,11 +728,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
 
     // Set table's default taxon groups
-    this.batchTree.defaultTaxonGroups = includeTaxonGroups;
+    this.batchTree.defaultTaxonGroups = defaultTaxonGroups;
 
     // If new data, auto fill the table
     if (this.isNewData && !this.loading) {
-      await this.batchTree.autoFill();
+      await this.batchTree.autoFill({defaultTaxonGroups});
     }
   }
 
@@ -757,35 +743,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       queryParams: queryParams,
       queryParamsHandling: "preserve"
     });
-  }
-
-  protected loadLastOperations(tripId: number): Observable<Operation[]> {
-    if (this._lastOperationsSubscription) {
-      this._lastOperationsSubscription.unsubscribe();
-      this.unregisterSubscription(this._lastOperationsSubscription);
-    }
-
-    //let resortComparator: (a: Operation, b: Operation) => number;
-
-    // Load last trip's operations
-    this._lastOperationsSubscription = this.dataService.watchAll(0, 5, 'startDateTime', 'desc', {
-        tripId
-      }, {
-        withBatchTree: false,
-        withSamples: false,
-        computeRankOrder: false,
-        fetchPolicy: 'cache-first'
-      }).pipe(
-        // Ignore event due to save action
-        filter(res => this.mobile || !this.saving),
-        debounceTime(500),
-
-        map(res => res && res.data || [])
-      ).subscribe(data => this.$lastOperations.next(data));
-
-    this.registerSubscription(this._lastOperationsSubscription);
-
-    return this.$lastOperations;
   }
 
   protected markForCheck() {

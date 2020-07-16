@@ -46,7 +46,7 @@ export class BatchGroup extends Batch<BatchGroup> {
 
 export class BatchGroupUtils {
 
-  static fromBatchTree(catchBatch: Batch) {
+  static fromBatchTree(catchBatch: Batch): BatchGroup[] {
 
     // Retrieve batch group (make sure label start with acquisition level)
     // Then convert into batch group entities

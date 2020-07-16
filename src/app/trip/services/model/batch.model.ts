@@ -148,9 +148,9 @@ export class Batch<T extends Batch<any> = Batch<any>,
     this.weight = null;
   }
 
-  clone(): T {
+  clone(opts?: O & F): T {
     const target = new Batch();
-    target.fromObject(this.asObject());
+    target.fromObject(this.asObject(opts), opts);
     return target as T;
   }
 
