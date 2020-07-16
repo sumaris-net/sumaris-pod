@@ -26,12 +26,13 @@ import {BatchGroupModal} from "../modal/batch-group.modal";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 import {firstFalsePromise} from "../../../shared/observables";
 import {BatchGroup} from "../../services/model/batch-group.model";
-import {ReferentialUtils} from "../../../core/services/model/referential.model";
+import {IReferentialRef, ReferentialUtils} from "../../../core/services/model/referential.model";
 import {PlatformService} from "../../../core/services/platform.service";
 import {SubBatch} from "../../services/model/subbatch.model";
-import {of, Subject} from "rxjs";
+import {Observable, of, Subject} from "rxjs";
 import {map, takeUntil} from "rxjs/operators";
 import {SubBatchesModal} from "../modal/sub-batches.modal";
+import {TaxonGroupRef} from "../../../referential/services/model/taxon.model";
 
 const DEFAULT_USER_COLUMNS = ["weight", "individualCount"];
 
@@ -105,12 +106,14 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   estimatedWeightPmfm: PmfmStrategy;
   dynamicColumns: ColumnDefinition[];
 
+  @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
 
   @Input() set defaultTaxonGroups(value: string[]) {
     // If empty, replace with undefined (need by autoFill button - see template)
     value = isNotEmptyArray(value) ? value : undefined;
     if (this._defaultTaxonGroups !== value) {
       this._defaultTaxonGroups = value;
+      this.loadAvailableTaxonGroups();
       this.markForCheck();
     }
   }
@@ -248,7 +251,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }
 
 
-
   /**
    * Allow to fill table (e.g. with taxon groups found in strategies) - #176
    * @params opts.includeTaxonGroups : include taxon label
@@ -271,7 +273,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     this.markAsLoading();
 
     try {
-      const defaultTaxonGroups = opts && opts.defaultTaxonGroups || this._defaultTaxonGroups || null;
       console.debug("[batch-group-table] Auto fill table, using options:", opts);
 
       // Read existing taxonGroup
@@ -279,14 +280,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         .map(batch => batch.taxonGroup)
         .filter(isNotNil);
 
-      const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
-      const taxonGroups = (await this.programService.loadTaxonGroups(this.program) || [])
-        // Filter on expected labels (as prefix)
-        .filter(taxonGroup => !defaultTaxonGroups || taxonGroup.label && defaultTaxonGroups.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
+      const taxonGroups = (await this.loadAvailableTaxonGroups(opts))
         // Exclude species that already exists in table
-        .filter(taxonGroup => !rowsTaxonGroups.find(tg => ReferentialUtils.equals(tg, taxonGroup)))
-        // Sort using order configure in the taxon group column
-        .sort(propertiesPathComparator(sortAttributes));
+        .filter(taxonGroup => !rowsTaxonGroups.find(tg => ReferentialUtils.equals(tg, taxonGroup)));
 
       for (const taxonGroup of taxonGroups) {
         const batch = new BatchGroup();
@@ -751,6 +747,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
+        availableTaxonGroups: this.availableTaxonGroups,
         taxonGroupsNoWeight: this.taxonGroupsNoWeight,
         showSubBatchesCallback: (parent, valid) => this.onOpenSubBatchesFromModal(parent, valid)
       },
@@ -856,6 +853,22 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     else {
       row.currentData = parent;
     }
+  }
+
+  async loadAvailableTaxonGroups(opts?: {defaultTaxonGroups?: string[]}): Promise<TaxonGroupRef[]> {
+    const defaultTaxonGroups = opts && opts.defaultTaxonGroups || this._defaultTaxonGroups || null;
+    console.debug("[batch-group-table] Loading available taxon groups, using options:", opts);
+
+    const sortAttributes = this.autocompleteFields.taxonGroup && this.autocompleteFields.taxonGroup.attributes || ['label', 'name'];
+    const taxonGroups = ((await this.programService.loadTaxonGroups(this.program)) || [])
+      // Filter on expected labels (as prefix)
+      .filter(taxonGroup => !defaultTaxonGroups || taxonGroup.label && defaultTaxonGroups.findIndex(label => taxonGroup.label.startsWith(label)) !== -1)
+      // Sort using order configure in the taxon group column
+      .sort(propertiesPathComparator(sortAttributes));
+
+    this.availableTaxonGroups = isNotEmptyArray(taxonGroups) ? taxonGroups : undefined;
+
+    return taxonGroups;
   }
 }
 

@@ -10,9 +10,9 @@ import {
 } from "@angular/core";
 import {Batch, BatchUtils} from "../../services/model/batch.model";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
-import {AppFormUtils, isNil} from "../../../core/core.module";
+import {AppFormUtils, IReferentialRef, isNil} from "../../../core/core.module";
 import {AlertController, ModalController} from "@ionic/angular";
-import {BehaviorSubject, Subscription} from "rxjs";
+import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
@@ -54,6 +54,8 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() taxonGroupsNoWeight: string[];
 
+  @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
+
   @Input() qvPmfm: PmfmStrategy;
 
   @Input()
@@ -85,6 +87,20 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     return !this.disabled;
   }
 
+  enable(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }) {
+    this.form.enable(opts);
+  }
+
+  disable(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }) {
+    this.form.disable(opts);
+  }
+
   constructor(
     protected injector: Injector,
     protected alertCtrl: AlertController,
@@ -111,10 +127,10 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     this.disabled = toBoolean(this.disabled, false);
 
     if (this.disabled) {
-      this.form.disable();
+      this.disable();
     }
     else {
-      this.form.enable();
+      this.enable();
     }
 
     // Update title each time value changes
@@ -164,7 +180,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     this.loading = true;
 
     // Force enable form, before use value
-    if (!this.enabled) this.form.enable({emitEvent: false});
+    if (!this.enabled) this.enable({emitEvent: false});
 
     // Wait end of async validation
     await AppFormUtils.waitWhilePending(this.form);
