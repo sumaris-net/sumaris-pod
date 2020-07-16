@@ -254,7 +254,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   /* -- protected method -- */
 
   async setValue(catchBatch: Batch) {
-    //this.batchGroupsTable.markAsLoading({emitEvent: false});
+
+    this.loading = true;
 
     // Make sure this is catch batch
     if (catchBatch && catchBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
@@ -298,6 +299,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         this.subBatchesService.value = subBatches;
       }
     }
+
+    this.loading = false;
   }
 
   protected get form(): FormGroup {
