@@ -10,20 +10,24 @@ import {MatAutocompleteConfigHolder} from "../../../shared/material/autocomplete
 import {SharedValidators} from "../../../shared/validator/validators";
 import {BatchGroupUtils} from "../../services/model/batch-group.model";
 import {PmfmIds} from "../../../referential/services/model/model.enum";
+import {isEmptyArray, isNotNil} from "../../../shared/functions";
+import {EntityUtils} from "../../../core/services/model/entity.model";
+import {EntitiesStorage} from "../../../core/services/entities-storage.service";
 
 function getIndivMeasValues(opts?: {
   length?: number;
   discardOrLanding: 'LAN'|'DIS';
 }) {
   opts = {
-    length: 15,
     discardOrLanding: 'LAN',
     ...opts
   }
   const res = {};
 
   res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? 190 : 191;
-  res[PmfmIds.LENGTH_TOTAL_CM] = opts.length;
+  if (isNotNil(opts.length)) {
+    res[PmfmIds.LENGTH_TOTAL_CM] = opts.length;
+  }
   return res;
 }
 const TREE_EXAMPLES: {[key: string]: any} = {
@@ -36,7 +40,9 @@ const TREE_EXAMPLES: {[key: string]: any} = {
           taxonGroup: {id: 1122, label: 'MNZ', name: 'Baudroie nca'},
           children: [
             {
-              label: 'SORTING_BATCH#1.LAN', rankOrder: 1, children: [
+              label: 'SORTING_BATCH#1.LAN', rankOrder: 1,
+              measurementValues: getIndivMeasValues({discardOrLanding: 'LAN'}),
+              children: [
                 {
                   label: 'SORTING_BATCH#1.LAN.%',
                   rankOrder: 1,
@@ -62,7 +68,9 @@ const TREE_EXAMPLES: {[key: string]: any} = {
               ]
             },
             {
-              label: 'SORTING_BATCH#1.DIS', rankOrder: 2, children: [
+              label: 'SORTING_BATCH#1.DIS', rankOrder: 2,
+              measurementValues: getIndivMeasValues({discardOrLanding: 'DIS'}),
+              children: [
                 {
                   label: 'SORTING_BATCH#1.DIS.%',
                   rankOrder: 1,
@@ -109,7 +117,8 @@ export class BatchTreeTestPage implements OnInit {
   constructor(
     formBuilder: FormBuilder,
     protected referentialRefService: ReferentialRefService,
-    protected programService: ProgramService
+    protected programService: ProgramService,
+    private entities: EntitiesStorage
   ) {
 
     this.form = formBuilder.group({
@@ -198,7 +207,7 @@ export class BatchTreeTestPage implements OnInit {
   }
 
 
-  getExampleTree(key?: string): Batch {
+  async getExampleTree(key?: string): Promise<Batch> {
 
     if (!key) {
       const example = this.form.get('example').value;
@@ -207,26 +216,65 @@ export class BatchTreeTestPage implements OnInit {
 
     // Load example
     const json = TREE_EXAMPLES[key];
-    return Batch.fromObject(json);
+
+    // Convert to array (as Pod should sent) with:
+    // - a local ID
+    // - only the parentId, and NOT the parent
+    const batches = EntityUtils.treeToArray(json) || [];
+    await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues('BatchVO', count));
+    batches.forEach(b => {
+      b.parentId = b.parent && b.parent.id;
+      delete b.parent;
+    })
+
+    // Convert into Batch tree
+    const catchBatch = Batch.fromObjectArrayAsTree(batches)
+    BatchUtils.computeIndividualCount(catchBatch);
+
+    return catchBatch;
   }
 
   // Load data into components
   async applyExample(key?: string) {
-    const catchBatch = this.getExampleTree(key);
+    const catchBatch = await this.getExampleTree(key);
     await this.updateView(catchBatch);
   }
 
-  dumpExample(key?: string) {
-    const catchBatch = this.getExampleTree(key);
+  async dumpExample(key?: string) {
+    const catchBatch = await this.getExampleTree(key);
      this.dumpCatchBatch(catchBatch, 'example');
   }
 
-  async dumpBatchTree(batchTree: BatchTreeComponent|any, outputName?: string) {
+  async dumpBatchTree(batchTree: BatchTreeComponent, outputName?: string) {
 
     await batchTree.save();
     const catchBatch = batchTree.value;
 
     this.dumpCatchBatch(catchBatch, outputName);
+
+    if (batchTree.mobile) {
+      let html = "<br/>Sub batches :<br/>";
+      const subBatches = await batchTree.getSubBatches();
+      if (isEmptyArray(subBatches)) {
+        html += '&nbsp;No result';
+      }
+      else {
+        let html = "<ul>";
+        subBatches.forEach(b => {
+          BatchUtils.logTree(b, {
+            showAll: false,
+            println: (m) => {
+              html += "<li>" + m + "</li>";
+            }
+          });
+        });
+        html += "</ul>"
+      }
+
+      // Append to result
+      this.outputs[outputName] += html;
+    }
+
   }
 
 
@@ -234,15 +282,17 @@ export class BatchTreeTestPage implements OnInit {
     let html = "";
     if (catchBatch) {
       BatchUtils.logTree(catchBatch, {
+        showAll: false,
         println: (m) => {
           html += "<br/>" + m
         }
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');
+
       this.outputs[outputName] = html;
     }
     else {
-      this.outputs[outputName] = 'No result';
+      this.outputs[outputName] = '&nbsp;No result';
     }
 
     console.debug(html);

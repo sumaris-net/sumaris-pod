@@ -8,13 +8,13 @@
   </ion-item>
 
   <!-- parent combo -->
-  <ion-grid class="ion-no-padding" *ngIf="showParent">
+  <ion-grid class="ion-no-padding" *ngIf="showParentGroup">
     <ion-row class="ion-no-padding">
       <ion-col class="ion-no-padding">
         <mat-autocomplete-field #inputField
-                                formControlName="parent"
-                                [placeholder]="'TRIP.BATCH.EDIT.PARENT'|translate"
-                                [config]="autocompleteFields.parent"
+                                formControlName="parentGroup"
+                                [placeholder]="'TRIP.BATCH.EDIT.PARENT_GROUP'|translate"
+                                [config]="autocompleteFields.parentGroup"
                                 [required]="true"
                                 [mobile]="mobile"
                                 [tabindex]="tabindex"

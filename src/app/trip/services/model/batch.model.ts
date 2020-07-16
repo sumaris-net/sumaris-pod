@@ -11,6 +11,8 @@ import {
   ReferentialUtils
 } from "../../../core/services/model/referential.model";
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {BatchGroup} from "./batch-group.model";
+import {SubBatch} from "./subbatch.model";
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
@@ -34,6 +36,8 @@ export class Batch<T extends Batch<any> = Batch<any>,
   static SAMPLING_BATCH_SUFFIX = '.%';
 
   static fromObject(source: any, opts?: { withChildren?: boolean; }): Batch {
+    // WARN: always recreate en entity, even if source is a Batch
+    // because options can have changed
     const target = new Batch();
     target.fromObject(source, opts);
     return target;
@@ -119,8 +123,8 @@ export class Batch<T extends Batch<any> = Batch<any>,
 
   operationId: number;
   parentId: number;
-  parent: Batch<T>;
-  children: Batch<T>[];
+  parent: Batch<any>;
+  children: Batch<any>[];
 
   constructor() {
     super();
@@ -355,32 +359,7 @@ export class BatchUtils {
     }) !== -1;
   }
 
-  static prepareRootBatchesForSaving(rootBatches: Batch[], subBatches: Batch[], qvPmfm?: PmfmStrategy) {
-    (rootBatches || []).forEach(rootBatch => {
-      // Add children
-      (rootBatch.children || []).forEach(b => {
-        const children = subBatches.filter(childBatch => {
-          //console.table([childBatch.label, childBatch.parent && rootBatch.equals(childBatch.parent), (childBatch.measurementValues[qvPmfm.pmfmId] == b.measurementValues[qvPmfm.pmfmId])]);
-          return childBatch.parent && rootBatch.equals(childBatch.parent) &&
-            (!qvPmfm || (childBatch.measurementValues[qvPmfm.pmfmId] == b.measurementValues[qvPmfm.pmfmId]))
-        });
-        // If has sampling batch, use it as parent
-        if (b.children && b.children.length === 1 && BatchUtils.isSampleBatch(b.children[0])) {
-          b.children[0].children = children;
-          children.forEach(c => {
-            c.parentId = b.children[0].id;
-          });
-        } else {
-          b.children = children;
-          children.forEach(c => {
-            c.parentId = b.id;
-          });
-        }
-      });
-    });
 
-    return rootBatches;
-  }
 
   /**
    * Compute individual count, from individual measures
@@ -473,32 +452,67 @@ export class BatchUtils {
     println?: (message: string) => void;
     indent?: string;
     nextIndent?: string;
+    showAll?: boolean;
+    showParent?: boolean;
     showTaxon?: boolean;
     showMeasure?: boolean;
   }) {
     opts = opts || {};
     const indent = opts && opts.indent || '';
     const nextIndent = opts && opts.nextIndent || indent;
-    let message = indent + batch.label + ' id=' + batch.id;
-    if (batch.parent || isNotNil(batch.parentId)) {
-      message += ' - parentId=' + (batch.parent && batch.parent.id || batch.parentId);
+    let message = indent + (batch.label || 'NO_LABEL');
+
+    if (opts.showAll) {
+      const excludeKeys = ['label', 'parent', 'children', '__typename'];
+      Object.keys(batch)
+        .filter(key => !excludeKeys.includes(key) && isNotNil(batch[key]))
+        .forEach(key => {
+          let value = batch[key];
+          if (value instanceof Object) {
+            if (!(value instanceof Batch)) {
+              value = JSON.stringify(value);
+            }
+          }
+          message += ' ' + key + ':' + value;
+        })
     }
-    // Taxon
-    if (opts.showTaxon !== false) {
-      if (batch.taxonGroup) {
-        message += ' - taxonGroup=' + (batch.taxonGroup && (batch.taxonGroup.label || batch.taxonGroup.id));
+    else {
+
+      if (isNotNil(batch.id)) {
+        message += ' id:' + batch.id;
       }
-      if (batch.taxonName) {
-        message += ' - taxonName=' + (batch.taxonName && (batch.taxonName.label || batch.taxonName.id));
+
+      // Parent
+      if (opts.showParent !== false) {
+        if (batch.parent) {
+          if (isNotNil(batch.parent.id)) {
+            message += ' parent.id:' + batch.parent.id;
+          }
+          else if (isNotNil(batch.parent.label)) {
+            message += ' parent.label:' + batch.parent.label;
+          }
+        }
+        if (isNotNil(batch.parentId)) {
+          message += ' parentId:' + batch.parentId;
+        }
       }
-    }
-    // Measurement
-    if (opts.showMeasure !== false) {
-      if (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING]) {
-        message += ' - ' + (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == 190 ? 'LAN' : 'DIS');
+      // Taxon
+      if (opts.showTaxon !== false) {
+        if (batch.taxonGroup) {
+          message += ' taxonGroup:' + (batch.taxonGroup && (batch.taxonGroup.label || batch.taxonGroup.id));
+        }
+        if (batch.taxonName) {
+          message += ' taxonName:' + (batch.taxonName && (batch.taxonName.label || batch.taxonName.id));
+        }
       }
-      if (isNotNil(batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM])) {
-        message += ' - ' + batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM] + 'cm';
+      // Measurement
+      if (opts.showMeasure !== false) {
+        if (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING]) {
+          message += ' discardOrLanding:' + (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == 190 ? 'LAN' : 'DIS');
+        }
+        if (isNotNil(batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM])) {
+          message += ' lengthTotal:' + batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM] + 'cm';
+        }
       }
     }
 
@@ -507,7 +521,7 @@ export class BatchUtils {
     else  console.debug(message);
 
     const childrenCount = batch.children && batch.children.length || 0;
-    if (childrenCount) {
+    if (childrenCount > 0) {
       batch.children.forEach((b, index, ) => {
         const childOpts = (index === childrenCount - 1) ? {
           println: opts.println,

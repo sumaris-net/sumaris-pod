@@ -128,24 +128,22 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
 
     this.queryTabIndexParamName = this.queryTabIndexParamName || 'tab';
 
-    // Read route query parameters
-    const queryParams = this.route.snapshot.queryParams;
-
-    // Copy original queryParams, for reuse in onTabChange()
-    this.queryParams = {...queryParams};
-
     // Read the selected tab index, from path query params
-    if (this.tabGroup) {
-      // Parse tab param
-      if (this.tabCount > 1 && this.queryTabIndexParamName) {
-        const tabIndex = queryParams[this.queryTabIndexParamName];
-        this.queryParams[this.queryTabIndexParamName] = tabIndex && parseInt(tabIndex) || undefined;
-        if (isNotNil(this.queryParams[this.queryTabIndexParamName])) {
-          this.selectedTabIndex = this.queryParams[this.queryTabIndexParamName];
+    this.registerSubscription(this.route.queryParams
+      .subscribe(queryParams => {
+        this.queryParams = {...queryParams};
+
+        // Parse tab param
+        if (this.tabCount > 1 && this.queryTabIndexParamName) {
+          const tabIndex = queryParams[this.queryTabIndexParamName];
+          this.queryParams[this.queryTabIndexParamName] = tabIndex && parseInt(tabIndex) || undefined;
+          if (isNotNil(this.queryParams[this.queryTabIndexParamName])) {
+            this.selectedTabIndex = this.queryParams[this.queryTabIndexParamName];
+          }
         }
-      }
-      this.tabGroup.realignInkBar();
-    }
+        this.tabGroup.realignInkBar();
+      }));
+
 
     // Catch back click events
     if (this.appToolbar) {
@@ -447,6 +445,27 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
       return await this.reload();
     }
   }
+
+  setSelectedTabIndex(value: number, opts?: {emitEvent?: boolean; realignInkBar?: boolean; }) {
+    // Fix value
+    if (value < 0) {
+      value = 0;
+    }
+    else if (value > this.tabCount - 1) {
+      value = this.tabCount - 1;
+    }
+
+    this.selectedTabIndex = value;
+    if (!opts || opts.realignInkBar !== false) {
+      this.markForCheck();
+      this.tabGroup.selectedIndex = value;
+      setTimeout(() => this.tabGroup.realignInkBar());
+    }
+    else if (!opts || opts.emitEvent !== false) {
+      this.markForCheck();
+    }
+  }
+
   /* -- protected methods -- */
 
   protected async scrollToTop() {

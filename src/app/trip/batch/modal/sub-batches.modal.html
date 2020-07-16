@@ -54,7 +54,7 @@
                             [acquisitionLevel]="acquisitionLevel"
                             [pmfms]="$pmfms|async"
                             [qvPmfm]="qvPmfm"
-                            [showParent]="showParent"
+                            [showParentGroup]="showParentGroup"
                             [showTaxonName]="showTaxonNameColumn"
                             [showIndividualCount]="showIndividualCount"
                             [displayParentPmfm]="displayParentPmfm"
@@ -90,13 +90,13 @@
           </ng-container>
 
           <!-- parent -->
-          <ng-container matColumnDef="parent">
+          <ng-container matColumnDef="parentGroup">
             <mat-header-cell *matHeaderCellDef >
               <ion-label>{{ (displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) ||
-                  'TRIP.BATCH.TABLE.PARENT') | translate }}</ion-label>
+                  'TRIP.BATCH.TABLE.PARENT_GROUP') | translate }}</ion-label>
             </mat-header-cell>
             <mat-cell *matCellDef="let row">
-              {{ autocompleteFields.parent.displayWith(row.currentData.parent) }}
+              {{ autocompleteFields.parentGroup.displayWith(row.currentData.parentGroup) }}
             </mat-cell>
           </ng-container>
 

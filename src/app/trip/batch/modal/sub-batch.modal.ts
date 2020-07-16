@@ -10,6 +10,7 @@ import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.mo
 import {toBoolean} from "../../../shared/functions";
 import {SubBatchForm} from "../form/sub-batch.form";
 import {PlatformService} from "../../../core/services/platform.service";
+import {SubBatch} from "../../services/model/subbatch.model";
 
 @Component({
   selector: 'app-sub-batch-modal',
@@ -21,7 +22,7 @@ export class SubBatchModal implements OnInit{
   debug = false;
   loading = false;
   mobile: boolean;
-  data: Batch;
+  data: SubBatch;
   $title = new BehaviorSubject<string>(undefined);
 
   @Input() acquisitionLevel: string;
@@ -47,7 +48,7 @@ export class SubBatchModal implements OnInit{
   @Input() availableParents: Batch[];
 
   @Input()
-  set value(value: Batch) {
+  set value(value: SubBatch) {
     this.data = value;
   }
 
@@ -87,7 +88,7 @@ export class SubBatchModal implements OnInit{
     this.disabled = !this.canEdit || toBoolean(this.disabled, true);
     this.isNew = toBoolean(this.isNew, false);
 
-    this.data = this.data || new Batch();
+    this.data = this.data || new SubBatch();
 
     // Compute the title
     this.computeTitle();
@@ -136,7 +137,7 @@ export class SubBatchModal implements OnInit{
     this.cd.markForCheck();
   }
 
-  protected async computeTitle(data?: Batch) {
+  protected async computeTitle(data?: SubBatch) {
     data = data || this.data;
     if (this.isNew || !data) {
       this.$title.next(await this.translate.get('TRIP.SUB_BATCH.NEW.TITLE').toPromise());

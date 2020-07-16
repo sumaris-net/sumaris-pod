@@ -214,13 +214,16 @@ export declare interface OperationSaveOptions {
   computeBatchIndividualCount?: boolean;
 }
 
-export declare interface OperationServiceOptions extends
+export declare interface OperationServiceWatchOptions extends
   OperationFromObjectOptions, EntitiesServiceWatchOptions {
+
+  computeRankOrder?: boolean;
+
 }
 
 @Injectable({providedIn: 'root'})
 export class OperationService extends BaseEntityService<Operation, OperationFilter>
-  implements EntitiesService<Operation, OperationFilter, OperationServiceOptions>,
+  implements EntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
              EntityService<Operation>{
 
   loading = false;
@@ -253,7 +256,7 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
            sortBy?: string,
            sortDirection?: SortDirection,
            dataFilter?: OperationFilter,
-           opts?: OperationServiceOptions
+           opts?: OperationServiceWatchOptions
   ): Observable<LoadResult<Operation>> {
 
     // Load offline
@@ -299,8 +302,10 @@ export class OperationService extends BaseEntityService<Operation, OperationFilt
           now = undefined;
         }
 
-        // Compute rankOrder and re-sort if need
-        this.computeRankOrderAndSort(data, sortBy, sortDirection, dataFilter);
+        // Compute rankOrder and re-sort (if enable AND all data fetched)
+        if (offset === 0 && size === 1000 && (!opts || opts.computeRankOrder !== false)) {
+          this.computeRankOrderAndSort(data, sortBy, sortDirection, dataFilter);
+        }
 
         return {
           data: data,

@@ -43,6 +43,8 @@ import {PmfmFormField} from "../../../referential/pmfm/pmfm.form-field.component
 import {focusNextInput, focusPreviousInput, GetFocusableInputOptions} from "../../../shared/inputs";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
+import {SubBatch} from "../../services/model/subbatch.model";
+import {BatchGroup} from "../../services/model/batch-group.model";
 
 
 @Component({
@@ -50,11 +52,11 @@ import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
   templateUrl: 'sub-batch.form.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubBatchForm extends MeasurementValuesForm<Batch>
+export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   implements OnInit, OnDestroy {
 
   protected _qvPmfm: PmfmStrategy;
-  protected _availableParents: Batch[] = [];
+  protected _availableParents: BatchGroup[] = [];
   protected _parentAttributes: string[];
   protected _showTaxonName: boolean;
 
@@ -72,7 +74,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   @Input() usageMode: UsageMode;
 
-  @Input() showParent = true;
+  @Input() showParentGroup = true;
 
   @Input() set showTaxonName(show) {
     this._showTaxonName = show;
@@ -99,7 +101,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   @Input() displayParentPmfm: PmfmStrategy;
 
-  @Input() onNewParentClick: () => Promise<Batch | undefined>;
+  @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
 
   @Input() showError = true;
 
@@ -119,12 +121,12 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     return this._qvPmfm;
   };
 
-  @Input() set availableParents(parents: Batch[]) {
+  @Input() set availableParents(parents: BatchGroup[]) {
     if (this._availableParents === parents) return; // skip
     this._availableParents = parents;
   }
 
-  get availableParents(): Batch[] {
+  get availableParents(): BatchGroup[] {
     return this._availableParents;
   }
 
@@ -158,8 +160,8 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
-  get parent(): any {
-    return this.form.controls.parent.value;
+  get parentGroup(): any {
+    return this.form.controls.parentGroup.value;
   }
 
   @ViewChildren(PmfmFormField) measurementFormFields: QueryList<PmfmFormField>;
@@ -223,8 +225,8 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       .concat(!this.showTaxonName ? this.settings.getFieldDisplayAttributes('taxonName').map(attr => 'taxonName.' + attr) : []);
 
     // Parent combo
-    const parentControl = this.form.get('parent');
-    this.registerAutocompleteField('parent', {
+    const parentControl = this.form.get('parentGroup');
+    this.registerAutocompleteField('parentGroup', {
       suggestFn: (value: any, options?: any) => this.suggestParents(value, options),
       attributes: ['rankOrder'].concat(this._parentAttributes),
       showAllOnFocus: true
@@ -352,10 +354,10 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
-  setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean; }) {
+  setValue(data: SubBatch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean; }) {
     // Replace parent with value from availableParents
     if (!opts || opts.linkToParent !== false) {
-      this.linkToParent(data);
+      this.linkToParentGroup(data);
     }
 
     // Reset taxon name button index
@@ -370,10 +372,10 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     super.setValue(data, {...opts, linkToParent: false /* avoid to be relink, if loop to setValue() */ });
   }
 
-  reset(data?: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean; }) {
+  reset(data?: SubBatch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean; }) {
     // Replace parent with value from availableParents
     if (!opts || opts.linkToParent !== false) {
-      this.linkToParent(data);
+      this.linkToParentGroup(data);
     }
 
     // Reset taxon name button index
@@ -504,15 +506,15 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   protected suggestTaxonNames(value?: any, options?: any): Promise<TaxonNameRef[]> {
-    const parent = this.parent;
-    if (isNil(parent)) return Promise.resolve([]);
+    const parentGroup = this.parentGroup;
+    if (isNil(parentGroup)) return Promise.resolve([]);
     //if (this.debug)
       console.debug(`[sub-batch-form] Searching taxon name {${value || '*'}}...`);
     return this.programService.suggestTaxonNames(value,
       {
         program: this.program,
         searchAttribute: options && options.searchAttribute,
-        taxonGroupId: parent && parent.taxonGroup && parent.taxonGroup.id || undefined
+        taxonGroupId: parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id || undefined
       });
   }
 
@@ -542,7 +544,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
-  protected getValue(): Batch {
+  protected getValue(): SubBatch {
     if (!this.form.dirty) return this.data;
 
     const json = this.form.value;
@@ -569,23 +571,23 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
 
-  protected linkToParent(data?: Batch) {
+  protected linkToParentGroup(data?: SubBatch) {
     if (!data) return;
     // Find the parent
-    const parentInfo = data.parent || (data.parentId && {id: data.parentId});
-    if (!parentInfo) return; // no parent = nothing to link
+    const parentGroup = data.parentGroup;
+    if (!parentGroup) return; // no parent = nothing to link
 
-    data.parent = this._availableParents.find(p => Batch.equals(p, parentInfo));
+    data.parentGroup = this._availableParents.find(p => Batch.equals(p, parentGroup));
 
     // Parent not found
-    if (!data.parent) {
+    if (!data.parentGroup) {
       // Force to allow parent selection
-      this.showParent = this.showParent || true;
+      this.showParentGroup = this.showParentGroup || true;
     }
 
     // Get the parent of the parent (e.g. if parent is a sample batch)
-    else if (!data.parent.hasTaxonNameOrGroup && data.parent.parent && data.parent.parent.hasTaxonNameOrGroup) {
-      data.parent = data.parent.parent;
+    else if (data.parent && !data.parent.hasTaxonNameOrGroup && data.parent.parent && data.parent.parent.hasTaxonNameOrGroup) {
+      data.parentGroup = BatchGroup.fromBatch(data.parent.parent);
     }
   }
 

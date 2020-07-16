@@ -278,7 +278,9 @@ export class GraphqlService {
                                  opts: DataProxy.Query<V> & {
                                    arrayFieldName: string;
                                    totalFieldName?: string;
-                                   data: T
+                                   data: T;
+                                   sortFn?: (d1: T, d2: T) => number;
+                                   size?: number;
                                  }) {
 
     proxy = proxy || this.apollo.getClient();
@@ -290,6 +292,17 @@ export class GraphqlService {
       if (res && res[opts.arrayFieldName]) {
         // Append to result array
         res[opts.arrayFieldName].push(opts.data);
+
+        // Resort, if need
+        if (opts.sortFn) {
+          res[opts.arrayFieldName].sort(opts.sortFn);
+        }
+
+        // Exclude if exceed max size
+        const size = toNumber(opts.variables && opts.variables['size'], -1);
+        if (size > 0 && res[opts.arrayFieldName].length > size) {
+          res[opts.arrayFieldName].splice(size, res[opts.arrayFieldName].length - size);
+        }
 
         // Increment total
         if (isNotNil(opts.totalFieldName)) {
@@ -337,12 +350,12 @@ export class GraphqlService {
       if (res && res[opts.arrayFieldName]) {
         // Keep only not existing res
         const equalsFn = opts.equalsFn || ((d1, d2) => d1['id'] === d2['id'] && d1['entityName'] === d2['entityName']);
-        let data = opts.data.filter(inputValue => res[opts.arrayFieldName].findIndex(existingValue => equalsFn(inputValue, existingValue)) === -1);
+        let newItems = opts.data.filter(inputValue => res[opts.arrayFieldName].findIndex(existingValue => equalsFn(inputValue, existingValue)) === -1);
 
-        if (!data.length) return; // No new value
+        if (!newItems.length) return; // No new value
 
         // Append to result array
-        res[opts.arrayFieldName] = res[opts.arrayFieldName].concat(data);
+        res[opts.arrayFieldName] = res[opts.arrayFieldName].concat(newItems);
 
         // Resort, if need
         if (opts.sortFn) {
@@ -351,14 +364,14 @@ export class GraphqlService {
 
         // Exclude if exceed max size
         const size = toNumber(opts.variables && opts.variables['size'], -1);
-        if (size > 0 && data.length > size) {
-          res[opts.arrayFieldName].splice(size, data.length - size);
+        if (size > 0 && res[opts.arrayFieldName].length > size) {
+          res[opts.arrayFieldName].splice(size, res[opts.arrayFieldName].length - size);
         }
 
         // Increment the total
         if (isNotNil(opts.totalFieldName)) {
           if (res[opts.totalFieldName]) {
-            res[opts.totalFieldName] += data.length;
+            res[opts.totalFieldName] += newItems.length;
           }
           else {
             console.warn('[graphql] Unable to update cached query. Unknown result part: ' + opts.totalFieldName);

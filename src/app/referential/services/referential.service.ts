@@ -15,6 +15,7 @@ import {Beans, KeysEnum, toNumber} from "../../shared/functions";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {SortDirection} from "@angular/material/sort";
+import {PlatformService} from "../../core/services/platform.service";
 
 export class ReferentialFilter {
   entityName: string;
@@ -133,9 +134,17 @@ export class ReferentialService extends BaseEntityService<Referential> implement
 
   constructor(
     protected graphql: GraphqlService,
-    protected accountService: AccountService
+    protected accountService: AccountService,
+    protected platform: PlatformService
   ) {
     super(graphql);
+
+    platform.ready().then(() => {
+      // No limit for updatable watch queries, if desktop
+      if (!platform.mobile) {
+        this._mutableWatchQueriesMaxCount = -1;
+      }
+    });
 
     // For DEV only
     this._debug = !environment.production;

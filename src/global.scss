@@ -778,9 +778,12 @@ mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
   color: white;
 }
 
-// --- mat-tag-group component
+// --- mat-tab-group component
 mat-tab-group.mat-tab-group-header-hidden .mat-tab-header {
     display: none !important;
+}
+mat-tab-group.mat-tab-group-header-pagination-hidden .mat-tab-header-pagination {
+  display: none !important;
 }
 
 // --------------------------------------------------

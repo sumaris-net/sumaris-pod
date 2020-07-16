@@ -9,22 +9,12 @@
 </div>
 
 <mat-tab-group #tabGroup
-               [class.mat-tab-group-header-hidden]="mobile"
+               class="mat-tab-group-header-pagination-hidden"
+               [class.cdk-visually-hidden]="!showBatchTables"
+               [class.mat-tab-group-header-hidden]="!showSubBatchesTable"
                [(selectedIndex)]="selectedTabIndex"
                (selectedTabChange)="onTabChange($event)"
                [animationDuration]="tabGroupAnimationDuration">
-
-  <!-- TAB: Catch
-  <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_CATCH_DETAILS'|translate}}"
-           [disabled]="!enableCatchForm">
-    <ng-template mat-tab-label>
-      <mat-icon><ion-icon name="file-tray-stacked"></ion-icon></mat-icon>
-      <ion-label translate>TRIP.OPERATION.EDIT.TAB_CATCH_TOTAL</ion-label>
-      <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && catchBatchForm.invalid"></ion-icon>
-    </ng-template>
-
-
-  </mat-tab> -->
 
   <!-- TAB: species list -->
   <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
@@ -32,7 +22,7 @@
       <mat-icon><ion-icon name="file-tray"></ion-icon></mat-icon>
       <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES</ion-label>
       <ion-icon slot="end" name="alert-circle" color="danger"
-                *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
+                *ngIf="submitted && (batchGroupsTable?.invalid || false)"></ion-icon>
     </ng-template>
 
     <!-- Batches group -->
@@ -57,7 +47,6 @@
 
   <!-- TAB: individual measure -->
   <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
-           *ngIf="showSubBatchesTable"
            [disabled]="!enableSubBatchesTab">
     <ng-template mat-tab-label>
       <mat-icon>assessment</mat-icon>
@@ -67,6 +56,7 @@
     </ng-template>
 
     <app-sub-batches-table #subBatchesTable
+                           *ngIf="showSubBatchesTable"
                            acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
                            [program]="programSubject | async"
                            [usageMode]="usageMode"
@@ -74,4 +64,19 @@
                            [tabindex]="200">
     </app-sub-batches-table>
   </mat-tab>
+
+
+
+  <!-- TAB: Individual releases
+  <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES'|translate}}">
+    <ng-template mat-tab-label>
+      <mat-icon>room</mat-icon>
+      <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES</ion-label>
+      <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
+    </ng-template>
+
+    <table-sub-samples #individualReleaseTable [debug]="debug" acquisitionLevel="INDIVIDUAL_RELEASE"></table-sub-samples>
+  </mat-tab>-->
+
+  <ng-content></ng-content>
 </mat-tab-group>
