@@ -2,18 +2,20 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService, EntityUtils, Referential} from "../../core/core.module";
+import {isNotNil, LoadResult, EntitiesService} from "../../shared/shared.module";
+import {BaseEntityService, EntityUtils, Referential} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 
 import {FetchPolicy, MutationUpdaterFn} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {ReferentialFragments} from "./referential.queries";
+import {ReferentialFragments} from "./referential.fragments";
 import {environment} from "../../../environments/environment";
-import {Beans, KeysEnum} from "../../shared/functions";
+import {Beans, KeysEnum, toNumber} from "../../shared/functions";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {StatusIds} from "../../core/services/model/model.enum";
+import {SortDirection} from "@angular/material/sort";
+import {PlatformService} from "../../core/services/platform.service";
 
 export class ReferentialFilter {
   entityName: string;
@@ -128,13 +130,21 @@ const DeleteAll: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class ReferentialService extends BaseDataService implements TableDataService<Referential, ReferentialFilter> {
+export class ReferentialService extends BaseEntityService<Referential> implements EntitiesService<Referential, ReferentialFilter> {
 
   constructor(
     protected graphql: GraphqlService,
-    protected accountService: AccountService
+    protected accountService: AccountService,
+    protected platform: PlatformService
   ) {
     super(graphql);
+
+    platform.ready().then(() => {
+      // No limit for updatable watch queries, if desktop
+      if (!platform.mobile) {
+        this._mutableWatchQueriesMaxCount = -1;
+      }
+    });
 
     // For DEV only
     this._debug = !environment.production;
@@ -144,7 +154,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
   watchAll(offset: number,
            size: number,
            sortBy?: string,
-           sortDirection?: string,
+           sortDirection?: SortDirection,
            filter?: ReferentialFilter,
            opts?: {
       fetchPolicy?: FetchPolicy;
@@ -168,15 +178,17 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       filter: ReferentialFilter.asPodObject(filter)
     };
 
-    const now = new Date();
+    let now = new Date();
     if (this._debug) console.debug(`[referential-service] Loading ${uniqueEntityName}...`, variables);
 
-    // Saving variables, to be able to update the cache when saving or deleting
-    this._lastVariables.loadAll = variables;
-
-    const query = (!opts || opts.withTotal !== false) ? LoadAllWithTotalQuery : LoadAllQuery;
-    return this.graphql.watchQuery<{ referentials: any[]; referentialsCount: number }>({
+    const withTotal = (!opts || opts.withTotal !== false);
+    const query = withTotal ? LoadAllWithTotalQuery : LoadAllQuery;
+    return this.mutableWatchQuery<{ referentials: any[]; referentialsCount?: number }>({
+      queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
       query,
+      arrayFieldName: 'referentials',
+      totalFieldName: withTotal ? 'referentialsCount' : undefined,
+      insertFilterFn: (d: Referential) => d.entityName === entityName,
       variables,
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" },
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
@@ -185,7 +197,10 @@ export class ReferentialService extends BaseDataService implements TableDataServ
         map(({referentials, referentialsCount}) => {
           const data = (referentials || []).map(ReferentialUtils.fromObject);
           data.forEach(r => r.entityName = uniqueEntityName);
-          if (this._debug) console.debug(`[referential-service] ${uniqueEntityName} loaded in ${new Date().getTime() - now.getTime()}ms`, data);
+          if (now && this._debug) {
+            console.debug(`[referential-service] ${uniqueEntityName} loaded in ${new Date().getTime() - now.getTime()}ms`, data);
+            now = null;
+          }
           return {
             data: data,
             total: referentialsCount
@@ -197,7 +212,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
   async loadAll(offset: number,
                 size: number,
                 sortBy?: string,
-                sortDirection?: string,
+                sortDirection?: SortDirection,
                 filter?: ReferentialFilter,
                 opts?: {
                   [key: string]: any;
@@ -286,13 +301,10 @@ export class ReferentialService extends BaseDataService implements TableDataServ
           });
 
           // Update the cache
-          if (this._lastVariables.loadAll) {
-            if (this._debug) console.debug(`[referential-service] Updating cache with saved ${entityName}...`);
-            this.graphql.addManyToQueryCache(proxy, {
-              query: LoadAllQuery,
-              variables: this._lastVariables.loadAll
-            }, 'referentials', data.saveReferentials);
-          }
+          this.insertIntoMutableCachedQuery(proxy, {
+            query: LoadAllQuery,
+            data: data.saveReferentials
+          });
         }
 
         if (this._debug) console.debug(`[referential-service] ${entityName} saved in ${Date.now() - now}ms`, entities);
@@ -375,12 +387,11 @@ export class ReferentialService extends BaseDataService implements TableDataServ
         }
 
         // Update the cache
-        if (isNew && this._lastVariables.loadAll) {
-          if (this._debug) console.debug(`[referential-service] Updating cache with saved ${entity.entityName}...`);
-          this.graphql.addToQueryCache(proxy, {
+        if (isNew) {
+          this.insertIntoMutableCachedQuery(proxy, {
             query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'referentials', entity.asObject());
+            data: savedEntity
+          });
         }
 
       }
@@ -424,12 +435,10 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       error: { code: ErrorCodes.DELETE_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.DELETE_REFERENTIALS_ERROR" },
       update: (proxy) => {
         // Remove from cache
-        if (this._lastVariables.loadAll) {
-          this.graphql.removeToQueryCacheByIds(proxy, {
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'referentials', ids);
-        }
+        this.removeFromMutableCachedQueryByIds(proxy, {
+          query: LoadAllQuery,
+          ids
+        });
 
         if (options && options.update) {
           options.update(proxy);

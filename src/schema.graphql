@@ -426,6 +426,8 @@ type Mutation {
   saveTrip(trip: TripVOInput, withOperation: Boolean = false): TripVO
   "Create or update many trips"
   saveTrips(trips: [TripVOInput], withOperation: Boolean = false): [TripVO]
+  "Sent data to admin, for debug"
+  saveUserEvent(userEvent: UserEventVOInput): UserEventVO
   "Create or update a vessel"
   saveVessel(vessel: VesselVOInput): VesselVO
   "Create or update many vessels"
@@ -797,6 +799,8 @@ type Query {
   landings(filter: LandingFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "dateTime", sortDirection: String = "asc"): [LandingVO]
   "Get total number of landings"
   landingsCount(filter: LandingFilterVOInput): Long!
+  "Get last update date of all referential"
+  lastUpdateDate: Date
   "Get a metier by id"
   metier(id: Int!): MetierVO
   "Search in metiers"
@@ -813,6 +817,8 @@ type Query {
   operationGroups(filter: OperationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "rankOrderOnPeriod", sortDirection: String = "asc"): [OperationGroupVO]
   "Get trip's operations"
   operations(filter: OperationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "asc"): [OperationVO]
+  "Get operations count"
+  operationsCount(filter: OperationFilterVOInput): Long!
   "Get a parameter"
   parameter(id: Int, label: String): ParameterVO
   "Search in persons"
@@ -845,8 +851,10 @@ type Query {
   trip(id: Int!): TripVO
   "Search in trips"
   trips(filter: TripFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "departureDateTime", sortDirection: String = "asc"): [TripVO]
-  "Get total trips count"
+  "Get trips count"
   tripsCount(filter: TripFilterVOInput): Long!
+  "Search in user events"
+  userEvents(filter: UserEventFilterVOInput, page: PageInput): [UserEventVO]
   "Get a vessel"
   vessel(vesselId: Int!): VesselVO
   "Get vessel features history"
@@ -1113,6 +1121,19 @@ type TripVO {
   vesselSnapshot: VesselSnapshotVO
 }
 
+type UserEventVO {
+  content: String
+  creationDate: Date
+  eventType: String
+  hash: String
+  id: Int
+  issuer: String
+  readSignature: String
+  recipient: String
+  signature: String
+  updateDate: Date
+}
+
 type UserSettingsVO {
   content: String
   id: Int
@@ -1230,6 +1251,11 @@ type VesselVO {
   updateDate: Date
   validationDate: Date
   vesselType: ReferentialVO
+}
+
+enum SortDirection {
+  ASC
+  DESC
 }
 
 input AccountVOInput {
@@ -1726,6 +1752,13 @@ input PacketVOInput {
   weight: Float
 }
 
+input PageInput {
+  offset: Long!
+  size: Int!
+  sortAttribute: String
+  sortDirection: SortDirection
+}
+
 input ParameterVOInput {
   comments: String
   creationDate: Date
@@ -2137,6 +2170,24 @@ input TripVOInput {
   updateDate: Date
   validationDate: Date
   vesselSnapshot: VesselSnapshotVOInput
+}
+
+input UserEventFilterVOInput {
+  issuer: String
+  recipient: String
+}
+
+input UserEventVOInput {
+  content: String
+  creationDate: Date
+  eventType: String
+  hash: String
+  id: Int
+  issuer: String
+  readSignature: String
+  recipient: String
+  signature: String
+  updateDate: Date
 }
 
 input UserSettingsVOInput {

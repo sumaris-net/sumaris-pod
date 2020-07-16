@@ -10,7 +10,6 @@ import {
 } from "../services/model/extraction.model";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {mergeMap} from "rxjs/operators";
-import {AppTabForm} from "../../core/core.module";
 import {firstNotNilPromise} from "../../shared/observables";
 import {ExtractionCriteriaForm} from "./extraction-criteria.form";
 import {TranslateService} from "@ngx-translate/core";
@@ -21,12 +20,14 @@ import {capitalizeFirstLetter} from "apollo-client/util/capitalizeFirstLetter";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {PlatformService} from "../../core/services/platform.service";
+import {AppTabEditor} from "../../core/form/tab-editor.class";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Directive()
-export abstract class ExtractionAbstractPage<T extends ExtractionType | AggregationType> extends AppTabForm<any> implements OnInit {
+export abstract class ExtractionAbstractPage<T extends ExtractionType | AggregationType>
+  extends AppTabEditor implements OnInit {
 
   type: T;
   form: FormGroup;
@@ -46,6 +47,10 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
 
   markAsDirty(opts?: {onlySelf?: boolean}) {
     this.criteriaForm.markAsDirty(opts);
+  }
+
+  get isNewData(): boolean {
+    return false;
   }
 
   protected constructor(
@@ -122,7 +127,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
           });
 
           // Execute the first load
-          await this.loadData();
+          await this.load();
 
         }));
   }
@@ -268,9 +273,13 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
     return undefined;
   }
 
-  /* -- protected method -- */
+  abstract async loadData();
 
-  protected abstract async loadData(type?: T);
+  async reload(): Promise<any> {
+    return this.load(this.type && this.type.id);
+  }
+
+  /* -- protected method -- */
 
   protected abstract watchTypes(): Observable<T[]>;
 

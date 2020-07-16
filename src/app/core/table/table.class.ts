@@ -10,7 +10,7 @@ import {
   ViewChild
 } from "@angular/core";
 import {MatPaginator} from "@angular/material/paginator";
-import {MatSort} from "@angular/material/sort";
+import {MatSort, MatSortable, SortDirection} from "@angular/material/sort";
 import {MatTable} from "@angular/material/table";
 import {BehaviorSubject, EMPTY, merge, Observable, of, Subject, Subscription} from 'rxjs';
 import {
@@ -25,7 +25,7 @@ import {
   tap
 } from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
-import {AppTableDataSource} from "./table-datasource.class";
+import {EntitiesTableDataSource} from "./entities-table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
 import {Entity} from "../services/model/entity.model";
 import {AlertController, ModalController, Platform, ToastController} from "@ionic/angular";
@@ -34,7 +34,7 @@ import {TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils, IAppForm} from "../form/form.utils";
-import {isNil, isNotNil, toBoolean} from "../../shared/functions";
+import {isNil, isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../services/platform.service";
@@ -44,10 +44,12 @@ import {
   MatAutocompleteFieldConfig
 } from "../../shared/material/material.autocomplete";
 import {ToastOptions} from "@ionic/core";
-import {Toasts} from "../../shared/toasts";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
+import {NetworkService} from "../services/network.service";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
+export const SETTINGS_SORTED_COLUMN = "sortedColumn";
 export const DEFAULT_PAGE_SIZE = 20;
 export const RESERVED_START_COLUMNS = ['select', 'id'];
 export const RESERVED_END_COLUMNS = ['actions'];
@@ -70,11 +72,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     [key: string]: CellValueChangeListener
   } = {};
 
-  protected _enable = true;
+  protected _enabled = true;
   protected _dirty = false;
-  protected allowRowDetail = true;
   protected _destroy$ = new Subject();
   protected _autocompleteConfigHolder: MatAutocompleteConfigHolder;
+  protected allowRowDetail = true;
   protected translate: TranslateService;
   protected alertCtrl: AlertController;
   protected toastController: ToastController;
@@ -91,28 +93,27 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   onRefresh = new EventEmitter<any>();
   settingsId: string;
   autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
-
   mobile: boolean;
 
   // Table options
   @Input() i18nColumnPrefix = 'COMMON.';
   @Input() autoLoad = true;
-  @Input() inlineEdition;
+  @Input() readOnly: boolean;
+  @Input() inlineEdition: boolean;
   @Input() focusFirstColumn = false;
   @Input() confirmBeforeDelete = false;
   @Input() saveBeforeDelete: boolean;
   @Input() saveBeforeSort: boolean;
   @Input() saveBeforeFilter: boolean;
-
   @Input() debug = false;
+  @Input() sortBy: string;
+  @Input() sortDirection: SortDirection;
 
-  @Input() readOnly = false;
-
-  @Input() set dataSource(value: AppTableDataSource<T, F>) {
+  @Input() set dataSource(value: EntitiesTableDataSource<T, F>) {
     this.setDatasource(value);
   }
 
-  get dataSource(): AppTableDataSource<T, F> {
+  get dataSource(): EntitiesTableDataSource<T, F> {
     return this._dataSource;
   }
 
@@ -127,7 +128,6 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   get empty(): boolean {
     return this.loading || this.resultsLength === 0;
   }
-
 
   @Output() onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>();
 
@@ -160,31 +160,29 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    if (!this._initialized || !this.table) return;
     if (this.sort) this.sort.disabled = true;
-    this._enable = false;
+    this._enabled = false;
   }
 
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    if (!this._initialized || !this.table) return;
     if (this.sort) this.sort.disabled = false;
-    this._enable = true;
+    this._enabled = true;
   }
 
   get enabled(): boolean {
-    return this._enable;
+    return this._enabled;
   }
 
   // FIXME: need to hidden buttons (in HTML), etc. when disabled
-  // @Input() set disabled(disabled: boolean) {
-  //   if (disabled !== !this._enable) {
-  //     if (disabled) this.disable()
-  //     else this.enable();
-  //   }
-  // }
+  @Input() set disabled(disabled: boolean) {
+    if (disabled !== !this._enabled) {
+      if (disabled) this.disable({emitEvent: false})
+      else this.enable({emitEvent: false});
+    }
+  }
 
   get disabled(): boolean {
-    return !this._enable;
+    return !this._enabled;
   }
 
   markAsDirty(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
@@ -260,7 +258,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected columns: string[],
-    protected _dataSource?: AppTableDataSource<T, F>,
+    protected _dataSource?: EntitiesTableDataSource<T, F>,
     private _filter?: F,
     injector?: Injector
   ) {
@@ -293,6 +291,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
     this.displayedColumns = this.getDisplayColumns();
 
+    const sortedColumn = this.getSortedColumn();
+    this.sortBy = sortedColumn.id;
+    this.sortDirection = sortedColumn.start;
+
     // If the user changes the sort order, reset back to the first page.
     this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
@@ -308,25 +310,33 @@ export abstract class AppTable<T extends Entity<T>, F = any>
             }
             return true;
           }),
-          filter(res => res === true)
+          filter(res => res === true),
+          // Save sort in settings
+          tap(() => {
+            const value = [this.sort.active,this.sort.direction||'asc'].join(':')
+            this.settings.savePageSetting(this.settingsId, value, SETTINGS_SORTED_COLUMN);
+          })
         )
       || EMPTY,
+
       // Listen paginator events
       this.paginator && this.paginator.page
-        .pipe(
-          mergeMap(async () => {
-            if (this._dirty && this.saveBeforeSort) {
-              const saved = await this.save();
-              this.markAsDirty(); // restore dirty flag
-              return saved;
-            }
-            return true;
-          }),
-          filter(res => res === true)
-        ) || EMPTY,
+          .pipe(
+            mergeMap(async () => {
+              if (this._dirty && this.saveBeforeSort) {
+                const saved = await this.save();
+                this.markAsDirty(); // restore dirty flag
+                return saved;
+              }
+              return true;
+            }),
+            filter(res => res === true)
+          ) || EMPTY,
 
-      this.onRefresh
-    )
+        this.onRefresh
+          // DEBUG
+          //.pipe(tap(event => this._debug && console.debug("[table] Received onRefresh event " + this.constructor.name)))
+      )
       .pipe(
         startWith<any, any>(this.autoLoad ? {} : 'skip'),
         switchMap(
@@ -351,7 +361,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
               this._filter
             );
           }),
-        takeUntil(this._destroy$),
+        //takeUntil(this._destroy$),
         catchError(err => {
           this.error = err && err.message || err;
           if (this.debug) console.error(err);
@@ -378,9 +388,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   ngAfterViewInit() {
-
     if (!this.table) console.warn(`[table] Missing <mat-table> in the HTML template! Component: ${this.constructor.name}`);
-
   }
 
   ngOnDestroy() {
@@ -399,7 +407,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  setDatasource(datasource: AppTableDataSource<T, F>) {
+  setDatasource(datasource: EntitiesTableDataSource<T, F>) {
     if (this._dataSource) throw new Error("[table] dataSource already set !");
     if (datasource && this._dataSource != datasource) {
       this._dataSource = datasource;
@@ -441,7 +449,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     }
   }
 
-  protected listenDatasource(dataSource: AppTableDataSource<T, F>) {
+  protected listenDatasource(dataSource: EntitiesTableDataSource<T, F>) {
     if (!dataSource) throw new Error("[table] dataSource not set !");
 
     // Cleaning previous subscription on datasource
@@ -525,7 +533,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   addRow(event?: any): boolean {
-    if (!this._enable) return false;
+    if (!this._enabled) return false;
     if (this.debug) console.debug("[table] Asking for new row...");
 
     // Use modal if inline edition is disabled
@@ -596,7 +604,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     if (this.readOnly) {
       throw {code: ErrorCodes.TABLE_READ_ONLY, message: 'ERROR.TABLE_READ_ONLY'};
     }
-    if (!this._enable) return;
+    if (!this._enabled) return;
     if (this.loading || this.selection.isEmpty()) return;
 
     if (this.confirmBeforeDelete && !confirm) {
@@ -633,7 +641,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   }
 
   onEditRow(event: MouseEvent, row: TableElement<T>): boolean {
-    if (!this._enable) return false;
+    if (!this._enabled) return false;
     if (this.editedRow === row || event.defaultPrevented) return;
 
     if (!this.confirmEditCreate()) {
@@ -649,9 +657,9 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return true;
   }
 
-  clickRow(event: MouseEvent, row: TableElement<T>): boolean {
+  clickRow(event: MouseEvent|undefined, row: TableElement<T>): boolean {
     if (row.id === -1 || row.editing) return true;
-    if (event.defaultPrevented || this.loading) return false;
+    if (event && event.defaultPrevented || this.loading) return false;
 
     // Open the detail page (if not inline editing)
     if (!this.inlineEdition) {
@@ -659,8 +667,10 @@ export abstract class AppTable<T extends Entity<T>, F = any>
         console.warn("[table] Opening row details, but table has unsaved changes!");
       }
 
-      event.stopPropagation();
-      event.preventDefault();
+      if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+      }
 
       // No ID defined: unable to open details
       if (isNil(row.currentData.id)) {
@@ -677,61 +687,11 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       return true;
     }
 
-
     return this.onEditRow(event, row);
   }
 
-  protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
-    if (!this.allowRowDetail) return false;
 
-    if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
-      return true;
-    }
-
-    return await this.router.navigate([id], {
-      relativeTo: this.route
-    });
-  }
-
-  protected async openNewRowDetail(event?: any): Promise<boolean> {
-    if (!this.allowRowDetail) return false;
-
-    if (this.onNewRow.observers.length) {
-      this.onNewRow.emit(event);
-      return true;
-    }
-
-    return await this.router.navigate(['new'], {
-      relativeTo: this.route
-    });
-  }
-
-  protected getUserColumns(): string[] {
-    return this.settings.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
-  }
-
-  protected getDisplayColumns(): string[] {
-    let userColumns = this.getUserColumns();
-
-    // No user override: use defaults
-    if (!userColumns) return this.columns;
-
-    // Get fixed start columns
-    const fixedStartColumns = this.columns.filter(c => RESERVED_START_COLUMNS.includes(c));
-
-    // Remove end columns
-    const fixedEndColumns = this.columns.filter(c => RESERVED_END_COLUMNS.includes(c));
-
-    // Remove fixed columns from user columns
-    userColumns = userColumns.filter(c => (!fixedStartColumns.includes(c) && !fixedEndColumns.includes(c) && this.columns.includes(c)));
-
-    return fixedStartColumns
-      .concat(userColumns)
-      .concat(fixedEndColumns);
-  }
-
-  public async openSelectColumnsModal(event?: UIEvent): Promise<any> {
+  async openSelectColumnsModal(event?: UIEvent): Promise<any> {
     const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
     const hiddenColumns = this.columns.slice(fixedColumns.length)
       .filter(name => this.displayedColumns.indexOf(name) == -1);
@@ -768,14 +728,81 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     await this.settings.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
   }
 
-  public trackByFn(index: number, row: TableElement<T>) {
+  trackByFn(index: number, row: TableElement<T>) {
     return row.id;
   }
 
+
   /* -- protected method -- */
+
+  protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onOpenRow.observers.length) {
+      this.onOpenRow.emit({id, row});
+      return true;
+    }
+
+    return await this.router.navigate([id], {
+      relativeTo: this.route
+    });
+  }
+
+  protected async openNewRowDetail(event?: any): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onNewRow.observers.length) {
+      this.onNewRow.emit(event);
+      return true;
+    }
+
+    return await this.router.navigate(['new'], {
+      relativeTo: this.route
+    });
+  }
+
+  protected getUserColumns(): string[] {
+    return this.settings.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
+  }
+
+  protected getSortedColumn(): MatSortable {
+    const data = this.settings.getPageSettings(this.settingsId, SETTINGS_SORTED_COLUMN);
+    const parts = data && data.split(':');
+    if (parts && parts.length === 2 && this.columns.includes(parts[0])) {
+      return {id: parts[0], start: parts[1] === 'desc' ? 'desc' : 'asc', disableClear: false};
+    }
+    if (this.sortBy) {
+       return {id: this.sortBy, start: this.sortDirection || 'asc', disableClear: false};
+    }
+    return {id: 'id', start: 'asc', disableClear: false};
+  }
+
+  protected getDisplayColumns(): string[] {
+    let userColumns = this.getUserColumns();
+
+    // No user override: use defaults
+    if (!userColumns) return this.columns;
+
+    // Get fixed start columns
+    const fixedStartColumns = this.columns.filter(c => RESERVED_START_COLUMNS.includes(c));
+
+    // Remove end columns
+    const fixedEndColumns = this.columns.filter(c => RESERVED_END_COLUMNS.includes(c));
+
+    // Remove fixed columns from user columns
+    userColumns = userColumns.filter(c => (!fixedStartColumns.includes(c) && !fixedEndColumns.includes(c) && this.columns.includes(c)));
+
+    return fixedStartColumns
+      .concat(userColumns)
+      .concat(fixedEndColumns);
+  }
 
   protected registerSubscription(sub: Subscription) {
     this._subscription.add(sub);
+  }
+
+  protected unregisterSubscription(sub: Subscription) {
+    this._subscription.remove(sub);
   }
 
   protected registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions): MatAutocompleteFieldConfig {
@@ -900,11 +927,8 @@ export abstract class AppTable<T extends Entity<T>, F = any>
     return Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
   }
 
-  protected async showToast(opts: ToastOptions & { error?: boolean; showCloseButton?: boolean }) {
-    if (!this.toastController) {
-      console.warn("[table] Missing toastController in component's constructor. Cannot show toast");
-      return;
-    }
+  protected async showToast(opts: ShowToastOptions) {
+    if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     return Toasts.show(this.toastController, this.translate, opts);
   }
 
@@ -917,5 +941,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
       this.markForCheck();
     }
   }
+
+
 }
 

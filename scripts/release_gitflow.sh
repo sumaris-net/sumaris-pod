@@ -189,7 +189,7 @@ echo "**********************************"
 echo "* Finishing release"
 echo "**********************************"
 cd $PROJECT_DIR
-rm src/assets/i18n/*-1.2.6.json
+rm "src/assets/i18n/*-$2.json"
 git add package.json src/assets/manifest.json config.xml install.sh
 git commit -m "$description"
 git flow release finish "$2"

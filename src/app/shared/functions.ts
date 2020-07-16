@@ -265,7 +265,8 @@ export function getPropertyByPathAsString(obj: any, path: string): string | unde
   return res && (typeof res === 'string' ? res : ('' + res));
 }
 
-export function delay(ms: number): Promise<void> {
+export function sleep(ms: number): Promise<void> {
+  if (ms <= 0) return;
   return new Promise( resolve => setTimeout(resolve, ms) );
 }
 

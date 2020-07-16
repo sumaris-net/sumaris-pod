@@ -204,8 +204,9 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       this.data = data;
       this.markAsPristine();
 
-      // Update the network peer
+      // If peer changed
       if (peerChanged) {
+        // Restart the network
         this.network.peer = Peer.parseUrl(data.peerUrl);
       }
 

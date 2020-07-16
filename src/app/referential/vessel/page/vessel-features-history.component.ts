@@ -9,7 +9,7 @@ import {Location} from "@angular/common";
 import {AccountService} from "../../../core/services/account.service";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import {VesselFilter} from "../../services/vessel-service";
-import {AppTableDataSource} from "../../../core/table/table-datasource.class";
+import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
 import {environment} from "../../../../environments/environment";
 import {VesselFeaturesService} from "../../services/vessel-features.service";
 import {VesselFeaturesValidatorService} from "../../services/validator/vessel-features.validator";
@@ -53,7 +53,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'grossTonnageGt',
         'basePortLocation',
         'comments'],
-      new AppTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselFeaturesService, vesselFeaturesValidator, {
+      new EntitiesTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselFeaturesService, vesselFeaturesValidator, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

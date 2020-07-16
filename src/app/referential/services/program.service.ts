@@ -4,23 +4,23 @@ import {BehaviorSubject, defer, Observable, of} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {AcquisitionLevelCodes} from "./model/model.enum";
 import {
-  BaseDataService,
+  BaseEntityService,
   EntityUtils,
   environment,
   IReferentialRef, isNil,
   isNotNil,
   LoadResult,
   ReferentialRef,
-  TableDataService
+  EntitiesService
 } from "../../core/core.module";
 import {ErrorCodes} from "./errors";
-import {ReferentialFragments} from "./referential.queries";
+import {ReferentialFragments} from "./referential.fragments";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {
-  EditorDataService,
-  EditorDataServiceLoadOptions,
+  EntityService,
+  EntityServiceLoadOptions,
   fetchAllPagesWithProgress, FilterFn
-} from "../../shared/services/data-service.class";
+} from "../../shared/services/entity-service.class";
 import {TaxonGroupIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
 import {isNilOrBlank, isNotEmptyArray, propertiesPathComparator, suggestFromArray} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
@@ -29,7 +29,7 @@ import {firstNotNilPromise} from "../../shared/observables";
 import {AccountService} from "../../core/services/account.service";
 import {NetworkService} from "../../core/services/network.service";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
-import {EntityStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
 import {
   NOT_MINIFY_OPTIONS,
   ReferentialAsObjectOptions,
@@ -41,6 +41,7 @@ import {Program} from "./model/program.model";
 
 import {PmfmStrategy} from "./model/pmfm-strategy.model";
 import {IWithProgramEntity} from "../../data/services/model/model.utils";
+import {SortDirection} from "@angular/material/sort";
 
 
 export class ProgramFilter {
@@ -344,9 +345,9 @@ const ProgramCacheKeys = {
 };
 
 @Injectable({providedIn: 'root'})
-export class ProgramService extends BaseDataService
-  implements TableDataService<Program, ProgramFilter>,
-    EditorDataService<Program> {
+export class ProgramService extends BaseEntityService
+  implements EntitiesService<Program, ProgramFilter>,
+    EntityService<Program> {
 
 
   constructor(
@@ -355,7 +356,7 @@ export class ProgramService extends BaseDataService
     protected accountService: AccountService,
     protected referentialRefService: ReferentialRefService,
     protected cache: CacheService,
-    protected entities: EntityStorage
+    protected entities: EntitiesStorage
   ) {
     super(graphql);
 
@@ -374,7 +375,7 @@ export class ProgramService extends BaseDataService
   watchAll(offset: number,
            size: number,
            sortBy?: string,
-           sortDirection?: string,
+           sortDirection?: SortDirection,
            dataFilter?: ProgramFilter,
            opts?: {
              fetchPolicy?: WatchQueryFetchPolicy;
@@ -422,7 +423,7 @@ export class ProgramService extends BaseDataService
   async loadAll(offset: number,
            size: number,
            sortBy?: string,
-           sortDirection?: string,
+           sortDirection?: SortDirection,
            dataFilter?: ProgramFilter,
            opts?: {
              query?: any,
@@ -676,9 +677,9 @@ export class ProgramService extends BaseDataService
    * Watch program taxon groups
    * TODO: add an 'options' argument (with date/time and location), to be able to select the strategy
    */
-  watchTaxonGroups(programLabel: string): Observable<TaxonGroupRef[]> {
+  watchTaxonGroups(programLabel: string, opts?: { toEntity?: boolean; }): Observable<TaxonGroupRef[]> {
     const cacheKey = [ProgramCacheKeys.TAXON_GROUPS, programLabel].join('|');
-    return this.cache.loadFromObservable(cacheKey,
+    const $res = this.cache.loadFromObservable(cacheKey,
       this.watchByLabel(programLabel, {toEntity: false})
         .pipe(
           map(program => {
@@ -701,18 +702,29 @@ export class ProgramService extends BaseDataService
         ),
         ProgramCacheKeys.CACHE_GROUP
     )
-    // Convert into model (after cache)
-    .pipe(map(res => res.map(TaxonGroupRef.fromObject)));
+
+    // Convert into model, after cache (convert by default)
+    if (!opts || opts.toEntity !== false) {
+      return $res.pipe(map(res => res.map(TaxonGroupRef.fromObject)));
+    }
+    return $res;
   }
 
   /**
    * Load program taxon groups
    */
-  loadTaxonGroups(programLabel: string): Promise<TaxonGroupRef[]> {
+  async loadTaxonGroups(programLabel: string, opts?: { toEntity?: boolean; }): Promise<TaxonGroupRef[]> {
     const mapCacheKey = [ProgramCacheKeys.TAXON_GROUP_ENTITIES, programLabel].join('|');
-    return this.cache.getOrSetItem(mapCacheKey,
-      () => firstNotNilPromise(this.watchTaxonGroups(programLabel)),
+    const res = await this.cache.getOrSetItem(mapCacheKey,
+      () => this.watchTaxonGroups(programLabel, {toEntity: true}).toPromise(),
       ProgramCacheKeys.CACHE_GROUP);
+
+    // Convert to entity, after cache (convert by default)
+    if (!opts || opts.toEntity !== false) {
+      return res.map(TaxonGroupRef.fromObject);
+    }
+
+    return res;
   }
 
   /**
@@ -806,7 +818,7 @@ export class ProgramService extends BaseDataService
     }, ProgramCacheKeys.CACHE_GROUP);
   }
 
-  async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Program> {
+  async load(id: number, options?: EntityServiceLoadOptions): Promise<Program> {
 
     if (this._debug) console.debug(`[program-service] Loading program {${id}}...`);
 

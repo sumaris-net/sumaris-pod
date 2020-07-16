@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
 import {TableElement} from "angular4-material-table";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {IWithPacketsEntity, Packet, PacketFilter, PacketUtils} from "../services/model/packet.model";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {PacketValidatorService} from "../services/validator/packet.validator";
@@ -9,7 +9,7 @@ import {environment} from "../../../environments/environment";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from "@angular/common";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppTableDataSource, isNil} from "../../core/core.module";
+import {EntitiesTableDataSource, isNil} from "../../core/core.module";
 import {BehaviorSubject, Observable} from "rxjs";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
 import {PacketModal} from "./packet.modal";
@@ -25,8 +25,8 @@ import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum
   styleUrls: ['packets.table.scss'],
   providers: [
     {
-      provide: InMemoryTableDataService,
-      useFactory: () => new InMemoryTableDataService<Packet, PacketFilter>(Packet, {
+      provide: InMemoryEntitiesService,
+      useFactory: () => new InMemoryEntitiesService<Packet, PacketFilter>(Packet, {
         filterFnFactory: PacketFilter.searchFilter
       })
     }
@@ -80,7 +80,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected validatorService: PacketValidatorService,
-    protected memoryDataService: InMemoryTableDataService<Packet, PacketFilter>,
+    protected memoryDataService: InMemoryEntitiesService<Packet, PacketFilter>,
     protected programService: ProgramService,
     protected cd: ChangeDetectorRef
   ) {
@@ -94,7 +94,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
           'weight'
         ])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Packet, PacketFilter>(Packet, memoryDataService, validatorService, {
+      new EntitiesTableDataSource<Packet, PacketFilter>(Packet, memoryDataService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         onRowCreated: (row) => this.onRowCreated(row)

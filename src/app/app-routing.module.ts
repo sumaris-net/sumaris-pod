@@ -10,9 +10,7 @@ import {ObservedLocationsPage} from "./trip/observedlocation/observed-locations.
 import {SettingsPage} from "./core/settings/settings.page";
 import {LandingPage} from "./trip/landing/landing.page";
 import {AuctionControlPage} from "./trip/auctioncontrol/auction-control.page";
-import {SubBatchesModal} from "./trip/batch/sub-batches.modal";
 import {IonicRouteStrategy} from "@ionic/angular";
-import {BatchGroupPage} from "./trip/batch/batch-group.page";
 import {AuthGuardService} from "./core/services/auth-guard.service";
 import {LandedTripPage} from "./trip/landedtrip/landed-trip.page";
 import {environment} from "../environments/environment";
@@ -102,19 +100,6 @@ const routes: Routes = [
                 pathMatch: 'full',
                 component: OperationPage,
                 runGuardsAndResolvers: 'pathParamsChange'
-              },
-              {
-                path: 'batches',
-                component: SubBatchesModal,
-                runGuardsAndResolvers: 'pathParamsChange'
-              },
-              {
-                path: 'batch/:batchId',
-                component: BatchGroupPage,
-                runGuardsAndResolvers: 'pathParamsChange',
-                data: {
-                  pathIdParam: 'batchId'
-                },
               }
             ]
           }
@@ -237,6 +222,11 @@ if (!environment.production) {
         {
           path: 'shared',
           loadChildren: () => import('./shared/shared.testing.module').then(m => m.SharedTestingModule)
+        },
+        // Trip module
+        {
+          path: 'trip',
+          loadChildren: () => import('./trip/trip.testing.module').then(m => m.TripTestingModule)
         }
       ]
     });

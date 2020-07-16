@@ -9,8 +9,8 @@ import gql from "graphql-tag";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "apollo-client";
 
-import {toDateISOString} from "../../shared/functions";
-import {BaseDataService} from "./base.data-service.class";
+import {sleep, toDateISOString} from "../../shared/functions";
+import {BaseEntityService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
 import {GraphqlService} from "./graphql.service";
@@ -168,7 +168,7 @@ const UpdateSubscription: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class AccountService extends BaseDataService {
+export class AccountService extends BaseEntityService {
 
   private data: AccountHolder = {
     loaded: false,
@@ -227,25 +227,22 @@ export class AccountService extends BaseDataService {
 
     // Listen network restart
     this.graphql.onStart.subscribe(async () => {
-      if (this.isLogin() && this._started) {
-        this.restoreLocally();
-        // if (this.data.authToken) {
-        //   try {
-        //     console.debug("[account] Graphql restarted. Trying to re-auth on pod...");
-        //     const newToken = await this.authenticateAndGetToken(this.data.authToken);
-        //     this.data.authToken = newToken;
-        //
-        //     await this.saveLocally();
-        //
-        //     this.onLogin.next(this.data.account);
-        //   }
-        //   catch (err) {
-        //     console.error("[account] Authentication failed. Force logout: " + (err && err.message || err), err);
-        //     await this.logout();
-        //   }
-        // }
+      if (this._started && this.isLogin()) {
+        console.debug("[account] Restarting, to retry to authenticate...");
+        this.restart();
       }
     });
+
+    // Force network to wait account service, after getting connection to the peer
+    this.network.on('beforeTryOnlineFinish', async (online) => {
+      // If online, wait a full restart, because it can force offline mode
+      if (online && (!this._started || this.isLogin())) {
+        console.debug("[account] Force networkService.tryOnline() to wait, that account service is restarted...");
+        //await this.stop();
+        await sleep(500);
+        return this.ready();
+      }
+    })
 
     // For DEV only
     this._debug = !environment.production;
@@ -278,6 +275,22 @@ export class AccountService extends BaseDataService {
 
   public get started(): boolean {
     return this._started;
+  }
+
+  async stop() {
+    if (this._started || this._startPromise) {
+      this._started = false;
+      this._startPromise = undefined;
+
+      const hadAuthToken = this.data.authToken && true;
+      this.resetData();
+      if (hadAuthToken) this.onAuthTokenChange.next(undefined);
+    }
+  }
+
+  async restart() {
+    await this.stop();
+    return this.start();
   }
 
   public ready(): Promise<void> {
@@ -705,7 +718,7 @@ export class AccountService extends BaseDataService {
 
   public async logout(): Promise<void> {
 
-    let hadAuthToken = this.data.authToken && true;
+    const hadAuthToken = this.data.authToken && true;
     const pubkey = this.data && this.data.pubkey;
 
     this.resetData();

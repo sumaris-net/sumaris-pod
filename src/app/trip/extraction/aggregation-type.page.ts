@@ -1,12 +1,12 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {AppEditor, isNil} from "../../core/core.module";
+import {AppEntityEditor, isNil} from "../../core/core.module";
 import {AggregationType, ExtractionColumn, ExtractionUtils} from "../services/model/extraction.model";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {AggregationTypeValidatorService} from "../services/validator/aggregation-type.validator";
 import {ExtractionService} from "../services/extraction.service";
 import {Router} from "@angular/router";
 import {ValidatorService} from "angular4-material-table";
-import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {AggregationTypeForm} from "./aggregation-type.form";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -20,7 +20,7 @@ import {ReferentialUtils} from "../../core/services/model/referential.model";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AggregationTypePage extends AppEditor<AggregationType> implements OnInit {
+export class AggregationTypePage extends AppEntityEditor<AggregationType> implements OnInit {
 
   columns: ExtractionColumn[];
 
@@ -116,7 +116,7 @@ export class AggregationTypePage extends AppEditor<AggregationType> implements O
       || (ReferentialUtils.isNotEmpty(data && data.recorderDepartment) && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment));
   }
 
-  protected async onEntityLoaded(data: AggregationType, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: AggregationType, options?: EntityServiceLoadOptions): Promise<void> {
     super.onEntityLoaded(data, options);
 
     // If spatial, load columns

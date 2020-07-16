@@ -7,8 +7,8 @@ import {environment} from '../../../environments/environment';
 import {Subject} from 'rxjs';
 import {
   DateFormatPipe,
-  EditorDataService,
-  EditorDataServiceLoadOptions,
+  EntityService,
+  EntityServiceLoadOptions,
   isNil,
   isNilOrBlank,
   isNotNil,
@@ -20,26 +20,48 @@ import {filter} from "rxjs/operators";
 import {Entity} from "../services/model/entity.model";
 import {HistoryPageReference, UsageMode} from "../services/model/settings.model";
 import {FormGroup} from "@angular/forms";
-import {AppTabForm, AppTabFormOptions} from "./tab-form.class";
+import {AppTabEditor, AppTabFormOptions} from "./tab-editor.class";
 import {AppFormUtils} from "./form.utils";
 import {Alerts} from "../../shared/alerts";
+
+
+export class AppEditorOptions extends AppTabFormOptions {
+  autoLoad?: boolean;
+  pathIdAttribute?: string;
+  enableListenChanges?: boolean;
+
+  /**
+   * Change page route (window URL) when saving for the first time
+   */
+  autoUpdateRoute?: boolean; // Default to true
+
+  /**
+   * Open the next tab, after saving for the first time
+   */
+  autoOpenNextTab?: boolean; // Default to true
+
+}
+
 @Directive()
-export abstract class AppEditor<
+export abstract class AppEntityEditor<
   T extends Entity<T>,
-  S extends EditorDataService<T> = EditorDataService<T>
+  S extends EntityService<T> = EntityService<T>
   >
-  extends AppTabForm<T, EditorDataServiceLoadOptions>
+  extends AppTabEditor<T, EntityServiceLoadOptions>
   implements OnInit, OnDestroy {
 
   private _usageMode: UsageMode;
-  private readonly _autoLoad: boolean;
-  private readonly _pathIdAttribute: string;
   private readonly _enableListenChanges: boolean;
+  private readonly _pathIdAttribute: string;
+  private readonly _autoLoad: boolean;
+  private readonly _autoUpdateRoute: boolean;
+  private _autoOpenNextTab: boolean;
 
   protected dateFormat: DateFormatPipe;
   protected cd: ChangeDetectorRef;
   protected settings: LocalSettingsService;
 
+  data: T;
   title$ = new Subject<string>();
   saving = false;
   hasRemoteListener = false;
@@ -58,7 +80,11 @@ export abstract class AppEditor<
   }
 
   get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+    return this._usageMode ? this._usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+  }
+
+  get isNewData(): boolean {
+    return !this.data || this.data.id === undefined || this.data.id === null;
   }
 
   get service(): S {
@@ -77,9 +103,16 @@ export abstract class AppEditor<
       injector.get(TranslateService),
       options);
     options = <AppEditorOptions>{
+      // Default options
       enableListenChanges: (environment.listenRemoteChanges === true),
       pathIdAttribute: 'id',
       autoLoad: true,
+      autoUpdateRoute: true,
+
+      // Following options are override inside ngOnInit()
+      // autoOpenNextTab: ...,
+
+      // Override defaults
       ...options
     };
 
@@ -90,6 +123,8 @@ export abstract class AppEditor<
     this._enableListenChanges = options.enableListenChanges;
     this._pathIdAttribute = options.pathIdAttribute;
     this._autoLoad = options.autoLoad;
+    this._autoUpdateRoute = options.autoUpdateRoute;
+    this._autoOpenNextTab = options.autoOpenNextTab;
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -97,6 +132,9 @@ export abstract class AppEditor<
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Defaults
+    this._autoOpenNextTab = toBoolean(this._autoOpenNextTab, !this.isOnFieldMode);
 
     // Register forms
     this.registerForms();
@@ -139,7 +177,7 @@ export abstract class AppEditor<
    * @param id
    * @param opts
    */
-  async load(id?: number, opts?: EditorDataServiceLoadOptions & {
+  async load(id?: number, opts?: EntityServiceLoadOptions & {
     emitEvent?: boolean;
     openTabIndex?: number;
     updateTabAndRoute?: boolean;
@@ -156,7 +194,10 @@ export abstract class AppEditor<
       const data = new this.dataType();
       this._usageMode = this.computeUsageMode(data);
       await this.onNewEntity(data, opts);
-      this.updateView(data, opts);
+      this.updateView(data, {
+        openTabIndex: 0,
+        ...opts
+      });
       this.loading = false;
     }
 
@@ -205,18 +246,20 @@ export abstract class AppEditor<
   updateView(data: T | null, opts?: {
     emitEvent?: boolean;
     openTabIndex?: number;
-    updateTabAndRoute?: boolean;
+    updateRoute?: boolean;
   }) {
-    const idChanged = isNotNil(data.id) && (isNil(this.previousDataId) || this.previousDataId !== data.id) || false;
+    const idChanged = isNotNil(data.id)
+      && this.previousDataId !== undefined // Ignore if first loading (=undefined)
+      && this.previousDataId !== data.id;
 
     opts = {
-      updateTabAndRoute: idChanged && !this.loading,
-      openTabIndex: idChanged && isNil(this.previousDataId) && this.selectedTabIndex < this.tabCount - 1 ? this.selectedTabIndex + 1 : undefined,
+      updateRoute: this._autoUpdateRoute && idChanged && !this.loading,
+      openTabIndex: this._autoOpenNextTab && idChanged && isNil(this.previousDataId) && this.selectedTabIndex < this.tabCount - 1 ? this.selectedTabIndex + 1 : undefined,
       ...opts
     };
 
     this.data = data;
-    this.previousDataId = data.id;
+    this.previousDataId = data.id || null;
 
     this.setValue(data);
 
@@ -226,12 +269,15 @@ export abstract class AppEditor<
       this.updateViewState(data);
 
       // Need to update route
-      if (opts.updateTabAndRoute === true) {
+      if (opts.updateRoute === true) {
         this.updateTabAndRoute(data, opts)
-          // Update the title - should be executed AFTER updateTabAndRoute because of path change - fix #185
+          // Update the title - should be executed AFTER updateRoute because of path change - fix #185
           .then(() => this.updateTitle(data));
       }
       else {
+        // Update the tag group index
+        this.updateTabIndex(opts.openTabIndex);
+
         // Update the title.
         this.updateTitle(data);
       }
@@ -265,24 +311,43 @@ export abstract class AppEditor<
 
     this.queryParams = this.queryParams || {};
 
-    // Open the second tab
-    if (opts && isNotNil(opts.openTabIndex)) {
-      if (this.selectedTabIndex < opts.openTabIndex) {
-        this.selectedTabIndex = opts.openTabIndex;
-        Object.assign(this.queryParams, {tab: this.selectedTabIndex});
-        this.markForCheck();
-      }
-    }
+    // Open the tab group
+    this.updateTabIndex(opts && opts.openTabIndex);
+
+    // Save the opened tab into the queryParams
+    this.queryParams.tab = this.selectedTabIndex;
 
     // Update route location
     const forcedQueryParams = {};
-    forcedQueryParams[this._pathIdAttribute] = data.id;
-    await this.router.navigate(['.'], {
-      relativeTo: this.route,
-      queryParams: Object.assign(this.queryParams, forcedQueryParams)
-    });
+    forcedQueryParams[this._pathIdAttribute] = data && isNotNil(data.id) ? data.id : 'new';
+    if (data && isNotNil(data.id)) {
+      await this.router.navigate(['.'], {
+        relativeTo: this.route,
+        queryParams: {...this.queryParams, ...forcedQueryParams}
+      });
+    }
+    else {
+      await this.router.navigate(['../new'], {
+        relativeTo: this.route,
+        queryParams: {...this.queryParams, ...forcedQueryParams}
+      });
+    }
 
     return this.updateRoute(data, this.queryParams);
+  }
+
+  /**
+   * Update the route location, and open the next tab
+   */
+  updateTabIndex(tabIndex?: number) {
+
+    // Open the second tab
+    if (isNotNil(tabIndex)) {
+      if (this.selectedTabIndex !== tabIndex) {
+        this.selectedTabIndex = tabIndex;
+        this.markForCheck();
+      }
+    }
   }
 
   async saveAndClose(event: Event, options?: any): Promise<boolean> {
@@ -464,13 +529,14 @@ export abstract class AppEditor<
     this.form.reset();
     this.registerForms();
     this._dirty = false;
+    this.data = null;
   }
 
-  protected async onNewEntity(data: T, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: T, options?: EntityServiceLoadOptions): Promise<void> {
     // can be overwrite by subclasses
   }
 
-  protected async onEntityLoaded(data: T, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: T, options?: EntityServiceLoadOptions): Promise<void> {
     // can be overwrite by subclasses
   }
 
@@ -502,6 +568,11 @@ export abstract class AppEditor<
 
   protected getJsonValueToSave(): Promise<any> {
     return Promise.resolve(this.form.value);
+  }
+
+  async reload() {
+    this.loading = true;
+    await this.load(this.data && this.data.id);
   }
 
   /**
@@ -563,9 +634,3 @@ export abstract class AppEditor<
 }
 
 import {ServerErrorCodes} from "../services/errors";
-
-export class AppEditorOptions extends AppTabFormOptions {
-  autoLoad?: boolean;
-  pathIdAttribute?: string;
-  enableListenChanges?: boolean;
-}

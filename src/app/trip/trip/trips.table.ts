@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestr
 import {ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource,
+  EntitiesTableDataSource,
   environment,
   isNil,
   isNotNil,
@@ -36,6 +36,9 @@ import {SynchronizationStatus} from "../../data/services/model/root-data-entity.
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {qualityFlagToColor} from "../../data/services/model/model.utils";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
+import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
+import {OperationService} from "../services/operation.service";
+import {UserEventService} from "../../social/services/user-event.service";
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -81,6 +84,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected settings: LocalSettingsService,
     protected accountService: AccountService,
     protected service: TripService,
+    protected userEventService: UserEventService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
@@ -102,7 +106,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Trip, TripFilter>(Trip, service, null, {
+      new EntitiesTableDataSource<Trip, TripFilter>(Trip, service, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
@@ -133,6 +137,8 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
     this.autoLoad = false;
+    this.sortBy = 'departureDateTime';
+    this.sortDirection = 'desc';
 
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fix value, to be able to reuse it in the trip page
 
@@ -274,11 +280,12 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   async prepareOfflineMode(event?: UIEvent) {
     if (this.importing) return; // skip
 
+    // If offline, warn user and ask to reconnect
     if (this.network.offline) {
-      return this.showToast({
-        message: "ERROR.NETWORK_REQUIRED",
-        error: true,
-        showCloseButton: true
+      return this.network.showOfflineToast({
+        // Allow to retry to connect
+        showRetryButton: true,
+        onRetrySuccess: () => this.prepareOfflineMode()
       });
     }
 
@@ -311,7 +318,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
       // Enable sync status button
       this.setSynchronizationStatus('DIRTY');
-      this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED'});
+      this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true, type: 'info'});
       success = true;
     }
     catch (err) {
@@ -324,22 +331,23 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     }
   }
 
-  async setSynchronizationStatus(synchronizationStatus: SynchronizationStatus) {
-    if (!synchronizationStatus) return; // Skip if empty
+  async setSynchronizationStatus(value: SynchronizationStatus) {
+    if (!value) return; // Skip if empty
 
     // Make sure network is UP
-    if (this.offline && synchronizationStatus === 'SYNC') {
-      return this.showToast({
-        message: "ERROR.NETWORK_REQUIRED",
-        error: true,
-        showCloseButton: true
+    if (this.offline && value === 'SYNC') {
+      this.network.showOfflineToast({
+        // Allow to retry to connect
+        showRetryButton: true,
+        onRetrySuccess: () => this.setSynchronizationStatus(value)
       });
+      return;
     }
 
-    console.debug("[trips] Applying filter to synchronization status: " + synchronizationStatus);
+    console.debug("[trips] Applying filter to synchronization status: " + value);
     this.error = null;
-    this.filterForm.patchValue({synchronizationStatus}, {emitEvent: false});
-    const json = { ...this.filter, synchronizationStatus};
+    this.filterForm.patchValue({synchronizationStatus: value}, {emitEvent: false});
+    const json = { ...this.filter, synchronizationStatus: value};
     this.setFilter(json, {emitEvent: true});
 
     // Save filter to settings (need to be done here, because new trip can stored filter)
@@ -347,15 +355,23 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   }
 
   hasReadyToSyncSelection(): boolean {
-    if (!this._enable) return false;
+    if (!this._enabled) return false;
     if (this.loading || this.selection.isEmpty()) return false;
     return (this.selection.selected || [])
       .findIndex(row => row.currentData.id < 0 && row.currentData.synchronizationStatus === 'READY_TO_SYNC') !== -1;
   }
 
   async synchronizeSelection() {
-    if (!this._enable) return;
+    if (!this._enabled) return;
     if (this.loading || this.selection.isEmpty()) return;
+
+    if (this.offline) {
+      this.network.showOfflineToast({
+        showRetryButton: true,
+        onRetrySuccess: () => this.synchronizeSelection()
+      });
+      return;
+    }
 
     if (this.debug) console.debug("[trips] Starting synchronization...");
 
@@ -367,6 +383,7 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
     if (isEmptyArray(tripIds)) return; // Nothing to sync
 
     this.markAsLoading();
+    this.error = null;
 
     try {
       await concatPromises(tripIds.map(tripId => () => this.service.synchronizeById(tripId)));
@@ -376,8 +393,11 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.showToast({
         message: 'INFO.SYNCHRONIZATION_SUCCEED'
       });
-    } catch (err) {
-      this.error = err && err.message || err;
+    } catch (error) {
+      this.userEventService.showToastErrorWithContext({
+        error,
+        context: () => concatPromises(tripIds.map(tripId => () => this.service.load(tripId, {withOperation: true, toEntity: false})))
+      });
     }
     finally {
       this.onRefresh.emit();
@@ -438,7 +458,6 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 
 
 }

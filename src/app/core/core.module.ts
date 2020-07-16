@@ -4,14 +4,13 @@ import {RouterModule} from '@angular/router';
 import {AccountService} from './services/account.service';
 import {AccountValidatorService} from './services/validator/account.validator';
 import {UserSettingsValidatorService} from './services/validator/user-settings.validator';
-import {BaseDataService} from './services/base.data-service.class';
+import {BaseEntityService} from './services/base.data-service.class';
 import {AuthForm} from './auth/form/form-auth';
 import {AuthModal} from './auth/modal/modal-auth';
 import {AboutModal} from './about/modal-about';
 import {RegisterConfirmPage} from "./register/confirm/confirm";
 import {AccountPage} from "./account/account";
 import {
-  DataService,
   fromDateISOString,
   isNil,
   isNotNil,
@@ -19,15 +18,15 @@ import {
   LoadResult,
   nullIfUndefined,
   SharedModule,
-  TableDataService,
+  EntitiesService,
   toDateISOString
 } from '../shared/shared.module';
 import {AppForm} from './form/form.class';
-import {AppTabForm} from './form/tab-form.class';
+import {AppTabEditor} from './form/tab-editor.class';
 import {EntityMetadataComponent} from './form/entity-metadata.component';
 import {FormButtonsBarComponent} from './form/form-buttons-bar.component';
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from './table/table.class';
-import {AppTableDataSource} from './table/table-datasource.class';
+import {EntitiesTableDataSource} from './table/entities-table-datasource.class';
 import {TableSelectColumnsComponent} from './table/table-select-columns.component';
 import {MenuComponent} from './menu/menu.component';
 import {ReactiveFormsModule} from "@angular/forms";
@@ -62,8 +61,8 @@ import {SelectPeerModal} from "./peer/select-peer.modal";
 import {SettingsPage} from "./settings/settings.page";
 import {LocalSettingsValidatorService} from "./services/validator/local-settings.validator";
 import {LocalSettingsService} from "./services/local-settings.service";
-import {AppEditor} from "./form/editor.class";
-import {EntityStorage} from "./services/entities-storage.service";
+import {AppEntityEditor} from "./form/editor.class";
+import {EntitiesStorage} from "./services/entities-storage.service";
 import {IonicModule} from "@ionic/angular";
 import {CacheModule} from "ionic-cache";
 import {AppPropertiesForm} from "./form/properties.form";
@@ -74,11 +73,11 @@ export {
   AppForm,
   AppFormUtils,
   AppTable,
-  AppTabForm,
-  AppTableDataSource,
-  AppEditor,
+  AppTabEditor,
+  EntitiesTableDataSource,
+  AppEntityEditor,
   TableSelectColumnsComponent,
-  BaseDataService,
+  BaseEntityService,
   AccountValidatorService,
   UserSettingsValidatorService,
   EntityMetadataComponent,
@@ -93,8 +92,7 @@ export {
   IReferentialRef,
   Department,
   Person,
-  DataService,
-  TableDataService,
+  EntitiesService,
   LoadResult,
   toDateISOString,
   StatusIds,
@@ -189,7 +187,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     AccountValidatorService,
     UserSettingsValidatorService,
     LocalSettingsValidatorService,
-    EntityStorage
+    EntitiesStorage
   ]
 })
 export class CoreModule {

@@ -1,6 +1,6 @@
 import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
 import {Injector} from "@angular/core";
-import {BaseDataService, EntityUtils, isNil} from "../../core/core.module";
+import {BaseEntityService, EntityUtils, isNil} from "../../core/core.module";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {DataQualityService} from "./base.service";
@@ -10,7 +10,7 @@ import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 
 
 export abstract class RootDataService<T extends RootDataEntity<T>, F = any>
-  extends BaseDataService<T, F>
+  extends BaseEntityService<T, F>
   implements DataQualityService<T> {
 
   protected accountService: AccountService;

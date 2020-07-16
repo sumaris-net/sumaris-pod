@@ -1,13 +1,17 @@
 import {Injectable} from "@angular/core";
-import {box, sign, verify} from "tweetnacl";
+import {box, sign, verify, hash, randomBytes} from "tweetnacl";
 
-export const scrypt = require('scrypt-async')
-export const base58 = require('../../../lib/base58')
+const scrypt = require('scrypt-async');
+const sha256 =  require('hash.js/lib/hash/sha/256');
+const sha512 =  require('hash.js/lib/hash/sha/512');
+
+export const base58 = require('../../../lib/base58');
 
 const nacl = {
-  sign: sign,
-  box: box,
-  verify: verify,
+  sign,
+  box,
+  hash,
+  verify,
   util: require('tweetnacl-util'),
   constants: {
     crypto_sign_BYTES: 64,
@@ -93,7 +97,7 @@ export class CryptoService {
   /**
   * Sign a message, from a key pair
   */
-  public sign(message, keypair: KeyPair): Promise<string> {
+  public sign(message: string, keypair: KeyPair): Promise<string> {
     return new Promise((resolve) => {
       const m = nacl.util.decodeUTF8(message);
       const signedMsg = nacl.sign(m, keypair.secretKey);
@@ -115,5 +119,19 @@ export class CryptoService {
       const res = nacl.sign.detached.verify(m, sig, pub);
       resolve(res);
     });
+  };
+
+  /**
+   * Hash (using SHA256) a message
+   */
+  sha256(message: string): string {
+    return sha256().update(message).digest('hex');
+  };
+
+  /**
+   * Hash (using SHA512) a message
+   */
+  sha512(message: string): string {
+    return sha512().update(message).digest('hex');
   };
 }

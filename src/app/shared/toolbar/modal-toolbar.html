@@ -5,6 +5,8 @@
                   (click)="cancel.emit()">
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
+
+      <ng-content select="[slot=start]"></ng-content>
     </ion-buttons>
 
     <ion-title>
@@ -12,6 +14,9 @@
     </ion-title>
 
     <ion-buttons slot="end">
+
+      <ng-content select="[slot=end]"></ng-content>
+
       <ion-spinner *ngIf="showSpinner"></ion-spinner>
 
       <ion-button visible-xs visible-sm visible-mobile

@@ -1,5 +1,5 @@
 import {BehaviorSubject, isObservable, Observable} from "rxjs";
-import {isNil, isNotNil, LoadResult, TableDataService} from "../../core/core.module";
+import {isNil, isNotNil, LoadResult, EntitiesService} from "../../core/core.module";
 import {filter, first, map, switchMap} from "rxjs/operators";
 import {
   IEntityWithMeasurement,
@@ -11,15 +11,16 @@ import {Directive, EventEmitter, Injector, Input, OnDestroy} from "@angular/core
 import {ProgramService} from "../../referential/services/program.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
+import {SortDirection} from "@angular/material/sort";
 
 @Directive()
 export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
-    implements TableDataService<T, F> {
+    implements EntitiesService<T, F> {
 
   private _program: string;
   private _acquisitionLevel: string;
   private _onRefreshPmfms = new EventEmitter<any>();
-  private _delegate: TableDataService<T, F>;
+  private _delegate: EntitiesService<T, F>;
 
   protected programService: ProgramService;
 
@@ -57,18 +58,18 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     this.setPmfms(pmfms);
   }
 
-  @Input() set delegate(value: TableDataService<T, F>) {
+  @Input() set delegate(value: EntitiesService<T, F>) {
     this._delegate = value;
   }
 
-  get delegate(): TableDataService<T, F> {
+  get delegate(): EntitiesService<T, F> {
     return this._delegate;
   }
 
   constructor(
     injector: Injector,
     protected dataType: new() => T,
-    delegate?: TableDataService<T, F>,
+    delegate?: EntitiesService<T, F>,
     protected options?: {
       mapPmfms: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
     }) {
@@ -91,7 +92,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     offset: number,
     size: number,
     sortBy?: string,
-    sortDirection?: string,
+    sortDirection?: SortDirection,
     selectionFilter?: any,
     options?: any
   ): Observable<LoadResult<T>> {

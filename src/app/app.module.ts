@@ -33,6 +33,8 @@ import {InAppBrowser} from "@ionic-native/in-app-browser/ngx";
 import {APP_MENU_ITEMS} from "./core/menu/menu.component";
 import {APP_HOME_BUTTONS} from "./core/home/home";
 import {ConfigOptions} from "./core/services/config/core.config";
+import {SocialModule} from "./social/social.module";
+import {APP_TESTING_PAGES, TestingPage} from "./shared/material/testing/material.testing.page";
 
 
 @NgModule({
@@ -47,6 +49,7 @@ import {ConfigOptions} from "./core/services/config/core.config";
     // functional modules
     AppRoutingModule,
     CoreModule,
+    SocialModule,
     TripModule,
     IonicStorageModule.forRoot({
       name: 'sumaris',
@@ -121,7 +124,7 @@ import {ConfigOptions} from "./core/services/config/core.config";
         {title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER'},
         {title: 'MENU.REFERENTIAL', path: '/referential', icon: 'list', profile: 'ADMIN'},
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
-        {title: 'MENU.SERVER_SETTINGS', path: '/admin/config', matIcon: 'build', profile: 'ADMIN'},
+        {title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN'},
 
         // Settings
         {title: '' /*empty divider*/, cssClass: 'flex-spacer'},
@@ -154,7 +157,12 @@ import {ConfigOptions} from "./core/services/config/core.config";
         },
         { title: '' /*empty divider*/, cssClass: 'visible-mobile'}
       ]
-    }
+    },
+
+    // Test pages
+    { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
+      {label: 'Batch tree', page: '/testing/trip/batchTree'}
+    ]},
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

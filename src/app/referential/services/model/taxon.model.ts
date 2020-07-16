@@ -87,7 +87,7 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
 export class TaxonGroupRef extends Entity<TaxonGroupRef> implements IReferentialRef {
 
   static fromObject(source: any): TaxonGroupRef {
-    if (isNil(source)) return null;
+    if (!source || source instanceof TaxonGroupRef) return source;
     const res = new TaxonGroupRef();
     res.fromObject(source);
     return res;

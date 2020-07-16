@@ -6,9 +6,9 @@
 
     <ng-container *ngFor="let itemControl of itemControls; index as i; last as last">
       <ion-item *ngIf="itemControl.value; let item"
-                [class.disabled]="disabled"
+                [class.disabled]="disabled" tappable
                 (click)="onItemClick($event, item)"
-                [color]="selection.isSelected(item) ? 'secondary' : undefined"
+                [color]="selection.isSelected(item) ? 'secondary100' : undefined"
                 [button]="selectionChanges.observers.length > 0">
         <ion-label>{{displayWith(item)}}</ion-label>
 

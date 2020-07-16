@@ -4,7 +4,7 @@
              (onValidateAndClose)="saveAndClose($event)"
              [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
-             [defaultBackHref]="defaultBackHref"
+             [backHref]="defaultBackHref"
              [canGoBack]="true">
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 
@@ -75,8 +75,10 @@
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
             <!-- trip -->
-            <form-trip #tripForm (onSubmit)="save($event)" [showError]="false">
-
+            <form-trip #tripForm
+                       [showError]="false"
+                       [usageMode]="usageMode"
+                       (onSubmit)="save($event)">
               <!-- sale -->
               <form-sale #saleForm [hidden]="!showSaleForm"
                          [showVessel]="false" [showError]="false" [showComment]="false" [showEndDateTime]="false"
@@ -154,8 +156,11 @@
       </ng-template>
 
       <app-operations-table #operationsTable
-                        (onOpenRow)="onOpenOperation($event)"
-                        (onNewRow)="onNewOperation($event)">
+                            (onOpenRow)="onOpenOperation($event)"
+                            (onNewRow)="onNewOperation($event)"
+                            [program]="programSubject|async"
+                            [sortBy]="mobile ? 'startDateTime': 'endDateTime'"
+                            [sortDirection]="mobile ?'desc': 'asc'">
       </app-operations-table>
     </mat-tab>
   </mat-tab-group>

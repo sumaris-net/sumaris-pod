@@ -7,7 +7,7 @@ import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {OperationGroupValidatorService} from "../services/validator/operation-group.validator";
 import {BehaviorSubject} from "rxjs";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {MetierService} from "../../referential/services/metier.service";
 import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
 import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
@@ -22,8 +22,8 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
   providers: [
     {provide: ValidatorService, useExisting: OperationGroupValidatorService},
     {
-      provide: InMemoryTableDataService,
-      useFactory: () => new InMemoryTableDataService<OperationGroup, OperationFilter>(OperationGroup)
+      provide: InMemoryEntitiesService,
+      useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationFilter>(OperationGroup)
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -53,7 +53,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     injector: Injector,
     protected platform: Platform,
     protected validatorService: ValidatorService,
-    protected memoryDataService: InMemoryTableDataService<OperationGroup, OperationFilter>,
+    protected memoryDataService: InMemoryEntitiesService<OperationGroup, OperationFilter>,
     protected metierService: MetierService,
     protected cd: ChangeDetectorRef
   ) {

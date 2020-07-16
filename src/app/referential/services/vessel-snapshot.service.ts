@@ -1,19 +1,20 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {isNotNil, LoadResult} from "../../shared/shared.module";
-import {BaseDataService, StatusIds} from "../../core/core.module";
+import {BaseEntityService, StatusIds} from "../../core/core.module";
 
 import {ErrorCodes} from "./errors";
-import {fetchAllPagesWithProgress, SuggestionDataService} from "../../shared/services/data-service.class";
+import {fetchAllPagesWithProgress, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {ReferentialFragments} from "./referential.queries";
+import {ReferentialFragments} from "./referential.fragments";
 import {FetchPolicy} from "apollo-client";
 import {VesselFilter} from "./vessel-service";
 import {BehaviorSubject, Observable} from "rxjs";
 import {NetworkService} from "../../core/services/network.service";
-import {EntityStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {VesselSnapshot} from "./model/vessel-snapshot.model";
+import {SortDirection} from "@angular/material/sort";
 
 export const VesselSnapshotFragments = {
   lightVesselSnapshot: gql`fragment LightVesselSnapshotFragment on VesselSnapshotVO {
@@ -72,13 +73,13 @@ const LoadQuery: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class VesselSnapshotService
-  extends BaseDataService<VesselSnapshot, VesselFilter>
-  implements SuggestionDataService<VesselSnapshot, VesselFilter> {
+  extends BaseEntityService<VesselSnapshot, VesselFilter>
+  implements SuggestService<VesselSnapshot, VesselFilter> {
 
   constructor(
     protected graphql: GraphqlService,
     protected network: NetworkService,
-    protected entities: EntityStorage,
+    protected entities: EntitiesStorage,
   ) {
     super(graphql);
   }
@@ -95,7 +96,7 @@ export class VesselSnapshotService
   async loadAll(offset: number,
                 size: number,
                 sortBy?: string,
-                sortDirection?: string,
+                sortDirection?: SortDirection,
                 filter?: VesselFilter,
                 opts?: {
                   [key: string]: any;

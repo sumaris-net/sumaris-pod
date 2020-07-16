@@ -39,7 +39,6 @@
     "BTN_SHOW_MENU": "Afficher le menu",
     "BTN_SHOW_MORE": "Afficher plus",
     "BTN_LOGOUT": "Quitter",
-    "BTN_INIT_OFFLINE_MODE": "Activer le mode hors-ligne",
     "CREATED_ON": "Créé le ",
     "COMMENTS": "Commentaires",
     "BTN_DECIMAL_SEPARATOR": ",",
@@ -108,7 +107,8 @@
   },
   "CONFIGURATION": {
     "TAB_GENERAL": "Détails",
-    "TAB_CACHE": "Cache serveur",
+    "TAB_CACHE": "Données en cache",
+    "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Nom de l'application",
     "DESCRIPTION": "Description (page d'accueil)",
     "STATUS": "Etat",
@@ -185,7 +185,7 @@
     "MAP": "Cartes",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "LOCAL_SETTINGS": "Paramètres",
-    "SERVER_SETTINGS": "Configuration serveur",
+    "SERVER": "Gestion du serveur",
     "LOGOUT": "Se déconnecter",
     "ABOUT": "À propos"
   },
@@ -218,7 +218,7 @@
     "BTN_LOGIN": "Se connecter",
     "BTN_REGISTER": "Créer un compte",
     "NO_ACCOUNT_QUESTION": "Vous n'avez pas encore de compte ?",
-    "OFFLINE_MODE": "Forcer le mode hors ligne ?",
+    "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
     "LOGOUT": {
       "CONFIRM_TITLE": "Confirmation",
       "CONFIRM_MESSAGE": "Êtes-vous sûr de vouloir vous déconnecter ?",
@@ -278,7 +278,7 @@
     "BTN_CHANGE_PEER": "Voir les noeuds disponibles",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "BTN_CLEAR_CACHE": "Nettoyer les données en cache",
-    "OFFLINE_MODE": "Forcer le mode avion ? (expérimentale)",
+    "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
     "USAGE_MODE": "Mode de saisie",
     "USAGE_MODES":  {
@@ -416,7 +416,7 @@
       "VALIDATE_TRIP_ERROR": "Erreur lors de la validation de la marée",
       "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée",
       "QUALIFY_TRIP_ERROR": "Erreur lors de la qualification de la marée",
-      "SYNCHRONIZE_TRIP_ERROR": "Synchronisation impossible",
+      "SYNCHRONIZE_TRIP_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
       "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé"
     },
     "MEASUREMENT": {
@@ -451,11 +451,14 @@
       }
     },
     "OPERATION": {
+      "BTN_SHOW_ALL": "Voir tout",
+      "BTN_HISTORY": "Historique",
+      "BTN_SHOW_MAP": "Carte des opérations",
       "COMMENTS": "Commentaires",
-      "TITLE_PREFIX": "<small>{{vessel}} - Marée {{departureDateTime}}<br></small>",
-      "OPE_PREFIX": "OPE",
-      "BTN_NEW": "Ajouter",
       "LAST_OPERATIONS": "Dernières opérations",
+      "NO_LAST_OPERATION": "Aucune opération précédente",
+      "OPE_PREFIX": "OPE",
+      "TITLE_PREFIX": "<small>{{vessel}} - Marée {{departureDateTime}}<br></small>",
       "NEW": {
         "TITLE": "Nouvelle opération"
       },
@@ -465,6 +468,7 @@
         "TAB_GENERAL": "Détails",
         "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
         "TAB_CATCH": "Capture",
+        "TAB_CATCH_TOTAL": "Capture total",
         "TAB_SURVIVAL_TEST": "Tests de survie",
         "TAB_INDIVIDUAL_MONITORING": "Suivi individuel",
         "TAB_INDIVIDUAL_RELEASES": "Relachés",
@@ -477,6 +481,11 @@
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin"
+      },
+      "MAP": {
+        "TITLE": "Carte des positions",
+        "TRIP_LAYER": "Marée",
+        "OPERATIONS_LAYER": "Opérations"
       },
       "LIST": {
         "PHYSICAL_GEAR": "Engin utilisé",
@@ -537,7 +546,7 @@
         "TITLE": "Lot {{label}}",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_NAME": "Espèce scientifique",
-        "PARENT": "Lot espèce",
+        "PARENT_GROUP": "Lot espèce",
         "BTN_AUTO_INCREMENT": "Auto-incrément",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures",
         "ESTIMATED_WEIGHT": "Poids estimé ?",
@@ -576,7 +585,7 @@
         "SAMPLING_RATIO": "Taux échant.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "SAMPLING_WEIGHT": "Poids échant.",
-        "PARENT": "Lot espèce",
+        "PARENT_GROUP": "Lot espèce",
         "INDIVIDUAL_COUNT": "Nombre individus",
         "INDIVIDUAL_UNIT": "indiv.",
         "WEIGHT": "Poids (kg)",
@@ -1053,6 +1062,8 @@
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
       "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Marée: Caractéritiques optionelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
+      "TRIP_MAP_CENTER": "Marée > Carte : Position du centre",
+      "TRIP_MAP_ZOOM": "Marée > Carte : Niveau du zoom",
       "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplisage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces commerciales sans poids :",
@@ -1261,6 +1272,8 @@
   },
   "NETWORK": {
     "BTN_CHECK_ALIVE": "Actualiser",
+    "BTN_INIT_OFFLINE_MODE": "Activer le mode hors-ligne",
+    "BTN_UPDATE_OFFLINE_MODE": "Mettre à jour le mode hors-ligne",
     "PEER": {
       "OFFLINE": "Noeud injoignable",
       "SELECT_MODAL": {
@@ -1277,7 +1290,20 @@
       "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%",
       "IMPORTATION_SUCCEED": "Importation terminée avec succès !<br/>La <b>saisie hors-ligne</b> est maintenant possible.",
       "OFFLINE": "Aucune connexion réseau.",
-      "OFFLINE_HELP": "L'application fonctionne en <b>mode hors-ligne</b>."
+      "OFFLINE_OR_UNAUTHORIZED": "Aucune connexion réseau, ou accès non autorisé.",
+      "ONLINE": "Connexion réseau <b>établie avec succès<b> !",
+      "OFFLINE_HELP": "L'application fonctionne en <b>mode hors-ligne</b>.",
+      "RETRY_TO_CONNECT": "<i>Tentative de <b>connexion au réseau...</b></i>"
+    }
+  },
+  "SOCIAL": {
+    "EVENT_TYPE_ENUM": {
+      "DEBUG_DATA": "Donnée de debuggage",
+      "INBOX_MESSAGE": "Message entrant"
+    },
+    "ERROR": {
+      "LOAD_USER_EVENTS_ERROR": "Erreur de chargement des notifications",
+      "SAVE_USER_EVENT_ERROR": "Erreur de sauvegarde du message utilisateur"
     }
   },
   "ERROR": {
@@ -1314,6 +1340,7 @@
     "UNKNOWN_ACCOUNT_EMAIL": "Aucun compte ne correspond à cet email.",
     "BAD_PASSWORD": "Mot de passe incorrect.",
     "EMAIL_ALREADY_REGISTERED": "Email déjà enregistrée",
+    "UNKNOWN_TECHNICAL_ERROR": "Une erreur technique est survenue.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "UNKNOWN_NETWORK_ERROR": "Erreur de communication avec le serveur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "BAD_UPDATE_DATE": "Sauvegarde impossible (modification concurrente détectée).",
     "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
@@ -1332,12 +1359,9 @@
     "TABLE_READ_ONLY": "Tableau en lecture seule",
     "SAVE_DATA_ERROR": "Erreur lors de la sauvegarde.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_DATA_ERROR": "Erreur de chargement des données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
-    "NETWORK_REQUIRED": "Connexion au système impossible.<br/><b>Vérifiez votre connexion réseau</b> avant de réessayer.",
+    "NETWORK_REQUIRED": "Connexion au réseau impossible.<br/><b>Vérifiez votre connexion réseau</b> avant de réessayer.",
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
-    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
-    "PROFILE_ENUM": {
-
-    }
+    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne."
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -1347,9 +1371,11 @@
     "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
     "ACTION_IMMEDIATE": "Cette action est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE_ROW": "<b>Êtes-vous sûr</b> de vouloir supprimer cette ligne ?",
-    "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?"
+    "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?",
+    "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?"
   },
   "INFO" : {
-    "SYNCHRONIZATION_SUCCEED": "Synchronisation terminée avec succès !<br/>Les données ont bien été recues par le serveur."
+    "SYNCHRONIZATION_SUCCEED": "Synchronisation terminée avec succès !<br/>Les données ont bien été recues par le serveur.",
+    "DEBUG_DATA_SEND": "Demande d'aide envoyée à l'administrateur."
   }
 }

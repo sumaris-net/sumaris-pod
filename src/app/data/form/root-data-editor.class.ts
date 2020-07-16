@@ -6,8 +6,8 @@ import {isNil, isNotNil, isNotNilOrBlank} from '../../shared/functions';
 import {distinctUntilChanged, filter, switchMap} from "rxjs/operators";
 import {Program} from "../../referential/services/model/program.model";
 import {ProgramService} from "../../referential/services/program.service";
-import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
-import {AppEditor, AppEditorOptions} from "../../core/form/editor.class";
+import {EntityService, EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
+import {AppEntityEditor, AppEditorOptions} from "../../core/form/editor.class";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
 import {RootDataEntity} from "../services/model/root-data-entity.model";
@@ -20,9 +20,9 @@ import {
 @Directive()
 export abstract class AppRootDataEditor<
     T extends RootDataEntity<T>,
-    S extends EditorDataService<T> = EditorDataService<T>
+    S extends EntityService<T> = EntityService<T>
   >
-  extends AppEditor<T, S>
+  extends AppEntityEditor<T, S>
   implements OnInit {
 
   protected programService: ProgramService;
@@ -71,7 +71,7 @@ export abstract class AppRootDataEditor<
     );
   }
 
-  async load(id?: number, options?: EditorDataServiceLoadOptions) {
+  async load(id?: number, options?: EntityServiceLoadOptions) {
     await super.load(id, options);
 
     // New data

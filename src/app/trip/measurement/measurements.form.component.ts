@@ -17,7 +17,7 @@ import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model
 import {ProgramService} from "../../referential/services/program.service";
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {delay, isNil, isNotNil} from '../../shared/functions';
+import {sleep, isNil, isNotNil} from '../../shared/functions';
 import {
   Measurement,
   MeasurementType,
@@ -369,7 +369,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   protected async loaded(): Promise<any> {
     if (!this.loading) return true;
     do {
-      await delay(100);
+      await sleep(100);
     } while (!this.loading);
     return true;
   }

@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {EditorDataService, EditorDataServiceLoadOptions, isNil, isNotNil} from "../../shared/shared.module";
-import {BaseDataService, EntityUtils, StatusIds} from "../../core/core.module";
+import {EntityService, EntityServiceLoadOptions, isNil, isNotNil} from "../../shared/shared.module";
+import {BaseEntityService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {GraphqlService} from "../../core/services/graphql.service";
@@ -9,7 +9,7 @@ import {environment} from "../../../environments/environment";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
 import {Parameter} from "./model/parameter.model";
-import {ReferentialFragments} from "./referential.queries";
+import {ReferentialFragments} from "./referential.fragments";
 
 const SaveQuery: any = gql`
   mutation SaveParameter($parameter:ParameterVOInput){
@@ -32,7 +32,7 @@ const LoadQuery: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class ParameterService extends BaseDataService implements EditorDataService<Parameter> {
+export class ParameterService extends BaseEntityService implements EntityService<Parameter> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -50,7 +50,7 @@ export class ParameterService extends BaseDataService implements EditorDataServi
     return await this.referentialService.existsByLabel(label, { ...opts, entityName: 'Parameter' });
   }
 
-  async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Parameter> {
+  async load(id: number, options?: EntityServiceLoadOptions): Promise<Parameter> {
 
     if (this._debug) console.debug(`[parameter-service] Loading parameter {${id}}...`);
 
@@ -72,13 +72,12 @@ export class ParameterService extends BaseDataService implements EditorDataServi
    * Save a parameter entity
    * @param entity
    */
-  async save(entity: Parameter, options?: EditorDataServiceLoadOptions): Promise<Parameter> {
+  async save(entity: Parameter, options?: EntityServiceLoadOptions): Promise<Parameter> {
 
     this.fillDefaultProperties(entity);
 
     // Transform into json
     const json = entity.asObject();
-    const isNew = !json.id;
 
     const now = Date.now();
     if (this._debug) console.debug(`[parameter-service] Saving Parameter...`, json);
@@ -96,16 +95,6 @@ export class ParameterService extends BaseDataService implements EditorDataServi
           if (this._debug) console.debug(`[parameter-service] Parameter saved in ${Date.now() - now}ms`, entity);
           this.copyIdAndUpdateDate(savedEntity, entity);
         }
-
-        // Update the cache
-        if (isNew && this._lastVariables.loadAll) {
-          if (this._debug) console.debug(`[parameter-service] Updating cache with saved ${entity.entityName}...`);
-          this.graphql.addToQueryCache(proxy, {
-            query: LoadQuery,
-            variables: this._lastVariables.load
-          }, 'parameter', entity.asObject());
-        }
-
       }
     });
 
@@ -119,17 +108,7 @@ export class ParameterService extends BaseDataService implements EditorDataServi
 
     entity.entityName = 'Parameter';
 
-    await this.referentialService.deleteAll([entity], {
-      update: (proxy) => {
-        // Remove from cache
-        if (this._lastVariables.load) {
-          this.graphql.removeToQueryCacheById(proxy, {
-            query: LoadQuery,
-            variables: this._lastVariables.loadAll
-          }, 'parameter', entity.id);
-        }
-      }
-    });
+    await this.referentialService.deleteAll([entity]);
   }
 
   listenChanges(id: number, options?: any): Observable<Parameter | undefined> {

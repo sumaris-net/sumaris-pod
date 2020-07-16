@@ -7,7 +7,7 @@ import {
   OnDestroy,
   Optional
 } from '@angular/core';
-import {ModalController} from '@ionic/angular';
+import {ModalController, ToastController} from '@ionic/angular';
 import {RegisterModal} from '../register/modal/modal-register';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
@@ -17,15 +17,16 @@ import {Department} from '../services/model/department.model';
 import {HistoryPageReference, LocalSettings} from '../services/model/settings.model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
-import {fadeInAnimation, isNotNil, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
+import {sleep, fadeInAnimation, isNotNil, isNotNilOrBlank, slideUpDownAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
-import {debounceTime, map, startWith} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, map, startWith, tap} from "rxjs/operators";
 import {AuthModal} from "../auth/modal/modal-auth";
 import {environment} from "../../../environments/environment";
 import {NetworkService} from "../services/network.service";
 import {MenuItem, MenuItems} from "../menu/menu.component";
 import {ConfigOptions} from "../services/config/core.config";
+import {ShowToastOptions, Toasts} from "../../shared/toasts";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -49,6 +50,7 @@ export class HomePage implements OnDestroy {
   private _config: Configuration;
 
   loading = true;
+  waitingNetwork = false;
   showSpinner = true;
   displayName: String = '';
   isLogin: boolean;
@@ -74,6 +76,7 @@ export class HomePage implements OnDestroy {
     private accountService: AccountService,
     private modalCtrl: ModalController,
     private translate: TranslateService,
+    private toastController: ToastController,
     private configService: ConfigService,
     private platform: PlatformService,
     private cd: ChangeDetectorRef,
@@ -101,8 +104,13 @@ export class HomePage implements OnDestroy {
     return modal.present();
   }
 
-  logout(event: any) {
-    this.accountService.logout();
+  async logout(event: any) {
+    await this.accountService.logout();
+
+    // If was offline, try to reconnect (because can be a forced offline mode)
+    if (this.offline) {
+      await this.tryOnline();
+    }
   }
 
   changeLanguage(locale: string) {
@@ -126,9 +134,27 @@ export class HomePage implements OnDestroy {
     }
   }
 
+  tryOnline() {
+    this.waitingNetwork = true;
+    this.markForCheck();
+
+    this.network.tryOnline({
+      showLoadingToast: false,
+      showOnlineToast: true,
+      showOfflineToast: false
+    })
+      .then(() => {
+        this.waitingNetwork = false;
+        this.markForCheck();
+      });
+
+  }
+
   /* -- protected method  -- */
 
   protected async start() {
+    await this.accountService.ready();
+
     this.isLogin = this.accountService.isLogin();
     if (this.isLogin) {
       this.onLogin(this.accountService.account);
@@ -157,14 +183,21 @@ export class HomePage implements OnDestroy {
     // Listen network changes
     this._subscription.add(
       this.network.onNetworkStatusChanges
-        .pipe(map(connectionType => connectionType === 'none'))
+        .pipe(
+          //debounceTime(450),
+          //tap(() => this.waitingNetwork = false),
+          map(connectionType => connectionType === 'none'),
+          distinctUntilChanged()
+        )
         .subscribe(offline => {
-          if (this.offline !== offline) {
-            this.offline = offline;
-            this.markForCheck();
-          }
+          this.offline = offline;
+          this.markForCheck();
         })
     );
+  }
+
+  protected async showToast(opts: ShowToastOptions) {
+    await Toasts.show(this.toastController, this.translate, opts);
   }
 
   protected onConfigLoaded(config: Configuration) {
@@ -196,7 +229,7 @@ export class HomePage implements OnDestroy {
 
       // Use background color
       else {
-        const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
+        const primaryColor = config.properties && config.properties['sumaris.color.primary'] || 'var(--ion-color-primary)';
         this.contentStyle = {'background-color': primaryColor};
       }
     }

@@ -17,13 +17,16 @@ export class PlatformService {
 
   private _started = false;
   private _startPromise: Promise<void>;
+  private _mobile: boolean;
 
-  public mobile: boolean;
-  public touchUi: boolean;
-
+  touchUi: boolean;
 
   get started(): boolean {
     return this._started;
+  }
+
+  get mobile(): boolean {
+    return isNotNil(this._mobile) ? this._mobile : this.platform.is('mobile');
   }
 
   constructor(
@@ -74,12 +77,12 @@ export class PlatformService {
 
           this.configureCordovaPlugins();
 
-          this.mobile = this.platform.is('mobile');
-          this.touchUi = this.mobile || this.platform.is('tablet') || this.platform.is('phablet');
+          this._mobile = this.platform.is('mobile');
+          this.touchUi = this._mobile || this.platform.is('tablet') || this.platform.is('phablet');
 
           // Force mobile in settings
-          if (this.mobile) {
-            this.settings.mobile = this.mobile;
+          if (this._mobile) {
+            this.settings.mobile = this._mobile;
             this.settings.touchUi = this.touchUi;
           }
         }),
@@ -91,7 +94,7 @@ export class PlatformService {
       .then(() => {
         this._started = true;
         this._startPromise = undefined;
-        console.info(`[platform] Starting platform [OK] {mobile: ${this.mobile}}, {touchUi: ${this.touchUi}}`);
+        console.info(`[platform] Starting platform [OK] {mobile: ${this._mobile}}, {touchUi: ${this.touchUi}}`);
 
         // Update cache configuration when network changed
         this.networkService.onNetworkStatusChanges.subscribe((type) => this.configureCache(type !== 'none'));
@@ -114,7 +117,7 @@ export class PlatformService {
   }
 
   open(url: string, target?: string, features?: string, replace?: boolean) {
-    if (this.browser && this.mobile) {
+    if (this.browser && this._mobile) {
       this.browser.create(url, target, features).show();
     }
     else {

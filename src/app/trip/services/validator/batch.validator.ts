@@ -124,7 +124,9 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     const totalWeight = batch.weight.value;
     const samplingRatioPct = sampleBatch.samplingRatio;
     const samplingWeight = sampleBatch.weight.value;
-    console.table("[batch-validator] Start computing: ", totalWeight, samplingRatioPct, samplingWeight);
+
+    // DEBUG
+    //console.debug("[batch-validator] Start computing: ", [totalWeight, samplingRatioPct, samplingWeight]);
 
     const totalWeightValueControl = form.get('weight.value');
     const samplingWeightValueControl = sampleForm.get('weight.value');

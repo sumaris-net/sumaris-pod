@@ -129,7 +129,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   ngOnInit() {
 
-    this._enable = this.canEdit;
+    this._enabled = this.canEdit;
 
     super.ngOnInit();
 

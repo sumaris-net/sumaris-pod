@@ -4,7 +4,7 @@ import {changeCaseToUnderscore, isNotNil, toBoolean} from "../../shared/function
 import {ReferentialFilter} from "../services/referential.service";
 import {Subject} from "rxjs";
 import {ReferentialRefFilter, ReferentialRefService} from "../services/referential-ref.service";
-import {AppTableDataSource} from "../../core/table/table-datasource.class";
+import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {ReferentialRefTable} from "./referential-ref.table";
 import {ReferentialRef} from "../../core/services/model/referential.model";
 
@@ -40,7 +40,7 @@ export class SelectReferentialModal implements OnInit {
     if (!this.filter || !this.filter.entityName) {
       throw new Error("Missing argument 'filter'");
     }
-    this.table.setDatasource(new AppTableDataSource<ReferentialRef, ReferentialRefFilter>(ReferentialRef,
+    this.table.setDatasource(new EntitiesTableDataSource<ReferentialRef, ReferentialRefFilter>(ReferentialRef,
       this.referentialRefService,
       null,
       {

@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {AppEditor, isNotNil, ReferentialRef, referentialToString} from "../../core/core.module";
+import {AppEntityEditor, isNotNil, ReferentialRef, referentialToString} from "../../core/core.module";
 import {ReferentialForm} from "../form/referential.form";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
 import {PmfmStrategiesTable, PmfmStrategyFilter} from "./pmfm-strategies.table";
@@ -14,7 +14,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {StrategyValidatorService} from "../services/validator/strategy.validator";
 import {BehaviorSubject} from "rxjs";
 import {debounceTime, map} from "rxjs/operators";
-import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
@@ -32,7 +32,7 @@ import {TableElement} from "angular4-material-table";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StrategyForm extends AppEditor<Strategy> implements OnInit {
+export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit {
 
 
   private $isPmfmStrategyEmpty = new BehaviorSubject<boolean>(true);
@@ -224,7 +224,7 @@ export class StrategyForm extends AppEditor<Strategy> implements OnInit {
   }
 
   updateView(data: Strategy | null, opts?: { openTabIndex?: number; updateTabAndRoute?: boolean }) {
-    super.updateView(data, {...opts, updateTabAndRoute: false});
+    super.updateView(data, {...opts, updateRoute: false});
   }
 
   async openSelectReferentialModal(opts: {
@@ -334,7 +334,7 @@ export class StrategyForm extends AppEditor<Strategy> implements OnInit {
     this.markForCheck();
   }
 
-  async load(id?: number, opts?: EditorDataServiceLoadOptions): Promise<void> {
+  async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
 
   }
 

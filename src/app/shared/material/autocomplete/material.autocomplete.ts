@@ -15,7 +15,7 @@ import {
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {BehaviorSubject, isObservable, merge, Observable, Subscription} from "rxjs";
 import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, takeWhile, tap} from "rxjs/operators";
-import {SuggestFn, SuggestionDataService} from "../../services/data-service.class";
+import {SuggestFn, SuggestService} from "../../services/entity-service.class";
 import {
   changeCaseToUnderscore,
   getPropertyByPath,
@@ -54,7 +54,7 @@ export declare interface MatAutocompleteFieldConfig<T = any, F = any> {
 }
 
 export declare interface MatAutocompleteFieldAddOptions<T = any, F = any> extends Partial<MatAutocompleteFieldConfig<T, F>> {
-  service?: SuggestionDataService<T, F>;
+  service?: SuggestService<T, F>;
 }
 
 export class MatAutocompleteConfigHolder {

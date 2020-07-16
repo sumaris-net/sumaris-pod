@@ -8,7 +8,7 @@ import {
   ValidatorFn
 } from "@angular/forms";
 import {
-  delay,
+  sleep,
   filterNumberInput,
   isNil,
   nullIfUndefined,
@@ -72,7 +72,7 @@ export class AppFormHolder<F extends IAppForm = IAppForm> implements IAppForm {
   constructor(private getter: () => F) {
   }
 
-  private delegate(): IAppForm {
+  private get delegate(): IAppForm {
     return this.getter() || AppFormHolder.NULL_FORM;
   }
 
@@ -82,7 +82,7 @@ export class AppFormHolder<F extends IAppForm = IAppForm> implements IAppForm {
       if (opts && opts.maxTimeoutMs && opts.startTime && (Date.now() >= opts.startTime + opts.maxTimeoutMs)) {
         throw new Error("Timeout exception. Cannot get form instance");
       }
-      await delay(opts && opts.checkTimeMs || 100);
+      await sleep(opts && opts.checkTimeMs || 100);
       return this.waitDelegate({startTime: Date.now(), ...opts}); // Loop
     }
     return content;
@@ -91,40 +91,40 @@ export class AppFormHolder<F extends IAppForm = IAppForm> implements IAppForm {
   /* -- delegated methods -- */
 
   get error(): string {
-    return this.delegate().error;
+    return this.delegate.error;
   }
   get invalid(): boolean {
-    return this.delegate().invalid;
+    return this.delegate.invalid;
   }
   get valid(): boolean {
-    return this.delegate().valid;
+    return this.delegate.valid;
   }
   get dirty(): boolean {
-    return this.delegate().dirty;
+    return this.delegate.dirty;
   }
   get empty(): boolean {
-    return this.delegate().empty;
+    return this.delegate.empty;
   }
   get pending(): boolean {
-    return this.delegate().pending;
+    return this.delegate.pending;
   }
   disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    return this.delegate().disable(opts);
+    return this.delegate.disable(opts);
   }
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    return this.delegate().enable(opts);
+    return this.delegate.enable(opts);
   }
   markAsPristine(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    return this.delegate().markAsPristine(opts);
+    return this.delegate.markAsPristine(opts);
   }
   markAsUntouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    return this.delegate().markAsUntouched(opts);
+    return this.delegate.markAsUntouched(opts);
   }
   markAsTouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    return this.delegate().markAsTouched(opts);
+    return this.delegate.markAsTouched(opts);
   }
   markAsDirty(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    return this.delegate().markAsDirty(opts);
+    return this.delegate.markAsDirty(opts);
   }
 }
 

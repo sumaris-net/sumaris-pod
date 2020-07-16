@@ -57,8 +57,8 @@
           <!-- link -->
           <ion-item *ngIf="!loading && item.path"
                     @fadeInAnimation
-                    class="{{item.cssClass}} {{item.color}}"
-                    tappable class="text-1x"
+                    class="{{item.cssClass}} {{item.color}} text-1x"
+                    tappable
                     [routerLink]="item.path"
                     routerDirection="root"
                     routerLinkActive="selected"
@@ -71,8 +71,8 @@
           <!-- action -->
           <ion-item *ngIf="!loading && item.action"
                     @fadeInAnimation
-                    class="{{item.cssClass}} {{item.color}}"
-                    tappable class="text-1x"
+                    class="{{item.cssClass}} {{item.color}} text-1x"
+                    tappable
                     (click)="doAction(item.action, $event)">
             <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
             <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>

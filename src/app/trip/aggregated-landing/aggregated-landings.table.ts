@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {
   AppTable,
-  AppTableDataSource,
+  EntitiesTableDataSource,
   environment, isNil, isNotNil, referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -110,7 +110,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
 
     super(route, router, platform, location, modalCtrl, settings,
       ['vessel'],
-      new AppTableDataSource<AggregatedLanding, AggregatedLandingFilter>(AggregatedLanding, service, null, {
+      new EntitiesTableDataSource<AggregatedLanding, AggregatedLandingFilter>(AggregatedLanding, service, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         serviceOptions: {

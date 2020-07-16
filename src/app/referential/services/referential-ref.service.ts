@@ -2,9 +2,9 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {isNotEmptyArray, isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
+import {isNotEmptyArray, isNotNil, LoadResult, EntitiesService} from "../../shared/shared.module";
 import {
-  BaseDataService,
+  BaseEntityService,
   EntityUtils,
   environment,
   IReferentialRef,
@@ -17,13 +17,13 @@ import {ReferentialRef, ReferentialUtils} from "../../core/services/model/refere
 
 import {FetchPolicy} from "apollo-client";
 import {ReferentialFilter, ReferentialService} from "./referential.service";
-import {fetchAllPagesWithProgress, FilterFn, SuggestionDataService} from "../../shared/services/data-service.class";
+import {fetchAllPagesWithProgress, FilterFn, SuggestService} from "../../shared/services/entity-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {LocationLevelIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.enum";
 import {TaxonNameRef} from "./model/taxon.model";
 import {NetworkService} from "../../core/services/network.service";
-import {EntityStorage} from "../../core/services/entities-storage.service";
-import {ReferentialFragments} from "./referential.queries";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
+import {ReferentialFragments} from "./referential.fragments";
 import {SortDirection} from "@angular/material/sort";
 
 export class ReferentialRefFilter extends ReferentialFilter {
@@ -67,9 +67,9 @@ const LoadAllTaxonNamesQuery: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class ReferentialRefService extends BaseDataService
-  implements SuggestionDataService<ReferentialRef, ReferentialRefFilter>,
-      TableDataService<ReferentialRef, ReferentialRefFilter> {
+export class ReferentialRefService extends BaseEntityService
+  implements SuggestService<ReferentialRef, ReferentialRefFilter>,
+      EntitiesService<ReferentialRef, ReferentialRefFilter> {
 
   private _importedEntities: string[];
 
@@ -78,7 +78,7 @@ export class ReferentialRefService extends BaseDataService
     protected referentialService: ReferentialService,
     protected accountService: AccountService,
     protected network: NetworkService,
-    protected entities: EntityStorage
+    protected entities: EntitiesStorage
   ) {
     super(graphql);
 
@@ -97,7 +97,7 @@ export class ReferentialRefService extends BaseDataService
   watchAll(offset: number,
            size: number,
            sortBy?: string,
-           sortDirection?: string,
+           sortDirection?: SortDirection,
            filter?: ReferentialFilter,
            opts?: {
              [key: string]: any;
@@ -169,7 +169,7 @@ export class ReferentialRefService extends BaseDataService
   async loadAll(offset: number,
                 size: number,
                 sortBy?: string,
-                sortDirection?: string,
+                sortDirection?: SortDirection,
                 filter?: ReferentialRefFilter,
                 opts?: {
                   [key: string]: any;
@@ -270,7 +270,7 @@ export class ReferentialRefService extends BaseDataService
   async loadAllTaxonNames(offset: number,
                           size: number,
                           sortBy?: string,
-                          sortDirection?: string,
+                          sortDirection?: SortDirection,
                           filter?: TaxonNameRefFilter,
                           opts?: {
                             [key: string]: any;

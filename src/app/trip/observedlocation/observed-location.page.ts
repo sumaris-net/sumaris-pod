@@ -6,7 +6,7 @@ import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
-import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {ModalController} from "@ionic/angular";
 import {environment} from "../../core/core.module";
 import {HistoryPageReference} from "../../core/services/model/settings.model";
@@ -108,14 +108,14 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     ]);
   }
 
-  protected async onNewEntity(data: ObservedLocation, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
       data.startDateTime = moment();
     }
   }
 
-  protected async onEntityLoaded(data: ObservedLocation, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
     // Move to second tab
     this.selectedTabIndex = 1;
     this.tabGroup.realignInkBar();

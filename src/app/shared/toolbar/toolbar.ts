@@ -1,8 +1,17 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ViewChild
+} from '@angular/core';
 import {ProgressBarService, ProgressMode} from '../services/progress-bar.service';
 import {Router} from "@angular/router";
 import {IonBackButton, IonRouterOutlet, IonSearchbar} from "@ionic/angular";
-import {isNotNil, toBoolean} from "../functions";
+import {isNotNil, isNotNilOrBlank, toBoolean} from "../functions";
 import {debounceTime, distinctUntilChanged, startWith} from "rxjs/operators";
 import {Observable} from "rxjs";
 
@@ -15,6 +24,8 @@ import {Observable} from "rxjs";
 export class ToolbarComponent implements OnInit {
 
   private _validateTapCount = 0;
+  private _defaultBackHref: string;
+  private _backHref: string;
 
   @Input()
   title = '';
@@ -25,8 +36,29 @@ export class ToolbarComponent implements OnInit {
   @Input()
   class = '';
 
-  @Input()
-  defaultBackHref: string;
+  @Input() set backHref(value: string) {
+    if (value !== this._backHref) {
+      this._backHref = value;
+      this.canGoBack = this.canGoBack || isNotNil(value);
+      this.cd.markForCheck();
+    }
+  }
+
+  get backHref(): string {
+    return this._backHref;
+  }
+
+  @Input() set defaultBackHref(value: string) {
+    if (value !== this._defaultBackHref) {
+      this._defaultBackHref = value;
+      this.canGoBack = this.canGoBack || isNotNil(value);
+      this.cd.markForCheck();
+    }
+  }
+
+  get defaultBackHref(): string {
+    return this._defaultBackHref;
+  }
 
   @Input()
   hasValidate = false;
@@ -65,7 +97,8 @@ export class ToolbarComponent implements OnInit {
   constructor(
     private progressBarService: ProgressBarService,
     private router: Router,
-    private routerOutlet: IonRouterOutlet
+    private routerOutlet: IonRouterOutlet,
+    private cd: ChangeDetectorRef
   ) {
 
     // Listen progress bar service mode
@@ -79,7 +112,9 @@ export class ToolbarComponent implements OnInit {
 
   ngOnInit() {
     this.hasValidate = toBoolean(this.hasValidate, this.onValidate.observers.length > 0);
-    this.canGoBack = toBoolean(this.canGoBack, this.routerOutlet.canGoBack() || isNotNil(this.defaultBackHref));
+    this.canGoBack = toBoolean(this.canGoBack, this.routerOutlet.canGoBack()
+      || isNotNilOrBlank(this._backHref)
+      || isNotNilOrBlank(this._defaultBackHref));
     this.hasSearch = toBoolean(this.hasSearch, this.onSearch.observers.length > 0);
   }
 
@@ -104,11 +139,17 @@ export class ToolbarComponent implements OnInit {
   }
 
   async goBack(): Promise<void> {
-    if (this.routerOutlet.canGoBack()) {
+    if (this._backHref) {
+      await this.router.navigateByUrl(this._backHref);
+    }
+    else if (this.routerOutlet.canGoBack()) {
       await this.routerOutlet.pop();
     }
+    else if (this._defaultBackHref) {
+      await this.router.navigateByUrl(this._defaultBackHref);
+    }
     else {
-      await this.router.navigateByUrl(this.defaultBackHref);
+      console.error("[toolbar] Cannot go back. Missing attribute 'defaultBackHref' or 'backHref'");
     }
   }
 

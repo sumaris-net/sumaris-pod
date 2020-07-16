@@ -22,7 +22,10 @@
   </ion-item>
 
   <div class="toolbar-spacer"></div>
-
+  <button mat-icon-button *ngIf="showMap"
+          [title]="'TRIP.OPERATION.BTN_SHOW_MAP'|translate" (click)="openMapModal($event)">
+    <mat-icon><ion-icon name="earth"></ion-icon></mat-icon>
+  </button>
   <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
     <mat-icon>more_vert</mat-icon>
   </button>
@@ -34,7 +37,9 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
+<mat-table [dataSource]="dataSource" matSort
+           [matSortActive]="sortBy"
+           [matSortDirection]="sortDirection"
            matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
@@ -143,7 +148,10 @@
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="clickRow($event, row)"></mat-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled"
+           [class.mat-row-selected]="selectedRow === row"
+           (click)="clickRow($event, row)"
+  ></mat-row>
 </mat-table>
 
 <!-- Paginator: not need

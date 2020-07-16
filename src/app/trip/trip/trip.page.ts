@@ -3,18 +3,18 @@ import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
 import {SaleForm} from '../sale/sale.form';
-import {OperationTable} from '../operation/operations.table';
+import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment, fromDateISOString, ReferentialRef} from '../../core/core.module';
+import {EntityUtils, environment, fromDateISOString, ReferentialRef} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
-import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray} from '../../shared/shared.module';
+import {EntityServiceLoadOptions, fadeInOutAnimation, isNil, isNotEmptyArray} from '../../shared/shared.module';
 import * as moment from "moment";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {AppRootDataEditor} from "../../data/form/root-data-editor.class";
 import {FormGroup} from "@angular/forms";
 import {NetworkService} from "../../core/services/network.service";
 import {TripsPageSettingsEnum} from "./trips.table";
-import {EntityStorage} from "../../core/services/entities-storage.service";
+import {EntitiesStorage} from "../../core/services/entities-storage.service";
 import {HistoryPageReference, UsageMode} from "../../core/services/model/settings.model";
 import {PhysicalGear, Trip} from "../services/model/trip.model";
 import {SelectPhysicalGearModal} from "../physicalgear/select-physical-gear.modal";
@@ -23,6 +23,15 @@ import {PhysicalGearFilter} from "../services/physicalgear.service";
 import {PromiseEvent} from "../../shared/events";
 import {ProgramProperties} from "../../referential/services/config/program.config";
 import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
+import {PlatformService} from "../../core/services/platform.service";
+import {filter, first} from "rxjs/operators";
+import {ReferentialUtils} from "../../core/services/model/referential.model";
+
+const TripPageTabs = {
+  GENERAL: 0,
+  PHYSICAL_GEARS: 1,
+  OPERATIONS: 2
+}
 
 @Component({
   selector: 'app-trip-page',
@@ -37,6 +46,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;
+  mobile = false;
   forceMeasurementAsOptional = false;
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
@@ -47,12 +57,13 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
 
-  @ViewChild('operationsTable', { static: true }) operationTable: OperationTable;
+  @ViewChild('operationsTable', { static: true }) operationTable: OperationsTable;
 
   constructor(
     injector: Injector,
-    protected entities: EntityStorage,
+    protected entities: EntitiesStorage,
     protected modalCtrl: ModalController,
+    protected platform: PlatformService,
     public network: NetworkService // Used for DEV (to debug OFFLINE mode)
   ) {
     super(injector,
@@ -60,9 +71,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       injector.get(TripService),
       {
         pathIdAttribute: 'tripId',
-        tabCount: 3
+        tabCount: 3,
+        autoOpenNextTab: !platform.mobile
       });
     this.defaultBackHref = "/trips";
+    this.mobile = platform.mobile;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -87,6 +100,13 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           }
           this.physicalGearTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
           this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
+          this.operationTable.showMap = program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
+
+          // If new data, enable gears and operations tabs
+          if (this.isNewData) {
+            this.showGearTable = true;
+            this.showOperationTable = true;
+          }
         })
     );
 
@@ -101,7 +121,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     ]);
   }
 
-  protected async onNewEntity(data: Trip, options?: EditorDataServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
 
@@ -134,17 +154,35 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       }
     }
 
+    // If on field mode
+    if (this.isOnFieldMode) {
+      // Listen first opening the operations tab, then save
+      this.tabGroup.selectedTabChange
+        .pipe(
+          filter(event => event.index === TripPageTabs.OPERATIONS)
+        )
+        .subscribe(event => this.save());
+    }
+
     this.showGearTable = false;
     this.showOperationTable = false;
-
   }
 
   updateViewState(data: Trip) {
     super.updateViewState(data);
 
+    // If new data
     if (this.isNewData) {
-      this.showGearTable = false;
-      this.showOperationTable = false;
+      // Enable gears and operations tabs, if a program has been selected
+      if (ReferentialUtils.isNotEmpty(this.programSubject.getValue())) {
+        this.showGearTable = true;
+        this.showOperationTable = true;
+
+      }
+      else {
+        this.showGearTable = false;
+        this.showOperationTable = false;
+      }
     }
     else {
       this.showGearTable = true;
@@ -168,7 +206,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     // Operations table
     if (!isNew && this.operationTable) {
-      this.operationTable.setTrip(data);
+      this.operationTable.setTripId(data.id, {emitEvent: false});
+      //this.operationTable.onRefresh.emit();
     }
   }
 

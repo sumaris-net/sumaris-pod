@@ -1,5 +1,5 @@
 import gql from "graphql-tag";
-import {ReferentialFragments} from "../../referential/services/referential.queries";
+import {ReferentialFragments} from "../../referential/services/referential.fragments";
 
 
 export const Fragments = {

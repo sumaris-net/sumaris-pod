@@ -1,7 +1,7 @@
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 6, // TODO SFA=6  | SUMARiS=2
+  PORT: 2, // TODO SFA=6  | SUMARiS=2
   SEA_AREA: 7,
   AUCTION: 3
 };
@@ -36,6 +36,7 @@ export const PmfmIds = {
   IS_SAMPLING: 121,
 
   /* ADAP pmfms */
+  LENGTH_TOTAL_CM: 81, // Use for test only
   SELF_SAMPLING_PROGRAM: 28,
   CONTROLLED_SPECIES: 134,
   SAMPLE_MEASURED_WEIGHT: 140,

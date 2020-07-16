@@ -9,6 +9,7 @@ import {CommonModule} from "@angular/common";
 import {ReactiveFormsModule} from "@angular/forms";
 import {NumpadTestPage} from "../numpad/testing/numpad.test";
 import {SwipeTestPage} from "../swipe/testing/swipe.test";
+import {TranslateModule} from "@ngx-translate/core";
 
 
 const routes: Routes = [

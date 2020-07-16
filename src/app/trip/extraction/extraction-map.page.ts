@@ -62,8 +62,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   ready = false;
   options = {
     layers: [this.sextantBaseLayer],
+    maxZoom: 10, // max zoom to sextant layer
     zoom: 5,
-    center: L.latLng(46.879966, -10)
+    center: L.latLng(46.879966, -10) // Atlantic centric
   };
   layersControl = {
     baseLayers: {
@@ -214,7 +215,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         switchMap(() => {
           if (!this.ready || this.loading || isNil(this.type)) return; // avoid multiple load
           console.debug('[extraction-map] Refreshing...');
-          return this.loadData();
+          return this.load();
         })
       ).subscribe(() => this.markAsPristine())
     );
@@ -250,7 +251,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
   }
 
   protected watchTypes(): Observable<AggregationType[]> {
-    return this.service.loadAggregationTypes(this.typesFilter)
+    return this.service.watchAggregationTypes(this.typesFilter)
       .pipe(
         map(types => {
           // Compute name, if need
@@ -348,7 +349,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         strata
       });
 
-      await this.loadData();
+      await this.load();
 
       hasData = this.hasData;
     }
@@ -357,7 +358,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
     return hasData;
   }
 
-  protected async loadData() {
+  async loadData() {
     if (!this.ready) return;
     if (!this.type || !this.type.category || !this.type.label) {
       this.loading = false;
@@ -429,7 +430,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         const scale = this.createLegendScale();
         layer.setStyle(this.getFeatureStyleFn(scale, aggColumnName));
 
-        const typeName = this.$title.getValue();
 
         // Remove old data layer
         Object.getOwnPropertyNames(this.layersControl.overlays)
@@ -441,7 +441,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
           });
 
         // Add new layer to layers control
-        this.layersControl.overlays[typeName] = layer;
+        const layerName = this.$title.getValue();
+        this.layersControl.overlays[layerName] = layer;
 
         // Refresh layer
         this.$layers.next([layer]);
@@ -466,7 +467,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
       this.showLegend = isNotNilOrBlank(strata.aggColumnName);
       this.enable();
     }
-
   }
 
   setYear(event: UIEvent, value) {

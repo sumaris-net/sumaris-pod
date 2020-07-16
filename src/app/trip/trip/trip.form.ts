@@ -138,7 +138,6 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Default values
     this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
     this.showMetiers = toBoolean(this.showMetiers, true); // Will init the metiers helper
-
     this.usageMode = this.usageMode || this.settings.usageMode;
 
     // Combo: programs

@@ -1,7 +1,7 @@
 :host {
-  --ion-item-background-selected: var(--ion-color-secondary);
-  --ion-item-text-color-selected: var(--ion-color-secondary-contrast);
-  --ion-item-icon-color-selected: var(--ion-color-secondary-contrast);
+  --ion-item-background-selected: var(--ion-color-secondary100);
+  --ion-item-text-color-selected: var(--ion-color-secondary100-contrast);
+  --ion-item-icon-color-selected: var(--ion-color-secondary100-contrast);
 }
 ion-item.disabled {
   ion-label {

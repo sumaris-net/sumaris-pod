@@ -5,8 +5,8 @@ import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
 import {catchError, map, switchMap, throttleTime} from "rxjs/operators";
 import {Entity, EntityUtils} from "./model/entity.model";
-import {isEmptyArray, isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
-import {LoadResult} from "../../shared/services/data-service.class";
+import {isEmptyArray, isNil, isNilOrBlank, isNotNil, toNumber} from "../../shared/functions";
+import {LoadResult} from "../../shared/services/entity-service.class";
 
 
 export const ENTITIES_STORAGE_KEY = "entities";
@@ -199,7 +199,7 @@ export class EntityStore<T extends Entity<T>> {
 }
 
 @Injectable({providedIn: 'root'})
-export class EntityStorage {
+export class EntitiesStorage {
 
   private _started = false;
   private _startPromise: Promise<void>;
@@ -411,8 +411,8 @@ export class EntityStorage {
     // Compute the total length
     const total = data.length;
 
-    // If page size<=0 (e.g. only need total)
-    if (opts.size && opts.size < 0 || opts.size === 0) return {data: [], total};
+    // If page size=0 (e.g. only need total)
+    if (opts.size === 0) return {data: [], total};
 
     // Sort by
     if (data.length && opts.sortBy) {
@@ -427,7 +427,7 @@ export class EntityStorage {
         data = [];
       }
       else {
-        data = (opts.size && ((opts.offset + opts.size) < data.length)) ?
+        data = (opts.size > 0 && ((opts.offset + opts.size) < data.length)) ?
           // Slice using limit to size
           data.slice(opts.offset, (opts.offset + opts.size) - 1) :
           // Slice without limit
@@ -436,8 +436,8 @@ export class EntityStorage {
     }
     else if (opts.size > 0){
       data = data.slice(0, opts.size - 1);
-    } else if (opts.size === 0){
-      data = [];
+    } else if (opts.size < 0){
+      // Force to keep all data
     }
 
     return {data, total};

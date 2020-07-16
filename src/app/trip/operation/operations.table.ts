@@ -1,8 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource,
+  EntitiesTableDataSource,
   environment,
   isNotNil,
   referentialToString,
@@ -13,12 +13,16 @@ import {OperationValidatorService} from "../services/validator/operation.validat
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
-import {OperationFilter, OperationService, OperationServiceOptions} from "../services/operation.service";
+import {OperationFilter, OperationService, OperationServiceWatchOptions} from "../services/operation.service";
 import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Operation, Trip} from "../services/model/trip.model";
 import {LatLongPattern} from "../../shared/material/latlong/latlong.utils";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {toBoolean} from "../../shared/functions";
+import {OperationsMap} from "./map/operations.map";
+import {AccountService} from "../../core/services/account.service";
+import {SortDirection} from "@angular/material/sort";
 
 
 @Component({
@@ -30,15 +34,20 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
+export class OperationsTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
 
   displayAttributes: {
     [key: string]: string[]
   };
+  selectedRow: TableElement<Operation>;
 
   @Input() latLongPattern: LatLongPattern;
 
   @Input() tripId: number;
+
+  @Input() showMap: boolean; // false by default
+
+  @Input() program: string;
 
   constructor(
     protected route: ActivatedRoute,
@@ -52,6 +61,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     protected referentialRefService: ReferentialRefService,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
+    protected accountService: AccountService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, platform, location, modalCtrl, settings,
@@ -70,7 +80,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
             'endPosition',
             'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Operation, OperationFilter, OperationServiceOptions>(Operation, dataService,
+      new EntitiesTableDataSource<Operation, OperationFilter, OperationServiceWatchOptions>(Operation, dataService,
         null,
         // DataSource options
         {
@@ -94,10 +104,13 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.autoLoad = false; // waiting parent to be loaded
 
     this.pageSize = 1000; // Do not use paginator
+    this.sortBy = this.mobile ? 'startDateTime' : 'endDateTime';
+    this.sortDirection = this.mobile ? 'desc' : 'asc';
 
     settings.ready().then(() => {
       if (this.settings.settings.accountInheritance) {
-
+        const account = this.accountService.account;
+        this.latLongPattern = account && account.settings && account.settings.latLongFormat || this.settings.latLongFormat;
       }
       else {
         this.latLongPattern = this.settings.latLongFormat;
@@ -107,6 +120,8 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.showMap = toBoolean(this.showMap, false);
 
     this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
@@ -132,19 +147,59 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     }
   }
 
-  setTrip(data: Trip) {
-    this.setTripId(data && data.id || undefined);
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
   }
 
-  setTripId(id: number) {
+  setTripId(id: number, opts?: {emitEvent?: boolean;}) {
     if (this.tripId !== id) {
       this.tripId = id;
       const filter = this.filter || {};
       filter.tripId = id;
       this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
       this.dataSource.serviceOptions.tripId = id;
-      this.setFilter(filter, {emitEvent: isNotNil(id)});
+      this.setFilter(filter, {emitEvent: (!opts || opts.emitEvent !== false) && isNotNil(id)});
     }
+    else if ((!opts || opts.emitEvent !== false) && isNotNil(this.filter.tripId)){
+      this.onRefresh.emit();
+    }
+  }
+
+
+
+  async openMapModal(event: UIEvent) {
+    const operations = (await this.dataSource.getRows())
+      .map(row => row.currentData);
+
+    const modal = await this.modalCtrl.create({
+      component: OperationsMap,
+      componentProps: {
+        operations,
+        program: this.program
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data} = await modal.onDidDismiss();
+    if (data && data instanceof Operation) {
+      // Select the row
+      const row = (await this.dataSource.getRows()).find(row => row.currentData.id === data.id);
+      if (row) {
+        this.clickRow(null, row);
+      }
+    }
+
+  }
+
+  clickRow(event: MouseEvent|undefined, row: TableElement<Operation>): boolean {
+    this.selectedRow = row;
+
+    return super.clickRow(event, row);
   }
 
   referentialToString = referentialToString;

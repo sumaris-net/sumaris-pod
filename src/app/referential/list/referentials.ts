@@ -2,7 +2,7 @@ import {Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable, of} from "rxjs";
 import {debounceTime, filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AppTable, AppTableDataSource, environment, isNil, isNotNil} from "../../core/core.module";
+import {AppTable, EntitiesTableDataSource, environment, isNil, isNotNil} from "../../core/core.module";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {ReferentialFilter, ReferentialService} from "../services/referential.service";
 import {DefaultStatusList, Referential} from "../../core/services/model/referential.model";
@@ -73,7 +73,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           'status',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
+      new EntitiesTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

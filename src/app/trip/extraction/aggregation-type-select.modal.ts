@@ -31,7 +31,7 @@ export class AggregationTypeSelectModal implements OnInit {
   ngOnInit() {
 
     // Load items
-    this.$types = this.service.loadAggregationTypes(this.filter, {});
+    this.$types = this.service.watchAggregationTypes(this.filter, {});
 
     // Update loading indicator
     this.$types.pipe(first()).subscribe((_) => this.loading = false);

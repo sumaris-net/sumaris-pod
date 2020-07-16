@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
 import {isNil, isNotNil} from '../../shared/functions';
-import {TableDataSource} from "angular4-material-table";
+import {TableDataSource, TableElement} from "angular4-material-table";
 import {
   AggregationType,
   ExtractionColumn,
@@ -100,7 +100,7 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     )
       .subscribe(() => {
         if (this.loading || isNil(this.type)) return; // avoid multiple load
-        return this.loadData();
+        return this.load();
       });
   }
 
@@ -128,13 +128,14 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     // Update title
     await this.updateTitle();
 
-    this.dataSource.connect().pipe(first()).subscribe(() => {
-      this.loading = false;
-      this.enable();
-      this.markAsUntouched();
-      this.markAsPristine();
-      this.markForCheck();
-    });
+    // Wait end of datasource loading
+    await firstNotNilPromise(this.dataSource.connect(null));
+
+    this.loading = false;
+    this.enable();
+    this.markAsUntouched();
+    this.markAsPristine();
+    this.markForCheck();
   }
 
   async setType(type: ExtractionType, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<boolean> {
@@ -327,7 +328,7 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
   /* -- protected method -- */
 
   protected watchTypes(): Observable<ExtractionType[]> {
-    return this.service.watchTypes()
+    return this.service.watchExtractionTypes()
       .pipe(
         map(types => {
           // Compute name, if need
@@ -340,7 +341,7 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
       );
   }
 
-  protected async loadData() {
+  async loadData() {
 
     if (!this.type || !this.type.category || !this.type.label) return; // skip
 

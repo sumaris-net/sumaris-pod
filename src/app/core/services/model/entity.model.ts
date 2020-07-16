@@ -9,7 +9,7 @@ import {
   toDateISOString
 } from "../../../shared/functions";
 import {FormFieldValue} from "../../../shared/form/field.model";
-import {FilterFn} from "../../../shared/services/data-service.class";
+import {FilterFn} from "../../../shared/services/entity-service.class";
 
 
 export declare interface Cloneable<T> {
@@ -79,12 +79,12 @@ export abstract class Entity<T extends IEntity<any, any>, O extends EntityAsObje
 
 export abstract class EntityUtils {
   // Check that the object has a NOT nil attribute (ID by default)
-  static isNotEmpty(obj: any | IEntity<any>, checkedAttribute: string): boolean {
+  static isNotEmpty<T extends IEntity<any> | any>(obj: any | T, checkedAttribute: keyof T): boolean {
     return !!obj && obj[checkedAttribute] !== null && obj[checkedAttribute] !== undefined;
   }
 
   // Check that the object has a NOT nil attribute (ID by default)
-  static isNotEmptyEntity<T extends IEntity<any>>(obj: any | IEntity<any>, checkedAttribute: string): obj is T {
+  static isNotEmptyEntity<T extends IEntity<any>>(obj: any | T, checkedAttribute: keyof T): obj is T {
     return !!obj && obj[checkedAttribute] !== null && obj[checkedAttribute] !== undefined;
   }
 
@@ -92,7 +92,7 @@ export abstract class EntityUtils {
     return !obj || obj[checkedAttribute] === null || obj[checkedAttribute] === undefined;
   }
 
-  static equals(o1: IEntity<any>, o2: IEntity<any>, checkAttribute: string): boolean {
+  static equals<T extends IEntity<any>|any>(o1: T, o2: T, checkAttribute: keyof T): boolean {
     return (o1 === o2) || (isNil(o1) && isNil(o2))  || (o1 && o2 && o1[checkAttribute] === o2[checkAttribute]);
   }
 
@@ -190,7 +190,7 @@ export abstract class EntityUtils {
     }
   }
 
-  static compare(value1: any, value2: any, direction: 1 | -1, checkAttribute?: string): number {
+  static compare<T extends IEntity<any>>(value1: T, value2: T, direction: 1 | -1, checkAttribute?: keyof T): number {
     checkAttribute = checkAttribute || 'id';
     if (EntityUtils.isNotEmptyEntity(value1, checkAttribute) && EntityUtils.isNotEmptyEntity(value2, checkAttribute)) {
       return EntityUtils.equals(value1, value2, checkAttribute) ? 0 : (value1[checkAttribute] > value2[checkAttribute] ? direction : (-1 * direction));
@@ -256,5 +256,18 @@ export abstract class EntityUtils {
   static listOfTreeToArray<T extends ITreeItemEntity<any>>(sources: T[]): T[] {
     if (!sources || !sources.length) return null;
     return sources.reduce((res, source) => res.concat(this.treeToArray<T>(source)), []);
+  }
+
+  /**
+   * Fill parent attribute, of all children found in the tree
+   *
+   * @param source
+   */
+  static treeFillParent<T extends ITreeItemEntity<any>>(source: T): T[] {
+    if (!source) return null;
+    (source.children || []).forEach(child => {
+      child.parent = source;
+      this.treeFillParent(child); // Loop
+    });
   }
 }
