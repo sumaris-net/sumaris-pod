@@ -215,7 +215,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         switchMap(() => {
           if (!this.ready || this.loading || isNil(this.type)) return; // avoid multiple load
           console.debug('[extraction-map] Refreshing...');
-          return this.load();
+          return this.loadData();
         })
       ).subscribe(() => this.markAsPristine())
     );
@@ -349,7 +349,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<AggregationType> i
         strata
       });
 
-      await this.load();
+      await this.loadData();
 
       hasData = this.hasData;
     }

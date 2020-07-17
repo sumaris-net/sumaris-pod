@@ -129,21 +129,22 @@ export abstract class AppTabEditor<T = any, O = any> implements IAppForm, OnInit
     this.queryTabIndexParamName = this.queryTabIndexParamName || 'tab';
 
     // Read the selected tab index, from path query params
-    this.registerSubscription(this.route.queryParams
-      .subscribe(queryParams => {
-        this.queryParams = {...queryParams};
+    if (this.tabGroup) {
+      this.registerSubscription(this.route.queryParams
+        .subscribe(queryParams => {
+          this.queryParams = {...queryParams};
 
-        // Parse tab param
-        if (this.tabCount > 1 && this.queryTabIndexParamName) {
-          const tabIndex = queryParams[this.queryTabIndexParamName];
-          this.queryParams[this.queryTabIndexParamName] = tabIndex && parseInt(tabIndex) || undefined;
-          if (isNotNil(this.queryParams[this.queryTabIndexParamName])) {
-            this.selectedTabIndex = this.queryParams[this.queryTabIndexParamName];
+          // Parse tab param
+          if (this.tabCount > 1 && this.queryTabIndexParamName) {
+            const tabIndex = queryParams[this.queryTabIndexParamName];
+            this.queryParams[this.queryTabIndexParamName] = tabIndex && parseInt(tabIndex) || undefined;
+            if (isNotNil(this.queryParams[this.queryTabIndexParamName])) {
+              this.selectedTabIndex = this.queryParams[this.queryTabIndexParamName];
+            }
           }
-        }
-        this.tabGroup.realignInkBar();
-      }));
-
+          this.tabGroup.realignInkBar();
+        }));
+    }
 
     // Catch back click events
     if (this.appToolbar) {
