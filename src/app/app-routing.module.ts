@@ -13,7 +13,6 @@ import {AuctionControlPage} from "./trip/auctioncontrol/auction-control.page";
 import {IonicRouteStrategy} from "@ionic/angular";
 import {AuthGuardService} from "./core/services/auth-guard.service";
 import {LandedTripPage} from "./trip/landedtrip/landed-trip.page";
-import {environment} from "../environments/environment";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -204,40 +203,37 @@ const routes: Routes = [
     path: 'extraction',
     canActivate: [AuthGuardService],
     loadChildren: () => import('./trip/extraction/extraction.module').then(m => m.ExtractionModule)
+  },
+
+  // Test module (disable in menu, by default - can be enable by the Pod configuration page)
+  {
+    path: 'testing',
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'shared',
+      },
+      // Shared module
+      {
+        path: 'shared',
+        loadChildren: () => import('./shared/shared.testing.module').then(m => m.SharedTestingModule)
+      },
+      // Trip module
+      {
+        path: 'trip',
+        loadChildren: () => import('./trip/trip.testing.module').then(m => m.TripTestingModule)
+      }
+    ]
+  },
+
+  // Other route redirection (should at the end of the array)
+  {
+    path: "**",
+    redirectTo: '/'
   }
 ];
 
-// Add test pages (DEV only)
-if (!environment.production) {
-  routes.push(
-    {
-      path: 'testing',
-      children: [
-        {
-          path: '',
-          pathMatch: 'full',
-          redirectTo: 'shared',
-        },
-        // Shared module
-        {
-          path: 'shared',
-          loadChildren: () => import('./shared/shared.testing.module').then(m => m.SharedTestingModule)
-        },
-        // Trip module
-        {
-          path: 'trip',
-          loadChildren: () => import('./trip/trip.testing.module').then(m => m.TripTestingModule)
-        }
-      ]
-    });
-
-}
-
-// Other route redirection (should at the end of the array)
-routes.push({
-  path: "**",
-  redirectTo: '/'
-});
 
 @Injectable()
 export class CustomReuseStrategy extends IonicRouteStrategy {
