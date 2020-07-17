@@ -23,10 +23,12 @@ package net.sumaris.core.vo.administration.user;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode(callSuper = true)
 public class AccountVO extends PersonVO {
 
     private UserSettingsVO settings;

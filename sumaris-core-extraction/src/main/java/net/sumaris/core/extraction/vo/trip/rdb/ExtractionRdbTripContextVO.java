@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.vo.trip.rdb;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripContextVO;
 
@@ -32,6 +33,7 @@ import net.sumaris.core.extraction.vo.trip.ExtractionTripContextVO;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@EqualsAndHashCode(callSuper = true)
 public class ExtractionRdbTripContextVO extends ExtractionTripContextVO {
 
     String tripTableName; // TR table

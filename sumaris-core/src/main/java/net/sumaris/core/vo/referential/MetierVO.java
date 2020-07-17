@@ -23,11 +23,13 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.metier.Metier;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode(callSuper = true)
 public class MetierVO extends ReferentialVO {
 
     private ReferentialVO gear;

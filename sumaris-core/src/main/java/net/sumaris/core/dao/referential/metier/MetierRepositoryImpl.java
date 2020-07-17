@@ -164,7 +164,7 @@ public class MetierRepositoryImpl
                 .where(inGearIds(levelIds))
                 .and(inStatusIds(filter.getStatusIds()))
                 .and(searchTextSpecification)
-                .and(alreadyPraticedMetier(filter)); // Limit to already practiced metier
+                .and(alreadyPracticedMetier(filter)); // Limit to already practiced metier
 
         return result;
     }
@@ -172,8 +172,8 @@ public class MetierRepositoryImpl
     /* -- protected method -- */
 
 
-    private Specification<Metier> alreadyPraticedMetier(ReferentialFilterVO filter) {
-        if (filter == null || !(filter instanceof MetierFilterVO)) return null;
+    private Specification<Metier> alreadyPracticedMetier(ReferentialFilterVO filter) {
+        if (!(filter instanceof MetierFilterVO)) return null;
         MetierFilterVO metierFilter = (MetierFilterVO) filter;
 
         return alreadyPraticedMetier(metierFilter.getVesselId());

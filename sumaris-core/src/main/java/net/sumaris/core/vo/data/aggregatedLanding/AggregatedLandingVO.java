@@ -30,15 +30,17 @@ import net.sumaris.core.vo.data.VesselSnapshotVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @Data
 @FieldNameConstants
 public class AggregatedLandingVO implements IValueObject<Integer>,
     IWithVesselSnapshotEntity<Integer, VesselSnapshotVO> {
 
+    private Integer id;
     private VesselSnapshotVO vesselSnapshot;
-
     private List<VesselActivityVO> vesselActivities;
 
     public AggregatedLandingVO() {
@@ -52,15 +54,5 @@ public class AggregatedLandingVO implements IValueObject<Integer>,
     @Override
     public Date getVesselDateTime() {
         return null;
-    }
-
-    @Override
-    public Integer getId() {
-        return vesselSnapshot.getId();
-    }
-
-    @Override
-    public void setId(Integer integer) {
-
     }
 }

@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.vo.trip;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.filter.TripFilterVO;
 
@@ -30,6 +31,7 @@ import net.sumaris.core.vo.filter.TripFilterVO;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class ExtractionTripFilterVO extends TripFilterVO {
 
     private boolean preview;

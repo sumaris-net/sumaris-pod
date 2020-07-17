@@ -10,18 +10,17 @@ package net.sumaris.core.service.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -52,193 +51,201 @@ import java.util.stream.Collectors;
 @Service("landingService")
 public class LandingServiceImpl implements LandingService {
 
-	private static final Logger log = LoggerFactory.getLogger(LandingServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(LandingServiceImpl.class);
 
     @Autowired
     protected SumarisConfiguration config;
 
-	@Autowired
-	protected LandingRepository landingRepository;
+    @Autowired
+    protected LandingRepository landingRepository;
 
-	@Autowired
-	protected MeasurementDao measurementDao;
+    @Autowired
+    protected MeasurementDao measurementDao;
 
-	@Autowired
-	protected SampleService sampleService;
+    @Autowired
+    protected SampleService sampleService;
 
-	@Override
-	public List<LandingVO> findAll(LandingFilterVO filter, Page page, DataFetchOptions fetchOptions) {
+    @Override
+    public List<LandingVO> findAll(LandingFilterVO filter, Page page, DataFetchOptions fetchOptions) {
 
-		// Sorting by 'vessel' must sort by registration code
-		if (page != null && Landing.Fields.VESSEL.equals(page.getSortBy())) {
-			page.setSortBy(
-					StringUtils.doting(Landing.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
-			);
-		}
+        if (page != null) {
 
-		return landingRepository.findAll(filter, page, fetchOptions);
-	}
+            // Sorting by 'vessel' must sort by registration code
+            if (Landing.Fields.VESSEL.equals(page.getSortBy())) {
+                page.setSortBy(
+                    StringUtils.doting(Landing.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
+                );
+            }
 
-	@Override
-	public Long countByFilter(LandingFilterVO filter) {
-		return landingRepository.count(filter);
-	}
+            return landingRepository.findAll(filter, page, fetchOptions);
 
-	@Override
-	public LandingVO get(Integer landingId) {
-		return landingRepository.get(landingId);
-	}
+        } else {
 
-	@Override
-	public LandingVO save(final LandingVO source) {
-		Preconditions.checkNotNull(source);
-		Preconditions.checkNotNull(source.getProgram(), "Missing program");
-		Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
-		Preconditions.checkNotNull(source.getDateTime(), "Missing dateTime");
-		Preconditions.checkNotNull(source.getLocation(), "Missing location");
-		Preconditions.checkNotNull(source.getLocation().getId(), "Missing location.id");
-		Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
-		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+            return landingRepository.findAll(filter, fetchOptions);
+        }
 
-		// Reset control date
-		source.setControlDate(null);
+    }
 
-		// Save
-		LandingVO savedLanding = landingRepository.save(source);
+    @Override
+    public Long countByFilter(LandingFilterVO filter) {
+        return landingRepository.count(filter);
+    }
 
-		// Save measurements
-		if (savedLanding.getMeasurementValues() != null) {
-			measurementDao.saveLandingMeasurementsMap(savedLanding.getId(), savedLanding.getMeasurementValues());
-		}
-		else {
-			List<MeasurementVO> measurements = Beans.getList(savedLanding.getMeasurements());
-			measurements.forEach(m -> fillDefaultProperties(savedLanding, m));
-			measurements = measurementDao.saveLandingMeasurements(savedLanding.getId(), measurements);
-			savedLanding.setMeasurements(measurements);
-		}
+    @Override
+    public LandingVO get(Integer landingId) {
+        return landingRepository.get(landingId);
+    }
 
-		// Save samples
-		{
-			List<SampleVO> samples = getSamplesAsList(savedLanding);
-			samples.forEach(s -> fillDefaultProperties(savedLanding, s));
-			samples = sampleService.saveByLandingId(savedLanding.getId(), samples);
+    @Override
+    public LandingVO save(final LandingVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getProgram(), "Missing program");
+        Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
+        Preconditions.checkNotNull(source.getDateTime(), "Missing dateTime");
+        Preconditions.checkNotNull(source.getLocation(), "Missing location");
+        Preconditions.checkNotNull(source.getLocation().getId(), "Missing location.id");
+        Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
+        Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
 
-			// Prepare saved samples (e.g. to be used as graphQL query response)
-			samples.forEach(sample -> {
-				// Set parentId (instead of parent object)
-				if (sample.getParent() != null) {
-					sample.setParentId(sample.getParent().getId());
-					sample.setParent(null);
-				}
-				// Remove link to children
-				sample.setChildren(null);
-			});
+        // Reset control date
+        source.setControlDate(null);
 
-			savedLanding.setSamples(samples);
-		}
+        // Save
+        LandingVO savedLanding = landingRepository.save(source);
 
-		return savedLanding;
-	}
+        // Save measurements
+        if (savedLanding.getMeasurementValues() != null) {
+            measurementDao.saveLandingMeasurementsMap(savedLanding.getId(), savedLanding.getMeasurementValues());
+        } else {
+            List<MeasurementVO> measurements = Beans.getList(savedLanding.getMeasurements());
+            measurements.forEach(m -> fillDefaultProperties(savedLanding, m));
+            measurements = measurementDao.saveLandingMeasurements(savedLanding.getId(), measurements);
+            savedLanding.setMeasurements(measurements);
+        }
 
-	@Override
-	public List<LandingVO> save(List<LandingVO> landings) {
-		Preconditions.checkNotNull(landings);
+        // Save samples
+        {
+            List<SampleVO> samples = getSamplesAsList(savedLanding);
+            samples.forEach(s -> fillDefaultProperties(savedLanding, s));
+            samples = sampleService.saveByLandingId(savedLanding.getId(), samples);
 
-		return landings.stream()
-				.map(this::save)
-				.collect(Collectors.toList());
-	}
+            // Prepare saved samples (e.g. to be used as graphQL query response)
+            samples.forEach(sample -> {
+                // Set parentId (instead of parent object)
+                if (sample.getParent() != null) {
+                    sample.setParentId(sample.getParent().getId());
+                    sample.setParent(null);
+                }
+                // Remove link to children
+                sample.setChildren(null);
+            });
 
-	@Override
-	public void delete(int id) {
-		landingRepository.deleteById(id);
-	}
+            savedLanding.setSamples(samples);
+        }
 
-	@Override
-	public void delete(List<Integer> ids) {
-		Preconditions.checkNotNull(ids);
-		ids.stream()
-				.filter(Objects::nonNull)
-				.forEach(this::delete);
-	}
+        return savedLanding;
+    }
 
-	@Override
-	public LandingVO control(LandingVO landing) {
-		Preconditions.checkNotNull(landing);
-		Preconditions.checkNotNull(landing.getId());
-		Preconditions.checkArgument(landing.getControlDate() == null);
+    @Override
+    public List<LandingVO> save(List<LandingVO> landings) {
+        Preconditions.checkNotNull(landings);
 
-		return landingRepository.control(landing);
-	}
+        return landings.stream()
+            .map(this::save)
+            .collect(Collectors.toList());
+    }
 
-	@Override
-	public LandingVO validate(LandingVO landing) {
-		Preconditions.checkNotNull(landing);
-		Preconditions.checkNotNull(landing.getId());
-		Preconditions.checkNotNull(landing.getControlDate());
-		Preconditions.checkArgument(landing.getValidationDate() == null);
+    @Override
+    public void delete(int id) {
+        landingRepository.deleteById(id);
+    }
 
-		return landingRepository.validate(landing);
-	}
+    @Override
+    public void delete(List<Integer> ids) {
+        Preconditions.checkNotNull(ids);
+        ids.stream()
+            .filter(Objects::nonNull)
+            .forEach(this::delete);
+    }
 
-	@Override
-	public LandingVO unvalidate(LandingVO landing) {
-		Preconditions.checkNotNull(landing);
-		Preconditions.checkNotNull(landing.getId());
-		Preconditions.checkNotNull(landing.getControlDate());
-		Preconditions.checkNotNull(landing.getValidationDate());
+    @Override
+    public LandingVO control(LandingVO landing) {
+        Preconditions.checkNotNull(landing);
+        Preconditions.checkNotNull(landing.getId());
+        Preconditions.checkArgument(landing.getControlDate() == null);
 
-		return landingRepository.unvalidate(landing);
-	}
+        return landingRepository.control(landing);
+    }
 
-	/* protected methods */
+    @Override
+    public LandingVO validate(LandingVO landing) {
+        Preconditions.checkNotNull(landing);
+        Preconditions.checkNotNull(landing.getId());
+        Preconditions.checkNotNull(landing.getControlDate());
+        Preconditions.checkArgument(landing.getValidationDate() == null);
 
-	void fillDefaultProperties(LandingVO parent, MeasurementVO measurement) {
-		if (measurement == null) return;
+        return landingRepository.validate(landing);
+    }
 
-		// Set default value for recorder department and person
-		DataBeans.setDefaultRecorderDepartment(measurement, parent.getRecorderDepartment());
-		DataBeans.setDefaultRecorderPerson(measurement, parent.getRecorderPerson());
+    @Override
+    public LandingVO unvalidate(LandingVO landing) {
+        Preconditions.checkNotNull(landing);
+        Preconditions.checkNotNull(landing.getId());
+        Preconditions.checkNotNull(landing.getControlDate());
+        Preconditions.checkNotNull(landing.getValidationDate());
 
-		measurement.setEntityName(LandingMeasurement.class.getSimpleName());
-	}
+        return landingRepository.unvalidate(landing);
+    }
 
-	protected void fillDefaultProperties(LandingVO parent, SampleVO sample) {
-		if (sample == null) return;
+    /* protected methods */
 
-		// Copy recorder department from the parent
-		if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
-			sample.setRecorderDepartment(parent.getRecorderDepartment());
-		}
+    void fillDefaultProperties(LandingVO parent, MeasurementVO measurement) {
+        if (measurement == null) return;
 
-		// Fill matrix
-		if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
-			ReferentialVO matrix = new ReferentialVO();
-			matrix.setId(config.getMatrixIdIndividual());
-			sample.setMatrix(matrix);
-		}
+        // Set default value for recorder department and person
+        DataBeans.setDefaultRecorderDepartment(measurement, parent.getRecorderDepartment());
+        DataBeans.setDefaultRecorderPerson(measurement, parent.getRecorderPerson());
 
-		// Fill sample (use operation end date time)
-		if (sample.getSampleDate() == null) {
-			sample.setSampleDate(parent.getDateTime());
-		}
+        measurement.setEntityName(LandingMeasurement.class.getSimpleName());
+    }
 
-		sample.setLandingId(parent.getId());
-	}
+    protected void fillDefaultProperties(LandingVO parent, SampleVO sample) {
+        if (sample == null) return;
 
-	/**
-	 * Get all samples, in the sample tree parent/children
-	 * @param parent
-	 * @return
-	 */
-	protected List<SampleVO> getSamplesAsList(final LandingVO parent) {
-		final List<SampleVO> result = Lists.newArrayList();
-		if (CollectionUtils.isNotEmpty(parent.getSamples())) {
-			parent.getSamples().forEach(sample -> {
-				fillDefaultProperties(parent, sample);
-				sampleService.treeToList(sample, result);
-			});
-		}
-		return result;
-	}
+        // Copy recorder department from the parent
+        if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
+            sample.setRecorderDepartment(parent.getRecorderDepartment());
+        }
+
+        // Fill matrix
+        if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
+            ReferentialVO matrix = new ReferentialVO();
+            matrix.setId(config.getMatrixIdIndividual());
+            sample.setMatrix(matrix);
+        }
+
+        // Fill sample (use operation end date time)
+        if (sample.getSampleDate() == null) {
+            sample.setSampleDate(parent.getDateTime());
+        }
+
+        sample.setLandingId(parent.getId());
+    }
+
+    /**
+     * Get all samples, in the sample tree parent/children
+     *
+     * @param parent
+     * @return
+     */
+    protected List<SampleVO> getSamplesAsList(final LandingVO parent) {
+        final List<SampleVO> result = Lists.newArrayList();
+        if (CollectionUtils.isNotEmpty(parent.getSamples())) {
+            parent.getSamples().forEach(sample -> {
+                fillDefaultProperties(parent, sample);
+                sampleService.treeToList(sample, result);
+            });
+        }
+        return result;
+    }
 }

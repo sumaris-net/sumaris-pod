@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.vo.trip;
 import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.core.extraction.vo.ExtractionContextVO;
 import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
@@ -40,6 +41,7 @@ import java.util.List;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@EqualsAndHashCode(callSuper = true)
 public class ExtractionTripContextVO extends ExtractionContextVO {
 
     TripFilterVO tripFilter;

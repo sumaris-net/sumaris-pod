@@ -123,6 +123,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public TripVO get(int tripId) {
+        //noinspection UnnecessaryBoxing
         return tripRepository.get(Integer.valueOf(tripId));
     }
 

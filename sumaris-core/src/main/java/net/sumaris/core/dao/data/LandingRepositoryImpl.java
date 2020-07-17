@@ -92,7 +92,7 @@ public class LandingRepositoryImpl
         // Remember existing entities
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getLandings()));
 
-        // Save each gears
+        // Save each landing
         List<LandingVO> result = sources.stream().map(source -> {
             source.setObservedLocationId(observedLocationId);
             source.setProgram(parentProgram);

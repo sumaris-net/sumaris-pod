@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.vo;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -37,6 +38,7 @@ import java.util.List;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@EqualsAndHashCode(callSuper = true)
 public class AggregationTypeVO extends ExtractionTypeVO implements
         IWithRecorderPersonEntity<Integer, PersonVO> {
 

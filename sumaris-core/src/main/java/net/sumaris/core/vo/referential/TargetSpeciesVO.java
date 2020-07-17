@@ -23,11 +23,13 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode(callSuper = true)
 public class TargetSpeciesVO extends ReferentialVO {
 
     private Integer metierId;

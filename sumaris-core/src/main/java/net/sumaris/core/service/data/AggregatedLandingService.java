@@ -41,6 +41,6 @@ public interface AggregatedLandingService {
 	@Transactional(readOnly = true)
 	List<AggregatedLandingVO> findAll(AggregatedLandingFilterVO filter);
 
-	List<AggregatedLandingVO> saveAllByObservedLocationId(int observedLocationId, List<AggregatedLandingVO> data);
+	List<AggregatedLandingVO> saveAllByObservedLocationId(AggregatedLandingFilterVO filter, List<AggregatedLandingVO> aggregatedLandings);
 
 }

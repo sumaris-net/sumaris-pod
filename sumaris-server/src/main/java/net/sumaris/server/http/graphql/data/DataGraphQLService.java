@@ -911,6 +911,19 @@ public class DataGraphQLService {
         return result;
     }
 
+    @GraphQLMutation(name = "saveAggregatedLandings", description = "Save aggregated landings")
+    public List<AggregatedLandingVO> saveAggregatedLandings(
+        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+        @GraphQLArgument(name = "aggregatedLandings") List<AggregatedLandingVO> aggregatedLandings,
+        @GraphQLEnvironment() Set<String> fields
+    ) {
+        final List<AggregatedLandingVO> result = aggregatedLandingService.saveAllByObservedLocationId(filter, aggregatedLandings);
+
+        fillVesselSnapshot(result, fields);
+
+        return result;
+    }
+
     /* -- Measurements -- */
 
     // Trip

@@ -779,7 +779,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     protected <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(List<T> source) {
-        final Map<Integer, String> result = Maps.newIdentityHashMap();
+        final Map<Integer, String> result = Maps.newHashMap();
         source.stream()
                 .filter(m -> m.getPmfm() != null && m.getPmfm().getId() != null)
                 .forEach(m -> {

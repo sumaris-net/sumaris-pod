@@ -184,7 +184,7 @@ public class Beans {
      * @param <V> a V object.
      * @return a {@link Map} object.
      */
-    public static <K, V> Multimap<K, V> splitByNotUniqueProperty(Iterable<V> list, String propertyName) {
+    public static <K, V> ListMultimap<K, V> splitByNotUniqueProperty(Iterable<V> list, String propertyName) {
         Preconditions.checkArgument(StringUtils.isNotBlank(propertyName));
         return Multimaps.index(list, input -> getProperty(input, propertyName));
     }
@@ -383,5 +383,27 @@ public class Beans {
         }
 
         BeanUtils.copyProperties(source, target, ArrayUtils.addAll(ignoredProperties, exceptProperties));
+    }
+
+    /**
+     * Compute equality of 2 Map
+     * should return true if :
+     * - both map is exact same object
+     * - both are null
+     * - both have same size and each entry set of first map are also present in the second
+     *
+     * @param map1 first map
+     * @param map2 second map
+     * @return true if they are equal
+     */
+    public static <K, V> boolean mapsAreEquals(Map<K, V> map1, Map<K, V> map2) {
+        if (map1 == map2)
+            return true;
+        if (map1 == null || map2 == null || map1.size() != map2.size())
+            return false;
+        if (map1 instanceof IdentityHashMap || map2 instanceof IdentityHashMap)
+            throw new IllegalArgumentException("Cannot compare IdentityHashMap's");
+        return map1.entrySet().stream()
+            .allMatch(e -> e.getValue().equals(map2.get(e.getKey())));
     }
 }

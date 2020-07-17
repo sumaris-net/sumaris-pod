@@ -51,18 +51,14 @@ public class PersonVO implements IUpdateDateEntityBean<Integer, Date>, IValueObj
 
     private DepartmentVO department;
 
-    @EqualsAndHashCode.Exclude
     private List<String> profiles;
 
     // Workaround for issue see https://github.com/sumaris-net/sumaris-app/issues/3
     // TODO: remove this, later
-    @EqualsAndHashCode.Exclude
     private String mainProfile;
 
-    @EqualsAndHashCode.Exclude
     private Boolean hasAvatar;
 
-    @EqualsAndHashCode.Exclude
     private String avatar;
 
 }

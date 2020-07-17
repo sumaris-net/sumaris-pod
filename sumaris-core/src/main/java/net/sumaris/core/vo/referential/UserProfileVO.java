@@ -23,11 +23,13 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.UserProfile;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode(callSuper = true)
 public class UserProfileVO extends ReferentialVO {
 
     public UserProfileVO() {
