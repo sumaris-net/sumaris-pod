@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit} from '@angular/core';
 import {AppForm, environment, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../core/core.module";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
@@ -21,7 +21,8 @@ import {DisplayFn} from "../../shared/form/field.model";
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {VesselActivityValidatorService} from "../services/validator/vessel-activity.validator";
 import {VesselActivityForm} from "./vessel-activity.form";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
+import {MeasurementUtils, MeasurementValuesUtils} from "../services/model/measurement.model";
+import {getMaxRankOrder} from "../../data/services/model/model.utils";
 
 export class AggregatedLandingFormOption {
   dates: Observable<Moment[]> | Moment[];
@@ -33,7 +34,7 @@ export class AggregatedLandingFormOption {
 @Component({
   selector: 'app-aggregated-landings-form',
   templateUrl: './aggregated-landing.form.html',
-  styleUrls: ['./aggregated-landing.form.scss'],
+  styleUrls: ['./aggregated-landing.form.scss']
 })
 export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements OnInit {
 
@@ -43,7 +44,21 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
 
   private $data = new BehaviorSubject<AggregatedLanding>(undefined) ;
   get data(): AggregatedLanding {
+    // Save active form before return data
+    this.saveActivitiesAt(this._activeDate);
     return this.$data.getValue();
+  }
+
+  set data(data) {
+    this.$data.next(data);
+  }
+
+  get value(): any {
+    throw new Error('The aggregated landing form has no form value accessible from outside');
+  }
+
+  set value(value: any) {
+    throw new Error('The aggregated landing form has no form value accessible from outside');
   }
 
   activitiesHelper: FormArrayHelper<VesselActivity>;
@@ -105,7 +120,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     });
     this.setForm(form);
 
-    this.form.valueChanges.subscribe(value => console.debug('aggregated-landing CHILD FORM VALUE', value));
+    // this.form.valueChanges.subscribe(value => console.debug('aggregated-landing CHILD FORM VALUE', value));
 
     this.initActivitiesHelper();
 
@@ -121,26 +136,20 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
 
   }
 
-  setValue(data: AggregatedLanding, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    // super.setValue(data, opts); // don't call super
-    this.$data.next(data);
-
-  }
-
   private showAtDate(date: Moment) {
     if (!date)
       throw new Error('[aggregated-landing-form] No date provided');
 
     console.debug(`[aggregated-landing-form] Show vessel activity at ${date}`);
 
-    if (this._activeDate) {
-      // todo Save activities
-
+    if (this._activeDate && !date.isSame(this._activeDate)) {
+      // Save activities into data
+      this.saveActivitiesAt(this._activeDate);
     }
 
     // Load activities for this date
     this._activeDate = date;
-    this.activities = this.data.vesselActivities.slice().filter(value => value.date.isSame(date)) || [null];
+    this.activities = this.$data.getValue().vesselActivities.filter(value => value.date.isSame(date)).slice() || [null];
 
     // remove all previous forms
     this.activitiesForm.clear();
@@ -150,17 +159,26 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
       this.activitiesHelper.add(activity);
     }
 
-    this.form.enable();
+    this.enable();
 
     // this.activitiesHelper.resize(activities.length);
     // this.form.controls.activities.setValue(activities);
   }
 
   addActivity() {
-    this.activitiesHelper.add();
+    if (this.debug) console.debug('[aggregated-landing-form] addActivity');
+    this.activitiesHelper.add(this.newActivity());
     if (!this.mobile) {
       this.activityFocusIndex = this.activitiesHelper.size() - 1;
     }
+  }
+
+  private newActivity(): VesselActivity {
+    const maxRankOrder = getMaxRankOrder(this.activities);
+    const activity = new VesselActivity();
+    activity.rankOrder = maxRankOrder + 1;
+    activity.date = this.form.value.date;
+    return activity;
   }
 
   removeActivity(index: number) {
@@ -197,12 +215,22 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'activities'),
       (activity) => this.vesselActivityValidatorService.getFormGroup(activity),
       (v1, v2) => v1.rankOrder === v2.rankOrder,
-      value => false,
+      value => VesselActivity.isEmpty(value),
       {
         allowEmptyArray: true
       }
     )
   }
 
-
+  private saveActivitiesAt(date: Moment) {
+    if (isNil(date)) {
+      console.warn('Try to save activities at undefined date');
+      return;
+    }
+    if (this.debug) console.debug(`[aggregated-landing-form] save activities at ${date}`)
+    const newActivities = this.$data.getValue().vesselActivities.filter(value => !value.date.isSame(date)).slice() || [];
+    const activities = this.activitiesForm.value.map(v => VesselActivity.fromObject(v));
+    newActivities.push(...activities);
+    this.$data.getValue().vesselActivities = newActivities;
+  }
 }

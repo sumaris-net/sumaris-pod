@@ -96,6 +96,9 @@ case "$1" in
         browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
         ZIP_SHA256=$(sha256sum "${ZIP_FILE}")
         echo " - ${browser_download_url}  | SHA256 Checksum: ${ZIP_SHA256}"
+
+        # todo: upload sha256 file
+
       else
         echo " - ERROR: Web release (ZIP) not found! Skipping."
       fi
@@ -106,6 +109,9 @@ case "$1" in
         browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
         APK_SHA256=$(sha256sum "${APK_FILE}")
         echo " - ${browser_download_url}  | SHA256 Checksum: ${APK_SHA256}"
+
+        # todo: upload sha256 file
+
       else
         echo "- ERROR: Android release (APK) not found! Skipping."
       fi

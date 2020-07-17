@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {
   AppTable,
   EntitiesTableDataSource,
@@ -162,6 +171,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     } else {
       this.startDate = parent.startDateTime;
       this.setFilter({
+        observedLocationId: parent.id,
         programLabel: this._program,
         locationId: parent.location.id,
         startDate: parent.startDateTime,
@@ -232,27 +242,33 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.$pmfms.next(pmfms);
   }
 
-  protected async openRow(id: number, row: TableElement<AggregatedLanding>): Promise<boolean> {
+  clickRow(event: MouseEvent | undefined, row: TableElement<AggregatedLanding>): boolean {
+    if (event && event.defaultPrevented || this.loading) return false;
     if (!this.mobile) return false;
-    // on mobile mode
 
     const today = moment().startOf("day");
-    await this.openModal(row, today);
+    this.setLoading(true);
+    this.openModal(event, row, today)
+      .then(() => this.setLoading(false));
+
   }
 
-  async clickCell($event: MouseEvent, row: TableElement<AggregatedLanding>, date: Moment) {
+  clickCell($event: MouseEvent, row: TableElement<AggregatedLanding>, date: Moment) {
     if ($event) $event.stopPropagation();
     if (this.debug)
       console.debug('clickCell', $event, row.currentData.vesselSnapshot.exteriorMarking + "|" + row.currentData.vesselActivities.length, date.toISOString());
 
-    await this.openModal(row, date);
+    this.setLoading(true);
+    this.openModal($event, row, date)
+      .then(() => this.setLoading(false));
   }
 
-  async openModal(row: TableElement<AggregatedLanding>, date?: Moment) {
+  async openModal($event: MouseEvent, row: TableElement<AggregatedLanding>, date?: Moment) {
+    this.onEditRow($event, row);
     const modal = await this.modalCtrl.create({
       component: AggregatedLandingModal,
       componentProps: {
-        data: row.currentData,
+        data: row.currentData.clone(),
         options: {
           dates: this.$dates.getValue(),
           initialDate: date,
@@ -270,12 +286,10 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     if (res && res.data) {
       console.debug('data to update:', res.data);
 
-      // row.validator.patchValue(res.data, {onlySelf: false, emitEvent: true});
-
-      // update sales
-      // this.updateSaleProducts(row);
-
-      this.markAsDirty();
+      row.currentData.vesselActivities.splice(0, row.currentData.vesselActivities.length, ...res.data.vesselActivities);
+      // this.markAsDirty();
+      this.confirmEditCreate();
+      this.markForCheck();
     }
   }
 }

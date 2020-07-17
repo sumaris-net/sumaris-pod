@@ -4,6 +4,7 @@ import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, Measure
 import {Moment} from "moment";
 import {IWithVesselSnapshotEntity, VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
 import {NOT_MINIFY_OPTIONS} from "../../../core/services/model/referential.model";
+import {isEmptyArray} from "../../../shared/functions";
 
 export class VesselActivity extends Entity<VesselActivity> {
 
@@ -53,6 +54,13 @@ export class VesselActivity extends Entity<VesselActivity> {
 
   clone(): VesselActivity {
     return VesselActivity.fromObject(this.asObject());
+  }
+
+  static isEmpty(value: VesselActivity) {
+    return !value || (
+      MeasurementValuesUtils.isEmpty(value.measurementValues)
+      && isEmptyArray(value.metiers)
+    );
   }
 }
 

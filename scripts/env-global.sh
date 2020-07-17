@@ -70,14 +70,14 @@ if [[ "_" == "_${JAVA_HOME}" ]]; then
 fi
 
 # Check Android SDK root path
-if [[ "_" == "_${ANDROID_SDK_ROOT}" || ! -d "${ANDROID_SDK_ROOT}" ]]; then
-  if [[ -d "${ANDROID_ALTERNATIVE_SDK_ROOT}" ]]; then
-    export ANDROID_SDK_ROOT="${ANDROID_ALTERNATIVE_SDK_ROOT}"
-  else
-    echo "Please set env variable ANDROID_SDK_ROOT to an existing directory"
-    exit 1
-  fi
-fi
+#if [[ "_" == "_${ANDROID_SDK_ROOT}" || ! -d "${ANDROID_SDK_ROOT}" ]]; then
+#  if [[ -d "${ANDROID_ALTERNATIVE_SDK_ROOT}" ]]; then
+#    export ANDROID_SDK_ROOT="${ANDROID_ALTERNATIVE_SDK_ROOT}"
+#  else
+#    echo "Please set env variable ANDROID_SDK_ROOT to an existing directory"
+#    exit 1
+#  fi
+#fi
 
 # Add Java, Android SDK tools to path
 PATH=${ANDROID_SDK_TOOLS_ROOT}/bin:${GRADLE_HOME}/bin:${JAVA_HOME}/bin$:$PATH
@@ -99,6 +99,9 @@ if [[ -d "${NVM_DIR}" ]]; then
   # Or install it
   if [[ $? -ne 0 ]]; then
       nvm install ${NODE_VERSION}
+      [[ $? -ne 0 ]] && exit 1
+      # Switch to expected version
+      nvm use ${NODE_VERSION}
       [[ $? -ne 0 ]] && exit 1
   fi
 else

@@ -38,7 +38,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   @ViewChild('landingsTable') landingsTable: LandingsTable;
 
-  @ViewChild('aggregatedLandingsTable', {static: false}) aggregatedLandingsTable: AggregatedLandingsTable;
+  @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
   get landingEditor(): LandingEditor {
     return this.landingsTable ? this.landingsTable.detailEditor : undefined;
@@ -104,7 +104,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // Register forms & tables
     this.addChildForms([
       this.observedLocationForm,
-      () => this.landingsTable
+      () => this.landingsTable,
+      () => this.aggregatedLandingsTable
     ]);
   }
 
@@ -165,6 +166,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       await this.landingsTable.save();
     }
 
+    if (this.aggregatedLandingsTable && this.aggregatedLandingsTable.dirty) {
+      await this.aggregatedLandingsTable.save();
+    }
+
     return json;
   }
 
@@ -183,7 +188,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   protected getFirstInvalidTabIndex(): number {
     return this.observedLocationForm.invalid ? 0
-      : (this.landingsTable && this.landingsTable.invalid ? 1
+      : ((this.landingsTable && this.landingsTable.invalid) || (this.aggregatedLandingsTable && this.aggregatedLandingsTable.invalid) ? 1
         : -1);
   }
 
@@ -209,7 +214,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
       try {
         const vessel = await this.openSelectVesselModal();
-        if (vessel) {
+        if (vessel && this.landingsTable) {
           const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
           await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
         }

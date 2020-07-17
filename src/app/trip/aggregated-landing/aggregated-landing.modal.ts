@@ -1,4 +1,13 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from "@angular/core";
 import {ModalController} from "@ionic/angular";
 import {BehaviorSubject, Subject, Subscription} from "rxjs";
 import {AppFormUtils} from "../../core/form/form.utils";
@@ -9,7 +18,8 @@ import {referentialToString} from "../../core/core.module";
 
 @Component({
   selector: 'app-aggregated-landing-modal',
-  templateUrl: './aggregated-landing.modal.html'
+  templateUrl: './aggregated-landing.modal.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AggregatedLandingModal implements OnInit, OnDestroy, AfterViewInit {
 
@@ -17,26 +27,23 @@ export class AggregatedLandingModal implements OnInit, OnDestroy, AfterViewInit 
   subscription = new Subscription();
   $title = new BehaviorSubject<string>('');
 
-  @ViewChild('form', {static: true}) form: AggregatedLandingForm;
+  @ViewChild('form', {static: false}) form: AggregatedLandingForm;
 
   @Input() data: AggregatedLanding;
   @Input() options: AggregatedLandingFormOption;
 
   get disabled() {
-    return this.form.disabled;
+    return !this.form ? true : this.form.disabled;
   }
 
-  get enabled() {
-    return this.form.enabled;
-  }
-
-  get valid() {
-    return this.form && this.form.valid || false;
+  get canValidate(): boolean {
+    return !this.loading && this.form ? (this.form.enabled && this.form.dirty) : false;
   }
 
   constructor(
     protected viewCtrl: ModalController,
-    protected translate: TranslateService
+    protected translate: TranslateService,
+    protected cd: ChangeDetectorRef
   ) {
 
   }
@@ -46,12 +53,20 @@ export class AggregatedLandingModal implements OnInit, OnDestroy, AfterViewInit 
 
   ngAfterViewInit(): void {
 
-    setTimeout(() => {
-      this.enable();
-      this.form.setValue(this.data);
-      this.updateTitle();
-    });
+    this.loading = true;
 
+    // setTimeout(() => {
+      this.enable();
+      this.form.data = this.data;
+      this.updateTitle();
+
+      this.loading = false;
+    // });
+
+  }
+
+  addActivity() {
+    this.form.addActivity();
   }
 
   protected async updateTitle() {
@@ -77,7 +92,7 @@ export class AggregatedLandingModal implements OnInit, OnDestroy, AfterViewInit 
     this.loading = true;
 
     try {
-      const value = this.form.value;
+      const value = this.form.data;
       this.disable();
       await this.viewCtrl.dismiss(value);
       this.form.error = null;
@@ -102,6 +117,10 @@ export class AggregatedLandingModal implements OnInit, OnDestroy, AfterViewInit 
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+  }
+
+  markForCheck() {
+    this.cd.markForCheck();
   }
 
 }

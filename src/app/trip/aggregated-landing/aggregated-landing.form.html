@@ -23,6 +23,13 @@
     <ion-row class="ion-padding-top">
       <ion-col>
         <ion-card *ngFor="let activityForm of activitiesForm.controls; index as i; first as first">
+          <ion-card-header>
+            <button mat-icon-button
+                    [title]="'COMMON.BTN_DELETE'|translate" (click)="removeActivity(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+            <ion-label>Activity #{{activityForm.value.rankOrder}}</ion-label>
+          </ion-card-header>
           <ion-card-content>
             <app-vessel-activity-form #activityForm
                                       [form]="activityForm"
@@ -30,7 +37,6 @@
                                       [program]="program"
                                       [acquisitionLevel]="acquisitionLevel"
             >
-
             </app-vessel-activity-form>
           </ion-card-content>
         </ion-card>
