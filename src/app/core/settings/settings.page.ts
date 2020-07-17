@@ -197,6 +197,9 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     // Check peer alive, before saving
     const peerChanged = this.form.get('peerUrl').dirty;
 
+    // Clean page history, when peer changed
+    if (peerChanged) data.pageHistory = [];
+
     try {
       this.disable();
 

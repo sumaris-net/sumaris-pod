@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ElementRef, HostListener,
+  HostListener,
   Inject,
   InjectionToken,
   Input,
@@ -22,12 +22,11 @@ import {AboutModal} from '../about/modal-about';
 import {environment} from '../../../environments/environment';
 import {fadeInAnimation} from '../../shared/material/material.animations';
 import {TranslateService} from "@ngx-translate/core";
-import {isNil, isNotNilOrBlank} from "../../shared/functions";
+import {isNotNilOrBlank} from "../../shared/functions";
 import {BehaviorSubject, merge, Subscription} from "rxjs";
 import {ConfigService} from "../services/config.service";
-import {mergeMap, tap, throttleTime} from "rxjs/operators";
+import {mergeMap, tap} from "rxjs/operators";
 import {HammerSwipeEvent} from "../../shared/gesture/hammer.utils";
-import {DOCUMENT} from "@angular/common";
 
 export interface MenuItem {
   title: string;
@@ -51,14 +50,15 @@ export class MenuItems {
                         accountService: AccountService,
                         config: Configuration,
                         opts?: {
-                    isLogin?: boolean;
-                    debug?: boolean
+                          isLogin?: boolean;
+                          debug?: boolean;
+                          logPrefix?: string;
                   }): boolean {
     opts = opts || {};
     if (item.profile) {
       const hasProfile = accountService.isLogin() && accountService.hasMinProfile(item.profile);
       if (!hasProfile) {
-        if (opts.debug) console.debug("[menu] User does not have minimal profile '" + item.profile + "' for ", item.path);
+        if (opts.debug) console.debug(`${opts && opts.logPrefix || '[menu]'} Hide item '${item.title}': need the min profile '${item.profile}' to access path '${item.path}'`);
         return false;
       }
     }
@@ -73,6 +73,7 @@ export class MenuItems {
 
     // If enable by config
     if (item.ifProperty) {
+      console.log("TODO if property " + item.ifProperty, config && config.properties);
       const isEnableByConfig = config && config.properties[item.ifProperty] === 'true';
       if (!isEnableByConfig) {
         if (opts.debug) console.debug("[menu] Config property '" + item.ifProperty + "' not 'true' for ", item.path);
@@ -148,8 +149,10 @@ export class MenuComponent implements OnInit {
     this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
     this.splitPaneOpened = true;
 
-    // Update component when refresh is need (=login events or config changed)
+    // Wait account first start
+    await this.accountService.ready();
 
+    // Update component when refresh is need (=login events or config changed)
     this._subscription.add(
       merge(
         this.accountService.onLogin,
@@ -160,8 +163,9 @@ export class MenuComponent implements OnInit {
           )
         )
         .pipe(
+          // Wait account service ready (can be restarted)
           mergeMap(() => this.accountService.ready()),
-          throttleTime(200)
+          //debounceTime(200)
         )
         .subscribe(account => {
           if (this.accountService.isLogin()) {

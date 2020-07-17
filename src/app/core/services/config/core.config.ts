@@ -32,15 +32,15 @@ export const ConfigOptions: FormFieldDefinitionMap = Object.freeze({
         values: [
             {
                 key: 'DDMMSS',
-                value: 'COMMON.DDMMSS_PLACEHOLDER'
+                value: 'COMMON.LAT_LONG.DDMMSS_PLACEHOLDER'
             },
             {
                 key: 'DDMM',
-                value: 'COMMON.DDMM_PLACEHOLDER'
+                value: 'COMMON.LAT_LONG.DDMM_PLACEHOLDER'
             },
             {
                 key: 'DD',
-                value: 'COMMON.DD_PLACEHOLDER'
+                value: 'COMMON.LAT_LONG.DD_PLACEHOLDER'
             }
         ]
     },

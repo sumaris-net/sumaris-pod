@@ -94,30 +94,30 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
         .pipe(
           // Convert query params into a valid type
           mergeMap(async ({category, label, sheet}) => {
-          const paramType = this.fromObject({category, label});
+            const paramType = this.fromObject({category, label});
 
-          // Read type
-          const types = await firstNotNilPromise(this.$types);
-          let selectedType;
+            // Read type
+            const types = await firstNotNilPromise(this.$types);
+            let selectedType;
 
-          // If not type found in params, redirect to first one
-          if (isNil(paramType.category) || isNil(paramType.label)) {
-            selectedType = types && types[0];
-          }
+            // If not type found in params, redirect to first one
+            if (isNil(paramType.category) || isNil(paramType.label)) {
+              selectedType = types && types[0];
+            }
 
-          // Select the exact type object in the filter form
-          else {
-            selectedType = types.find(t => this.isEquals(t, paramType)) || paramType;
-          }
+            // Select the exact type object in the filter form
+            else {
+              selectedType = types.find(t => this.isEquals(t, paramType)) || paramType;
+            }
 
-          const selectedSheetName = sheet || (selectedType && selectedType.sheetNames && selectedType.sheetNames.length && selectedType.sheetNames[0]);
-          if (selectedSheetName && selectedType && !selectedType.sheetNames) {
-            selectedType.sheetNames = [selectedSheetName];
-          }
+            const selectedSheetName = sheet || (selectedType && selectedType.sheetNames && selectedType.sheetNames.length && selectedType.sheetNames[0]);
+            if (selectedSheetName && selectedType && !selectedType.sheetNames) {
+              selectedType.sheetNames = [selectedSheetName];
+            }
 
-          return {selectedType, selectedSheetName};
-        }))
-
+            return {selectedType, selectedSheetName};
+          })
+        )
         .subscribe(async ({selectedType, selectedSheetName}) => {
           // Set the type
           await this.setType(selectedType, {
@@ -127,7 +127,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Aggregat
           });
 
           // Execute the first load
-          await this.load();
+          await this.loadData();
 
         }));
   }
