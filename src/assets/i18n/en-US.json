@@ -1257,9 +1257,9 @@
       }
     },
     "SYNCHRONIZATION_STATUS": {
-      "DIRTY": "Dirty",
+      "DIRTY": "Offline",
       "READY_TO_SYNC": "Ready to synchronize",
-      "SYNC": "Synchronized"
+      "SYNC": "Online"
     },
     "INFO": {
       "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%",
