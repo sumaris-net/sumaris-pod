@@ -27,7 +27,7 @@
   </button>
 </app-toolbar>
 
-<!-- Menu to toggle between operations -->
+<!-- Last operations menu -->
 <mat-menu #operationsMenu="matMenu" class="mat-menu-size-75vw ion-no-padding">
 
   <ion-row class="mat-menu-header ion-no-padding">
@@ -42,13 +42,14 @@
       <ion-item *ngFor="let item of items"
                 tappable class="text-1x"
                 [color]="isCurrentData(item) ? 'secondary100' : undefined"
-                (click)="onOpenOperation($event, item.id)">
+                (click)="onLastOperationClick($event, item.id)">
         <ion-icon slot="start" name="navigate"></ion-icon>
         <ion-grid>
           <ion-row>
-            <ion-col size="3">
+            <!-- FIXME: rankOrder cannot be safely computed, when using a page's offset -->
+            <!--<ion-col size="3">
               <span translate>TRIP.OPERATION.OPE_PREFIX</span> #{{ item.rankOrderOnPeriod}}
-            </ion-col>
+            </ion-col>-->
             <ion-col>
               {{ item.startDateTime | dateFormat:{pattern: dateTimePattern} }}
             </ion-col>
@@ -80,24 +81,30 @@
     </ng-template>
   </ion-list>
 
-  <!-- fab button (mobile): new operation -->
+  <!-- final space (need by fab button)-->
+  <p visible-xs visible-sm visible-mobile>&nbsp;</p>
+
+  <!-- new operation fab button (mobile) -->
   <ion-fab-button color="tertiary"
                   size="small"
                   class="visible-mobile visible-sm visible-xs"
                   style="margin-left: calc(100% - 50px); margin-top: -46px;"
-                  (click)="onNewOperation($event)">
+                  (click)="onNewOperationClick($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 
   <ion-footer hidden-mobile hidden-xs hidden-sm>
     <ion-toolbar>
       <div slot="end" class="ion-padding-end">
+        <!-- Show all button -->
         <ion-button fill="clear"
                     (click)="appToolbar.doBackClick($event)"
                     routerDirection="back"
                     translate>TRIP.OPERATION.BTN_SHOW_ALL</ion-button>
+
+        <!-- New operation button -->
         <ion-button color="tertiary" fill="solid"
-                    (click)="onNewOperation($event)" translate>COMMON.BTN_ADD</ion-button>
+                    (click)="onNewOperationClick($event)" translate>COMMON.BTN_ADD</ion-button>
       </div>
     </ion-toolbar>
   </ion-footer>
@@ -202,88 +209,16 @@
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_CATCH</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && catchBatchForm.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && batchTree.invalid"></ion-icon>
       </ng-template>
 
-      <!-- catch batch form -->
-      <div [hidden]="!catchBatchForm.hasPmfms" class="ion-padding">
-        <form-catch-batch #catchBatchForm
-                          (onSubmit)="save($event)" [showError]="false" [debug]="debug"
-                          acquisitionLevel="CATCH_BATCH"
-                          [program]="programSubject|async"
-                          [tabindex]="200">
-        </form-catch-batch>
-      </div>
-
-      <!-- Tab group for batches -->
-      <mat-tab-group #batchTabGroup
-                     [class.mat-tab-group-header-hidden]="mobile"
-                     [class.cdk-visually-hidden]="!showBatchTables"
-                     [(selectedIndex)]="selectedBatchTabIndex"
-                     (selectedTabChange)="onBatchTabChange($event)"
-                     animationDuration="0s">
-
-        <!-- TAB: species list -->
-        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
-          <ng-template mat-tab-label>
-            <mat-icon><ion-icon name="cube"></ion-icon></mat-icon>
-            <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES</ion-label>
-            <ion-icon slot="end" name="alert-circle" color="danger"
-                      *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
-          </ng-template>
-
-          <!-- Batches group -->
-          <app-batch-groups-table #batchGroupsTable
-                                  acquisitionLevel="SORTING_BATCH"
-                                  [program]="programSubject | async"
-                                  [usageMode]="usageMode"
-                                  [disabled]="disabled"
-                                  [debug]="debug"
-                                  [showTaxonGroupColumn]="true"
-                                  [showTaxonNameColumn]="true"
-                                  [showCommentsColumn]="false"
-                                  (onSubBatchesChanges)="onSubBatchesChanges($event)">
-          </app-batch-groups-table>
-
-          <!-- final space-->
-          <p visible-xs visible-sm visible-mobile>&nbsp;</p>
-        </mat-tab>
-
-        <!-- TAB: individual measure -->
-        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
-                 [disabled]="!enableSubBatchesTable">
-          <ng-template mat-tab-label>
-            <mat-icon>assessment</mat-icon>
-            <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
-            <ion-icon slot="end" name="alert-circle" color="danger"
-                      *ngIf="submitted && (subBatchesTable.invalid || false)"></ion-icon>
-          </ng-template>
-
-          <app-sub-batches-table #subBatchesTable
-                                 acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
-                                 [program]="programSubject | async"
-                                 [qvPmfm]="batchGroupsTable.qvPmfm"
-                                 [usageMode]="usageMode"
-                                 [hidden]="!enableSubBatchesTable"
-                                 [debug]="debug"
-                                 [tabindex]="200">
-          </app-sub-batches-table>
-
-          <!-- final space
-          <p visible-xs visible-sm visible-mobile>&nbsp;</p>-->
-        </mat-tab>
-
-        <!-- TAB: Individual releases
-        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES'|translate}}">
-          <ng-template mat-tab-label>
-            <mat-icon>room</mat-icon>
-            <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES</ion-label>
-            <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
-          </ng-template>
-
-          <table-sub-samples #individualReleaseTable [debug]="debug" acquisitionLevel="INDIVIDUAL_RELEASE"></table-sub-samples>
-        </mat-tab>-->
-      </mat-tab-group>
+      <app-batch-tree #batchTree
+                      queryTabIndexParamName="subtab"
+                      [showBatchTables]="showBatchTables"
+                      [program]="programSubject | async"
+                      [usageMode]="usageMode"
+                      [debug]="debug">
+      </app-batch-tree>
 
       <!-- tab group for survival test -->
       <mat-tab-group #sampleTabGroup
@@ -291,6 +226,7 @@
                      [class.cdk-visually-hidden]="!showSampleTables"
                      [(selectedIndex)]="selectedSampleTabIndex"
                      (selectedTabChange)="onSampleTabChange($event)">
+
 
         <!-- TAB: Survival tests -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST'|translate}}">

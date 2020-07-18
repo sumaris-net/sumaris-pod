@@ -334,7 +334,7 @@ export class LocalSettingsService {
     }
   }
 
-  async removeHistory(path: string) {
+  async removeHistory(path: string, opts?: {emitEvent?: boolean;}) {
     const index = this.data.pageHistory.findIndex(p => p.path === path);
     if (index === -1) return; // skip if not found
 
@@ -342,6 +342,11 @@ export class LocalSettingsService {
 
     // Save locally
     this.persistLocally();
+
+    // Emit event
+    if (!opts || opts.emitEvent !== false) {
+      this.onChange.next(this.data);
+    }
   }
 
   async clearPageHistory() {

@@ -1,22 +1,24 @@
 import {ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {Batch, BatchUtils} from "../services/model/batch.model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {SubBatchForm} from "./sub-batch.form";
-import {SubBatchValidatorService} from "../services/validator/sub-batch.validator";
-import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "./sub-batches.table";
-import {AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {AppFormUtils, EntityUtils, isNil} from "../../core/core.module";
+import {Batch, BatchUtils} from "../../services/model/batch.model";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {SubBatchForm} from "../form/sub-batch.form";
+import {SubBatchValidatorService} from "../../services/validator/sub-batch.validator";
+import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from "../table/sub-batches.table";
+import {AppMeasurementsTableOptions} from "../../measurement/measurements.table.class";
+import {MeasurementValuesUtils} from "../../services/model/measurement.model";
+import {AppFormUtils, EntityUtils, isNil} from "../../../core/core.module";
 import {Animation, ModalController} from "@ionic/angular";
-import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
-import {AudioProvider} from "../../shared/audio/audio";
-import {Alerts} from "../../shared/alerts";
+import {isNotNilOrBlank, toBoolean} from "../../../shared/functions";
+import {AudioProvider} from "../../../shared/audio/audio";
+import {Alerts} from "../../../shared/alerts";
 import {Subject} from "rxjs";
 import {createAnimation} from "@ionic/core";
+import {SubBatch} from "../../services/model/subbatch.model";
+import {BatchGroup} from "../../services/model/batch-group.model";
 
 
-export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
+export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // do NOT use individual count
 
 @Component({
@@ -43,19 +45,19 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
   private _initialMaxRankOrder: number;
   private _previousMaxRankOrder: number;
-  private _selectedParent: Batch;
-  private _hiddenData: Batch[];
+  private _selectedParent: BatchGroup;
+  private _hiddenData: SubBatch[];
   private _rowAnimation: Animation;
 
   $title = new Subject<string>();
 
-  @Input() onNewParentClick: () => Promise<Batch | undefined>;
+  @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
 
   @Input()
-  availableSubBatchesFn: () => Promise<Batch[]>;
+  availableSubBatchesFn: () => Promise<SubBatch[]>;
 
   @Input()
-  showParent: boolean;
+  showParentGroup: boolean;
 
   @Input() set disabled(value: boolean) {
     if (value) {
@@ -82,7 +84,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return this.form && this.form.invalid;
   }
 
-  set selectedParent(parent: Batch) {
+  set selectedParent(parent: BatchGroup) {
     this._selectedParent = parent;
   }
 
@@ -114,7 +116,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     // default values
     this.showIndividualCount = !this.isOnFieldMode; // Hide individual count on mobile device
-    this.showParent = toBoolean(this.showParent, true);
+    this.showParentGroup = toBoolean(this.showParentGroup, true);
 
     this.showForm = this.showForm && (this.form && !this.disabled);
 
@@ -130,16 +132,16 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     if (this.form) {
       // Reset the form, using default value
-      let defaultBatch: Batch;
+      let defaultBatch: SubBatch;
       if (this._selectedParent) {
-        defaultBatch = new Batch();
-        defaultBatch.parent = this._selectedParent;
+        defaultBatch = new SubBatch();
+        defaultBatch.parentGroup = this._selectedParent;
       }
       await this.resetForm(defaultBatch);
 
       // Update table content when changing parent
       this.registerSubscription(
-        this.form.form.get('parent').valueChanges
+        this.form.form.get('parentGroup').valueChanges
           // Init table with existing values
           //.pipe(startWith(() => this._defaultValue && this._defaultValue.parent))
           .subscribe(parent => this.onParentChange(parent))
@@ -187,7 +189,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     await this.viewCtrl.dismiss();
   }
 
-  async close(event?: UIEvent) {
+  async close(event?: Event) {
     if (this.loading) return; // avoid many call
 
     if (this.debug) console.debug("[sub-batch-modal] Closing modal...");
@@ -216,7 +218,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return row.currentData.rankOrder > this._initialMaxRankOrder;
   }
 
-  onEditRow(event: MouseEvent, row?: TableElement<Batch>): boolean {
+  onEditRow(event: MouseEvent, row?: TableElement<SubBatch>): boolean {
 
     row = row || (!this.selection.isEmpty() && this.selection.selected[0]);
     if (!row) throw new Error ("Missing row argument, or a row selection.");
@@ -227,7 +229,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     }
 
     // Copy the row into the form
-    this.form.setValue(row.validator ? Batch.fromObject(row.currentData) : row.currentData, {emitEvent: true});
+    this.form.setValue(this.toEntity(row), {emitEvent: true});
     this.markForCheck();
 
     // Then remove the row
@@ -236,7 +238,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return true;
   }
 
-  selectRow(event: MouseEvent|null, row: TableElement<Batch>) {
+  selectRow(event: MouseEvent|null, row: TableElement<SubBatch>) {
     if (event && event.defaultPrevented || !row) return;
     if (event) event.preventDefault();
 
@@ -249,7 +251,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   protected async computeTitle() {
 
     let titlePrefix;
-    if (!this.showParent && this._selectedParent) {
+    if (!this.showParentGroup && this._selectedParent) {
       const label = BatchUtils.parentToString(this._selectedParent);
       titlePrefix = await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE_PREFIX', {label}).toPromise();
     }
@@ -259,7 +261,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     this.$title.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE').toPromise()));
   }
 
-  protected async onParentChange(parent?: Batch) {
+  protected async onParentChange(parent?: BatchGroup) {
     // Skip if same parent
     if (Batch.equals(this._selectedParent, parent)) return;
 
@@ -280,9 +282,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     this.onRefresh.emit();
   }
 
-  protected onLoadData(data: Batch[]): Batch[] {
+  protected onLoadData(data: SubBatch[]): SubBatch[] {
 
-    // Filter by parent
+    // Filter by parent group
     if (data && this._selectedParent) {
       const showIndividualCount = this.showIndividualCount; // Read once the getter value
 
@@ -293,7 +295,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
         // Filter on individual count = 1 when individual count is hide
         // AND same parent
         if ( (showIndividualCount || b.individualCount === 1)
-          && Batch.equals(this._selectedParent, b.parent)) {
+          && Batch.equals(this._selectedParent, b.parentGroup)) {
           return res.concat(b);
         }
         hiddenData.push(b);
@@ -310,7 +312,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     }
   }
 
-  protected onSaveData(data: Batch[]): Batch[] {
+  protected onSaveData(data: SubBatch[]): SubBatch[] {
     // Append hidden data to the list, then save
     return super.onSaveData(data.concat(this._hiddenData || []));
   }
@@ -319,7 +321,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return Math.max(await super.getMaxRankOrder(), this._previousMaxRankOrder || this._initialMaxRankOrder);
   }
 
-  protected async addEntityToTable(newBatch: Batch): Promise<TableElement<Batch>> {
+  protected async addEntityToTable(newBatch: SubBatch): Promise<TableElement<SubBatch>> {
     const row = await super.addEntityToTable(newBatch);
 
     // Highlight the row, few seconds
@@ -331,7 +333,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return row;
   }
 
-  protected async updateEntityToTable(updatedBatch: Batch, row: TableElement<Batch>):  Promise<TableElement<Batch>> {
+  protected async updateEntityToTable(updatedBatch: SubBatch, row: TableElement<SubBatch>):  Promise<TableElement<SubBatch>> {
     const updatedRow = await super.updateEntityToTable(updatedBatch, row);
 
     // Highlight the row, few seconds
@@ -356,7 +358,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
    * @param row
    * @pram times duration of hightligh
    */
-  protected onRowChanged(row: TableElement<Batch>) {
+  protected onRowChanged(row: TableElement<SubBatch>) {
 
     // Play a beep, if on field
     if (this.isOnFieldMode) {

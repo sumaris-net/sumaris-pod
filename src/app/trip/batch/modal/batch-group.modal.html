@@ -14,8 +14,7 @@
     <ion-buttons slot="end" >
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button *ngIf="!loading" (click)="close($event)"
-                  [disabled]="invalid"
+      <ion-button *ngIf="!loading && !disabled" (click)="close($event)"
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
@@ -24,20 +23,32 @@
 </ion-header>
 
 
-<ion-content class="ion-padding" >
+<ion-content cdkTrapFocus class="ion-padding">
 
+  <app-batch-group-form #form
+                        [acquisitionLevel]="acquisitionLevel"
+                        [program]="program"
+                        [showTaxonGroup]="showTaxonGroup"
+                        [showTaxonName]="showTaxonName"
+                        [availableTaxonGroups]="availableTaxonGroups"
+                        [taxonGroupsNoWeight]="taxonGroupsNoWeight"
+                        (onSubmit)="close($event)">
 
-  <app-sub-batch-form #form
-                    [debug]="debug"
-                    [acquisitionLevel]="acquisitionLevel"
-                    [availableParents]="availableParents"
-                    [program]="program"
-                    [showParent]="showParent"
-                    [showTaxonName]="showTaxonName"
-                    [showIndividualCount]="showIndividualCount"
-                    [showSubmitButton]="false"
-                    (onSubmit)="close($event)"
-  ></app-sub-batch-form>
+      <!-- open individual modal -->
+      <ion-button afterSpeciesButtons mat-button
+                  *ngIf="showSubBatchesCallback && form.hasIndividualMeasure"
+                  fill="clear" color="tertiary" expand="full"
+                  (click)="onShowSubBatchesButtonClick($event)">
+        <mat-icon slot="start">assessment</mat-icon>
+        <ion-label>
+          <span translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</span>
+          <span *ngIf="data.observedIndividualCount">&nbsp;({{data.observedIndividualCount}})</span>
+        </ion-label>
+        <ion-icon slot="end" name="arrow-forward"></ion-icon>
+      </ion-button>
+
+  </app-batch-group-form>
+
 
 </ion-content>
 

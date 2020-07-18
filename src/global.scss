@@ -578,13 +578,14 @@ mat-table {
       bottom: 9px !important;
     }
 
-    app-form-field {
+    mat-form-field,
+    mat-autocomplete-field,
+    app-form-field,
+    .mat-form-field {
       width: 100%;
     }
 
     .mat-form-field {
-      width: 100%;
-
       .mat-form-field-label {
         width: 100%;
       }
@@ -778,9 +779,12 @@ mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
   color: white;
 }
 
-// --- mat-tag-group component
+// --- mat-tab-group component
 mat-tab-group.mat-tab-group-header-hidden .mat-tab-header {
     display: none !important;
+}
+mat-tab-group.mat-tab-group-header-pagination-hidden .mat-tab-header-pagination {
+  display: none !important;
 }
 
 // --------------------------------------------------

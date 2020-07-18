@@ -100,7 +100,7 @@ export class ExtractionDataPage extends ExtractionAbstractPage<ExtractionType> i
     )
       .subscribe(() => {
         if (this.loading || isNil(this.type)) return; // avoid multiple load
-        return this.load();
+        return this.loadData();
       });
   }
 

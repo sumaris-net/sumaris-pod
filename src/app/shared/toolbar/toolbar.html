@@ -4,9 +4,8 @@
     <ion-buttons slot="start">
 
       <!-- back button -->
-      <ion-button *ngIf="canGoBack"
-                  class="back-button"
-                  [class.can-go-back]="defaultBackHref"
+      <ion-button class="back-button"
+                  *ngIf="canGoBack"
                   (click)="doBackClick($event)"
                   routerDirection="back" >
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>

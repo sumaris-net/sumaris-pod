@@ -13,7 +13,7 @@ import {OperationValidatorService} from "../services/validator/operation.validat
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
-import {OperationFilter, OperationService, OperationServiceOptions} from "../services/operation.service";
+import {OperationFilter, OperationService, OperationServiceWatchOptions} from "../services/operation.service";
 import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {Operation, Trip} from "../services/model/trip.model";
@@ -80,7 +80,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
             'endPosition',
             'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Operation, OperationFilter, OperationServiceOptions>(Operation, dataService,
+      new EntitiesTableDataSource<Operation, OperationFilter, OperationServiceWatchOptions>(Operation, dataService,
         null,
         // DataSource options
         {

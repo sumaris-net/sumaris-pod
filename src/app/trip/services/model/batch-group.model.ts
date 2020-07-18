@@ -1,4 +1,5 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
+import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
 
 export class BatchGroup extends Batch<BatchGroup> {
 
@@ -44,6 +45,17 @@ export class BatchGroup extends Batch<BatchGroup> {
 }
 
 export class BatchGroupUtils {
+
+  static fromBatchTree(catchBatch: Batch): BatchGroup[] {
+
+    // Retrieve batch group (make sure label start with acquisition level)
+    // Then convert into batch group entities
+    return (catchBatch.children || [])
+      .filter(s => s.label && s.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH + "#"))
+      // Convert to Batch Group
+      .map(BatchGroup.fromBatch);
+  }
+
   /**
    * Count only individual count with measure
    * @param batch

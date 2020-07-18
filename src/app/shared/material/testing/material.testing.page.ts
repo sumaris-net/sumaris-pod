@@ -1,5 +1,14 @@
-import {Component} from "@angular/core";
+import {Component, Inject, InjectionToken, Optional} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
+import {APP_MENU_ITEMS, MenuItem} from "../../../core/menu/menu.component";
+import {TranslateService} from "@ngx-translate/core";
+
+export declare interface TestingPage {
+  label: string;
+  page; string
+}
+
+export const APP_TESTING_PAGES = new InjectionToken<TestingPage[]>('testingPages');
 
 @Component({
   selector: 'app-material-testing',
@@ -9,12 +18,14 @@ export class MaterialTestingPage {
 
   constructor(
       protected route: ActivatedRoute,
-      protected router: Router
+      protected router: Router,
+      protected translate: TranslateService,
+      @Optional() @Inject(APP_TESTING_PAGES) public pages: TestingPage[]
     ) {
   }
 
   async openPage(page): Promise<boolean> {
-    return this.router.navigate(['./' + page], {
+    return this.router.navigate([page], {
       relativeTo: this.route
     });
   }

@@ -257,4 +257,17 @@ export abstract class EntityUtils {
     if (!sources || !sources.length) return null;
     return sources.reduce((res, source) => res.concat(this.treeToArray<T>(source)), []);
   }
+
+  /**
+   * Fill parent attribute, of all children found in the tree
+   *
+   * @param source
+   */
+  static treeFillParent<T extends ITreeItemEntity<any>>(source: T): T[] {
+    if (!source) return null;
+    (source.children || []).forEach(child => {
+      child.parent = source;
+      this.treeFillParent(child); // Loop
+    });
+  }
 }

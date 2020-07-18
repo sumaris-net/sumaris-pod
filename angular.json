@@ -28,7 +28,15 @@
               "angular2-text-mask",
               "uuid",
               "hash.js",
-              "scrypt-async"
+              "zone.js",
+              "scrypt-async",
+              "tweetnacl",
+              "graphql-tag",
+              "apollo-link-serialize",
+              "apollo-link-queue",
+              "apollo-link-logger",
+              "zen-observable",
+              "subscriptions-transport-ws"
             ],
             "assets": [
               {

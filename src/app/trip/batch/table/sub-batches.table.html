@@ -5,7 +5,7 @@
           (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled"
+  <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled"
           [title]="'COMMON.BTN_DELETE'|translate"
           (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
@@ -80,21 +80,21 @@
         </ng-container>
 
         <!-- parent -->
-        <ng-container matColumnDef="parent">
+        <ng-container matColumnDef="parentGroup">
           <mat-header-cell *matHeaderCellDef mat-sort-header>
             <ion-label>
               <span *ngIf="displayParentPmfm">{{getPmfmColumnHeader(displayParentPmfm)}}</span>
-              <span *ngIf="!displayParentPmfm" translate>TRIP.BATCH.TABLE.PARENT</span>
+              <span *ngIf="!displayParentPmfm" translate>TRIP.BATCH.TABLE.PARENT_GROUP</span>
             </ion-label>
           </mat-header-cell>
           <mat-cell *matCellDef="let row">
 
             <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                                     [appAutofocus]="row.id === -1 && row.editing"
-                                    [formControl]="row.validator.controls.parent"
-                                    [placeholder]="'TRIP.BATCH.TABLE.PARENT'|translate"
+                                    [formControl]="row.validator.controls.parentGroup"
+                                    [placeholder]="'TRIP.BATCH.TABLE.PARENT_GROUP'|translate"
                                     [required]="true"
-                                    [config]="autocompleteFields.parent">
+                                    [config]="autocompleteFields.parentGroup">
             </mat-autocomplete-field>
           </mat-cell>
 
@@ -226,7 +226,7 @@
                           [acquisitionLevel]="acquisitionLevel"
                           [pmfms]="$pmfms|async"
                           [qvPmfm]="qvPmfm"
-                          [showParent]="true"
+                          [showParentGroup]="true"
                           [showTaxonName]="showTaxonNameColumn"
                           [showIndividualCount]="showIndividualCount"
                           [displayParentPmfm]="displayParentPmfm"

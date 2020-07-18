@@ -8,21 +8,21 @@ import {
   OnInit,
   ViewChild
 } from "@angular/core";
-import {Batch, BatchUtils} from "../services/model/batch.model";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppFormUtils, isNil} from "../../core/core.module";
+import {Batch, BatchUtils} from "../../services/model/batch.model";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {AppFormUtils, IReferentialRef, isNil} from "../../../core/core.module";
 import {AlertController, ModalController} from "@ionic/angular";
-import {BehaviorSubject, Subscription} from "rxjs";
+import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {BatchGroupForm} from "./batch-group.form";
-import {toBoolean} from "../../shared/functions";
+import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {BatchGroupForm} from "../form/batch-group.form";
+import {toBoolean} from "../../../shared/functions";
 import {throttleTime} from "rxjs/operators";
-import {PlatformService} from "../../core/services/platform.service";
-import {Alerts} from "../../shared/alerts";
-import {BatchGroup} from "../services/model/batch-group.model";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
+import {PlatformService} from "../../../core/services/platform.service";
+import {Alerts} from "../../../shared/alerts";
+import {BatchGroup} from "../../services/model/batch-group.model";
+import {ReferentialUtils} from "../../../core/services/model/referential.model";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -54,6 +54,8 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() taxonGroupsNoWeight: string[];
 
+  @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
+
   @Input() qvPmfm: PmfmStrategy;
 
   @Input()
@@ -61,7 +63,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     this.data = value;
   }
 
-  @Input() showSubBatchesCallback: (batch) => void;
+  @Input() showSubBatchesCallback: (parent: Batch, valid?: boolean) => void;
 
   @ViewChild('form', { static: true }) form: BatchGroupForm;
 
@@ -83,6 +85,20 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   get enabled(): boolean {
     return !this.disabled;
+  }
+
+  enable(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }) {
+    this.form.enable(opts);
+  }
+
+  disable(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }) {
+    this.form.disable(opts);
   }
 
   constructor(
@@ -111,10 +127,10 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     this.disabled = toBoolean(this.disabled, false);
 
     if (this.disabled) {
-      this.form.disable();
+      this.disable();
     }
     else {
-      this.form.enable();
+      this.enable();
     }
 
     // Update title each time value changes
@@ -164,7 +180,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     this.loading = true;
 
     // Force enable form, before use value
-    if (!this.enabled) this.form.enable({emitEvent: false});
+    if (!this.enabled) this.enable({emitEvent: false});
 
     // Wait end of async validation
     await AppFormUtils.waitWhilePending(this.form);
@@ -209,7 +225,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     if (!savedBatch) return;
 
     // Execute the callback
-    this.showSubBatchesCallback(savedBatch);
+    this.showSubBatchesCallback(savedBatch, this.valid);
   }
 
   /* -- protected methods -- */

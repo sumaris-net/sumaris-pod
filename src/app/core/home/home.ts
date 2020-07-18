@@ -282,7 +282,8 @@ export class HomePage implements OnDestroy {
     const filteredButtons = (this.buttons || [])
       .filter((item) => MenuItems.checkIfVisible(item, this.accountService, this._config, {
         isLogin: this.isLogin,
-        debug: this._debug
+        debug: this._debug,
+        logPrefix: "[home]"
       }))
       .map(item => {
         // Replace title using properties

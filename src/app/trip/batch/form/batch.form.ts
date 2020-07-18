@@ -1,28 +1,28 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
-import {Batch, BatchUtils} from "../services/model/batch.model";
-import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
+import {Batch, BatchUtils} from "../../services/model/batch.model";
+import {MeasurementValuesForm} from "../../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
-import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
+import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {ProgramService} from "../../referential/services/program.service";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {EntityUtils} from "../../core/services/model/entity.model";
-import {referentialToString, ReferentialUtils} from "../../core/services/model/referential.model";
-import {UsageMode} from "../../core/services/model/settings.model";
+import {ProgramService} from "../../../referential/services/program.service";
+import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
+import {EntityUtils} from "../../../core/services/model/entity.model";
+import {IReferentialRef, referentialToString, ReferentialUtils} from "../../../core/services/model/referential.model";
+import {UsageMode} from "../../../core/services/model/settings.model";
 
 import {debounceTime, filter, first} from "rxjs/operators";
-import {AcquisitionLevelCodes, MethodIds, PmfmLabelPatterns} from "../../referential/services/model/model.enum";
-import {BehaviorSubject, Subscription} from "rxjs";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppFormUtils, FormArrayHelper, isNil, isNotNil} from "../../core/core.module";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
-import {BatchValidatorService} from "../services/validator/batch.validator";
-import {firstNotNilPromise} from "../../shared/observables";
-import {PlatformService} from "../../core/services/platform.service";
-import {SharedFormGroupValidators} from "../../shared/validator/validators";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
+import {AcquisitionLevelCodes, MethodIds, PmfmLabelPatterns} from "../../../referential/services/model/model.enum";
+import {BehaviorSubject, Observable, Subscription} from "rxjs";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {AppFormUtils, FormArrayHelper, isNil, isNotNil} from "../../../core/core.module";
+import {MeasurementValuesUtils} from "../../services/model/measurement.model";
+import {isNotNilOrBlank, toBoolean} from "../../../shared/functions";
+import {BatchValidatorService} from "../../services/validator/batch.validator";
+import {firstNotNilPromise} from "../../../shared/observables";
+import {PlatformService} from "../../../core/services/platform.service";
+import {SharedFormGroupValidators} from "../../../shared/validator/validators";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 
 @Component({
   selector: 'app-batch-form',
@@ -77,6 +77,8 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   @Input() showSampleBatch = false;
 
   @Input() showError = true;
+
+  @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
 
   @Input() mapPmfmFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
 
@@ -181,10 +183,20 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.$initialized.next(true);
 
     // Taxon group combo
-    this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, filter?: any) => this.programService.suggestTaxonGroups(value, {...filter, program: this.program}),
-      mobile: this.settings.mobile
+    if (isNotNil(this.availableTaxonGroups)) {
+      // Set items (useful to speed up the batch group modal)
+      this.registerAutocompleteField('taxonGroup', {
+        items: this.availableTaxonGroups,
+        mobile: this.settings.mobile
+      });
+    }
+    else {
+      this.registerAutocompleteField('taxonGroup', {
+        suggestFn: (value: any, filter?: any) => this.programService.suggestTaxonGroups(value, {...filter, program: this.program}),
+        mobile: this.settings.mobile
     });
+
+    }
 
     // Taxon name combo
     this.updateTaxonNameFilter();
@@ -405,8 +417,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       };
     }
     else {
-      this.taxonNameFilter =
-        {
+      this.taxonNameFilter = {
           program: this.program,
           taxonGroupId: opts && opts.taxonGroup && opts.taxonGroup.id
         };

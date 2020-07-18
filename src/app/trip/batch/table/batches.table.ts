@@ -14,22 +14,23 @@ import {
 import {of, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../core/core.module";
-import {isNilOrBlank, isNotNil} from "../../shared/functions";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
-import {UsageMode} from "../../core/services/model/settings.model";
-import {SubBatchesModal} from "./sub-batches.modal";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {BatchModal} from "./batch.modal";
-import {TaxonNameRef} from "../../referential/services/model/taxon.model";
-import {Batch} from "../services/model/batch.model";
-import {Operation} from "../services/model/trip.model";
-import {Landing} from "../services/model/landing.model";
-import {AcquisitionLevelCodes, PmfmLabelPatterns} from "../../referential/services/model/model.enum";
-import {PmfmUtils} from "../../referential/services/model/pmfm.model";
-import {getPmfmName, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {environment, IReferentialRef, isNil, ReferentialRef, referentialToString} from "../../../core/core.module";
+import {isNilOrBlank, isNotNil} from "../../../shared/functions";
+import {AppMeasurementsTable} from "../../measurement/measurements.table.class";
+import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
+import {UsageMode} from "../../../core/services/model/settings.model";
+import {SubBatchesModal} from "../modal/sub-batches.modal";
+import {MeasurementValuesUtils} from "../../services/model/measurement.model";
+import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
+import {Batch} from "../../services/model/batch.model";
+import {Operation} from "../../services/model/trip.model";
+import {Landing} from "../../services/model/landing.model";
+import {AcquisitionLevelCodes, PmfmLabelPatterns} from "../../../referential/services/model/model.enum";
+import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
+import {getPmfmName, PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
+import {BatchModal} from "../modal/batch.modal";
+import {SubBatch} from "../../services/model/subbatch.model";
 
 export interface BatchFilter {
   operationId?: number;
@@ -109,7 +110,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   }
 
   @Input()
-  availableSubBatchesFn: () => Promise<Batch[]>;
+  availableSubBatchesFn: () => Promise<SubBatch[]>;
 
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: TaxonNameRef;
@@ -190,7 +191,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
       return true;
     }
 
-    const data = this.getRowEntity(row, true);
+    const data = this.toEntity(row, true);
 
     // Prepare entity measurement values
     this.prepareEntityToSave(data);
@@ -248,85 +249,6 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     return data as T;
   }
 
-  async onSubBatchesClick(event: UIEvent, row: TableElement<T>, opts?: {
-    showParent?: boolean;
-  }): Promise<Batch[] | undefined> {
-    if (event) event.preventDefault();
-    const selectedParent = this.getRowEntity(row);
-    return await this.openSubBatchesModal(selectedParent, opts);
-  }
-
-  async openSubBatchesModal(selectedParent?: T, opts?: {
-    showParent?: boolean;
-  }): Promise<Batch[] | undefined> {
-
-    if (this.debug) console.debug("[batches-table] Open individual measures modal...");
-
-    const showParent = !opts || opts.showParent !== false; // True by default
-
-    // Define a function to add new parent
-    const onNewParentClick = showParent ? async () => {
-      const newBatch = await this.openDetailModal();
-      if (!newBatch) return undefined;
-      await this.addEntityToTable(newBatch);
-      return newBatch;
-    } : undefined;
-
-    // Define available parent, as an observable (if new parent can added)
-    const onModalDismiss = new Subject<any>();
-    const availableParents =
-      // If mobile, create an observable, linked to table rows
-      this.mobile ?
-        this.dataSource.connect(null)
-        .pipe(
-          takeUntil(onModalDismiss),
-          map((res) => (res as TableElement<T>[]).map((row) => row.currentData as T))
-        ) :
-      // else (if desktop), create a copy
-      of((await this.dataSource.getRows()).map(row => this.getRowEntity(row)));
-
-    const modal = await this.modalCtrl.create({
-      component: SubBatchesModal,
-      componentProps: {
-        program: this.program,
-        acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
-        usageMode: this.usageMode,
-        selectedParent: selectedParent,
-        qvPmfm: this.qvPmfm,
-        disabled: this.disabled,
-        showParent,
-        // Scientific species is required, if not set in root batches
-        showTaxonNameColumn: !this.showTaxonNameColumn,
-        // If on field mode: use individualCount=1 on each sub-batches
-        showIndividualCount: !this.isOnFieldMode,
-        availableParents: availableParents,
-        availableSubBatchesFn: this.availableSubBatchesFn,
-        onNewParentClick
-      },
-      keyboardClose: true,
-      cssClass: 'modal-large'
-    });
-
-    // Open the modal
-    await modal.present();
-
-    // Wait until closed
-    const {data} = await modal.onDidDismiss();
-
-    onModalDismiss.next(); // disconnect to service
-
-    // User cancelled
-    if (isNil(data)) {
-      if (this.debug) console.debug("[batches-table] Sub-batches modal: user cancelled");
-    }
-    else {
-      //if (this.debug)
-        console.debug("[batches-table] Sub-batches modal result: ", data);
-      this.onSubBatchesChanges.emit(data);
-    }
-
-    return data;
-  }
 
   /* -- protected methods -- */
 

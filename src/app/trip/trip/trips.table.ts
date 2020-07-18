@@ -393,6 +393,12 @@ export class TripTable extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.showToast({
         message: 'INFO.SYNCHRONIZATION_SUCCEED'
       });
+
+      // Clean history
+      // FIXME: find a way o clean only synchronized trips ?
+      this.settings.clearPageHistory();
+
+
     } catch (error) {
       this.userEventService.showToastErrorWithContext({
         error,

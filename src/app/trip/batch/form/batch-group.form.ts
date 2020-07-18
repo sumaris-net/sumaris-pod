@@ -1,25 +1,25 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, QueryList, ViewChildren} from "@angular/core";
-import {Batch, BatchUtils} from "../services/model/batch.model";
+import {Batch, BatchUtils} from "../../services/model/batch.model";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {AbstractControl, FormBuilder, FormControl} from "@angular/forms";
-import {ProgramService} from "../../referential/services/program.service";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppFormUtils, isNotNil} from "../../core/core.module";
-import {BatchGroupValidatorService} from "../services/validator/batch-group.validator";
+import {ProgramService} from "../../../referential/services/program.service";
+import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
+import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
+import {AppFormUtils, isNotNil} from "../../../core/core.module";
+import {BatchGroupValidatorService} from "../../services/validator/batch-group.validator";
 import {BehaviorSubject} from "rxjs";
 import {BatchForm} from "./batch.form";
 import {filter, switchMap} from "rxjs/operators";
-import {PlatformService} from "../../core/services/platform.service";
-import {firstNotNilPromise} from "../../shared/observables";
-import {fadeInAnimation} from "../../shared/shared.module";
-import {BatchGroup} from "../services/model/batch-group.model";
-import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {PmfmUtils} from "../../referential/services/model/pmfm.model";
+import {PlatformService} from "../../../core/services/platform.service";
+import {firstNotNilPromise} from "../../../shared/observables";
+import {fadeInAnimation} from "../../../shared/shared.module";
+import {BatchGroup} from "../../services/model/batch-group.model";
+import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
+import {ReferentialUtils} from "../../../core/services/model/referential.model";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
 
 @Component({
   selector: 'app-batch-group-form',

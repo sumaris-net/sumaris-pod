@@ -12,20 +12,31 @@
 
 <ion-content>
 
-
   <ion-list>
-    <ion-item tappable class="text-1x" (click)="openPage('autocomplete')">
+
+    <ion-item-divider>Shared Material components</ion-item-divider>
+
+    <ion-item tappable class="text-1x" (click)="openPage('./autocomplete')">
       Autocomplete field
     </ion-item>
-    <ion-item tappable class="text-1x" (click)="openPage('latlong')">
+    <ion-item tappable class="text-1x" (click)="openPage('./latlong')">
       Lat/Long field
     </ion-item>
-    <ion-item tappable class="text-1x" (click)="openPage('numpad')">
+    <ion-item tappable class="text-1x" (click)="openPage('./numpad')">
       Numeric pad component
     </ion-item>
-    <ion-item tappable class="text-1x" (click)="openPage('swipe')">
+    <ion-item tappable class="text-1x" (click)="openPage('./swipe')">
       Swipe component
     </ion-item>
+
+    <ng-container *ngIf="pages && pages.length">
+      <ion-item-divider>Other components</ion-item-divider>
+
+      <ion-item *ngFor="let item of pages"
+                tappable class="text-1x"
+                (click)="openPage(item.page)">{{item.label}}</ion-item>
+
+    </ng-container>
   </ion-list>
 
 </ion-content>

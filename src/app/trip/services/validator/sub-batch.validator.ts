@@ -4,6 +4,7 @@ import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {toNumber} from "../../../shared/functions";
 import {Batch} from "../model/batch.model";
+import {SubBatch} from "../model/subbatch.model";
 
 @Injectable()
 export class SubBatchValidatorService implements ValidatorService {
@@ -16,7 +17,7 @@ export class SubBatchValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Batch, opts?: {
+  getFormGroup(data?: SubBatch, opts?: {
     rankOrderRequired?: boolean;
   }): FormGroup {
     const rankOrder = toNumber(data && data.rankOrder, null);
@@ -32,8 +33,11 @@ export class SubBatchValidatorService implements ValidatorService {
       taxonGroup: [data && data.taxonGroup || null, SharedValidators.entity],
       taxonName: [data && data.taxonName || null, SharedValidators.entity],
       comments: [data && data.comments || null],
-      parent: [data && data.parent || null, Validators.compose([Validators.required, SharedValidators.object])],
-      measurementValues: this.formBuilder.group({})
+      parent: [data && data.parent || null, SharedValidators.object],
+      measurementValues: this.formBuilder.group({}),
+
+      // Specific for SubBatch
+      parentGroup: [data && data.parentGroup || null, Validators.compose([Validators.required, SharedValidators.object])]
     });
   }
 }

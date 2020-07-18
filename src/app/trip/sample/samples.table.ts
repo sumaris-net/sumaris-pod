@@ -227,7 +227,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       return true;
     }
 
-    const data = this.getRowEntity(row, true);
+    const data = this.toEntity(row, true);
 
     // Prepare entity measurement values
     this.prepareEntityToSave(data);

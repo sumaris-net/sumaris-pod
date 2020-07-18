@@ -1,4 +1,4 @@
-@import './sub-batches.table.scss';
+@import '../table/sub-batches.table';
 :host {
   --toolbar-min-height: 56px;
 }
@@ -20,7 +20,7 @@ ion-grid.disabled {
 }
 .mat-header-row,
 .mat-row {
-  .mat-column-parent,
+  .mat-column-parentGroup,
   .mat-column-taxonName,
   .mat-column-taxonGroup {
     min-width: 50px;

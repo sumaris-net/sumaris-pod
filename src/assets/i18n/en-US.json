@@ -27,6 +27,7 @@
     "BTN_REFRESH": "Refresh",
     "BTN_SEARCH": "Search",
     "BTN_NEXT": "Next",
+    "BTN_NEXT_SHORT": "Next",
     "BTN_BACK": "Back",
     "BTN_SEND": "Send",
     "BTN_OPTIONS": "Options",
@@ -38,10 +39,11 @@
     "BTN_SHOW_MENU": "Show menu",
     "BTN_SHOW_MORE": "Show more",
     "BTN_LOGOUT": "Log out",
-    "BTN_INIT_OFFLINE_MODE": "Enable offline mode",
     "CREATED_ON": "Created on ",
     "COMMENTS": "Comments",
+    "BTN_DECIMAL_SEPARATOR": ".",
     "EMPTY_OPTION": "(Empty)",
+    "All_OPTION": "(All)",
 
     "DATE_PATTERN": "MM/DD/YYYY",
     "DATE_TIME_PATTERN": "MM/DD/YYYY HH:mm",
@@ -106,6 +108,7 @@
   "CONFIGURATION": {
     "TAB_GENERAL": "Details",
     "TAB_CACHE": "Server cache",
+    "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Application Name",
     "DESCRIPTION": "Description (home page)",
     "STATUS": "Status",
@@ -117,7 +120,7 @@
     "PROPERTY_VALUE": "Value",
     "BTN_ADD_PROPERTY": "Add an option",
     "BTN_CLEAR_CACHE": "Clear server cache",
-    "CACHE_DIVIDER": "Server cache statistics",
+    "CACHE_TITLE": "Server cache statistics",
     "NEW": {
       "TITLE": "New configuration"
     },
@@ -130,6 +133,7 @@
       "FAVICON": "favicon",
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
+      "NOT_SELF_DATA_ACCESS_MIN_ROLE": "User profile (min) to access other people data",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
@@ -181,7 +185,7 @@
     "MAP": "Maps",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
     "LOCAL_SETTINGS": "Settings",
-    "SERVER_SETTINGS": "Server settings",
+    "SERVER": "Server management",
     "LOGOUT": "Logout",
     "ABOUT": "About"
   },
@@ -324,10 +328,12 @@
     "STATUS": "Status",
     "PUBKEY": "Public key",
     "PROFILE": "Profile",
-    "PROFILE_ADMIN": "Administrator",
-    "PROFILE_SUPERVISOR": "Manager",
-    "PROFILE_USER": "Observer",
-    "PROFILE_GUEST": "Invité",
+    "PROFILE_ENUM": {
+      "ADMIN": "Administrator",
+      "SUPERVISOR": "Manager",
+      "USER": "Observer",
+      "GUEST": "Invité"
+    },
     "LIST": {
       "TITLE": "Users",
       "FILTER": {
@@ -391,11 +397,11 @@
         "LOCATION": "Port (departure or return)",
         "VESSEL": "Vessel",
         "SYNCHRONIZATION_STATUS": "Status",
-        "RECORDER_DEPARTMENT": "Recorder depatrment",
+        "RECORDER_DEPARTMENT": "Recorder department",
         "RECORDER_PERSON": "Recorder user"
       },
       "SYNCHRONIZATION_STATUS": {
-        "DIRTY_HELP": "Unsynchronized trips",
+        "DIRTY_HELP": "Not-synchronized trips",
         "READY_TO_SYNC_HELP": "Ready to sync trips",
         "SYNC_HELP": "Online trips"
       }
@@ -441,11 +447,17 @@
         "TITLE": "Existing gears"
       },
       "ERROR": {
-        "LOAD_PHYSICAL_GEARS_ERROR": "Erreur de chargement des engins."
+        "LOAD_PHYSICAL_GEARS_ERROR": "Error while loading gears."
       }
     },
     "OPERATION": {
+      "BTN_SHOW_ALL": "Show all",
+      "BTN_HISTORY": "Log",
+      "BTN_SHOW_MAP": "Positions map",
       "COMMENTS": "Comments",
+      "LAST_OPERATIONS": "Last operations",
+      "NO_LAST_OPERATION": "No previous operation",
+      "OPE_PREFIX": "OPE",
       "TITLE_PREFIX": "<small>{{vessel}} - Trip {{departureDateTime}}<br></small>",
       "NEW": {
         "TITLE": "New operation"
@@ -456,6 +468,7 @@
         "TAB_GENERAL": "Details",
         "TAB_PHYSICAL_GEAR": "Use of gear",
         "TAB_CATCH": "Catch",
+        "TAB_CATCH_TOTAL": "Total catch",
         "TAB_SURVIVAL_TEST": "Survival tests",
         "TAB_INDIVIDUAL_MONITORING": "Individual monitoring",
         "TAB_INDIVIDUAL_RELEASES": "Releases",
@@ -468,6 +481,11 @@
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Other features:",
         "NO_TARGET_SPECIES_FOUND": "No species for this gear"
+      },
+      "MAP": {
+        "TITLE": "Positions map",
+        "TRIP_LAYER": "Trip",
+        "OPERATIONS_LAYER": "Operations"
       },
       "LIST": {
         "PHYSICAL_GEAR": "Used gear",
@@ -528,7 +546,7 @@
         "TITLE": "Batch {{label}}",
         "TAXON_GROUP": "Commercial species (FAO)",
         "TAXON_NAME": "Scientific species",
-        "PARENT": "Species batch",
+        "PARENT_GROUP": "Species batch",
         "BTN_AUTO_INCREMENT": "Auto increment",
         "BTN_INDIVIDUAL_MEASURE": "Fill measurements",
         "ESTIMATED_WEIGHT": "Estimated weight",
@@ -567,7 +585,7 @@
         "SAMPLING_RATIO": "Sampling fraction",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "SAMPLING_WEIGHT": "Sampling weight",
-        "PARENT": "Species batch",
+        "PARENT_GROUP": "Species batch",
         "INDIVIDUAL_COUNT": "Nb indiv.",
         "INDIVIDUAL_UNIT": "indiv.",
         "WEIGHT": "Weight (kg)",
@@ -590,7 +608,8 @@
       },
       "EDIT": {
         "TITLE": "Batch {{label}}",
-        "TAXON_GROUP": "Commercial species (FAO)"
+        "TAXON_GROUP": "Commercial species (FAO)",
+        "TAXON_NAME": "Scientific species (FAO)"
       },
       "TABLE": {
         "LABEL": "Batch",
@@ -922,8 +941,8 @@
       "NAME": "Scientific species name"
     },
     "GEAR": {
-      "LABEL": "Code engin",
-      "NAME": "Libellé engin"
+      "LABEL": "Gear code",
+      "NAME": "Gear label"
     },
     "PARAMETER": {
       "TAB_GENERAL": "Details",
@@ -993,10 +1012,10 @@
       "PMFM": "Collected parameters",
       "MATRIX": "Matrices",
       "FRACTION": "Fractions",
-      "QUALITATIVE_VALUE": "Qualitatives values",
+      "QUALITATIVE_VALUE": "Qualitative values",
       "TAXON_GROUP_TYPE": "Species group types",
       "TAXON_GROUP": "Species group",
-      "TAXON_NAME": "Scientifique species",
+      "TAXON_NAME": "Scientific species",
       "TAXONOMIC_LEVEL": "Taxonomic levels",
       "REFERENCE_TAXON": "Scientific species identifier",
       "PROGRAM": "Data collection programmes",
@@ -1024,7 +1043,10 @@
     "TAB_GENERAL": "Details",
     "TAB_STRATEGIES": "Strategies",
     "TAB_ACCESS_RIGHTS": "Access rights",
-    "PROPERTIES_DIVIDER": "Program settings:",
+    "TAB_PROPERTIES": "Options",
+    "TAXON_GROUP_TYPE": "Referential for taxon groups",
+    "GEAR_CLASSIFICATION": "Referential for gears",
+    "LOCATION_CLASSIFICATION": "Referential for locations",
     "PROPERTY_KEY": "Setting",
     "PROPERTY_VALUE": "Value",
     "BTN_SHOW_MORE_HELP": "More settings",
@@ -1225,6 +1247,8 @@
   },
   "NETWORK": {
     "BTN_CHECK_ALIVE": "Retry",
+    "BTN_INIT_OFFLINE_MODE": "Enable offline mode",
+    "BTN_UPDATE_OFFLINE_MODE": "Update offline mode",
     "PEER": {
       "OFFLINE": "Unreachable peer",
       "SELECT_MODAL": {
@@ -1233,15 +1257,18 @@
       }
     },
     "SYNCHRONIZATION_STATUS": {
-      "DIRTY": "Dirty",
+      "DIRTY": "Offline",
       "READY_TO_SYNC": "Ready to synchronize",
-      "SYNC": "Synchronized"
+      "SYNC": "Online"
     },
     "INFO": {
       "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%",
       "IMPORTATION_SUCCEED": "Import successfully completed!<br/><b>Offline mode</b> is now available.",
       "OFFLINE": "No network connection.",
-      "OFFLINE_HELP": "The application works in <b>offline mode</b>."
+      "OFFLINE_OR_UNAUTHORIZED": "No network connection, or unauthorized access.",
+      "ONLINE": "Sucesfully connected to the network!",
+      "OFFLINE_HELP": "The application works in <b>offline mode</b>.",
+      "RETRY_TO_CONNECT": "<i>Retrying <b>to connect to the network...</b></i>"
     }
   },
   "ERROR": {
@@ -1278,6 +1305,7 @@
     "UNKNOWN_ACCOUNT_EMAIL": "No account matches this email.",
     "BAD_PASSWORD": "Incorrect password.",
     "EMAIL_ALREADY_REGISTERED": "Email already registered",
+    "UNKNOWN_TECHNICAL_ERROR": "Technical error.<small><br/>If the problem persists, please contact your administrator.</small>",
     "UNKNOWN_NETWORK_ERROR": "Error communicating with the server.<small><br/>If the problem persists, please contact your administrator.</small>",
     "BAD_UPDATE_DATE": "Unable to save.<small><br/>Concurrent change detected. Please reload this page and retry.</small>",
     "DATA_LOCKED": "Unable to save.<small><br/>Data locked on server. Please retry later</small>",
@@ -1308,9 +1336,11 @@
     "DELETE": "<b>Are you sure</b> you want to delete?",
     "ACTION_IMMEDIATE": "This operation is irreversible.<br/><br/><b>Are you sure</b> you want to continue?",
     "DELETE_ROW": "<b>Are you sure</b> you want to delete this row?",
-    "DELETE_ROWS": "<b>Are you sure</b> you want to delete this rows?"
+    "DELETE_ROWS": "<b>Are you sure</b> you want to delete this rows?",
+    "SEND_DEBUG_DATA": "Do you want to send this data to the administrator for help?"
   },
   "INFO": {
-    "SYNCHRONIZATION_SUCCEED": "Synchronization completed! <br/> The data has been received by the server."
+    "SYNCHRONIZATION_SUCCEED": "Synchronization completed! <br/> The data has been received by the server.",
+    "DEBUG_DATA_SEND": "Help request sent to administrator"
   }
 }

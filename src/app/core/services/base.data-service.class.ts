@@ -40,6 +40,7 @@ export interface MutableWatchQueryInfo<D, T = any, V = R> {
   arrayFieldName: keyof D;
   totalFieldName?: keyof D;
   insertFilterFn?: (data: T) => boolean;
+  sortFn?: (a: T, b: T) => number;
   counter: number;
 }
 
@@ -47,13 +48,16 @@ export abstract class BaseEntityService<T = any, F = any>{
 
   protected _debug = false;
   protected _mutableWatchQueries: MutableWatchQueryInfo<any>[] = [];
-  protected _mutableWatchQueriesMaxCount: number;
+
+  // Max updated queries, for this entity.
+  // - Can be override by subclasses (in constructor)
+  // - Use value -1 for no max size
+  // - Default value to 3, because it usually enough (e.g. OperationService and LandingService need at least 2)
+  protected _mutableWatchQueriesMaxCount: number = 3;
 
   protected constructor(
     protected graphql: GraphqlService
   ) {
-
-    this._mutableWatchQueriesMaxCount = 1;
 
     // for DEV only
     this._debug = !environment.production;
@@ -70,13 +74,6 @@ export abstract class BaseEntityService<T = any, F = any>{
       const variablesKey = sha256().update(JSON.stringify(opts.variables)).digest('hex').substring(0, 8);
       const queryId = [queryName, opts.arrayFieldName, variablesKey].join('|');
 
-      // TODO Remove old queries
-      /*if (this._mutableWatchQueries.length >= this._mutableWatchQueriesMaxCount) {
-        const removedWatchQueries = this._mutableWatchQueries.splice(0, this._mutableWatchQueries.length - this._mutableWatchQueriesMaxCount);
-        console.debug(`[base-data-service] Removing mutable watching queries (exceed max of ${this._mutableWatchQueriesMaxCount}): `,
-          removedWatchQueries.map(q => q.id));
-      }*/
-
       const existingQueries = opts.queryName ? this._mutableWatchQueries.filter(q => q.id === queryId) :
         this._mutableWatchQueries.filter(q => q.query === opts.query);
       let mutableQuery: MutableWatchQueryInfo<D, T, V>;
@@ -90,16 +87,15 @@ export abstract class BaseEntityService<T = any, F = any>{
         }
       }
       else {
-        console.debug('[base-data-service] Adding new mutable watching query: ' + queryId);
-        mutableQuery = {
+        this.registerNewMutableWatchQuery({
           id: queryId,
           query: opts.query,
           variables: opts.variables,
           arrayFieldName: opts.arrayFieldName,
           insertFilterFn: opts.insertFilterFn,
           counter: 1
-        };
-        this._mutableWatchQueries.push(mutableQuery);
+        });
+
       }
 
       return this.graphql.watchQuery(opts);
@@ -119,9 +115,6 @@ export abstract class BaseEntityService<T = any, F = any>{
 
     existingQueries.forEach(watchQuery => {
 
-      const sortFn = watchQuery.variables && watchQuery.variables.sortBy
-        && EntityUtils.sortComparator(watchQuery.variables.sortBy, watchQuery.variables.sortDirection || 'asc');
-
         if (opts.data instanceof Array) {
           // Filter values, if a filter function exists
           const data = watchQuery.insertFilterFn ? opts.data.filter(i => watchQuery.insertFilterFn(i)) : opts.data;
@@ -130,7 +123,7 @@ export abstract class BaseEntityService<T = any, F = any>{
             query: opts.query,
             variables: watchQuery.variables,
             arrayFieldName: watchQuery.arrayFieldName as string,
-            sortFn,
+            sortFn: watchQuery.sortFn,
             data
           });
         }
@@ -142,6 +135,7 @@ export abstract class BaseEntityService<T = any, F = any>{
               query: opts.query,
               variables: watchQuery.variables,
               arrayFieldName: watchQuery.arrayFieldName as string,
+              sortFn: watchQuery.sortFn,
               data: opts.data
             });
           }
@@ -179,5 +173,31 @@ export abstract class BaseEntityService<T = any, F = any>{
         });
       }
     });
+  }
+
+  /* -- protected methods -- */
+
+  registerNewMutableWatchQuery(mutableQuery: MutableWatchQueryInfo<any>) {
+
+    if (this._debug) console.debug('[base-data-service] Adding new mutable watching query: ' + mutableQuery.id);
+
+    // If exceed the max size of mutable queries: remove some
+    if (this._mutableWatchQueriesMaxCount > 0 && this._mutableWatchQueries.length >= this._mutableWatchQueriesMaxCount) {
+      const removedWatchQueries = this._mutableWatchQueries.splice(0, 1 + this._mutableWatchQueries.length - this._mutableWatchQueriesMaxCount);
+
+      // Warn, as it shouldn't be happen often, when max is correctly set
+      console.warn(`[base-data-service] Removing mutable watching queries (exceed max of ${this._mutableWatchQueriesMaxCount}): `,
+        removedWatchQueries.map(q => q.id));
+    }
+
+    // Define the sort function (to be used in insertIntoMutableCachedQuery())
+    if (!mutableQuery.sortFn && mutableQuery.variables && mutableQuery.variables.sortBy) {
+      mutableQuery.sortFn = mutableQuery.variables && mutableQuery.variables.sortBy
+      && EntityUtils.sortComparator(mutableQuery.variables.sortBy, mutableQuery.variables.sortDirection || 'asc');
+    }
+
+
+    // Add the new mutable query to array
+    this._mutableWatchQueries.push(mutableQuery);
   }
 }
