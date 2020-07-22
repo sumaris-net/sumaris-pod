@@ -44,8 +44,11 @@ public class VesselActivityVO implements IWithMeasurementValues, Serializable {
     private String comments;
 
     private Map<Integer, String> measurementValues;
-
     private List<ReferentialVO> metiers;
+
+    // parent link
+    private Integer observedLocationId;
+    private Integer landingId;
     private Integer tripId;
 
     public VesselActivityVO() {

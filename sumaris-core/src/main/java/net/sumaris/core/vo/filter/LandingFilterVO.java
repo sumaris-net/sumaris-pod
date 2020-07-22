@@ -29,6 +29,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -53,6 +54,10 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
     private Integer vesselId;
 
     private Integer locationId;
+
+    private Boolean onlyLast;
+
+    private List<Integer> excludeVesselIds;
 
     // Parent
     private Integer observedLocationId;

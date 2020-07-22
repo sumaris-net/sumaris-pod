@@ -23,7 +23,11 @@ package net.sumaris.core.service.data;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.data.*;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -47,6 +51,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Service("aggregatedLandingService")
@@ -68,12 +74,16 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     private final MeasurementDao measurementDao;
     private final MetierRepository metierRepository;
     private final VesselService vesselService;
+    private final ProgramDao programDao;
 
     public AggregatedLandingServiceImpl(LandingRepository landingRepository,
                                         TripRepository tripRepository,
                                         ObservedLocationDao observedLocationDao,
                                         OperationGroupDao operationGroupDao,
-                                        MeasurementDao measurementDao, MetierRepository metierRepository, VesselService vesselService) {
+                                        MeasurementDao measurementDao,
+                                        MetierRepository metierRepository,
+                                        VesselService vesselService,
+                                        ProgramDao programDao) {
         this.landingRepository = landingRepository;
         this.tripRepository = tripRepository;
         this.observedLocationDao = observedLocationDao;
@@ -81,10 +91,14 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         this.measurementDao = measurementDao;
         this.metierRepository = metierRepository;
         this.vesselService = vesselService;
+        this.programDao = programDao;
     }
 
     @Override
     public List<AggregatedLandingVO> findAll(AggregatedLandingFilterVO filter) {
+
+        long start = System.currentTimeMillis();
+
         Preconditions.checkNotNull(filter);
         Preconditions.checkNotNull(filter.getStartDate());
         Preconditions.checkNotNull(filter.getEndDate());
@@ -107,9 +121,8 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             0, 1000, null, null,
             defaultFetchOption);
 
-        Map<VesselSnapshotVO, Map<Date, List<LandingVO>>> landingsByBateByVessel = new HashMap<>();
-
-        observedLocations.forEach(observedLocation -> {
+        ConcurrentHashMap<VesselSnapshotVO, Map<Date, List<LandingVO>>> landingsByBateByVessel = new ConcurrentHashMap<>();
+        observedLocations.parallelStream().forEach(observedLocation -> {
 
             List<LandingVO> landings = getLandings(observedLocation.getId());
 
@@ -128,9 +141,9 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         landingsByBateByVessel.keySet().forEach(vessel -> {
 
             AggregatedLandingVO aggregatedLanding = new AggregatedLandingVO();
+            result.add(aggregatedLanding);
             aggregatedLanding.setVesselSnapshot(vessel);
             aggregatedLanding.setId(vessel.getId());
-            result.add(aggregatedLanding);
             Map<Date, List<LandingVO>> landingsByDate = landingsByBateByVessel.get(vessel);
 
             // Iterate days
@@ -141,6 +154,10 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 activity.setRankOrder(landing.getRankOrderOnVessel());
                 activity.setComments(landing.getComments());
 
+                // Add parent links
+                activity.setObservedLocationId(landing.getObservedLocationId());
+                activity.setLandingId(landing.getId());
+
                 // Add measurements
                 loadLandingMeasurements(landing);
                 activity.setMeasurementValues(landing.getMeasurementValues());
@@ -149,20 +166,25 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 if (landing.getTripId() != null) {
                     activity.setTripId(landing.getTripId());
 
-                    List<OperationGroupVO> operationGroups = operationGroupDao.getAllByTripId(landing.getTripId());
-                    operationGroups.forEach(operationGroup -> {
+                    // Get trip's metier
+                    List<MetierVO> metiers = operationGroupDao.getMetiersByTripId(landing.getTripId());
+                    metiers.forEach(metier -> activity.getMetiers().add(metier));
 
-                        activity.getMetiers().add(operationGroup.getMetier());
-
-                        // Set comments from operation
-                        if (StringUtils.isNotBlank(operationGroup.getComments())) {
-                            if (StringUtils.isBlank(activity.getComments())) {
-                                activity.setComments(operationGroup.getComments());
-                            } else if (!Objects.equals(activity.getComments(), operationGroup.getComments())) {
-                                activity.setComments(activity.getComments() + "\n" + operationGroup.getComments());
-                            }
-                        }
-                    });
+                    // Get operation metier
+//                    List<OperationGroupVO> operationGroups = operationGroupDao.getAllByTripId(landing.getTripId());
+//                    operationGroups.forEach(operationGroup -> {
+//
+//                        activity.getMetiers().add(operationGroup.getMetier());
+//
+//                        // Set comments from operation
+//                        if (StringUtils.isNotBlank(operationGroup.getComments())) {
+//                            if (StringUtils.isBlank(activity.getComments())) {
+//                                activity.setComments(operationGroup.getComments());
+//                            } else if (!Objects.equals(activity.getComments(), operationGroup.getComments())) {
+//                                activity.setComments(activity.getComments() + "\n" + operationGroup.getComments());
+//                            }
+//                        }
+//                    });
                 }
 
                 // Add this activity
@@ -172,11 +194,17 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
         });
 
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("findAll done in %s ms", System.currentTimeMillis() - start));
+        }
+
         return result;
     }
 
     @Override
     public List<AggregatedLandingVO> saveAllByObservedLocationId(AggregatedLandingFilterVO filter, List<AggregatedLandingVO> aggregatedLandings) {
+
+        long start = System.currentTimeMillis();
 
         Preconditions.checkNotNull(filter);
         Preconditions.checkNotNull(filter.getObservedLocationId());
@@ -192,7 +220,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         }));
 
         // Load VesselSnapshot Entity
-        aggregatedLandings.forEach(aggregatedLanding -> aggregatedLanding.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(aggregatedLanding.getVesselSnapshot().getId(), null)));
+        aggregatedLandings.parallelStream().forEach(aggregatedLanding -> aggregatedLanding.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(aggregatedLanding.getVesselSnapshot().getId(), null)));
 
         // Collect aggregated landings by date
         Map<Date, Multimap<Integer, VesselActivityVO>> aggregatedLandingsByDate = new HashMap<>();
@@ -221,12 +249,12 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         if (observedLocations.size() != existingDates.size()) {
             throw new SumarisTechnicalException("There are several observations on same day. This is not implemented for now.");
         }
-        Set<Integer> observationIdsToCheck = Sets.newHashSet();
+        Set<Integer> observationIdsToCheck = new HashSet<>();
         Map<Date, ObservedLocationVO> observedLocationByDate = new HashMap<>();
         observedLocations.forEach(observedLocation -> observedLocationByDate.put(Dates.resetTime(observedLocation.getStartDateTime()), observedLocation));
         aggregatedLandingsByDate.keySet().forEach(date -> {
             if (!observedLocationByDate.containsKey(date)) {
-                observedLocationByDate.put(date, createObservedLocation(parent, date));
+                observedLocationByDate.put(date, createObservedLocation(parent, date, filter.getProgramLabel()));
             }
         });
 
@@ -241,22 +269,27 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             // Iterate over vessel's activities for the date
             activityByVesselId.keySet().forEach(vesselId -> {
                 Collection<VesselActivityVO> activities = activityByVesselId.get(vesselId);
+                List<LandingVO> landingsToSave = landingsByVesselId.get(vesselId);
+                List<Integer> landingIdsToRemove = Beans.collectIds(landingsToSave);
+                AtomicBoolean landingsDirty = new AtomicBoolean(false);
                 // Part 1 : Landings
                 activities.forEach(activity -> {
-                    List<LandingVO> landingsToSave = landingsByVesselId.get(vesselId);
-                    List<Integer> landingIdsToRemove = new ArrayList<>();
-
-                    if (createOrUpdateLandings(observedLocation, landingsToSave, landingIdsToRemove, vesselId, activity)) {
-                        // Save all landings
-                        landingsToSave.forEach(landing -> {
-                            saveLanding(observedLocation, landing);
-                        });
-                        // Delete remaining landings
-                        landingRepository.deleteByIdIn(landingIdsToRemove);
-                        // Add the observed location to check list
-                        observationIdsToCheck.add(observedLocation.getId());
-                    }
+                    if (createOrUpdateLandings(observedLocation, landingsToSave, landingIdsToRemove, vesselId, activity))
+                        landingsDirty.set(true);
                 });
+                if (landingsDirty.get()) {
+                    // Save all landings
+                    landingsToSave.forEach(landing -> saveLanding(observedLocation, landing));
+                    // Add the observed location to check list
+                    observationIdsToCheck.add(observedLocation.getId());
+                }
+                if (!landingIdsToRemove.isEmpty()) {
+                    // Delete remaining landings
+                    landingRepository.deleteByIdIn(landingIdsToRemove);
+                    // Add the observed location to check list
+                    observationIdsToCheck.add(observedLocation.getId());
+                }
+
                 // Part 2 : Trips
                 activities.forEach(activity -> {
                     if (createOrUpdateTrips(observedLocation, landingsByVesselId.get(vesselId), vesselId, activity)) {
@@ -265,12 +298,15 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                     }
                 });
             });
-
         });
 
         // Check emptiness of observations
         if (!observationIdsToCheck.isEmpty()) {
             updateOrDeleteEmptyObservedLocations(observationIdsToCheck);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Saving done in %s ms", System.currentTimeMillis() - start));
         }
 
         return aggregatedLandings;
@@ -329,20 +365,24 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         });
     }
 
-    private ObservedLocationVO createObservedLocation(ObservedLocationVO parent, Date date) {
+    private ObservedLocationVO createObservedLocation(ObservedLocationVO parent, Date date, String programLabel) {
         ObservedLocationVO observedLocation = new ObservedLocationVO();
         observedLocation.setStartDateTime(date);
         observedLocation.setEndDateTime(Dates.lastSecondOfTheDay(date));
         observedLocation.setLocation(parent.getLocation());
-        observedLocation.setProgram(parent.getProgram());
-        observedLocation.setObservers(Sets.newHashSet(parent.getObservers()));
+        observedLocation.setProgram(programDao.getByLabel(programLabel));
+        observedLocation.setObservers(Beans.getSet(parent.getObservers()));
         observedLocation.setRecorderDepartment(parent.getRecorderDepartment());
         observedLocation.setRecorderPerson(parent.getRecorderPerson());
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Create observed location from %s to %s, program: %s, location: %s",
+                observedLocation.getStartDateTime(), observedLocation.getEndDateTime(), observedLocation.getProgram().getLabel(), observedLocation.getLocation().getLabel()));
+        }
         return observedLocationDao.save(observedLocation);
     }
 
     private boolean createOrUpdateLandings(ObservedLocationVO observedLocation, List<LandingVO> landings, List<Integer> landingIdsToRemove, Integer vesselId, VesselActivityVO activity) {
-        boolean saved = false;
+        boolean landingsDirty = false;
 
         LandingVO landing = landings.stream().filter(landingVO -> Objects.equals(landingVO.getRankOrderOnVessel(), activity.getRankOrder())).findFirst().orElse(null);
 
@@ -354,13 +394,16 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 landing = createLanding(observedLocation, vesselId, activity);
                 landing.setMeasurementValues(Maps.newHashMap(activity.getMeasurementValues()));
                 landings.add(landing);
-                saved = true;
+                landingsDirty = true;
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("Add landing on observation (id=%s, date=%s) for vessel %s, comment '%s'",
                         observedLocation.getId(), observedLocation.getStartDateTime(), landing.getVesselSnapshot().getId(), landing.getComments()));
                 }
 
             } else {
+
+                // Remove from list to remove
+                landingIdsToRemove.remove(landing.getId());
 
                 // Load its measurements
                 loadLandingMeasurements(landing);
@@ -372,7 +415,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
                 if (!containsMeasurements(landing, activity)) {
                     landing.getMeasurementValues().putAll(activity.getMeasurementValues());
-                    saved = true;
+                    landingsDirty = true;
                     if (log.isDebugEnabled()) {
                         log.debug(String.format("Update landing on observation (id=%s, date=%s) for vessel %s, measurements %s",
                             observedLocation.getId(), observedLocation.getStartDateTime(), landing.getVesselSnapshot().getId(), activity.getMeasurementValues()));
@@ -380,7 +423,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 }
                 if (!Objects.equals(activity.getComments(), landing.getComments())) {
                     landing.setComments(activity.getComments());
-                    saved = true;
+                    landingsDirty = true;
                     if (log.isDebugEnabled()) {
                         log.debug(String.format("Update landing on observation (id=%s, date=%s) for vessel %s, comment '%s'",
                             observedLocation.getId(), observedLocation.getStartDateTime(), landing.getVesselSnapshot().getId(), activity.getComments()));
@@ -394,8 +437,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             if (isLandingEmpty(landing)) {
 
                 landings.remove(landing);
-                landingIdsToRemove.add(landing.getId());
-                saved = true;
+                landingsDirty = true;
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("Remove landing on observation (id=%s, date=%s) for vessel %s",
                         observedLocation.getId(), observedLocation.getStartDateTime(), landing.getVesselSnapshot().getId()));
@@ -419,7 +461,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             }
         }
 
-        return saved;
+        return landingsDirty;
     }
 
     private boolean containsMeasurements(IWithMeasurementValues source, IWithMeasurementValues target) {
@@ -456,7 +498,6 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             if (tripId == null) {
                 // Create new trip
                 trip = createTrip(observedLocation, vesselId, activity);
-                trip.setLandingId(landing.getId());
                 tripDirty = true;
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("Add trip on observation (id=%s) for vessel %s",
@@ -486,31 +527,22 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                         log.debug(String.format("Add Metier %s (id=%s) on trip (id=%s)", metier.getLabel() + " - " + metier.getName(), metier.getId(), tripId));
                     }
                 }
-                // Get operation group
-                OperationGroupVO operationGroup = trip.getOperationGroups().stream().filter(operationGroupVO -> operationGroupVO.getMetier().equals(metier)).findFirst().orElse(null);
 
-                // Add missing operation group
-                if (operationGroup == null) {
-                    int maxRankOrder = trip.getOperationGroups().stream().map(OperationGroupVO::getRankOrderOnPeriod).max(Integer::compareTo).orElse(0);
-                    operationGroup = createOperationGroup(metier, maxRankOrder + 1);
-//                    operationGroup.setComments(activity.getComments());
-                    operationGroup.setTripId(tripId);
-                    trip.getOperationGroups().add(operationGroup);
-                    tripDirty = true;
-                    if (log.isDebugEnabled()) {
-                        log.debug(String.format("Add operation on trip (id=%s) for metier '%s' (id=%s)", tripId, metier.getLabel() + " - " + metier.getName(), metier.getId()));
-                    }
-
-                    // LP: The comment is only hold by landing
-//                } else if (!Objects.equals(operationGroup.getComments(), activity.getComments())) {
-//                    // Update comment if different
-//                    operationGroup.setComments(activity.getComments());
+                // TODO: Create operation only if needed
+//                // Get operation group
+//                OperationGroupVO operationGroup = trip.getOperationGroups().stream().filter(operationGroupVO -> operationGroupVO.getMetier().equals(metier)).findFirst().orElse(null);
+//
+//                // Add missing operation group
+//                if (operationGroup == null) {
+//                    int maxRankOrder = trip.getOperationGroups().stream().map(OperationGroupVO::getRankOrderOnPeriod).max(Integer::compareTo).orElse(0);
+//                    operationGroup = createOperationGroup(metier, maxRankOrder + 1);
+//                    operationGroup.setTripId(tripId);
+//                    trip.getOperationGroups().add(operationGroup);
 //                    tripDirty = true;
 //                    if (log.isDebugEnabled()) {
-//                        log.debug(String.format("Update operation on trip (id=%s) for metier '%s' (id=%s), new comment: '%s'",
-//                            tripId, metier.getLabel() + " - " + metier.getName(), metier.getId(), activity.getComments()));
+//                        log.debug(String.format("Add operation on trip (id=%s) for metier '%s' (id=%s)", tripId, metier.getLabel() + " - " + metier.getName(), metier.getId()));
 //                    }
-                }
+//                }
             }
 
             // Remove remaining metiers
@@ -522,6 +554,8 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
             if (tripDirty) {
                 // Save trip
+                if (trip.getLandingId() == null)
+                    trip.setLandingId(landing.getId());
                 TripVO savedTrip = saveTrip(trip);
                 if (activity.getTripId() == null)
                     activity.setTripId(savedTrip.getId());
@@ -558,6 +592,11 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         landing.setTripId(savedTrip.getId());
         landingRepository.save(landing);
 
+        // Save metiers
+        operationGroupDao.saveMetiersByTripId(savedTrip.getId(), trip.getMetiers());
+
+        // TODO: save operation groups (if default needed)
+
         return savedTrip;
     }
 
@@ -591,15 +630,18 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         vessel.setId(vesselId);
         TripVO trip = new TripVO();
         trip.setObservedLocationId(observedLocation.getId());
+        trip.setProgram(observedLocation.getProgram());
         trip.setVesselSnapshot(vessel);
         // add minutes to startDate to prevent natural Id integrity violation
         trip.setDepartureDateTime(Dates.addMinutes(activity.getDate(), activity.getRankOrder() - 1));
         trip.setReturnDateTime(Dates.lastSecondOfTheDay(activity.getDate()));
         trip.setDepartureLocation(observedLocation.getLocation());
         trip.setReturnLocation(observedLocation.getLocation());
-        trip.setObservers(Sets.newHashSet(observedLocation.getObservers()));
+        trip.setObservers(Beans.getSet(observedLocation.getObservers()));
         trip.setRecorderDepartment(observedLocation.getRecorderDepartment());
         trip.setRecorderPerson(observedLocation.getRecorderPerson());
+        trip.setMetiers(new ArrayList<>());
+        trip.setOperationGroups(new ArrayList<>());
         return trip;
     }
 
@@ -634,6 +676,8 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         LandingVO landing = new LandingVO();
         landing.setVesselSnapshot(vessel);
         landing.setObservedLocation(parent);
+        landing.setProgram(parent.getProgram());
+        landing.setDateTime(parent.getStartDateTime());
         landing.setLocation(parent.getLocation());
         landing.setRankOrderOnVessel(activity.getRankOrder());
         landing.setComments(activity.getComments());

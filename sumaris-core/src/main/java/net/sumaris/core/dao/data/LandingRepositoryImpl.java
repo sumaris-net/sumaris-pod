@@ -75,7 +75,8 @@ public class LandingRepositoryImpl
             .and(hasProgramLabel(filter.getProgramLabel()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
-            .and(hasVesselId(filter.getVesselId()));
+            .and(hasVesselId(filter.getVesselId()))
+            .and(hasExcludeVesselIds(filter.getExcludeVesselIds()));
     }
 
     public Class<LandingVO> getVOClass() {
