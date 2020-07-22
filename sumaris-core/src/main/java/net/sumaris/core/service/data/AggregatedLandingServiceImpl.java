@@ -224,10 +224,12 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
         // Collect aggregated landings by date
         Map<Date, Multimap<Integer, VesselActivityVO>> aggregatedLandingsByDate = new HashMap<>();
-        aggregatedLandings.forEach(aggregatedLanding -> aggregatedLanding.getVesselActivities().forEach(activity -> {
-            Multimap<Integer, VesselActivityVO> activityByVessel = aggregatedLandingsByDate.computeIfAbsent(activity.getDate(), x -> ArrayListMultimap.create());
-            activityByVessel.put(aggregatedLanding.getVesselSnapshot().getId(), activity);
-        }));
+        aggregatedLandings
+            .forEach(aggregatedLanding -> aggregatedLanding.getVesselActivities()
+                .forEach(activity -> {
+                    Multimap<Integer, VesselActivityVO> activityByVessel = aggregatedLandingsByDate.computeIfAbsent(activity.getDate(), x -> ArrayListMultimap.create());
+                    activityByVessel.put(aggregatedLanding.getVesselSnapshot().getId(), activity);
+                }));
 
         // Get parent observed location
         ObservedLocationVO parent = observedLocationDao.get(filter.getObservedLocationId());
@@ -261,7 +263,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         // Iterate over dates
         aggregatedLandingsByDate.keySet().forEach(date -> {
             Multimap<Integer, VesselActivityVO> activityByVesselId = aggregatedLandingsByDate.get(date);
-            ObservedLocationVO observedLocation = observedLocationByDate.get(date);
+            ObservedLocationVO observedLocation = observedLocationByDate.remove(date);
             ListMultimap<Integer, LandingVO> landingsByVesselId = ArrayListMultimap.create();//Beans.splitByNotUniqueProperty(existingLandings, LandingVO.Fields.VESSEL_SNAPSHOT);
             List<LandingVO> existingLandings = getLandings(observedLocation.getId());
             existingLandings.forEach(landing -> landingsByVesselId.put(landing.getVesselSnapshot().getId(), landing));
@@ -300,6 +302,10 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             });
         });
 
+        if (!observedLocationByDate.isEmpty()) {
+            // some observed locations remains, delete them
+            observedLocationByDate.values().forEach(observedLocation -> deleteObservedLocationWithLandings(observedLocation.getId(), null));
+        }
         // Check emptiness of observations
         if (!observationIdsToCheck.isEmpty()) {
             updateOrDeleteEmptyObservedLocations(observationIdsToCheck);
@@ -351,10 +357,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             } else if (landings.stream().allMatch(this::isLandingFullyEmpty)) {
 
                 // All landings are empty, delete observation
-                observedLocationDao.delete(observationId);
-                if (log.isDebugEnabled()) {
-                    log.debug(String.format("Delete observation (id=%s) with empty landings", observationId));
-                }
+                deleteObservedLocationWithLandings(observationId, landings);
 
             } else {
 
@@ -363,6 +366,22 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 observedLocationDao.save(observedLocation);
             }
         });
+    }
+
+    private void deleteObservedLocationWithLandings(int observedLocationId, List<LandingVO> landings) {
+
+        // Get landings if not provided
+        if (landings == null) {
+            landings = getLandings(observedLocationId);
+        }
+        // Delete landings
+        landingRepository.deleteByIdIn(Beans.collectIds(landings));
+
+        // Delete observed location
+        observedLocationDao.delete(observedLocationId);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Delete observation (id=%s) with empty landings", observedLocationId));
+        }
     }
 
     private ObservedLocationVO createObservedLocation(ObservedLocationVO parent, Date date, String programLabel) {
@@ -651,8 +670,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
     private boolean isLandingEmpty(LandingVO landing) {
         return landing.getTripId() == null
-            && landing.getTrip() == null
-            && CollectionUtils.isEmpty(landing.getSamples());
+            && landing.getTrip() == null;
     }
 
     private boolean isLandingFullyEmpty(LandingVO landing) {
