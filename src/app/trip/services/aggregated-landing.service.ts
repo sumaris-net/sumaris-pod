@@ -1,5 +1,13 @@
 import {Injectable, Injector} from "@angular/core";
-import {BaseEntityService, environment, isNotNil, LoadResult, EntitiesService, toDateISOString} from "../../core/core.module";
+import {
+  BaseEntityService,
+  environment,
+  isNotNil,
+  LoadResult,
+  EntitiesService,
+  toDateISOString,
+  isNil
+} from "../../core/core.module";
 import {AggregatedLanding} from "./model/aggregated-landing.model";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
@@ -21,11 +29,24 @@ import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 
 export class AggregatedLandingFilter {
   programLabel?: string;
-  startDate?: Date | Moment;
-  endDate?: Date | Moment;
+  startDate?: Moment;
+  endDate?: Moment;
   locationId?: number;
   observedLocationId?: number;
   synchronizationStatus?: SynchronizationStatus;
+
+  static equals(f1: AggregatedLandingFilter | any, f2: AggregatedLandingFilter | any): boolean {
+    return (isNil(f1) && isNil(f2)) ||
+      (
+        isNotNil(f1) && isNotNil(f2) &&
+        f1.programLabel === f2.programLabel &&
+        f1.observedLocationId === f2.observedLocationId &&
+        f1.locationId === f2.locationId &&
+        f1.synchronizationStatus === f2.synchronizationStatus &&
+        ((!f1.startDate && !f2.startDate) || (f1.startDate.isSame(f2.startDate))) &&
+        ((!f1.endDate && !f2.endDate) || (f1.endDate.isSame(f2.endDate)))
+      )
+  }
 
   static isEmpty(f: AggregatedLandingFilter | any): boolean {
     return Beans.isEmpty({...f, synchronizationStatus: null}, undefined, {
@@ -54,6 +75,8 @@ const VesselActivityFragment = gql`fragment VesselActivityFragment on VesselActi
   metiers {
     ...ReferentialFragment
   }
+  observedLocationId
+  landingId
   tripId
 }
 ${ReferentialFragments.referential}`;
@@ -156,9 +179,10 @@ export class AggregatedLandingService
         queryName: 'LoadAll',
         query: LoadAllQuery,
         arrayFieldName: 'aggregatedLandings',
+        insertFilterFn: AggregatedLandingFilter.searchFilter(dataFilter),
         variables,
         error: {code: ErrorCodes.LOAD_AGGREGATED_LANDINGS_ERROR, message: "AGGREGATED_LANDING.ERROR.LOAD_ALL_ERROR"},
-        fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
+        fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
       })
         .pipe(
           filter(() => !this.loading)
@@ -191,7 +215,7 @@ export class AggregatedLandingService
     const now = Date.now();
     if (this._debug) console.debug("[aggregated-landing-service] Saving aggregated landings...", json);
 
-    const res = await this.graphql.mutate<{ saveAggregatedLandings: AggregatedLanding[] }>({
+    await this.graphql.mutate<{ saveAggregatedLandings: AggregatedLanding[] }>({
       mutation: SaveAllQuery,
       variables: {
         aggregatedLandings: json,
@@ -202,12 +226,12 @@ export class AggregatedLandingService
 
         if (this._debug) console.debug(`[aggregated-landing-service] Aggregated landings saved remotely in ${Date.now() - now}ms`, entities);
 
-        // entities = (res && res.saveAggregatedLandings || []);
+        entities = (data && data.saveAggregatedLandings || []);
 
       }
     });
 
-    return entities = (res && res.saveAggregatedLandings || []);
+    return entities;
   }
 
   deleteAll(data: AggregatedLanding[], options?: any): Promise<any> {

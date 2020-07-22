@@ -177,6 +177,21 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return landing.dateTime;
   }
 
+  addRow(event?: any): boolean {
+
+    if (this.isTripDetailEditor) {
+      if (!this._enabled) return false;
+      if (this.debug) console.debug("[landings-table] Asking for new landing...");
+
+      // Force modal
+      this.openNewRowDetail(event);
+      return false;
+    }
+
+    // default behavior
+    return super.addRow(event);
+  }
+
   confirmAndEditTrip(event?: MouseEvent, row?: TableElement<Landing>): boolean {
     if (event) event.stopPropagation();
 

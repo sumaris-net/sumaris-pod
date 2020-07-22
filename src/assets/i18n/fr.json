@@ -750,7 +750,9 @@
     }
   },
   "AGGREGATED_LANDING": {
-    "TITLE": "Débarquement de {{vessel}}"
+    "TITLE": "Débarquement de {{vessel}}",
+    "ACTIVITY": "Activité #{{rankOrder}}",
+    "OPEN_TRIP": "Aller à la marée"
   },
   "PACKET": {
     "LABEL": "Numéro de lot",

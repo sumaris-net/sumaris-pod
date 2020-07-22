@@ -13,6 +13,7 @@
 
   <div class="slides-container" [class.hidden]="!showSlides">
     <ion-slides #slides
+                [options]="slidesOptions"
                 (ionSlidesDidLoad)="slidesLoaded()"
                 (ionSlideReachStart)="reachStart(true)"
                 (ionSlideReachEnd)="reachEnd(true)"

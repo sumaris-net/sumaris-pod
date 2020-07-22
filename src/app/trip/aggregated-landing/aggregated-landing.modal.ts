@@ -8,13 +8,14 @@ import {
   OnInit,
   ViewChild
 } from "@angular/core";
-import {ModalController} from "@ionic/angular";
+import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, Subject, Subscription} from "rxjs";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {TranslateService} from "@ngx-translate/core";
 import {AggregatedLandingForm, AggregatedLandingFormOption} from "./aggregated-landing.form";
-import {AggregatedLanding} from "../services/model/aggregated-landing.model";
-import {referentialToString} from "../../core/core.module";
+import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
+import {isNil, referentialToString} from "../../core/core.module";
+import {Alerts} from "../../shared/alerts";
 
 @Component({
   selector: 'app-aggregated-landing-modal',
@@ -37,15 +38,19 @@ export class AggregatedLandingModal implements OnInit, OnDestroy, AfterViewInit 
   }
 
   get canValidate(): boolean {
-    return !this.loading && this.form ? (this.form.enabled && this.form.dirty) : false;
+    return !this.loading && this.dirty;
+  }
+
+  get dirty(): boolean {
+    return this.form ? (this.form.enabled && this.form.dirty) : false
   }
 
   constructor(
     protected viewCtrl: ModalController,
+    protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
-
   }
 
   ngOnInit(): void {
@@ -92,7 +97,11 @@ export class AggregatedLandingModal implements OnInit, OnDestroy, AfterViewInit 
     this.loading = true;
 
     try {
-      const value = this.form.data;
+      const value = {
+        aggregatedLanding: this.form.data,
+        saveOnDismiss: false,
+        tripToOpen: undefined
+      };
       this.disable();
       await this.viewCtrl.dismiss(value);
       this.form.error = null;
@@ -112,7 +121,11 @@ export class AggregatedLandingModal implements OnInit, OnDestroy, AfterViewInit 
   }
 
   cancel() {
-    this.viewCtrl.dismiss();
+    this.viewCtrl.dismiss({
+      aggregatedLanding: undefined,
+      saveOnDismiss: false,
+      tripToOpen: undefined
+    });
   }
 
   ngOnDestroy(): void {
@@ -123,4 +136,25 @@ export class AggregatedLandingModal implements OnInit, OnDestroy, AfterViewInit 
     this.cd.markForCheck();
   }
 
+  async openTrip($event: { activity: VesselActivity }) {
+    if (!$event || !$event.activity)
+      return;
+
+    let saveBeforeLeave: boolean;
+    if (this.dirty) {
+      console.warn("The activity is dirty, must save first");
+
+      saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate);
+      if (isNil(saveBeforeLeave)) {
+        // user cancel
+        return;
+      }
+    }
+    // set last activity
+    this.viewCtrl.dismiss({
+      aggregatedLanding: undefined,
+      saveOnDismiss: saveBeforeLeave,
+      tripToOpen: $event.activity
+    });
+  }
 }

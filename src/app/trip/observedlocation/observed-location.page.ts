@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {fadeInOutAnimation, isNil} from '../../shared/shared.module';
+import {fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocationService} from "../services/observed-location.service";
@@ -225,6 +225,30 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
+  async onNewAggregatedLanding(event?: any) {
+    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+      // If on field mode: try to save silently
+      ? this.save(event)
+      // If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm();
+
+    const savedOrContinue = await savePromise;
+    if (savedOrContinue) {
+      this.loading = true;
+      this.markForCheck();
+
+      try {
+        const vessel = await this.openSelectVesselModal();
+        if (vessel && this.aggregatedLandingsTable) {
+          await this.aggregatedLandingsTable.addAggregatedRow(vessel);
+        }
+      } finally {
+        this.loading = false;
+        this.markForCheck();
+      }
+    }
+  }
+
   async onNewTrip({id, row}) {
     const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
       // If on field mode: try to save silently
@@ -256,12 +280,16 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     const startDate = this.data.startDateTime.clone().add(-15, "days");
     const endDate = this.data.startDateTime;
+    const programLabel = (this.aggregatedLandingsTable && this.aggregatedLandingsTable.program) || this.data.program.label;
+    const excludeVesselIds = (this.aggregatedLandingsTable && await this.aggregatedLandingsTable.vesselIdsAlreadyPresent()) || [];
 
     const landingFilter = <LandingFilter>{
-      programLabel: this.data.program && this.data.program.label,
+      programLabel,
       startDate,
       endDate,
-      locationId: ReferentialUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined
+      locationId: ReferentialUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined,
+      onlyLast: (this.landingsTable && this.landingsTable.isTripDetailEditor) || (isNotNil(this.aggregatedLandingsTable)),
+      excludeVesselIds
     };
 
     const modal = await this.modalCtrl.create({

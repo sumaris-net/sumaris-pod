@@ -826,6 +826,11 @@ mat-tab-group.mat-tab-group-header-pagination-hidden .mat-tab-header-pagination 
   .mat-menu-content > ion-label {
     font-size: 12px;
   }
+
+  .mat-menu-content ion-icon {
+    margin-right: 16px;
+    vertical-align: middle;
+  }
 }
 
 // --------------------------------------------------

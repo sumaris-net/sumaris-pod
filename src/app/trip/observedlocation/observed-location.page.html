@@ -90,8 +90,9 @@
         </ion-item>
 
         <app-aggregated-landings-table #aggregatedLandingsTable
-                                 [debug]="debug"
-                                 >
+                                       [debug]="debug"
+                                       (onNewRow)="onNewAggregatedLanding($event)"
+        >
         </app-aggregated-landings-table>
 
       </div>

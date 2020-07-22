@@ -10,6 +10,7 @@
 <ion-content class="ion-padding">
   <app-aggregated-landings-form #form
                                 [options]="options"
+                                (onOpenTrip)="openTrip($event)"
   ></app-aggregated-landings-form>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
