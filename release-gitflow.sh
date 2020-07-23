@@ -10,11 +10,15 @@ then
   exit 1
 fi
 
-# Check version format
-if [[ ! $1 =~ ^[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ ]]; then
+task=$1
+version=$2
+release_description=$3
+
+# Check arguments
+if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ ]]; then
   echo "Wrong version format"
   echo "Usage:"
-  echo " > ./release.sh <version> <release_description>"
+  echo " > ./release-gitflow.sh pre|rel <version> <release_description>"
   echo "with:"
   echo " - pre: use for pre-release"
   echo " - rel: for full release"
@@ -23,8 +27,9 @@ if [[ ! $1 =~ ^[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ ]]; then
   exit 1
 fi
 
-version=$1
+echo "task: $task"
 echo "new build version: $version"
+echo "release description: $release_description"
 
 echo "**********************************"
 echo "* Preparing release..."
@@ -71,7 +76,7 @@ cd $dirname
 echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
-./github_gitflow.sh pre "$version"
+./github-gitflow.sh "$task" "$version"
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
@@ -81,7 +86,7 @@ echo "Upload artifacts to github [OK]"
 echo "**********************************"
 echo "* Pushing changes to upstream..."
 echo "**********************************"
-git commit -a -m "release $version"
+git commit -a -m "Release $version\n$release_description"
 git status
 mvn gitflow:release-finish -DfetchRemote=false
 if [[ $? -ne 0 ]]; then
