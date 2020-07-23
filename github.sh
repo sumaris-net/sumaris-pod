@@ -92,20 +92,26 @@ case "$1" in
 
       ZIP_FILE="$DIRNAME/dist/${PROJECT_NAME}.zip"
       if [[ -f "${ZIP_FILE}" ]]; then
-        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${PROJECT_NAME}-${current}-web.zip")
+        artifact_name="${PROJECT_NAME}-${current}-web.zip"
+        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${artifact_name}")
         browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
-        ZIP_SHA256=$(sha256sum "${ZIP_FILE}")
+        ZIP_SHA256=$(sha256sum "${ZIP_FILE}" | sed 's/ /\n/gi' | head -n 1)
         echo " - ${browser_download_url}  | SHA256 Checksum: ${ZIP_SHA256}"
+        echo "${ZIP_SHA256}  ${artifact_name}" > "${ZIP_FILE}.sha256"
+        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: text/plain' -T "${ZIP_FILE}.sha256" "${upload_url}?name=${artifact_name}.sha256")
       else
         echo " - ERROR: Web release (ZIP) not found! Skipping."
       fi
 
       APK_FILE="${DIRNAME}/platforms/android/app/build/outputs/apk/release/app-release.apk"
       if [[ -f "${APK_FILE}" ]]; then
-        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T "${APK_FILE}" "${upload_url}?name=${PROJECT_NAME}-${current}-android.apk")
+        artifact_name="${PROJECT_NAME}-${current}-android.apk"
+        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T "${APK_FILE}" "${upload_url}?name=${artifact_name}")
         browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
-        APK_SHA256=$(sha256sum "${APK_FILE}")
+        APK_SHA256=$(sha256sum "${APK_FILE}" | sed 's/ /\n/gi' | head -n 1)
         echo " - ${browser_download_url}  | SHA256 Checksum: ${APK_SHA256}"
+        echo "${APK_SHA256}  ${artifact_name}" > "${APK_FILE}.sha256"
+        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: text/plain' -T "${APK_FILE}.sha256" "${upload_url}?name=${artifact_name}.sha256")
       else
         echo "- ERROR: Android release (APK) not found! Skipping."
       fi
