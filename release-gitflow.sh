@@ -15,7 +15,7 @@ version=$2
 release_description=$3
 
 # Check arguments
-if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ ]]; then
+if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]]; then
   echo "Wrong version format"
   echo "Usage:"
   echo " > ./release-gitflow.sh pre|rel <version> <release_description>"
