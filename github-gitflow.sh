@@ -37,7 +37,7 @@ fi
 
 case "$1" in
   del)
-    result=`curl -i "$REPO_API_URL/releases/tags/v$current"`
+    result=`curl -i "$REPO_API_URL/releases/tags/$current"`
     release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+"  | grep -oP "$REPO_API_URL/releases/\d+"`
     if [[ $release_url != "" ]]; then
         echo "Deleting existing release..."
@@ -55,11 +55,10 @@ case "$1" in
 
     description=`echo $3`
     if [[ "_$description" = "_" ]]; then
-        description="Release v$current"
+        description="Release $current"
     fi
 
-    #echo "curl -s -H '$GITHUT_AUTH' "$REPO_API_URL/releases/tags/v$current""
-    result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/v$current"`
+    result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/$current"`
     release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+"`
     if [[ "_$release_url" != "_" ]]; then
         echo "Deleting existing release... $release_url"
@@ -74,10 +73,9 @@ case "$1" in
     fi
 
     echo "Creating new release..."
-    echo " - tag: v$current"
+    echo " - tag: $current"
     echo " - description: $description"
-#    echo "curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "v'"$current"'","target_commitish": "master","name": "v'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'"
-    result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "v'"$current"'","target_commitish": "master","name": "v'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
+    result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$current"'","target_commitish": "master","name": "'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
     upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
 
     if [[ "_$upload_url" = "_" ]]; then
@@ -124,12 +122,12 @@ case "$1" in
     if [[ ${missing_file} == true ]]; then
       echo "-----------------------------------------"
       echo "ERROR: missing some artifacts (see logs)"
-      echo " -> Release url: $REPO_PUBLIC_URL/releases/tag/v$current"
+      echo " -> Release url: $REPO_PUBLIC_URL/releases/tag/$current"
       exit 1
     else
       echo "-----------------------------------------"
       echo "Successfully uploading files !"
-      echo " -> Release url: $REPO_PUBLIC_URL/releases/tag/v$current"
+      echo " -> Release url: $REPO_PUBLIC_URL/releases/tag/$current"
       exit 0
     fi
 
