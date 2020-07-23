@@ -42,7 +42,8 @@ import java.util.Set;
 @FieldNameConstants
 public class LandingVO implements IRootDataVO<Integer>,
         IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>,
-        IWithObserversEntity<Integer, PersonVO> {
+        IWithObserversEntity<Integer, PersonVO>,
+        IWithMeasurementValues{
 
     private Integer id;
     private String comments;

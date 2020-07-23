@@ -19,8 +19,8 @@ echo "Current version: $current"
 
 ### Get repo URL
 PROJECT_NAME=sumaris-pod
-REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "(https:\/\/git@github.com\/|git@github.com:)[^ ]+"`
-REPO=`echo $REMOTE_URL | sed "s/https:\/\/git@github.com\///g" | sed "s/git@github.com://g" | sed "s/.git$//"`
+REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "(https:\/\/github.com\/|git@github.com:)[^ ]+"`
+REPO=`echo $REMOTE_URL | sed "s/https:\/\/github.com\///g" | sed "s/git@github.com://g" | sed "s/.git$//"`
 REPO_API_URL=https://api.github.com/repos/$REPO
 REPO_PUBLIC_URL=https://github.com/$REPO
 

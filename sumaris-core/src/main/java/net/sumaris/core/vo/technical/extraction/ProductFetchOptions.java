@@ -58,11 +58,17 @@ public class ProductFetchOptions {
             .withColumnValues(false)
             .build();
 
+    @Builder.Default()
     private boolean withRecorderDepartment = true;
+    @Builder.Default()
     private boolean withRecorderPerson = true;
+    @Builder.Default()
     private boolean withTables = true;
+    @Builder.Default()
     private boolean withColumns = false;
+    @Builder.Default()
     private boolean withColumnValues = false;
+    @Builder.Default()
     private boolean withStratum = false;
 
 }

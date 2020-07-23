@@ -58,7 +58,11 @@ import java.util.List;
             "       OR o2.fishingStartDateTime != :startDateTime " +
             "       OR o2.endDateTime != :endDateTime " +
             "       OR o2.fishingEndDateTime != :endDateTime) " +
-            ")")
+            ")"),
+        @NamedQuery(name = "Operation.countByTripId",
+                query = "SELECT COUNT(*) " +
+                        "FROM Operation o " +
+                        "WHERE o.trip.id = :tripId")
 })
 public class Operation implements IDataEntity<Integer>,
     IWithSamplesEntity<Integer, Sample>,

@@ -25,6 +25,7 @@ package net.sumaris.core.service.data;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.filter.TripFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -42,6 +43,8 @@ public interface OperationService {
 	@Transactional(readOnly = true)
 	List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
+	@Transactional(readOnly = true)
+	Long countByTripId(int tripId);
 
 	@Transactional(readOnly = true)
 	OperationVO get(int id);

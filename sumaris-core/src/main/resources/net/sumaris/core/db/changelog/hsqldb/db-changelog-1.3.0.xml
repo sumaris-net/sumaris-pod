@@ -43,9 +43,15 @@
       </column>
     </createTable>
   </changeSet>
-
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-2" failOnError="false">
+    <addNotNullConstraint columnDataType="int" columnName="location_classification_fk" tableName="program2location_classif"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-3" failOnError="false">
+    <addNotNullConstraint columnDataType="int" columnName="program_fk" tableName="program2location_classif"/>
+  </changeSet>
+  
   <!-- add PROGRAM2LOCATION -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-2">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-5">
     <preConditions onFail="MARK_RAN">
       <not>
         <tableExists tableName="PROGRAM2LOCATION"/>
@@ -62,7 +68,7 @@
   </changeSet>
 
   <!--  add DISTANCE_TO_COAST_GRADIENT table-->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897916-3">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897916-6">
     <preConditions onFail="MARK_RAN">
       <not>
         <tableExists tableName="DISTANCE_TO_COAST_GRADIENT"/>
@@ -95,7 +101,7 @@
   </changeSet>
 
   <!--  add DEPTH_GRADIENT table-->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897916-4">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897916-7">
     <preConditions onFail="MARK_RAN">
       <not>
         <tableExists tableName="DEPTH_GRADIENT"/>
@@ -128,7 +134,7 @@
   </changeSet>
 
   <!--  add NEARBY_SPECIFIC_AREA table-->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897916-5">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897916-8">
     <preConditions onFail="MARK_RAN">
       <not>
         <tableExists tableName="NEARBY_SPECIFIC_AREA"/>
@@ -157,8 +163,20 @@
     <createSequence sequenceName="NEARBY_SPECIFIC_AREA_SEQ" incrementBy="1"/>
   </changeSet>
 
+  <!-- Force FISHING_AREA re-creation (if table is empty) -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-9">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <tableExists tableName="FISHING_AREA"/>
+        <not><columnExists tableName="FISHING_AREA" columnName="OPERATION_FK"/></not>
+        <sqlCheck expectedResult="0">SELECT count(*) from FISHING_AREA</sqlCheck>
+      </and>
+    </preConditions>
+    <dropTable tableName="FISHING_AREA"/>
+  </changeSet>
+
   <!-- add FISHING_AREA table -->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897916-6">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897916-10" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <tableExists tableName="FISHING_AREA"/>
@@ -191,7 +209,123 @@
     </createTable>
     <createSequence sequenceName="FISHING_AREA_SEQ" incrementBy="50"/>
   </changeSet>
-  
+
+  <!-- Add table LOCATION_LINE -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-11" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="LOCATION_LINE"/></not>
+    </preConditions>
+    <createTable tableName="LOCATION_LINE">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="LOCATION_LINE_PK"/>
+      </column>
+      <column name="position" type="VARBINARY(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+    </createTable>
+  </changeSet>
+
+  <!-- Add missing model update -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1594279062254-12" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="rank_order" tableName="gear_use_measurement"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1594279062254-13" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="rank_order" tableName="landing_measurement"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1594279062254-14" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="rank_order" tableName="observed_location_measurement"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1594279062254-15" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="rank_order" tableName="physical_gear_measurement"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1594279062254-16" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="rank_order" tableName="sale_measurement"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-17" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="rank_order" tableName="sample_measurement"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-18" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="rank_order" tableName="vessel_use_measurement"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-19" failOnError="false">
+    <dropNotNullConstraint columnDataType="clob" columnName="content" tableName="image_attachment"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-20" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="hash" tableName="batch"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-21" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="hash" tableName="sample"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-22" failOnError="false">
+    <addNotNullConstraint columnDataType="int" columnName="location_fk" tableName="fishing_area"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-23" failOnError="false">
+    <addNotNullConstraint columnDataType="int" columnName="location_fk" tableName="program2location"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-24" failOnError="false">
+    <dropDefaultValue columnDataType="int" columnName="status_fk" tableName="vessel"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-25" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="physical_gear_fk" tableName="operation"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-26" failOnError="false">
+    <addNotNullConstraint columnDataType="int" columnName="quality_flag_fk" tableName="fishing_area"/>
+  </changeSet>
+  <changeSet author="blavenie (generated)" id="1583765897916-27"  failOnError="false">
+    <addNotNullConstraint columnDataType="int" columnName="program_fk" tableName="program2location"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-28"  failOnError="false">
+    <addPrimaryKey columnNames="program_fk, location_fk" tableName="program2location"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-29" failOnError="false">
+    <addPrimaryKey columnNames="program_fk, location_classification_fk" tableName="program2location_classif"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-30" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><foreignKeyConstraintExists foreignKeyTableName="product" foreignKeyName="FKa4fhfs4ijpup4p4hlka6focgx"/></not>
+    </preConditions>
+    <addForeignKeyConstraint baseColumnNames="batch_fk" baseTableName="product" constraintName="FKa4fhfs4ijpup4p4hlka6focgx" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="batch"/>
+  </changeSet>
+
+  <!-- Re-create table USER_EVENT-->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-31">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <tableExists tableName="USER_EVENT"/>
+        <not><columnExists tableName="USER_EVENT" columnName="recipient"/></not>
+      </and>
+    </preConditions>
+    <dropTable tableName="USER_EVENT"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-32">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="USER_EVENT"/></not>
+    </preConditions>
+    <createTable tableName="USER_EVENT">
+      <column name="ID" type="INT">
+        <constraints primaryKey="true" primaryKeyName="USER_EVENT_PK"/>
+      </column>
+      <column name="CONTENT" type="CLOB"/>
+      <column name="CREATION_DATE" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="EVENT_TYPE" type="VARCHAR(30)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ISSUER" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECIPIENT" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="HASH" type="VARCHAR(100)"/>
+      <column name="SIGNATURE" type="VARCHAR(100)"/>
+      <column name="READ_SIGNATURE" type="VARCHAR(100)"/>
+      <column name="UPDATE_DATE" type="TIMESTAMP"/>
+    </createTable>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1583765897916-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
@@ -201,12 +335,20 @@
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
       <column name="LABEL">1.3.0</column>
       <column name="DESCRIPTION">
-        - Add tables FISHING_AREA, DEPTH_GRADIENT, DISTANCE_TO_COAST_GRADIENT and NEARBY_SPECIFIC_AREA
-        - Add tables PROGRAM2LOCATION and PROGRAM2LOCATION_CLASSIF
+        - Add tables FISHING_AREA, DEPTH_GRADIENT, DISTANCE_TO_COAST_GRADIENT, NEARBY_SPECIFIC_AREA
+        PROGRAM2LOCATION, PROGRAM2LOCATION_CLASSIF, LOCATION_LINE
+        - Update table USER_EVENT
+        - Add older missing changes
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
       <column name="COMMENTS">
+        - Add tables FISHING_AREA, DEPTH_GRADIENT, DISTANCE_TO_COAST_GRADIENT and NEARBY_SPECIFIC_AREA
+        - Add tables PROGRAM2LOCATION and PROGRAM2LOCATION_CLASSIF
+        - Add table LOCATION_LINE
+        - Re-create table USER_EVENT
+        - Drop not null constraint on many columns xxx_MEASUREMENT.RANK_ORDER
+        - Add older missing changes
       </column>
     </insert>
   </changeSet>

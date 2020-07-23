@@ -28,8 +28,9 @@ public interface CacheNames {
     String DEPARTMENT_BY_LABEL = "net.sumaris.core.dao.administration.user.departmentByLabelCache";
     String PERSON_BY_ID = "net.sumaris.core.dao.administration.user.personByIdCache";
     String PERSON_BY_PUBKEY = "net.sumaris.core.dao.administration.user.personByPubkeyCache";
+    String REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE = "net.sumaris.core.dao.referential.maxUpdateDateByType";
     String REFERENTIAL_TYPES = "net.sumaris.core.dao.referential.allTypesCache";
-    String REFERENTIAL_LEVEL_BY_UNIQUE_LABEL = "net.sumaris.core.dao.referential.findByUniqueLabelCache";
+    String LOCATION_LEVEL_BY_LABEL = "net.sumaris.core.dao.referential.findByUniqueLabelCache";
 
     String PROGRAM_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programByIdCache";
     String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabelCache";

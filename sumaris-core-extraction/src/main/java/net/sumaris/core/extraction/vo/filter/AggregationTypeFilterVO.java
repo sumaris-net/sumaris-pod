@@ -23,11 +23,11 @@ package net.sumaris.core.extraction.vo.filter;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
 
-import java.util.List;
-
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class AggregationTypeFilterVO extends ExtractionProductFilterVO {
 
     private Boolean isSpatial;

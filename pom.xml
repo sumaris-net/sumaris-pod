@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.2.7</version>
+  <version>1.3.2-alpha1</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -107,7 +107,7 @@
     <jackson.version>2.10.2</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
     <stringtemplate.version>4.0.2</stringtemplate.version>
     <jTextUtilsVersion>0.3.3</jTextUtilsVersion>
-    <commonBeanutilsVersion>1.9.3</commonBeanutilsVersion>
+    <commonBeanutilsVersion>1.9.4</commonBeanutilsVersion>
     <opencsv.version>2.4.3</opencsv.version>
 
     <!-- /!\ error with 5.3.10 -->
@@ -119,7 +119,7 @@
     <hibernate-spatial.version>5.4.12.Final</hibernate-spatial.version>
     <hibernate-validator.version>6.1.0.Final</hibernate-validator.version>
     <spring.version>5.1.10.RELEASE</spring.version>
-    <spring-web.version>5.0.7.RELEASE</spring-web.version>
+    <spring-web.version>5.1.10.RELEASE</spring-web.version>
     <spring-data.version>2.1.11.RELEASE</spring-data.version>
     <querydsl.version>4.2.2</querydsl.version>
     <aspectj.version>1.8.14</aspectj.version>
@@ -145,8 +145,8 @@
     <scrypt.version>1.4.0</scrypt.version>
     <geojson-jackson.version>1.12</geojson-jackson.version>
     <graphql-java.version>13.0</graphql-java.version>
-    <graphql-java-tools.version>5.2.4</graphql-java-tools.version>
-    <graphql-java-servlet.version>6.1.3</graphql-java-servlet.version>
+    <graphql-java-tools.version>6.1.0</graphql-java-tools.version>
+    <graphql-java-servlet.version>9.2.0</graphql-java-servlet.version>
     <spqr.version>0.10.0</spqr.version>
 
     <!-- database version management -->
@@ -304,7 +304,7 @@
       <dependency>
         <groupId>commons-beanutils</groupId>
         <artifactId>commons-beanutils</artifactId>
-        <version>1.9.1</version>
+        <version>${commonBeanutilsVersion}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -483,12 +483,17 @@
         <version>${graphql-java.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.graphql-java</groupId>
+        <groupId>com.graphql-java-kickstart</groupId>
         <artifactId>graphql-java-tools</artifactId>
         <version>${graphql-java-tools.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.graphql-java</groupId>
+        <groupId>com.graphql-java-kickstart</groupId>
+        <artifactId>graphiql-spring-boot-starter</artifactId>
+        <version>7.1.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.graphql-java-kickstart</groupId>
         <artifactId>graphql-java-servlet</artifactId>
         <version>${graphql-java-servlet.version}</version>
       </dependency>

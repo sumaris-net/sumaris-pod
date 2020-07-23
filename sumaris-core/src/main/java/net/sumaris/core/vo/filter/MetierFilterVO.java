@@ -23,11 +23,10 @@ package net.sumaris.core.vo.filter;
  */
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
-import lombok.experimental.SuperBuilder;
 
 import java.util.Date;
 
@@ -35,6 +34,7 @@ import java.util.Date;
 @FieldNameConstants
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class MetierFilterVO extends ReferentialFilterVO {
 
     // options used for predocumentation

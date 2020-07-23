@@ -31,11 +31,15 @@ import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
 @Transactional
 public interface ReferentialService {
+
+    @Transactional(readOnly = true)
+    Date getLastUpdateDate();
 
     @Transactional(readOnly = true)
     List<ReferentialTypeVO> getAllTypes();

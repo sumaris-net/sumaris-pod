@@ -77,6 +77,11 @@ public interface LandingRepositoryExtend {
         return (root, query, cb) -> cb.equal(root.get(Landing.Fields.VESSEL).get(IEntity.Fields.ID), vesselId);
     }
 
+    default Specification<Landing> hasExcludeVesselIds(List<Integer> excludeVesselIds) {
+        if (CollectionUtils.isEmpty(excludeVesselIds)) return null;
+        return (root, query, cb) -> cb.not(root.get(Landing.Fields.VESSEL).get(IEntity.Fields.ID).in(excludeVesselIds));
+    }
+
     default Specification<Landing> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {

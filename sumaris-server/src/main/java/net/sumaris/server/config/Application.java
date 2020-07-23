@@ -124,8 +124,6 @@ public class Application extends SpringBootServletInitializer {
                     registry.addRedirectViewController(GRAPHIQL_PATH + "/", GRAPHIQL_PATH);
                     registry.addRedirectViewController("/graphiql", GRAPHIQL_PATH);
                     registry.addRedirectViewController("/graphiql/", GRAPHIQL_PATH);
-                    registry.addViewController(GRAPHIQL_PATH).setViewName(
-                            "forward:/graphiql/index.html");
                 }
 
                 // WebSocket test path

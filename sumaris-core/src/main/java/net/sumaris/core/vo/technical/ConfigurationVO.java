@@ -23,6 +23,7 @@ package net.sumaris.core.vo.technical;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -33,6 +34,7 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode(callSuper = true)
 public class ConfigurationVO extends SoftwareVO {
 
     private String smallLogo;

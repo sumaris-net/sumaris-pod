@@ -85,7 +85,7 @@ public class ProductSortingMeasurement implements ISortedMeasurementEntity {
     @JoinColumn(name = "qualitative_value_fk")
     private QualitativeValue qualitativeValue;
 
-    @Column(name = "rank_order")
+    @Column(name = "rank_order", nullable = false)
     private Integer rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Pmfm.class)

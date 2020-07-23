@@ -24,7 +24,8 @@ package net.sumaris.core.vo.data.aggregatedLanding;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.data.IWithMeasurementValues;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -36,15 +37,18 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
-public class VesselActivityVO implements Serializable {
+public class VesselActivityVO implements IWithMeasurementValues, Serializable {
 
     private Date date;
     private Integer rankOrder;
     private String comments;
 
     private Map<Integer, String> measurementValues;
+    private List<ReferentialVO> metiers;
 
-    private List<MetierVO> metiers;
+    // parent link
+    private Integer observedLocationId;
+    private Integer landingId;
     private Integer tripId;
 
     public VesselActivityVO() {

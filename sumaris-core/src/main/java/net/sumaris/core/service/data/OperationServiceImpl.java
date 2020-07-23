@@ -79,6 +79,11 @@ public class OperationServiceImpl implements OperationService {
 	}
 
 	@Override
+	public Long countByTripId(int tripId) {
+		return operationDao.countByTripId(tripId);
+	}
+
+	@Override
 	public List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> sources) {
 		// Check operation validity
 		sources.forEach(this::checkOperation);

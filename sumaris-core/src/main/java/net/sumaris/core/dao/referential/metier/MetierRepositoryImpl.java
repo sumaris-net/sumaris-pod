@@ -28,6 +28,7 @@ import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.metier.Metier;
@@ -84,7 +85,7 @@ public class MetierRepositoryImpl
 
         // Create page (do NOT sort if searchJoin : will be done later)
         boolean sortingOutsideQuery = enableSearchOnJoin && !ReferentialVO.Fields.ID.equals(sortAttribute);
-        Pageable page = getPageable(offset, size, !sortingOutsideQuery ? sortAttribute : null, !sortingOutsideQuery ? sortDirection : null);
+        Pageable page = Pageables.create(offset, size, !sortingOutsideQuery ? sortAttribute : null, !sortingOutsideQuery ? sortDirection : null);
 
         // Create the query
         TypedQuery<Metier> query = createQueryByFilter(filter, page);
@@ -163,7 +164,7 @@ public class MetierRepositoryImpl
                 .where(inGearIds(levelIds))
                 .and(inStatusIds(filter.getStatusIds()))
                 .and(searchTextSpecification)
-                .and(alreadyPraticedMetier(filter)); // Limit to already practiced metier
+                .and(alreadyPracticedMetier(filter)); // Limit to already practiced metier
 
         return result;
     }
@@ -171,8 +172,8 @@ public class MetierRepositoryImpl
     /* -- protected method -- */
 
 
-    private Specification<Metier> alreadyPraticedMetier(ReferentialFilterVO filter) {
-        if (filter == null || !(filter instanceof MetierFilterVO)) return null;
+    private Specification<Metier> alreadyPracticedMetier(ReferentialFilterVO filter) {
+        if (!(filter instanceof MetierFilterVO)) return null;
         MetierFilterVO metierFilter = (MetierFilterVO) filter;
 
         return alreadyPraticedMetier(metierFilter.getVesselId());

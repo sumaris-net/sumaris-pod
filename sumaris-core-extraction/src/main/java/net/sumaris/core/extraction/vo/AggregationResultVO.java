@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.vo;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 
 import java.util.List;
@@ -33,6 +34,7 @@ import java.util.List;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@EqualsAndHashCode(callSuper = true)
 public class AggregationResultVO extends ExtractionResultVO {
 
     List<String> spaceStrata;

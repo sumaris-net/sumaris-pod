@@ -241,7 +241,7 @@ public class DataGraphQLService {
         return result;
     }
 
-    @GraphQLQuery(name = "tripsCount", description = "Get total trips count")
+    @GraphQLQuery(name = "tripsCount", description = "Get trips count")
     @Transactional(readOnly = true)
     @IsUser
     public long getTripsCount(@GraphQLArgument(name = "filter") TripFilterVO filter) {
@@ -394,7 +394,7 @@ public class DataGraphQLService {
         Preconditions.checkNotNull(filter.getVesselId(), "Missing filter.vesselId");
         Page page = Page.builder().offset(offset)
                 .size(size)
-                .sortAttribute(sort)
+                .sortBy(sort)
                 .sortDirection(direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null)
                 .build();
         return physicalGearService.findAll(filter, page, getFetchOptions(fields));
@@ -587,6 +587,13 @@ public class DataGraphQLService {
             return trip.getOperations();
         }
         return operationService.getAllByTripId(trip.getId(), 0, 1000, OperationVO.Fields.START_DATE_TIME, SortDirection.ASC);
+    }
+
+    @GraphQLQuery(name = "operationsCount", description = "Get operations count")
+    @Transactional(readOnly = true)
+    @IsUser
+    public long getOperationsCount(@GraphQLArgument(name = "filter") OperationFilterVO filter) {
+        return operationService.countByTripId(filter.getTripId());
     }
 
     @GraphQLQuery(name = "operation", description = "Get an operation")
@@ -811,8 +818,12 @@ public class DataGraphQLService {
                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                         @GraphQLEnvironment() Set<String> fields
     ) {
-        final List<LandingVO> result = landingService.findAll(filter, offset, size, sort,
-                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
+        Page page = Page.builder().offset(offset)
+                .size(size)
+                .sortBy(sort)
+                .sortDirection(direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null)
+                .build();
+        final List<LandingVO> result = landingService.findAll(filter, page,
                 getFetchOptions(fields));
 
         // Add additional properties if needed
@@ -894,6 +905,19 @@ public class DataGraphQLService {
     ) {
 
         final List<AggregatedLandingVO> result = aggregatedLandingService.findAll(filter);
+
+        fillVesselSnapshot(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "saveAggregatedLandings", description = "Save aggregated landings")
+    public List<AggregatedLandingVO> saveAggregatedLandings(
+        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+        @GraphQLArgument(name = "aggregatedLandings") List<AggregatedLandingVO> aggregatedLandings,
+        @GraphQLEnvironment() Set<String> fields
+    ) {
+        final List<AggregatedLandingVO> result = aggregatedLandingService.saveAllByObservedLocationId(filter, aggregatedLandings);
 
         fillVesselSnapshot(result, fields);
 

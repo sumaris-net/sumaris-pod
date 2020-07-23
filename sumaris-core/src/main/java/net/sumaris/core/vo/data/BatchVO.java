@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -38,7 +39,7 @@ import java.util.Map;
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
-public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
+public class BatchVO implements IValueObject<Integer>, IUpdateDateEntityBean<Integer, Date> {
 
     // todo? LP 03/05/2020 : why not implements IDataVO<Integer>, IWithRecorderPersonEntity<Integer, PersonVO> and add qualification properties ?
 

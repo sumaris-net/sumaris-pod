@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.vo;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.collections4.CollectionUtils;
@@ -39,6 +40,7 @@ import java.util.Set;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public abstract class AggregationContextVO extends ExtractionContextVO {
 

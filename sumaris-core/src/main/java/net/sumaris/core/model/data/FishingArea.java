@@ -62,8 +62,10 @@ public class FishingArea implements IEntity<Integer> {
 
     // parent
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Operation.class)
-    @JoinColumn(name = "operation_fk", nullable = false)
+    @JoinColumn(name = "operation_fk")
     private Operation operation;
+
+    // TODO : add other parent (from SIH-Adagio model)
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Location.class)
     @JoinColumn(name = "location_fk", nullable = false)

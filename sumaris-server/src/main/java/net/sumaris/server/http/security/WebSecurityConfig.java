@@ -61,9 +61,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             new AntPathRequestMatcher("/core/**"),
             new AntPathRequestMatcher("/api/**"),
             new AntPathRequestMatcher("/graphiql/**"),
-            new AntPathRequestMatcher("/jena/**"),
             new AntPathRequestMatcher("/graphql/websocket/**"),
+
             new AntPathRequestMatcher("/error")
+            // RDF
+            // TODO this lines if need
+            //new AntPathRequestMatcher("/sparql/**"),
+            //new AntPathRequestMatcher("/ontology/**"),
+            //new AntPathRequestMatcher("/webvowl/**")
     );
     private static final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);
 

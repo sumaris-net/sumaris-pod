@@ -75,7 +75,8 @@ public class LandingRepositoryImpl
             .and(hasProgramLabel(filter.getProgramLabel()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
-            .and(hasVesselId(filter.getVesselId()));
+            .and(hasVesselId(filter.getVesselId()))
+            .and(hasExcludeVesselIds(filter.getExcludeVesselIds()));
     }
 
     public Class<LandingVO> getVOClass() {
@@ -92,7 +93,7 @@ public class LandingRepositoryImpl
         // Remember existing entities
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getLandings()));
 
-        // Save each gears
+        // Save each landing
         List<LandingVO> result = sources.stream().map(source -> {
             source.setObservedLocationId(observedLocationId);
             source.setProgram(parentProgram);

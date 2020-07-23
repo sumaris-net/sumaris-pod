@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.vo.trip.survivalTest;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 
@@ -32,6 +33,7 @@ import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@EqualsAndHashCode(callSuper = true)
 public class ExtractionSurvivalTestContextVO extends ExtractionRdbTripContextVO {
 
     String survivalTestTableName; // ST (survival test) table

@@ -23,6 +23,7 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 
@@ -30,6 +31,7 @@ import java.util.List;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode(callSuper = true)
 public class PmfmVO extends ReferentialVO {
 
     private String unitLabel;

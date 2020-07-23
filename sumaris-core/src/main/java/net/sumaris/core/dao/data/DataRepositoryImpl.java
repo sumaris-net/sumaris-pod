@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -126,7 +127,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
 
     @Override
     public List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, DataFetchOptions fetchOptions) {
-        return findAll(filter, getPageable(page), fetchOptions)
+        return findAll(filter, page.asPageable(), fetchOptions)
                 .stream().collect(Collectors.toList());
     }
 
@@ -138,7 +139,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
 
     @Override
     public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
-        return findAll(toSpecification(filter), getPageable(offset, size, sortAttribute, sortDirection))
+        return findAll(toSpecification(filter), Pageables.create(offset, size, sortAttribute, sortDirection))
             .map(e -> this.toVO(e, fetchOptions));
     }
 

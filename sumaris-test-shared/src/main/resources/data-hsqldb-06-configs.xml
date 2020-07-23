@@ -55,11 +55,11 @@
 
 
     <!-- ****** OBSDEB properties ****** -->
-<!--    <SOFTWARE_PROPERTY ID="70" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:20"/>-->
-<!--    <SOFTWARE_PROPERTY ID="71" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:20"/>-->
-<!--    <SOFTWARE_PROPERTY ID="72" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:10,department:3"/>-->
-<!--    <SOFTWARE_PROPERTY ID="74" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:20"/>-->
-    <SOFTWARE_PROPERTY ID="75" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLocale" NAME="en_GB"/>
+    <SOFTWARE_PROPERTY ID="70" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:22"/>
+    <SOFTWARE_PROPERTY ID="71" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:22"/>
+    <SOFTWARE_PROPERTY ID="72" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:11"/>
+    <SOFTWARE_PROPERTY ID="74" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:22"/>
+    <SOFTWARE_PROPERTY ID="75" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLocale" NAME="en"/>
     <SOFTWARE_PROPERTY ID="76" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="77" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="Observations"/>
     <SOFTWARE_PROPERTY ID="78" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="true"/>

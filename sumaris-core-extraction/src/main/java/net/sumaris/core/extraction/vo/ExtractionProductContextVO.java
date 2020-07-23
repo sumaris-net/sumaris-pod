@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.vo;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 
@@ -35,6 +36,7 @@ import java.util.Map;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@EqualsAndHashCode(callSuper = true)
 public class ExtractionProductContextVO extends ExtractionContextVO {
 
     String label;
