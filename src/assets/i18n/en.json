@@ -752,7 +752,8 @@
   "AGGREGATED_LANDING": {
     "TITLE": "Landings of {{vessel}}",
     "ACTIVITY": "Activity #{{rankOrder}}",
-    "OPEN_TRIP": "Go to trip"
+    "OPEN_TRIP": "Go to trip",
+    "VESSEL_ALREADY_PRESENT": "This vessel is already present"
   },
   "PACKET": {
     "LABEL": "Batch number",

@@ -28,7 +28,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     return res;
   }
 
-  static fromVessel(source: Vessel): VesselSnapshot {
+  static fromVessel(source: Vessel | any): VesselSnapshot {
     if (!source) return undefined;
     const target = new VesselSnapshot();
     target.fromObject({
