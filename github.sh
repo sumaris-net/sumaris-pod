@@ -37,7 +37,7 @@ fi
 
 case "$1" in
   del)
-    result=`curl -i "$REPO_API_URL/releases/tags/v$current"`
+    result=`curl -i "$REPO_API_URL/releases/tags/$current"`
     release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+"  | grep -oP "$REPO_API_URL/releases/\d+"`
     if [[ $release_url != "" ]]; then
         echo "Deleting existing release..."
@@ -56,10 +56,10 @@ case "$1" in
 
     description=`echo $2`
     if [[ "_$description" = "_" ]]; then
-        description="Release v$current"
+        description="Release $current"
     fi
 
-      result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/v$current"`
+      result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/$current"`
       release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+"`
       if [[ "_$release_url" != "_" ]]; then
         echo "Deleting existing release... $release_url"
@@ -74,9 +74,9 @@ case "$1" in
       fi
 
       echo "Creating new release..."
-      echo " - tag: v$current"
+      echo " - tag: $current"
       echo " - description: $description"
-      result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "v'"$current"'","target_commitish": "master","name": "'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
+      result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$current"'","target_commitish": "master","name": "'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
       upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
 
       if [[ "_$upload_url" = "_" ]]; then
@@ -92,7 +92,7 @@ case "$1" in
 
       ZIP_FILE="$DIRNAME/dist/${PROJECT_NAME}.zip"
       if [[ -f "${ZIP_FILE}" ]]; then
-        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${PROJECT_NAME}-v${current}-web.zip")
+        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${PROJECT_NAME}-${current}-web.zip")
         browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
         ZIP_SHA256=$(sha256sum "${ZIP_FILE}")
         echo " - ${browser_download_url}  | SHA256 Checksum: ${ZIP_SHA256}"
@@ -102,7 +102,7 @@ case "$1" in
 
       APK_FILE="${DIRNAME}/platforms/android/app/build/outputs/apk/release/app-release.apk"
       if [[ -f "${APK_FILE}" ]]; then
-        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T "${APK_FILE}" "${upload_url}?name=${PROJECT_NAME}-v${current}-android.apk")
+        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T "${APK_FILE}" "${upload_url}?name=${PROJECT_NAME}-${current}-android.apk")
         browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
         APK_SHA256=$(sha256sum "${APK_FILE}")
         echo " - ${browser_download_url}  | SHA256 Checksum: ${APK_SHA256}"
@@ -112,7 +112,7 @@ case "$1" in
 
       echo "-----------------------------------------"
       echo "Successfully uploading files !"
-      echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/v${current}"
+      echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${current}"
       exit 0
     else
       echo "Wrong arguments"

@@ -15,7 +15,7 @@ if [[ "_$INSTALL_DIR" == "_" ]]; then
 fi
 
 latest_version() {
-  echo "v1.3.3" #lastest
+  echo "1.3.3" #lastest
 }
 
 api_release_url() {
@@ -48,7 +48,7 @@ install_from_github() {
       echo "WARNING: Deleting existing archive [$ARCHIVE_FILE]"
       rm ${ARCHIVE_FILE}
     fi
-    
+
   else
     mkdir -p "$INSTALL_DIR"
   fi

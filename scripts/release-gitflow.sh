@@ -50,7 +50,7 @@ echo "Current Android version: $currentAndroid"
 if [[ ! $2 =~ ^[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ || ! $3 =~ ^[0-9]+$ ]]; then
   echo "Wrong version format"
   echo "Usage:"
-  echo " > ./release.sh [pre|rel] <version>  <android-version> <release_description>"
+  echo " > ./release-gitflow.sh [pre|rel] <version>  <android-version> <release_description>"
   echo "with:"
   echo " - pre: use for pre-release"
   echo " - rel: for full release"
@@ -93,7 +93,7 @@ rel|pre)
     sed -i "s/version\": \"$currentManifestJsonVersion\"/version\": \"$2\"/g" src/assets/manifest.json
 
     # Bump the install.sh
-    sed -i "s/echo \"v.*\" #lastest/echo \"v$2\" #lastest/g" install.sh
+    sed -i "s/echo \".*\" #lastest/echo \"$2\" #lastest/g" install.sh
     ;;
 *)
     echo "No task given"
@@ -139,7 +139,7 @@ cd ${PROJECT_DIR}/scripts || exit 1
 
 description="$4"
 if [[ "_$description" == "_" ]]; then
-    description="Release v$2"
+    description="Release $2"
 fi
 
 # Commit
