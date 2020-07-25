@@ -2,14 +2,14 @@
 
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
-if [[ ! "$branch" = "master" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ ]];
+if [[ ! "$branch" = "master" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]];
 then
   echo ">> This script must be run under \`master\` or a \`release\` branch"
   exit 1
 fi
 
 ### Get version to release
-current=`grep -P "version\": \"\d+.\d+.\d+(\w*)" package.json | grep -m 1 -oP "\d+.\d+.\d+(\w*)"`
+current=`grep -P "version\": \"\d+.\d+.\d+(-(\w+)[0-9]+)" package.json | grep -m 1 -oP "\d+.\d+.\d+(-(\w+)[0-9]+)"`
 if [[ "_$version" != "_" ]]; then
   echo "ERROR: Unable to read 'version' in the file 'package.json'."
   echo " - Make sure the file 'package.json' exists and is readable."

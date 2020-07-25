@@ -36,7 +36,7 @@ fi
 PROJECT_DIR=`pwd`
 
 ### Get current version (package.json)
-current=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
+current=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
 if [[ "_$current" == "_" ]]; then
   echo ">> Unable to read the current version in 'package.json'. Please check version format is: x.y.z (x and y should be an integer)."
   exit 1;
@@ -89,12 +89,12 @@ case "$task" in
 rel|pre)
     # Change the version in files: 'package.json' and 'config.xml'
     sed -i "s/version\": \"$current\"/version\": \"$version\"/g" package.json
-    currentConfigXmlVersion=`grep -oP "version=\"\d+.\d+.\d+((a|b)[0-9]+)?\"" config.xml | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
+    currentConfigXmlVersion=`grep -oP "version=\"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" config.xml | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
     sed -i "s/ version=\"$currentConfigXmlVersion\"/ version=\"$version\"/g" config.xml
       sed -i "s/ android-versionCode=\"$currentAndroid\"/ android-versionCode=\"$androidVersion\"/g" config.xml
 
     # Change version in file: 'src/assets/manifest.json'
-    currentManifestJsonVersion=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?\"" src/assets/manifest.json | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
+    currentManifestJsonVersion=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" src/assets/manifest.json | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
     sed -i "s/version\": \"$currentManifestJsonVersion\"/version\": \"$version\"/g" src/assets/manifest.json
 
     # Bump the install.sh

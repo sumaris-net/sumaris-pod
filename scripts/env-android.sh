@@ -69,4 +69,9 @@ else
   echo "No directory '${PROJECT_DIR}/.local/android' found. Please create it, with a file 'release-signing.properties' for release signing"
 fi
 
+echo
+echo "Check Requirements"
+cordova requirements android --verbose
+[[ $? -ne 0 ]] && exit 1
+
 echo "Android environment is ready!"
