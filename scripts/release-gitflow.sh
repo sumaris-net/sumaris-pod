@@ -18,6 +18,20 @@ version=$2
 androidVersion=$3
 release_description=$4
 
+# Check version format
+if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ || ! $androidVersion =~ ^[0-9]+$ ]]; then
+  echo "Wrong version format"
+  echo "Usage:"
+  echo " > ./release-gitflow.sh [pre|rel] <version> <android-version> <release_description>"
+  echo "with:"
+  echo " - pre: use for pre-release"
+  echo " - rel: for full release"
+  echo " - version: x.y.z"
+  echo " - android-version: nnn"
+  echo " - release_description: a comment on release"
+  exit 1
+fi
+
 ### Control that the script is run on `dev` branch
 resumeRelease=0
 branch=`git rev-parse --abbrev-ref HEAD`
@@ -51,20 +65,6 @@ if [[ "_$currentAndroid" == "_" ]]; then
 fi
 echo "Current Android version: $currentAndroid"
 
-# Check version format
-if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ || ! $androidVersion =~ ^[0-9]+$ ]]; then
-  echo "Wrong version format"
-  echo "Usage:"
-  echo " > ./release-gitflow.sh [pre|rel] <version> <android-version> <release_description>"
-  echo "with:"
-  echo " - pre: use for pre-release"
-  echo " - rel: for full release"
-  echo " - version: x.y.z"
-  echo " - android-version: nnn"
-  echo " - release_description: a comment on release"
-  exit 1
-fi
-
 echo "**********************************"
 if [[ $resumeRelease = 0 ]]
 then
@@ -79,10 +79,11 @@ echo "**********************************"
 
 if [[ $resumeRelease = 0 ]]
 then
+  read -r -p "Is these new versions correct ? [y/N] " response
+  response=${response,,}    # tolower
+  [[ ! "$response" =~ ^(yes|y)$ ]] && exit 1
   git flow release start "$version"
-  if [[ $? -ne 0 ]]; then
-      exit 1
-  fi
+  [[ $? -ne 0 ]] && exit 1
 fi
 
 case "$task" in

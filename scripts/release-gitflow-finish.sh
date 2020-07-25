@@ -39,12 +39,13 @@ if [[ ! "_$release_description" == "_" ]]; then
   description="$description : $release_description"
 fi
 
-# finishing release
 cd $PROJECT_DIR
 rm src/assets/i18n/*-${version}.json
 git add package.json src/assets/manifest.json config.xml install.sh
 git commit -m "$description"
+# finishing release with:
+# -F: fetch master & develop before
+# -n: don't tag (github.sh already do it)
+# -m: use default message
+# -p: push all tags after finish
 git flow release finish -F -p -n -m "$version"
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
