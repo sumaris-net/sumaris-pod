@@ -186,21 +186,12 @@ cd $PROJECT_DIR
 #  echo "WARN: platform/desktop not found -> Skipping desktop build!"
 #fi;
 
-# back to nodejs version 6
-#cd $PROJECT_DIR
-#nvm use 10
-
 echo "**********************************"
 echo "* Finishing release"
 echo "**********************************"
-cd $PROJECT_DIR
-rm src/assets/i18n/*-${version}.json
-git add package.json src/assets/manifest.json config.xml install.sh
-git commit -m "$description"
-git flow release finish "$version"
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+cd ${PROJECT_DIR}/scripts || exit 1
+./release-gitflow-finish.sh "$version" ''"$release_description"''
+[[ $? -ne 0 ]] && exit 1
 
 echo "**********************************"
 echo "* Build release succeed !"
