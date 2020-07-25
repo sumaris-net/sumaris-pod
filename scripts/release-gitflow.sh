@@ -36,7 +36,7 @@ fi
 PROJECT_DIR=`pwd`
 
 ### Get current version (package.json)
-current=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
+current=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
 if [[ "_$current" == "_" ]]; then
   echo ">> Unable to read the current version in 'package.json'. Please check version format is: x.y.z (x and y should be an integer)."
   exit 1;
@@ -89,12 +89,12 @@ case "$task" in
 rel|pre)
     # Change the version in files: 'package.json' and 'config.xml'
     sed -i "s/version\": \"$current\"/version\": \"$version\"/g" package.json
-    currentConfigXmlVersion=`grep -oP "version=\"\d+.\d+.\d+((a|b)[0-9]+)?\"" config.xml | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
+    currentConfigXmlVersion=`grep -oP "version=\"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" config.xml | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
     sed -i "s/ version=\"$currentConfigXmlVersion\"/ version=\"$version\"/g" config.xml
       sed -i "s/ android-versionCode=\"$currentAndroid\"/ android-versionCode=\"$androidVersion\"/g" config.xml
 
     # Change version in file: 'src/assets/manifest.json'
-    currentManifestJsonVersion=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?\"" src/assets/manifest.json | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
+    currentManifestJsonVersion=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" src/assets/manifest.json | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
     sed -i "s/version\": \"$currentManifestJsonVersion\"/version\": \"$version\"/g" src/assets/manifest.json
 
     # Bump the install.sh
@@ -186,21 +186,12 @@ cd $PROJECT_DIR
 #  echo "WARN: platform/desktop not found -> Skipping desktop build!"
 #fi;
 
-# back to nodejs version 6
-#cd $PROJECT_DIR
-#nvm use 10
-
 echo "**********************************"
 echo "* Finishing release"
 echo "**********************************"
-cd $PROJECT_DIR
-rm "src/assets/i18n/*-$version.json"
-git add package.json src/assets/manifest.json config.xml install.sh
-git commit -m "$description"
-git flow release finish "$version"
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+cd ${PROJECT_DIR}/scripts || exit 1
+./release-gitflow-finish.sh "$version" ''"$release_description"''
+[[ $? -ne 0 ]] && exit 1
 
 echo "**********************************"
 echo "* Build release succeed !"
