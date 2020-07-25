@@ -44,7 +44,7 @@ cd $PROJECT_DIR
 rm src/assets/i18n/*-${version}.json
 git add package.json src/assets/manifest.json config.xml install.sh
 git commit -m "$description"
-git flow release finish -p -n "$version"
+git flow release finish -F -p -n "$version"
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
