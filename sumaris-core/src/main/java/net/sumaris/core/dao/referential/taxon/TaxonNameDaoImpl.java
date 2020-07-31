@@ -159,14 +159,18 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
         ParameterExpression<Integer> idParam = builder.parameter(Integer.class);
 
         query.select(root)
-                .where(builder.equal(root.get(TaxonName.Fields.REFERENCE_TAXON).get(ReferenceTaxon.Fields.ID), idParam));
+                .where(
+                    builder.and(
+                        builder.equal(root.get(TaxonName.Fields.REFERENCE_TAXON).get(ReferenceTaxon.Fields.ID), idParam),
+                        builder.equal(root.get(TaxonName.Fields.IS_REFERENT), Boolean.TRUE)
+                    ));
 
         TypedQuery<TaxonName> q = em.createQuery(query)
                 .setParameter(idParam, referenceTaxonId);
         List<TaxonName> referenceTaxons = q.getResultList();
         if (CollectionUtils.isEmpty(referenceTaxons)) return null;
         if (referenceTaxons.size() > 1)  {
-            log.warn(String.format("ReferenceTaxon {id=%} has more than one TaxonNames, with IS_REFERENT=1. Will use the first found.", referenceTaxonId));
+            log.warn(String.format("ReferenceTaxon {id=%s} has more than one TaxonNames, with IS_REFERENT=1. Will use the first found.", referenceTaxonId));
         }
 
         return toTaxonNameVO(referenceTaxons.get(0));
@@ -180,7 +184,11 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
 
         ParameterExpression<Collection> parentIdsParam = builder.parameter(Collection.class);
 
-        query.where(builder.in(root.get(TaxonName.Fields.PARENT_TAXON_NAME).get(TaxonName.Fields.ID)).value(parentIdsParam));
+        // LP 31/07/2020 Take only referent
+        query.where(builder.and(
+                builder.in(root.get(TaxonName.Fields.PARENT_TAXON_NAME).get(TaxonName.Fields.ID)).value(parentIdsParam)),
+                builder.equal(root.get(TaxonName.Fields.IS_REFERENT), Boolean.TRUE)
+            );
 
         return getEntityManager().createQuery(query)
                 .setParameter(parentIdsParam, taxonNameParentIds)

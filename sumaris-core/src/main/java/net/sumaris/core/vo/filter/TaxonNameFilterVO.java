@@ -22,24 +22,32 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @FieldNameConstants
-public class TaxonNameFilterVO {
-
-    private String searchText;
-    private String searchAttribute;
+@NoArgsConstructor
+@AllArgsConstructor
+public class TaxonNameFilterVO extends ReferentialFilterVO {
 
     private Integer taxonGroupId;
     private Integer[] taxonGroupIds;
 
-    private Integer[] levelIds;
-    private Integer[] statusIds;
-
     private Boolean withSynonyms;
+
+    @Builder(builderMethodName = "taxonNameBuilder")
+    public TaxonNameFilterVO(String label, String name,
+                             Integer[] statusIds, Integer levelId, Integer[] levelIds,
+                             String searchJoin, String searchText, String searchAttribute,
+                             Integer taxonGroupId, Integer[] taxonGroupIds, Boolean withSynonyms) {
+        super(label, name, statusIds, levelId, levelIds, searchJoin, searchText, searchAttribute);
+        this.taxonGroupId = taxonGroupId;
+        this.taxonGroupIds = taxonGroupIds;
+        this.withSynonyms = withSynonyms;
+    }
 }

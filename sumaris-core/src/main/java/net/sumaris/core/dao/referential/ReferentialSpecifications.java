@@ -25,12 +25,13 @@ package net.sumaris.core.dao.referential;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.SpecificationWithParameters;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
@@ -40,11 +41,11 @@ public interface ReferentialSpecifications {
 
     String SEARCH_TEXT_PARAMETER = "searchText";
 
-    default <T extends IReferentialWithStatusEntity> Specification<T> inLevelIds(String levelProperty, Integer[] gearIds) {
-        if (ArrayUtils.isEmpty(gearIds)) return null;
+    default <T extends IReferentialWithStatusEntity> Specification<T> inLevelIds(String levelProperty, Integer[] levelIds) {
+        if (ArrayUtils.isEmpty(levelIds)) return null;
         return (root, query, cb) -> cb.in(
-                root.join(levelProperty, JoinType.INNER).get(Gear.Fields.ID))
-                .value(ImmutableList.copyOf(gearIds));
+                root.join(levelProperty, JoinType.INNER).get(IEntity.Fields.ID))
+                .value(ImmutableList.copyOf(levelIds));
     }
 
     default <T extends IReferentialWithStatusEntity> Specification<T> inStatusIds(@Nullable Integer[] statusIds) {
@@ -52,6 +53,20 @@ public interface ReferentialSpecifications {
         return (root, query, cb) -> cb.in(
                 root.get(IReferentialWithStatusEntity.Fields.STATUS).get(Status.Fields.ID))
                 .value(ImmutableList.copyOf(statusIds));
+    }
+
+    default <T extends IItemReferentialEntity> Specification<T> searchOrJoinSearchText(ReferentialFilterVO filter) {
+        String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
+        final boolean enableSearchOnJoin = (searchJoinProperty != null);
+        Specification<T> searchTextSpecification;
+        if (enableSearchOnJoin) {
+            searchTextSpecification = joinSearchText(
+                searchJoinProperty,
+                filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER);
+        } else {
+            searchTextSpecification = searchText(filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER);
+        }
+        return searchTextSpecification;
     }
 
     default <T extends IItemReferentialEntity> Specification<T> searchText(String searchAttribute, String paramName) {

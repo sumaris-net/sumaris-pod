@@ -26,8 +26,11 @@ import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
+import net.sumaris.core.model.referential.taxon.TaxonomicLevelId;
+import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.junit.*;
 import org.slf4j.Logger;
@@ -63,36 +66,52 @@ public class TaxonNameDaoReadTest extends AbstractDaoTest{
     @Test
     public void getAllByTaxonGroupId() {
         // RAJ - Rajidae
-        {
-            TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("RAJ", TaxonGroupTypeId.FAO.getId());
-            Assume.assumeNotNull(tg);
-            List<TaxonNameVO> taxonNames = dao.getAllByTaxonGroupId(tg.getId());
-
-            Assert.assertNotNull(taxonNames);
-            Assert.assertTrue(taxonNames.size() > 0);
-        }
+        assertAllByTaxonGroupLabel("RAJ", 17);
 
         // SKA - Raja spp
-        {
-            TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("SKA", TaxonGroupTypeId.FAO.getId());
-            Assume.assumeNotNull(tg);
-            List<TaxonNameVO> taxonNames = dao.getAllByTaxonGroupId(tg.getId());
-
-            Assert.assertNotNull(taxonNames);
-            Assert.assertTrue(taxonNames.size() > 0);
-        }
+        assertAllByTaxonGroupLabel("SKA", 17);
 
         // MNZ - Baudroie nca (=Lophius spp)
-        {
-            TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeId.FAO.getId());
-            Assume.assumeNotNull(tg);
-            List<TaxonNameVO> taxonNames = dao.getAllByTaxonGroupId(tg.getId());
-
-            Assert.assertNotNull(taxonNames);
-            Assert.assertTrue(taxonNames.size() > 0);
-        }
+        assertAllByTaxonGroupLabel("MNZ", 2);
 
     }
 
+    private void assertAllByTaxonGroupLabel(String taxonGroupLabel, int expectedSize) {
+        TaxonGroup tg = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId(taxonGroupLabel, TaxonGroupTypeId.FAO.getId());
+        Assume.assumeNotNull(tg);
+        List<TaxonNameVO> taxonNames = dao.getAllByTaxonGroupId(tg.getId());
 
+        Assert.assertNotNull(taxonNames);
+        Assert.assertEquals(expectedSize, taxonNames.size());
+    }
+
+    @Test
+    public void findByFilter() {
+
+        // no filter
+        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().build(), 37);
+        // with synonyms
+        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().withSynonyms(true).build(), 38);
+        // with status 0
+        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().statusIds(new Integer[]{0}).build(), 12);
+        // with parent taxon group 1014
+        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().taxonGroupId(1014).build(), 3);
+        // with parent taxon group 1014 with synonyms
+        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().taxonGroupId(1014).withSynonyms(true).build(), 4);
+        // with parent taxon group 1014 and status 1
+        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().taxonGroupId(1014).statusIds(new Integer[]{1}).build(), 3);
+        // with parent taxon group 1014 and status 1 with synonyms
+        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().taxonGroupId(1014).statusIds(new Integer[]{1}).withSynonyms(true).build(), 3);
+        // with parent taxon group 1160 1161
+        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().taxonGroupIds(new Integer[]{1160,1161}).build(), 2);
+        // with taxonomic level (species and subspecies)
+        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder()
+            .levelIds(new Integer[]{TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId()}).build(), 23);
+    }
+
+    private void assertFilterResult(TaxonNameFilterVO filter, int expectedSize) {
+        List<TaxonNameVO> tn = dao.findByFilter(filter, 0, 100, "id", SortDirection.ASC);
+        Assert.assertNotNull(tn);
+        Assert.assertEquals(expectedSize, tn.size());
+    }
 }
