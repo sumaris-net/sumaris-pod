@@ -25,7 +25,6 @@ package net.sumaris.core.dao.referential.metier;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
-import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
@@ -149,24 +148,11 @@ public class MetierRepositoryImpl
 
         Integer[] levelIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} : filter.getLevelIds();
 
-        String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
-        final boolean enableSearchOnJoin = (searchJoinProperty != null);
-        Specification<Metier> searchTextSpecification;
-        if (enableSearchOnJoin) {
-            searchTextSpecification = joinSearchText(
-                    searchJoinProperty,
-                    filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER);
-        } else {
-            searchTextSpecification = searchText(filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER);
-        }
-
-        Specification<Metier> result = Specification
+        return Specification
                 .where(inGearIds(levelIds))
                 .and(inStatusIds(filter.getStatusIds()))
-                .and(searchTextSpecification)
-                .and(alreadyPracticedMetier(filter)); // Limit to already practiced metier
-
-        return result;
+                .and(searchOrJoinSearchText(filter))
+                .and(alreadyPracticedMetier(filter));
     }
 
     /* -- protected method -- */

@@ -23,11 +23,12 @@ package net.sumaris.core.dao.referential;
  */
 
 
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.referential.IReferentialVO;
@@ -43,6 +44,7 @@ import org.springframework.data.jpa.domain.Specification;
 import javax.persistence.EntityManager;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,6 +54,7 @@ import java.util.stream.Collectors;
  *
  * @author peck7 on 03/04/2020.
  */
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends Serializable>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
     implements ReferentialRepository<E, V, F>, ReferentialSpecifications {
@@ -153,6 +156,11 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
     public V save(V vo) {
         E entity = toEntity(vo);
 
+        boolean isNew = entity.getId() == null;
+        if (isNew) {
+            entity.setCreationDate(new Date());
+        }
+
         if (checkUpdateDate) {
             // Check update date
             Daos.checkUpdateDateForUpdate(vo, entity);
@@ -164,26 +172,57 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
 
         E savedEntity = save(entity);
 
-        vo.setId(savedEntity.getId());
+        // Update VO
+        onAfterSaveEntity(vo, savedEntity, isNew);
 
         return vo;
     }
 
+    @Override
+    protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
+        vo.setUpdateDate(savedEntity.getUpdateDate());
+        if (isNew)
+            vo.setCreationDate(savedEntity.getCreationDate());
+    }
+
     public E toEntity(V vo) {
+        Preconditions.checkNotNull(vo);
         E entity;
+
         if (vo.getId() != null) {
             entity = getOne(vo.getId());
         } else {
             entity = createEntity();
         }
+
+        // Remember the entity's update date
+        Date entityUpdateDate = entity.getUpdateDate();
+
         toEntity(vo, entity, true);
+
+        // Restore the update date (can be override by Beans.copyProperties())
+        entity.setUpdateDate(entityUpdateDate);
+
         return entity;
     }
 
     public void toEntity(V source, E target, boolean copyIfNull) {
+        // copy properties
+        super.toEntity(source, target, copyIfNull);
 
-        // properties
-        Beans.copyProperties(source, target);
+        // Status
+        if (copyIfNull || source.getStatusId() != null) {
+            Daos.setEntityProperty(getEntityManager(), target, IWithStatusEntity.Fields.STATUS, Status.class, source.getStatusId());
+        }
+
+        // Validity status
+        if (target instanceof IWithValidityStatusEntity) {
+            Integer validityStatusId = Beans.getProperty(source, "validityStatusId");
+            if (copyIfNull || validityStatusId != null) {
+                Daos.setEntityProperty(getEntityManager(), target, IWithValidityStatusEntity.Fields.VALIDITY_STATUS, ValidityStatus.class, validityStatusId);
+            }
+        }
 
     }
 
