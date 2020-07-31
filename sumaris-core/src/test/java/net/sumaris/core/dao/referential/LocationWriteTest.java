@@ -41,6 +41,12 @@ public class LocationWriteTest extends AbstractDaoTest {
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 //    public static final DatabaseResource dbResource = DatabaseResource.writeDb("oracle");
 
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        setCommitOnTearDown(false);
+    }
+
     @Autowired
     private LocationDao locationDao;
 
@@ -51,9 +57,8 @@ public class LocationWriteTest extends AbstractDaoTest {
     public void testGeometry() {
 
         LocationArea area = new LocationArea();
-        area.setId(1);
-        area.setLocation(locationDao.get(1)); // France
+        area.setId(1); // France
         area.setPosition(Geometries.createPoint(-55,20));
-        locationAreaDao.saveAndFlush(area);
+        locationAreaDao.save(area);
     }
 }

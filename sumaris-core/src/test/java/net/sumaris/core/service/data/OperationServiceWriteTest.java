@@ -29,10 +29,12 @@ import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.data.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class OperationServiceWriteTest extends AbstractServiceTest {
 
     @ClassRule
@@ -69,9 +71,8 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
     }
 
     @Test
-    @Ignore
-    // Ignore because delete() is call before get()
-    public void get() {
+    // the prefix a_ and the sort option above ensure this test is run before 'delete'
+    public void a_get() {
         OperationVO vo = service.get(1);
         Assert.assertNotNull(vo);
         Assert.assertNotNull(vo.getId());

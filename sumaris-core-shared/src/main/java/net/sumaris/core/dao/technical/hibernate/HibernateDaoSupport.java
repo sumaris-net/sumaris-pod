@@ -25,7 +25,6 @@ package net.sumaris.core.dao.technical.hibernate;
  */
 
 
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
@@ -51,11 +50,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.LockTimeoutException;
-import javax.persistence.Query;
 import javax.persistence.criteria.*;
 import javax.sql.DataSource;
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
@@ -71,7 +68,7 @@ public abstract class HibernateDaoSupport {
      * Logger.
      */
     protected static final Logger logger =
-            LoggerFactory.getLogger(HibernateDaoSupport.class);
+        LoggerFactory.getLogger(HibernateDaoSupport.class);
 
     private boolean debugEntityLoad;
 
@@ -101,8 +98,8 @@ public abstract class HibernateDaoSupport {
     }
 
     /**
-     * @deprecated use EntityManager instead
      * @param sf
+     * @deprecated use EntityManager instead
      */
     @Deprecated
     protected void setSessionFactory(SessionFactory sf) {
@@ -117,7 +114,6 @@ public abstract class HibernateDaoSupport {
     protected EntityManager getEntityManager() {
         return entityManager;
     }
-
 
     protected Session getSession() {
         return (Session) entityManager.getDelegate();
@@ -143,7 +139,7 @@ public abstract class HibernateDaoSupport {
      * <p>deleteAll.</p>
      *
      * @param entityClass a {@link Collection} object.
-     * @param identifier a {@link Serializable} object.
+     * @param identifier  a {@link Serializable} object.
      */
     protected <T> void delete(Class<T> entityClass, Serializable identifier) {
         EntityManager entityManager = getEntityManager();
@@ -157,8 +153,8 @@ public abstract class HibernateDaoSupport {
      * <p>load.</p>
      *
      * @param clazz a {@link Class} object.
-     * @param id a {@link Serializable} object.
-     * @param <T> a T object.
+     * @param id    a {@link Serializable} object.
+     * @param <T>   a T object.
      * @return a T object.
      */
     @SuppressWarnings("unchecked")
@@ -177,31 +173,31 @@ public abstract class HibernateDaoSupport {
      * <p>load many entities.</p>
      *
      * @param clazz a {@link Class} object.
-     * @param ids list of identifiers.
-     * @param <T> a T object.
+     * @param ids   list of identifiers.
+     * @param <T>   a T object.
      * @return a list of T object.
      */
     @SuppressWarnings("unchecked")
     protected <T> List<T> loadAll(Class<? extends T> clazz, Collection<? extends Serializable> ids, boolean failedIfMissing) {
 
         List result = getEntityManager().createQuery(String.format("from %s where id in (:id)", clazz.getSimpleName()))
-                .setParameter("id", ids)
-                .getResultList();
+            .setParameter("id", ids)
+            .getResultList();
         if (failedIfMissing && result.size() != ids.size()) {
             throw new DataIntegrityViolationException(String.format("Unable to load entities %s from ids. Expected %s entities, but found %s entities.",
-                    clazz.getName(),
-                    ids.size(),
-                    result.size()));
+                clazz.getName(),
+                ids.size(),
+                result.size()));
         }
-        return (List<T>)result;
+        return (List<T>) result;
     }
 
     /**
      * <p>load.</p>
      *
      * @param clazz a {@link Class} object.
-     * @param ids list of identifiers.
-     * @param <T> a T object.
+     * @param ids   list of identifiers.
+     * @param <T>   a T object.
      * @return a list of T object.
      */
     @SuppressWarnings("unchecked")
@@ -215,8 +211,8 @@ public abstract class HibernateDaoSupport {
      * <p>get.</p>
      *
      * @param clazz a {@link Class} object.
-     * @param id a {@link Serializable} object.
-     * @param <T> a T object.
+     * @param id    a {@link Serializable} object.
+     * @param <T>   a T object.
      * @return a T object.
      */
     @SuppressWarnings("unchecked")
@@ -227,10 +223,10 @@ public abstract class HibernateDaoSupport {
     /**
      * <p>get.</p>
      *
-     * @param clazz a {@link Class} object.
-     * @param id a {@link Serializable} object.
+     * @param clazz        a {@link Class} object.
+     * @param id           a {@link Serializable} object.
      * @param lockModeType a {@link LockModeType} object.
-     * @param <T> a T object.
+     * @param <T>          a T object.
      * @return a T object.
      */
     @SuppressWarnings("unchecked")
@@ -238,148 +234,6 @@ public abstract class HibernateDaoSupport {
         T entity = entityManager.find(clazz, id);
         entityManager.lock(entity, lockModeType);
         return entity;
-    }
-
-    /**
-     * <p>executeMultipleCountWithNotNullCondition.</p>
-     *
-     * @param columnNamesByTableNames a {@link Multimap} object.
-     * @param notNullConditionColumnNameByTableNames a {@link Map} object.
-     * @param source a int.
-     * @return a boolean.
-     */
-    protected boolean executeMultipleCountWithNotNullCondition(Multimap<String, String> columnNamesByTableNames, Map<String, String> notNullConditionColumnNameByTableNames, int source) {
-
-        String countQueryString = "SELECT COUNT(*) FROM %s WHERE %s = %d";
-        return executeMultipleCount(countQueryString, columnNamesByTableNames, " AND %s IS NOT NULL", notNullConditionColumnNameByTableNames, source);
-    }
-
-    /**
-     * <p>executeMultipleCount.</p>
-     *
-     * @param columnNamesByTableNames a {@link Multimap} object.
-     * @param source a int.
-     * @return a boolean.
-     */
-    protected boolean executeMultipleCount(Multimap<String, String> columnNamesByTableNames, int source) {
-
-        String countQueryString = "SELECT COUNT(*) FROM %s WHERE %s = %d";
-        return executeMultipleCount(countQueryString, columnNamesByTableNames, null, null, source);
-    }
-
-    /**
-     * <p>executeMultipleCount.</p>
-     *
-     * @param columnNamesByTableNames a {@link Multimap} object.
-     * @param source a {@link String} object.
-     * @return a boolean.
-     */
-    protected boolean executeMultipleCount(Multimap<String, String> columnNamesByTableNames, String source) {
-
-        String countQueryString = "SELECT COUNT(*) FROM %s WHERE %s = '%s'";
-        return executeMultipleCount(countQueryString, columnNamesByTableNames, null, null, source);
-    }
-
-    private boolean executeMultipleCount(
-            String countQueryString,
-            Multimap<String, String> columnNamesByTableNames,
-            String conditionQueryAppendix,
-            Map<String, String> conditionColumnNameByTableNames,
-            Object source) {
-
-        String queryString;
-        Query query;
-        for (String tableName : columnNamesByTableNames.keySet()) {
-            Collection<String> columnNames = columnNamesByTableNames.get(tableName);
-            String conditionColumnName = conditionColumnNameByTableNames == null ? null : conditionColumnNameByTableNames.get(tableName);
-            for (String columnName : columnNames) {
-                if (StringUtils.isNotBlank(conditionQueryAppendix) && StringUtils.isNotBlank(conditionColumnName)) {
-                    queryString = String.format(countQueryString.concat(conditionQueryAppendix), tableName, columnName, source, conditionColumnName);
-                } else {
-                    queryString = String.format(countQueryString, tableName, columnName, source);
-                }
-
-                query = entityManager.createNativeQuery(queryString);
-                if (logger.isDebugEnabled()) {
-                    logger.debug(queryString);
-                }
-                BigInteger count = (BigInteger) query.getSingleResult();
-                if (count.intValue() > 0) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * <p>executeMultipleUpdate.</p>
-     *
-     * @param columnNamesByTableNames a {@link Multimap} object.
-     * @param sourceId a int.
-     * @param targetId a int.
-     */
-    protected void executeMultipleUpdate(Multimap<String, String> columnNamesByTableNames, int sourceId, int targetId) {
-
-        String updateQueryString = "UPDATE %s SET %s = %d WHERE %s = %d";
-        executeMultipleUpdate(updateQueryString, columnNamesByTableNames, null, null, sourceId, targetId);
-    }
-
-    /**
-     * <p>executeMultipleUpdateWithNullCondition.</p>
-     *
-     * @param columnNamesByTableNames a {@link Multimap} object.
-     * @param nullConditionColumnNameByTableNames a {@link Map} object.
-     * @param sourceId a int.
-     * @param targetId a int.
-     */
-    protected void executeMultipleUpdateWithNullCondition(Multimap<String, String> columnNamesByTableNames, Map<String, String> nullConditionColumnNameByTableNames, int sourceId, int targetId) {
-
-        String updateQueryString = "UPDATE %s SET %s = %d WHERE %s = %d";
-        executeMultipleUpdate(updateQueryString, columnNamesByTableNames, " AND %s IS NULL", nullConditionColumnNameByTableNames, sourceId, targetId);
-    }
-
-    /**
-     * <p>executeMultipleUpdate.</p>
-     *
-     * @param columnNamesByTableNames a {@link Multimap} object.
-     * @param sourceCode a {@link String} object.
-     * @param targetCode a {@link String} object.
-     */
-    protected void executeMultipleUpdate(Multimap<String, String> columnNamesByTableNames, String sourceCode, String targetCode) {
-
-        String updateQueryString = "UPDATE %s SET %s = '%s' WHERE %s = '%s'";
-        executeMultipleUpdate(updateQueryString, columnNamesByTableNames, null, null, sourceCode, targetCode);
-    }
-
-    private void executeMultipleUpdate(
-            String updateQueryString,
-            Multimap<String, String> columnNamesByTableNames,
-            String conditionQueryAppendix,
-            Map<String, String> conditionColumnNameByTableNames,
-            Object source,
-            Object target) {
-
-        String queryString;
-        Query query;
-
-        for (String tableName : columnNamesByTableNames.keySet()) {
-            Collection<String> columnNames = columnNamesByTableNames.get(tableName);
-            String conditionColumnName = conditionColumnNameByTableNames == null ? null : conditionColumnNameByTableNames.get(tableName);
-            for (String columnName : columnNames) {
-                if (StringUtils.isNotBlank(conditionQueryAppendix) && StringUtils.isNotBlank(conditionColumnName)) {
-                    queryString = String.format(updateQueryString.concat(conditionQueryAppendix), tableName, columnName, target, columnName, source, conditionColumnName);
-                } else {
-                    queryString = String.format(updateQueryString, tableName, columnName, target, columnName, source);
-                }
-
-                query = entityManager.createNativeQuery(queryString);
-                if (logger.isDebugEnabled()) {
-                    logger.debug(queryString);
-                }
-                query.executeUpdate();
-            }
-        }
     }
 
     /**
@@ -391,15 +245,14 @@ public abstract class HibernateDaoSupport {
         try {
             final Dialect dialect = getSessionFactory().getJdbcServices().getDialect();
             return Daos.getDatabaseCurrentTimestamp(dataSource, dialect);
-        }catch(DataAccessResourceFailureException | SQLException e) {
+        } catch (DataAccessResourceFailureException | SQLException e) {
             throw new SumarisTechnicalException(e);
         }
     }
 
-
     protected String getTableName(String entityName) {
 
-        return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
+        return I18n.t("sumaris.persistence.table." + entityName.substring(0, 1).toLowerCase() + entityName.substring(1));
     }
 
     protected void checkUpdateDateForUpdate(IUpdateDateEntityBean<?, ? extends Date> source,
@@ -410,14 +263,14 @@ public abstract class HibernateDaoSupport {
             Timestamp sourceUpdateDtNoMillisecond = Dates.resetMillisecond(source.getUpdateDate());
             if (!Objects.equals(sourceUpdateDtNoMillisecond, serverUpdateDtNoMillisecond)) {
                 throw new BadUpdateDateException(I18n.t("sumaris.persistence.error.badUpdateDate",
-                        getTableName(entity.getClass().getSimpleName()), source.getId(), serverUpdateDtNoMillisecond,
-                        sourceUpdateDtNoMillisecond));
+                    getTableName(entity.getClass().getSimpleName()), source.getId(), serverUpdateDtNoMillisecond,
+                    sourceUpdateDtNoMillisecond));
             }
         }
     }
 
     protected void lockForUpdate(IEntity<?> entity) {
-       lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
+        lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
     }
 
     protected void lockForUpdate(IEntity<?> entity, LockModeType modeType) {
@@ -426,7 +279,7 @@ public abstract class HibernateDaoSupport {
             entityManager.lock(entity, modeType);
         } catch (LockTimeoutException e) {
             throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
-                    getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
+                getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
         }
     }
 
@@ -434,16 +287,15 @@ public abstract class HibernateDaoSupport {
         entityManager.remove(entity);
     }
 
-
     /**
      * Add a orderBy on query
      *
-     * @param query the query
-     * @param cb criteria builder
-     * @param root the root of the query
+     * @param query         the query
+     * @param cb            criteria builder
+     * @param root          the root of the query
      * @param sortAttribute the sort attribute (can be a nested attribute)
      * @param sortDirection the direction
-     * @param <T> type of query
+     * @param <T>           type of query
      * @return the query itself
      */
     protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
@@ -453,46 +305,11 @@ public abstract class HibernateDaoSupport {
         if (StringUtils.isNotBlank(sortAttribute)) {
             Expression<?> sortExpression = Daos.composePath(root, sortAttribute);
             query.orderBy(SortDirection.DESC.equals(sortDirection) ?
-                    cb.desc(sortExpression) :
-                    cb.asc(sortExpression)
+                cb.desc(sortExpression) :
+                cb.asc(sortExpression)
             );
         }
         return query;
     }
 
-    /**
-     * Compose a Path from root, accepting nested property name
-     *
-     * @param root the root expression
-     * @param attributePath the attribute path, can contains '.'
-     * @param <X> Type of Path
-     * @return the composed Path
-     * @deprecated use Daos.composePath()
-     */
-    protected <X> Path<X> composePath(Root<?> root, String attributePath) {
-
-        String[] paths = attributePath.split("\\.");
-        From<?, ?> from = root; // starting from root
-        Path<X> result = null;
-
-        for (int i = 0; i < paths.length; i++) {
-            String path = paths[i];
-
-            if (i == paths.length - 1) {
-                // last path, get it
-                result = from.get(path);
-            } else {
-                // need a join (find it from existing joins of from)
-                Join join = from.getJoins().stream()
-                        .filter(j -> j.getAttribute().getName().equals(path))
-                        .findFirst().orElse(null);
-                if (join == null) {
-                    throw new IllegalArgumentException(String.format("the join %s from %s doesn't exists", path, from.getClass().getSimpleName()));
-                }
-                from = join;
-            }
-        }
-
-        return result;
-    }
 }

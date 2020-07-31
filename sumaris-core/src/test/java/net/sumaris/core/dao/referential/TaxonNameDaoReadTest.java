@@ -27,10 +27,7 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
-import net.sumaris.core.service.referential.taxon.TaxonGroupService;
-import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.junit.*;
 import org.slf4j.Logger;
@@ -39,9 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 public class TaxonNameDaoReadTest extends AbstractDaoTest{
 
     /** Logger. */
@@ -49,7 +43,7 @@ public class TaxonNameDaoReadTest extends AbstractDaoTest{
             LoggerFactory.getLogger(TaxonNameDaoReadTest.class);
 
     @ClassRule
-    public static final DatabaseResource dbResource = DatabaseResource.readDb();
+    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
     protected TaxonGroupRepository taxonGroupRepository;

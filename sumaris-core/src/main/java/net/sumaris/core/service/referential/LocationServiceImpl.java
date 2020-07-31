@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.MultiPolygon;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ValidityStatusDao;
 import net.sumaris.core.dao.referential.location.*;
@@ -38,6 +37,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.StringUtils;
+import org.locationtech.jts.geom.Geometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -262,7 +262,7 @@ public class LocationServiceImpl implements LocationService{
 
                 // Load rectangle geometry
                 LocationArea locationArea = locationAreaDao.findById(objectId).orElse(null);
-                MultiPolygon geometry = (MultiPolygon) Locations.getGeometryFromRectangleLabel(rectangleLabel, true);
+                Geometry geometry = Locations.getGeometryFromRectangleLabel(rectangleLabel, true);
                 Preconditions.checkNotNull(geometry, "No geometry found for rectangle with label:" + rectangleLabel);
 
                 if (locationArea == null) {
@@ -282,7 +282,7 @@ public class LocationServiceImpl implements LocationService{
                 rectangleByLabelMap.put(rectangleLabel, location);
             }
 
-            // Reset location list (could be fiil if new rectangle are found
+            // Reset location list (could be fill if new rectangle are found
             rectangleLocations = Lists.newArrayList();
 
             // Get all squares
@@ -297,7 +297,7 @@ public class LocationServiceImpl implements LocationService{
 
                 // Load square geometry
                 LocationArea locationArea = locationAreaDao.getOne(objectId);
-                MultiPolygon geometry = (MultiPolygon) Locations.getGeometryFromSquare10Label(squareLabel);
+                Geometry geometry = Locations.getGeometryFromSquare10Label(squareLabel);
                 Preconditions.checkNotNull(geometry, "No geometry found for square with label:" + squareLabel);
 
                 if (locationArea == null) {

@@ -125,7 +125,6 @@
     <aspectj.version>1.8.14</aspectj.version>
     <javassist.version>3.25.0-GA</javassist.version>
     <cglib.version>3.3.0</cglib.version>
-    <jts.version>1.14.0</jts.version>
     <ehcache.version>2.10.6</ehcache.version>
     <ehcache-monitor.version>2.7.11</ehcache-monitor.version>
     <lombok.version>1.18.10</lombok.version>
@@ -170,7 +169,7 @@
     <topiaVersion>3.3.1</topiaVersion>
 
     <!-- Unit test -->
-    <junit.version>4.12</junit.version>
+    <junit.version>4.13</junit.version>
     <jetty.version>9.0.4.v20130625</jetty.version>
 
     <!--license-maven-plugin config -->
@@ -414,11 +413,6 @@
         <groupId>io.reactivex.rxjava2</groupId>
         <artifactId>rxjava</artifactId>
         <version>${rxjava.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.vividsolutions</groupId>
-        <artifactId>jts-core</artifactId>
-        <version>${jts.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>

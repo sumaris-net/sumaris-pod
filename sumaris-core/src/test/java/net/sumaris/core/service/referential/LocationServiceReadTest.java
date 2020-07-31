@@ -26,7 +26,6 @@ package net.sumaris.core.service.referential;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
-import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -55,7 +54,7 @@ public class LocationServiceReadTest extends AbstractServiceTest {
 	}
 
 	@Test
-	@Ignore
+	@Ignore("should be run in LocationServiceWriteTest because insertOrUpdateRectangleLocations must be run first")
 	public void getLocationIdByLatLong() {
 		// Check label with a position inside the Atlantic sea
 		Integer locationId = service.getLocationIdByLatLong(47.6f, -5.05f);

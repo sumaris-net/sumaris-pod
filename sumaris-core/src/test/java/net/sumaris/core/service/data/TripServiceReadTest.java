@@ -23,13 +23,12 @@ package net.sumaris.core.service.data;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.util.Dates;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,8 +46,6 @@ public class TripServiceReadTest extends AbstractServiceTest{
     private TripService service;
 
     @Test
-    @Ignore
-    // FIXME
     public void findTrips() throws ParseException {
         TripFilterVO filter = new TripFilterVO();
 

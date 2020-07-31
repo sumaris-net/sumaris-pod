@@ -71,7 +71,7 @@ public class LandingRepositoryReadTest extends AbstractDaoTest{
 
         // by program
         {
-            LandingFilterVO filter = LandingFilterVO.builder().programLabel("ADAP-CONTROL").build();
+            LandingFilterVO filter = LandingFilterVO.builder().programLabel("ADAP-CONTROLE").build();
 
             List<LandingVO> vos = repository.findAll(filter);
             assertNotNull(vos);

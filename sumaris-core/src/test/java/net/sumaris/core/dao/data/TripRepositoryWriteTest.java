@@ -27,10 +27,7 @@ import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +82,7 @@ public class TripRepositoryWriteTest extends AbstractDaoTest{
     }
 
     @Test
+//    @Ignore
     public void deleteById() {
         Integer id = dbResource.getFixtures().getTripId(0);
         repository.deleteById(id);

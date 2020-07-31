@@ -175,6 +175,11 @@ public class LandingRepositoryImpl
         // Default value
         int result = 1;
 
+        if (landing.getObservedLocation() == null || landing.getObservedLocation().getId() == null) {
+            // Can't find other landings on a undefined observed location
+            return result;
+        }
+
         // Find landings
         LandingFilterVO filter = LandingFilterVO.builder()
             .observedLocationId(landing.getObservedLocation().getId())

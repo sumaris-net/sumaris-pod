@@ -22,9 +22,9 @@ package net.sumaris.core.model.referential.location;
  * #L%
  */
 
-import com.vividsolutions.jts.geom.Geometry;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import org.locationtech.jts.geom.Geometry;
 
 import javax.persistence.*;
 import java.io.Serializable;

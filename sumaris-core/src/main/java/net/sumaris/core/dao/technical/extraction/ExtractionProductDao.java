@@ -44,10 +44,6 @@ public interface ExtractionProductDao {
     @Cacheable(cacheNames = CacheNames.PRODUCTS_BY_FILTER)
     List<ExtractionProductVO> findByFilter(ExtractionProductFilterVO filter, ProductFetchOptions fetchOptions);
 
-    default List<ExtractionProductVO> findByFilter() {
-        return findByFilter(null, null);
-    }
-
     @Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#label")
     ExtractionProductVO getByLabel(String label, ProductFetchOptions fetchOptions);
 

@@ -25,7 +25,6 @@ package net.sumaris.core.service.referential;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -53,7 +52,7 @@ public class LocationServiceWriteTest extends AbstractServiceTest{
     }
 
     @Test
-    @Ignore
+//    @Ignore
     public void updateLocationHierarchy() throws FileNotFoundException {
         service.updateLocationHierarchy();
 

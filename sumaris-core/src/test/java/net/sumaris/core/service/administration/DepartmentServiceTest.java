@@ -51,7 +51,6 @@ public class DepartmentServiceTest extends AbstractServiceTest{
     }
 
     @Test
-    @Ignore
     public void save() {
         DepartmentVO vo = new DepartmentVO();
         vo.setLabel("dep label");
