@@ -46,7 +46,9 @@ export class VesselActivityValidatorService<T extends VesselActivity = VesselAct
       comments: [data && data.comments, Validators.maxLength(2000)],
       measurementValues: this.getMeasurementGroup(data),
       metiers: this.getMetiersFormArray(data, opts),
-      tripId: [data && data.tripId]
+      tripId: [data && data.tripId],
+      observedLocationId: [data && data.observedLocationId],
+      landingId: [data && data.landingId]
     };
   }
 

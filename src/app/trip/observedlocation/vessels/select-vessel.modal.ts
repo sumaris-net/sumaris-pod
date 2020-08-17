@@ -99,7 +99,7 @@ export class SelectVesselsModal implements OnInit {
         else {
           vessels = (this.vesselsTable.selection.selected || [])
             .map(row => row.currentData)
-            .map(VesselSnapshot.fromObject)
+            .map(VesselSnapshot.fromVessel)
             .filter(isNotNil);
         }
         this.viewCtrl.dismiss(vessels);

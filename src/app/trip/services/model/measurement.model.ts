@@ -387,6 +387,11 @@ export class MeasurementValuesUtils {
     }
     return undefined;
   }
+
+  static isEmpty(measurementValues: MeasurementModelValues | MeasurementFormValues) {
+    return isNil(measurementValues)
+      || isEmptyArray(Object.keys(measurementValues).filter(pmfmId => !PmfmValueUtils.isEmpty(measurementValues[pmfmId])));
+  }
 }
 
 

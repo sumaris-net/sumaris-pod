@@ -1,8 +1,8 @@
-@use './ionic/ionic.mixins';
-@use './ionic/ionic.functions.color';
+//@use './ionic/ionic.mixins';
+//@use './ionic/ionic.functions.color';
 
 @mixin font-size($size) {
-  font-size: $size;
+  //font-size: $size;
   font-size: calculateRem($size);
 }
 

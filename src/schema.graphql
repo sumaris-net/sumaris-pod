@@ -386,6 +386,8 @@ type Mutation {
   qualifyTrip(trip: TripVOInput): TripVO
   "Create or update an account"
   saveAccount(account: AccountVOInput): AccountVO
+  "Save aggregated landings"
+  saveAggregatedLandings(aggregatedLandings: [AggregatedLandingVOInput], filter: AggregatedLandingFilterVOInput): [AggregatedLandingVO]
   "Create or update a data aggregation"
   saveAggregation(filter: ExtractionFilterVOInput, type: AggregationTypeVOInput): AggregationTypeVO
   "Save a configuration"
@@ -1147,8 +1149,10 @@ type UserSettingsVO {
 type VesselActivityVO {
   comments: String
   date: Date
+  landingId: Int
   measurementValues: Map_Integer_StringScalar
-  metiers: [MetierVO]
+  metiers: [ReferentialVO]
+  observedLocationId: Int
   rankOrder: Int
   tripId: Int
 }
@@ -1283,6 +1287,12 @@ input AggregatedLandingFilterVOInput {
   recorderDepartmentId: Int
   recorderPersonId: Int
   startDate: Date
+}
+
+input AggregatedLandingVOInput {
+  id: Int
+  vesselActivities: [VesselActivityVOInput]
+  vesselSnapshot: VesselSnapshotVOInput
 }
 
 input AggregationStrataVOInput {
@@ -1512,8 +1522,10 @@ input FishingAreaVOInput {
 
 input LandingFilterVOInput {
   endDate: Date
+  excludeVesselIds: [Int]
   locationId: Int
   observedLocationId: Int
+  onlyLast: Boolean
   programLabel: String
   recorderDepartmentId: Int
   recorderPersonId: Int
@@ -1755,7 +1767,7 @@ input PacketVOInput {
 input PageInput {
   offset: Long!
   size: Int!
-  sortAttribute: String
+  sortBy: String
   sortDirection: SortDirection
 }
 
@@ -2198,6 +2210,17 @@ input UserSettingsVOInput {
   locale: String
   nonce: String
   updateDate: Date
+}
+
+input VesselActivityVOInput {
+  comments: String
+  date: Date
+  landingId: Int
+  measurementValues: Map_Integer_StringScalar
+  metiers: [ReferentialVOInput]
+  observedLocationId: Int
+  rankOrder: Int
+  tripId: Int
 }
 
 input VesselFeaturesVOInput {

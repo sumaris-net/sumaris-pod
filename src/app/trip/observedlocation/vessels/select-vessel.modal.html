@@ -12,6 +12,9 @@
     </ion-title>
 
     <ion-buttons slot="end">
+
+      <ion-spinner *ngIf="loading"></ion-spinner>
+
       <ion-button *ngIf="!loading && allowMultiple && hasSelection()" (click)="close($event)"
                   visible-xs visible-sm visible-mobile>
         <ion-icon name="checkmark"></ion-icon>

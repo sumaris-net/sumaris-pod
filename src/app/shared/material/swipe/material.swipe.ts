@@ -54,6 +54,10 @@ export class MatSwipeField implements OnInit, InputElement, OnDestroy, ControlVa
   $items = new BehaviorSubject<any[]>(undefined);
   $loaded = new BehaviorSubject<boolean>(false);
 
+  slidesOptions: {
+    speed: 100; // FIXME: seems it's not working
+  };
+
   @Input() logPrefix = "[mat-swipe-field]";
 
   @Input() formControl: FormControl;

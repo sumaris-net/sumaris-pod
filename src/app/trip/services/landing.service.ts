@@ -18,7 +18,7 @@ import {
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
-  isNotNil,
+  isNotNil, toBoolean,
   toDateISOString
 } from "../../shared/functions";
 import {RootDataService} from "./root-data-service.class";
@@ -41,6 +41,7 @@ import {Moment} from "moment";
 import {DataRootEntityUtils, SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 import {SortDirection} from "@angular/material/sort";
+import {VesselSnapshot} from "../../referential/services/model/vessel-snapshot.model";
 
 
 export class LandingFilter {
@@ -53,7 +54,8 @@ export class LandingFilter {
   recorderDepartmentId?: number;
   recorderPersonId?: number;
   synchronizationStatus?: SynchronizationStatus;
-
+  onlyLast?: boolean;
+  excludeVesselIds?: number[];
   observedLocationId?: number;
   tripId?: number;
 
@@ -64,6 +66,7 @@ export class LandingFilter {
       && !landingFilter.startDate && !landingFilter.endDate
       && isNil(landingFilter.recorderDepartmentId)
       && isNil(landingFilter.recorderPersonId)
+      && isEmptyArray(landingFilter.excludeVesselIds)
     );
   }
 
@@ -80,7 +83,10 @@ export class LandingFilter {
       // Vessel
       if (isNotNil(f.vesselId) && t.vesselSnapshot && t.vesselSnapshot.id !== f.vesselId) return false;
 
-      // Location
+      // Vessel exclude
+      if (isNotEmptyArray(f.excludeVesselIds) && t.vesselSnapshot && t.vesselSnapshot.id && f.excludeVesselIds.includes(t.vesselSnapshot.id)) return false;
+
+        // Location
       if (isNotNil(f.locationId) && t.location && t.location.id !== f.locationId) return false;
 
       // Start/end period
@@ -278,6 +284,14 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     if (sortBy && sortBy === 'id')
       sortBy = undefined;
 
+    const onlyLast = toBoolean(dataFilter && dataFilter.onlyLast, false);
+
+    if (onlyLast === true) {
+      // sortBy = 'dateTime';
+      // sortDirection = 'desc';
+      size = 1000;
+    }
+
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
@@ -329,13 +343,31 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     return $loadResult.pipe(
         // throttleTime(200), // avoid multiple call
         map(res => {
-          const data = (res && res.landings || []).map(Landing.fromObject);
-          const total = res && isNotNil(res.landingsCount) ? res.landingsCount : undefined;
+          let data = (res && res.landings || []).map(Landing.fromObject);
+          let total = res && isNotNil(res.landingsCount) ? res.landingsCount : undefined;
           if (this._debug) {
             if (now) {
               console.debug(`[landing-service] Loaded {${data.length || 0}} landings in ${Date.now() - now}ms`, data);
               now = undefined;
             }
+          }
+
+          // Filter only the last landing
+          if (isNotEmptyArray(data) && onlyLast === true) {
+            const map = new Map();
+            data.forEach(landing => {
+              // Map by vessel id, keep only the last landing
+              if (!map.has(landing.vesselSnapshot.id) || map.get(landing.vesselSnapshot.id).dateTime.isBefore(landing.dateTime)) {
+                map.set(landing.vesselSnapshot.id, landing);
+              }
+            });
+            // Get result
+            const newData = [];
+            map.forEach((landing) => {
+              newData.push(landing);
+            });
+            data = newData;
+            total = newData.length;
           }
 
           // Compute rankOrder, by tripId or observedLocationId
