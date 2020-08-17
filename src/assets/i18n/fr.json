@@ -682,7 +682,8 @@
     "SELECT_VESSEL_MODAL": {
       "TITLE": "Ajout d'un navire",
       "TAB_VESSELS": "Recherche",
-      "TAB_LANDINGS": "Navires déjà observés"
+      "TAB_LANDINGS": "Navires déjà observés",
+      "TAB_NEW_VESSEL": "Créer nouveau navire"
     },
     "TABLE": {
       "TITLE": "Contrôles en criée",

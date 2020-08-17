@@ -682,7 +682,8 @@
     "SELECT_VESSEL_MODAL": {
       "TITLE": "Add a vessel",
       "TAB_VESSELS": "Search",
-      "TAB_LANDINGS": "Vessels already observed"
+      "TAB_LANDINGS": "Vessels already observed",
+      "TAB_NEW_VESSEL": "Create new vessel"
     },
     "TABLE": {
       "TITLE": "Observations",

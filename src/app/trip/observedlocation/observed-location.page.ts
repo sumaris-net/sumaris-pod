@@ -32,6 +32,7 @@ import {showError} from "../../shared/alerts";
 export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> implements OnInit {
 
   aggregatedLandings: boolean;
+  allowCreateVessel: boolean;
 
   $childLoaded = new BehaviorSubject<boolean>(false);
 
@@ -79,6 +80,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
         this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
         this.aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
+        this.allowCreateVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
         this.cd.detectChanges();
 
         if (this.landingsTable) {
@@ -298,6 +300,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       component: SelectVesselsModal,
       componentProps: {
         allowMultiple: false,
+        allowNewVessel: this.allowCreateVessel,
         landingFilter
       },
       keyboardClose: true,

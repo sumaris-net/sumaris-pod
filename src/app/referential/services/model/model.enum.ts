@@ -1,9 +1,11 @@
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
+
+// LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 2, // TODO SFA=6  | SUMARiS=2
-  SEA_AREA: 7,
-  AUCTION: 3
+  PORT: 2,
+  AUCTION: 3,
+  SEA_AREA: 4
 };
 
 export const GearLevelIds = {

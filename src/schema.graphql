@@ -1283,6 +1283,7 @@ input AggregatedLandingFilterVOInput {
   endDate: Date
   locationId: Int
   observedLocationId: Int
+  onlyLast: Boolean
   programLabel: String
   recorderDepartmentId: Int
   recorderPersonId: Int
