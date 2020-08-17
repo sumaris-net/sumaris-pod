@@ -35,9 +35,7 @@ echo "**********************************"
 echo "* Preparing release..."
 echo "**********************************"
 mvn -B gitflow:release-start -DreleaseVersion="$version"
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 echo "Prepare release [OK]"
 
 
@@ -45,10 +43,7 @@ echo "**********************************"
 echo "* Performing release..."
 echo "**********************************"
 mvn clean deploy -DperformRelease -DskipTests -Denv=hsqldb
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
-
+[[ $? -ne 0 ]] && exit 1
 
 echo "**********************************"
 echo "* Generating DB..."
@@ -59,16 +54,11 @@ version=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -o
 
 # Generate the DB (run InitTest class)
 mvn -Prun,hsqldb -DskipTests --quiet
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
-
+[[ $? -ne 0 ]] && exit 1
 # Create ZIP
 cd target
 zip -q -r "sumaris-db-$version.zip" db
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 echo "Generate DB [OK]"
 
 
@@ -77,9 +67,7 @@ echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
 ./github-gitflow.sh "$task" "$version"
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 echo "Upload artifacts to github [OK]"
 
 
@@ -89,9 +77,7 @@ echo "**********************************"
 git commit -a -m "Release $version\n$release_description"
 git status
 mvn gitflow:release-finish -DfetchRemote=false
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 
 # Pause (if propagation is need between hosted git server and github)
 #sleep 10s
@@ -103,9 +89,7 @@ echo "----------------------------------"
 
 echo "Rebuild new SNAPSHOT version..."
 mvn clean install -DskipTests --quiet
-if [[ $? -ne 0 ]]; then
-    exit 1
-fi
+[[ $? -ne 0 ]] && exit 1
 echo "Rebuild new SNAPSHOT version [OK]"
 
 
