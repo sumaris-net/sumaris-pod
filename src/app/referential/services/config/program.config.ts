@@ -1,7 +1,6 @@
 import {FormFieldDefinitionMap} from "../../../shared/form/field.model";
 import {LocationLevelIds} from "../model/model.enum";
 
-
 export type LandingEditor = 'landing' | 'control' | 'trip';
 
 export const ProgramProperties: FormFieldDefinitionMap = Object.freeze({
@@ -198,6 +197,12 @@ export const ProgramProperties: FormFieldDefinitionMap = Object.freeze({
     label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT",
     defaultValue: "7",
     type: 'integer'
+  },
+  OBSERVED_LOCATION_CREATE_VESSEL_ENABLE: {
+    key: 'sumaris.observedLocation.createVessel.enable',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
   },
 
   // Landing

@@ -682,7 +682,8 @@
     "SELECT_VESSEL_MODAL": {
       "TITLE": "Add a vessel",
       "TAB_VESSELS": "Search",
-      "TAB_LANDINGS": "Vessels already observed"
+      "TAB_LANDINGS": "Vessels already observed",
+      "TAB_NEW_VESSEL": "Create new vessel"
     },
     "TABLE": {
       "TITLE": "Observations",
@@ -750,7 +751,10 @@
     }
   },
   "AGGREGATED_LANDING": {
-    "TITLE": "Landings of {{vessel}}"
+    "TITLE": "Landings of {{vessel}}",
+    "ACTIVITY": "Activity #{{rankOrder}}",
+    "OPEN_TRIP": "Go to trip",
+    "VESSEL_ALREADY_PRESENT": "This vessel is already present"
   },
   "PACKET": {
     "LABEL": "Batch number",

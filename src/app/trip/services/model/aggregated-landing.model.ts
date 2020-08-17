@@ -4,6 +4,7 @@ import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, Measure
 import {Moment} from "moment";
 import {IWithVesselSnapshotEntity, VesselSnapshot} from "../../../referential/services/model/vessel-snapshot.model";
 import {NOT_MINIFY_OPTIONS} from "../../../core/services/model/referential.model";
+import {isEmptyArray} from "../../../shared/functions";
 
 export class VesselActivity extends Entity<VesselActivity> {
 
@@ -20,6 +21,8 @@ export class VesselActivity extends Entity<VesselActivity> {
   comments: string;
   measurementValues: MeasurementModelValues | MeasurementFormValues;
   metiers: ReferentialRef[];
+  observedLocationId: number;
+  landingId: number;
   tripId: number;
 
   constructor() {
@@ -30,6 +33,8 @@ export class VesselActivity extends Entity<VesselActivity> {
     this.comments = null;
     this.measurementValues = {};
     this.metiers = [];
+    this.observedLocationId = null;
+    this.landingId = null;
     this.tripId = null;
   }
 
@@ -48,11 +53,20 @@ export class VesselActivity extends Entity<VesselActivity> {
     this.comments = source.comments;
     this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
     this.metiers = source.metiers && source.metiers.map(ReferentialRef.fromObject) || [];
+    this.observedLocationId = source.observedLocationId;
+    this.landingId = source.landingId;
     this.tripId = source.tripId;
   }
 
   clone(): VesselActivity {
     return VesselActivity.fromObject(this.asObject());
+  }
+
+  static isEmpty(value: VesselActivity) {
+    return !value || (
+      MeasurementValuesUtils.isEmpty(value.measurementValues)
+      && isEmptyArray(value.metiers)
+    );
   }
 }
 

@@ -1,9 +1,30 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
-  <ion-item *ngIf="error && showError" hidden-xs hidden-sm hidden-mobile lines="none">
+  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
+
+  <mat-menu #optionsMenu="matMenu" xPosition="after">
+    <ng-template matMenuContent let-activity="activity" let-index="index">
+
+      <button mat-menu-item
+              [title]="'COMMON.BTN_EDIT'|translate" (click)="openTrip(activity)"
+              [disabled]="!activity || !activity.tripId"
+      >
+        <ion-icon name="boat" slot="icon-only"></ion-icon>
+        <ion-label translate>AGGREGATED_LANDING.OPEN_TRIP</ion-label>
+      </button>
+
+      <button mat-menu-item
+              [title]="'COMMON.BTN_DELETE'|translate" (click)="removeActivity(index)">
+        <mat-icon>delete</mat-icon>
+        <ion-label translate>COMMON.BTN_DELETE</ion-label>
+      </button>
+
+    </ng-template>
+
+  </mat-menu>
 
   <ion-grid class="ion-padding">
 
@@ -23,6 +44,28 @@
     <ion-row class="ion-padding-top">
       <ion-col>
         <ion-card *ngFor="let activityForm of activitiesForm.controls; index as i; first as first">
+          <ion-card-header>
+            <mat-toolbar>
+
+              <ion-label>{{'AGGREGATED_LANDING.ACTIVITY' | translate: {rankOrder: activityForm.value.rankOrder} }}</ion-label>
+
+              <ion-item *ngIf="error && showError" hidden-xs hidden-sm hidden-mobile lines="none">
+                <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+                <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+              </ion-item>
+
+              <div class="toolbar-spacer"></div>
+
+              <button mat-icon-button
+                      [title]="'COMMON.BTN_OPTIONS'|translate"
+                      [matMenuTriggerFor]="optionsMenu"
+                      [matMenuTriggerData]="{index: i, activity: activities[i]}"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
+            </mat-toolbar>
+          </ion-card-header>
+
           <ion-card-content>
             <app-vessel-activity-form #activityForm
                                       [form]="activityForm"
@@ -30,7 +73,6 @@
                                       [program]="program"
                                       [acquisitionLevel]="acquisitionLevel"
             >
-
             </app-vessel-activity-form>
           </ion-card-content>
         </ion-card>

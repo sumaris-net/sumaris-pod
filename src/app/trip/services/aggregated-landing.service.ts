@@ -1,5 +1,13 @@
 import {Injectable, Injector} from "@angular/core";
-import {BaseEntityService, environment, isNotNil, LoadResult, EntitiesService, toDateISOString} from "../../core/core.module";
+import {
+  BaseEntityService,
+  environment,
+  isNotNil,
+  LoadResult,
+  EntitiesService,
+  toDateISOString,
+  isNil
+} from "../../core/core.module";
 import {AggregatedLanding} from "./model/aggregated-landing.model";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
@@ -14,14 +22,31 @@ import {Observable} from "rxjs";
 import {filter, map, tap} from "rxjs/operators";
 import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {SortDirection} from "@angular/material/sort";
+import {Landing} from "./model/landing.model";
+import {LandingFragments} from "./landing.service";
+import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
+import {MINIFY_OPTIONS} from "../../core/services/model/referential.model";
 
 export class AggregatedLandingFilter {
   programLabel?: string;
-  startDate?: Date | Moment;
-  endDate?: Date | Moment;
+  startDate?: Moment;
+  endDate?: Moment;
   locationId?: number;
   observedLocationId?: number;
   synchronizationStatus?: SynchronizationStatus;
+
+  static equals(f1: AggregatedLandingFilter | any, f2: AggregatedLandingFilter | any): boolean {
+    return (isNil(f1) && isNil(f2)) ||
+      (
+        isNotNil(f1) && isNotNil(f2) &&
+        f1.programLabel === f2.programLabel &&
+        f1.observedLocationId === f2.observedLocationId &&
+        f1.locationId === f2.locationId &&
+        f1.synchronizationStatus === f2.synchronizationStatus &&
+        ((!f1.startDate && !f2.startDate) || (f1.startDate.isSame(f2.startDate))) &&
+        ((!f1.endDate && !f2.endDate) || (f1.endDate.isSame(f2.endDate)))
+      )
+  }
 
   static isEmpty(f: AggregatedLandingFilter | any): boolean {
     return Beans.isEmpty({...f, synchronizationStatus: null}, undefined, {
@@ -48,11 +73,13 @@ const VesselActivityFragment = gql`fragment VesselActivityFragment on VesselActi
   comments
   measurementValues
   metiers {
-    ...MetierFragment
+    ...ReferentialFragment
   }
+  observedLocationId
+  landingId
   tripId
 }
-${ReferentialFragments.metier}`;
+${ReferentialFragments.referential}`;
 
 const AggregatedLandingFragment = gql`fragment AggregatedLandingFragment on AggregatedLandingVO {
   __typename
@@ -77,7 +104,15 @@ const LoadAllQuery: any = gql`
   }
   ${AggregatedLandingFragment}
 `;
-
+// Save all query
+const SaveAllQuery: any = gql`
+  mutation SaveAggregatedLandings($aggregatedLandings:[AggregatedLandingVOInput], $filter: AggregatedLandingFilterVOInput){
+    saveAggregatedLandings(aggregatedLandings: $aggregatedLandings, filter: $filter){
+      ...AggregatedLandingFragment
+    }
+  }
+  ${AggregatedLandingFragment}
+`;
 
 @Injectable({providedIn: 'root'})
 export class AggregatedLandingService
@@ -85,6 +120,7 @@ export class AggregatedLandingService
   implements EntitiesService<AggregatedLanding, AggregatedLandingFilter> {
 
   protected loading = false;
+  private _lastFilter;
 
   constructor(
     injector: Injector,
@@ -104,17 +140,18 @@ export class AggregatedLandingService
            dataFilter?: AggregatedLandingFilter,
            options?: any): Observable<LoadResult<AggregatedLanding>> {
 
-    const variables: any = {
-      filter: {
-        ...dataFilter,
-        // Serialize all dates
-        startDate: dataFilter && toDateISOString(dataFilter.startDate),
-        endDate: dataFilter && toDateISOString(dataFilter.endDate),
-        // Remove fields that not exists in pod
-        synchronizationStatus: undefined
-      }
+    this._lastFilter = {
+      ...dataFilter,
+      // Serialize all dates
+      startDate: dataFilter && toDateISOString(dataFilter.startDate),
+      endDate: dataFilter && toDateISOString(dataFilter.endDate),
+      // Remove fields that not exists in pod
+      synchronizationStatus: undefined
     };
 
+    const variables: any = {
+      filter: this._lastFilter
+    };
 
     let now = this._debug && Date.now();
     if (this._debug) console.debug("[aggregated-landing-service] Loading aggregated landings... using options:", variables);
@@ -142,9 +179,10 @@ export class AggregatedLandingService
         queryName: 'LoadAll',
         query: LoadAllQuery,
         arrayFieldName: 'aggregatedLandings',
+        insertFilterFn: AggregatedLandingFilter.searchFilter(dataFilter),
         variables,
         error: {code: ErrorCodes.LOAD_AGGREGATED_LANDINGS_ERROR, message: "AGGREGATED_LANDING.ERROR.LOAD_ALL_ERROR"},
-        fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
+        fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
       })
         .pipe(
           filter(() => !this.loading)
@@ -167,13 +205,51 @@ export class AggregatedLandingService
     );
   }
 
-  saveAll(data: AggregatedLanding[], options?: any): Promise<AggregatedLanding[]> {
-    throw new Error('AggregatedLandingService.saveAll() not implemented yet');
+  async saveAll(entities: AggregatedLanding[], options?: any): Promise<AggregatedLanding[]> {
+    if (!entities) return entities;
+
+    const json = entities.map(t => {
+      return this.asObject(t);
+    });
+
+    const now = Date.now();
+    if (this._debug) console.debug("[aggregated-landing-service] Saving aggregated landings...", json);
+
+    await this.graphql.mutate<{ saveAggregatedLandings: AggregatedLanding[] }>({
+      mutation: SaveAllQuery,
+      variables: {
+        aggregatedLandings: json,
+        filter: this._lastFilter
+      },
+      error: {code: ErrorCodes.SAVE_AGGREGATED_LANDINGS_ERROR, message: "AGGREGATED_LANDING.ERROR.SAVE_ALL_ERROR"},
+      update: (proxy, {data}) => {
+
+        if (this._debug) console.debug(`[aggregated-landing-service] Aggregated landings saved remotely in ${Date.now() - now}ms`, entities);
+
+        entities = (data && data.saveAggregatedLandings || []);
+
+      }
+    });
+
+    return entities;
   }
 
   deleteAll(data: AggregatedLanding[], options?: any): Promise<any> {
     throw new Error('AggregatedLandingService.deleteAll() not implemented yet');
   }
 
+  protected asObject(entity: AggregatedLanding, options?: DataEntityAsObjectOptions) {
+    options = {...MINIFY_OPTIONS, ...options};
+    const copy: any = entity.asObject(options);
 
+    if (options.minify && !options.keepEntityName && !options.keepTypename) {
+      // Clean vessel features object, before saving
+      copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
+
+      // Keep id only, on activity.metier
+      (copy.vesselActivities || []).forEach(activity => activity.metiers = (activity.metiers || []).map(metier => ({id: metier.id})));
+    }
+
+    return copy;
+  }
 }

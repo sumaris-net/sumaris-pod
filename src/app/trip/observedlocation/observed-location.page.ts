@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {fadeInOutAnimation, isNil} from '../../shared/shared.module';
+import {fadeInOutAnimation, isNil, isNotNil, toBoolean} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocationService} from "../services/observed-location.service";
@@ -21,6 +21,7 @@ import {BehaviorSubject} from "rxjs";
 import {firstNotNilPromise} from "../../shared/observables";
 import {filter} from "rxjs/operators";
 import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings.table";
+import {showError} from "../../shared/alerts";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -31,6 +32,7 @@ import {AggregatedLandingsTable} from "../aggregated-landing/aggregated-landings
 export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> implements OnInit {
 
   aggregatedLandings: boolean;
+  allowCreateVessel: boolean;
 
   $childLoaded = new BehaviorSubject<boolean>(false);
 
@@ -38,7 +40,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   @ViewChild('landingsTable') landingsTable: LandingsTable;
 
-  @ViewChild('aggregatedLandingsTable', {static: false}) aggregatedLandingsTable: AggregatedLandingsTable;
+  @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
   get landingEditor(): LandingEditor {
     return this.landingsTable ? this.landingsTable.detailEditor : undefined;
@@ -78,6 +80,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
         this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
         this.aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
+        this.allowCreateVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
         this.cd.detectChanges();
 
         if (this.landingsTable) {
@@ -104,7 +107,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // Register forms & tables
     this.addChildForms([
       this.observedLocationForm,
-      () => this.landingsTable
+      () => this.landingsTable,
+      () => this.aggregatedLandingsTable
     ]);
   }
 
@@ -165,6 +169,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       await this.landingsTable.save();
     }
 
+    if (this.aggregatedLandingsTable && this.aggregatedLandingsTable.dirty) {
+      await this.aggregatedLandingsTable.save();
+    }
+
     return json;
   }
 
@@ -183,7 +191,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   protected getFirstInvalidTabIndex(): number {
     return this.observedLocationForm.invalid ? 0
-      : (this.landingsTable && this.landingsTable.invalid ? 1
+      : ((this.landingsTable && this.landingsTable.invalid) || (this.aggregatedLandingsTable && this.aggregatedLandingsTable.invalid) ? 1
         : -1);
   }
 
@@ -209,9 +217,33 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
       try {
         const vessel = await this.openSelectVesselModal();
-        if (vessel) {
+        if (vessel && this.landingsTable) {
           const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
           await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
+        }
+      } finally {
+        this.loading = false;
+        this.markForCheck();
+      }
+    }
+  }
+
+  async onNewAggregatedLanding(event?: any) {
+    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+      // If on field mode: try to save silently
+      ? this.save(event)
+      // If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm();
+
+    const savedOrContinue = await savePromise;
+    if (savedOrContinue) {
+      this.loading = true;
+      this.markForCheck();
+
+      try {
+        const vessel = await this.openSelectVesselModal(true);
+        if (vessel && this.aggregatedLandingsTable) {
+          await this.aggregatedLandingsTable.addAggregatedRow(vessel);
         }
       } finally {
         this.loading = false;
@@ -244,25 +276,31 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   /* -- protected methods -- */
 
-  async openSelectVesselModal(): Promise<VesselSnapshot | undefined> {
+  async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
     if (!this.data.startDateTime || !this.data.program) {
       throw new Error('Root entity has no program and start date. Cannot open select vessels modal');
     }
 
     const startDate = this.data.startDateTime.clone().add(-15, "days");
     const endDate = this.data.startDateTime;
+    const programLabel = (this.aggregatedLandingsTable && this.aggregatedLandingsTable.program) || this.data.program.label;
+    const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
+      && await this.aggregatedLandingsTable.vesselIdsAlreadyPresent()) || [];
 
     const landingFilter = <LandingFilter>{
-      programLabel: this.data.program && this.data.program.label,
+      programLabel,
       startDate,
       endDate,
-      locationId: ReferentialUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined
+      locationId: ReferentialUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined,
+      onlyLast: (this.landingsTable && this.landingsTable.isTripDetailEditor) || (isNotNil(this.aggregatedLandingsTable)),
+      excludeVesselIds
     };
 
     const modal = await this.modalCtrl.create({
       component: SelectVesselsModal,
       componentProps: {
         allowMultiple: false,
+        allowNewVessel: this.allowCreateVessel,
         landingFilter
       },
       keyboardClose: true,
@@ -283,7 +321,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
     if (data instanceof VesselSnapshot) {
       console.debug("[observed-location] Vessel selection modal result:", data);
-      return data as VesselSnapshot;
+      const vessel = data as VesselSnapshot;
+      if (excludeVesselIds.includes(data.id)) {
+        await showError('AGGREGATED_LANDING.VESSEL_ALREADY_PRESENT', this.alertCtrl, this.translate);
+        return;
+      }
+      return vessel;
     } else {
       console.debug("[observed-location] Vessel selection modal was cancelled");
     }

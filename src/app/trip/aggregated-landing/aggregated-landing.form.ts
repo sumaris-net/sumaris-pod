@@ -1,5 +1,13 @@
-import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit} from '@angular/core';
-import {AppForm, environment, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../core/core.module";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output
+} from '@angular/core';
+import {AppForm, environment, FormArrayHelper, isNil} from "../../core/core.module";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {FormArray, FormBuilder, Validators} from "@angular/forms";
@@ -7,21 +15,17 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {ModalController} from "@ionic/angular";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {NetworkService} from "../../core/services/network.service";
-import {AggregatedLandingValidatorService} from "../services/validator/aggregated-landing.validator";
 import {BehaviorSubject, combineLatest, Observable} from "rxjs";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
-import {distinctUntilChanged, filter} from "rxjs/operators";
-import * as moment from "moment";
-import {ObservedLocation} from "../services/model/observed-location.model";
+import {debounceTime, distinctUntilChanged, filter} from "rxjs/operators";
 import {AggregatedLandingService} from "../services/aggregated-landing.service";
 import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
 import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
-import {SharedFormArrayValidators, SharedValidators} from "../../shared/validator/validators";
+import {SharedValidators} from "../../shared/validator/validators";
 import {DisplayFn} from "../../shared/form/field.model";
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {VesselActivityValidatorService} from "../services/validator/vessel-activity.validator";
-import {VesselActivityForm} from "./vessel-activity.form";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
+import {getMaxRankOrder} from "../../data/services/model/model.utils";
 
 export class AggregatedLandingFormOption {
   dates: Observable<Moment[]> | Moment[];
@@ -34,23 +38,50 @@ export class AggregatedLandingFormOption {
   selector: 'app-aggregated-landings-form',
   templateUrl: './aggregated-landing.form.html',
   styleUrls: ['./aggregated-landing.form.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements OnInit {
 
   private _options: AggregatedLandingFormOption;
   private _activeDate: Moment;
+  private _loading = true;
+  private _activityDirty = false;
+
   @Input() showError = true;
 
-  private $data = new BehaviorSubject<AggregatedLanding>(undefined) ;
+  @Output() onOpenTrip = new EventEmitter<{ activity: VesselActivity }>();
+
+  get dirty(): boolean {
+    return super.dirty && this._activityDirty;
+  }
+
+  private $data = new BehaviorSubject<AggregatedLanding>(undefined);
+
   get data(): AggregatedLanding {
+    // Save active form before return data
+    this.saveActivitiesAt(this._activeDate);
     return this.$data.getValue();
+  }
+
+  set data(data) {
+    this.$data.next(data);
+  }
+
+  get value(): any {
+    throw new Error('The aggregated landing form has no form value accessible from outside');
+  }
+
+  set value(value: any) {
+    throw new Error('The aggregated landing form has no form value accessible from outside');
   }
 
   activitiesHelper: FormArrayHelper<VesselActivity>;
   activityFocusIndex = -1;
+
   get activitiesForm(): FormArray {
     return this.form.controls.activities as FormArray;
   }
+
   activities: VesselActivity[];
 
   @Input() set options(option: AggregatedLandingFormOption) {
@@ -105,7 +136,16 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     });
     this.setForm(form);
 
-    this.form.valueChanges.subscribe(value => console.debug('aggregated-landing CHILD FORM VALUE', value));
+    this.form.controls.activities.valueChanges
+      .pipe(
+        filter(() => !this._loading),
+        // distinctUntilChanged()
+        // debounceTime(1000)
+      )
+      .subscribe(value => {
+        if (this.debug) console.debug('[aggregated-landing] activities changes', value);
+        this._activityDirty = true;
+      });
 
     this.initActivitiesHelper();
 
@@ -114,16 +154,10 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
         this.form.get('date').valueChanges.pipe(distinctUntilChanged()),
         filterNotNil(this.$data)
       ])
-      .subscribe(date => this.showAtDate(this.form.value.date))
+        .subscribe(date => this.showAtDate(this.form.value.date))
     );
 
     super.ngOnInit();
-
-  }
-
-  setValue(data: AggregatedLanding, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    // super.setValue(data, opts); // don't call super
-    this.$data.next(data);
 
   }
 
@@ -133,14 +167,17 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
 
     console.debug(`[aggregated-landing-form] Show vessel activity at ${date}`);
 
-    if (this._activeDate) {
-      // todo Save activities
+    this._loading = true;
+    this.disable();
 
+    if (this._activeDate && !date.isSame(this._activeDate)) {
+      // Save activities into data
+      this.saveActivitiesAt(this._activeDate);
     }
 
     // Load activities for this date
     this._activeDate = date;
-    this.activities = this.data.vesselActivities.slice().filter(value => value.date.isSame(date)) || [null];
+    this.activities = this.$data.getValue().vesselActivities.filter(value => value.date.isSame(date)).slice() || [null];
 
     // remove all previous forms
     this.activitiesForm.clear();
@@ -150,17 +187,24 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
       this.activitiesHelper.add(activity);
     }
 
-    this.form.enable();
-
-    // this.activitiesHelper.resize(activities.length);
-    // this.form.controls.activities.setValue(activities);
+    this.enable();
+    setTimeout(() => this._loading = false, 500);
   }
 
   addActivity() {
-    this.activitiesHelper.add();
+    if (this.debug) console.debug('[aggregated-landing-form] addActivity');
+    this.activitiesHelper.add(this.newActivity());
     if (!this.mobile) {
       this.activityFocusIndex = this.activitiesHelper.size() - 1;
     }
+  }
+
+  private newActivity(): VesselActivity {
+    const maxRankOrder = getMaxRankOrder(this.activities);
+    const activity = new VesselActivity();
+    activity.rankOrder = maxRankOrder + 1;
+    activity.date = this.form.value.date;
+    return activity;
   }
 
   removeActivity(index: number) {
@@ -197,12 +241,31 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'activities'),
       (activity) => this.vesselActivityValidatorService.getFormGroup(activity),
       (v1, v2) => v1.rankOrder === v2.rankOrder,
-      value => false,
+      value => VesselActivity.isEmpty(value),
       {
         allowEmptyArray: true
       }
     )
   }
 
+  private saveActivitiesAt(date: Moment) {
+    if (isNil(date)) {
+      console.warn('Try to save activities at undefined date');
+      return;
+    }
+    if (this.debug) console.debug(`[aggregated-landing-form] save activities at ${date}`)
+    const newActivities = this.$data.getValue().vesselActivities.filter(value => !value.date.isSame(date)).slice() || [];
+    const activities = this.activitiesForm.value.map(v => VesselActivity.fromObject(v));
+    newActivities.push(...activities);
+    this.$data.getValue().vesselActivities = newActivities;
+  }
 
+  openTrip(activity: VesselActivity) {
+    if (!activity || !activity.observedLocationId || !activity.tripId) {
+      console.warn(`Something is missing to open trip: observedLocationId=${activity && activity.observedLocationId}, tripId=${activity && activity.tripId}`);
+      return;
+    }
+
+    this.onOpenTrip.emit({activity});
+  }
 }

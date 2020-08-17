@@ -5,6 +5,7 @@ import {FormFieldDefinitionMap, FormFieldValue} from "../../../shared/form/field
 import {StatusIds} from "../model/model.enum";
 import {PRIORITIZED_USER_PROFILES} from "../model/person.model";
 import {Locales} from "../model/settings.model";
+import {LocationLevelIds} from "../../../referential/services/model/model.enum";
 
 export const ConfigOptions: FormFieldDefinitionMap = Object.freeze({
     LOGO: {
@@ -147,5 +148,29 @@ export const ConfigOptions: FormFieldDefinitionMap = Object.freeze({
         key: 'sumaris.android.install.url',
         label: 'CONFIGURATION.OPTIONS.ANDROID_INSTALL_URL',
         type: 'string'
-    }
+    },
+    LOCATION_LEVEL_ID_COUNTRY: {
+        key: 'sumaris.locationLevel.country',
+        label: 'CONFIGURATION.OPTIONS.LOCATION_LEVEL_ID_COUNTRY',
+        type: 'integer',
+        defaultValue: LocationLevelIds.COUNTRY
+    },
+    LOCATION_LEVEL_ID_PORT: {
+        key: 'sumaris.locationLevel.port',
+        label: 'CONFIGURATION.OPTIONS.LOCATION_LEVEL_ID_PORT',
+        type: 'integer',
+        defaultValue: LocationLevelIds.PORT
+    },
+    LOCATION_LEVEL_ID_AUCTION: {
+        key: 'sumaris.locationLevel.auction',
+        label: 'CONFIGURATION.OPTIONS.LOCATION_LEVEL_ID_AUCTION',
+        type: 'integer',
+        defaultValue: LocationLevelIds.AUCTION
+    },
+    LOCATION_LEVEL_ID_SEA_AREA: {
+        key: 'sumaris.locationLevel.sea_area',
+        label: 'CONFIGURATION.OPTIONS.LOCATION_LEVEL_ID_SEA_AREA',
+        type: 'integer',
+        defaultValue: LocationLevelIds.SEA_AREA
+    },
 });

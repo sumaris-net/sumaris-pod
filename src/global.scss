@@ -787,6 +787,10 @@ mat-tab-group.mat-tab-group-header-pagination-hidden .mat-tab-header-pagination 
   display: none !important;
 }
 
+.mat-tab-label.mat-tab-disabled {
+  display: none;
+}
+
 // --------------------------------------------------
 // Material menu
 // --------------------------------------------------
@@ -825,6 +829,11 @@ mat-tab-group.mat-tab-group-header-pagination-hidden .mat-tab-header-pagination 
   //  Reduce the font size, on label just inside a mat-menu (e.g. see trips.page.html)
   .mat-menu-content > ion-label {
     font-size: 12px;
+  }
+
+  .mat-menu-content ion-icon {
+    margin-right: 16px;
+    vertical-align: middle;
   }
 }
 

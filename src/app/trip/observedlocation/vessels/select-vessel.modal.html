@@ -12,6 +12,9 @@
     </ion-title>
 
     <ion-buttons slot="end">
+
+      <ion-spinner *ngIf="loading"></ion-spinner>
+
       <ion-button *ngIf="!loading && allowMultiple && hasSelection()" (click)="close($event)"
                   visible-xs visible-sm visible-mobile>
         <ion-icon name="checkmark"></ion-icon>
@@ -64,6 +67,22 @@
       </app-vessels-table>
 
     </mat-tab>
+
+    <!-- TAB: create new vessel -->
+    <mat-tab label="{{'OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TAB_NEW_VESSEL'|translate}}"
+      [disabled]="!allowNewVessel">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="search"></ion-icon>
+        </mat-icon>
+        <ion-label translate>OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TAB_NEW_VESSEL</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="formVessel.error"></ion-icon>
+      </ng-template>
+
+      <form-vessel #formVessel>
+      </form-vessel>
+
+    </mat-tab>
   </mat-tab-group>
 </ion-content>
 
@@ -82,7 +101,7 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button *ngIf="allowMultiple"
+        <ion-button *ngIf="allowMultiple || isNewVessel"
                     [fill]="hasSelection() && 'solid' || 'clear'"
                     [disabled]="!hasSelection()"
                     (click)="close($event)"

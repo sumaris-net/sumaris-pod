@@ -682,7 +682,8 @@
     "SELECT_VESSEL_MODAL": {
       "TITLE": "Ajout d'un navire",
       "TAB_VESSELS": "Recherche",
-      "TAB_LANDINGS": "Navires déjà observés"
+      "TAB_LANDINGS": "Navires déjà observés",
+      "TAB_NEW_VESSEL": "Créer nouveau navire"
     },
     "TABLE": {
       "TITLE": "Contrôles en criée",
@@ -750,7 +751,10 @@
     }
   },
   "AGGREGATED_LANDING": {
-    "TITLE": "Débarquement de {{vessel}}"
+    "TITLE": "Débarquement de {{vessel}}",
+    "ACTIVITY": "Activité #{{rankOrder}}",
+    "OPEN_TRIP": "Aller à la marée",
+    "VESSEL_ALREADY_PRESENT": "Ce navire est déjà présent"
   },
   "PACKET": {
     "LABEL": "Numéro de lot",
