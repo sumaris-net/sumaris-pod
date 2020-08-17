@@ -1,5 +1,6 @@
 package net.sumaris.core.dao.referential.taxon;
 
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -20,6 +21,11 @@ import java.util.List;
  * @author peck7 on 31/07/2020.
  */
 public interface TaxonNameRepositoryExtend extends ReferentialSpecifications {
+
+    default Specification<TaxonName> withReferenceTaxonId(Integer referentTaxonId) {
+        if (referentTaxonId == null) return null;
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(TaxonName.Fields.REFERENCE_TAXON).get(ReferenceTaxon.Fields.ID), referentTaxonId);
+    }
 
     default Specification<TaxonName> withSynonyms(Boolean withSynonyms) {
         if (Boolean.TRUE.equals(withSynonyms)) return null;
@@ -44,7 +50,7 @@ public interface TaxonNameRepositoryExtend extends ReferentialSpecifications {
                 .joinList(ReferenceTaxon.Fields.PARENT_TAXON_GROUPS, JoinType.INNER)
                 .get(TaxonGroup2TaxonHierarchy.Fields.PARENT_TAXON_GROUP)
                 .get(TaxonGroup.Fields.ID)
-        ).value(taxonGroupIds);
+        ).value(ImmutableList.copyOf(taxonGroupIds));
     }
 
     List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);

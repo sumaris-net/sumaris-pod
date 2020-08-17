@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
+import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Batch;
@@ -78,7 +78,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
     private ReferentialDao referentialDao;
 
     @Autowired
-    private TaxonNameDao taxonNameDao;
+    private TaxonNameRepository taxonNameRepository;
 
     @Autowired
     private ProductRepository productRepository;
@@ -411,7 +411,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         // Taxon name (from reference)
         if (source.getReferenceTaxon() != null) {
-            TaxonNameVO taxonName = taxonNameDao.getTaxonNameReferent(source.getReferenceTaxon().getId());
+            TaxonNameVO taxonName = taxonNameRepository.getTaxonNameReferent(source.getReferenceTaxon().getId());
             target.setTaxonName(taxonName);
         }
 

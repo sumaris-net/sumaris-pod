@@ -27,7 +27,7 @@ package net.sumaris.core;
 import net.sumaris.core.dao.data.*;
 import net.sumaris.core.dao.referential.LocationWriteTest;
 import net.sumaris.core.dao.referential.TaxonGroupRepositoryWriteTest;
-import net.sumaris.core.dao.referential.TaxonNameDaoReadTest;
+import net.sumaris.core.dao.referential.TaxonNameRepositoryReadTest;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductDaoWriteTest;
 import net.sumaris.core.dao.technical.schema.DatabaseSchemaDaoTest;
 import net.sumaris.core.service.FileImportServiceTest;
@@ -62,7 +62,7 @@ import org.junit.runners.Suite;
     // DAO: referential
     LocationWriteTest.class,
     TaxonGroupRepositoryWriteTest.class,
-    TaxonNameDaoReadTest.class,
+    TaxonNameRepositoryReadTest.class,
     // DAO: technical
     DatabaseSchemaDaoTest.class,
     ExtractionProductDaoWriteTest.class,

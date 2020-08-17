@@ -7,8 +7,13 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.core.model.referential.taxon.TaxonomicLevelId;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
+import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -24,6 +29,9 @@ public class TaxonNameRepositoryImpl
     extends ReferentialRepositoryImpl<TaxonName, TaxonNameVO, TaxonNameFilterVO>
     implements TaxonNameRepositoryExtend {
 
+    private static final Logger log =
+        LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
+
     public TaxonNameRepositoryImpl(EntityManager entityManager) {
         super(TaxonName.class, entityManager);
     }
@@ -31,37 +39,49 @@ public class TaxonNameRepositoryImpl
     @Override
     public List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
 
-        Preconditions.checkNotNull(filter);
-
-        String searchText = Daos.getEscapedSearchText(filter.getSearchText());
-
-        TypedQuery<TaxonName> query = getQuery(toSpecification(filter), TaxonName.class,
-            Pageables.create(offset, size, sortAttribute, sortDirection));
-
-        Parameter<String> searchTextParam = query.getParameter(ReferentialSpecifications.SEARCH_TEXT_PARAMETER, String.class);
-        if (searchTextParam != null) {
-            query.setParameter(searchTextParam, searchText);
-        }
-
-        return query.getResultStream()
-            .distinct()
-            .map(this::toVO)
-            .collect(Collectors.toList());
+        return findByFilter(filter, Pageables.create(offset, size, sortAttribute, sortDirection));
     }
 
     @Override
     public List<TaxonNameVO> getAll(boolean withSynonyms) {
-        return null;
+
+        return findByFilter(
+            TaxonNameFilterVO.taxonNameBuilder()
+                .withSynonyms(withSynonyms)
+                .levelIds(new Integer[]{TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId()})
+                .build(),
+            Pageable.unpaged()
+        );
+
     }
 
     @Override
     public TaxonNameVO getTaxonNameReferent(Integer referenceTaxonId) {
-        return null;
+
+        List<TaxonNameVO> taxonNames = findByFilter(
+            TaxonNameFilterVO.taxonNameBuilder()
+                .referenceTaxonId(referenceTaxonId)
+                .withSynonyms(false)
+                .build(),
+            Pageable.unpaged()
+        );
+        if (CollectionUtils.isEmpty(taxonNames)) return null;
+        if (taxonNames.size() > 1) {
+            log.warn(String.format("ReferenceTaxon {id=%s} has more than one TaxonNames, with IS_REFERENT=1. Will use the first found.", referenceTaxonId));
+        }
+        return taxonNames.get(0);
     }
 
     @Override
     public List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId) {
-        return null;
+
+        return findByFilter(
+            TaxonNameFilterVO.taxonNameBuilder()
+                .levelIds(new Integer[]{TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId()})
+                .taxonGroupId(taxonGroupId)
+                .build(),
+            Pageable.unpaged()
+        );
     }
 
     @Override
@@ -72,8 +92,33 @@ public class TaxonNameRepositoryImpl
             .where(withTaxonGroupId(filter.getTaxonGroupId()))
             .and(withTaxonGroupIds(filter.getTaxonGroupIds()))
             .and(withSynonyms(filter.getWithSynonyms()))
+            .and(withReferenceTaxonId(filter.getReferenceTaxonId()))
             .and(searchOrJoinSearchText(filter))
             .and(inLevelIds(TaxonName.Fields.TAXONOMIC_LEVEL, filter.getLevelIds()))
             .and(inStatusIds(filter.getStatusIds()));
+    }
+
+    @Override
+    public Class<TaxonNameVO> getVOClass() {
+        return TaxonNameVO.class;
+    }
+
+    protected List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, Pageable pageable) {
+
+        Preconditions.checkNotNull(filter);
+
+        String searchText = Daos.getEscapedSearchText(filter.getSearchText());
+
+        TypedQuery<TaxonName> query = getQuery(toSpecification(filter), TaxonName.class, pageable);
+
+        Parameter<String> searchTextParam = query.getParameter(ReferentialSpecifications.SEARCH_TEXT_PARAMETER, String.class);
+        if (searchTextParam != null) {
+            query.setParameter(searchTextParam, searchText);
+        }
+
+        return query.getResultStream()
+            .distinct()
+            .map(this::toVO)
+            .collect(Collectors.toList());
     }
 }

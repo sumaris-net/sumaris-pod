@@ -15,7 +15,7 @@ public interface TaxonNameRepository extends
     ReferentialRepository<TaxonName, TaxonNameVO, TaxonNameFilterVO>,
     TaxonNameRepositoryExtend {
 
-    List<TaxonName> getAllTaxonNameByParentTaxonNameId(Collection<Integer> parentIds);
+    List<TaxonName> getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(Collection<Integer> parentIds);
 
 
 }

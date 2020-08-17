@@ -74,7 +74,7 @@ public class TaxonGroupRepositoryImpl
         LoggerFactory.getLogger(TaxonGroupRepositoryImpl.class);
 
     @Autowired
-    private TaxonNameDao taxonNameDao;
+    private TaxonNameRepository taxonNameRepository;
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -227,8 +227,8 @@ public class TaxonGroupRepositoryImpl
                         insertCounter.increment();
                     }
 
-                    TaxonNameVO parent = taxonNameDao.getTaxonNameReferent(childId);
-                    List<TaxonName> children = taxonNameDao.getAllTaxonNameByParentIds(ImmutableList.of(parent.getId()));
+                    TaxonNameVO parent = taxonNameRepository.getTaxonNameReferent(childId);
+                    List<TaxonName> children = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(ImmutableList.of(parent.getId()));
                     while (CollectionUtils.isNotEmpty(children)) {
                         children.forEach(child -> {
                             Integer inheritedChildId = child.getReferenceTaxon().getId();
@@ -243,7 +243,7 @@ public class TaxonGroupRepositoryImpl
                                 insertCounter.increment();
                             }
                         });
-                        children = taxonNameDao.getAllTaxonNameByParentIds(
+                        children = taxonNameRepository.getAllTaxonNameByParentTaxonNameIdInAndIsReferentTrue(
                             children.stream()
                                 .map(TaxonName::getId)
                                 .collect(Collectors.toList()));

@@ -37,17 +37,18 @@ public class TaxonNameFilterVO extends ReferentialFilterVO {
 
     private Integer taxonGroupId;
     private Integer[] taxonGroupIds;
-
     private Boolean withSynonyms;
+    private Integer referenceTaxonId;
 
     @Builder(builderMethodName = "taxonNameBuilder")
     public TaxonNameFilterVO(String label, String name,
                              Integer[] statusIds, Integer levelId, Integer[] levelIds,
                              String searchJoin, String searchText, String searchAttribute,
-                             Integer taxonGroupId, Integer[] taxonGroupIds, Boolean withSynonyms) {
+                             Integer taxonGroupId, Integer[] taxonGroupIds, Boolean withSynonyms, Integer referenceTaxonId) {
         super(label, name, statusIds, levelId, levelIds, searchJoin, searchText, searchAttribute);
         this.taxonGroupId = taxonGroupId;
         this.taxonGroupIds = taxonGroupIds;
         this.withSynonyms = withSynonyms;
+        this.referenceTaxonId = referenceTaxonId;
     }
 }

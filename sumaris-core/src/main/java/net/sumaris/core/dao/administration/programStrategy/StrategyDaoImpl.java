@@ -25,9 +25,12 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
+import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.administration.programStrategy.*;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ReferenceTaxonStrategy;
+import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -69,7 +72,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
     private ReferentialDao referentialDao;
 
     @Autowired
-    private TaxonNameDao taxonNameDao;
+    private TaxonNameRepository taxonNameRepository;
 
     @Autowired
     private PmfmStrategyRepository pmfmStrategyRepository;
@@ -347,7 +350,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                     target.setPriorityLevel(item.getPriorityLevel());
 
                     // Taxon name
-                    target.setTaxonName(taxonNameDao.getTaxonNameReferent(item.getReferenceTaxon().getId()));
+                    target.setTaxonName(taxonNameRepository.getTaxonNameReferent(item.getReferenceTaxon().getId()));
                     return target;
                 })
                 .collect(Collectors.toList());

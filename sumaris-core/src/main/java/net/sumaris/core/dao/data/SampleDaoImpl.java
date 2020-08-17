@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
+import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.Matrix;
@@ -74,7 +74,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
     private ReferentialDao referentialDao;
 
     @Autowired
-    private TaxonNameDao taxonNameDao;
+    private TaxonNameRepository taxonNameRepository;
 
     @Autowired
     private PersonDao personDao;
@@ -413,7 +413,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
         // Taxon name (from reference)
         if (source.getReferenceTaxon() != null) {
-            TaxonNameVO taxonName = taxonNameDao.getTaxonNameReferent(source.getReferenceTaxon().getId());
+            TaxonNameVO taxonName = taxonNameRepository.getTaxonNameReferent(source.getReferenceTaxon().getId());
             target.setTaxonName(taxonName);
         }
 
