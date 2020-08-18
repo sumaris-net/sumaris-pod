@@ -67,5 +67,6 @@
     <SOFTWARE_PROPERTY ID="80" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.locationLevel.country" NAME="21"/>
     <SOFTWARE_PROPERTY ID="81" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.locationLevel.port" NAME="6"/>
     <SOFTWARE_PROPERTY ID="82" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.locationLevel.sea_area" NAME="7"/>
+    <SOFTWARE_PROPERTY ID="83" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.android.install.url" NAME="./download/android/sumaris-app-latest.apk"/>
 
 </dataset>
