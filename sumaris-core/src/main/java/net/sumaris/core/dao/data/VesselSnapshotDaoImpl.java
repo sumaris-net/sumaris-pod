@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.Vessel;
@@ -64,7 +64,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
     private static final Logger log = LoggerFactory.getLogger(VesselSnapshotDaoImpl.class);
 
     @Autowired
-    private LocationDao locationDao;
+    private LocationRepository locationRepository;
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -243,7 +243,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
         target.setVesselType(vesselType);
 
         // base port location
-        LocationVO basePortLocation = locationDao.toLocationVO(features.getBasePortLocation());
+        LocationVO basePortLocation = locationRepository.toVO(features.getBasePortLocation());
         target.setBasePortLocation(basePortLocation);
 
         // Recorder department
@@ -257,7 +257,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
             // Registration code
             target.setRegistrationCode(period.getRegistrationCode());
             // Registration location
-            LocationVO registrationLocation = locationDao.toLocationVO(period.getRegistrationLocation());
+            LocationVO registrationLocation = locationRepository.toVO(period.getRegistrationLocation());
             target.setRegistrationLocation(registrationLocation);
         }
 

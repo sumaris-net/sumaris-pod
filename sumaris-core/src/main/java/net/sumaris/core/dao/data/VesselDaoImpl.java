@@ -28,7 +28,7 @@ import lombok.Data;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.QualityFlagEnum;
@@ -75,7 +75,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     private static final Logger log = LoggerFactory.getLogger(VesselDaoImpl.class);
 
     @Autowired
-    private LocationDao locationDao;
+    private LocationRepository locationRepository;
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -482,7 +482,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // base port location
-        LocationVO basePortLocation = locationDao.toLocationVO(source.getBasePortLocation());
+        LocationVO basePortLocation = locationRepository.toVO(source.getBasePortLocation());
         target.setBasePortLocation(basePortLocation);
 
         // Recorder department
@@ -501,7 +501,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         Beans.copyProperties(source, target);
 
         // Registration location
-        LocationVO registrationLocation = locationDao.toLocationVO(source.getRegistrationLocation());
+        LocationVO registrationLocation = locationRepository.toVO(source.getRegistrationLocation());
         target.setRegistrationLocation(registrationLocation);
 
         return target;

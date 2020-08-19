@@ -2,9 +2,6 @@ package net.sumaris.core.dao.referential.taxon;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
-import net.sumaris.core.dao.referential.ReferentialSpecifications;
-import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevelId;
@@ -17,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Parameter;
 import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,8 +34,8 @@ public class TaxonNameRepositoryImpl
 
     @Override
     public List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-
-        return findByFilter(filter, Pageables.create(offset, size, sortAttribute, sortDirection));
+        return findAll(filter, offset, size, sortAttribute, sortDirection, null).getContent();
+//        return findByFilter(filter, Pageables.create(offset, size, sortAttribute, sortDirection));
     }
 
     @Override
@@ -86,16 +82,13 @@ public class TaxonNameRepositoryImpl
 
     @Override
     public Specification<TaxonName> toSpecification(TaxonNameFilterVO filter) {
-        Preconditions.checkNotNull(filter);
 
-        return Specification
-            .where(withTaxonGroupId(filter.getTaxonGroupId()))
+        return super.toSpecification(filter)
+            .and(withTaxonGroupId(filter.getTaxonGroupId()))
             .and(withTaxonGroupIds(filter.getTaxonGroupIds()))
             .and(withSynonyms(filter.getWithSynonyms()))
             .and(withReferenceTaxonId(filter.getReferenceTaxonId()))
-            .and(searchOrJoinSearchText(filter))
-            .and(inLevelIds(TaxonName.Fields.TAXONOMIC_LEVEL, filter.getLevelIds()))
-            .and(inStatusIds(filter.getStatusIds()));
+            .and(inLevelIds(TaxonName.Fields.TAXONOMIC_LEVEL, filter));
     }
 
     @Override
@@ -107,14 +100,7 @@ public class TaxonNameRepositoryImpl
 
         Preconditions.checkNotNull(filter);
 
-        String searchText = Daos.getEscapedSearchText(filter.getSearchText());
-
         TypedQuery<TaxonName> query = getQuery(toSpecification(filter), TaxonName.class, pageable);
-
-        Parameter<String> searchTextParam = query.getParameter(ReferentialSpecifications.SEARCH_TEXT_PARAMETER, String.class);
-        if (searchTextParam != null) {
-            query.setParameter(searchTextParam, searchText);
-        }
 
         return query.getResultStream()
             .distinct()

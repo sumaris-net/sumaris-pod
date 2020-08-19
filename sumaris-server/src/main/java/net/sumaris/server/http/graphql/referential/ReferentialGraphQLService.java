@@ -39,8 +39,6 @@ import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.server.http.security.IsAdmin;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

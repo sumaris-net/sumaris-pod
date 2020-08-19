@@ -25,7 +25,8 @@ package net.sumaris.core;
  */
 
 import net.sumaris.core.dao.data.*;
-import net.sumaris.core.dao.referential.LocationWriteTest;
+import net.sumaris.core.dao.referential.LocationRepositoryReadTest;
+import net.sumaris.core.dao.referential.LocationRepositoryWriteTest;
 import net.sumaris.core.dao.referential.TaxonGroupRepositoryWriteTest;
 import net.sumaris.core.dao.referential.TaxonNameRepositoryReadTest;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductDaoWriteTest;
@@ -60,7 +61,8 @@ import org.junit.runners.Suite;
     VesselDaoImplReadTest.class,
     VesselSnapshotDaoImplReadTest.class,
     // DAO: referential
-    LocationWriteTest.class,
+    LocationRepositoryReadTest.class,
+    LocationRepositoryWriteTest.class,
     TaxonGroupRepositoryWriteTest.class,
     TaxonNameRepositoryReadTest.class,
     // DAO: technical

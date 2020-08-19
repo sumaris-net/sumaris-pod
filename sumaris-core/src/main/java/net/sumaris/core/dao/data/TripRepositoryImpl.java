@@ -23,11 +23,10 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.QualityFlagEnum;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.data.DataFetchOptions;
@@ -41,7 +40,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
-import java.util.Date;
 
 public class TripRepositoryImpl
     extends RootDataRepositoryImpl<Trip, Integer, TripVO, TripFilterVO>
@@ -50,12 +48,12 @@ public class TripRepositoryImpl
     private static final Logger log =
         LoggerFactory.getLogger(TripRepositoryImpl.class);
 
-    private final LocationDao locationDao;
+    private final LocationRepository locationRepository;
 
     @Autowired
-    public TripRepositoryImpl(EntityManager entityManager, LocationDao locationDao) {
+    public TripRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository) {
         super(Trip.class, entityManager);
-        this.locationDao = locationDao;
+        this.locationRepository = locationRepository;
     }
 
     @Override
@@ -80,8 +78,8 @@ public class TripRepositoryImpl
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Departure & return locations
-        target.setDepartureLocation(locationDao.toLocationVO(source.getDepartureLocation()));
-        target.setReturnLocation(locationDao.toLocationVO(source.getReturnLocation()));
+        target.setDepartureLocation(locationRepository.toVO(source.getDepartureLocation()));
+        target.setReturnLocation(locationRepository.toVO(source.getReturnLocation()));
 
 
         // Parent link

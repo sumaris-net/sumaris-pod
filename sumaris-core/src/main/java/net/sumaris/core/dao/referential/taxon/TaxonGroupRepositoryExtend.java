@@ -42,7 +42,7 @@ import java.util.List;
 
 @NoRepositoryBean
 public interface TaxonGroupRepositoryExtend
-    extends ReferentialSpecifications {
+    extends ReferentialSpecifications<TaxonGroup> {
 
     default Specification<TaxonGroup> hasType(Integer taxonGroupTypeId) {
         if (taxonGroupTypeId == null) return null;

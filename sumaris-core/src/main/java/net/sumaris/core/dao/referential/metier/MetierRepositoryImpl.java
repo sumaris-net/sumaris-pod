@@ -29,6 +29,7 @@ import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
@@ -146,12 +147,8 @@ public class MetierRepositoryImpl
     @Override
     public Specification<Metier> toSpecification(ReferentialFilterVO filter) {
 
-        Integer[] levelIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} : filter.getLevelIds();
-
-        return Specification
-                .where(inGearIds(levelIds))
-                .and(inStatusIds(filter.getStatusIds()))
-                .and(searchOrJoinSearchText(filter))
+        return super.toSpecification(filter)
+                .and(inLevelIds(Metier.Fields.GEAR, filter))
                 .and(alreadyPracticedMetier(filter));
     }
 
@@ -171,7 +168,7 @@ public class MetierRepositoryImpl
         TypedQuery<Metier> query = getQuery(toSpecification(filter), Metier.class, pageable);
 
         // Bind search text parameter
-        setParameterIfExists(query, SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(filter.getSearchText()));
+        BindableSpecification.setParameterIfExists(query, SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(filter.getSearchText()));
 
         // Bind metiers parameters
         if (filter instanceof MetierFilterVO){

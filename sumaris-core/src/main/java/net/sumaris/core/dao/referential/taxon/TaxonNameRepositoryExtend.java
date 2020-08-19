@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * @author peck7 on 31/07/2020.
  */
-public interface TaxonNameRepositoryExtend extends ReferentialSpecifications {
+public interface TaxonNameRepositoryExtend extends ReferentialSpecifications<TaxonName> {
 
     default Specification<TaxonName> withReferenceTaxonId(Integer referentTaxonId) {
         if (referentTaxonId == null) return null;

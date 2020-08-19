@@ -26,9 +26,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.querydsl.jpa.impl.JPAQuery;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.Pageables;
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
@@ -42,8 +39,6 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
@@ -58,7 +53,6 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -304,7 +298,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return result;
     }
 
-    protected <E, T extends Object> TypedQuery<E> setParameterIfExists(TypedQuery<E> query, String parameterName, T value) {
+    @Deprecated
+    protected <T> TypedQuery<E> setParameterIfExists(TypedQuery<E> query, String parameterName, T value) {
         try {
             Parameter<T> parameter = (Parameter<T>) query.getParameter(parameterName, Object.class);
             if (parameter != null) query.setParameter(parameter, value);
@@ -315,4 +310,15 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return query;
     }
 
+    @Override
+    protected <S extends E> TypedQuery<S> getQuery(Specification<S> spec, Class<S> domainClass, Sort sort) {
+        TypedQuery<S> query = super.getQuery(spec, domainClass, sort);
+
+        if (spec instanceof BindableSpecification) {
+            BindableSpecification<S> specificationWithParameters = (BindableSpecification<S>) spec;
+            specificationWithParameters.getBindings().forEach(binding -> binding.accept(query));
+        }
+
+        return query;
+    }
 }

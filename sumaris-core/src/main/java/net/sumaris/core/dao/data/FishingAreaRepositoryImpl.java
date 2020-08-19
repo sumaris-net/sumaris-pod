@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data;
 
 
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.data.FishingArea;
 import net.sumaris.core.model.data.Operation;
@@ -55,7 +55,7 @@ public class FishingAreaRepositoryImpl
     private static final Logger log =
         LoggerFactory.getLogger(FishingAreaRepositoryImpl.class);
 
-    private final LocationDao locationDao;
+    private final LocationRepository locationRepository;
     private final ReferentialDao referentialDao;
 
     @Autowired
@@ -63,9 +63,9 @@ public class FishingAreaRepositoryImpl
     private FishingAreaRepository loopBack;
 
     @Autowired
-    public FishingAreaRepositoryImpl(EntityManager entityManager, LocationDao locationDao, ReferentialDao referentialDao) {
+    public FishingAreaRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository, ReferentialDao referentialDao) {
         super(FishingArea.class, entityManager);
-        this.locationDao = locationDao;
+        this.locationRepository = locationRepository;
         this.referentialDao = referentialDao;
     }
 
@@ -78,7 +78,7 @@ public class FishingAreaRepositoryImpl
     public void toVO(FishingArea source, FishingAreaVO target, boolean copyIfNull) {
         super.toVO(source, target, copyIfNull);
 
-        target.setLocation(locationDao.toLocationVO(source.getLocation()));
+        target.setLocation(locationRepository.toVO(source.getLocation()));
 
         if (source.getDistanceToCoastGradient() != null)
             target.setDistanceToCoastGradient(referentialDao.toReferentialVO(source.getDistanceToCoastGradient()));

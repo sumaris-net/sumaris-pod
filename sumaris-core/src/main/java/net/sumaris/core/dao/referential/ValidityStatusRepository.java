@@ -23,11 +23,12 @@ package net.sumaris.core.dao.referential;
  */
 
 import net.sumaris.core.model.referential.ValidityStatus;
-import net.sumaris.core.model.referential.location.LocationArea;
+import net.sumaris.core.model.referential.ValidityStatusEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-@Repository("validityStatusDao")
-public interface ValidityStatusDao extends JpaRepository<ValidityStatus, Integer> {
+public interface ValidityStatusRepository extends JpaRepository<ValidityStatus, Integer> {
 
+    default ValidityStatus getValidStatus() {
+        return getOne(ValidityStatusEnum.VALID.getId());
+    }
 }

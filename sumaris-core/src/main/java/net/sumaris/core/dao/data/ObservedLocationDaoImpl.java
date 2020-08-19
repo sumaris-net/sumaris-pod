@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
-import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -64,7 +64,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
             LoggerFactory.getLogger(ObservedLocationDaoImpl.class);
 
     @Autowired
-    private LocationDao locationDao;
+    private LocationRepository locationRepository;
 
     @Autowired
     private PersonDao personDao;
@@ -80,7 +80,6 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<ObservedLocationVO> getAll(int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
@@ -423,7 +422,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
         target.setQualityFlagId(source.getQualityFlag().getId());
 
         // Location
-        target.setLocation(locationDao.toLocationVO(source.getLocation()));
+        target.setLocation(locationRepository.toVO(source.getLocation()));
 
         // Recorder department
         if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) {

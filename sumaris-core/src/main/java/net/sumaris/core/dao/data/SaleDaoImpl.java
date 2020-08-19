@@ -25,7 +25,7 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
@@ -63,7 +63,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
             LoggerFactory.getLogger(SaleDaoImpl.class);
 
     @Autowired
-    private LocationDao locationDao;
+    private LocationRepository locationRepository;
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -200,7 +200,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
         Beans.copyProperties(source, target);
 
         // Sale location
-        target.setSaleLocation(locationDao.toLocationVO(source.getSaleLocation()));
+        target.setSaleLocation(locationRepository.toVO(source.getSaleLocation()));
 
         // Sale type
         ReferentialVO saleType = referentialDao.toReferentialVO(source.getSaleType());

@@ -146,6 +146,11 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
         // with taxonomic level (species and subspecies)
         assertFilterResult(TaxonNameFilterVO.taxonNameBuilder()
             .levelIds(new Integer[]{TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId()}).build(), 23);
+        // with label search
+        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().searchText("raja").build(), 13);
+        // with exact label
+        assertFilterResult(TaxonNameFilterVO.taxonNameBuilder().label("STT").build(), 1);
+
     }
 
     private void assertFilterResult(TaxonNameFilterVO filter, int expectedSize) {

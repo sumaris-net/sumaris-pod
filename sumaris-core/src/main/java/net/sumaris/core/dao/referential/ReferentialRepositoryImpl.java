@@ -27,11 +27,14 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +45,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import java.io.Serializable;
+import javax.persistence.EntityNotFoundException;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -55,9 +58,9 @@ import java.util.stream.Collectors;
  * @author peck7 on 03/04/2020.
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends Serializable>
+public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends ReferentialFilterVO>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
-    implements ReferentialRepository<E, V, F>, ReferentialSpecifications {
+    implements ReferentialRepository<E, V, F>, ReferentialSpecifications<E> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
 
@@ -153,6 +156,29 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
     }
 
     @Override
+    public V getByLabel(String label) {
+        V result = findByLabel(label);
+        if (result == null)
+            throw new EntityNotFoundException();
+        return result;
+    }
+
+    @Override
+    public V findByLabel(String label) {
+
+        @SuppressWarnings("unchecked") List<V> result = findAll((F) ReferentialFilterVO.builder().label(label).build());
+        if (CollectionUtils.isEmpty(result)) {
+            return null;
+        } else {
+            if (result.size() > 1) {
+                LOG.warn("findByLabel returns more than 1 result. Returning the first one");
+            }
+            return result.get(0);
+        }
+
+    }
+
+    @Override
     public V save(V vo) {
         E entity = toEntity(vo);
 
@@ -186,6 +212,7 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
             vo.setCreationDate(savedEntity.getCreationDate());
     }
 
+    @Override
     public E toEntity(V vo) {
         Preconditions.checkNotNull(vo);
         E entity;
@@ -207,6 +234,7 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
         return entity;
     }
 
+    @Override
     public void toEntity(V source, E target, boolean copyIfNull) {
         // copy properties
         super.toEntity(source, target, copyIfNull);
@@ -226,20 +254,22 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
 
     }
 
+    @Override
     public V toVO(E source) {
         return toVO(source, null);
     }
 
-    public V toVO(E source, DataFetchOptions fetchOptions) {
+    protected V toVO(E source, DataFetchOptions fetchOptions) {
         V target = createVO();
         toVO(source, target, fetchOptions, true);
         return target;
     }
 
-    public void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    protected void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
     }
 
+    @Override
     public V createVO() {
         try {
             return getVOClass().newInstance();
@@ -254,7 +284,11 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
 
     @Override
     public Specification<E> toSpecification(F filter) {
-        throw new NotImplementedException("Not implemented yet. Should be override by subclass");
+        // default specification
+        return BindableSpecification
+            .where(inStatusIds(filter))
+            .and(hasLabel(filter.getLabel()))
+            .and(searchOrJoinSearchText(filter));
     }
 
 }

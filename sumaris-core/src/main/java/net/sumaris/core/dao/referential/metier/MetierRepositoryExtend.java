@@ -40,7 +40,7 @@ import java.util.List;
 
 @NoRepositoryBean
 public interface MetierRepositoryExtend
-    extends ReferentialSpecifications {
+    extends ReferentialSpecifications<Metier> {
 
     String PROGRAM_LABEL_PARAMETER = "programLabel";
     String TRIP_ID_PARAMETER = "tripId";

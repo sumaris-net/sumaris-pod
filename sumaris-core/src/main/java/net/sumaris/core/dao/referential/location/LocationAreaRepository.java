@@ -25,7 +25,7 @@ package net.sumaris.core.dao.referential.location;
 import net.sumaris.core.model.referential.location.LocationArea;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface LocationAreaDao extends JpaRepository<LocationArea, Integer> {
+public interface LocationAreaRepository extends JpaRepository<LocationArea, Integer> {
 
 
 }

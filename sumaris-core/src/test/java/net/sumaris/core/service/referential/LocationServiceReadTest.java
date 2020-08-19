@@ -27,12 +27,10 @@ package net.sumaris.core.service.referential;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class LocationServiceReadTest extends AbstractServiceTest {
 
@@ -52,23 +50,5 @@ public class LocationServiceReadTest extends AbstractServiceTest {
 		label = service.getLocationLabelByLatLong(42.27f, 5.4f);
 		assertEquals("M24C2", label);
 	}
-
-	@Test
-	@Ignore("should be run in LocationServiceWriteTest because insertOrUpdateRectangleLocations must be run first")
-	public void getLocationIdByLatLong() {
-		// Check label with a position inside the Atlantic sea
-		Integer locationId = service.getLocationIdByLatLong(47.6f, -5.05f);
-		assertNotNull("Location Id could not found in Allegro DB, in the Atlantic Sea. Bad enumeration value for RECTANGLE_STATISTIQUE ?", locationId);
-		// FIXME: change the ID
-		assertEquals(new Integer(6080), locationId); // =id of location '24E4'
-
-		// Check label with a position inside the Mediterranean sea
-		locationId = service.getLocationIdByLatLong(42.27f, 5.4f);
-		assertNotNull("Location Id could not found in Allegro DB, in the Mediterranean Sea. Bad enumeration value for RECTANGLE_STATISTIQUE_MED ?",
-				locationId);
-		// FIXME: change the ID
-		assertEquals(new Integer(18648), locationId); // =id of location 'M24C2'
-	}
-
 
 }

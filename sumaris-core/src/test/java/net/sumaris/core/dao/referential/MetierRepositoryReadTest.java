@@ -25,14 +25,9 @@ package net.sumaris.core.dao.referential;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
-import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -42,8 +37,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 public class MetierRepositoryReadTest extends AbstractDaoTest{
@@ -76,7 +69,7 @@ public class MetierRepositoryReadTest extends AbstractDaoTest{
 
             List<MetierVO> metiers = metierRepository.findByFilter(filter, 0, 100, null, null);
             Assert.assertNotNull(metiers);
-            Assert.assertTrue(metiers.size() > 0);
+            Assert.assertEquals(1, metiers.size());
         }
 
         // With program
@@ -88,7 +81,7 @@ public class MetierRepositoryReadTest extends AbstractDaoTest{
 
             List<MetierVO> metiers = metierRepository.findByFilter(filter, 0, 100, null, null);
             Assert.assertNotNull(metiers);
-            Assert.assertTrue(metiers.size() > 0);
+            Assert.assertEquals(1, metiers.size());
         }
 
     }

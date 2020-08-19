@@ -24,18 +24,22 @@ package net.sumaris.core.dao.referential;
 
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.referential.location.LocationAreaDao;
-import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.referential.location.LocationAreaRepository;
+import net.sumaris.core.dao.referential.location.LocationLevelRepository;
 import net.sumaris.core.model.referential.location.LocationArea;
+import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.util.Geometries;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
+
 /**
  * @author peck7 on 15/10/2019.
  */
-public class LocationWriteTest extends AbstractDaoTest {
+public class LocationRepositoryWriteTest extends AbstractDaoTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
@@ -48,10 +52,13 @@ public class LocationWriteTest extends AbstractDaoTest {
     }
 
     @Autowired
-    private LocationDao locationDao;
+    private StatusRepository statusRepository;
 
     @Autowired
-    private LocationAreaDao locationAreaDao;
+    private LocationAreaRepository locationAreaRepository;
+
+    @Autowired
+    private LocationLevelRepository locationLevelRepository;
 
     @Test
     public void testGeometry() {
@@ -59,6 +66,17 @@ public class LocationWriteTest extends AbstractDaoTest {
         LocationArea area = new LocationArea();
         area.setId(1); // France
         area.setPosition(Geometries.createPoint(-55,20));
-        locationAreaDao.save(area);
+        locationAreaRepository.save(area);
+    }
+
+    @Test
+    public void saveLocationLevel() {
+        LocationLevel locationLevel = new LocationLevel();
+        locationLevel.setLabel("TEST LABEL");
+        locationLevel.setName("TEST NAME");
+        locationLevel.setCreationDate(new Date());
+        locationLevel.setStatus(statusRepository.getEnableStatus());
+        LocationLevel savedEntity = locationLevelRepository.save(locationLevel);
+        Assert.assertNotNull(savedEntity);
     }
 }

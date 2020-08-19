@@ -27,6 +27,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +37,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.LockModeType;
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -46,12 +46,13 @@ import java.util.List;
 public interface ReferentialRepository<
     E extends IItemReferentialEntity,
     V extends IReferentialVO,
-    F extends Serializable
+    F extends ReferentialFilterVO
     >
     extends SumarisJpaRepository<E, Integer, V> {
 
     List<V> findAll(@Nullable F filter);
 
+    // TODO: find usage of Page ??
     Page<V> findAll(@Nullable F filter, Pageable pageable);
 
     List<V> findAll(@Nullable F filter, @Nullable DataFetchOptions fetchOptions);
@@ -73,6 +74,10 @@ public interface ReferentialRepository<
     V get(int id);
 
     V get(int id, DataFetchOptions fetchOptions);
+
+    V getByLabel(String label);
+
+    V findByLabel(String label);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     V save(V vo);

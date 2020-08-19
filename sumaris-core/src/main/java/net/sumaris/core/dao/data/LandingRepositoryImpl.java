@@ -22,7 +22,7 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.Trip;
@@ -51,12 +51,12 @@ public class LandingRepositoryImpl
     private static final Logger log =
         LoggerFactory.getLogger(LandingRepositoryImpl.class);
 
-    private final LocationDao locationDao;
+    private final LocationRepository locationRepository;
 
     @Autowired
-    public LandingRepositoryImpl(EntityManager entityManager, LocationDao locationDao) {
+    public LandingRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository) {
         super(Landing.class, entityManager);
-        this.locationDao = locationDao;
+        this.locationRepository = locationRepository;
     }
 
     @Override
@@ -117,7 +117,7 @@ public class LandingRepositoryImpl
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // location
-        target.setLocation(locationDao.toLocationVO(source.getLocation()));
+        target.setLocation(locationRepository.toVO(source.getLocation()));
 
         // Parent link
         if (source.getObservedLocation() != null) {

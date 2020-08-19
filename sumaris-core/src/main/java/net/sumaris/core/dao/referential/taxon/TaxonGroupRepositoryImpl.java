@@ -28,9 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
-import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.referential.pmfm.PmfmDao;
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -58,7 +56,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
-import javax.persistence.Parameter;
 import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
@@ -96,15 +93,8 @@ public class TaxonGroupRepositoryImpl
 
         Preconditions.checkNotNull(filter);
 
-        String searchText = Daos.getEscapedSearchText(filter.getSearchText());
-
         TypedQuery<TaxonGroup> query = getQuery(toSpecification(filter), TaxonGroup.class,
-                Pageables.create(offset, size, sortAttribute, sortDirection));
-
-        Parameter<String> searchTextParam = query.getParameter(ReferentialSpecifications.SEARCH_TEXT_PARAMETER, String.class);
-        if (searchTextParam != null) {
-            query.setParameter(searchTextParam, searchText);
-        }
+            Pageables.create(offset, size, sortAttribute, sortDirection));
 
         return query.getResultStream()
             .distinct()
@@ -345,13 +335,13 @@ public class TaxonGroupRepositoryImpl
 
     @Override
     public Specification<TaxonGroup> toSpecification(ReferentialFilterVO filter) {
+        Preconditions.checkNotNull(filter);
+        Integer[] gearIds = filter.getLevelId() != null
+            ? new Integer[]{filter.getLevelId()}
+            : filter.getLevelIds();
 
-        Integer[] gearIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} :
-            filter.getLevelIds();
-
-        return Specification.where(hasType(TaxonGroupTypeId.METIER_SPECIES.getId()))
-            .and(searchText(filter.getSearchAttribute(), ReferentialSpecifications.SEARCH_TEXT_PARAMETER))
-            .and(inStatusIds(filter.getStatusIds()))
+        return super.toSpecification(filter)
+            .and(hasType(TaxonGroupTypeId.METIER_SPECIES.getId()))
             .and(inGearIds(gearIds));
 
     }
