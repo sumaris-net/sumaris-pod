@@ -2,6 +2,7 @@ package net.sumaris.core.dao.referential.taxon;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevelId;
@@ -34,8 +35,7 @@ public class TaxonNameRepositoryImpl
 
     @Override
     public List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        return findAll(filter, offset, size, sortAttribute, sortDirection, null).getContent();
-//        return findByFilter(filter, Pageables.create(offset, size, sortAttribute, sortDirection));
+        return findByFilter(filter, Pageables.create(offset, size, sortAttribute, sortDirection));
     }
 
     @Override
