@@ -68,7 +68,7 @@ public class PmfmStrategyRepositoryImpl
 
 
     private int unitIdNone;
-    private Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
+    private final Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -206,7 +206,7 @@ public class PmfmStrategyRepositoryImpl
         target.setType(type.name().toLowerCase());
 
         // Unit symbol
-        if (pmfm.getUnit() != null && pmfm.getUnit().getId().intValue() != unitIdNone) {
+        if (pmfm.getUnit() != null && pmfm.getUnit().getId() != unitIdNone) {
             target.setUnitLabel(pmfm.getUnit().getLabel());
         }
 

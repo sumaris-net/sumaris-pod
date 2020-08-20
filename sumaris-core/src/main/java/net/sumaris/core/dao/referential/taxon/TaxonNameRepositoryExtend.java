@@ -22,6 +22,8 @@ import java.util.List;
  */
 public interface TaxonNameRepositoryExtend extends ReferentialSpecifications<TaxonName> {
 
+    // TODO use BindableSpecification
+
     default Specification<TaxonName> withReferenceTaxonId(Integer referentTaxonId) {
         if (referentTaxonId == null) return null;
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(TaxonName.Fields.REFERENCE_TAXON).get(ReferenceTaxon.Fields.ID), referentTaxonId);

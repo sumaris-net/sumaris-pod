@@ -154,7 +154,7 @@ public class MetierRepositoryImpl
         if (!(filter instanceof MetierFilterVO)) return null;
         MetierFilterVO metierFilter = (MetierFilterVO) filter;
 
-        return alreadyPraticedMetier(metierFilter.getVesselId());
+        return alreadyPracticedMetier(metierFilter.getVesselId());
     }
 
     private TypedQuery<Metier> createQueryByFilter(ReferentialFilterVO filter, Pageable pageable) {
@@ -173,10 +173,10 @@ public class MetierRepositoryImpl
             final Date endDate = metierFilter.getDate() != null ? metierFilter.getDate() : new Date();
             final Date startDate = Dates.removeMonth(endDate, 12); // TODO: get it from a config option
 
-            setParameterIfExists(query, START_DATE_PARAMETER, startDate);
-            setParameterIfExists(query, END_DATE_PARAMETER, endDate);
-            setParameterIfExists(query, PROGRAM_LABEL_PARAMETER, metierFilter.getProgramLabel());
-            setParameterIfExists(query, TRIP_ID_PARAMETER, metierFilter.getTripId());
+            BindableSpecification.setParameterIfExists(query, START_DATE_PARAMETER, startDate);
+            BindableSpecification.setParameterIfExists(query, END_DATE_PARAMETER, endDate);
+            BindableSpecification.setParameterIfExists(query, PROGRAM_LABEL_PARAMETER, metierFilter.getProgramLabel());
+            BindableSpecification.setParameterIfExists(query, TRIP_ID_PARAMETER, metierFilter.getTripId());
         }
 
         return query;

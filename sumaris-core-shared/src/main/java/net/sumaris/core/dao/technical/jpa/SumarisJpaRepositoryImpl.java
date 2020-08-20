@@ -46,7 +46,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
-import javax.persistence.Parameter;
 import javax.persistence.TypedQuery;
 import javax.sql.DataSource;
 import java.io.Serializable;
@@ -75,7 +74,6 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     protected SumarisJpaRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         this(domainClass, null, entityManager);
-
     }
 
     protected SumarisJpaRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
@@ -296,18 +294,6 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             }
         }
         return result;
-    }
-
-    @Deprecated
-    protected <T> TypedQuery<E> setParameterIfExists(TypedQuery<E> query, String parameterName, T value) {
-        try {
-            Parameter<T> parameter = (Parameter<T>) query.getParameter(parameterName, Object.class);
-            if (parameter != null) query.setParameter(parameter, value);
-        }
-        catch(IllegalArgumentException iae) {
-            // Not found
-        }
-        return query;
     }
 
     @Override

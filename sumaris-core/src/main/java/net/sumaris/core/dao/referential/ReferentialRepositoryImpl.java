@@ -34,6 +34,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -244,7 +245,7 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
 
         // Validity status
         if (target instanceof IWithValidityStatusEntity) {
-            Integer validityStatusId = Beans.getProperty(source, "validityStatusId");
+            Integer validityStatusId = Beans.getProperty(source, ReferentialVO.Fields.VALIDITY_STATUS_ID);
             if (copyIfNull || validityStatusId != null) {
                 Daos.setEntityProperty(getEntityManager(), target, IWithValidityStatusEntity.Fields.VALIDITY_STATUS, ValidityStatus.class, validityStatusId);
             }

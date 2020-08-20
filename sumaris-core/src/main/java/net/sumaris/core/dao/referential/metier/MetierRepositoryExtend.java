@@ -53,7 +53,7 @@ public interface MetierRepositoryExtend
         return inLevelIds(Metier.Fields.GEAR, gearIds);
     }
 
-    default Specification<Metier> alreadyPraticedMetier(Integer vesselId) {
+    default Specification<Metier> alreadyPracticedMetier(Integer vesselId) {
 
         if (vesselId == null) return null;
 
