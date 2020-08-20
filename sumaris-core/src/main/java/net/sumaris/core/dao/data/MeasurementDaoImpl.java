@@ -28,7 +28,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.pmfm.PmfmDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -124,7 +124,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     private ReferentialDao referentialDao;
 
     @Autowired
-    private PmfmDao pmfmDao;
+    private PmfmRepository pmfmRepository;
 
 
     @Override
@@ -843,7 +843,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
             throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to set value NULL value on a measurement");
         }
 
-        PmfmVO pmfm = pmfmDao.get(pmfmId);
+        PmfmVO pmfm = pmfmRepository.get(pmfmId);
         if (pmfm == null) {
             throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to find pmfm with id=" + pmfmId);
         }
@@ -883,7 +883,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         Preconditions.checkNotNull(source.getPmfm());
         Preconditions.checkNotNull(source.getPmfm().getId());
 
-        PmfmVO pmfm = pmfmDao.get(source.getPmfm().getId());
+        PmfmVO pmfm = pmfmRepository.get(source.getPmfm().getId());
 
         Preconditions.checkNotNull(pmfm, "Unable to find Pmfm with id=" + source.getPmfm().getId());
 

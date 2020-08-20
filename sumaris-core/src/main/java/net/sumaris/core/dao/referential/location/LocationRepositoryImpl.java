@@ -34,12 +34,7 @@ public class LocationRepositoryImpl
     protected SumarisConfiguration config;
 
     public LocationRepositoryImpl(EntityManager entityManager) {
-        super(Location.class, entityManager);
-    }
-
-    @Override
-    public Class<LocationVO> getVOClass() {
-        return LocationVO.class;
+        super(Location.class, LocationVO.class, entityManager);
     }
 
     @Override

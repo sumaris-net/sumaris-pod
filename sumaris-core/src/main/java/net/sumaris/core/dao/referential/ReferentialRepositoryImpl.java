@@ -31,11 +31,10 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -49,6 +48,7 @@ import javax.persistence.EntityNotFoundException;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -66,8 +66,8 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
 
     private boolean checkUpdateDate = true;
 
-    public ReferentialRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
-        super(domainClass, entityManager);
+    public ReferentialRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
+        super(domainClass, voClass, entityManager);
     }
 
     public boolean isCheckUpdateDate() {
@@ -90,26 +90,26 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
     }
 
     @Override
-    public List<V> findAll(F filter, DataFetchOptions fetchOptions) {
+    public List<V> findAll(F filter, ReferentialFetchOptions fetchOptions) {
         return findAll(toSpecification(filter)).stream()
             .map(e -> this.toVO(e, fetchOptions))
             .collect(Collectors.toList());
     }
 
     @Override
-    public Page<V> findAll(F filter, Pageable pageable, DataFetchOptions fetchOptions) {
+    public Page<V> findAll(F filter, Pageable pageable, ReferentialFetchOptions fetchOptions) {
         return findAll(toSpecification(filter), pageable)
             .map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
-    public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
+    public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, ReferentialFetchOptions fetchOptions) {
         return findAll(PageRequest.of(offset / size, size, Sort.Direction.fromString(sortDirection.toString()), sortAttribute))
             .map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
-    public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
+    public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, ReferentialFetchOptions fetchOptions) {
         return findAll(toSpecification(filter), Pageables.create(offset, size, sortAttribute, sortDirection))
             .map(e -> this.toVO(e, fetchOptions));
     }
@@ -128,14 +128,14 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
     }
 
     @Override
-    public List<V> findAllAsVO(Specification<E> spec, DataFetchOptions fetchOptions) {
+    public List<V> findAllAsVO(Specification<E> spec, ReferentialFetchOptions fetchOptions) {
         return super.findAll(spec).stream()
             .map(e -> this.toVO(e, fetchOptions))
             .collect(Collectors.toList());
     }
 
     @Override
-    public Page<V> findAllAsVO(Specification<E> spec, Pageable pageable, DataFetchOptions fetchOptions) {
+    public Page<V> findAllAsVO(Specification<E> spec, Pageable pageable, ReferentialFetchOptions fetchOptions) {
         return super.findAll(spec, pageable)
             .map(e -> this.toVO(e, fetchOptions));
     }
@@ -151,31 +151,29 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
     }
 
     @Override
-    public V get(int id, DataFetchOptions fetchOptions) {
+    public V get(int id, ReferentialFetchOptions fetchOptions) {
         return toVO(this.getOne(id), fetchOptions);
     }
 
     @Override
     public V getByLabel(String label) {
-        V result = findByLabel(label);
-        if (result == null)
-            throw new EntityNotFoundException();
-        return result;
+        return findByLabel(label).orElseThrow(() ->
+            new EntityNotFoundException(String.format("%s entity with label '%s' not found", getDomainClass().getSimpleName(), label))
+        );
     }
 
     @Override
-    public V findByLabel(String label) {
-
+    public Optional<V> findByLabel(String label) {
         @SuppressWarnings("unchecked") List<V> result = findAll((F) ReferentialFilterVO.builder().label(label).build());
         if (CollectionUtils.isEmpty(result)) {
-            return null;
+            return Optional.empty();
         } else {
             if (result.size() > 1) {
-                LOG.warn("findByLabel returns more than 1 result. Returning the first one");
+                LOG.warn(String.format("%s entity with label '%s' -> more than 1 occurrence (%s found). Returning the first one",
+                    getDomainClass().getSimpleName(), label, result.size()));
             }
-            return result.get(0);
+            return Optional.of(result.get(0));
         }
-
     }
 
     @Override
@@ -259,13 +257,13 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
         return toVO(source, null);
     }
 
-    protected V toVO(E source, DataFetchOptions fetchOptions) {
+    protected V toVO(E source, ReferentialFetchOptions fetchOptions) {
         V target = createVO();
         toVO(source, target, fetchOptions, true);
         return target;
     }
 
-    protected void toVO(E source, V target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    protected void toVO(E source, V target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
     }
 
@@ -276,10 +274,6 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public Class<V> getVOClass() {
-        throw new NotImplementedException("Not implemented yet. Should be override by subclass");
     }
 
     @Override

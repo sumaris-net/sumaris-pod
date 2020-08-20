@@ -45,8 +45,6 @@ public interface SumarisJpaRepository<E extends IEntity<ID>, ID extends Serializ
 
     V createVO();
 
-    Class<V> getVOClass();
-
     E createEntity();
 
     V save(V vo);

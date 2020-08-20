@@ -30,7 +30,7 @@ public class TaxonNameRepositoryImpl
         LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
 
     public TaxonNameRepositoryImpl(EntityManager entityManager) {
-        super(TaxonName.class, entityManager);
+        super(TaxonName.class, TaxonNameVO.class, entityManager);
     }
 
     @Override
@@ -89,11 +89,6 @@ public class TaxonNameRepositoryImpl
             .and(withSynonyms(filter.getWithSynonyms()))
             .and(withReferenceTaxonId(filter.getReferenceTaxonId()))
             .and(inLevelIds(TaxonName.Fields.TAXONOMIC_LEVEL, filter));
-    }
-
-    @Override
-    public Class<TaxonNameVO> getVOClass() {
-        return TaxonNameVO.class;
     }
 
     protected List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, Pageable pageable) {

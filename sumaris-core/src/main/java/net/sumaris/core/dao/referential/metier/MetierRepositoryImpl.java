@@ -35,10 +35,10 @@ import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +65,7 @@ public class MetierRepositoryImpl
     private TaxonGroupRepository taxonGroupRepository;
 
     public MetierRepositoryImpl(EntityManager entityManager) {
-        super(Metier.class, entityManager);
+        super(Metier.class, MetierVO.class, entityManager);
     }
 
     @Override
@@ -120,7 +120,7 @@ public class MetierRepositoryImpl
 
 
     @Override
-    public void toVO(Metier source, MetierVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    public void toVO(Metier source, MetierVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // StatusId
@@ -137,11 +137,6 @@ public class MetierRepositoryImpl
             target.setTaxonGroup(taxonGroupRepository.toVO(source.getTaxonGroup()));
         }
 
-    }
-
-    @Override
-    public Class<MetierVO> getVOClass() {
-        return MetierVO.class;
     }
 
     @Override

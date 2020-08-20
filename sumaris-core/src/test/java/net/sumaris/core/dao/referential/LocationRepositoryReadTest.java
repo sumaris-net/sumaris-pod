@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author peck7 on 15/10/2019.
@@ -58,17 +59,20 @@ public class LocationRepositoryReadTest extends AbstractDaoTest {
     }
 
     @Test
-    public void getLocationByLabel() {
-        LocationVO location = locationRepository.findByLabel("FRA");
-        Assert.assertNotNull(location);
-        Assert.assertEquals("FRA", location.getLabel());
+    public void findLocationByLabel() {
+        Optional<LocationVO> location = locationRepository.findByLabel("FRA");
+        Assert.assertTrue(location.isPresent());
+        Assert.assertEquals("FRA", location.get().getLabel());
         location = locationRepository.findByLabel("BEL");
-        Assert.assertNotNull(location);
-        Assert.assertEquals("BEL", location.getLabel());
+        Assert.assertTrue(location.isPresent());
+        Assert.assertEquals("BEL", location.get().getLabel());
         location = locationRepository.findByLabel("ZZZZ");
-        Assert.assertNull(location);
+        Assert.assertFalse(location.isPresent());
+    }
 
-        location = locationRepository.getByLabel("FRA");
+    @Test
+    public void getLocationByLabel() {
+        LocationVO location = locationRepository.getByLabel("FRA");
         Assert.assertNotNull(location);
 
         try {

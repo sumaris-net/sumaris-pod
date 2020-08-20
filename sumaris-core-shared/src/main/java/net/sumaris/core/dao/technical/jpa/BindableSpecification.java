@@ -23,7 +23,6 @@ package net.sumaris.core.dao.technical.jpa;
  */
 
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.lang.NonNull;
 
 import javax.persistence.Parameter;
 import javax.persistence.TypedQuery;
@@ -39,52 +38,103 @@ import java.util.function.Consumer;
 
 public class BindableSpecification<T> implements Specification<T>, Serializable {
 
+    /**
+     * inner specification
+     */
     private Specification<T> specification;
+    /**
+     * binding list
+     */
     private final List<Consumer<TypedQuery<T>>> bindings;
 
-    BindableSpecification(Specification<T> specification) {
-        this.specification = specification;
+    /**
+     * Protected constructor, use 'where' builder method
+     */
+    BindableSpecification() {
         this.bindings = new ArrayList<>();
-        composeBindings(specification);
     }
 
     private Optional<Specification<T>> getSpecificationOptional() {
         return Optional.ofNullable(specification);
     }
 
+    /**
+     * Compose (concat) the list of bindings from specified specification with current ones
+     *
+     * @param specification the specification with bindings to compose
+     */
     private void composeBindings(Specification<T> specification) {
         if (specification instanceof BindableSpecification) {
             this.bindings.addAll(((BindableSpecification<T>) specification).getBindings());
         }
     }
 
+    /**
+     * Get the current list of bindings
+     * The TypedQuery should be visited before execution
+     * @return
+     */
     public List<Consumer<TypedQuery<T>>> getBindings() {
         return bindings;
     }
 
+    /**
+     * Add a binding to the current list
+     *
+     * @param parameterName the parameter name
+     * @param value         the parameter value
+     */
     public void addBind(String parameterName, Object value) {
-        bindings.add(typedQuery -> setParameterIfExists(typedQuery, parameterName, value));
+        bindings.add(typedQuery ->
+            // Set the parameter value to the visited TypedQuery
+            setParameterIfExists(typedQuery, parameterName, value));
     }
 
+    /**
+     * Set the parameter value if exists
+     *
+     * @param query the visited TypedQuery
+     * @param parameterName the parameter name
+     * @param value the parameter value
+     */
     public static void setParameterIfExists(TypedQuery<?> query, String parameterName, Object value) {
         Parameter<Object> parameter = query.getParameter(parameterName, Object.class);
         if (parameter != null)
             query.setParameter(parameter, value);
     }
 
+    /**
+     * Builder method to create a BindableSpecification
+     * @param specification the original (or delegate) specification
+     * @param <T> type of specification
+     * @return the BindableSpecification instance
+     */
     public static <T> BindableSpecification<T> where(Specification<T> specification) {
-        return new BindableSpecification<T>(specification);
+        BindableSpecification<T> instance = new BindableSpecification<>();
+        instance.specification = specification;
+        instance.composeBindings(specification);
+        return instance;
     }
 
+    /**
+     * ANDs the given specification to the current one
+     * @param other can be null
+     * @return The conjunction of the specifications
+     */
     @Override
-    public BindableSpecification<T> and(@NonNull Specification<T> other) {
+    public BindableSpecification<T> and(Specification<T> other) {
         specification = getSpecificationOptional().map(spec -> spec.and(other)).orElse(other);
         composeBindings(other);
         return this;
     }
 
+    /**
+     * ORs the given specification to the current one
+     * @param other can be null
+     * @return The disjunction of the specifications
+     */
     @Override
-    public BindableSpecification<T> or(@NonNull Specification<T> other) {
+    public BindableSpecification<T> or(Specification<T> other) {
         specification = getSpecificationOptional().map(spec -> spec.or(other)).orElse(other);
         composeBindings(other);
         return this;

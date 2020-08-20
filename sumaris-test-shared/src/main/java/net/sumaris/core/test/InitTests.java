@@ -157,6 +157,7 @@ public class InitTests extends ExternalResource {
                 getConfigArgs()
         );
         SumarisConfiguration.setInstance(config);
+        config.getApplicationConfig().setOption(SumarisConfigurationOption.SEQUENCE_START_WITH.getKey(), String.valueOf(1000));
         return config;
 
     }

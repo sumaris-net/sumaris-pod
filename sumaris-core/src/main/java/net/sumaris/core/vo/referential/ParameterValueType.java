@@ -23,7 +23,6 @@ package net.sumaris.core.vo.referential;
  */
 
 import net.sumaris.core.model.referential.pmfm.Parameter;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
 
 import java.util.Objects;
 
@@ -55,8 +54,8 @@ public enum ParameterValueType {
         }
     }
 
-    public static ParameterValueType fromPmfm(PmfmVO pmfm) {
-        return pmfm != null ? fromString(pmfm.getType()) : null;
+    public static ParameterValueType fromParameter(ParameterVO parameter) {
+        return parameter != null ? fromString(parameter.getType()) : null;
     }
 
     public static ParameterValueType fromString(String name) {

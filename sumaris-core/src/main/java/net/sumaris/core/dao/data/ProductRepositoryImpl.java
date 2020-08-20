@@ -26,7 +26,7 @@ package net.sumaris.core.dao.data;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.pmfm.PmfmDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.SaleType;
@@ -67,7 +67,7 @@ public class ProductRepositoryImpl
     private final ReferentialDao referentialDao;
     private final PersonDao personDao;
     private final LandingRepository landingRepository;
-    private final PmfmDao pmfmDao;
+    private final PmfmRepository pmfmRepository;
     private final MeasurementDao measurementDao;
 
     private final Map<String, Integer> pmfmIdByLabel;
@@ -78,14 +78,14 @@ public class ProductRepositoryImpl
     public ProductRepositoryImpl(EntityManager entityManager,
                                  ReferentialDao referentialDao,
                                  PersonDao personDao,
-                                 PmfmDao pmfmDao,
+                                 PmfmRepository pmfmRepository,
                                  LandingRepository landingRepository,
                                  MeasurementDao measurementDao) {
         super(Product.class, entityManager);
         this.referentialDao = referentialDao;
         this.personDao = personDao;
         this.landingRepository = landingRepository;
-        this.pmfmDao = pmfmDao;
+        this.pmfmRepository = pmfmRepository;
         this.measurementDao = measurementDao;
 
         setCheckUpdateDate(false);
@@ -444,7 +444,7 @@ public class ProductRepositoryImpl
     }
 
     private boolean isWeightPmfm(int pmfmId) {
-        return pmfmDao.hasLabelSuffix(pmfmId, "WEIGHT");
+        return pmfmRepository.hasLabelSuffix(pmfmId, "WEIGHT");
     }
 
     private Integer getPmfmIdByPmfmEnum(PmfmEnum pmfmEnum) {
@@ -452,7 +452,7 @@ public class ProductRepositoryImpl
     }
 
     private Integer getPmfmIdByLabel(@Nonnull String label) {
-        pmfmIdByLabel.putIfAbsent(label, pmfmDao.findByLabel(label).map(PmfmVO::getId).orElse(null));
+        pmfmIdByLabel.putIfAbsent(label, pmfmRepository.findByLabel(label).map(PmfmVO::getId).orElse(null));
         return pmfmIdByLabel.get(label);
     }
 

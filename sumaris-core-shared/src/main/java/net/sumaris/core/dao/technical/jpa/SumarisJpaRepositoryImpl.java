@@ -156,8 +156,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         }
     }
 
-    public Class<V> getVOClass() {
-        if (voClass == null) throw new NotImplementedException("Not implemented yet. Should be override by subclass");
+    protected Class<V> getVOClass() {
+        if (voClass == null) throw new NotImplementedException("Not implemented yet. Should be override by subclass or use correct constructor");
         return voClass;
     }
 

@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
-import net.sumaris.core.dao.referential.pmfm.PmfmDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -39,12 +39,8 @@ import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroupHierarchy;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.vo.referential.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
@@ -77,10 +73,10 @@ public class TaxonGroupRepositoryImpl
     private ReferentialDao referentialDao;
 
     @Autowired
-    private PmfmDao pmfmDao;
+    private PmfmRepository pmfmRepository;
 
     public TaxonGroupRepositoryImpl(EntityManager entityManager) {
-        super(TaxonGroup.class, entityManager);
+        super(TaxonGroup.class, TaxonGroupVO.class, entityManager);
     }
 
     @Override
@@ -103,7 +99,7 @@ public class TaxonGroupRepositoryImpl
     }
 
     @Override
-    public void toVO(TaxonGroup source, TaxonGroupVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    public void toVO(TaxonGroup source, TaxonGroupVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // StatusId
@@ -280,7 +276,7 @@ public class TaxonGroupRepositoryImpl
         }
 
         // Nothing found for this taxon group, so return all dressings
-        PmfmVO pmfm = pmfmDao.get(PmfmEnum.DRESSING.getId());
+        PmfmVO pmfm = pmfmRepository.get(PmfmEnum.DRESSING.getId());
         if (pmfm == null) {
             throw new DataRetrievalFailureException("PMFM for dressing not found");
         }
@@ -308,7 +304,7 @@ public class TaxonGroupRepositoryImpl
         }
 
         // Nothing found for this taxon group, so return all dressings
-        PmfmVO pmfm = pmfmDao.get(PmfmEnum.PRESERVATION.getId());
+        PmfmVO pmfm = pmfmRepository.get(PmfmEnum.PRESERVATION.getId());
         if (pmfm == null) {
             throw new DataRetrievalFailureException("PMFM for preservation not found");
         }
@@ -326,11 +322,6 @@ public class TaxonGroupRepositoryImpl
             // If no end date, use start date
             .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
             .getResultList();
-    }
-
-    @Override
-    public Class<TaxonGroupVO> getVOClass() {
-        return TaxonGroupVO.class;
     }
 
     @Override

@@ -74,12 +74,12 @@ public class LocationServiceWriteTest extends AbstractServiceTest{
         // Check label with a position inside the Atlantic sea
         Integer locationId = service.getLocationIdByLatLong(47.6f, -5.05f);
         assertNotNull("Location Id could not found in Allegro DB, in the Atlantic Sea. Bad enumeration value for RECTANGLE_STATISTIQUE ?", locationId);
-        assertEquals(new Integer(937), locationId); // =id of location '24E4'
+        assertEquals(new Integer(1837), locationId); // =id of location '24E4'
 
         // Check label with a position inside the Mediterranean sea
         locationId = service.getLocationIdByLatLong(42.27f, 5.4f);
         assertNotNull("Location Id could not found in Allegro DB, in the Mediterranean Sea. Bad enumeration value for RECTANGLE_STATISTIQUE_MED ?", locationId);
-        assertEquals(new Integer(7650), locationId); // =id of location 'M24C2'
+        assertEquals(new Integer(8550), locationId); // =id of location 'M24C2'
     }
 
 }

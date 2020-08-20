@@ -25,10 +25,7 @@ package net.sumaris.core;
  */
 
 import net.sumaris.core.dao.data.*;
-import net.sumaris.core.dao.referential.LocationRepositoryReadTest;
-import net.sumaris.core.dao.referential.LocationRepositoryWriteTest;
-import net.sumaris.core.dao.referential.TaxonGroupRepositoryWriteTest;
-import net.sumaris.core.dao.referential.TaxonNameRepositoryReadTest;
+import net.sumaris.core.dao.referential.*;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductDaoWriteTest;
 import net.sumaris.core.dao.technical.schema.DatabaseSchemaDaoTest;
 import net.sumaris.core.service.FileImportServiceTest;
@@ -36,10 +33,7 @@ import net.sumaris.core.service.administration.DepartmentServiceTest;
 import net.sumaris.core.service.administration.PersonServiceTest;
 import net.sumaris.core.service.administration.StrategyServiceTest;
 import net.sumaris.core.service.data.*;
-import net.sumaris.core.service.referential.LocationServiceReadTest;
-import net.sumaris.core.service.referential.LocationServiceWriteTest;
-import net.sumaris.core.service.referential.ReferentialServiceReadTest;
-import net.sumaris.core.service.referential.TaxonGroupServiceWriteTest;
+import net.sumaris.core.service.referential.*;
 import net.sumaris.core.service.technical.configuration.SoftwareServiceTest;
 import net.sumaris.core.service.technical.schema.DatabaseSchemaServiceTest;
 import net.sumaris.core.util.crypto.CryptoUtilsTest;
@@ -65,6 +59,10 @@ import org.junit.runners.Suite;
     LocationRepositoryWriteTest.class,
     TaxonGroupRepositoryWriteTest.class,
     TaxonNameRepositoryReadTest.class,
+    MetierRepositoryReadTest.class,
+    ParameterRepositoryWriteTest.class,
+    PmfmRepositoryReadTest.class,
+    PmfmRepositoryWriteTest.class,
     // DAO: technical
     DatabaseSchemaDaoTest.class,
     ExtractionProductDaoWriteTest.class,
@@ -89,6 +87,8 @@ import org.junit.runners.Suite;
     LocationServiceWriteTest.class,
     ReferentialServiceReadTest.class,
     TaxonGroupServiceWriteTest.class,
+    PmfmServiceReadTest.class,
+    PmfmServiceWriteTest.class,
 
     // Service: technical
     DatabaseSchemaServiceTest.class,
