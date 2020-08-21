@@ -71,7 +71,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             ParameterExpression<String> labelParam = criteriaBuilder.parameter(String.class, LABEL_PARAMETER);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(labelParam),
-                criteriaBuilder.equal(root.get(IItemReferentialEntity.Fields.LABEL), labelParam)
+                criteriaBuilder.equal(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(labelParam))
             );
         });
         specification.addBind(LABEL_PARAMETER, label);

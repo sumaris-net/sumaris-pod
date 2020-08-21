@@ -386,8 +386,8 @@ public class LocationServiceImpl implements LocationService{
                 .put(LocationLevelLabels.COUNTRY, "Country")
                 .build());
 
-        LocationLevel countryLocationLevel = locationLevels.get(LocationLevelLabels.COUNTRY);
-        LocationLevel portLocationLevel = locationLevels.get(LocationLevelLabels.HARBOUR);
+        LocationLevel countryLocationLevel = locationLevels.find(LocationLevelLabels.COUNTRY);
+        LocationLevel portLocationLevel = locationLevels.find(LocationLevelLabels.HARBOUR);
 
         List<Integer> processedPorts = Lists.newArrayList();
         List<Location> countries = locationDao.getLocationByLocationLevel(countryLocationLevel.getId());
@@ -461,11 +461,11 @@ public class LocationServiceImpl implements LocationService{
             throw new IllegalArgumentException("Arguments 'latitude' and 'longitude' should not be null.");
         }
 
-        // Try to get a statistical rectangle
+        // Try to find a statistical rectangle
         String rectangleLabel = Locations.getRectangleLabelByLatLong(latitude, longitude);
         if (StringUtils.isNotBlank(rectangleLabel)) return rectangleLabel;
 
-        // TODO: get it from spatial query ?
+        // TODO: find it from spatial query ?
 
         // Otherwise, return null
         return null;

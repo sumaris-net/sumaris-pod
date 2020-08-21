@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 19/08/2020.
  */
 public class ParameterRepositoryImpl
-    extends ReferentialRepositoryImpl<Parameter, ParameterVO, ReferentialFilterVO> {
+    extends ReferentialRepositoryImpl<Parameter, ParameterVO, ReferentialFilterVO, ReferentialFetchOptions> {
 
     @Autowired
     private ReferentialDao referentialDao;

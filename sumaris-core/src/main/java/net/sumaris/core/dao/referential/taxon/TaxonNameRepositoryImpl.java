@@ -7,6 +7,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevelId;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 31/07/2020.
  */
 public class TaxonNameRepositoryImpl
-    extends ReferentialRepositoryImpl<TaxonName, TaxonNameVO, TaxonNameFilterVO>
+    extends ReferentialRepositoryImpl<TaxonName, TaxonNameVO, TaxonNameFilterVO, ReferentialFetchOptions>
     implements TaxonNameRepositoryExtend {
 
     private static final Logger log =

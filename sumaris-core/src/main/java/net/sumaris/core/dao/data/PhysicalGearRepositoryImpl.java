@@ -178,7 +178,7 @@ public class PhysicalGearRepositoryImpl
                 (vo) -> load(PhysicalGear.class, vo.getId()));
 
         // Save measurements on each gears
-        // NOTE: using the savedGear to be sure to get an id
+        // NOTE: using the savedGear to be sure to find an id
         result.forEach(source -> {
 
             if (source.getMeasurementValues() != null) {

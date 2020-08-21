@@ -49,7 +49,7 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private ExtractionProductDao dao;
+    private ExtractionProductRepository repository;
 
     @Before
     public void setUp() throws Exception {
@@ -61,15 +61,15 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
     public void getAll() {
         ExtractionProductFilterVO filter = new ExtractionProductFilterVO();
         filter.setStatusIds(new Integer[]{getConfig().getStatusIdTemporary(), getConfig().getStatusIdValid()});
-        List<ExtractionProductVO> products = dao.findByFilter(filter, null);
+        List<ExtractionProductVO> products = repository.findAll(filter);
         Assert.assertNotNull(products);
-        Assert.assertTrue(products.size() > 0);
+        Assert.assertEquals(1, products.size());
     }
 
     @Test
     public void delete() {
         Integer id = dbResource.getFixtures().getProductId(0);
-        dao.delete(id);
+        repository.deleteById(id);
 
     }
 
@@ -140,12 +140,12 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
         source.setStratum(stratum);
 
         // Save
-        ExtractionProductVO target = dao.save(source);
+        ExtractionProductVO target = repository.save(source);
         Assert.assertNotNull(target);
         Assert.assertNotNull(target.getId());
 
         // Reload
-        ExtractionProductVO reloadTarget = dao.getByLabel(source.getLabel());
+        ExtractionProductVO reloadTarget = repository.getByLabel(source.getLabel());
         Assert.assertNotNull(reloadTarget);
         Assert.assertNotNull(reloadTarget.getId());
 

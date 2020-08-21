@@ -25,10 +25,11 @@ package net.sumaris.core.dao.referential.taxon;
 import net.sumaris.core.dao.referential.ReferentialRepository;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 
 public interface TaxonGroupRepository
-    extends ReferentialRepository<TaxonGroup, TaxonGroupVO, ReferentialFilterVO>,
+    extends ReferentialRepository<TaxonGroup, TaxonGroupVO, ReferentialFilterVO, ReferentialFetchOptions>,
     TaxonGroupRepositoryExtend {
 
     TaxonGroup getOneByLabelAndTaxonGroupTypeId(String label, Integer taxonGroupTypeId);

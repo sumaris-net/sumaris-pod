@@ -141,7 +141,7 @@ public class TripRepositoryImpl
         else {
             entity.setQualificationDate(newUpdateDate);
         }
-        // Apply a get, because can return a null value (e.g. if id is not in the DB instance)
+        // Apply a find, because can return a null value (e.g. if id is not in the DB instance)
         entity.setQualityFlag(get(QualityFlag.class, Integer.valueOf(qualityFlagId)));
 
         // TODO UNVALIDATION PROCESS HERE

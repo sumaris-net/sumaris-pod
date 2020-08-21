@@ -190,7 +190,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
-     * <p>get mail from address.</p>
+     * <p>find mail from address.</p>
      *
      * @return a {@link String} object, the 'from' address to use for mail .
      */
@@ -199,7 +199,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
-     * <p>get keypair salt.</p>
+     * <p>find keypair salt.</p>
      *
      * @return a {@link String} object, the 'salt' for the server keypair generation.
      */
@@ -208,7 +208,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
-     * <p>get keypair password.</p>
+     * <p>find keypair password.</p>
      *
      * @return a {@link String} object, the 'password' for the server keypair generation.
      */
@@ -217,7 +217,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
-     * <p>get auth challenge life time (in seconds).</p>
+     * <p>find auth challenge life time (in seconds).</p>
      *
      * @return a {@link Integer}
      */
@@ -226,7 +226,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
-     * <p>get auth session duration (in seconds).</p>
+     * <p>find auth session duration (in seconds).</p>
      *
      * @return a {@link Integer}
      */
@@ -235,7 +235,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
-     * <p>get the ActiveMQ broker URL.</p>
+     * <p>find the ActiveMQ broker URL.</p>
      *
      * @return a {@link Integer}
      */
@@ -244,7 +244,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
-     * <p>get the ActiveMQ broker URL.</p>
+     * <p>find the ActiveMQ broker URL.</p>
      *
      * @return a {@link Integer}
      */

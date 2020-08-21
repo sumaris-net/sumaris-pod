@@ -53,7 +53,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class MetierRepositoryImpl
-    extends ReferentialRepositoryImpl<Metier, MetierVO, ReferentialFilterVO>
+    extends ReferentialRepositoryImpl<Metier, MetierVO, ReferentialFilterVO, ReferentialFetchOptions>
     implements MetierRepositoryExtend {
 
     private static final Logger log = LoggerFactory.getLogger(MetierRepositoryImpl.class);
@@ -168,7 +168,7 @@ public class MetierRepositoryImpl
 
             // Calculate dates
             final Date endDate = metierFilter.getDate() != null ? metierFilter.getDate() : new Date();
-            final Date startDate = Dates.removeMonth(endDate, 12); // TODO: get it from a config option
+            final Date startDate = Dates.removeMonth(endDate, 12); // TODO: find it from a config option
 
             BindableSpecification.setParameterIfExists(query, START_DATE_PARAMETER, startDate);
             BindableSpecification.setParameterIfExists(query, END_DATE_PARAMETER, endDate);

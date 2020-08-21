@@ -858,7 +858,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
                 target.setNumericalValue(Boolean.parseBoolean(value) || "1".equals(value) ? 1d : 0d);
                 break;
             case QUALITATIVE_VALUE:
-                // If get a object structure (e.g. ReferentialVO), try to get the id
+                // If find a object structure (e.g. ReferentialVO), try to find the id
                 target.setQualitativeValue(load(QualitativeValue.class, Integer.parseInt(value)));
                 break;
             case STRING:
@@ -892,7 +892,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
             case BOOLEAN:
                 return (source.getNumericalValue() != null && source.getNumericalValue() == 1d ? Boolean.TRUE : Boolean.FALSE);
             case QUALITATIVE_VALUE:
-                // If get a object structure (e.g. ReferentialVO), try to get the id
+                // If find a object structure (e.g. ReferentialVO), try to find the id
                 return ((source.getQualitativeValue() != null && source.getQualitativeValue().getId() != null) ? source.getQualitativeValue().getId() : null);
             case STRING:
             case DATE:

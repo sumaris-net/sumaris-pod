@@ -471,7 +471,7 @@ public class AccountServiceImpl implements AccountService {
                 return;
             }
 
-            // TODO: group email by locales (get it with the email, from personService)
+            // TODO: group email by locales (find it with the email, from personService)
 
             // Send the email
             final Email email = DefaultEmail.builder()

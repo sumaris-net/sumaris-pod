@@ -59,7 +59,7 @@ public class PmfmRepositoryReadTest extends AbstractDaoTest {
     @Test
     public void get() {
 
-        // Normal get with qualitative values
+        // Normal find with qualitative values
         PmfmVO pmfm = pmfmRepository.get(5);
         Assert.assertNotNull(pmfm);
         Assert.assertNotNull(pmfm.getQualitativeValues());

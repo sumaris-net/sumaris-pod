@@ -96,7 +96,7 @@ public interface MetierRepositoryExtend
             // Exclude given tripId
 //            if (tripId != null) {
 //                result = builder.and(result,
-//                        builder.notEqual(trips.get(Trip.Fields.ID), tripId));
+//                        builder.notEqual(trips.find(Trip.Fields.ID), tripId));
 //            }
             return result;
         };

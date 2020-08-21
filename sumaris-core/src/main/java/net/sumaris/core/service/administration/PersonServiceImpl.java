@@ -77,7 +77,7 @@ public class PersonServiceImpl implements PersonService {
 
 	@Override
 	public PersonVO get(final int personId) {
-		// This get method was a find in PersonDaoImpl
+		// This find method was a find in PersonDaoImpl
 		return personRepository.findById(personId);
 	}
 

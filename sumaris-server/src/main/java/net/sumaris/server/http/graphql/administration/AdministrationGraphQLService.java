@@ -249,7 +249,7 @@ public class AdministrationGraphQLService {
     @PreAuthorize("hasRole('ROLE_ADMIN') or #pubkey == authentication.name")
     public Publisher<AccountVO> updateAccount(
             @P("pubkey") @GraphQLArgument(name = "pubkey") final String pubkey,
-            @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
+            @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkNotNull(pubkey, "Missing pubkey");
         Preconditions.checkArgument(pubkey.length() > 6, "Invalid pubkey");

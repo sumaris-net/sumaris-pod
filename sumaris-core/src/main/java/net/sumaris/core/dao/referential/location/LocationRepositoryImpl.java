@@ -7,6 +7,7 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationAssociation;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
@@ -23,7 +24,7 @@ import java.sql.Timestamp;
  * @author peck7 on 18/08/2020.
  */
 public class LocationRepositoryImpl
-    extends ReferentialRepositoryImpl<Location, LocationVO, ReferentialFilterVO>
+    extends ReferentialRepositoryImpl<Location, LocationVO, ReferentialFilterVO, ReferentialFetchOptions>
     implements LocationRepositoryExtend {
 
     private static final Logger log = LoggerFactory.getLogger(LocationRepositoryImpl.class);

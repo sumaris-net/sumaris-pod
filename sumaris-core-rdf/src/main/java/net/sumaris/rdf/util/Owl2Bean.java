@@ -133,7 +133,7 @@ public abstract class Owl2Bean {
             getEntityManager().persist(tl);
             log.warn("getEntityManager().persist(  TaxonomicLevel ) " + tl);
 
-            //B2O_ARBITRARY_MAPPER.get(ontClass).apply( val.as(OntResource.class));
+            //B2O_ARBITRARY_MAPPER.find(ontClass).apply( val.as(OntResource.class));
 
             return context.URI_2_OBJ_REF.putIfAbsent(val.toString(), tl);
         }

@@ -105,7 +105,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
                 .takeUntil(stop)
                 .observeOn(Schedulers.io())
                 .flatMap(n -> {
-                    // Try to get a newer bean
+                    // Try to find a newer bean
                     V newerVOOrNull = self.getIfNewer(entityClass, targetClass, id, lastUpdateDate.getTime());
 
                     // Update the date used for comparision

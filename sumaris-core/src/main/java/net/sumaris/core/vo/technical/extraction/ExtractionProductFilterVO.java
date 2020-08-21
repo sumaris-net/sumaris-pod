@@ -23,14 +23,15 @@
 package net.sumaris.core.vo.technical.extraction;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @FieldNameConstants
-public class ExtractionProductFilterVO {
+public class ExtractionProductFilterVO extends ReferentialFilterVO {
 
     private Integer departmentId;
-
-    private Integer[] statusIds;
 
 }

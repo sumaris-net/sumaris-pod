@@ -277,7 +277,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
             }
             // Source has no id (e.g. a sampling batch can have no ID sent by SUMARiS app)
             else {
-                // Try to get it by hash code
+                // Try to find it by hash code
                 Collection<Batch> existingBatchs = sourcesByHashCode.get(source.hashCode());
                 // Not found by hash code: try by label
                 if (CollectionUtils.isEmpty(existingBatchs)) {

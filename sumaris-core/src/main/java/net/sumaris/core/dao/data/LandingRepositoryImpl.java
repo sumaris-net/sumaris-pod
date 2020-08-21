@@ -190,7 +190,7 @@ public class LandingRepositoryImpl
             .filter(landingVO -> !landingVO.getId().equals(landing.getId()))
             .map(LandingVO::getRankOrderOnVessel)
             .filter(Objects::nonNull)
-            // get max rankOrderOnVessel
+            // find max rankOrderOnVessel
             .max(Integer::compareTo);
         if (currentRankOrder.isPresent()) {
             result = Math.max(result, currentRankOrder.get());

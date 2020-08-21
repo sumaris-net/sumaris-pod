@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 19/08/2020.
  */
 public class PmfmRepositoryImpl
-    extends ReferentialRepositoryImpl<Pmfm, PmfmVO, ReferentialFilterVO>
+    extends ReferentialRepositoryImpl<Pmfm, PmfmVO, ReferentialFilterVO, ReferentialFetchOptions>
     implements PmfmRepositoryExtend {
 
     @Autowired

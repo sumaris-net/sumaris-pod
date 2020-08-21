@@ -26,12 +26,12 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
-import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -56,9 +56,9 @@ import java.util.stream.Collectors;
  * @author peck7 on 03/04/2020.
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends ReferentialFilterVO>
+public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends ReferentialFilterVO, O extends IFetchOptions>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
-    implements ReferentialRepository<E, V, F>, ReferentialSpecifications<E> {
+    implements ReferentialRepository<E, V, F, O>, ReferentialSpecifications<E> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
 
@@ -97,26 +97,26 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
     }
 
     @Override
-    public List<V> findAll(F filter, ReferentialFetchOptions fetchOptions) {
+    public List<V> findAll(F filter, O fetchOptions) {
         return findAll(toSpecification(filter)).stream()
             .map(e -> this.toVO(e, fetchOptions))
             .collect(Collectors.toList());
     }
 
     @Override
-    public Page<V> findAll(F filter, Pageable pageable, ReferentialFetchOptions fetchOptions) {
+    public Page<V> findAll(F filter, Pageable pageable, O fetchOptions) {
         return findAll(toSpecification(filter), pageable)
             .map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
-    public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, ReferentialFetchOptions fetchOptions) {
+    public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
         return findAll(PageRequest.of(offset / size, size, Sort.Direction.fromString(sortDirection.toString()), sortAttribute))
             .map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
-    public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, ReferentialFetchOptions fetchOptions) {
+    public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
         return findAll(toSpecification(filter), Pageables.create(offset, size, sortAttribute, sortDirection))
             .map(e -> this.toVO(e, fetchOptions));
     }
@@ -135,14 +135,14 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
     }
 
     @Override
-    public List<V> findAllAsVO(Specification<E> spec, ReferentialFetchOptions fetchOptions) {
+    public List<V> findAllAsVO(Specification<E> spec, O fetchOptions) {
         return super.findAll(spec).stream()
             .map(e -> this.toVO(e, fetchOptions))
             .collect(Collectors.toList());
     }
 
     @Override
-    public Page<V> findAllAsVO(Specification<E> spec, Pageable pageable, ReferentialFetchOptions fetchOptions) {
+    public Page<V> findAllAsVO(Specification<E> spec, Pageable pageable, O fetchOptions) {
         return super.findAll(spec, pageable)
             .map(e -> this.toVO(e, fetchOptions));
     }
@@ -158,19 +158,39 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
     }
 
     @Override
-    public V get(int id, ReferentialFetchOptions fetchOptions) {
+    public V get(int id, O fetchOptions) {
         return toVO(this.getOne(id), fetchOptions);
     }
 
     @Override
     public V getByLabel(String label) {
-        return findByLabel(label).orElseThrow(() ->
+        return getByLabel(label, null);
+    }
+
+    @Override
+    public V getByLabel(String label, O fetchOption) {
+        return findByLabel(label, fetchOption).orElseThrow(() ->
             new EntityNotFoundException(String.format("%s entity with label '%s' not found", getDomainClass().getSimpleName(), label))
         );
     }
 
     @Override
+    public Optional<V> findById(int id) {
+        return findById(id, null);
+    }
+
+    @Override
+    public Optional<V> findById(int id, O fetchOptions) {
+        return super.findById(id).map(this::toVO);
+    }
+
+    @Override
     public Optional<V> findByLabel(String label) {
+        return findByLabel(label, null);
+    }
+
+    @Override
+    public Optional<V> findByLabel(String label, O fetchOptions) {
         List<E> result = findAll(BindableSpecification.where(hasLabel(label)));
         if (CollectionUtils.isEmpty(result)) {
             return Optional.empty();
@@ -179,7 +199,7 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
                 LOG.warn(String.format("%s entity with label '%s' -> more than 1 occurrence (%s found). Returning the first one",
                     getDomainClass().getSimpleName(), label, result.size()));
             }
-            return Optional.of(result.get(0)).map(this::toVO);
+            return Optional.of(result.get(0)).map(e -> toVO(e, fetchOptions));
         }
     }
 
@@ -250,13 +270,13 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
         return toVO(source, null);
     }
 
-    protected V toVO(E source, ReferentialFetchOptions fetchOptions) {
+    protected V toVO(E source, O fetchOptions) {
         V target = createVO();
         toVO(source, target, fetchOptions, true);
         return target;
     }
 
-    protected void toVO(E source, V target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
+    protected void toVO(E source, V target, O fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
         target.setStatusId(source.getStatus().getId());
     }

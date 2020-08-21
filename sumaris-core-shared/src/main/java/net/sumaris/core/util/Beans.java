@@ -172,6 +172,7 @@ public class Beans {
      */
     public static <K, V> Map<K, V> splitByProperty(Iterable<V> list, String propertyName) {
         Preconditions.checkArgument(StringUtils.isNotBlank(propertyName));
+        if (list == null) return new HashMap<>();
         return getMap(Maps.uniqueIndex(list, input -> getProperty(input, propertyName)));
     }
 
@@ -186,6 +187,7 @@ public class Beans {
      */
     public static <K, V> ListMultimap<K, V> splitByNotUniqueProperty(Iterable<V> list, String propertyName) {
         Preconditions.checkArgument(StringUtils.isNotBlank(propertyName));
+        if (list == null) return ArrayListMultimap.create();
         return Multimaps.index(list, input -> getProperty(input, propertyName));
     }
 
@@ -197,7 +199,7 @@ public class Beans {
      * @return a {@link Map} object.
      */
     public static <V> Multimap<Integer, V> splitByNotUniqueHashcode(Iterable<V> list) {
-        return Multimaps.index(list, Object::hashCode);
+        return list != null ? Multimaps.index(list, Object::hashCode) : ArrayListMultimap.create();
     }
 
     /**
@@ -209,7 +211,7 @@ public class Beans {
      * @return a {@link Map} object.
      */
     public static <K extends Serializable, V extends IEntity<K>> Map<K, V> splitById(Iterable<V> list) {
-        return getMap(Maps.uniqueIndex(list, IEntity::getId));
+        return list != null ? getMap(Maps.uniqueIndex(list, IEntity::getId)) : new HashMap<>();
     }
 
     /**

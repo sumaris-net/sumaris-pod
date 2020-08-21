@@ -22,13 +22,12 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
-
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
-import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -47,7 +46,8 @@ import java.util.Optional;
 public interface ReferentialRepository<
     E extends IItemReferentialEntity,
     V extends IReferentialVO,
-    F extends ReferentialFilterVO
+    F extends ReferentialFilterVO,
+    O extends IFetchOptions
     >
     extends SumarisJpaRepository<E, Integer, V> {
 
@@ -56,29 +56,37 @@ public interface ReferentialRepository<
     // TODO: find usage of Page ??
     Page<V> findAll(@Nullable F filter, Pageable pageable);
 
-    List<V> findAll(@Nullable F filter, @Nullable ReferentialFetchOptions fetchOptions);
+    List<V> findAll(@Nullable F filter, @Nullable O fetchOptions);
 
-    Page<V> findAll(@Nullable F filter, Pageable pageable, @Nullable ReferentialFetchOptions fetchOptions);
+    Page<V> findAll(@Nullable F filter, Pageable pageable, @Nullable O fetchOptions);
 
-    Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, ReferentialFetchOptions fetchOptions);
+    Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions);
 
     Page<V> findAll(F filter, int offset, int size, String sortAttribute,
-                    SortDirection sortDirection, ReferentialFetchOptions fetchOptions);
+                    SortDirection sortDirection, O fetchOptions);
 
     List<V> findAllAsVO(@Nullable Specification<E> spec);
     Page<V> findAllAsVO(@Nullable Specification<E> spec, Pageable pageable);
-    List<V> findAllAsVO(@Nullable Specification<E> spec, ReferentialFetchOptions fetchOptions);
-    Page<V> findAllAsVO(@Nullable Specification<E> spec, Pageable pageable, ReferentialFetchOptions fetchOptions);
+    List<V> findAllAsVO(@Nullable Specification<E> spec, O fetchOptions);
+    Page<V> findAllAsVO(@Nullable Specification<E> spec, Pageable pageable, O fetchOptions);
 
     long count(F filter);
 
     V get(int id);
 
-    V get(int id, ReferentialFetchOptions fetchOptions);
+    V get(int id, O fetchOptions);
 
     V getByLabel(String label);
 
+    V getByLabel(String label, O fetchOption);
+
+    Optional<V> findById(int id);
+
+    Optional<V> findById(int id, O fetchOptions);
+
     Optional<V> findByLabel(String label);
+
+    Optional<V> findByLabel(String label, O fetchOptions);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     V save(V vo);
