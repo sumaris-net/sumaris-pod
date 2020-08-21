@@ -29,23 +29,16 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 @Data
 @FieldNameConstants
-public class PersonFilterVO {
+public class PersonFilterVO extends ReferentialFilterVO {
 
     private Integer userProfileId;
     private Integer[] userProfileIds;
     private String[] userProfiles;
 
     private String email;
-
     private String pubkey;
-
     private String firstName;
-
     private String lastName;
-
-    private Integer[] statusIds;
-
-    private String searchText;
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

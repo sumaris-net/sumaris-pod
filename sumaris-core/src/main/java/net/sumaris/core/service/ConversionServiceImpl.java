@@ -22,7 +22,7 @@ package net.sumaris.core.service;
  * #L%
  */
 
-import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.LandingRepository;
 import net.sumaris.core.dao.data.ObservedLocationDao;
 import net.sumaris.core.dao.data.OperationDao;
@@ -59,7 +59,7 @@ public class ConversionServiceImpl extends GenericConversionService {
     private LandingRepository landingRepository;
 
     @Autowired
-    private PersonDao personDao;
+    private PersonRepository personRepository;
 
     @PostConstruct
     private void initConverters() {
@@ -69,6 +69,6 @@ public class ConversionServiceImpl extends GenericConversionService {
         addConverter(ObservedLocation.class, ObservedLocationVO.class, observedLocationDao::toVO);
         addConverter(Operation.class, OperationVO.class, operationDao::toVO);
         addConverter(Landing.class, LandingVO.class, landingRepository::toVO);
-        addConverter(Person.class, PersonVO.class, personDao::toPersonVO);
+        addConverter(Person.class, PersonVO.class, personRepository::toVO);
     }
 }

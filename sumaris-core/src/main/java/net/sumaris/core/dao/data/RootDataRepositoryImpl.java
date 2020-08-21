@@ -24,10 +24,8 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
-import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.model.QualityFlagEnum;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -36,7 +34,6 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.filter.IRootDataFilter;
-import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +41,6 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.LockTimeoutException;
 import java.sql.Timestamp;
 
 @NoRepositoryBean
@@ -65,7 +60,7 @@ public abstract class RootDataRepositoryImpl<
         LoggerFactory.getLogger(RootDataRepositoryImpl.class);
 
     @Autowired
-    private PersonDao personDao;
+    private PersonRepository personRepository;
 
     @Autowired
     private ProgramDao programDao;
@@ -107,7 +102,7 @@ public abstract class RootDataRepositoryImpl<
 
         // Recorder person
         if ((fetchOptions == null || fetchOptions.isWithRecorderPerson()) && source.getRecorderPerson() != null) {
-            PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
+            PersonVO recorderPerson = personRepository.toVO(source.getRecorderPerson());
             target.setRecorderPerson(recorderPerson);
         }
 

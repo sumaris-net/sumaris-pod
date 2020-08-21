@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data;
 
 
 import com.google.common.collect.Maps;
-import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.Daos;
@@ -65,7 +65,7 @@ public class ProductRepositoryImpl
     private static final Logger LOG = LoggerFactory.getLogger(ProductRepositoryImpl.class);
 
     private final ReferentialDao referentialDao;
-    private final PersonDao personDao;
+    private final PersonRepository personRepository;
     private final LandingRepository landingRepository;
     private final PmfmRepository pmfmRepository;
     private final MeasurementDao measurementDao;
@@ -77,13 +77,13 @@ public class ProductRepositoryImpl
     @Autowired
     public ProductRepositoryImpl(EntityManager entityManager,
                                  ReferentialDao referentialDao,
-                                 PersonDao personDao,
+                                 PersonRepository personRepository,
                                  PmfmRepository pmfmRepository,
                                  LandingRepository landingRepository,
                                  MeasurementDao measurementDao) {
         super(Product.class, entityManager);
         this.referentialDao = referentialDao;
-        this.personDao = personDao;
+        this.personRepository = personRepository;
         this.landingRepository = landingRepository;
         this.pmfmRepository = pmfmRepository;
         this.measurementDao = measurementDao;
@@ -113,7 +113,7 @@ public class ProductRepositoryImpl
 
         // Recorder person
         if ((fetchOptions == null || fetchOptions.isWithRecorderPerson()) && source.getRecorderPerson() != null) {
-            PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
+            PersonVO recorderPerson = personRepository.toVO(source.getRecorderPerson());
             target.setRecorderPerson(recorderPerson);
         }
 

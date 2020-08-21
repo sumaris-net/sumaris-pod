@@ -100,11 +100,6 @@ public class ParameterRepositoryImpl
             target.setQualitativeValues(qualitativeValues);
         }
 
-        // Status
-        if (source.getStatus() != null) {
-            target.setStatusId(source.getStatus().getId());
-        }
-
         // EntityName (as metadata - see ReferentialVO)
         target.setEntityName(Parameter.class.getSimpleName());
 

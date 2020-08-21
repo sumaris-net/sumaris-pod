@@ -1,6 +1,5 @@
 package net.sumaris.core.dao.referential.pmfm;
 
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
@@ -30,9 +29,6 @@ import java.util.stream.Collectors;
 public class PmfmRepositoryImpl
     extends ReferentialRepositoryImpl<Pmfm, PmfmVO, ReferentialFilterVO>
     implements PmfmRepositoryExtend {
-
-    @Autowired
-    SumarisConfiguration config;
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -112,11 +108,6 @@ public class PmfmRepositoryImpl
                 .map(referentialDao::toReferentialVO)
                 .collect(Collectors.toList());
             target.setQualitativeValues(qualitativeValues);
-        }
-
-        // Status
-        if (source.getStatus() != null) {
-            target.setStatusId(source.getStatus().getId());
         }
 
         // EntityName (as metadata - see ReferentialVO)

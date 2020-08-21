@@ -24,15 +24,13 @@ package net.sumaris.core.dao.data;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.administration.user.DepartmentDao;
-import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.user.DepartmentRepository;
+import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.model.QualityFlagEnum;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.IDataEntity;
@@ -48,7 +46,6 @@ import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.NotImplementedException;
-import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,8 +57,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.LockTimeoutException;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -90,10 +85,10 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     private String[] copyExcludeProperties = new String[]{IUpdateDateEntityBean.Fields.UPDATE_DATE};
 
     @Autowired
-    private PersonDao personDao;
+    private PersonRepository personRepository;
 
     @Autowired
-    private DepartmentDao departmentDao;
+    private DepartmentRepository departmentRepository;
 
     protected DataRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         super(domainClass, entityManager);
@@ -319,7 +314,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
 
         // Recorder department
         if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) {
-            DepartmentVO recorderDepartment = departmentDao.toDepartmentVO(source.getRecorderDepartment());
+            DepartmentVO recorderDepartment = departmentRepository.toVO(source.getRecorderDepartment());
             target.setRecorderDepartment(recorderDepartment);
         }
 
@@ -328,7 +323,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
             Set<Person> sourceObservers = ((IWithObserversEntity) source).getObservers();
             if ((fetchOptions == null || fetchOptions.isWithObservers()) && CollectionUtils.isNotEmpty(sourceObservers)) {
                 Set<PersonVO> observers = sourceObservers.stream()
-                    .map(personDao::toPersonVO)
+                    .map(personRepository::toVO)
                     .collect(Collectors.toSet());
                 ((IWithObserversEntity<Integer, PersonVO>) target).setObservers(observers);
             }
@@ -343,8 +338,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
     /* -- protected methods -- */
 
     protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
-        vo.setId(savedEntity.getId());
-        vo.setUpdateDate(savedEntity.getUpdateDate());
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
     }
 
     protected boolean isCheckUpdateDate() {
@@ -371,21 +365,4 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
         this.copyExcludeProperties = excludedProperties;
     }
 
-    protected void lockForUpdate(IEntity<?> entity) {
-        lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
-    }
-
-    protected void lockForUpdate(IEntity<?> entity, LockModeType modeType) {
-        // Lock entityName
-        try {
-            getEntityManager().lock(entity, modeType);
-        } catch (LockTimeoutException e) {
-            throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
-                    getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
-        }
-    }
-
-    protected String getTableName(String entityName) {
-        return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
-    }
 }

@@ -25,33 +25,29 @@ package net.sumaris.core.service.administration;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import net.sumaris.core.dao.administration.user.DepartmentDao;
-import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.user.DepartmentRepository;
+import net.sumaris.core.dao.administration.user.PersonRepository;
+import net.sumaris.core.dao.data.ImageAttachmentDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
-import net.sumaris.core.model.data.Vessel;
-import net.sumaris.core.model.data.VesselFeatures;
-import net.sumaris.core.model.data.VesselRegistrationPeriod;
+import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
-import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.lang3.StringUtils;
+import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Root;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("personService")
@@ -60,31 +56,35 @@ public class PersonServiceImpl implements PersonService {
 	private static final Logger log = LoggerFactory.getLogger(PersonServiceImpl.class);
 
 	@Autowired
-	protected PersonDao personDao;
+	protected PersonRepository personRepository;
 
 	@Autowired
-	protected DepartmentDao departmentDao;
+	protected DepartmentRepository departmentRepository;
+
+	@Autowired
+	private ImageAttachmentDao imageAttachmentDao;
 
 	@Override
 	public List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
 	    if (filter == null) filter = new PersonFilterVO();
-		return personDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
+		return personRepository.findByFilter(filter, offset, size, sortAttribute, sortDirection);
 	}
 
 	@Override
 	public Long countByFilter(final PersonFilterVO filter) {
-		return personDao.countByFilter(filter != null ? filter : new PersonFilterVO());
+		return personRepository.countByFilter(filter != null ? filter : new PersonFilterVO());
 	}
 
 	@Override
 	public PersonVO get(final int personId) {
-		return personDao.get(personId);
+		// This get method was a find in PersonDaoImpl
+		return personRepository.findById(personId);
 	}
 
 	@Override
 	public PersonVO getByPubkey(final String pubkey) {
 		Preconditions.checkNotNull(pubkey);
-		PersonVO person = personDao.getByPubkeyOrNull(pubkey);
+		PersonVO person = personRepository.findByPubkey(pubkey);
 		if (person == null) {
 			throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
 		}
@@ -94,20 +94,28 @@ public class PersonServiceImpl implements PersonService {
     @Override
     public boolean isExistsByEmailHash(final String hash) {
         Preconditions.checkArgument(StringUtils.isNotBlank(hash));
-        return personDao.isExistsByEmailHash(hash);
+        return personRepository.existsByEmailMD5(hash);
     }
 
     @Override
 	public ImageAttachmentVO getAvatarByPubkey(final String pubkey) {
 		Preconditions.checkNotNull(pubkey);
-		return personDao.getAvatarByPubkey(pubkey);
+		Optional<Person> person = Optional.ofNullable(personRepository.findByPubkey(pubkey))
+			.flatMap(vo -> personRepository.findById(vo.getId()));
+
+		Integer avatarId = person
+			.map(Person::getAvatar)
+			.map(ImageAttachment::getId)
+			.orElseThrow(() -> new DataRetrievalFailureException(I18n.t("sumaris.error.person.avatar.notFound")));
+
+		return imageAttachmentDao.get(avatarId);
 	}
 
 	@Override
 	public List<String> getEmailsByProfiles(UserProfileEnum... userProfiles) {
 		Preconditions.checkNotNull(userProfiles);
 
-		return personDao.getEmailsByProfiles(
+		return personRepository.getEmailsByProfiles(
 				ImmutableList.copyOf(userProfiles).stream().map(up -> up.id).collect(Collectors.toList()),
 				ImmutableList.of(StatusEnum.ENABLE.getId())
 		);
@@ -119,11 +127,11 @@ public class PersonServiceImpl implements PersonService {
 
 		// Make sure to fill department, before saving, because of cache
 		if (person.getDepartment().getLabel() == null) {
-			DepartmentVO department = departmentDao.get(person.getDepartment().getId());
+			DepartmentVO department = departmentRepository.get(person.getDepartment().getId());
 			person.setDepartment(department);
 		}
 
-		return personDao.save(person);
+		return personRepository.save(person);
 	}
 
 	@Override
@@ -137,7 +145,7 @@ public class PersonServiceImpl implements PersonService {
 
 	@Override
 	public void delete(int id) {
-		personDao.delete(id);
+		personRepository.deleteById(id);
 	}
 
 	@Override

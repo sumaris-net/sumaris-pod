@@ -123,9 +123,6 @@ public class MetierRepositoryImpl
     public void toVO(Metier source, MetierVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
-        // StatusId
-        target.setStatusId(source.getStatus().getId());
-
         // Gear
         if (source.getGear() != null) {
             target.setGear(referentialDao.toReferentialVO(source.getGear()));
@@ -140,7 +137,7 @@ public class MetierRepositoryImpl
     }
 
     @Override
-    public Specification<Metier> toSpecification(ReferentialFilterVO filter) {
+    protected Specification<Metier> toSpecification(ReferentialFilterVO filter) {
 
         return super.toSpecification(filter)
                 .and(inLevelIds(Metier.Fields.GEAR, filter))

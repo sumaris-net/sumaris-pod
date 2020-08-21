@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.Sale;
@@ -69,7 +69,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
     private ReferentialDao referentialDao;
 
     @Autowired
-    private PersonDao personDao;
+    private PersonRepository personRepository;
 
     @Autowired
     private VesselSnapshotDao vesselSnapshotDao;
@@ -216,7 +216,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
 
             // Recorder person
             if (source.getRecorderPerson() != null) {
-                PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
+                PersonVO recorderPerson = personRepository.toVO(source.getRecorderPerson());
                 target.setRecorderPerson(recorderPerson);
             }
         }

@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.administration.user.DepartmentDao;
+import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.util.Beans;
@@ -48,7 +48,7 @@ public class ImageAttachmentDaoImpl extends BaseDataDaoImpl implements ImageAtta
             LoggerFactory.getLogger(ImageAttachmentDaoImpl.class);
 
     @Autowired
-    private DepartmentDao departmentDao;
+    private DepartmentRepository departmentRepository;
 
     @Override
     public ImageAttachmentVO get(int id) {
@@ -123,7 +123,7 @@ public class ImageAttachmentDaoImpl extends BaseDataDaoImpl implements ImageAtta
         Beans.copyProperties(source, target);
 
         // Department
-        DepartmentVO department = departmentDao.toDepartmentVO(source.getRecorderDepartment());
+        DepartmentVO department = departmentRepository.toVO(source.getRecorderDepartment());
         target.setRecorderDepartment(department);
 
         // Status

@@ -24,6 +24,8 @@ package net.sumaris.core;
  * #L%
  */
 
+import net.sumaris.core.dao.administration.UserSettingsRepositoryWriteTest;
+import net.sumaris.core.dao.administration.UserTokenRepositoryWriteTest;
 import net.sumaris.core.dao.data.*;
 import net.sumaris.core.dao.referential.*;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductDaoWriteTest;
@@ -47,13 +49,6 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-    // DAO : data
-    BatchDaoWriteTest.class,
-    SampleDaoWriteTest.class,
-    TripRepositoryWriteTest.class,
-    LandingRepositoryReadTest.class,
-    VesselDaoImplReadTest.class,
-    VesselSnapshotDaoImplReadTest.class,
     // DAO: referential
     LocationRepositoryReadTest.class,
     LocationRepositoryWriteTest.class,
@@ -63,15 +58,31 @@ import org.junit.runners.Suite;
     ParameterRepositoryWriteTest.class,
     PmfmRepositoryReadTest.class,
     PmfmRepositoryWriteTest.class,
+    // DAO: administration
+    UserTokenRepositoryWriteTest.class,
+    UserSettingsRepositoryWriteTest.class,
+    // DAO : data
+    BatchDaoWriteTest.class,
+    SampleDaoWriteTest.class,
+    TripRepositoryWriteTest.class,
+    LandingRepositoryReadTest.class,
+    VesselDaoImplReadTest.class,
+    VesselSnapshotDaoImplReadTest.class,
     // DAO: technical
     DatabaseSchemaDaoTest.class,
     ExtractionProductDaoWriteTest.class,
 
+    // Service: referential
+    LocationServiceReadTest.class,
+    LocationServiceWriteTest.class,
+    ReferentialServiceReadTest.class,
+    TaxonGroupServiceWriteTest.class,
+    PmfmServiceReadTest.class,
+    PmfmServiceWriteTest.class,
     // Service: administration
     DepartmentServiceTest.class,
     PersonServiceTest.class,
     StrategyServiceTest.class,
-
     // Service: data
     ObservedLocationServiceWriteTest.class,
     OperationServiceWriteTest.class,
@@ -81,15 +92,6 @@ import org.junit.runners.Suite;
     VesselServiceWriteTest.class,
     LandingServiceReadTest.class,
     LandingServiceWriteTest.class,
-
-    // Service: referential
-    LocationServiceReadTest.class,
-    LocationServiceWriteTest.class,
-    ReferentialServiceReadTest.class,
-    TaxonGroupServiceWriteTest.class,
-    PmfmServiceReadTest.class,
-    PmfmServiceWriteTest.class,
-
     // Service: technical
     DatabaseSchemaServiceTest.class,
     SoftwareServiceTest.class,

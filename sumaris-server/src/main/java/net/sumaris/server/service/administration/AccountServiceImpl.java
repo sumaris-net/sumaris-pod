@@ -28,9 +28,9 @@ import com.google.common.collect.Lists;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
 import it.ozimov.springboot.mail.service.EmailService;
-import net.sumaris.core.dao.administration.user.PersonDao;
-import net.sumaris.core.dao.administration.user.UserSettingsDao;
-import net.sumaris.core.dao.administration.user.UserTokenDao;
+import net.sumaris.core.dao.administration.user.PersonRepository;
+import net.sumaris.core.dao.administration.user.UserSettingsRepository;
+import net.sumaris.core.dao.administration.user.UserTokenRepository;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
@@ -79,13 +79,13 @@ public class AccountServiceImpl implements AccountService {
     private static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
 
     @Autowired
-    private PersonDao personDao;
+    private PersonRepository personRepository;
 
     @Autowired
-    private UserSettingsDao userSettingsDao;
+    private UserSettingsRepository userSettingsRepository;
 
     @Autowired
-    private UserTokenDao userTokenDao;
+    private UserTokenRepository userTokenRepository;
 
     @Autowired
     private EmailService emailService;
@@ -140,7 +140,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountVO getByPubkey(String pubkey) {
 
-        PersonVO person = personDao.getByPubkeyOrNull(pubkey);
+        PersonVO person = personRepository.findByPubkey(pubkey);
         if (person == null) {
             throw new DataRetrievalFailureException(I18n.t("sumaris.error.account.notFound"));
         }
@@ -148,7 +148,7 @@ public class AccountServiceImpl implements AccountService {
         AccountVO account = new AccountVO();
         BeanUtils.copyProperties(person, account);
 
-        UserSettingsVO settings = userSettingsDao.getByIssuer(account.getPubkey());
+        UserSettingsVO settings = userSettingsRepository.getByIssuer(account.getPubkey());
         account.setSettings(settings);
 
         return account;
@@ -172,7 +172,7 @@ public class AccountServiceImpl implements AccountService {
         // Check if not already exists
         PersonFilterVO filter = new PersonFilterVO();
         BeanUtils.copyProperties(account, filter);
-        List<PersonVO> duplicatedPersons = personDao.findByFilter(filter, 0, 2, null, null);
+        List<PersonVO> duplicatedPersons = personRepository.findByFilter(filter, 0, 2, null, null);
         if (CollectionUtils.isNotEmpty(duplicatedPersons)) {
             throw new SumarisTechnicalException(ErrorCodes.ACCOUNT_ALREADY_EXISTS, I18n.t("sumaris.error.account.register.duplicatedPerson"));
         }
@@ -197,12 +197,12 @@ public class AccountServiceImpl implements AccountService {
         account.setEmail(org.apache.commons.lang3.StringUtils.trimToNull(account.getEmail()));
 
         // Save account
-        AccountVO savedAccount = (AccountVO) personDao.save(account);
+        AccountVO savedAccount = (AccountVO) personRepository.save(account);
 
         // Save settings
         if (account.getSettings() != null) {
             account.getSettings().setIssuer(account.getPubkey());
-            UserSettingsVO savedSettings = userSettingsDao.save(account.getSettings());
+            UserSettingsVO savedSettings = userSettingsRepository.save(account.getSettings());
             savedAccount.setSettings(savedSettings);
         }
 
@@ -222,7 +222,7 @@ public class AccountServiceImpl implements AccountService {
         Preconditions.checkNotNull(account.getId());
 
         // Get existing account
-        PersonVO existingPerson = personDao.get(account.getId());
+        PersonVO existingPerson = personRepository.findById(account.getId().intValue());
         if (existingPerson == null) {
             throw new DataNotFoundException(I18n.t("sumaris.error.account.notFound"));
         }
@@ -234,13 +234,13 @@ public class AccountServiceImpl implements AccountService {
         account.setProfiles(existingPerson.getProfiles());
 
         // Do the save
-        account = (AccountVO) personDao.save(account);
+        account = (AccountVO) personRepository.save(account);
 
         // Save settings
         UserSettingsVO settings = account.getSettings();
         if (settings != null) {
             settings.setIssuer(account.getPubkey());
-            settings = userSettingsDao.save(settings);
+            settings = userSettingsRepository.save(settings);
             account.setSettings(settings);
         }
 
@@ -259,7 +259,7 @@ public class AccountServiceImpl implements AccountService {
         // Mark account as temporary
         PersonFilterVO filter = new PersonFilterVO();
         filter.setEmail(email.trim());
-        List<PersonVO> matches = personDao.findByFilter(filter, 0, 2, null, null);
+        List<PersonVO> matches = personRepository.findByFilter(filter, 0, 2, null, null);
 
         PersonVO account = null;
         boolean valid = CollectionUtils.size(matches) == 1 && validSignatureHash.equals(signatureHash);
@@ -273,7 +273,7 @@ public class AccountServiceImpl implements AccountService {
                 account.setStatusId(config.getStatusIdValid());
 
                 // Save account
-                personDao.save(account);
+                personRepository.save(account);
             }
         }
 
@@ -298,7 +298,7 @@ public class AccountServiceImpl implements AccountService {
         // Mark account as temporary
         PersonFilterVO filter = new PersonFilterVO();
         filter.setEmail(email.trim());
-        List<PersonVO> matches = personDao.findByFilter(filter, 0, 2, null, null);
+        List<PersonVO> matches = personRepository.findByFilter(filter, 0, 2, null, null);
 
         PersonVO account;
         boolean valid = CollectionUtils.size(matches) == 1;
@@ -322,7 +322,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public List<Integer> getProfileIdsByPubkey(String pubkey) {
-        PersonVO person = personDao.getByPubkeyOrNull(pubkey);
+        PersonVO person = personRepository.findByPubkey(pubkey);
         if (person == null) {
             throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
         }
@@ -334,17 +334,17 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public List<String> getAllTokensByPubkey(String pubkey) {
-        return userTokenDao.getAllByPubkey(pubkey);
+        return userTokenRepository.findTokenByPubkey(pubkey).stream().map(UserTokenRepository.TokenOnly::getToken).collect(Collectors.toList());
     }
 
     @Override
     public boolean isStoredToken(String token, String pubkey) {
-        return userTokenDao.existsByPubkey(token, pubkey);
+        return userTokenRepository.existsByTokenAndPubkey(token, pubkey);
     }
 
     @Override
     public void addToken(String token, String pubkey) {
-        userTokenDao.add(token, pubkey);
+        userTokenRepository.add(token, pubkey);
     }
 
     @Override
@@ -354,7 +354,7 @@ public class AccountServiceImpl implements AccountService {
         AccountVO account = new AccountVO();
         BeanUtils.copyProperties(person, account);
 
-        UserSettingsVO settings = userSettingsDao.getByIssuer(account.getPubkey());
+        UserSettingsVO settings = userSettingsRepository.getByIssuer(account.getPubkey());
         account.setSettings(settings);
 
         return account;
@@ -454,7 +454,7 @@ public class AccountServiceImpl implements AccountService {
 
         try {
 
-            List<String> adminEmails = personDao.getEmailsByProfiles(
+            List<String> adminEmails = personRepository.getEmailsByProfiles(
                     ImmutableList.of(UserProfileEnum.ADMIN.getId()),
                     ImmutableList.of(StatusEnum.ENABLE.getId())
             );

@@ -10,20 +10,18 @@ package net.sumaris.core.dao.referential;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-
-import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -53,7 +51,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- *
  * Base Repository class for Referential entities
  *
  * @author peck7 on 03/04/2020.
@@ -66,6 +63,7 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
     private static final Logger LOG = LoggerFactory.getLogger(ReferentialRepositoryImpl.class);
 
     private boolean checkUpdateDate = true;
+    private boolean lockForUpdate = false;
 
     public ReferentialRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, voClass, entityManager);
@@ -77,6 +75,14 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
 
     public void setCheckUpdateDate(boolean checkUpdateDate) {
         this.checkUpdateDate = checkUpdateDate;
+    }
+
+    public boolean isLockForUpdate() {
+        return lockForUpdate;
+    }
+
+    public void setLockForUpdate(boolean lockForUpdate) {
+        this.lockForUpdate = lockForUpdate;
     }
 
     @Override
@@ -165,7 +171,7 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
 
     @Override
     public Optional<V> findByLabel(String label) {
-        @SuppressWarnings("unchecked") List<V> result = findAll((F) ReferentialFilterVO.builder().label(label).build());
+        List<E> result = findAll(BindableSpecification.where(hasLabel(label)));
         if (CollectionUtils.isEmpty(result)) {
             return Optional.empty();
         } else {
@@ -173,7 +179,7 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
                 LOG.warn(String.format("%s entity with label '%s' -> more than 1 occurrence (%s found). Returning the first one",
                     getDomainClass().getSimpleName(), label, result.size()));
             }
-            return Optional.of(result.get(0));
+            return Optional.of(result.get(0)).map(this::toVO);
         }
     }
 
@@ -186,9 +192,18 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
             entity.setCreationDate(new Date());
         }
 
-        if (checkUpdateDate) {
-            // Check update date
-            Daos.checkUpdateDateForUpdate(vo, entity);
+        if (!isNew) {
+
+            if (isCheckUpdateDate()) {
+                // Check update date
+                Daos.checkUpdateDateForUpdate(vo, entity);
+            }
+
+            if (isLockForUpdate()) {
+                // Lock for update
+                lockForUpdate(entity);
+            }
+
         }
 
         // Update update_dt
@@ -206,31 +221,8 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
     @Override
     protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
-        vo.setUpdateDate(savedEntity.getUpdateDate());
         if (isNew)
             vo.setCreationDate(savedEntity.getCreationDate());
-    }
-
-    @Override
-    public E toEntity(V vo) {
-        Preconditions.checkNotNull(vo);
-        E entity;
-
-        if (vo.getId() != null) {
-            entity = getOne(vo.getId());
-        } else {
-            entity = createEntity();
-        }
-
-        // Remember the entity's update date
-        Date entityUpdateDate = entity.getUpdateDate();
-
-        toEntity(vo, entity, true);
-
-        // Restore the update date (can be override by Beans.copyProperties())
-        entity.setUpdateDate(entityUpdateDate);
-
-        return entity;
     }
 
     @Override
@@ -266,6 +258,7 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
 
     protected void toVO(E source, V target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
+        target.setStatusId(source.getStatus().getId());
     }
 
     @Override
@@ -277,8 +270,7 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
         }
     }
 
-    @Override
-    public Specification<E> toSpecification(F filter) {
+    protected Specification<E> toSpecification(F filter) {
         // default specification
         return BindableSpecification
             .where(inStatusIds(filter))

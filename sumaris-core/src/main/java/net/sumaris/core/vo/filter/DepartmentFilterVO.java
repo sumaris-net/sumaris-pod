@@ -23,16 +23,14 @@ package net.sumaris.core.vo.filter;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 
-import java.io.Serializable;
-import java.util.List;
-
 @Data
+@EqualsAndHashCode(callSuper = true)
 @FieldNameConstants
-public class DepartmentFilterVO implements Serializable {
+public class DepartmentFilterVO extends ReferentialFilterVO {
 
     private Boolean withLogo;
 
-    private List<Integer> statusIds;
 }

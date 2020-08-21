@@ -35,17 +35,36 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Predicate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 public interface ReferentialSpecifications<E extends IReferentialWithStatusEntity> {
 
+    String STATUS_PARAMETER = "status";
+    String STATUS_SET_PARAMETER = "statusSet";
     String LABEL_PARAMETER = "label";
     String LEVEL_PARAMETER = "level";
     String LEVEL_SET_PARAMETER = "levelSet";
-    String STATUS_PARAMETER = "status";
-    String STATUS_SET_PARAMETER = "statusSet";
     String SEARCH_TEXT_PARAMETER = "searchText";
+
+    default Specification<E> inStatusIds(ReferentialFilterVO filter) {
+        Integer[] statusIds = filter.getStatusIds();
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+            query.distinct(true); // Set distinct here because inStatusIds is always used (usually ...)
+            ParameterExpression<Collection> statusParam = criteriaBuilder.parameter(Collection.class, STATUS_PARAMETER);
+            ParameterExpression<Boolean> statusSetParam = criteriaBuilder.parameter(Boolean.class, STATUS_SET_PARAMETER);
+            return criteriaBuilder.or(
+                criteriaBuilder.isFalse(statusSetParam),
+                criteriaBuilder.in(root.get(IReferentialWithStatusEntity.Fields.STATUS).get(Status.Fields.ID)).value(statusParam)
+            );
+        });
+        specification.addBind(STATUS_SET_PARAMETER, !ArrayUtils.isEmpty(statusIds));
+        specification.addBind(STATUS_PARAMETER, ArrayUtils.isEmpty(statusIds) ? null : Arrays.asList(statusIds));
+        return specification;
+    }
 
     default Specification<E> hasLabel(String label) {
         BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
@@ -78,40 +97,37 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
         return specification;
     }
 
-    default Specification<E> inStatusIds(ReferentialFilterVO filter) {
-        Integer[] statusIds = filter.getStatusIds();
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> statusParam = criteriaBuilder.parameter(Collection.class, STATUS_PARAMETER);
-            ParameterExpression<Boolean> statusSetParam = criteriaBuilder.parameter(Boolean.class, STATUS_SET_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isFalse(statusSetParam),
-                criteriaBuilder.in(root.get(IReferentialWithStatusEntity.Fields.STATUS).get(Status.Fields.ID)).value(statusParam)
-            );
-        });
-        specification.addBind(STATUS_SET_PARAMETER, !ArrayUtils.isEmpty(statusIds));
-        specification.addBind(STATUS_PARAMETER, ArrayUtils.isEmpty(statusIds) ? null : Arrays.asList(statusIds));
-        return specification;
-    }
-
     default Specification<E> searchOrJoinSearchText(ReferentialFilterVO filter) {
         String searchText = Daos.getEscapedSearchText(filter.getSearchText());
         String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
         if (searchJoinProperty != null) {
             return joinSearchText(searchJoinProperty, filter.getSearchAttribute(), searchText);
         } else {
-            return searchText(filter.getSearchAttribute(), searchText);
+            return searchText(
+                StringUtils.isNotBlank(filter.getSearchAttribute()) ? ArrayUtils.toArray(filter.getSearchAttribute()) : null,
+                searchText);
         }
     }
 
-    default Specification<E> searchText(String searchAttribute, String searchText) {
+    default Specification<E> searchText(String[] searchAttributes, String searchText) {
         BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> searchTextParam = criteriaBuilder.parameter(String.class, SEARCH_TEXT_PARAMETER);
-            if (StringUtils.isNotBlank(searchAttribute)) {
+            if (ArrayUtils.isNotEmpty(searchAttributes)) {
+                // search on all attributes
+                List<Predicate> predicates = new ArrayList<>();
+                predicates.add(
+                    criteriaBuilder.isNull(searchTextParam)
+                );
+                Arrays.stream(searchAttributes).forEach(searchAttribute ->
+                    predicates.add(
+                        criteriaBuilder.like(criteriaBuilder.upper(Daos.composePath(root, searchAttribute)), criteriaBuilder.upper(searchTextParam))
+                    ));
                 return criteriaBuilder.or(
-                    criteriaBuilder.isNull(searchTextParam),
-                    criteriaBuilder.like(criteriaBuilder.upper(Daos.composePath(root, searchAttribute)), criteriaBuilder.upper(searchTextParam)));
+                    // all predicates
+                    predicates.toArray(new Predicate[0])
+                );
             }
-            // Search on label+name
+            // Search on label+name only
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(searchTextParam),
                 criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), criteriaBuilder.upper(searchTextParam)),

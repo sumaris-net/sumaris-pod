@@ -93,18 +93,8 @@ public class TaxonGroupRepositoryImpl
             Pageables.create(offset, size, sortAttribute, sortDirection));
 
         return query.getResultStream()
-            .distinct()
             .map(this::toVO)
             .collect(Collectors.toList());
-    }
-
-    @Override
-    public void toVO(TaxonGroup source, TaxonGroupVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
-        super.toVO(source, target, fetchOptions, copyIfNull);
-
-        // StatusId
-        target.setStatusId(source.getStatus().getId());
-
     }
 
     @Override
@@ -325,7 +315,7 @@ public class TaxonGroupRepositoryImpl
     }
 
     @Override
-    public Specification<TaxonGroup> toSpecification(ReferentialFilterVO filter) {
+    protected Specification<TaxonGroup> toSpecification(ReferentialFilterVO filter) {
         Preconditions.checkNotNull(filter);
         Integer[] gearIds = filter.getLevelId() != null
             ? new Integer[]{filter.getLevelId()}

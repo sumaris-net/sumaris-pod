@@ -25,8 +25,8 @@ package net.sumaris.core.dao.technical.extraction;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import net.sumaris.core.dao.administration.user.DepartmentDao;
-import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.user.DepartmentRepository;
+import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.Status;
@@ -69,10 +69,10 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
             LoggerFactory.getLogger(ExtractionProductDaoImpl.class);
 
     @Autowired
-    private DepartmentDao departmentDao;
+    private DepartmentRepository departmentRepository;
 
     @Autowired
-    private PersonDao personDao;
+    private PersonRepository personRepository;
 
     @Override
     public List<ExtractionProductVO> findByFilter(ExtractionProductFilterVO filter, ProductFetchOptions fetchOptions) {
@@ -546,10 +546,10 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
 
         // Recorder department and person
         if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) {
-            target.setRecorderDepartment(departmentDao.toDepartmentVO(source.getRecorderDepartment()));
+            target.setRecorderDepartment(departmentRepository.toVO(source.getRecorderDepartment()));
         }
         if (fetchOptions == null || fetchOptions.isWithRecorderPerson()) {
-            target.setRecorderPerson(personDao.toPersonVO(source.getRecorderPerson()));
+            target.setRecorderPerson(personRepository.toVO(source.getRecorderPerson()));
         }
 
         return target;

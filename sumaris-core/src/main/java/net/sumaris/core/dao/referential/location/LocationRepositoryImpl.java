@@ -1,6 +1,5 @@
 package net.sumaris.core.dao.referential.location;
 
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -10,7 +9,6 @@ import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -30,15 +28,12 @@ public class LocationRepositoryImpl
 
     private static final Logger log = LoggerFactory.getLogger(LocationRepositoryImpl.class);
 
-    @Autowired
-    protected SumarisConfiguration config;
-
     public LocationRepositoryImpl(EntityManager entityManager) {
         super(Location.class, LocationVO.class, entityManager);
     }
 
     @Override
-    public Specification<Location> toSpecification(ReferentialFilterVO filter) {
+    protected Specification<Location> toSpecification(ReferentialFilterVO filter) {
         return super.toSpecification(filter)
             .and(inLevelIds(Location.Fields.LOCATION_LEVEL, filter));
     }

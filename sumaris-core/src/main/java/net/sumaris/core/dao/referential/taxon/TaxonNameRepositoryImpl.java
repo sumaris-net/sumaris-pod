@@ -81,7 +81,7 @@ public class TaxonNameRepositoryImpl
     }
 
     @Override
-    public Specification<TaxonName> toSpecification(TaxonNameFilterVO filter) {
+    protected Specification<TaxonName> toSpecification(TaxonNameFilterVO filter) {
 
         return super.toSpecification(filter)
             .and(withTaxonGroupId(filter.getTaxonGroupId()))
@@ -94,11 +94,11 @@ public class TaxonNameRepositoryImpl
     protected List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, Pageable pageable) {
 
         Preconditions.checkNotNull(filter);
+        Preconditions.checkNotNull(pageable);
 
-        TypedQuery<TaxonName> query = getQuery(toSpecification(filter), TaxonName.class, pageable);
+        TypedQuery<TaxonName> query = getQuery(toSpecification(filter), pageable);
 
         return query.getResultStream()
-            .distinct()
             .map(this::toVO)
             .collect(Collectors.toList());
     }

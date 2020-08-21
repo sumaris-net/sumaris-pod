@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
@@ -77,7 +77,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
     private TaxonNameRepository taxonNameRepository;
 
     @Autowired
-    private PersonDao personDao;
+    private PersonRepository personRepository;
 
     private int unitIdNone;
 
@@ -455,7 +455,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
             // Recorder person
             if (source.getRecorderPerson() != null) {
-                PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
+                PersonVO recorderPerson = personRepository.toVO(source.getRecorderPerson());
                 target.setRecorderPerson(recorderPerson);
             }
         }

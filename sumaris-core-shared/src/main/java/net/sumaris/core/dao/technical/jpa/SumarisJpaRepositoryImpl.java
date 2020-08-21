@@ -25,10 +25,12 @@ package net.sumaris.core.dao.technical.jpa;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.querydsl.jpa.impl.JPAQuery;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
 import org.apache.commons.lang3.NotImplementedException;
@@ -36,6 +38,7 @@ import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -46,12 +49,14 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
+import javax.persistence.LockTimeoutException;
 import javax.persistence.TypedQuery;
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -71,6 +76,9 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    protected SumarisConfiguration config;
 
     protected SumarisJpaRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         this(domainClass, null, entityManager);
@@ -110,6 +118,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             ((IUpdateDateEntityBean)entity).setUpdateDate(newUpdateDate);
         }
 
+        // Note: No lock is performed before persist. You should override this method in implementation class
         E savedEntity = save(entity);
 
         // Update VO
@@ -127,7 +136,17 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             entity = createEntity();
         }
 
+        // Remember the entity's update date
+        boolean keepEntityUpdateDate = entity instanceof IUpdateDateEntityBean;
+        Date entityUpdateDate = keepEntityUpdateDate
+            ? ((IUpdateDateEntityBean) entity).getUpdateDate()
+            : null;
+
         toEntity(vo, entity, true);
+
+        // Restore the update date (can be override by Beans.copyProperties())
+        if (keepEntityUpdateDate)
+            ((IUpdateDateEntityBean) entity).setUpdateDate(entityUpdateDate);
 
         return entity;
     }
@@ -137,6 +156,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     public V toVO(E source) {
+        if (source == null) return null;
         V target = createVO();
         toVO(source, target, true);
         return target;
@@ -163,6 +183,10 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
         vo.setId(savedEntity.getId());
+        // copy updateDate to source vo
+        if (savedEntity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
+            ((IUpdateDateEntityBean) vo).setUpdateDate(((IUpdateDateEntityBean) savedEntity).getUpdateDate());
+        }
     }
 
     protected EntityManager getEntityManager() {
@@ -265,6 +289,24 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return entity;
     }
 
+    protected void lockForUpdate(IEntity<?> entity) {
+        lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
+    }
+
+    protected void lockForUpdate(IEntity<?> entity, LockModeType modeType) {
+        // Lock entityName
+        try {
+            entityManager.lock(entity, modeType);
+        } catch (LockTimeoutException e) {
+            throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
+                getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
+        }
+    }
+
+    protected String getTableName(String entityName) {
+        return I18n.t("sumaris.persistence.table." + entityName.substring(0, 1).toLowerCase() + entityName.substring(1));
+    }
+
     protected Timestamp getDatabaseCurrentTimestamp() {
 
         if (dataSource == null) return new Timestamp(System.currentTimeMillis());
@@ -281,30 +323,21 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return new JPAQuery<>(entityManager);
     }
 
-    protected <T extends IEntity<?>> Specification<T> and(Specification<T>... specs) {
-        Specification<T> result = null;
-        for (Specification<T> item: specs) {
-            if (item != null) {
-                if (result == null) {
-                    result = Specification.where(item);
-                }
-                else {
-                    result.and(item);
-                }
-            }
-        }
-        return result;
+    @Override
+    protected <S extends E> TypedQuery<S> getQuery(Specification<S> spec, Class<S> domainClass, Sort sort) {
+        return applyBindings(super.getQuery(spec, domainClass, sort), spec);
     }
 
     @Override
-    protected <S extends E> TypedQuery<S> getQuery(Specification<S> spec, Class<S> domainClass, Sort sort) {
-        TypedQuery<S> query = super.getQuery(spec, domainClass, sort);
+    protected <S extends E> TypedQuery<Long> getCountQuery(Specification<S> spec, Class<S> domainClass) {
+        return applyBindings(super.getCountQuery(spec, domainClass), spec);
+    }
 
-        if (spec instanceof BindableSpecification) {
-            BindableSpecification<S> specificationWithParameters = (BindableSpecification<S>) spec;
+    protected <S extends E, R> TypedQuery<R> applyBindings(TypedQuery<R> query, Specification<S> specification) {
+        if (specification instanceof BindableSpecification) {
+            BindableSpecification<S> specificationWithParameters = (BindableSpecification<S>) specification;
             specificationWithParameters.getBindings().forEach(binding -> binding.accept(query));
         }
-
         return query;
     }
 }

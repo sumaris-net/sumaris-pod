@@ -24,8 +24,8 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
-import net.sumaris.core.dao.administration.user.DepartmentDao;
-import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.user.DepartmentRepository;
+import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -67,10 +67,10 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
     private LocationRepository locationRepository;
 
     @Autowired
-    private PersonDao personDao;
+    private PersonRepository personRepository;
 
     @Autowired
-    private DepartmentDao departmentDao;
+    private DepartmentRepository departmentRepository;
 
     @Autowired
     private ProgramDao programDao;
@@ -426,19 +426,19 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
 
         // Recorder department
         if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) {
-            DepartmentVO recorderDepartment = departmentDao.toDepartmentVO(source.getRecorderDepartment());
+            DepartmentVO recorderDepartment = departmentRepository.toVO(source.getRecorderDepartment());
             target.setRecorderDepartment(recorderDepartment);
         }
 
         // Recorder person
         if ((fetchOptions == null || fetchOptions.isWithRecorderPerson()) && source.getRecorderPerson() != null) {
-            PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
+            PersonVO recorderPerson = personRepository.toVO(source.getRecorderPerson());
             target.setRecorderPerson(recorderPerson);
         }
 
         // Observers
         if ((fetchOptions == null || fetchOptions.isWithObservers()) && CollectionUtils.isNotEmpty(source.getObservers())) {
-            Set<PersonVO> observers = source.getObservers().stream().map(personDao::toPersonVO).collect(Collectors.toSet());
+            Set<PersonVO> observers = source.getObservers().stream().map(personRepository::toVO).collect(Collectors.toSet());
             target.setObservers(observers);
         }
 

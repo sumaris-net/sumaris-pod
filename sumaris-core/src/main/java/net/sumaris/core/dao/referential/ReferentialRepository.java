@@ -83,5 +83,4 @@ public interface ReferentialRepository<
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     V save(V vo);
 
-    Specification<E> toSpecification(@Nullable F filter);
 }

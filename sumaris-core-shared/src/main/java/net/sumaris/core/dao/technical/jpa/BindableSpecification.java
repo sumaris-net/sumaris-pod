@@ -45,7 +45,7 @@ public class BindableSpecification<T> implements Specification<T>, Serializable 
     /**
      * binding list
      */
-    private final List<Consumer<TypedQuery<T>>> bindings;
+    private final List<Consumer<TypedQuery<?>>> bindings;
 
     /**
      * Protected constructor, use 'where' builder method
@@ -72,9 +72,9 @@ public class BindableSpecification<T> implements Specification<T>, Serializable 
     /**
      * Get the current list of bindings
      * The TypedQuery should be visited before execution
-     * @return
+     * @return the bindings
      */
-    public List<Consumer<TypedQuery<T>>> getBindings() {
+    public List<Consumer<TypedQuery<?>>> getBindings() {
         return bindings;
     }
 
