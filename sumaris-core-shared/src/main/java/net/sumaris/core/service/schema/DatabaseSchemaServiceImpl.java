@@ -89,7 +89,7 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
         Version version;
         try {
             if (!isDbLoaded()) {
-                throw new VersionNotFoundException("Unable to get Database version: database is empty");
+                throw new VersionNotFoundException("Unable to find Database version: database is empty");
             }
             version = databaseSchemaDao.getSchemaVersion();
         } catch (VersionNotFoundException e) {

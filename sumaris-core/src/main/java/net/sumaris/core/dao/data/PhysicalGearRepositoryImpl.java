@@ -147,7 +147,7 @@ public class PhysicalGearRepositoryImpl
     public List<PhysicalGearVO> saveAllByTripId(final int tripId, final List<PhysicalGearVO> sources) {
 
         // Load parent entity
-        Trip parent = get(Trip.class, tripId);
+        Trip parent = find(Trip.class, tripId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 

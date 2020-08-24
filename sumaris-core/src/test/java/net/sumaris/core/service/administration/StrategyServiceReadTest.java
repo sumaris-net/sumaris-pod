@@ -25,7 +25,9 @@ package net.sumaris.core.service.administration;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.TaxonGroupStrategyVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
@@ -35,10 +37,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-public class StrategyServiceTest extends AbstractServiceTest{
+public class StrategyServiceReadTest extends AbstractServiceTest{
 
     @ClassRule
-    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
+    public static final DatabaseResource dbResource = DatabaseResource.readDb();
 
     @Autowired
     private StrategyService service;
@@ -63,4 +65,27 @@ public class StrategyServiceTest extends AbstractServiceTest{
         Assert.assertNotNull(results);
         Assert.assertTrue(results.size() > 0);
     }
+
+    @Test
+    public void findPmfmStrategiesByStrategy() {
+
+        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmStrategiesByStrategy(1, StrategyFetchOptions.builder().build());
+        Assert.assertNotNull(pmfmStrategies);
+        Assert.assertEquals(80, pmfmStrategies.size());
+        PmfmStrategyVO pmfmStrategy = pmfmStrategies.get(0);
+        Assert.assertNotNull(pmfmStrategy);
+        Assert.assertNotNull(pmfmStrategy.getPmfmId());
+        Assert.assertNull(pmfmStrategy.getPmfm());
+
+    }
+
+    @Test
+    public void findPmfmStrategiesByProgramAndAcquisitionLevel() {
+
+        List<PmfmStrategyVO> pmfmStrategies = service.findPmfmStrategiesByProgramAndAcquisitionLevel(dbResource.getFixtures().getDefaultProgram().getId(), 2, StrategyFetchOptions.builder().build());
+        Assert.assertNotNull(pmfmStrategies);
+        Assert.assertEquals(24, pmfmStrategies.size());
+
+    }
+
 }

@@ -27,7 +27,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.*;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -74,7 +74,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     private final MeasurementDao measurementDao;
     private final MetierRepository metierRepository;
     private final VesselService vesselService;
-    private final ProgramDao programDao;
+    private final ProgramRepository programRepository;
 
     public AggregatedLandingServiceImpl(LandingRepository landingRepository,
                                         TripRepository tripRepository,
@@ -83,7 +83,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                                         MeasurementDao measurementDao,
                                         MetierRepository metierRepository,
                                         VesselService vesselService,
-                                        ProgramDao programDao) {
+                                        ProgramRepository programRepository) {
         this.landingRepository = landingRepository;
         this.tripRepository = tripRepository;
         this.observedLocationDao = observedLocationDao;
@@ -91,7 +91,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         this.measurementDao = measurementDao;
         this.metierRepository = metierRepository;
         this.vesselService = vesselService;
-        this.programDao = programDao;
+        this.programRepository = programRepository;
     }
 
     @Override
@@ -389,7 +389,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         observedLocation.setStartDateTime(date);
         observedLocation.setEndDateTime(Dates.lastSecondOfTheDay(date));
         observedLocation.setLocation(parent.getLocation());
-        observedLocation.setProgram(programDao.getByLabel(programLabel));
+        observedLocation.setProgram(programRepository.getByLabel(programLabel));
         observedLocation.setObservers(Beans.getSet(parent.getObservers()));
         observedLocation.setRecorderDepartment(parent.getRecorderDepartment());
         observedLocation.setRecorderPerson(parent.getRecorderPerson());

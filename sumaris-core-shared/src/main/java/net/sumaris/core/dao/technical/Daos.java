@@ -1542,7 +1542,7 @@ public class Daos {
             } else if (result instanceof OffsetDateTime) {
                 result = new Timestamp(((OffsetDateTime) result).atZoneSimilarLocal(ZoneOffset.UTC).toInstant().toEpochMilli());
             } else {
-                throw new SQLException("Could not get database current timestamp. Invalid result (not a timestamp ?): " + result);
+                throw new SQLException("Could not find database current timestamp. Invalid result (not a timestamp ?): " + result);
             }
         }
         return (Timestamp) result;
@@ -1698,7 +1698,7 @@ public class Daos {
             String path = paths[i];
 
             if (i == paths.length - 1) {
-                // last path, get it
+                // last path, find it
                 result = from.get(path);
             } else {
                 // need a join (find it from existing joins of from)

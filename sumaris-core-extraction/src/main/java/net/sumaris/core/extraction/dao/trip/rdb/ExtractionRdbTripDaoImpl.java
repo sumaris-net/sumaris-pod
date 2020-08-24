@@ -35,6 +35,7 @@ import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
+import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripVersion;
 import net.sumaris.core.model.referential.location.LocationLevel;
@@ -46,6 +47,7 @@ import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -56,7 +58,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Repository;
-import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 
 import javax.persistence.PersistenceException;
 import java.io.IOException;
@@ -159,7 +160,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
                     .map(programService::getByLabel)
                     .map(ProgramVO::getId)
                     .forEach(programId -> {
-                        Collection<PmfmStrategyVO> pmfms = strategyService.findPmfmStrategiesByProgram(programId, true);
+                        Collection<PmfmStrategyVO> pmfms = strategyService.findPmfmStrategiesByProgram(
+                            programId,
+                            StrategyFetchOptions.builder().withPmfmStrategyInheritance(true).build()
+                        );
                         pmfmStrategiesByProgramId.putAll(programId, pmfms);
                     });
             List<ExtractionPmfmInfoVO> pmfmInfos = getPmfmInfos(context, pmfmStrategiesByProgramId);

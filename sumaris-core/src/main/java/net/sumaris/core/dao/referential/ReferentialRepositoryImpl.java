@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 03/04/2020.
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends ReferentialFilterVO, O extends IFetchOptions>
+public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends ReferentialFilterVO, O extends IFetchOptions>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
     implements ReferentialRepository<E, V, F, O>, ReferentialSpecifications<E> {
 
@@ -271,6 +271,7 @@ public class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V exten
     }
 
     protected V toVO(E source, O fetchOptions) {
+        if (source == null) return null;
         V target = createVO();
         toVO(source, target, fetchOptions, true);
         return target;

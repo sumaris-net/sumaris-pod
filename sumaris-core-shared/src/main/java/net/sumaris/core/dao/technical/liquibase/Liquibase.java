@@ -584,7 +584,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
                 log.warn(String.format("No changelog files with version found. Please check master changelog file exists at [%s]", changeLogPath));
             }
         } catch (IOException e) {
-            throw new RuntimeException("Could not get changelog files", e);
+            throw new RuntimeException("Could not find changelog files", e);
         }
 
         if (maxVersion != null) {

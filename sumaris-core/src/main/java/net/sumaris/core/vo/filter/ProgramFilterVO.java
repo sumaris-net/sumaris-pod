@@ -22,19 +22,24 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
-import java.util.List;
-
 @Data
+@EqualsAndHashCode(callSuper = true)
 @FieldNameConstants
-public class ProgramFilterVO {
-
-    private List<Integer> statusIds;
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProgramFilterVO extends ReferentialFilterVO {
 
     private String withProperty;
 
-    private String searchText;
-
+    @Builder(builderMethodName = "programFilterBuilder")
+    public ProgramFilterVO(String label, String name,
+                           Integer[] statusIds, Integer levelId, Integer[] levelIds,
+                           String searchJoin, String searchText, String searchAttribute,
+                           String withProperty) {
+        super(label, name, statusIds, levelId, levelIds, searchJoin, searchText, searchAttribute);
+        this.withProperty = withProperty;
+    }
 }

@@ -310,20 +310,20 @@ public class DatabaseSchemaDaoImpl
         try {
             EntityManager em = getEntityManager();
             if (em == null) {
-                throw new VersionNotFoundException("Could not get the schema version. No entityManager found");
+                throw new VersionNotFoundException("Could not find the schema version. No entityManager found");
             }
             systemVersion = getEntityManager().createNamedQuery("SystemVersion.last", String.class)
                     .getSingleResult();
             if (StringUtils.isBlank(systemVersion)) {
-                throw new VersionNotFoundException("Could not get the schema version. No version found in SYSTEM_VERSION table.");
+                throw new VersionNotFoundException("Could not find the schema version. No version found in SYSTEM_VERSION table.");
             }
         } catch (HibernateException he) {
-            throw new VersionNotFoundException(String.format("Could not get the schema version: %s", he.getMessage()));
+            throw new VersionNotFoundException(String.format("Could not find the schema version: %s", he.getMessage()));
         }
         try {
             return VersionBuilder.create(systemVersion).build();
         } catch (IllegalArgumentException iae) {
-            throw new VersionNotFoundException(String.format("Could not get the schema version. Bad schema version found table SYSTEM_VERSION: %s",
+            throw new VersionNotFoundException(String.format("Could not find the schema version. Bad schema version found table SYSTEM_VERSION: %s",
                                                              systemVersion));
         }
     }
@@ -355,7 +355,7 @@ public class DatabaseSchemaDaoImpl
             connection = DataSourceUtils.getConnection(dataSource);
         }
         catch(CannotGetJdbcConnectionException ex) {
-            log.error("Unable to get JDBC connection from dataSource", ex);
+            log.error("Unable to find JDBC connection from dataSource", ex);
             return false;
         }
         
@@ -719,11 +719,11 @@ public class DatabaseSchemaDaoImpl
      */
     private void checkTimezoneConformity() throws SQLException {
 
-        // get server timezone
+        // find server timezone
         TimeZone serverTimeZone = TimeZone.getDefault();
         log.info(I18n.t("sumaris.persistence.serverTimeZone", new Timestamp(new Date().getTime()), serverTimeZone.getID()));
 
-        // get db timezone offset in time format ex: '1:00' for 1 hour offset
+        // find db timezone offset in time format ex: '1:00' for 1 hour offset
         String dbOffsetAsString = (String) Daos.sqlUnique(dataSource, getTimezoneQuery(dataSource.getConnection()));
         log.info(I18n.t("sumaris.persistence.dbTimeZone", getDatabaseCurrentTimestamp(), dbOffsetAsString));
 

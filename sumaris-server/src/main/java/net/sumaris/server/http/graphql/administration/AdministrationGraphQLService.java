@@ -191,7 +191,7 @@ public class AdministrationGraphQLService {
         return result;
     }
 
-    @GraphQLQuery(name = "department", description = "Get a person")
+    @GraphQLQuery(name = "department", description = "Get a department")
     @Transactional(readOnly = true)
     public DepartmentVO getDepartmentById(@GraphQLArgument(name = "id") int id,
                                          @GraphQLEnvironment() Set<String> fields

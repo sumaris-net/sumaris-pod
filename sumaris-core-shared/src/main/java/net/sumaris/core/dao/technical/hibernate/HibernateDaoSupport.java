@@ -208,7 +208,7 @@ public abstract class HibernateDaoSupport {
     }
 
     /**
-     * <p>get.</p>
+     * <p>find.</p>
      *
      * @param clazz a {@link Class} object.
      * @param id    a {@link Serializable} object.
@@ -221,7 +221,7 @@ public abstract class HibernateDaoSupport {
     }
 
     /**
-     * <p>get.</p>
+     * <p>find.</p>
      *
      * @param clazz        a {@link Class} object.
      * @param id           a {@link Serializable} object.

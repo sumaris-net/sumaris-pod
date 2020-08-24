@@ -136,7 +136,7 @@ public class ProgramGraphQLService {
         if (strategy.getPmfmStrategies() != null) {
             return strategy.getPmfmStrategies();
         }
-        return strategyService.findPmfmStrategiesByStrategy(strategy.getId(), getFetchOptions(fields).isWithPmfmStrategyInheritance());
+        return strategyService.findPmfmStrategiesByStrategy(strategy.getId(), getFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get strategy pmfm")

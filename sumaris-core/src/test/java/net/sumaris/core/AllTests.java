@@ -31,9 +31,7 @@ import net.sumaris.core.dao.referential.*;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductDaoWriteTest;
 import net.sumaris.core.dao.technical.schema.DatabaseSchemaDaoTest;
 import net.sumaris.core.service.FileImportServiceTest;
-import net.sumaris.core.service.administration.DepartmentServiceTest;
-import net.sumaris.core.service.administration.PersonServiceTest;
-import net.sumaris.core.service.administration.StrategyServiceTest;
+import net.sumaris.core.service.administration.*;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.*;
 import net.sumaris.core.service.technical.configuration.SoftwareServiceTest;
@@ -82,7 +80,9 @@ import org.junit.runners.Suite;
     // Service: administration
     DepartmentServiceTest.class,
     PersonServiceTest.class,
-    StrategyServiceTest.class,
+    StrategyServiceReadTest.class,
+    ProgramServiceReadTest.class,
+    ProgramServiceWriteTest.class,
     // Service: data
     ObservedLocationServiceWriteTest.class,
     OperationServiceWriteTest.class,

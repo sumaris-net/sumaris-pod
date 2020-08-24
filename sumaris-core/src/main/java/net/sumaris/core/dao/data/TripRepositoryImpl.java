@@ -117,7 +117,7 @@ public class TripRepositoryImpl
     public TripVO qualify(TripVO vo) {
         Preconditions.checkNotNull(vo);
 
-        Trip entity = get(Trip.class, vo.getId());
+        Trip entity = find(Trip.class, vo.getId());
         if (entity == null) {
             throw new DataRetrievalFailureException(String.format("Trip {%s} not found", vo.getId()));
         }
@@ -142,7 +142,7 @@ public class TripRepositoryImpl
             entity.setQualificationDate(newUpdateDate);
         }
         // Apply a find, because can return a null value (e.g. if id is not in the DB instance)
-        entity.setQualityFlag(get(QualityFlag.class, Integer.valueOf(qualityFlagId)));
+        entity.setQualityFlag(find(QualityFlag.class, Integer.valueOf(qualityFlagId)));
 
         // TODO UNVALIDATION PROCESS HERE
         // - insert into qualification history

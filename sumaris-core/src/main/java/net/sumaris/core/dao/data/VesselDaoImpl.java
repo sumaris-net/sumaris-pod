@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
@@ -81,7 +81,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     private ReferentialDao referentialDao;
 
     @Autowired
-    private ProgramDao programDao;
+    private ProgramRepository programRepository;
 
     @Override
     public VesselVO get(int id) {
@@ -535,7 +535,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         // Default program
         if (copyIfNull && target.getProgram() == null) {
             String defaultProgramLabel = config.getVesselDefaultProgramLabel();
-            ProgramVO defaultProgram =  StringUtils.isNotBlank(defaultProgramLabel) ? programDao.getByLabel(defaultProgramLabel) : null;
+            ProgramVO defaultProgram =  StringUtils.isNotBlank(defaultProgramLabel) ? programRepository.getByLabel(defaultProgramLabel) : null;
             if (defaultProgram  != null && defaultProgram.getId() != null) {
                 target.setProgram(load(Program.class, defaultProgram.getId()));
             }

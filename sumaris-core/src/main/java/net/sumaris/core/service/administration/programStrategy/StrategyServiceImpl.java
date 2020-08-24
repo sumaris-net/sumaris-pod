@@ -25,9 +25,10 @@ package net.sumaris.core.service.administration.programStrategy;
 
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.administration.programStrategy.PmfmStrategyRepository;
-import net.sumaris.core.dao.administration.programStrategy.StrategyDao;
+import net.sumaris.core.dao.administration.programStrategy.StrategyRepository;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,27 +45,25 @@ public class StrategyServiceImpl implements StrategyService {
 	private static final Logger log = LoggerFactory.getLogger(StrategyServiceImpl.class);
 
 	@Autowired
-	private StrategyDao strategyDao;
+	private StrategyRepository strategyRepository;
 
 	@Autowired
 	private PmfmStrategyRepository pmfmStrategyRepository;
 
 	@Override
 	public List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions) {
-		return strategyDao.findByProgram(programId, fetchOptions);
+		return strategyRepository.findAll(StrategyFilterVO.strategyFilterBuilder().programId(programId).build(), fetchOptions);
 	}
 
 	@Override
-	public List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, boolean enablePmfmInheritance) {
-		return pmfmStrategyRepository.findByStrategyId(strategy, enablePmfmInheritance);
+	public List<PmfmStrategyVO> findPmfmStrategiesByStrategy(int strategy, StrategyFetchOptions fetchOptions) {
+		return pmfmStrategyRepository.findByStrategyId(strategy, fetchOptions);
 	}
 
 	@Override
-	public List<PmfmStrategyVO> findPmfmStrategiesByProgram(int programId, boolean enablePmfmInheritance) {
+	public List<PmfmStrategyVO> findPmfmStrategiesByProgram(int programId, StrategyFetchOptions fetchOptions) {
 
-		List<StrategyVO> vos = findByProgram(programId, StrategyFetchOptions.builder()
-				.withPmfmStrategyInheritance(enablePmfmInheritance)
-				.build());
+		List<StrategyVO> vos = findByProgram(programId, fetchOptions);
 
 		Map<Integer, PmfmStrategyVO> pmfmStrategyByPmfmId = Maps.newHashMap();
 		Beans.getStream(vos)
@@ -78,29 +77,29 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
-	public List<PmfmStrategyVO> findByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, boolean enablePmfmInheritance) {
-		return pmfmStrategyRepository.findByProgramAndAcquisitionLevel(programId, acquisitionLevelId, enablePmfmInheritance);
+	public List<PmfmStrategyVO> findPmfmStrategiesByProgramAndAcquisitionLevel(int programId, int acquisitionLevelId, StrategyFetchOptions fetchOptions) {
+		return pmfmStrategyRepository.findByProgramAndAcquisitionLevel(programId, acquisitionLevelId, fetchOptions);
 	}
 
 	@Override
 	public List<ReferentialVO> getGears(int strategyId) {
-		return strategyDao.getGears(strategyId);
+		return strategyRepository.getGears(strategyId);
 	}
 
 	@Override
 	public List<TaxonGroupStrategyVO> getTaxonGroupStrategies(int strategyId) {
-		return strategyDao.getTaxonGroupStrategies(strategyId);
+		return strategyRepository.getTaxonGroupStrategies(strategyId);
 	}
 
 	@Override
 	public List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId) {
-		return strategyDao.getTaxonNameStrategies(strategyId);
+		return strategyRepository.getTaxonNameStrategies(strategyId);
 	}
 
 	@Override
 	public StrategyVO save(StrategyVO source) {
 
-		StrategyVO result = strategyDao.save(source);
+		StrategyVO result = strategyRepository.save(source);
 
 		// Save pmfm stratgeies
 		List<PmfmStrategyVO> savedPmfmStrategies = pmfmStrategyRepository.saveByStrategyId(result.getId(), Beans.getList(source.getPmfmStrategies()));
@@ -111,7 +110,7 @@ public class StrategyServiceImpl implements StrategyService {
 
 	@Override
 	public List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources) {
-		List<StrategyVO> result = strategyDao.saveByProgramId(programId, sources);
+		List<StrategyVO> result = strategyRepository.saveByProgramId(programId, sources);
 
 		// Save pmfm strategies
 		sources.forEach(source -> {

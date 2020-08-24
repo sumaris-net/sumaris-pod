@@ -129,7 +129,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         this.applicationConfig.setEncoding(Charsets.UTF_8.name());
         this.applicationConfig.setConfigFileName(file);
 
-        // get all config providers
+        // find all config providers
         Set<ApplicationConfigProvider> providers =
                 ApplicationConfigHelper.getProviders(null,
                         null,

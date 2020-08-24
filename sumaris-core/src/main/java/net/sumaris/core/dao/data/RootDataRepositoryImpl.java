@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.QualityFlagEnum;
@@ -63,7 +63,7 @@ public abstract class RootDataRepositoryImpl<
     private PersonRepository personRepository;
 
     @Autowired
-    private ProgramDao programDao;
+    private ProgramRepository programRepository;
 
     protected RootDataRepositoryImpl(Class<E> domainClass,
                                   EntityManager entityManager) {
@@ -96,7 +96,7 @@ public abstract class RootDataRepositoryImpl<
 
         // Program
         if (source.getProgram() != null) {
-            target.setProgram(programDao.toProgramVO(source.getProgram(),
+            target.setProgram(programRepository.toVO(source.getProgram(),
                 ProgramFetchOptions.builder().withProperties(false).build()));
         }
 

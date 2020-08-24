@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
@@ -73,7 +73,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
     private DepartmentRepository departmentRepository;
 
     @Autowired
-    private ProgramDao programDao;
+    private ProgramRepository programRepository;
 
     public ObservedLocationDaoImpl() {
         super();
@@ -113,7 +113,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
 
         Integer programId = null;
         if (StringUtils.isNotBlank(filter.getProgramLabel())) {
-            programId = programDao.getByLabel(filter.getProgramLabel()).getId();
+            programId = programRepository.getByLabel(filter.getProgramLabel()).getId();
         }
 
         // Fetch locations
@@ -179,7 +179,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
 
         Integer programId = null;
         if (filter != null && StringUtils.isNotBlank(filter.getProgramLabel())) {
-            programId = programDao.getByLabel(filter.getProgramLabel()).getId();
+            programId = programRepository.getByLabel(filter.getProgramLabel()).getId();
         }
 
         ParameterExpression<Date> startDateParam = builder.parameter(Date.class);
@@ -414,7 +414,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
         }
 
         // Program
-        target.setProgram(programDao.toProgramVO(source.getProgram(),
+        target.setProgram(programRepository.toVO(source.getProgram(),
                 ProgramFetchOptions.builder().withProperties(false)
                         .build()));
 

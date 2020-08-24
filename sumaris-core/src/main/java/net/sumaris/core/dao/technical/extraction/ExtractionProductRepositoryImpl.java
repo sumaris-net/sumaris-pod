@@ -305,7 +305,7 @@ public class ExtractionProductRepositoryImpl
         final EntityManager em = getEntityManager();
 
         // Load parent
-        ExtractionProductTable parent = get(ExtractionProductTable.class, tableId);
+        ExtractionProductTable parent = find(ExtractionProductTable.class, tableId);
 
         if (CollectionUtils.isEmpty(sources)) {
             if (parent.getColumns() != null) {
@@ -364,7 +364,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     private void saveProductTableValues(List<String> sources, int columnId) {
-        ExtractionProductColumn parent = get(ExtractionProductColumn.class, columnId);
+        ExtractionProductColumn parent = find(ExtractionProductColumn.class, columnId);
 
         final EntityManager em = getEntityManager();
         if (CollectionUtils.isEmpty(sources)) {

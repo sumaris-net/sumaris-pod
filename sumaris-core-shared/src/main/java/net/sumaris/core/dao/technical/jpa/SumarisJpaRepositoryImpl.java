@@ -10,12 +10,12 @@ package net.sumaris.core.dao.technical.jpa;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -41,16 +41,12 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.LockTimeoutException;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
@@ -65,8 +61,8 @@ import java.util.Set;
  */
 @NoRepositoryBean
 public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends Serializable, V extends IValueObject<ID>>
-        extends SimpleJpaRepository<E, ID>
-        implements SumarisJpaRepository<E, ID, V> {
+    extends SimpleJpaRepository<E, ID>
+    implements SumarisJpaRepository<E, ID, V> {
 
     private boolean debugEntityLoad = false;
 
@@ -111,11 +107,11 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         // Entity has update date
         if (entity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
             // Check update date
-            Daos.checkUpdateDateForUpdate((IUpdateDateEntityBean)vo, (IUpdateDateEntityBean)entity);
+            Daos.checkUpdateDateForUpdate((IUpdateDateEntityBean) vo, (IUpdateDateEntityBean) entity);
 
             // Update update_dt
             Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
-            ((IUpdateDateEntityBean)entity).setUpdateDate(newUpdateDate);
+            ((IUpdateDateEntityBean) entity).setUpdateDate(newUpdateDate);
         }
 
         // Note: No lock is performed before persist. You should override this method in implementation class
@@ -201,14 +197,13 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return (SessionFactoryImplementor) getSession().getSessionFactory();
     }
 
-
     @SuppressWarnings("unchecked")
-    protected <C extends Serializable> C load(Class<C> clazz, Serializable id) {
+    protected <C> C load(Class<C> clazz, Serializable id) {
 
         if (debugEntityLoad) {
             C load = entityManager.find(clazz, id);
             if (load == null) {
-                throw new DataIntegrityViolationException("Unable to load entity " + clazz.getName() + " with identifier '" + id + "': not found in database.");
+                throw new EntityNotFoundException("Unable to load entity " + clazz.getName() + " with identifier '" + id + "': not found in database.");
             }
         }
         return entityManager.unwrap(Session.class).load(clazz, id);
@@ -217,73 +212,86 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     /**
      * <p>load many entities.</p>
      *
-     * @param clazz a {@link Class} object.
+     * @param clazz               a {@link Class} object.
      * @param identifierAttribute name of the identifier attribute
-     * @param identifiers list of identifiers.
-     * @param failedIfMissing Throw error if missing ?
+     * @param identifiers         list of identifiers.
+     * @param failedIfMissing     Throw error if missing ?
      * @return a list of T object.
      */
     @SuppressWarnings("unchecked")
-    protected <C extends Serializable> List<C> loadAll(Class<? extends C> clazz,
-                                                       String identifierAttribute,
-                                                       Collection<? extends Serializable> identifiers,
-                                                       boolean failedIfMissing) {
+    protected <C> List<C> loadAll(Class<C> clazz,
+                                  String identifierAttribute,
+                                  Collection<? extends Serializable> identifiers,
+                                  boolean failedIfMissing) {
 
-        List result = getEntityManager().createQuery(String.format("from %s where id in (:id)", clazz.getSimpleName()))
-                .setParameter(identifierAttribute, identifiers)
-                .getResultList();
+        List<C> result = getEntityManager().createQuery(String.format("from %s where id in (:id)", clazz.getSimpleName()))
+            .setParameter(identifierAttribute, identifiers)
+            .getResultList();
         if (failedIfMissing && result.size() != identifiers.size()) {
-            throw new DataIntegrityViolationException(String.format("Unable to load entities %s from ids. Expected %s entities, but found %s entities.",
-                    clazz.getName(),
-                    identifiers.size(),
-                    result.size()));
+            throw new EntityNotFoundException(String.format("Unable to load entities %s from ids. Expected %s entities, but found %s entities.",
+                clazz.getName(),
+                identifiers.size(),
+                result.size()));
         }
-        return (List<C>)result;
+        return result;
+    }
+
+    protected <C> List<C> loadAll(Class<C> clazz,
+                                  Collection<? extends Serializable> identifiers,
+                                  boolean failedIfMissing) {
+        return loadAll(clazz, IEntity.Fields.ID, identifiers, failedIfMissing);
     }
 
     /**
      * <p>load.</p>
      *
-     * @param clazz a {@link Class} object.
+     * @param clazz               a {@link Class} object.
      * @param identifierAttribute name of the identifier attribute
-     * @param identifiers list of identifiers.
-     * @param <C> a C object.
+     * @param identifiers         list of identifiers.
+     * @param <C>                 a C object.
      * @return a list of T object.
      */
     @SuppressWarnings("unchecked")
-    protected <C extends Serializable> Set<C> loadAllAsSet(Class<? extends C> clazz,
-                                                           String identifierAttribute,
-                                                           Collection<? extends Serializable> identifiers,
-                                                           boolean failedIfMissing) {
+    protected <C> Set<C> loadAllAsSet(Class<C> clazz,
+                                      String identifierAttribute,
+                                      Collection<? extends Serializable> identifiers,
+                                      boolean failedIfMissing) {
 
-        List<C> result = loadAll(clazz, identifierAttribute, identifiers, failedIfMissing);
+        return loadAllAsSet(clazz, IEntity.Fields.ID, identifiers, failedIfMissing);
+    }
+
+    protected <C> Set<C> loadAllAsSet(Class<C> clazz,
+                                      Collection<? extends Serializable> identifiers,
+                                      boolean failedIfMissing) {
+
+        List<C> result = loadAll(clazz, identifiers, failedIfMissing);
         return Sets.newHashSet(result);
     }
 
     /**
-     * <p>get.</p>
+     * <p>find.</p>
      *
      * @param clazz a {@link Class} object.
-     * @param id a {@link Serializable} object.
-     * @param <C> a C object.
+     * @param id    a {@link Serializable} object.
+     * @param <C>   a C object.
      * @return a C object.
      */
     @SuppressWarnings("unchecked")
-    protected <C extends Serializable> C get(Class<? extends C> clazz, Serializable id) {
+    protected <C> C find(Class<C> clazz, Serializable id) {
         return this.entityManager.find(clazz, id);
     }
 
     /**
-     * <p>get.</p>
+     * <p>find.</p>
      *
-     * @param clazz a {@link Class} object.
-     * @param id a {@link Serializable} object.
+     * @param clazz        a {@link Class} object.
+     * @param id           a {@link Serializable} object.
      * @param lockModeType a {@link LockOptions} object.
-     * @param <C> a C object.
+     * @param <C>          a C object.
      * @return a C object.
      */
     @SuppressWarnings("unchecked")
-    protected <C extends Serializable> C get(Class<? extends C> clazz, Serializable id, LockModeType lockModeType) {
+    protected <C> C find(Class<C> clazz, Serializable id, LockModeType lockModeType) {
         C entity = entityManager.find(clazz, id);
         entityManager.lock(entity, lockModeType);
         return entity;
@@ -340,4 +348,5 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         }
         return query;
     }
+
 }

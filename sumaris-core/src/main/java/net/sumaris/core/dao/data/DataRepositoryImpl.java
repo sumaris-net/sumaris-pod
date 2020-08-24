@@ -269,7 +269,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<ID>, ID extends I
             entity.setQualificationDate(newUpdateDate);
         }
         // Apply a find, because can return a null value (e.g. if id is not in the DB instance)
-        entity.setQualityFlag(get(QualityFlag.class, Integer.valueOf(qualityFlagId)));
+        entity.setQualityFlag(find(QualityFlag.class, Integer.valueOf(qualityFlagId)));
 
         // TODO UNVALIDATION PROCESS HERE
         // - insert into qualification history

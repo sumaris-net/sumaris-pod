@@ -51,24 +51,23 @@ public interface ReferentialRepository<
     >
     extends SumarisJpaRepository<E, Integer, V> {
 
-    List<V> findAll(@Nullable F filter);
+    List<V> findAll(F filter);
 
     // TODO: find usage of Page ??
-    Page<V> findAll(@Nullable F filter, Pageable pageable);
+    Page<V> findAll(F filter, Pageable pageable);
 
-    List<V> findAll(@Nullable F filter, @Nullable O fetchOptions);
+    List<V> findAll(F filter, @Nullable O fetchOptions);
 
-    Page<V> findAll(@Nullable F filter, Pageable pageable, @Nullable O fetchOptions);
+    Page<V> findAll(F filter, Pageable pageable, @Nullable O fetchOptions);
 
-    Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions);
+    Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, @Nullable O fetchOptions);
 
-    Page<V> findAll(F filter, int offset, int size, String sortAttribute,
-                    SortDirection sortDirection, O fetchOptions);
+    Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, @Nullable O fetchOptions);
 
     List<V> findAllAsVO(@Nullable Specification<E> spec);
     Page<V> findAllAsVO(@Nullable Specification<E> spec, Pageable pageable);
-    List<V> findAllAsVO(@Nullable Specification<E> spec, O fetchOptions);
-    Page<V> findAllAsVO(@Nullable Specification<E> spec, Pageable pageable, O fetchOptions);
+    List<V> findAllAsVO(@Nullable Specification<E> spec, @Nullable O fetchOptions);
+    Page<V> findAllAsVO(@Nullable Specification<E> spec, Pageable pageable, @Nullable O fetchOptions);
 
     long count(F filter);
 

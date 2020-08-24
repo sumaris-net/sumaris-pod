@@ -260,7 +260,7 @@ public class Beans {
         try {
             return (V) PropertyUtils.getProperty(object, propertyName);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new SumarisTechnicalException( String.format("Could not get property %1s on object of type %2s", propertyName, object.getClass().getName()), e);
+            throw new SumarisTechnicalException( String.format("Could not find property %1s on object of type %2s", propertyName, object.getClass().getName()), e);
         }
     }
 

@@ -238,7 +238,7 @@ public class ProductRepositoryImpl
     public List<ProductVO> saveByOperationId(int operationId, @Nonnull List<ProductVO> products) {
 
         // Load parent entity
-        Operation parent = get(Operation.class, operationId);
+        Operation parent = find(Operation.class, operationId);
 
         products.forEach(source -> {
             source.setOperationId(operationId);
@@ -258,7 +258,7 @@ public class ProductRepositoryImpl
     public List<ProductVO> saveByLandingId(int landingId, @Nonnull List<ProductVO> products) {
 
         // Load parent entity
-        Landing parent = get(Landing.class, landingId);
+        Landing parent = find(Landing.class, landingId);
 
         products.forEach(source -> {
             source.setLandingId(landingId);
@@ -276,7 +276,7 @@ public class ProductRepositoryImpl
     public List<ProductVO> saveBySaleId(int saleId, @Nonnull List<ProductVO> products) {
 
         // Load parent entity
-        Sale parent = get(Sale.class, saleId);
+        Sale parent = find(Sale.class, saleId);
 
         // Get landing Id (to optimize linked data for SIH)
         Integer landingId = Optional.ofNullable(parent.getTrip())
