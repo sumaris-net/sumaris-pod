@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.data.FishingArea;
@@ -56,17 +56,17 @@ public class FishingAreaRepositoryImpl
         LoggerFactory.getLogger(FishingAreaRepositoryImpl.class);
 
     private final LocationRepository locationRepository;
-    private final ReferentialDao referentialDao;
+    private final BaseRefRepository baseRefRepository;
 
     @Autowired
     @Lazy
     private FishingAreaRepository loopBack;
 
     @Autowired
-    public FishingAreaRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository, ReferentialDao referentialDao) {
+    public FishingAreaRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository, BaseRefRepository baseRefRepository) {
         super(FishingArea.class, entityManager);
         this.locationRepository = locationRepository;
-        this.referentialDao = referentialDao;
+        this.baseRefRepository = baseRefRepository;
     }
 
     @Override
@@ -81,11 +81,11 @@ public class FishingAreaRepositoryImpl
         target.setLocation(locationRepository.toVO(source.getLocation()));
 
         if (source.getDistanceToCoastGradient() != null)
-            target.setDistanceToCoastGradient(referentialDao.toReferentialVO(source.getDistanceToCoastGradient()));
+            target.setDistanceToCoastGradient(baseRefRepository.toVO(source.getDistanceToCoastGradient()));
         if (source.getDepthGradient() != null)
-            target.setDepthGradient(referentialDao.toReferentialVO(source.getDepthGradient()));
+            target.setDepthGradient(baseRefRepository.toVO(source.getDepthGradient()));
         if (source.getNearbySpecificArea() != null)
-            target.setNearbySpecificArea(referentialDao.toReferentialVO(source.getNearbySpecificArea()));
+            target.setNearbySpecificArea(baseRefRepository.toVO(source.getNearbySpecificArea()));
 
         if (source.getOperation() != null)
             target.setOperationId(source.getOperation().getId());

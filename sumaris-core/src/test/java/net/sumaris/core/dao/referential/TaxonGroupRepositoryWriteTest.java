@@ -53,7 +53,7 @@ public class TaxonGroupRepositoryWriteTest extends AbstractDaoTest{
     protected TaxonGroupRepository taxonGroupRepository;
 
     @Autowired
-    protected ReferentialDao referentialDao;
+    protected BaseRefRepository baseRefRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -68,7 +68,7 @@ public class TaxonGroupRepositoryWriteTest extends AbstractDaoTest{
     public void getAllDressingByTaxonGroupId() {
 
         TaxonGroup taxonGroup = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeId.FAO.getId());
-        ReferentialVO countryLocation =  referentialDao.findByUniqueLabel(Location.class.getSimpleName(), "FRA");
+        ReferentialVO countryLocation =  baseRefRepository.findByUniqueLabel(Location.class.getSimpleName(), "FRA").get();
 
         // MNZ - Baudroie
         {
@@ -86,7 +86,7 @@ public class TaxonGroupRepositoryWriteTest extends AbstractDaoTest{
     public void getAllPreservingByTaxonGroupId() {
 
         TaxonGroup taxonGroup = taxonGroupRepository.getOneByLabelAndTaxonGroupTypeId("MNZ", TaxonGroupTypeId.FAO.getId());
-        ReferentialVO countryLocation =  referentialDao.findByUniqueLabel(Location.class.getSimpleName(), "FRA");
+        ReferentialVO countryLocation =  baseRefRepository.findByUniqueLabel(Location.class.getSimpleName(), "FRA").get();
 
         // MNZ - Baudroie
         {

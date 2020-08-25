@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.StatusRepository;
 import net.sumaris.core.dao.referential.ValidityStatusRepository;
 import net.sumaris.core.dao.referential.location.*;
@@ -76,7 +76,7 @@ public class LocationServiceImpl implements LocationService{
     protected LocationClassificationRepository locationClassificationRepository;
 
     @Autowired
-    protected ReferentialDao referentialDao;
+    protected BaseRefRepository baseRefRepository;
 
     @Autowired
     private ResourceLoader resourceLoader;
@@ -340,7 +340,7 @@ public class LocationServiceImpl implements LocationService{
                         parentLocation.setLevelId(icesRectangleLocationLevel.getId());
                     }
                     parentLocation.setValidityStatusId(notValidStatus.getId());
-                    parentLocation = (LocationVO)referentialDao.save(parentLocation);
+                    parentLocation = (LocationVO) baseRefRepository.save(parentLocation);
 
                     // Add this new rectangle to the list, to enable geometry creation in the next <for> iteration
                     if (!rectangleLocations.contains(parentLocation)) {
@@ -475,8 +475,8 @@ public class LocationServiceImpl implements LocationService{
     public Integer getLocationIdByLatLong(Number latitude, Number longitude) {
         String locationLabel = getLocationLabelByLatLong(latitude, longitude);
         if (locationLabel == null) return null;
-        ReferentialVO location = referentialDao.findByUniqueLabel(Location.class.getSimpleName(), locationLabel);
-        return location == null ? null : location.getId();
+        Optional<ReferentialVO> location = baseRefRepository.findByUniqueLabel(Location.class.getSimpleName(), locationLabel);
+        return location.map(ReferentialVO::getId).orElse(null);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package net.sumaris.core.dao.referential.pmfm;
 
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.referential.pmfm.*;
@@ -31,7 +31,7 @@ public class PmfmRepositoryImpl
     implements PmfmRepositoryExtend {
 
     @Autowired
-    private ReferentialDao referentialDao;
+    private BaseRefRepository baseRefRepository;
 
     public int unitIdNone;
 
@@ -98,14 +98,14 @@ public class PmfmRepositoryImpl
         if (CollectionUtils.isNotEmpty(source.getQualitativeValues())) {
             List<ReferentialVO> qualitativeValues = source.getQualitativeValues()
                 .stream()
-                .map(referentialDao::toReferentialVO)
+                .map(baseRefRepository::toVO)
                 .collect(Collectors.toList());
             target.setQualitativeValues(qualitativeValues);
         } else if ((fetchOptions == null || fetchOptions.isWithInheritance()) // load parameter qv list is fetch option allows it
             && CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
             List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
                 .stream()
-                .map(referentialDao::toReferentialVO)
+                .map(baseRefRepository::toVO)
                 .collect(Collectors.toList());
             target.setQualitativeValues(qualitativeValues);
         }

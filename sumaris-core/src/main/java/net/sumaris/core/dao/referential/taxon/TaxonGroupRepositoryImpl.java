@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.Pageables;
@@ -70,7 +70,7 @@ public class TaxonGroupRepositoryImpl
     private TaxonNameRepository taxonNameRepository;
 
     @Autowired
-    private ReferentialDao referentialDao;
+    private BaseRefRepository baseRefRepository;
 
     @Autowired
     private PmfmRepository pmfmRepository;
@@ -258,7 +258,7 @@ public class TaxonGroupRepositoryImpl
             .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
             .setParameter("locationId", locationId)
             .getResultStream()
-            .map(p -> referentialDao.toReferentialVO(p))
+            .map(p -> baseRefRepository.toVO(p))
             .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(result)) {
@@ -286,7 +286,7 @@ public class TaxonGroupRepositoryImpl
             .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
             .setParameter("locationId", locationId)
             .getResultStream()
-            .map(p -> referentialDao.toReferentialVO(p))
+            .map(p -> baseRefRepository.toVO(p))
             .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(result)) {

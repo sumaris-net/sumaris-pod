@@ -1,6 +1,6 @@
 package net.sumaris.core.dao.referential.pmfm;
 
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.referential.Status;
@@ -30,7 +30,7 @@ public class ParameterRepositoryImpl
     extends ReferentialRepositoryImpl<Parameter, ParameterVO, ReferentialFilterVO, ReferentialFetchOptions> {
 
     @Autowired
-    private ReferentialDao referentialDao;
+    private BaseRefRepository baseRefRepository;
 
     public ParameterRepositoryImpl(EntityManager entityManager) {
         super(Parameter.class, ParameterVO.class, entityManager);
@@ -95,7 +95,7 @@ public class ParameterRepositoryImpl
         if (CollectionUtils.isNotEmpty(source.getQualitativeValues())) {
             List<ReferentialVO> qualitativeValues = source.getQualitativeValues()
                 .stream()
-                .map(referentialDao::toReferentialVO)
+                .map(baseRefRepository::toVO)
                 .collect(Collectors.toList());
             target.setQualitativeValues(qualitativeValues);
         }

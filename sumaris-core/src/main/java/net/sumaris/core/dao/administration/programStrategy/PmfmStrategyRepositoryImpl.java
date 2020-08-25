@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
 import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
@@ -82,7 +82,7 @@ public class PmfmStrategyRepositoryImpl
     private final Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
 
     @Autowired
-    private ReferentialDao referentialDao;
+    private BaseRefRepository baseRefRepository;
 
     @Autowired
     private SumarisConfiguration config;
@@ -197,7 +197,7 @@ public class PmfmStrategyRepositoryImpl
         if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
             List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
                 .stream()
-                .map(referentialDao::toReferentialVO)
+                .map(baseRefRepository::toVO)
                 .collect(Collectors.toList());
             target.setQualitativeValues(qualitativeValues);
         }
@@ -326,7 +326,7 @@ public class PmfmStrategyRepositoryImpl
         acquisitionLevelIdByLabel.clear();
 
         // Fill acquisition levels map
-        List<ReferentialVO> items = referentialDao.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null);
+        List<ReferentialVO> items = baseRefRepository.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null);
         items.forEach(item -> acquisitionLevelIdByLabel.put(item.getLabel(), item.getId()));
     }
 }

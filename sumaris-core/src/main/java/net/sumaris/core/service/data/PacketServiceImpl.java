@@ -26,11 +26,12 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.BatchDao;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.schema.event.DatabaseSchemaListener;
 import net.sumaris.core.dao.schema.event.SchemaUpdatedEvent;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
 import net.sumaris.core.model.data.BatchSortingMeasurement;
@@ -44,6 +45,7 @@ import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.PacketCompositionVO;
 import net.sumaris.core.vo.data.PacketVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +79,7 @@ public class PacketServiceImpl implements PacketService, DatabaseSchemaListener 
     private MeasurementDao measurementDao;
 
     @Autowired
-    private ReferentialDao referentialDao;
+    private BaseRefRepository baseRefRepository;
 
     @Autowired
     private DatabaseSchemaDao databaseSchemaDao;
@@ -288,7 +290,9 @@ public class PacketServiceImpl implements PacketService, DatabaseSchemaListener 
             if (sortingMeasurement == null) {
                 sortingMeasurement = createMeasurement(BatchSortingMeasurement.class, sortingPmfmId);
             }
-            sortingMeasurement.setQualitativeValue(referentialDao.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel()));
+            ReferentialVO qv = baseRefRepository.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel())
+                .orElseThrow(() -> new DataNotFoundException(String.format("The qualitative value with label %s was not found", QualitativeValueEnum.SORTING_BULK.getLabel())));
+            sortingMeasurement.setQualitativeValue(qv);
             target.setSortingMeasurements(Collections.singletonList(sortingMeasurement));
         }
 
@@ -388,7 +392,9 @@ public class PacketServiceImpl implements PacketService, DatabaseSchemaListener 
             if (sortingMeasurement == null) {
                 sortingMeasurement = createMeasurement(BatchSortingMeasurement.class, sortingPmfmId);
             }
-            sortingMeasurement.setQualitativeValue(referentialDao.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel()));
+            ReferentialVO qv = baseRefRepository.findByUniqueLabel(QualitativeValue.class.getSimpleName(), QualitativeValueEnum.SORTING_BULK.getLabel())
+                .orElseThrow(() -> new DataNotFoundException(String.format("The qualitative value with label %s was not found", QualitativeValueEnum.SORTING_BULK.getLabel())));
+            sortingMeasurement.setQualitativeValue(qv);
             target.setSortingMeasurements(Collections.singletonList(sortingMeasurement));
         }
 

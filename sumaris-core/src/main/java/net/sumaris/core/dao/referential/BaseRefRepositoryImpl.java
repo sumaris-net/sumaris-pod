@@ -25,7 +25,6 @@ package net.sumaris.core.dao.referential;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -47,6 +46,7 @@ import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.pmfm.*;
+import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.model.referential.taxon.TaxonName;
@@ -78,10 +78,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.sql.DataSource;
 import java.beans.PropertyDescriptor;
@@ -103,9 +100,6 @@ public class BaseRefRepositoryImpl
 
     @Autowired
     private DataSource dataSource;
-
-    @Autowired
-    private SumarisConfiguration config;
 
     private boolean debugEntityLoad = false;
 
@@ -274,7 +268,7 @@ public class BaseRefRepositoryImpl
             sortAttribute,
             sortDirection
         )
-            .map(s -> toReferentialVO(entityName, s))
+            .map(s -> toVO(entityName, s))
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
@@ -293,14 +287,20 @@ public class BaseRefRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheNames.LOCATION_LEVEL_BY_LABEL, key = "#label", condition = "#entityName == 'LocationLevel'")
-    public ReferentialVO findByUniqueLabel(String entityName, String label) {
+    public Optional<ReferentialVO> findByUniqueLabel(String entityName, String label) {
         Preconditions.checkNotNull(entityName, "Missing entityName argument");
         Preconditions.checkNotNull(label);
 
         // Get entity class from entityName
         Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
 
-        return toReferentialVO(entityName, createFindByUniqueLabelQuery(entityClass, label).getSingleResult());
+        IReferentialEntity result = null;
+        try {
+            result = createFindByUniqueLabelQuery(entityClass, label).getSingleResult();
+        } catch (NoResultException e) {
+            // let result to null
+        }
+        return result == null ? Optional.empty() : Optional.of(toVO(entityName, result));
     }
 
     @Override
@@ -341,7 +341,7 @@ public class BaseRefRepositoryImpl
 
     @Override
     public ReferentialVO get(Class<? extends IReferentialEntity> entityClass, int id) {
-        return toReferentialVO(find(entityClass, id));
+        return toVO(find(entityClass, id));
     }
 
     @Override
@@ -371,12 +371,15 @@ public class BaseRefRepositoryImpl
         if (!IReferentialEntity.class.isAssignableFrom(levelClass)) {
             throw new DataRetrievalFailureException("Unable to convert class=" + levelClass.getName() + " to a referential bean");
         }
-        return toReferentialVO(levelClass.getSimpleName(), (IReferentialEntity) find(levelClass, levelId));
+        return toVO(levelClass.getSimpleName(), (IReferentialEntity) find(levelClass, levelId));
     }
 
     @Override
-    public <T extends IReferentialEntity> ReferentialVO toReferentialVO(T source) {
-        return toReferentialVO(getEntityName(source), source);
+    public <T extends IReferentialEntity> ReferentialVO toVO(T source) {
+        if (source == null)
+            throw new EntityNotFoundException();
+
+        return toVO(getEntityName(source), source);
     }
 
     @Override
@@ -566,7 +569,7 @@ public class BaseRefRepositoryImpl
         return type;
     }
 
-    protected <T extends IReferentialEntity> ReferentialVO toReferentialVO(final String entityName, T source) {
+    protected <T extends IReferentialEntity> ReferentialVO toVO(final String entityName, T source) {
         Preconditions.checkNotNull(entityName);
         Preconditions.checkNotNull(source);
 
@@ -607,7 +610,7 @@ public class BaseRefRepositoryImpl
 
     protected List<ReferentialVO> toReferentialVOs(Stream<? extends IReferentialEntity> source) {
         return source
-            .map(this::toReferentialVO)
+            .map(this::toVO)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
@@ -858,7 +861,7 @@ public class BaseRefRepositoryImpl
 
         // Status
         if ((copyIfNull || source.getStatusId() != null) && target instanceof IWithStatusEntity) {
-            IWithStatusEntity<Integer, Status> targetWithStatus = (IWithStatusEntity) target;
+            IWithStatusEntity<Integer, Status> targetWithStatus = (IWithStatusEntity<Integer, Status>) target;
             if (source.getStatusId() == null) {
                 targetWithStatus.setStatus(null);
             } else {

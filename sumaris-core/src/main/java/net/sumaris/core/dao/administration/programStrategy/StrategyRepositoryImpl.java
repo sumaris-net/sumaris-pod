@@ -145,7 +145,7 @@ public class StrategyRepositoryImpl
             .createQuery(query)
             .setParameter(strategyIdParam, strategyId)
             .getResultStream()
-            .map(referentialRepository::toReferentialVO)
+            .map(referentialRepository::toVO)
             .collect(Collectors.toList());
 
     }
@@ -189,7 +189,7 @@ public class StrategyRepositoryImpl
         if (CollectionUtils.isNotEmpty(source.getGears())) {
             List<ReferentialVO> gears = source.getGears()
                 .stream()
-                .map(referentialRepository::toReferentialVO)
+                .map(referentialRepository::toVO)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
             target.setGears(gears);

@@ -24,7 +24,7 @@ package net.sumaris.rdf.dao;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
-import net.sumaris.core.dao.referential.ReferentialDaoImpl;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
@@ -65,7 +65,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
     protected Multimap<String, String> dataClassNamesByRootClass = ArrayListMultimap.create();
 
     @Autowired
-    protected ReferentialDaoImpl referentialDao;
+    protected BaseRefRepository baseRefRepository;
 
     @Value("${rdf.data.pageSize.default:1000}")
     protected int defaultPageSize;
@@ -221,7 +221,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
         referentialClassNamesByRootClass.put("person", Person.class.getSimpleName());
 
         // Add missing query, from referential entity names
-        referentialDao.getAllTypes().forEach(type -> {
+        baseRefRepository.getAllTypes().forEach(type -> {
             String entityName = type.getId();
             referentialQueriesByName.putIfAbsent(entityName.toLowerCase(), "from " + entityName + " t");
             if (!referentialClassNamesByRootClass.containsKey(entityName.toLowerCase())) {

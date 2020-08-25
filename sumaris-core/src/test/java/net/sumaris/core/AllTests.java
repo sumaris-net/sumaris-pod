@@ -74,6 +74,7 @@ import org.junit.runners.Suite;
     LocationServiceReadTest.class,
     LocationServiceWriteTest.class,
     ReferentialServiceReadTest.class,
+    ReferentialServiceWriteTest.class,
     TaxonGroupServiceWriteTest.class,
     PmfmServiceReadTest.class,
     PmfmServiceWriteTest.class,

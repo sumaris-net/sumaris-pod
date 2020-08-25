@@ -25,8 +25,9 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.Matrix;
@@ -71,7 +72,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
     private static final boolean trace = logger.isTraceEnabled();
 
     @Autowired
-    private ReferentialDao referentialDao;
+    private BaseRefRepository baseRefRepository;
 
     @Autowired
     private TaxonNameRepository taxonNameRepository;
@@ -397,7 +398,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         Beans.copyProperties(source, target);
 
         // Matrix
-        ReferentialVO matrix = referentialDao.toReferentialVO(source.getMatrix());
+        ReferentialVO matrix = baseRefRepository.toVO(source.getMatrix());
         target.setMatrix(matrix);
 
         // Size Unit
@@ -407,7 +408,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
         // Taxon group
         if (source.getTaxonGroup() != null) {
-            ReferentialVO taxonGroup = referentialDao.toReferentialVO(source.getTaxonGroup());
+            ReferentialVO taxonGroup = baseRefRepository.toVO(source.getTaxonGroup());
             target.setTaxonGroup(taxonGroup);
         }
 
@@ -450,7 +451,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         // If full export
         if (allFields) {
             // Recorder department
-            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+            DepartmentVO recorderDepartment = baseRefRepository.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
             target.setRecorderDepartment(recorderDepartment);
 
             // Recorder person
@@ -575,8 +576,8 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
                 target.setSizeUnit(null);
             }
             else {
-                ReferentialVO unit = referentialDao.findByUniqueLabel(Unit.class.getSimpleName(), source.getSizeUnit());
-                Preconditions.checkNotNull(unit, String.format("Invalid 'sample.sizeUnit': unit symbol '%s' not exists", source.getSizeUnit()));
+                ReferentialVO unit = baseRefRepository.findByUniqueLabel(Unit.class.getSimpleName(), source.getSizeUnit())
+                    .orElseThrow(() -> new SumarisTechnicalException(String.format("Invalid 'sample.sizeUnit': unit symbol '%s' not exists", source.getSizeUnit())));
                 target.setSizeUnit(load(Unit.class, unit.getId()));
             }
         }

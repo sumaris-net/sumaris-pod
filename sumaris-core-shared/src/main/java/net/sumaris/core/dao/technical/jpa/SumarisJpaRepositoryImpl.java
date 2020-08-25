@@ -197,7 +197,6 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return (SessionFactoryImplementor) getSession().getSessionFactory();
     }
 
-    @SuppressWarnings("unchecked")
     protected <C> C load(Class<C> clazz, Serializable id) {
 
         if (debugEntityLoad) {

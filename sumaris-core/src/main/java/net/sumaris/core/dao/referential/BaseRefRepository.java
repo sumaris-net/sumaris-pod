@@ -58,9 +58,9 @@ public interface BaseRefRepository {
 
     Long countByFilter(final String entityName, ReferentialFilterVO filter);
 
-    ReferentialVO findByUniqueLabel(String entityName, String label);
+    Optional<ReferentialVO> findByUniqueLabel(String entityName, String label);
 
-    <T extends IReferentialEntity> ReferentialVO toReferentialVO(T source);
+    <T extends IReferentialEntity> ReferentialVO toVO(T source);
 
     <T extends IReferentialVO, S extends IReferentialEntity> Optional<T> toTypedVO(S source, Class<T> targetClazz);
 

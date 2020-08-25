@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -68,7 +68,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
     private PhysicalGearRepository physicalGearRepository;
 
     @Autowired
-    private ReferentialDao referentialDao;
+    private BaseRefRepository baseRefRepository;
 
     @Override
     public List<MetierVO> getMetiersByTripId(int tripId) {
@@ -434,7 +434,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
         }
 
         // Recorder department
-        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+        DepartmentVO recorderDepartment = baseRefRepository.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         return target;

@@ -23,10 +23,14 @@ package net.sumaris.core.service.referential;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
@@ -34,6 +38,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
 import java.util.List;
 
 public class ReferentialServiceReadTest extends AbstractServiceTest{
@@ -43,6 +48,60 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
 
     @Autowired
     private ReferentialService service;
+
+    @Test
+    public void getLastUpdateDate() {
+        Date date = service.getLastUpdateDate();
+        Assert.assertNotNull(date);
+    }
+
+    @Test
+    public void getAllTypes() {
+        List<ReferentialTypeVO> types = service.getAllTypes();
+        Assert.assertNotNull(types);
+        Assert.assertEquals(38, types.size());
+    }
+
+    @Test
+    public void get() {
+        // get by entity class
+        {
+            ReferentialVO ref = service.get(Metier.class, 1);
+            Assert.assertNotNull(ref);
+            Assert.assertEquals("FAG_CAT", ref.getLabel());
+            Assert.assertNotNull(ref.getLevelId());
+            Assert.assertEquals(89, ref.getLevelId().intValue()); // gear_fk(aka level) = 89
+        }
+        // get by entity class name
+        {
+            ReferentialVO ref = service.get(Metier.class.getSimpleName(), 2);
+            Assert.assertNotNull(ref);
+            Assert.assertEquals("GNS_CAT", ref.getLabel());
+            Assert.assertNotNull(ref.getLevelId());
+            Assert.assertEquals(11, ref.getLevelId().intValue()); // gear_fk(aka level) = 89
+        }
+        // get invalid ref
+        try {
+            service.get(Metier.class.getSimpleName(), 999);
+            Assert.fail("should throw exception");
+        } catch (Exception e) {
+            Assert.assertNotNull(e);
+        }
+    }
+
+    @Test
+    public void getAllLevels() {
+        List<ReferentialVO> levels = service.getAllLevels(Location.class.getSimpleName());
+        Assert.assertNotNull(levels);
+        Assert.assertEquals(7, levels.size());
+    }
+
+    @Test
+    public void getLevelById() {
+        ReferentialVO level = service.getLevelById(Location.class.getSimpleName(), 1);
+        Assert.assertNotNull(level);
+        Assert.assertEquals("Country", level.getLabel());
+    }
 
     @Test
     public void findByFilter() {
@@ -71,4 +130,61 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
         List<ReferentialVO> results = service.findByFilter(Location.class.getSimpleName(), filter, 0, 100);
         Assert.assertTrue(CollectionUtils.isEmpty(results));
     }
+
+    @Test
+    public void count() {
+        // count all
+        Long count = service.count(Gear.class.getSimpleName());
+        Assert.assertNotNull(count);
+        Assert.assertEquals(94, count.longValue());
+
+        // count by level
+        count = service.countByLevelId(Gear.class.getSimpleName(), 1);
+        Assert.assertNotNull(count);
+        Assert.assertEquals(94, count.longValue());
+        count = service.countByLevelId(Gear.class.getSimpleName(), 0);
+        Assert.assertNotNull(count);
+        Assert.assertEquals(0, count.longValue());
+        count = service.countByLevelId(Location.class.getSimpleName(), 1);
+        Assert.assertNotNull(count);
+        Assert.assertEquals(4, count.longValue());
+        count = service.countByLevelId(Location.class.getSimpleName(), 1, 2);
+        Assert.assertNotNull(count);
+        Assert.assertEquals(19, count.longValue());
+        count = service.countByLevelId(Location.class.getSimpleName(), 1, 2, 3);
+        Assert.assertNotNull(count);
+        Assert.assertEquals(21, count.longValue());
+
+        // count by filter
+        count = service.countByFilter(Location.class.getSimpleName(), ReferentialFilterVO.builder().levelId(1).build());
+        Assert.assertNotNull(count);
+        Assert.assertEquals(4, count.longValue());
+        count = service.countByFilter(Location.class.getSimpleName(), ReferentialFilterVO.builder().levelIds(new Integer[]{1,2}).build());
+        Assert.assertNotNull(count);
+        Assert.assertEquals(19, count.longValue());
+        count = service.countByFilter(Location.class.getSimpleName(), ReferentialFilterVO.builder().label("FR").build());
+        Assert.assertNotNull(count);
+        Assert.assertEquals(0, count.longValue());
+        count = service.countByFilter(Location.class.getSimpleName(), ReferentialFilterVO.builder().searchText("FR").build());
+        Assert.assertNotNull(count);
+        Assert.assertEquals(12, count.longValue());
+
+
+    }
+
+    @Test
+    public void findByUniqueLabel() {
+        ReferentialVO ref = service.findByUniqueLabel(SaleType.class.getSimpleName(), "Fish auction");
+        Assert.assertNotNull(ref);
+        Assert.assertNotNull(ref.getId());
+        Assert.assertEquals(1, ref.getId().intValue());
+
+        try {
+            service.findByUniqueLabel(SaleType.class.getSimpleName(), "ZZZ");
+            Assert.fail("should throw exception");
+        } catch (Exception e) {
+            Assert.assertNotNull(e);
+        }
+    }
+
 }

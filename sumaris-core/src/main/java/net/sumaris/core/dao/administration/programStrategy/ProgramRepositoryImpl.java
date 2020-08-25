@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
@@ -55,7 +55,7 @@ public class ProgramRepositoryImpl
 
 
     @Autowired
-    private ReferentialDao referentialDao;
+    private BaseRefRepository baseRefRepository;
 
     @Autowired
     private DatabaseSchemaDao databaseSchemaDao;
@@ -134,7 +134,7 @@ public class ProgramRepositoryImpl
         if (fetchOptions != null && fetchOptions.isWithLocations()) {
             target.setLocationClassifications(
                 Beans.getStream(source.getLocationClassifications())
-                    .map(referentialDao::toReferentialVO)
+                    .map(baseRefRepository::toVO)
                     .collect(Collectors.toList()));
 
             target.setLocationClassificationIds(
@@ -144,7 +144,7 @@ public class ProgramRepositoryImpl
 
             target.setLocations(
                 Beans.getStream(source.getLocations())
-                    .map(referentialDao::toReferentialVO)
+                    .map(baseRefRepository::toVO)
                     .collect(Collectors.toList()));
         }
     }
@@ -384,7 +384,7 @@ public class ProgramRepositoryImpl
             .createQuery(query)
             .setParameter(programIdParam, programId)
             .getResultStream()
-            .map(referentialDao::toReferentialVO)
+            .map(baseRefRepository::toVO)
             .collect(Collectors.toList());
     }
 }

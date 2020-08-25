@@ -24,7 +24,7 @@ package net.sumaris.core.service.referential;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -48,41 +48,41 @@ public class ReferentialServiceImpl implements ReferentialService {
 	private static final Logger log = LoggerFactory.getLogger(ReferentialServiceImpl.class);
 
 	@Autowired
-	protected ReferentialDao referentialDao;
+	protected BaseRefRepository baseRefRepository;
 
 	@Override
 	public Date getLastUpdateDate() {
-		return referentialDao.getLastUpdateDate();
+		return baseRefRepository.getLastUpdateDate();
 	}
 
 	@Override
 	public List<ReferentialTypeVO> getAllTypes() {
-		return referentialDao.getAllTypes();
+		return baseRefRepository.getAllTypes();
 	}
 
 	@Override
 	public ReferentialVO get(String entityName, int id) {
-		return referentialDao.get(entityName, id);
+		return baseRefRepository.get(entityName, id);
 	}
 
 	@Override
 	public ReferentialVO get(Class<? extends IReferentialWithStatusEntity> entityClass, int id) {
-		return referentialDao.get(entityClass.getSimpleName(), id);
+		return baseRefRepository.get(entityClass, id);
 	}
 
 	@Override
 	public List<ReferentialVO> getAllLevels(final String entityName) {
-		return referentialDao.getAllLevels(entityName);
+		return baseRefRepository.getAllLevels(entityName);
 	}
 
 	@Override
 	public ReferentialVO getLevelById(String entityName, int levelId) {
-		return referentialDao.getLevelById(entityName, levelId);
+		return baseRefRepository.getLevelById(entityName, levelId);
 	}
 
 	@Override
 	public List<ReferentialVO> findByFilter(String entityName, ReferentialFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-		return referentialDao.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size, sortAttribute,
+		return baseRefRepository.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size, sortAttribute,
 				sortDirection);
 	}
 
@@ -97,30 +97,22 @@ public class ReferentialServiceImpl implements ReferentialService {
 	public Long countByFilter(String entityName, ReferentialFilterVO filter) {
 		Preconditions.checkNotNull(entityName);
 		if (filter == null) {
-			return referentialDao.count(entityName);
+			return baseRefRepository.count(entityName);
 		}
-		return referentialDao.countByFilter(entityName, filter);
+		return baseRefRepository.countByFilter(entityName, filter);
 	}
 
 	@Override
 	public ReferentialVO findByUniqueLabel(String entityName, String label) {
 		Preconditions.checkNotNull(entityName);
 		Preconditions.checkNotNull(label);
-		return referentialDao.findByUniqueLabel(entityName, label);
-	}
-
-	@Override
-	public Integer getIdByUniqueLabel(Class<? extends IItemReferentialEntity> entityClass, String label) {
-		Preconditions.checkNotNull(entityClass);
-		Preconditions.checkNotNull(label);
-		ReferentialVO entity = referentialDao.findByUniqueLabel(entityClass.getSimpleName(), label);
-		if (entity == null) throw new DataNotFoundException(I18n.t("sumaris.error.entity.notfoundByLabel", entityClass.getSimpleName(), label));
-		return entity.getId();
+		return baseRefRepository.findByUniqueLabel(entityName, label)
+			.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.entity.notfoundByLabel", entityName, label)));
 	}
 
 	@Override
 	public void delete(final String entityName, int id) {
-		referentialDao.delete(entityName, id);
+		baseRefRepository.delete(entityName, id);
 	}
 
 	@Override
@@ -134,13 +126,13 @@ public class ReferentialServiceImpl implements ReferentialService {
 	@Override
 	public Long count(String entityName) {
 		Preconditions.checkNotNull(entityName);
-		return referentialDao.count(entityName);
+		return baseRefRepository.count(entityName);
 	}
 
 	@Override
 	public Long countByLevelId(String entityName, Integer... levelIds) {
 		Preconditions.checkNotNull(entityName);
-		return referentialDao.countByLevelId(entityName, levelIds);
+		return baseRefRepository.countByLevelId(entityName, levelIds);
 	}
 
 	@Override
@@ -149,7 +141,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 		Preconditions.checkNotNull(source.getStatusId(), "Missing statusId");
 		Preconditions.checkNotNull(source.getEntityName(), "Missing entityName");
 
-		return referentialDao.save(source);
+		return baseRefRepository.save(source);
 	}
 
 	@Override

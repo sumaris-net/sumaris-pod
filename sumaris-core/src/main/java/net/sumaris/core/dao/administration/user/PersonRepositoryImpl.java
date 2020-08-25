@@ -2,7 +2,7 @@ package net.sumaris.core.dao.administration.user;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SoftwareDao;
@@ -27,7 +27,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -56,14 +55,10 @@ public class PersonRepositoryImpl
     private final List<Listener> listeners = new CopyOnWriteArrayList<>();
 
     @Autowired
-    @Lazy
-    private PersonRepository loopBack;
-
-    @Autowired
     protected DepartmentRepository departmentRepository;
 
     @Autowired
-    private ReferentialDao referentialDao;
+    private BaseRefRepository baseRefRepository;
 
     @Autowired
     private SoftwareDao softwareDao;
@@ -271,10 +266,14 @@ public class PersonRepositoryImpl
                         // translate the user profile label
                         String translatedLabel = getUserProfileLabelTranslationMap(false).getOrDefault(profile, profile);
                         if (StringUtils.isNotBlank(translatedLabel)) {
-                            ReferentialVO userProfileVO = referentialDao.findByUniqueLabel("UserProfile", translatedLabel);
-                            UserProfile up = load(UserProfile.class, userProfileVO.getId());
-                            target.getUserProfiles().add(up);
-                        }
+                            Optional<ReferentialVO> userProfileVO = baseRefRepository.findByUniqueLabel(UserProfile.class.getSimpleName(), translatedLabel);
+                            if (userProfileVO.isPresent()) {
+                                UserProfile up = load(
+                                    UserProfile.class,
+                                    userProfileVO.get().getId()
+                                );
+                                target.getUserProfiles().add(up);
+                            }                        }
                     }
                 }
             }

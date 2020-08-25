@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.data.Trip;
@@ -66,7 +66,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
     private LocationRepository locationRepository;
 
     @Autowired
-    private ReferentialDao referentialDao;
+    private BaseRefRepository baseRefRepository;
 
     @Autowired
     private PersonRepository personRepository;
@@ -75,7 +75,6 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
     private VesselSnapshotDao vesselSnapshotDao;
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<SaleVO> getAllByTripId(int tripId) {
 
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
@@ -203,7 +202,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
         target.setSaleLocation(locationRepository.toVO(source.getSaleLocation()));
 
         // Sale type
-        ReferentialVO saleType = referentialDao.toReferentialVO(source.getSaleType());
+        ReferentialVO saleType = baseRefRepository.toVO(source.getSaleType());
         target.setSaleType(saleType);
 
         if (allFields) {
@@ -211,7 +210,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
             target.setQualityFlagId(source.getQualityFlag().getId());
 
             // Recorder department
-            DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+            DepartmentVO recorderDepartment = baseRefRepository.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
             target.setRecorderDepartment(recorderDepartment);
 
             // Recorder person

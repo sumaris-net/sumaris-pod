@@ -27,7 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -78,7 +78,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     private LocationRepository locationRepository;
 
     @Autowired
-    private ReferentialDao referentialDao;
+    private BaseRefRepository baseRefRepository;
 
     @Autowired
     private ProgramRepository programRepository;
@@ -444,11 +444,11 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         target.setStatusId(source.getVessel().getStatus().getId());
 
         // Vessel type
-        ReferentialVO vesselType = referentialDao.toReferentialVO(source.getVessel().getVesselType());
+        ReferentialVO vesselType = baseRefRepository.toVO(source.getVessel().getVesselType());
         target.setVesselType(vesselType);
 
         // Recorder department
-        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getVessel().getRecorderDepartment(), DepartmentVO.class).orElse(null);
+        DepartmentVO recorderDepartment = baseRefRepository.toTypedVO(source.getVessel().getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         // Vessel features
@@ -486,7 +486,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
         target.setBasePortLocation(basePortLocation);
 
         // Recorder department
-        DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
+        DepartmentVO recorderDepartment = baseRefRepository.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
 
         return target;

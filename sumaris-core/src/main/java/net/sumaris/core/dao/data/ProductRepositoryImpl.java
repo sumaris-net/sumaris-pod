@@ -25,7 +25,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.BaseRefRepository;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.*;
@@ -64,7 +64,7 @@ public class ProductRepositoryImpl
 
     private static final Logger LOG = LoggerFactory.getLogger(ProductRepositoryImpl.class);
 
-    private final ReferentialDao referentialDao;
+    private final BaseRefRepository baseRefRepository;
     private final PersonRepository personRepository;
     private final LandingRepository landingRepository;
     private final PmfmRepository pmfmRepository;
@@ -76,13 +76,13 @@ public class ProductRepositoryImpl
 
     @Autowired
     public ProductRepositoryImpl(EntityManager entityManager,
-                                 ReferentialDao referentialDao,
+                                 BaseRefRepository baseRefRepository,
                                  PersonRepository personRepository,
                                  PmfmRepository pmfmRepository,
                                  LandingRepository landingRepository,
                                  MeasurementDao measurementDao) {
         super(Product.class, entityManager);
-        this.referentialDao = referentialDao;
+        this.baseRefRepository = baseRefRepository;
         this.personRepository = personRepository;
         this.landingRepository = landingRepository;
         this.pmfmRepository = pmfmRepository;
@@ -118,10 +118,10 @@ public class ProductRepositoryImpl
         }
 
         if (source.getTaxonGroup() != null) {
-            target.setTaxonGroup(referentialDao.toReferentialVO(source.getTaxonGroup()));
+            target.setTaxonGroup(baseRefRepository.toVO(source.getTaxonGroup()));
         }
         if (source.getSaleType() != null) {
-            target.setSaleType(referentialDao.toReferentialVO(source.getSaleType()));
+            target.setSaleType(baseRefRepository.toVO(source.getSaleType()));
         }
         // Weight and weight method
         target.setWeight(Daos.roundValue(source.getWeight()));
@@ -458,18 +458,16 @@ public class ProductRepositoryImpl
 
     public Integer getMeasuredMethodId() {
         if (measuredMethodId == null) {
-            measuredMethodId = Optional.ofNullable(
-                referentialDao.findByUniqueLabel(Method.class.getSimpleName(), MethodEnum.MEASURED_BY_OBSERVER.getLabel())
-            ).map(ReferentialVO::getId).orElseThrow(IllegalStateException::new);
+            measuredMethodId = baseRefRepository.findByUniqueLabel(Method.class.getSimpleName(), MethodEnum.MEASURED_BY_OBSERVER.getLabel())
+                .map(ReferentialVO::getId).orElseThrow(IllegalStateException::new);
         }
         return measuredMethodId;
     }
 
     public Integer getCalculatedMethodId() {
         if (calculatedMethodId == null) {
-            calculatedMethodId = Optional.ofNullable(
-                referentialDao.findByUniqueLabel(Method.class.getSimpleName(), MethodEnum.CALCULATED.getLabel())
-            ).map(ReferentialVO::getId).orElseThrow(IllegalStateException::new);
+            calculatedMethodId = baseRefRepository.findByUniqueLabel(Method.class.getSimpleName(), MethodEnum.CALCULATED.getLabel())
+                .map(ReferentialVO::getId).orElseThrow(IllegalStateException::new);
         }
         return calculatedMethodId;
     }
