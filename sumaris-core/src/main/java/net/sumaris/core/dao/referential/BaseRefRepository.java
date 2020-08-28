@@ -7,24 +7,15 @@ import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * @author peck7 on 24/08/2020.
  */
 public interface BaseRefRepository {
-
-    interface QueryVisitor<R, T> {
-        Expression<Boolean> apply(CriteriaQuery<R> query, Root<T> root);
-    }
 
     ReferentialVO get(String entityName, int id);
 
@@ -34,20 +25,11 @@ public interface BaseRefRepository {
 
     Date getLastUpdateDate(Collection<String> entityNames);
 
-    Date maxUpdateDate(String entityName);
-
     List<ReferentialTypeVO> getAllTypes();
 
     List<ReferentialVO> getAllLevels(String entityName);
 
     ReferentialVO getLevelById(String entityName, int levelId);
-
-    <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
-                                                            ReferentialFilterVO filter,
-                                                            int offset,
-                                                            int size,
-                                                            String sortAttribute,
-                                                            SortDirection sortDirection);
 
     List<ReferentialVO> findByFilter(String entityName,
                                      ReferentialFilterVO filter,
@@ -72,9 +54,4 @@ public interface BaseRefRepository {
 
     Long countByLevelId(String entityName, Integer... levelIds);
 
-    <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
-                                      ReferentialFilterVO filter,
-                                      String sortAttribute,
-                                      SortDirection sortDirection,
-                                      QueryVisitor<T, T> queryVisitor);
 }

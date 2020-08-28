@@ -210,7 +210,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
         Vessel target = null;
         if (source.getId() != null) {
-            target = get(Vessel.class, source.getId());
+            target = find(Vessel.class, source.getId());
         }
         boolean isNew = target == null;
 
@@ -268,7 +268,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 features.setId(featuresEntity.getId());
             } else {
                 // Update features
-                VesselFeatures featuresEntity = get(VesselFeatures.class, features.getId());
+                VesselFeatures featuresEntity = find(VesselFeatures.class, features.getId());
                 lockForUpdate(featuresEntity);
                 vesselFeaturesVOToEntity(features, featuresEntity, true);
                 featuresEntity.setUpdateDate(newUpdateDate);
@@ -294,7 +294,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
                 source.getRegistration().setId(periodEntity.getId());
             } else {
                 // Update period
-                VesselRegistrationPeriod registrationEntity = get(VesselRegistrationPeriod.class, registration.getId());
+                VesselRegistrationPeriod registrationEntity = find(VesselRegistrationPeriod.class, registration.getId());
                 lockForUpdate(registrationEntity);
                 vesselRegistrationPeriodVOToEntity(registration, registrationEntity, true);
                 // Update entity
@@ -314,7 +314,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
     public void delete(int id) {
 
         // Get the entity
-        Vessel entity = get(Vessel.class, id);
+        Vessel entity = find(Vessel.class, id);
         if (entity == null) throw new DataRetrievalFailureException(String.format("Vessel with id %s not exists", id));
 
         delete(entity);
@@ -534,7 +534,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
         // Default program
         if (copyIfNull && target.getProgram() == null) {
-            String defaultProgramLabel = config.getVesselDefaultProgramLabel();
+            String defaultProgramLabel = getConfig().getVesselDefaultProgramLabel();
             ProgramVO defaultProgram =  StringUtils.isNotBlank(defaultProgramLabel) ? programRepository.getByLabel(defaultProgramLabel) : null;
             if (defaultProgram  != null && defaultProgram.getId() != null) {
                 target.setProgram(load(Program.class, defaultProgram.getId()));
@@ -606,7 +606,7 @@ public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
             if (source.getRegistrationLocation() == null || source.getRegistrationLocation().getId() == null) {
                 target.setRegistrationLocation(null);
             } else {
-                target.setRegistrationLocation(get(Location.class, source.getRegistrationLocation().getId()));
+                target.setRegistrationLocation(find(Location.class, source.getRegistrationLocation().getId()));
             }
         }
 

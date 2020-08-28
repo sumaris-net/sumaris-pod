@@ -52,7 +52,7 @@ public class ImageAttachmentDaoImpl extends BaseDataDaoImpl implements ImageAtta
 
     @Override
     public ImageAttachmentVO get(int id) {
-        return toImageAttachmentVO(get(ImageAttachment.class, id));
+        return toImageAttachmentVO(find(ImageAttachment.class, id));
     }
 
     @Override
@@ -67,7 +67,7 @@ public class ImageAttachmentDaoImpl extends BaseDataDaoImpl implements ImageAtta
         EntityManager entityManager = getEntityManager();
         ImageAttachment entity = null;
         if (source.getId() != null) {
-            entity = get(ImageAttachment.class, source.getId());
+            entity = find(ImageAttachment.class, source.getId());
         }
         boolean isNew = (entity == null);
         if (isNew) {

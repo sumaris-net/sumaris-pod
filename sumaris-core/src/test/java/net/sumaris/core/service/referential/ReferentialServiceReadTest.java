@@ -24,6 +24,7 @@ package net.sumaris.core.service.referential;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.SaleType;
+import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.location.Location;
@@ -64,7 +65,7 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void get() {
-        // get by entity class
+        // find by entity class
         {
             ReferentialVO ref = service.get(Metier.class, 1);
             Assert.assertNotNull(ref);
@@ -72,7 +73,7 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
             Assert.assertNotNull(ref.getLevelId());
             Assert.assertEquals(89, ref.getLevelId().intValue()); // gear_fk(aka level) = 89
         }
-        // get by entity class name
+        // find by entity class name
         {
             ReferentialVO ref = service.get(Metier.class.getSimpleName(), 2);
             Assert.assertNotNull(ref);
@@ -80,7 +81,7 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
             Assert.assertNotNull(ref.getLevelId());
             Assert.assertEquals(11, ref.getLevelId().intValue()); // gear_fk(aka level) = 89
         }
-        // get invalid ref
+        // find invalid ref
         try {
             service.get(Metier.class.getSimpleName(), 999);
             Assert.fail("should throw exception");
@@ -118,6 +119,30 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
         filter.setLevelIds(new Integer[]{-999});
         results = service.findByFilter(Location.class.getSimpleName(), filter, 0, 100);
         Assert.assertTrue(CollectionUtils.isEmpty(results));
+    }
+
+    @Test
+    public void findStatusByFilter() {
+        // Status has no status ans no level but this filter should return all status
+        ReferentialFilterVO filter = ReferentialFilterVO
+                .builder()
+                .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
+                .build();
+
+        List<ReferentialVO> results = service.findByFilter(Status.class.getSimpleName(), filter, 0, 100);
+        Assert.assertNotNull(results);
+        Assert.assertEquals(3, results.size());
+
+        filter.setLevelIds(new Integer[]{-999});
+        results = service.findByFilter(Status.class.getSimpleName(), filter, 0, 100);
+        Assert.assertNotNull(results);
+        Assert.assertEquals(3, results.size());
+
+        // find label
+        filter.setLabel("Actif");
+        results = service.findByFilter(Status.class.getSimpleName(), filter, 0, 100);
+        Assert.assertNotNull(results);
+        Assert.assertEquals(1, results.size());
     }
 
     @Test

@@ -81,7 +81,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
         }
 
         // Make sure the entity exists
-        T initialEntity = dataChangeDao.get(entityClass, id);
+        T initialEntity = dataChangeDao.find(entityClass, id);
         if (initialEntity == null) {
             throw new DataNotFoundException(I18n.t("sumaris.error.notFound", entityClass.getSimpleName(), id));
         }
@@ -137,7 +137,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
                K id,
                Date lastUpdateDate) {
 
-        T entity = dataChangeDao.get(entityClass, id);
+        T entity = dataChangeDao.find(entityClass, id);
         // Entity has been deleted
         if (entity == null) {
             throw new DataNotFoundException(I18n.t("sumaris.error.notFound", entityClass.getSimpleName(), id));

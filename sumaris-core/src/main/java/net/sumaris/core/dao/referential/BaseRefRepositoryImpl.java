@@ -28,6 +28,7 @@ import com.google.common.collect.Maps;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
@@ -46,7 +47,6 @@ import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.pmfm.*;
-import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.model.referential.taxon.TaxonName;
@@ -63,27 +63,23 @@ import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
-import org.hibernate.dialect.Dialect;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.*;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
-import javax.sql.DataSource;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -91,17 +87,10 @@ import java.util.stream.Stream;
 
 @Repository("baseRefRepository")
 public class BaseRefRepositoryImpl
+    extends HibernateDaoSupport
     implements BaseRefRepository {
 
     private static final Logger log = LoggerFactory.getLogger(BaseRefRepositoryImpl.class);
-
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    @Autowired
-    private DataSource dataSource;
-
-    private boolean debugEntityLoad = false;
 
     private static Map<String, Class<? extends IReferentialEntity>> entityClassMap = Maps.uniqueIndex(
         ImmutableList.of(
@@ -201,12 +190,10 @@ public class BaseRefRepositoryImpl
         // Detect level properties, by name
         entityClassMap.values().forEach((clazz) -> {
             PropertyDescriptor[] pds = BeanUtils.getPropertyDescriptors(clazz);
-            for (PropertyDescriptor pd : pds) {
-                if (pd.getName().matches("^.*[Ll]evel([A−Z].*)?$")) {
-                    result.put(clazz.getSimpleName(), pd);
-                    break;
-                }
-            }
+            Arrays.stream(pds)
+                .filter(propertyDescriptor -> propertyDescriptor.getName().matches("^.*[Ll]evel([A−Z].*)?$"))
+                .findFirst()
+                .ifPresent(propertyDescriptor -> result.put(clazz.getSimpleName(), propertyDescriptor));
         });
 
         // Other level (not having "level" in id)
@@ -228,8 +215,7 @@ public class BaseRefRepositoryImpl
         return result;
     }
 
-    @Override
-    public <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
+    protected  <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
                                                                    ReferentialFilterVO filter,
                                                                    int offset,
                                                                    int size,
@@ -238,12 +224,7 @@ public class BaseRefRepositoryImpl
         Preconditions.checkNotNull(entityClass, "Missing 'entityClass' argument");
         Preconditions.checkNotNull(filter, "Missing 'filter' argument");
 
-        return createFindQuery(entityClass,
-            filter,
-            sortAttribute,
-            sortDirection,
-            null
-        )
+        return createFindQuery(entityClass, filter, sortAttribute, sortDirection)
             .setFirstResult(offset)
             .setMaxResults(size)
             .getResultStream();
@@ -261,13 +242,7 @@ public class BaseRefRepositoryImpl
         // Get entity class from entityName
         Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
 
-        return streamByFilter(entityClass,
-            filter,
-            offset,
-            size,
-            sortAttribute,
-            sortDirection
-        )
+        return streamByFilter(entityClass, filter, offset, size, sortAttribute, sortDirection)
             .map(s -> toVO(entityName, s))
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
@@ -281,8 +256,7 @@ public class BaseRefRepositoryImpl
         // Get entity class from entityName
         Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
 
-        return createCountQuery(entityClass, filter)
-            .getSingleResult();
+        return createCountQuery(entityClass, filter).getSingleResult();
     }
 
     @Override
@@ -327,7 +301,6 @@ public class BaseRefRepositoryImpl
     @Override
     @Cacheable(cacheNames = CacheNames.REFERENTIAL_TYPES)
     public List<ReferentialTypeVO> getAllTypes() {
-
         return entityClassMap.keySet().stream()
             .map(this::getTypeByEntityName)
             .collect(Collectors.toList());
@@ -354,8 +327,7 @@ public class BaseRefRepositoryImpl
         }
 
         String levelEntityName = levelDescriptor.getPropertyType().getSimpleName();
-        return findByFilter(levelEntityName, ReferentialFilterVO.builder().build(), 0, 100,
-            IItemReferentialEntity.Fields.NAME, SortDirection.ASC);
+        return findByFilter(levelEntityName, ReferentialFilterVO.builder().build(), 0, 100, IItemReferentialEntity.Fields.NAME, SortDirection.ASC);
     }
 
     @Override
@@ -371,6 +343,7 @@ public class BaseRefRepositoryImpl
         if (!IReferentialEntity.class.isAssignableFrom(levelClass)) {
             throw new DataRetrievalFailureException("Unable to convert class=" + levelClass.getName() + " to a referential bean");
         }
+
         return toVO(levelClass.getSimpleName(), (IReferentialEntity) find(levelClass, levelId));
     }
 
@@ -384,7 +357,6 @@ public class BaseRefRepositoryImpl
 
     @Override
     public <T extends IReferentialVO, S extends IReferentialEntity> Optional<T> toTypedVO(S source, Class<T> targetClazz) {
-
         if (source == null)
             return Optional.empty();
 
@@ -418,7 +390,7 @@ public class BaseRefRepositoryImpl
         log.debug(String.format("Deleting %s {id=%s}...", entityName, id));
         IReferentialEntity entity = find(entityClass, id);
         if (entity != null) {
-            entityManager.remove(entity);
+            getEntityManager().remove(entity);
             log.debug(String.format("Deleted %s {id=%s}...", entityName, id));
         }
     }
@@ -430,11 +402,11 @@ public class BaseRefRepositoryImpl
         // Get entity class from entityName
         Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
 
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
         criteriaQuery.select(builder.count(criteriaQuery.from(entityClass)));
 
-        return entityManager.createQuery(criteriaQuery).getSingleResult();
+        return getEntityManager().createQuery(criteriaQuery).getSingleResult();
     }
 
     @Override
@@ -444,7 +416,7 @@ public class BaseRefRepositoryImpl
         // Get entity class from entityName
         Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
 
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
 
         Root<? extends IReferentialEntity> entityRoot = criteriaQuery.from(entityClass);
@@ -459,7 +431,7 @@ public class BaseRefRepositoryImpl
             criteriaQuery.where(levelClause);
         }
 
-        TypedQuery<Long> query = entityManager.createQuery(criteriaQuery);
+        TypedQuery<Long> query = getEntityManager().createQuery(criteriaQuery);
         if (levelClause != null) {
             query.setParameter(levelIdsParam, ImmutableList.copyOf(levelIds));
         }
@@ -522,21 +494,20 @@ public class BaseRefRepositoryImpl
             entity.setCreationDate(newUpdateDate);
             source.setCreationDate(newUpdateDate);
 
-            entityManager.persist(entity);
+            getEntityManager().persist(entity);
             source.setId(entity.getId());
         } else {
-            entityManager.merge(entity);
+            getEntityManager().merge(entity);
         }
 
         source.setUpdateDate(newUpdateDate);
 
-        entityManager.flush();
-        entityManager.clear();
+        getEntityManager().flush();
+        getEntityManager().clear();
 
         return source;
     }
 
-    @Override
     @Cacheable(cacheNames = CacheNames.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE)
     public Date maxUpdateDate(String entityName) {
         Preconditions.checkNotNull(entityName, "Missing entityName argument");
@@ -544,13 +515,13 @@ public class BaseRefRepositoryImpl
         // Get entity class from entityName
         Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
 
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Timestamp> criteriaQuery = builder.createQuery(Timestamp.class);
         Root<? extends IReferentialEntity> root = criteriaQuery.from(entityClass);
         criteriaQuery.select(root.get(IReferentialEntity.Fields.UPDATE_DATE));
         criteriaQuery.orderBy(builder.desc(root.get(IReferentialEntity.Fields.UPDATE_DATE)));
 
-        return entityManager.createQuery(criteriaQuery)
+        return getEntityManager().createQuery(criteriaQuery)
             .setMaxResults(1)
             .getSingleResult();
     }
@@ -604,35 +575,34 @@ public class BaseRefRepositoryImpl
         return target;
     }
 
-    protected List<ReferentialVO> toReferentialVOs(List<? extends IReferentialEntity> source) {
-        return toReferentialVOs(source.stream());
+    protected List<ReferentialVO> toVOs(List<? extends IReferentialEntity> source) {
+        return toVOs(source.stream());
     }
 
-    protected List<ReferentialVO> toReferentialVOs(Stream<? extends IReferentialEntity> source) {
+    protected List<ReferentialVO> toVOs(Stream<? extends IReferentialEntity> source) {
         return source
             .map(this::toVO)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
 
-    @Override
-    public <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
+    private Specification<IReferentialEntity> toSpecification(ReferentialFilterVO filter) {
+        return null; // TODO
+    }
+
+    protected  <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
                                              ReferentialFilterVO filter,
                                              String sortAttribute,
-                                             SortDirection sortDirection,
-                                             QueryVisitor<T, T> queryVisitor) {
+                                             SortDirection sortDirection) {
 
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(entityClass);
         Root<T> entityRoot = query.from(entityClass);
         query.select(entityRoot).distinct(true);
 
         addSorting(query, builder, entityRoot, sortAttribute, sortDirection);
 
-        return createFilteredQuery(builder, entityClass,
-            query, entityRoot,
-            filter,
-            queryVisitor);
+        return createFilteredQuery(builder, entityClass, query, entityRoot, filter );
     }
 
     /**
@@ -663,23 +633,19 @@ public class BaseRefRepositoryImpl
     protected <T> TypedQuery<Long> createCountQuery(Class<T> entityClass,
                                                     ReferentialFilterVO filter) {
 
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Long> query = builder.createQuery(Long.class);
         Root<T> root = query.from(entityClass);
         query.select(builder.count(root));
 
-        return createFilteredQuery(builder, entityClass,
-            query, root,
-            filter,
-            null);
+        return createFilteredQuery(builder, entityClass, query, root, filter);
     }
 
     protected <R, T> TypedQuery<R> createFilteredQuery(CriteriaBuilder builder,
                                                        Class<T> entityClass,
                                                        CriteriaQuery<R> query,
                                                        Root<T> entityRoot,
-                                                       ReferentialFilterVO filter,
-                                                       QueryVisitor<R, T> queryVisitor) {
+                                                       ReferentialFilterVO filter) {
 
         Integer levelId = filter.getLevelId();
         Integer[] levelIds = filter.getLevelIds();
@@ -780,19 +746,11 @@ public class BaseRefRepositoryImpl
             whereClause = (whereClause == null) ? statusIdsClause : builder.and(whereClause, statusIdsClause);
         }
 
-        // Delegate to visitor
-        if (queryVisitor != null) {
-            Expression<Boolean> additionalWhere = queryVisitor.apply(query, entityRoot);
-            if (additionalWhere != null) {
-                whereClause = (whereClause == null) ? additionalWhere : builder.and(whereClause, additionalWhere);
-            }
-        }
-
         if (whereClause != null) {
             query.where(whereClause);
         }
 
-        TypedQuery<R> typedQuery = entityManager.createQuery(query);
+        TypedQuery<R> typedQuery = getEntityManager().createQuery(query);
 
         // Bind parameters
         if (labelClause != null) {
@@ -818,7 +776,7 @@ public class BaseRefRepositoryImpl
     }
 
     private <T> TypedQuery<T> createFindByUniqueLabelQuery(Class<T> entityClass, String label) {
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(entityClass);
         Root<T> tripRoot = query.from(entityClass);
         query.select(tripRoot).distinct(true);
@@ -827,7 +785,7 @@ public class BaseRefRepositoryImpl
         ParameterExpression<String> labelParam = builder.parameter(String.class);
         query.where(builder.equal(tripRoot.get(IItemReferentialEntity.Fields.LABEL), labelParam));
 
-        return entityManager.createQuery(query)
+        return getEntityManager().createQuery(query)
             .setParameter(labelParam, label);
     }
 
@@ -838,11 +796,11 @@ public class BaseRefRepositoryImpl
         Class<? extends IReferentialEntity> entityClass = entityClassMap.get(entityName);
         if (entityClass == null)
             throw new IllegalArgumentException(String.format("Referential entity [%s] not exists", entityName));
+
         return entityClass;
     }
 
     protected String getTableName(String entityName) {
-
         return I18n.t("sumaris.persistence.table." + entityName.substring(0, 1).toLowerCase() + entityName.substring(1));
     }
 
@@ -896,39 +854,6 @@ public class BaseRefRepositoryImpl
                 ((IWithValidityStatusEntity<?, ValidityStatus>) target).setValidityStatus(load(ValidityStatus.class, source.getValidityStatusId()));
             }
         }
-    }
-
-    // Base Repository Methods
-
-    private <E> E find(Class<E> clazz, Serializable id) {
-        return entityManager.find(clazz, id);
-    }
-
-    private <C> C load(Class<C> clazz, Serializable id) {
-
-        if (debugEntityLoad) {
-            C load = entityManager.find(clazz, id);
-            if (load == null) {
-                throw new EntityNotFoundException("Unable to load entity " + clazz.getName() + " with identifier '" + id + "': not found in database.");
-            }
-        }
-        return entityManager.unwrap(Session.class).load(clazz, id);
-    }
-
-    private Timestamp getDatabaseCurrentTimestamp() {
-
-        if (dataSource == null) return new Timestamp(System.currentTimeMillis());
-
-        try {
-            final Dialect dialect = getSessionFactory().getJdbcServices().getDialect();
-            return Daos.getDatabaseCurrentTimestamp(dataSource, dialect);
-        } catch (DataAccessResourceFailureException | SQLException e) {
-            throw new SumarisTechnicalException(e);
-        }
-    }
-
-    private SessionFactoryImplementor getSessionFactory() {
-        return (SessionFactoryImplementor) ((Session) entityManager.getDelegate()).getSessionFactory();
     }
 
 }

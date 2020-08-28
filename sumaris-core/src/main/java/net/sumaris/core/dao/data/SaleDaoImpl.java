@@ -94,14 +94,14 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
 
     @Override
     public SaleVO get(int id) {
-        Sale entity = get(Sale.class, id);
+        Sale entity = find(Sale.class, id);
         return toSaleVO(entity, false);
     }
 
     @Override
     public List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sources) {
         // Load parent entity
-        Trip parent = get(Trip.class, tripId);
+        Trip parent = find(Trip.class, tripId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 
@@ -134,7 +134,7 @@ public class SaleDaoImpl extends BaseDataDaoImpl implements SaleDao {
         EntityManager entityManager = getEntityManager();
         Sale entity = null;
         if (source.getId() != null) {
-            entity = get(Sale.class, source.getId());
+            entity = find(Sale.class, source.getId());
         }
         boolean isNew = (entity == null);
         if (isNew) {

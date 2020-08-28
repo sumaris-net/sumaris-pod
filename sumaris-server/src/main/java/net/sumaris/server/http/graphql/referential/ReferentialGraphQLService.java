@@ -28,6 +28,7 @@ import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
@@ -87,7 +88,7 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         // Special case
-        if ("Metier".equals(entityName)) {
+        if (Metier.class.getSimpleName().equals(entityName)) {
             return metierRepository.findByFilter(
                     filter != null ? filter : new ReferentialFilterVO(),
                     offset, size, sort,

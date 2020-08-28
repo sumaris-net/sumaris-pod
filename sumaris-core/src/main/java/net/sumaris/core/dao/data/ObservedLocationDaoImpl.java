@@ -47,7 +47,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.sql.Timestamp;
@@ -82,7 +81,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
     @Override
     public List<ObservedLocationVO> getAll(int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
 
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
         CriteriaQuery<ObservedLocation> query = builder.createQuery(ObservedLocation.class);
         Root<ObservedLocation> observedLocationRoot = query.from(ObservedLocation.class);
         query.select(observedLocationRoot)
@@ -97,14 +96,13 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
             );
         }
 
-        return toVOs(entityManager.createQuery(query).
+        return toVOs(getEntityManager().createQuery(query).
                 setFirstResult(offset)
                 .setMaxResults(size)
                 .getResultList(), fetchOptions);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
                                                  SortDirection sortDirection, DataFetchOptions fetchOptions) {
         Preconditions.checkNotNull(filter);
@@ -231,13 +229,13 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
 
     @Override
     public ObservedLocationVO get(int id) {
-        ObservedLocation entity = get(ObservedLocation.class, id);
+        ObservedLocation entity = find(ObservedLocation.class, id);
         return toVO(entity, null);
     }
 
     @Override
     public <T> T get(int id, Class<T> targetClass) {
-        if (targetClass.isAssignableFrom(ObservedLocation.class)) return (T) get(ObservedLocation.class, id);
+        if (targetClass.isAssignableFrom(ObservedLocation.class)) return (T) find(ObservedLocation.class, id);
         if (targetClass.isAssignableFrom(ObservedLocationVO.class)) return (T) get(id);
         throw new IllegalArgumentException("Unable to convert into " + targetClass.getName());
     }
@@ -246,10 +244,9 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
     public ObservedLocationVO save(ObservedLocationVO source) {
         Preconditions.checkNotNull(source);
 
-        EntityManager entityManager = getEntityManager();
         ObservedLocation entity = null;
         if (source.getId() != null) {
-            entity = get(ObservedLocation.class, source.getId());
+            entity = find(ObservedLocation.class, source.getId());
         }
         boolean isNew = (entity == null);
         if (isNew) {
@@ -275,10 +272,10 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
             entity.setCreationDate(newUpdateDate);
             source.setCreationDate(newUpdateDate);
 
-            entityManager.persist(entity);
+            getEntityManager().persist(entity);
             source.setId(entity.getId());
         } else {
-            entityManager.merge(entity);
+            getEntityManager().merge(entity);
         }
 
         source.setUpdateDate(newUpdateDate);
@@ -306,7 +303,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
     public ObservedLocationVO control(ObservedLocationVO source) {
         Preconditions.checkNotNull(source);
 
-        ObservedLocation entity = get(ObservedLocation.class, source.getId());
+        ObservedLocation entity = find(ObservedLocation.class, source.getId());
 
         // Check update date
         checkUpdateDateForUpdate(source, entity);
@@ -336,7 +333,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
     public ObservedLocationVO validate(ObservedLocationVO source) {
         Preconditions.checkNotNull(source);
 
-        ObservedLocation entity = get(ObservedLocation.class, source.getId());
+        ObservedLocation entity = find(ObservedLocation.class, source.getId());
 
         // Check update date
         checkUpdateDateForUpdate(source, entity);
@@ -366,7 +363,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
     public ObservedLocationVO unvalidate(ObservedLocationVO source) {
         Preconditions.checkNotNull(source);
 
-        ObservedLocation entity = get(ObservedLocation.class, source.getId());
+        ObservedLocation entity = find(ObservedLocation.class, source.getId());
 
         // Check update date
         checkUpdateDateForUpdate(source, entity);

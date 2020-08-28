@@ -115,7 +115,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
     @Override
     public OperationVO get(int id) {
-        Operation entity = get(Operation.class, id);
+        Operation entity = find(Operation.class, id);
         return toVO(entity);
     }
 
@@ -124,7 +124,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
 
         // Load parent entity
-        Trip parent = get(Trip.class, tripId);
+        Trip parent = find(Trip.class, tripId);
 
         // Remember existing entities
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getOperations()));
@@ -158,7 +158,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
         EntityManager session = getEntityManager();
         Operation entity = null;
         if (source.getId() != null) {
-            entity = get(Operation.class, source.getId());
+            entity = find(Operation.class, source.getId());
         }
         boolean isNew = (entity == null);
         if (isNew) {
@@ -260,7 +260,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
                 target.setTrip(null);
             }
             else {
-                target.setTrip(get(Trip.class, tripId)); // Use a GET, because trip will be used later, for physicalGears
+                target.setTrip(find(Trip.class, tripId)); // Use a GET, because trip will be used later, for physicalGears
             }
         }
 
@@ -277,8 +277,8 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-                source.setQualityFlagId(config.getDefaultQualityFlagId());
+                target.setQualityFlag(load(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
+                source.setQualityFlagId(getConfig().getDefaultQualityFlagId());
             }
             else {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));

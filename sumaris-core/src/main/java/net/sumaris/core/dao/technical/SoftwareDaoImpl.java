@@ -62,7 +62,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
         EntityManager entityManager = getEntityManager();
         Software entity = null;
         if (source.getId() != null) {
-            entity = get(Software.class, source.getId());
+            entity = find(Software.class, source.getId());
         }
         boolean isNew = (entity == null);
         if (isNew) {

@@ -84,7 +84,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
         Preconditions.checkNotNull(sources);
 
         // Load parent entity
-        Trip parent = get(Trip.class, tripId);
+        Trip parent = find(Trip.class, tripId);
 
         // Remember existing entities
         final List<OperationGroupVO> existingOperationGroups = getOperationGroupsByTripId(tripId, OperationGroupFilter.UNDEFINED);
@@ -104,7 +104,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
                 entity = new Operation();
                 isNew = true;
             } else {
-                entity = get(Operation.class, operationGroup.getId());
+                entity = find(Operation.class, operationGroup.getId());
             }
 
             if (!isNew) {
@@ -173,7 +173,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
 
     @Override
     public OperationGroupVO get(int id) {
-        return toOperationGroupVO(get(Operation.class, id));
+        return toOperationGroupVO(find(Operation.class, id));
     }
 
     @Override
@@ -190,7 +190,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
         if (tripId == null) {
             throw new SumarisTechnicalException("Cannot save an operation group a trip id");
         }
-        Trip parent = get(Trip.class, tripId);
+        Trip parent = find(Trip.class, tripId);
 
         // Save with parent entity
         return save(source, parent);
@@ -202,7 +202,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
         Preconditions.checkNotNull(sources);
 
         // Load parent entity
-        Trip parent = get(Trip.class, tripId);
+        Trip parent = find(Trip.class, tripId);
 
         // Remember existing entities
         final List<OperationGroupVO> existingOperationGroups = getOperationGroupsByTripId(tripId, OperationGroupFilter.DEFINED);
@@ -264,7 +264,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
         // Add sorting
         addSorting(query, builder, root, sortAttribute, sortDirection);
 
-        TypedQuery<Operation> q = entityManager.createQuery(query)
+        TypedQuery<Operation> q = getEntityManager().createQuery(query)
             .setParameter(tripIdParam, tripId)
             .setFirstResult(offset)
             .setMaxResults(size);
@@ -277,7 +277,7 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
 
         Operation entity = null;
         if (source.getId() != null) {
-            entity = get(Operation.class, source.getId());
+            entity = find(Operation.class, source.getId());
         }
         boolean isNew = (entity == null);
         if (isNew) {
@@ -364,8 +364,8 @@ public class OperationGroupDaoImpl extends BaseDataDaoImpl implements OperationG
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-                source.setQualityFlagId(config.getDefaultQualityFlagId());
+                target.setQualityFlag(load(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
+                source.setQualityFlagId(getConfig().getDefaultQualityFlagId());
             } else {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
             }

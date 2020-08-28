@@ -30,7 +30,6 @@ import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.ValidityStatus;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Date;
 
 @Data
@@ -38,7 +37,7 @@ import java.util.Date;
 @Entity
 @Table(name = "location")
 @Cacheable
-public class Location implements IItemReferentialEntity, Serializable, IWithValidityStatusEntity<Integer, ValidityStatus> {
+public class Location implements IItemReferentialEntity, IWithValidityStatusEntity<Integer, ValidityStatus> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_SEQ")
@@ -46,8 +45,6 @@ public class Location implements IItemReferentialEntity, Serializable, IWithVali
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-
-
     @JoinColumn(name = "status_fk", nullable = false)
     private Status status;
 

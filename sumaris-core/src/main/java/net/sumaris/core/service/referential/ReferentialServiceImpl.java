@@ -97,7 +97,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 	public Long countByFilter(String entityName, ReferentialFilterVO filter) {
 		Preconditions.checkNotNull(entityName);
 		if (filter == null) {
-			return baseRefRepository.count(entityName);
+			return count(entityName);
 		}
 		return baseRefRepository.countByFilter(entityName, filter);
 	}

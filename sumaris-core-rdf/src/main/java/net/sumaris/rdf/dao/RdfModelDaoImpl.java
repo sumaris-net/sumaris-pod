@@ -83,7 +83,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
         catch (NumberFormatException t) {/*continue*/}
 
 
-        TypedQuery<T> typedQuery = entityManager.createQuery(hql, aClass)
+        TypedQuery<T> typedQuery = getEntityManager().createQuery(hql, aClass)
                 .setParameter("id", id)
                 .setMaxResults(1);
 
@@ -104,7 +104,7 @@ public class RdfModelDaoImpl extends HibernateDaoSupport implements RdfModelDao 
         Preconditions.checkNotNull(page);
 
         String hql = getSelectHqlQuery(domain, className, page.getSortBy(), page.getSortDirection());
-        TypedQuery<T> typedQuery = entityManager.createQuery(hql, aClass)
+        TypedQuery<T> typedQuery = getEntityManager().createQuery(hql, aClass)
                 .setFirstResult((int)page.getOffset())
                 .setMaxResults(page.getSize());
 

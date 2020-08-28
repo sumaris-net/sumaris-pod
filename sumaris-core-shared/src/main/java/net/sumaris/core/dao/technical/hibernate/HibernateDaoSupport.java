@@ -37,7 +37,6 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Dates;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
@@ -47,10 +46,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.LockTimeoutException;
-import javax.persistence.criteria.*;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
@@ -61,7 +65,6 @@ import java.util.*;
  * <p>HibernateDaoSupport class.</p>
  *
  */
-@Deprecated
 public abstract class HibernateDaoSupport {
 
     /**
@@ -73,10 +76,10 @@ public abstract class HibernateDaoSupport {
     private boolean debugEntityLoad;
 
     @Autowired
-    protected EntityManager entityManager;
+    private SumarisConfiguration config;
 
-    @Autowired
-    protected SumarisConfiguration config;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private DataSource dataSource;
@@ -85,7 +88,15 @@ public abstract class HibernateDaoSupport {
      * <p>Constructor for HibernateDaoSupport.</p>
      */
     public HibernateDaoSupport() {
-        this.debugEntityLoad = SumarisConfiguration.getInstance().debugEntityLoad();
+    }
+
+    public HibernateDaoSupport(SumarisConfiguration config) {
+        this.config = config;
+    }
+
+    @PostConstruct
+    private void init() {
+        this.debugEntityLoad = getConfig().debugEntityLoad();
     }
 
     /**
@@ -98,15 +109,6 @@ public abstract class HibernateDaoSupport {
     }
 
     /**
-     * @param sf
-     * @deprecated use EntityManager instead
-     */
-    @Deprecated
-    protected void setSessionFactory(SessionFactory sf) {
-        logger.warn("TODO: remove call to deprecated setSessionFactory()");
-    }
-
-    /**
      * <p>getEntityManager.</p>
      *
      * @return a {@link Session} object.
@@ -116,11 +118,19 @@ public abstract class HibernateDaoSupport {
     }
 
     protected Session getSession() {
-        return (Session) entityManager.getDelegate();
+        return (Session) getEntityManager().getDelegate();
     }
 
     protected SessionFactoryImplementor getSessionFactory() {
         return (SessionFactoryImplementor) getSession().getSessionFactory();
+    }
+
+    public SumarisConfiguration getConfig() {
+        return config;
+    }
+
+    public DataSource getDataSource() {
+        return dataSource;
     }
 
     /**
@@ -129,9 +139,8 @@ public abstract class HibernateDaoSupport {
      * @param entities a {@link Collection} object.
      */
     protected void deleteAll(Collection<?> entities) {
-        EntityManager entityManager = getEntityManager();
         for (Object entity : entities) {
-            entityManager.remove(entity);
+            getEntityManager().remove(entity);
         }
     }
 
@@ -142,10 +151,9 @@ public abstract class HibernateDaoSupport {
      * @param identifier  a {@link Serializable} object.
      */
     protected <T> void delete(Class<T> entityClass, Serializable identifier) {
-        EntityManager entityManager = getEntityManager();
-        T entity = entityManager.find(entityClass, identifier);
+        T entity = getEntityManager().find(entityClass, identifier);
         if (entity != null) {
-            entityManager.remove(entity);
+            getEntityManager().remove(entity);
         }
     }
 
@@ -157,16 +165,15 @@ public abstract class HibernateDaoSupport {
      * @param <T>   a T object.
      * @return a T object.
      */
-    @SuppressWarnings("unchecked")
     protected <T> T load(Class<? extends T> clazz, Serializable id) {
 
         if (debugEntityLoad) {
-            T load = entityManager.find(clazz, id);
+            T load = getEntityManager().find(clazz, id);
             if (load == null) {
                 throw new DataIntegrityViolationException("Unable to load entity " + clazz.getName() + " with identifier '" + id + "': not found in database.");
             }
         }
-        return entityManager.unwrap(Session.class).load(clazz, id);
+        return getSession().load(clazz, id);
     }
 
     /**
@@ -180,7 +187,7 @@ public abstract class HibernateDaoSupport {
     @SuppressWarnings("unchecked")
     protected <T> List<T> loadAll(Class<? extends T> clazz, Collection<? extends Serializable> ids, boolean failedIfMissing) {
 
-        List result = getEntityManager().createQuery(String.format("from %s where id in (:id)", clazz.getSimpleName()))
+        List<T> result = getEntityManager().createQuery(String.format("from %s where id in (:id)", clazz.getSimpleName()))
             .setParameter("id", ids)
             .getResultList();
         if (failedIfMissing && result.size() != ids.size()) {
@@ -189,7 +196,7 @@ public abstract class HibernateDaoSupport {
                 ids.size(),
                 result.size()));
         }
-        return (List<T>) result;
+        return result;
     }
 
     /**
@@ -200,7 +207,6 @@ public abstract class HibernateDaoSupport {
      * @param <T>   a T object.
      * @return a list of T object.
      */
-    @SuppressWarnings("unchecked")
     protected <T> Set<T> loadAllAsSet(Class<? extends T> clazz, Collection<? extends Serializable> ids, boolean failedIfMissing) {
 
         List<T> result = loadAll(clazz, ids, failedIfMissing);
@@ -215,8 +221,7 @@ public abstract class HibernateDaoSupport {
      * @param <T>   a T object.
      * @return a T object.
      */
-    @SuppressWarnings("unchecked")
-    protected <T> T get(Class<? extends T> clazz, Serializable id) {
+    protected <T> T find(Class<? extends T> clazz, Serializable id) {
         return getEntityManager().find(clazz, id);
     }
 
@@ -229,10 +234,9 @@ public abstract class HibernateDaoSupport {
      * @param <T>          a T object.
      * @return a T object.
      */
-    @SuppressWarnings("unchecked")
-    protected <T extends Serializable> T get(Class<? extends T> clazz, Serializable id, LockModeType lockModeType) {
-        T entity = entityManager.find(clazz, id);
-        entityManager.lock(entity, lockModeType);
+    protected <T extends Serializable> T find(Class<? extends T> clazz, Serializable id, LockModeType lockModeType) {
+        T entity = getEntityManager().find(clazz, id);
+        getEntityManager().lock(entity, lockModeType);
         return entity;
     }
 
@@ -244,17 +248,17 @@ public abstract class HibernateDaoSupport {
     protected Timestamp getDatabaseCurrentTimestamp() {
         try {
             final Dialect dialect = getSessionFactory().getJdbcServices().getDialect();
-            return Daos.getDatabaseCurrentTimestamp(dataSource, dialect);
+            return Daos.getDatabaseCurrentTimestamp(getDataSource(), dialect);
         } catch (DataAccessResourceFailureException | SQLException e) {
             throw new SumarisTechnicalException(e);
         }
     }
 
     protected String getTableName(String entityName) {
-
         return I18n.t("sumaris.persistence.table." + entityName.substring(0, 1).toLowerCase() + entityName.substring(1));
     }
 
+    @Deprecated
     protected void checkUpdateDateForUpdate(IUpdateDateEntityBean<?, ? extends Date> source,
                                             IUpdateDateEntityBean<?, ? extends Date> entity) {
         // Check update date
@@ -276,7 +280,7 @@ public abstract class HibernateDaoSupport {
     protected void lockForUpdate(IEntity<?> entity, LockModeType modeType) {
         // Lock entityName
         try {
-            entityManager.lock(entity, modeType);
+            getEntityManager().lock(entity, modeType);
         } catch (LockTimeoutException e) {
             throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
                 getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
@@ -284,7 +288,7 @@ public abstract class HibernateDaoSupport {
     }
 
     protected void delete(IEntity<?> entity) {
-        entityManager.remove(entity);
+        getEntityManager().remove(entity);
     }
 
     /**

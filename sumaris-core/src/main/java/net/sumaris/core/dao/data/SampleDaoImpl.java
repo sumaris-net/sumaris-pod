@@ -51,7 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
@@ -86,8 +85,8 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
     @PostConstruct
     protected void init() {
-        this.unitIdNone = config.getUnitIdNone();
-        this.enableSaveUsingHash = config.enableSampleHashOptimization();
+        this.unitIdNone = getConfig().getUnitIdNone();
+        this.enableSaveUsingHash = getConfig().enableSampleHashOptimization();
     }
 
     @Override
@@ -135,7 +134,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
     @Override
     public SampleVO get(int id) {
-        Sample entity = get(Sample.class, id);
+        Sample entity = find(Sample.class, id);
         return toSampleVO(entity, false);
     }
 
@@ -146,7 +145,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         if (debugTime != 0L) logger.debug(String.format("Saving operation {id:%s} samples... {hash_optimization:%s}", operationId, enableSaveUsingHash));
 
         // Load parent entity
-        Operation parent = get(Operation.class, operationId);
+        Operation parent = find(Operation.class, operationId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getTrip().getProgram().getId());
 
@@ -159,8 +158,8 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         boolean dirty = saveAllByParent(parent, sources);
 
         if (dirty) {
-            entityManager.flush();
-            entityManager.clear();
+            getEntityManager().flush();
+            getEntityManager().clear();
         }
 
         if (debugTime != 0L) logger.debug(String.format("Saving operation {id:%s} samples [OK] in %s ms", operationId, System.currentTimeMillis() - debugTime));
@@ -174,7 +173,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         if (debugTime != 0L) logger.debug(String.format("Saving landing {id:%s} samples... {hash_optimization:%s}", landingId, enableSaveUsingHash));
 
         // Load parent entity
-        Landing parent = get(Landing.class, landingId);
+        Landing parent = find(Landing.class, landingId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 
@@ -188,8 +187,8 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         boolean dirty = saveAllByParent(parent, sources);
 
         if (dirty) {
-            entityManager.flush();
-            entityManager.clear();
+            getEntityManager().flush();
+            getEntityManager().clear();
         }
 
         if (debugTime != 0L) logger.debug(String.format("Saving landing {id:%s} samples [OK] in %s ms", landingId, System.currentTimeMillis() - debugTime));
@@ -201,10 +200,9 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
     public SampleVO save(SampleVO source) {
         Preconditions.checkNotNull(source);
 
-        EntityManager entityManager = getEntityManager();
         Sample entity = null;
         if (source.getId() != null) {
-            entity = get(Sample.class, source.getId());
+            entity = find(Sample.class, source.getId());
         }
         boolean isNew = (entity == null);
         if (isNew) {
@@ -236,7 +234,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
             entity.setCreationDate(newUpdateDate);
             source.setCreationDate(newUpdateDate);
 
-            entityManager.persist(entity);
+            getEntityManager().persist(entity);
             source.setId(entity.getId());
         } else {
             if (entity.getCreationDate() == null) {
@@ -244,7 +242,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
                 entity.setCreationDate(newUpdateDate);
                 source.setCreationDate(newUpdateDate);
             }
-            entityManager.merge(entity);
+            getEntityManager().merge(entity);
         }
 
         source.setUpdateDate(newUpdateDate);
@@ -254,8 +252,8 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
             source.setParentId(entity.getParent().getId());
         }
 
-        entityManager.flush();
-        entityManager.clear();
+        getEntityManager().flush();
+        getEntityManager().clear();
 
         return source;
     }
@@ -332,9 +330,8 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
                                      boolean enableHashOptimization) {
         Preconditions.checkNotNull(source);
 
-        EntityManager entityManager = getEntityManager();
         if (entity == null && source.getId() != null) {
-            entity = get(Sample.class, source.getId());
+            entity = find(Sample.class, source.getId());
         }
         boolean isNew = (entity == null);
         if (isNew) {
@@ -369,7 +366,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
             source.setCreationDate(newUpdateDate);
 
             // Add the new sample
-            entityManager.persist(entity);
+            getEntityManager().persist(entity);
             source.setId(entity.getId());
             if (trace) logger.trace(String.format("Adding sample {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
         } else {
@@ -383,7 +380,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
             // Update existing sample
             if (trace) logger.trace(String.format("Updating sample {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
-            entityManager.merge(entity);
+            getEntityManager().merge(entity);
         }
 
         return source;
@@ -599,7 +596,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
             }
             else {
                 // Get the taxon name, then set reference taxon
-                TaxonName taxonname = get(TaxonName.class, source.getTaxonName().getId());
+                TaxonName taxonname = find(TaxonName.class, source.getTaxonName().getId());
                 target.setReferenceTaxon(taxonname.getReferenceTaxon());
             }
         }

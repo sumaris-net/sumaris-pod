@@ -340,7 +340,7 @@ public class LocationServiceImpl implements LocationService{
                         parentLocation.setLevelId(icesRectangleLocationLevel.getId());
                     }
                     parentLocation.setValidityStatusId(notValidStatus.getId());
-                    parentLocation = (LocationVO) baseRefRepository.save(parentLocation);
+                    parentLocation = locationRepository.save(parentLocation);
 
                     // Add this new rectangle to the list, to enable geometry creation in the next <for> iteration
                     if (!rectangleLocations.contains(parentLocation)) {

@@ -102,7 +102,7 @@ public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPosi
     public List<VesselPositionVO> saveByOperationId(int operationId, List<VesselPositionVO> sources) {
 
         // Load parent entity
-        Operation parent = get(Operation.class, operationId);
+        Operation parent = find(Operation.class, operationId);
 
         // Remember existing entities
         final Map<Integer, VesselPosition> sourcesToRemove = Beans.splitById(Beans.getList(parent.getPositions()));
@@ -230,7 +230,7 @@ public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPosi
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
+                target.setQualityFlag(load(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
             }
             else {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));

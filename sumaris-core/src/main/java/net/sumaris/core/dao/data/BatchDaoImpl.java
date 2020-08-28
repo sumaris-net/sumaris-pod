@@ -52,7 +52,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -85,7 +84,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
     @PostConstruct
     protected void init() {
-        this.enableSaveUsingHash = config.enableBatchHashOptimization();
+        this.enableSaveUsingHash = getConfig().enableBatchHashOptimization();
     }
 
     @Override
@@ -138,7 +137,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
     @Override
     public BatchVO get(int id) {
-        Batch entity = get(Batch.class, id);
+        Batch entity = find(Batch.class, id);
         return toBatchVO(entity, false);
     }
 
@@ -149,7 +148,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         if (debugTime != 0L) logger.debug(String.format("Saving operation {id:%s} batches... {hash_optimization:%s}", operationId, enableSaveUsingHash));
 
         // Load parent entity
-        Operation parent = get(Operation.class, operationId);
+        Operation parent = find(Operation.class, operationId);
 
         sources.forEach(source -> source.setOperationId(operationId));
 
@@ -158,8 +157,8 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         // Flush if need
         if (dirty) {
-            entityManager.flush();
-            entityManager.clear();
+            getEntityManager().flush();
+            getEntityManager().clear();
         }
 
         if (debugTime != 0L) logger.debug(String.format("Saving operation {id:%s} batches [OK] in %s ms", operationId, System.currentTimeMillis() - debugTime));
@@ -171,10 +170,9 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
     public BatchVO save(BatchVO source) {
         Preconditions.checkNotNull(source);
 
-        EntityManager entityManager = getEntityManager();
         Batch entity = null;
         if (source.getId() != null) {
-            entity = get(Batch.class, source.getId());
+            entity = find(Batch.class, source.getId());
         }
         boolean isNew = (entity == null);
         if (isNew) {
@@ -202,17 +200,17 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         // Save entityName
         if (isNew) {
-            entityManager.persist(entity);
+            getEntityManager().persist(entity);
             source.setId(entity.getId());
         } else {
-            entityManager.merge(entity);
+            getEntityManager().merge(entity);
         }
 
         // Update date
         source.setUpdateDate(newUpdateDate);
 
-        entityManager.flush();
-        entityManager.clear();
+        getEntityManager().flush();
+        getEntityManager().clear();
 
         return source;
     }
@@ -350,9 +348,8 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
                                     boolean enableBatchHashOptimization) {
         Preconditions.checkNotNull(source);
 
-        EntityManager entityManager = getEntityManager();
         if (entity == null && source.getId() != null) {
-            entity = get(Batch.class, source.getId());
+            entity = find(Batch.class, source.getId());
         }
         boolean isNew = (entity == null);
         if (isNew) {
@@ -383,13 +380,13 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         // Save entity
         if (isNew) {
             // Add new batch
-            entityManager.persist(entity);
+            getEntityManager().persist(entity);
             source.setId(entity.getId());
             if (trace) logger.trace(String.format("Adding batch {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
         } else {
             // Update existing batch
             if (trace) logger.trace(String.format("Updating batch {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
-            entityManager.merge(entity);
+            getEntityManager().merge(entity);
         }
 
         return source;
@@ -538,7 +535,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
                     target.setReferenceTaxon(load(ReferenceTaxon.class, source.getTaxonName().getReferenceTaxonId()));
                 } else {
                     // Get the taxon name, then set reference taxon
-                    TaxonName taxonname = get(TaxonName.class, source.getTaxonName().getId());
+                    TaxonName taxonname = find(TaxonName.class, source.getTaxonName().getId());
                     if (taxonname != null) {
                         target.setReferenceTaxon(taxonname.getReferenceTaxon());
                     } else {
@@ -560,7 +557,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
+                target.setQualityFlag(load(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
             } else {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
             }

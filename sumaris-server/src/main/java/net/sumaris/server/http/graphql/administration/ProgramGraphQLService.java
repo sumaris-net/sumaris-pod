@@ -26,6 +26,8 @@ import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.referential.gear.GearClassification;
+import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.ReferentialService;
@@ -108,7 +110,7 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "taxonGroupType", description = "Get program's taxon group type")
     public ReferentialVO getProgramTaxonGroupType(@GraphQLContext ProgramVO program) {
         if (program.getTaxonGroupTypeId() != null && program.getTaxonGroupType() == null) {
-            return referentialService.get("TaxonGroupType", program.getTaxonGroupTypeId());
+            return referentialService.get(TaxonGroupType.class, program.getTaxonGroupTypeId());
         }
         return program.getTaxonGroupType();
     }
@@ -116,7 +118,7 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "gearClassification", description = "Get program's gear classification")
     public ReferentialVO getProgramGearClassification(@GraphQLContext ProgramVO program) {
         if (program.getGearClassificationId() != null && program.getGearClassification() == null) {
-            return referentialService.get("GearClassification", program.getGearClassificationId());
+            return referentialService.get(GearClassification.class, program.getGearClassificationId());
         }
         return program.getGearClassification();
     }

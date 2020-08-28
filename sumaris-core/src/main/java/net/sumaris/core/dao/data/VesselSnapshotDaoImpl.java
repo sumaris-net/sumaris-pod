@@ -96,7 +96,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
         Preconditions.checkArgument(offset >= 0);
         Preconditions.checkArgument(size > 0);
 
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<VesselSnapshotResult> query = cb.createQuery(VesselSnapshotResult.class);
         Root<VesselFeatures> root = query.from(VesselFeatures.class);
 
@@ -189,7 +189,7 @@ public class VesselSnapshotDaoImpl extends BaseDataDaoImpl implements VesselSnap
         String searchTextAsPrefix = Daos.getEscapedSearchText(filter.getSearchText());
         String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
 
-        TypedQuery<VesselSnapshotResult> q = entityManager.createQuery(query)
+        TypedQuery<VesselSnapshotResult> q = getEntityManager().createQuery(query)
             .setParameter(dateParam, filter.getDate())
             .setParameter(vesselFeaturesIdParam, filter.getVesselFeaturesId())
             .setParameter(vesselIdParam, filter.getVesselId())
